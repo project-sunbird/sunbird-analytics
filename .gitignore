@@ -1,0 +1,7 @@
+.classpath
+.cache
+.cache-main
+.project
+platform-core/analytics-common/.settings
+*.prefs
+dependency-reduced-pom.xml
