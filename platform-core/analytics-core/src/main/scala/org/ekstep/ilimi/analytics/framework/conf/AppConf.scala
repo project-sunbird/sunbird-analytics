@@ -25,5 +25,13 @@ object AppConf {
         }
         properties.getProperty(key);
     }
+    
+    def getAwsKey(): String = {
+        sys.env("aws.key");
+    }
+    
+    def getAwsSecret(): String = {
+        sys.env("aws.secret");
+    }
 
 }

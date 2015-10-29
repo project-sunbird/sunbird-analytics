@@ -47,12 +47,9 @@ object CommonUtil {
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ");
     @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
-    def getParallelization(parallelization: Int): Int = {
-        if (parallelization == 0) {
-            AppConf.getConfig("default.parallelization").toInt
-        } else {
-            parallelization
-        }
+    def getParallelization(config: JobConfig): Int = {
+        
+        config.parallelization.getOrElse(AppConf.getConfig("default.parallelization").toInt);
     }
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
@@ -65,8 +62,8 @@ object CommonUtil {
             conf.setMaster("local[*]");
         }
         val sc = new SparkContext(conf);
-        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getConfig("s3_aws_key"));
-        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getConfig("s3_aws_secret"));
+        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
+        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
         Console.println("### Spark Context initialized ###");
         sc;
     }
