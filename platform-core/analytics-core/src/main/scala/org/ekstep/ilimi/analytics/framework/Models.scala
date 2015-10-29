@@ -22,4 +22,4 @@ case class Query(bucket: Option[String], prefix: Option[String], startDate: Opti
 case class Filter(name: Option[String], operator: Option[String], value: Option[AnyRef]);
 case class Sort(name: Option[String], order: Option[String]);
 case class Dispatcher(to: Option[String], params: Option[Map[String, AnyRef]]);
-case class JobConfig(search: Option[Array[Query]], filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]]);
+case class JobConfig(search: Option[Array[Query]], filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String]);

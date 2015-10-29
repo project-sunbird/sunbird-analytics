@@ -10,10 +10,12 @@ import org.jets3t.service.acl.AccessControlList
 import org.jets3t.service.acl.GroupGrantee
 import org.jets3t.service.acl.Permission
 import org.jets3t.service.acl.GranteeInterface
+import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Buffer
 
 object S3Util {
 
-    private val awsCredentials = new AWSCredentials(AppConf.getConfig("s3_aws_key"), AppConf.getConfig("s3_aws_secret"));
+    private val awsCredentials = new AWSCredentials(AppConf.getAwsKey(), AppConf.getAwsSecret());
     private val s3Service = new RestS3Service(awsCredentials);
 
     def upload(bucketName: String, filePath: String, key: String) {
@@ -45,13 +47,32 @@ object S3Util {
         Console.println("ContentLength - " + s3Object.getLastModifiedDate);
     }
 
-    def getAllKeys(bucketName: String, prefix: String) : Array[String] = {
+    def getAllKeys(bucketName: String, prefix: String): Array[String] = {
         val bucket = s3Service.getBucket(bucketName);
         val s3Objects = s3Service.listObjects(bucket, prefix, null);
         //s3Objects.foreach { x => Console.println(" " + x.getKey() + " (" + x.getContentLength() + " bytes)") }
         s3Objects.map { x => x.getKey }
     }
-    
+
+    def search(bucketName: String, prefix: String, fromDate: Option[String], toDate: Option[String]): Buffer[String] = {
+        var paths = ListBuffer[String]();
+        if (fromDate.nonEmpty) {
+            val dates = CommonUtil.getDatesBetween(fromDate.get, toDate);
+            dates.foreach { x =>
+                {
+                    paths ++= getPath(bucketName, prefix + x);
+                }
+            }
+        } else {
+            paths ++= getPath(bucketName, prefix);
+        }
+        paths;
+    }
+
+    def getPath(bucket: String, prefix: String): Array[String] = {
+        S3Util.getAllKeys(bucket, prefix).map { x => "s3n://" + bucket + "/" + x };
+    }
+
     def main(args: Array[String]): Unit = {
         getAllKeys("ep-production-backup", "logs/telemetry/*.gz");
     }
