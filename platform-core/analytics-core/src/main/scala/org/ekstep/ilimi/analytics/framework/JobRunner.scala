@@ -8,7 +8,7 @@ import org.apache.spark.rdd.RDD
 object JobRunner {
   
     def executeBatch(jobClass: String, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]) : RDD[String] = {
-        val job:IBatchModel = null;
-        job.execute(events, jobParams);
+        val model = Class.forName(jobClass).newInstance.asInstanceOf[{ def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]]) : RDD[String] }];;
+        model.execute(events, jobParams);
     }
 }
