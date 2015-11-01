@@ -19,7 +19,7 @@ case class User(name: String, encoded_id: String, ekstep_id: String, gender: Str
 
 // Analytics Framework Job Models
 case class Query(bucket: Option[String], prefix: Option[String], startDate: Option[String], endDate: Option[String], gameId: Option[String], gameVersion: Option[String], telemetryVersion: Option[String], deviceInfo: Option[Map[String, AnyRef]], locationInfo: Option[Map[String, AnyRef]], brokerList: Option[String], topic: Option[String], windowType: Option[String], windowDuration: Option[Int])
-case class Filter(name: Option[String], operator: Option[String], value: Option[AnyRef]);
+case class Filter(name: String, operator: String, value: Option[AnyRef]);
 case class Sort(name: Option[String], order: Option[String]);
 case class Dispatcher(to: Option[String], params: Option[Map[String, AnyRef]]);
 case class JobConfig(search: Option[Array[Query]], filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String]);

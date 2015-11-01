@@ -208,7 +208,7 @@ object CommonUtil {
     }
 
     def getEventId(event: Event): String = {
-        event.eid.getOrElse("");
+        event.eid.getOrElse(null);
     }
 
     def getEventTS(event: Event): Long = {
@@ -222,11 +222,15 @@ object CommonUtil {
     }
 
     def getGameId(event: Event): String = {
-        event.gdata.getOrElse(Gdata(Option(""), Option(""))).id.getOrElse("");
+        event.gdata.getOrElse(Gdata(Option(null), Option(null))).id.getOrElse(null);
+    }
+    
+    def getGameVersion(event: Event): String = {
+        event.gdata.getOrElse(Gdata(Option(null), Option(null))).ver.getOrElse(null);
     }
 
     def getUserId(event: Event): String = {
-        event.uid.getOrElse("");
+        event.uid.getOrElse(null);
     }
 
     def getParallelization(config: Option[Map[String, String]]): Int = {
