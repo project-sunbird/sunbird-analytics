@@ -15,14 +15,13 @@ import org.ekstep.ilimi.analytics.framework.conf.AppConf
 import org.ekstep.ilimi.analytics.framework.Event
 import org.json4s.DefaultFormats
 import org.json4s.Extraction
-import org.json4s.jackson.JsonMethods.compact
-import org.json4s.jackson.JsonMethods.parse
+import org.json4s.jackson.JsonMethods
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTime
-import org.ekstep.ilimi.analytics.framework.Gdata
+import org.ekstep.ilimi.analytics.framework.GData
 import org.joda.time.LocalDate
 import org.joda.time.Days
 import java.util.Calendar
@@ -39,6 +38,9 @@ import java.nio.file.StandardCopyOption
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.ekstep.ilimi.analytics.framework.JobConfig
+import org.json4s.JsonMethods
+import org.ekstep.ilimi.analytics.framework.Response
+import scala.reflect.ClassTag
 
 object CommonUtil {
 
@@ -48,7 +50,7 @@ object CommonUtil {
     @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     def getParallelization(config: JobConfig): Int = {
-        
+
         config.parallelization.getOrElse(AppConf.getConfig("default.parallelization").toInt);
     }
 
@@ -85,7 +87,7 @@ object CommonUtil {
 
     def getEvent(line: String): Event = {
         implicit val formats = DefaultFormats;
-        parse(line).extract[Event]
+        JsonMethods.parse(line).extract[Event]
     }
 
     def getTempPath(date: String): String = {
@@ -122,11 +124,6 @@ object CommonUtil {
 
     def deleteFile(file: String) {
         Files.delete(get(file));
-    }
-
-    def jsonToString(obj: Any): String = {
-        implicit val formats = DefaultFormats;
-        compact(Extraction.decompose(obj))
     }
 
     def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
@@ -203,10 +200,6 @@ object CommonUtil {
         df3.print(date);
     }
 
-    def main(args: Array[String]): Unit = {
-        Console.println(formatEventDate(new DateTime));
-    }
-
     def getEventId(event: Event): String = {
         event.eid.getOrElse(null);
     }
@@ -222,11 +215,11 @@ object CommonUtil {
     }
 
     def getGameId(event: Event): String = {
-        event.gdata.getOrElse(Gdata(Option(null), Option(null))).id.getOrElse(null);
+        event.gdata.getOrElse(GData(Option(null), Option(null))).id.getOrElse(null);
     }
-    
+
     def getGameVersion(event: Event): String = {
-        event.gdata.getOrElse(Gdata(Option(null), Option(null))).ver.getOrElse(null);
+        event.gdata.getOrElse(GData(Option(null), Option(null))).ver.getOrElse(null);
     }
 
     def getUserId(event: Event): String = {
@@ -324,13 +317,6 @@ object CommonUtil {
                 throw new Exception("Invalid output location. Valid output location should start with s3:// (for S3 upload) or local:// (for local save)");
         }
         if (gzip) CommonUtil.deleteFile(tmpFilePath);
-    }
-
-    @throws(classOf[Exception])
-    def getJobConfig(config: String): JobConfig = {
-        val mapper = new ObjectMapper();
-        mapper.registerModule(DefaultScalaModule);
-        mapper.readValue[JobConfig](config, classOf[JobConfig]);
     }
 
 }

@@ -8,6 +8,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
 import org.ekstep.ilimi.analytics.framework.util.CommonUtil
+import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 
 object KafkaEventProducer {
 
@@ -21,14 +22,14 @@ object KafkaEventProducer {
 
         new KafkaProducer[String, String](props);
     }
-    
+
     def close(producer: KafkaProducer[String, String]) {
         producer.close();
     }
 
     def sendEvent(event: AnyRef, topic: String, brokerList: String) = {
         val producer = init(brokerList);
-        val message = new ProducerRecord[String, String](topic, null, CommonUtil.jsonToString(event));
+        val message = new ProducerRecord[String, String](topic, null, JSONUtils.serialize(event));
         producer.send(message);
         close(producer);
     }
@@ -37,13 +38,13 @@ object KafkaEventProducer {
         val producer = init(brokerList);
         events.foreach { event =>
             {
-                val message = new ProducerRecord[String, String](topic, null, CommonUtil.jsonToString(event));
+                val message = new ProducerRecord[String, String](topic, null, JSONUtils.serialize(event));
                 producer.send(message);
             }
         }
         close(producer);
     }
-    
+
     def sendEvents(events: Array[String], topic: String, brokerList: String) = {
         val producer = init(brokerList);
         events.foreach { event =>
@@ -54,7 +55,7 @@ object KafkaEventProducer {
         }
         close(producer);
     }
-    
+
     def publishEvents(events: Buffer[String], topic: String, brokerList: String) = {
         val producer = init(brokerList);
         events.foreach { event =>

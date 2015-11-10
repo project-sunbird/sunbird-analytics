@@ -23,13 +23,17 @@ object AppConf {
         if (!initialized) {
             init();
         }
-        properties.getProperty(key);
+        if (sys.env.getOrElse(key, "").nonEmpty) {
+            sys.env(key);
+        } else {
+            properties.getProperty(key);
+        }
     }
-    
+
     def getAwsKey(): String = {
         sys.env("aws.key");
     }
-    
+
     def getAwsSecret(): String = {
         sys.env("aws.secret");
     }

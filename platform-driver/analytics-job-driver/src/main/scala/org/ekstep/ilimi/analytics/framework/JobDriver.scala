@@ -5,7 +5,7 @@ import org.ekstep.ilimi.analytics.framework.conf.AppConf
 import org.ekstep.ilimi.analytics.framework.util.CommonUtil
 import org.ekstep.ilimi.analytics.framework.driver.BatchJobDriver
 import org.ekstep.ilimi.analytics.framework.driver.StreamingJobDriver
-
+import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -17,13 +17,13 @@ object JobDriver extends Application {
         AppConf.init();
         val t1 = System.currentTimeMillis;
         try {
-            val jobConfig = CommonUtil.getJobConfig(config);
+            val jobConfig = JSONUtils.deserialize[JobConfig](config);
             t match {
-                case "batch"     =>
+                case "batch" =>
                     BatchJobDriver.process(jobConfig);
                 case "streaming" =>
                     StreamingJobDriver.process(jobConfig);
-                case _           =>
+                case _ =>
                     throw new Exception("Unknown job type")
             }
         } catch {
