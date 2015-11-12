@@ -12,6 +12,11 @@ import scala.collection.mutable.ListBuffer
 import org.ekstep.ilimi.analytics.framework.Questionnaire
 import org.ekstep.ilimi.analytics.framework.ItemSet
 import org.ekstep.ilimi.analytics.framework.Item
+import org.ekstep.ilimi.analytics.framework.Search
+import org.ekstep.ilimi.analytics.framework.Request
+import org.ekstep.ilimi.analytics.framework.SearchFilter
+import org.ekstep.ilimi.analytics.framework.Metadata
+import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -21,7 +26,7 @@ object ItemAdapter {
     val relations = Array("concepts", "questionnaires", "item_sets", "items");
 
     /**
-     * 
+     *
      */
     def getItem(itemId: String, subject: String): Item = {
         val ir = RestUtil.get[Response](Constants.getItemSetAPIUrl(itemId, subject));
@@ -29,16 +34,53 @@ object ItemAdapter {
             throw new DataAdapterException(ir.params.errmsg.asInstanceOf[String]);
         }
         val item = ir.result.assessment_item.get;
-        val metadata = item.filter(p => relations.contains(p._1));
-        Item(itemId, metadata, getTags(item), None);
+        getItemWrapper(item);
+    }
+    
+    private def getItemWrapper(item: Map[String, AnyRef]) : Item = {
+        Item(item.get("identifier").get.asInstanceOf[String], item.filter(p => relations.contains(p._1)), getTags(item), None);
     }
 
     def getItems(contentId: String): Array[Item] = {
-        null;
+        val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
+        if (cr.responseCode.ne("OK")) {
+            throw new DataAdapterException(cr.params.errmsg.asInstanceOf[String]);
+        }
+        val content = cr.result.content.get;
+        val questionnaires = content.getOrElse("questionnaires", null);
+        val subject = content.getOrElse("subject", "numeracy").asInstanceOf[String];
+        if (questionnaires != null) {
+            var items = ListBuffer[String]();
+            questionnaires.asInstanceOf[Array[Map[String, String]]].foreach(f => {
+                val qr = RestUtil.get[Response](Constants.getQuestionnaireAPIUrl(f.get("identifier").get, subject));
+                if (qr.responseCode.ne("OK")) {
+                    throw new DataAdapterException(qr.params.errmsg.asInstanceOf[String]);
+                }
+                val questionnaire = qr.result.questionnaire.get;
+                val itemSet = questionnaire.getOrElse("items", Map[String, AnyRef]()).asInstanceOf[Map[String, Array[String]]];
+                itemSet.map(f => {
+                    items ++= f._2;
+                    f;
+                })
+            });
+            items.map { x => getItem(x, subject) }.toArray;
+        } else {
+            null;
+        }
     }
 
-    def searchItems(itemIds: Array[String]): Array[Item] = {
-        null;
+    def searchItems(itemIds: Array[String], subject: String): Array[Item] = {
+        val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(itemIds)))), itemIds.length));
+        val sr = RestUtil.post[Response](Constants.getSearchItemAPIUrl(subject), JSONUtils.serialize(search));
+        if (sr.responseCode.ne("OK")) {
+            throw new DataAdapterException(sr.params.errmsg.asInstanceOf[String]);
+        }
+        val items = sr.result.assessment_items.getOrElse(null);
+        if (null != items && items.nonEmpty) {
+            items.map(f => getItemWrapper(f));
+        } else {
+            null;   
+        }
     }
 
     def getItemSet(itemSetId: String, subject: String): ItemSet = {
