@@ -19,13 +19,6 @@ import java.nio.charset.Charset
  */
 object RestUtil {
 
-    def main(args: Array[String]): Unit = {
-        val url = Constants.getSearchItemAPIUrl("numeracy");
-        val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(Array("ek.n.q901", "ek.n.q902", "ek.n.q903"))))), 500));
-        val response = post[Response](url, JSONUtils.serialize(search));
-        Console.println("Content:" + response);
-    }
-
     def get[T](apiURL: String) (implicit mf:Manifest[T]) = {
         implicit val httpClient = new ApacheHttpClient;
         val url = new URL(apiURL);
