@@ -43,7 +43,7 @@ case class Search(request: Request);
 
 // Adapter Models
 case class MicroConcept(id: String, metadata: Map[String, AnyRef]);
-case class Item(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], mc: Option[Array[MicroConcept]]);
+case class Item(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], mc: Option[Array[String]], mmc: Option[Array[String]]);
 case class ItemSet(id: String, metadata: Map[String, AnyRef], items: Array[Item], tags: Option[Array[String]], count: Int);
 case class Questionnaire(id: String, metadata: Map[String, AnyRef], itemSets: Array[ItemSet], items: Array[Item], tags: Option[Array[String]]);
 case class Content(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], questionnaires: Option[Array[Questionnaire]]);

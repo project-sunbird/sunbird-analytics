@@ -36,9 +36,10 @@ object ItemAdapter {
         val item = ir.result.assessment_item.get;
         getItemWrapper(item);
     }
-    
-    private def getItemWrapper(item: Map[String, AnyRef]) : Item = {
-        Item(item.get("identifier").get.asInstanceOf[String], item.filter(p => relations.contains(p._1)), getTags(item), None);
+
+    private def getItemWrapper(item: Map[String, AnyRef]): Item = {
+        val mc = item.getOrElse("concepts", Array[Map[String, String]]()).asInstanceOf[Array[Map[String, String]]].map(f => f.get("identifier").get);
+        Item(item.get("identifier").get.asInstanceOf[String], item.filter(p => relations.contains(p._1)), getTags(item), Option(mc), None);
     }
 
     def getItems(contentId: String): Array[Item] = {
@@ -79,7 +80,7 @@ object ItemAdapter {
         if (null != items && items.nonEmpty) {
             items.map(f => getItemWrapper(f));
         } else {
-            null;   
+            null;
         }
     }
 
