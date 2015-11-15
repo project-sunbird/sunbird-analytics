@@ -51,6 +51,8 @@ object DataFilter {
         name match {
             case "eventId" =>
                 CommonUtil.getEventId(event);
+            case "ts" =>
+                CommonUtil.getEventDate(event);
             case "gameId" =>
                 var gid = event.edata.eks.gid.getOrElse(null);
                 if (null == gid)
