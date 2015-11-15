@@ -29,8 +29,8 @@ object ItemAdapter {
      *
      */
     def getItem(itemId: String, subject: String): Item = {
-        val ir = RestUtil.get[Response](Constants.getItemSetAPIUrl(itemId, subject));
-        if (ir.responseCode.ne("OK")) {
+        val ir = RestUtil.get[Response](Constants.getItemAPIUrl(itemId, subject));
+        if (!ir.responseCode.equals("OK")) {
             throw new DataAdapterException(ir.params.errmsg.asInstanceOf[String]);
         }
         val item = ir.result.assessment_item.get;
@@ -44,7 +44,7 @@ object ItemAdapter {
 
     def getItems(contentId: String): Array[Item] = {
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
-        if (cr.responseCode.ne("OK")) {
+        if (!cr.responseCode.equals("OK")) {
             throw new DataAdapterException(cr.params.errmsg.asInstanceOf[String]);
         }
         val content = cr.result.content.get;
@@ -73,7 +73,7 @@ object ItemAdapter {
     def searchItems(itemIds: Array[String], subject: String): Array[Item] = {
         val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(itemIds)))), itemIds.length));
         val sr = RestUtil.post[Response](Constants.getSearchItemAPIUrl(subject), JSONUtils.serialize(search));
-        if (sr.responseCode.ne("OK")) {
+        if (!sr.responseCode.equals("OK")) {
             throw new DataAdapterException(sr.params.errmsg.asInstanceOf[String]);
         }
         val items = sr.result.assessment_items.getOrElse(null);
@@ -86,7 +86,7 @@ object ItemAdapter {
 
     def getItemSet(itemSetId: String, subject: String): ItemSet = {
         val isr = RestUtil.get[Response](Constants.getItemSetAPIUrl(itemSetId, subject));
-        if (isr.responseCode.ne("OK")) {
+        if (!isr.responseCode.equals("OK")) {
             throw new DataAdapterException(isr.params.errmsg.asInstanceOf[String]);
         }
         val itemSet = isr.result.assessment_item_set.get;
@@ -105,7 +105,7 @@ object ItemAdapter {
     def getQuestionnaire(questionnaireId: String, subject: String): Questionnaire = {
 
         val qr = RestUtil.get[Response](Constants.getQuestionnaireAPIUrl(questionnaireId, subject));
-        if (qr.responseCode.ne("OK")) {
+        if (!qr.responseCode.equals("OK")) {
             throw new DataAdapterException(qr.params.errmsg.asInstanceOf[String]);
         }
         val questionnaire = qr.result.questionnaire.get;
@@ -122,7 +122,7 @@ object ItemAdapter {
     def getQuestionnaires(contentId: String): Array[Questionnaire] = {
 
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
-        if (cr.responseCode.ne("OK")) {
+        if (!cr.responseCode.equals("OK")) {
             throw new DataAdapterException(cr.params.errmsg.asInstanceOf[String]);
         }
         val content = cr.result.content.get;
