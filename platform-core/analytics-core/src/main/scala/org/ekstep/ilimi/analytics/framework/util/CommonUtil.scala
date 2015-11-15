@@ -213,6 +213,16 @@ object CommonUtil {
                 0
         }
     }
+    
+    def getEventDate(event: Event): Date = {
+        try {
+            df3.parseLocalDate(event.ts.getOrElse("")).toDate;
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid event time", event.ts.getOrElse(""));
+                null;
+        }
+    }
 
     def getGameId(event: Event): String = {
         event.gdata.getOrElse(GData(Option(null), Option(null))).id.getOrElse(null);
