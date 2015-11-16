@@ -328,5 +328,21 @@ object CommonUtil {
         }
         if (gzip) CommonUtil.deleteFile(tmpFilePath);
     }
+    
+    def getTimeSpent(len: Option[AnyRef]): Option[Double] = {
+        if (len.nonEmpty) {
+            if (len.get.isInstanceOf[String]) {
+                Option(len.get.asInstanceOf[String].toDouble)
+            } else if (len.get.isInstanceOf[Double]) {
+                Option(len.get.asInstanceOf[Double])
+            } else if (len.get.isInstanceOf[Int]) {
+                Option(len.get.asInstanceOf[Int].toDouble)
+            } else {
+                Option(0d);
+            }
+        } else {
+            Option(0d);
+        }
+    }
 
 }

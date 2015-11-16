@@ -28,25 +28,26 @@ import org.apache.spark.broadcast.Broadcast
 /**
  * @author Santhosh
  */
+
+/**
+ * Case class to hold the item responses 
+ */
+case class ItemResponse(itemId: Option[String], itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Option[Int], timeStamp: Option[Long], maxScore: Option[AnyRef]);
+
+/**
+ * Case class to hold the screener summary
+ */
+case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], secondChance: Boolean, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int]);
+
+/**
+ * Generic Screener Summary Model
+ */
 class GenericScreenerSummary extends IBatchModel {
 
-    def getLength(len: Option[AnyRef]): Option[Double] = {
-        if (len.nonEmpty) {
-            if (len.get.isInstanceOf[String]) {
-                Option(len.get.asInstanceOf[String].toDouble)
-            } else if (len.get.isInstanceOf[Double]) {
-                Option(len.get.asInstanceOf[Double])
-            } else if (len.get.isInstanceOf[Int]) {
-                Option(len.get.asInstanceOf[Int].toDouble)
-            } else {
-                Option(0d);
-            }
-        } else {
-            Option(0d);
-        }
-    }
-    
-    def getLevelItems(questionnaires: Array[Questionnaire]) : Map[String, Array[String]] = {
+    /**
+     * Get level to items mapping from Questionnaires
+     */
+    private def getLevelItems(questionnaires: Array[Questionnaire]) : Map[String, Array[String]] = {
         var levelMap = HashMap[String, Array[String]]();
         if(questionnaires.length > 0) {
             questionnaires.foreach { x => 
@@ -58,7 +59,10 @@ class GenericScreenerSummary extends IBatchModel {
         levelMap.toMap;
     }
     
-    def getItemMapping(questionnaires: Array[Questionnaire]): Map[String, (Item, String)] = {
+    /**
+     * Get Item id to Item mapping from Array of Questionnaires
+     */
+    private def getItemMapping(questionnaires: Array[Questionnaire]): Map[String, (Item, String)] = {
         var itemMap = HashMap[String, (Item, String)]();
         if(questionnaires.length > 0) {
             questionnaires.foreach { x => 
@@ -71,12 +75,16 @@ class GenericScreenerSummary extends IBatchModel {
         itemMap.toMap;
     }
     
-    def getItem(itemMapping: Broadcast[Map[String, (Item, String)]], event: Event) : (Item, String) = {
+    /**
+     * Get item from broadcast item mapping variable
+     */
+    private def getItem(itemMapping: Broadcast[Map[String, (Item, String)]], event: Event) : (Item, String) = {
         itemMapping.value.getOrElse(event.edata.eks.qid.get, (Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]())), ""));
     }
 
     def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
+        // TODO: Pass the spark context and parallelization parameters are JobContext
         val questionnaires = ItemAdapter.getQuestionnaires(jobParams.getOrElse("contentId", "").asInstanceOf[String]);
         val itemMapping = sc.broadcast(getItemMapping(questionnaires));
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
@@ -89,7 +97,7 @@ class GenericScreenerSummary extends IBatchModel {
                 x.map { x => 
                     val itemObj = getItem(itemMapping, x);
                     val metadata = itemObj._1.metadata;
-                    Question(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), getLength(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj._1.mc, itemObj._1.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score")); 
+                    ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj._1.mc, itemObj._1.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score")); 
                 }
             };
         val userGame = events.filter { x => x.uid.nonEmpty }
@@ -104,7 +112,7 @@ class GenericScreenerSummary extends IBatchModel {
                 val oeEnds = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_END") };
                 val startTimestamp = if (oeStarts.length > 0) { Option(CommonUtil.getEventTS(oeStarts(0))) } else { Option(0l) };
                 val endTimestamp = if (oeEnds.length > 0) { Option(CommonUtil.getEventTS(oeEnds(0))) } else { Option(0l) };
-                val timeSpent = if (oeEnds.length > 0) { getLength(oeEnds.last.edata.eks.length) } else { Option(0d) };
+                val timeSpent = if (oeEnds.length > 0) { CommonUtil.getTimeSpent(oeEnds.last.edata.eks.length) } else { Option(0d) };
                 val levelTransitions = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_LEVEL_SET") }.length - 1;
                 var levelMap = HashMap[String, Array[String]]();
                 var domainMap = HashMap[String, String]();
@@ -126,14 +134,17 @@ class GenericScreenerSummary extends IBatchModel {
                 val levels = levelMap.map(f => {
                     Map("level" -> f._1, "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "givenSecondChance" -> false);
                 }).toArray;
-                Game(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), secondChance, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None);
+                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), secondChance, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None);
             }
         userQuestions.join(userGame, 1).map(f => {
-            getComputedEvent(f, userMapping.value, langMapping.value);
+            getMeasuredEvent(f, userMapping.value, langMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
 
-    def getComputedEvent(userMap: (String, (Buffer[Question], Game)), userMapping: Map[String, User], langMapping: Map[Int, String]): MeasuredEvent = {
+    /**
+     * Get the measured event from the UserMap
+     */
+    private def getMeasuredEvent(userMap: (String, (Buffer[ItemResponse], ScreenerSummary)), userMapping: Map[String, User], langMapping: Map[Int, String]): MeasuredEvent = {
         val game = userMap._2._2;
         val user = userMapping.getOrElse(userMap._1, User("Anonymous", "Anonymous", "Anonymous", "Unknown", new Date(), 0));
         val measures = Map(
@@ -155,6 +166,3 @@ class GenericScreenerSummary extends IBatchModel {
     }
 
 }
-
-case class Question(itemId: Option[String], itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Option[Int], timeStamp: Option[Long], maxScore: Option[AnyRef]);
-case class Game(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], secondChance: Boolean, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int]);
