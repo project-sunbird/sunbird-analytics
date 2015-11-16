@@ -1,18 +1,18 @@
 package org.ekstep.ilimi.analytics.framework.util
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
-import org.ekstep.ilimi.analytics.framework.Response
-import com.fasterxml.jackson.core.JsonParseException
-import org.ekstep.ilimi.analytics.framework.Search
-import org.ekstep.ilimi.analytics.framework.Request
+import org.ekstep.ilimi.analytics.framework.BaseSpec
 import org.ekstep.ilimi.analytics.framework.Metadata
+import org.ekstep.ilimi.analytics.framework.Request
+import org.ekstep.ilimi.analytics.framework.Response
+import org.ekstep.ilimi.analytics.framework.Search
 import org.ekstep.ilimi.analytics.framework.SearchFilter
+
+import com.fasterxml.jackson.core.JsonParseException
 
 /**
  * @author Santhosh
  */
-class TestRestUtil extends FlatSpec with Matchers {
+class TestRestUtil extends BaseSpec {
 
     "RestUtil.get()" should "get data from learning platform API and parse it to Response Object" in {
         val url = Constants.getContentAPIUrl("org.ekstep.story.hi.elephant");

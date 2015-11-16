@@ -13,6 +13,7 @@ object DataFilter {
     /**
      * Execute multiple filters
      */
+    @throws(classOf[DataFilterException])
     def filterAndSort(events: RDD[Event], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[Event] = {
         if (filters.nonEmpty) {
             events.filter { event =>
@@ -30,9 +31,13 @@ object DataFilter {
                                     filter.value.get.asInstanceOf[Array[AnyRef]].contains(value);
                                 }
                             case "ISNULL" =>
-                                null == value
+                                null == value;
+                            case "ISEMPTY" =>
+                                null == value || value.toString().isEmpty();
                             case "ISNOTNULL" =>
                                 null != value;
+                            case "ISNOTEMPTY" =>
+                                null != value && value.toString().nonEmpty;
                             case _ =>
                                 value.equals(filter.value.getOrElse(null));
                         }
@@ -72,4 +77,5 @@ object DataFilter {
                 throw new DataFilterException("Unknown filter key found");
         }
     }
+    
 }

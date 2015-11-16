@@ -1,11 +1,11 @@
 package org.ekstep.ilimi.analytics.framework.adapter
 
-import org.scalatest._
+import org.ekstep.ilimi.analytics.framework.BaseSpec
 
 /**
  * @author Santhosh
  */
-class TestItemAdapter extends FlatSpec with Matchers {
+class TestItemAdapter extends BaseSpec {
   
     "ItemAdapter" should "return Item object" in {
         val item = ItemAdapter.getItem("ek.n.q901", "numeracy");

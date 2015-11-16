@@ -20,5 +20,6 @@ object BatchJobDriver {
         val filterRdd = DataFilter.filterAndSort(rdd, config.filters, config.sort);
         val output = JobRunner.executeBatch(config.model, sc, filterRdd, config.modelParams);
         OutputDispatcher.dispatch(config.output, output);
+        CommonUtil.closeSparkContext(sc);
     }
 }

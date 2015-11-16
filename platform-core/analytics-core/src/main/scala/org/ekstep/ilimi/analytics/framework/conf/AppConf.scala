@@ -23,19 +23,20 @@ object AppConf {
         if (!initialized) {
             init();
         }
-        if (sys.env.getOrElse(key, "").nonEmpty) {
-            sys.env(key);
+        val prop = sys.env.getOrElse(key, "");
+        if (prop.nonEmpty) {
+            prop;
         } else {
             properties.getProperty(key);
         }
     }
 
     def getAwsKey(): String = {
-        sys.env("aws.key");
+        sys.env.getOrElse("aws.key", "");
     }
 
     def getAwsSecret(): String = {
-        sys.env("aws.secret");
+        sys.env.getOrElse("aws.secret", "");
     }
 
 }
