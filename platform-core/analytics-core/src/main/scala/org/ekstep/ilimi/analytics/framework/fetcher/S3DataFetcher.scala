@@ -28,8 +28,8 @@ object S3DataFetcher {
 
     def main(args: Array[String]): Unit = {
         val arr = Array(
-            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-12"), Option("2015-06-19"), None, None, None, None, None, None, None, None, None),
-            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-07-01"), Option("2015-07-03"), None, None, None, None, None, None, None, None, None)
+            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-12"), Option("2015-06-19"), None, None, None, None, None, None, None, None, None, None),
+            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-07-01"), Option("2015-07-03"), None, None, None, None, None, None, None, None, None, None)
         );
         val res = getObjectKeys(arr);
         res.foreach { x => Console.println(x) };
