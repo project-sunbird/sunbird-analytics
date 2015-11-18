@@ -39,14 +39,4 @@ object DataFetcher {
         null;
     }
     
-    def main(args: Array[String]): Unit = {
-         val queries = Option(Array(
-            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"), None, None, None, None, None, None, None, None, None)
-        ));
-        val sc = CommonUtil.getSparkContext(8, "TestDataFetcher");
-        val rdd = fetchBatchData(sc, queries, 8);
-        Console.println("RDD Count - " + rdd.count());
-        CommonUtil.closeSparkContext(sc);
-    }
-
 }

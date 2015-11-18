@@ -32,11 +32,11 @@ object AppConf {
     }
 
     def getAwsKey(): String = {
-        sys.env.getOrElse("aws.key", "");
+        getConfig("aws_key");
     }
 
     def getAwsSecret(): String = {
-        sys.env.getOrElse("aws.secret", "");
+        getConfig("aws_secret");
     }
 
 }
