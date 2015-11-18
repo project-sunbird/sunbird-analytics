@@ -14,14 +14,14 @@ import com.fasterxml.jackson.core.JsonParseException
  */
 class TestRestUtil extends BaseSpec {
 
-    "RestUtil.get()" should "get data from learning platform API and parse it to Response Object" in {
+    "RestUtil" should "get data from learning platform API and parse it to Response Object" in {
         val url = Constants.getContentAPIUrl("org.ekstep.story.hi.elephant");
         val response = RestUtil.get[Response](url);
         response should not be null;
         response.responseCode should be("OK")
     }
 
-    it should "throw JsonParseException if unable to parse to Response object" in {
+    it should "throw JsonParseException if unable to parse to Response object during GET" in {
         val url = "https://www.google.com";
         a[JsonParseException] should be thrownBy {
             RestUtil.get[Response](url);
@@ -35,7 +35,7 @@ class TestRestUtil extends BaseSpec {
         response.responseCode should not be("OK")
     }
     
-    "RestUtil.post()" should "post data to learning platform API and parse body to Response Object" in {
+    it should "post data to learning platform API and parse body to Response Object" in {
         val url = Constants.getSearchItemAPIUrl("numeracy");
         val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(Array("ek.n.q901", "ek.n.q902", "ek.n.q903"))))), 500));
         val response = RestUtil.post[Response](url, JSONUtils.serialize(search));
@@ -43,14 +43,14 @@ class TestRestUtil extends BaseSpec {
         response.responseCode should be("OK")
     }
 
-    it should "throw JsonParseException if unable to parse to Response object" in {
+    it should "throw JsonParseException if unable to parse to Response object during POST" in {
         val url = "https://www.google.com";
         a[JsonParseException] should be thrownBy {
             RestUtil.post[Response](url, "");
         }
     }
     
-    it should "return error response if body is not passed" in {
+    it should "return error response if body is not passed during POST" in {
         val url = Constants.getSearchItemAPIUrl("numeracy");
         a[JsonParseException] should be thrownBy {
             RestUtil.post[Response](url, "");

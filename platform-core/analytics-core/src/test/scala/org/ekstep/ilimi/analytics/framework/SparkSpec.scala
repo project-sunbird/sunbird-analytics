@@ -21,7 +21,7 @@ class SparkSpec extends BaseSpec with BeforeAndAfterAll {
     
     override def beforeAll() {
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
-        val rdd = sc.textFile("src/test/resources/telemetry.raw-2015-09-25-1443147175.log", 1).cache();
+        val rdd = sc.textFile("src/test/resources/sample_telemetry.log", 1).cache();
         events = rdd.map { line =>
             {
                 implicit val formats = DefaultFormats;

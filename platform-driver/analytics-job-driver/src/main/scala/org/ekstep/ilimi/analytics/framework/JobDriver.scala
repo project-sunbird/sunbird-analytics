@@ -6,6 +6,7 @@ import org.ekstep.ilimi.analytics.framework.util.CommonUtil
 import org.ekstep.ilimi.analytics.framework.driver.BatchJobDriver
 import org.ekstep.ilimi.analytics.framework.driver.StreamingJobDriver
 import org.ekstep.ilimi.analytics.framework.util.JSONUtils
+import com.fasterxml.jackson.core.JsonParseException
 
 /**
  * @author Santhosh
@@ -27,8 +28,8 @@ object JobDriver extends Application {
                     throw new Exception("Unknown job type")
             }
         } catch {
-            case e: Exception =>
-                Console.err.println("JobDriver Error", e.getClass.getName, e.getMessage);
+            case e: JsonParseException =>
+                Console.err.println("JobDriver:main() - JobConfig parse error", e.getClass.getName, e.getMessage);
                 e.printStackTrace();
         }
         val t2 = System.currentTimeMillis;
