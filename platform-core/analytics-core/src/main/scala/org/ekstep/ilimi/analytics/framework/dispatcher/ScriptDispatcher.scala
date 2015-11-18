@@ -8,11 +8,12 @@ import org.ekstep.ilimi.analytics.framework.exception.DispatcherException
 /**
  * @author Santhosh
  */
-object ScriptDispatcher {
-
+object ScriptDispatcher extends IDispatcher {
+    
     @throws(classOf[DispatcherException])
-    def outputToScript(script: String, envVariables: Map[String, String], events: Array[String]) = {
-        val envParams = envVariables.map(f => f._1 + "=" + f._2).toArray;
+    def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String] = {
+        val script = config.getOrElse("script", null).asInstanceOf[String];
+        val envParams = config.map(f => f._1 + "=" + f._2.asInstanceOf[String]).toArray;
         val proc = Runtime.getRuntime.exec(script, envParams);
         new Thread("stderr reader for " + script) {
             override def run() {
@@ -33,6 +34,7 @@ object ScriptDispatcher {
         if (exitStatus != 0) {
             throw new DispatcherException("Script exited with non zero status");
         }
+        outputLines.toArray;
     }
 
 }

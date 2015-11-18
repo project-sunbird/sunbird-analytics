@@ -27,7 +27,7 @@ object AppConf {
         if (prop.nonEmpty) {
             prop;
         } else {
-            properties.getProperty(key);
+            properties.getProperty(key, "");
         }
     }
 
