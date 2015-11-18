@@ -25,10 +25,11 @@ object DataFilter {
                             case "NE" =>
                                 !value.equals(filter.value.getOrElse(null));
                             case "IN" =>
-                                if (filter.value.isEmpty || !(filter.value.get.isInstanceOf[Array[AnyRef]])) {
+                                //Console.println(filter.value, value, filter.value.get.asInstanceOf[List[AnyRef]].contains(value))
+                                if (filter.value.isEmpty || !(filter.value.get.isInstanceOf[List[AnyRef]])) {
                                     false;
                                 } else {
-                                    filter.value.get.asInstanceOf[Array[AnyRef]].contains(value);
+                                    filter.value.get.asInstanceOf[List[AnyRef]].contains(value);
                                 }
                             case "ISNULL" =>
                                 null == value;
@@ -41,6 +42,7 @@ object DataFilter {
                             case _ =>
                                 value.equals(filter.value.getOrElse(null));
                         }
+                        //Console.println(filter.value.get, value, valid);
                         if (!valid) Breaks.break;
                     }
                 }

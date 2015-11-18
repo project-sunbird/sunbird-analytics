@@ -42,7 +42,7 @@ object ItemAdapter {
 
     private def getItemWrapper(item: Map[String, AnyRef]): Item = {
         val mc = item.getOrElse("concepts", List[Map[String, String]]()).asInstanceOf[List[AnyRef]].map(f => f.asInstanceOf[Map[String, String]].get("identifier").get).toArray;
-        Item(item.get("identifier").get.asInstanceOf[String], item.filter(p => relations.contains(p._1)), getTags(item), Option(mc), None);
+        Item(item.get("identifier").get.asInstanceOf[String], item.filterNot(p => relations.contains(p._1)), getTags(item), Option(mc), None);
     }
 
     def getItems(contentId: String): Array[Item] = {
