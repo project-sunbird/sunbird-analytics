@@ -9,6 +9,7 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.immutable.Map
 import scala.collection.mutable.HashMap
 import org.ekstep.ilimi.analytics.framework.User
+import org.ekstep.ilimi.analytics.framework.UserProfile
 
 /**
  * @author Santhosh
@@ -27,6 +28,24 @@ object UserAdapter {
 
             do {
                 result(rs.getString(2)) = User(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(5), rs.getDate(4), rs.getInt(6));
+            } while (rs.next())
+
+            result.toMap;
+        }
+    };
+    
+    private val userProfileResultHandler = new ResultSetHandler[Map[String, UserProfile]]() {
+
+        override def handle(rs: ResultSet): Map[String, UserProfile] = {
+            if (!rs.next()) {
+                return null;
+            }
+
+            var result = new HashMap[String, UserProfile]();
+            var i = 0;
+
+            do {
+                result(rs.getString(1)) = UserProfile(rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getString(6));
             } while (rs.next())
 
             result.toMap;
@@ -55,6 +74,14 @@ object UserAdapter {
         val conn = AppDBUtils.getConnection;
         val qr = new QueryRunner();
         val results = qr.query(conn, "SELECT name, encoded_id, ekstep_id, dob, gender, language_id FROM children", userResultHandler);
+        AppDBUtils.closeConnection(conn);
+        results;
+    }
+    
+    def getUserProfileMapping(): Map[String, UserProfile] = {
+        val conn = AppDBUtils.getConnection;
+        val qr = new QueryRunner();
+        val results = qr.query(conn, "SELECT uid, handle, gender, age, standard, language FROM profile", userProfileResultHandler);
         AppDBUtils.closeConnection(conn);
         results;
     }

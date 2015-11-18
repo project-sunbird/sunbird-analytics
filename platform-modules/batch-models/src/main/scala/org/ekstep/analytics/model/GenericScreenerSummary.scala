@@ -24,6 +24,8 @@ import scala.collection.mutable.HashMap
 import org.ekstep.ilimi.analytics.framework.Item
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.broadcast.Broadcast
+import org.ekstep.ilimi.analytics.framework.UserProfile
+import org.ekstep.ilimi.analytics.framework.JobContext
 
 /**
  * @author Santhosh
@@ -42,7 +44,7 @@ case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Opti
 /**
  * Generic Screener Summary Model
  */
-class GenericScreenerSummary extends IBatchModel {
+class GenericScreenerSummary extends IBatchModel with Serializable {
 
     /**
      * Get level to items mapping from Questionnaires
@@ -84,15 +86,13 @@ class GenericScreenerSummary extends IBatchModel {
 
     def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
-        // TODO: Pass the spark context and parallelization parameters are JobContext
-        val questionnaires = ItemAdapter.getQuestionnaires(jobParams.getOrElse("contentId", "").asInstanceOf[String]);
+        val questionnaires = ItemAdapter.getQuestionnaires(jobParams.getOrElse(Map[String, AnyRef]()).getOrElse("contentId", "").asInstanceOf[String]);
         val itemMapping = sc.broadcast(getItemMapping(questionnaires));
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
-        val userMapping = sc.broadcast(UserAdapter.getUserMapping());
-        val langMapping = sc.broadcast(UserAdapter.getLanguageMapping());
+        val userProfileMapping = sc.broadcast(UserAdapter.getUserProfileMapping());
         val userQuestions = events.filter { x => x.uid.nonEmpty && CommonUtil.getEventId(x).equals("OE_ASSESS") }
             .map(event => (event.uid.get, Buffer(event)))
-            .partitionBy(new HashPartitioner(10))
+            .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
                 x.map { x => 
                     val itemObj = getItem(itemMapping, x);
@@ -102,13 +102,13 @@ class GenericScreenerSummary extends IBatchModel {
             };
         val userGame = events.filter { x => x.uid.nonEmpty }
             .map(event => (event.uid.get, Buffer(event)))
-            .partitionBy(new HashPartitioner(10))
+            .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
                 val distinctEvents = x.distinct;
                 val assessEvents = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_ASSESS") }.sortBy { x => CommonUtil.getEventTS(x) };
                 val qids = assessEvents.map { x => x.edata.eks.qid.getOrElse("") };
                 val secondChance = (qids.length - qids.distinct.length) > 0;
-                val oeStarts = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("GE_LAUNCH_GAME") };
+                val oeStarts = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_START") };
                 val oeEnds = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_END") };
                 val startTimestamp = if (oeStarts.length > 0) { Option(CommonUtil.getEventTS(oeStarts(0))) } else { Option(0l) };
                 val endTimestamp = if (oeEnds.length > 0) { Option(CommonUtil.getEventTS(oeEnds(0))) } else { Option(0l) };
@@ -137,16 +137,16 @@ class GenericScreenerSummary extends IBatchModel {
                 ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), secondChance, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None);
             }
         userQuestions.join(userGame, 1).map(f => {
-            getMeasuredEvent(f, userMapping.value, langMapping.value);
+            getMeasuredEvent(f, userProfileMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
 
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (Buffer[ItemResponse], ScreenerSummary)), userMapping: Map[String, User], langMapping: Map[Int, String]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (Buffer[ItemResponse], ScreenerSummary)), userMapping: Map[String, UserProfile]): MeasuredEvent = {
         val game = userMap._2._2;
-        val user = userMapping.getOrElse(userMap._1, User("Anonymous", "Anonymous", "Anonymous", "Unknown", new Date(), 0));
+        val user = userMapping.getOrElse(userMap._1, UserProfile(userMap._1, "Anonymous", "NA", 0, 0, "en"));
         val measures = Map(
             "itemResponses" -> userMap._2._1,
             "startTime" -> game.startTimestamp,

@@ -14,7 +14,7 @@ case class Event(eid: Option[String], ts: Option[String], ver: Option[String], g
 // Computed Event Model
 case class CData(id: String, `type`: Option[String]);
 case class MeasuredEvent(eid: String, ts: Long, ver: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
-case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[User]);
+case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile]);
 case class PData(id: String, model: String, ver: String);
 case class DtRange(from: Long, to: Long);
 case class Context(pdata: PData, dspec: Option[Map[String, String]], granularity: Option[String], dt_range: Option[DtRange]);
@@ -22,13 +22,15 @@ case class MEEdata(eks: AnyRef);
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
+case class UserProfile(uid: String, handle: String, gender: String, age: Int, standard: Int, language: String);
 
 // Analytics Framework Job Models
-case class Query(bucket: Option[String], prefix: Option[String], startDate: Option[String], endDate: Option[String], gameId: Option[String], gameVersion: Option[String], telemetryVersion: Option[String], deviceInfo: Option[Map[String, AnyRef]], locationInfo: Option[Map[String, AnyRef]], brokerList: Option[String], topic: Option[String], windowType: Option[String], windowDuration: Option[Int])
+case class Query(bucket: Option[String], prefix: Option[String], startDate: Option[String], endDate: Option[String], gameId: Option[String], gameVersion: Option[String], telemetryVersion: Option[String], deviceInfo: Option[Map[String, AnyRef]], locationInfo: Option[Map[String, AnyRef]], brokerList: Option[String], topic: Option[String], windowType: Option[String], windowDuration: Option[Int], file: Option[String])
 case class Filter(name: String, operator: String, value: Option[AnyRef]);
 case class Sort(name: Option[String], order: Option[String]);
 case class Dispatcher(to: String, params: Map[String, AnyRef]);
-case class JobConfig(search: Option[Array[Query]], filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String]);
+case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]]);
+case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String]);
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
