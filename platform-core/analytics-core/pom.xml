@@ -1,7 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<parent>
+        <groupId>org.ekstep</groupId>
+        <artifactId>analytics-framework</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+	
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.ekstep</groupId>
 	<artifactId>analytics-core</artifactId>
 	<version>1.0</version>
 	<name>analytics-core</name>
@@ -13,7 +20,6 @@
 		<scala.version>2.10.5</scala.version>
 		<scala.maj.version>2.10</scala.maj.version>
 		<spark.version>1.5.0</spark.version>
-		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -124,16 +130,6 @@
                     </execution>
                 </executions>
             </plugin>
-			<plugin>
-				<groupId>org.scoverage</groupId>
-				<artifactId>scoverage-maven-plugin</artifactId>
-				<version>${scoverage.plugin.version}</version>
-				<configuration>
-					<scalaVersion>${scala.version}</scalaVersion>
-					<aggregate>true</aggregate>
-					<highlighting>true</highlighting>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 </project>
