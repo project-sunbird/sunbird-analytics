@@ -6,3 +6,4 @@ platform-core/analytics-common/.settings
 *.prefs
 dependency-reduced-pom.xml
 .cache-tests
+target
