@@ -19,8 +19,7 @@ class TestJobDriver extends FlatSpec with Matchers {
     "TestJobDriver" should "successfully execute batch job driver using local file" in {
 
         val jobConfig = JobConfig(
-            //Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))),
-            Fetcher("s3", None, Option(Array(Query(Option("ekstep-telemetry"), Option(""), Option("2015-09-01"), Option("2015-09-30"), None, None, None, None, None, None, None, None, None, None)))),
+            Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))),
             Option(Array[Filter](Filter("eventId", "IN", Option(Array("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET"))))), 
             None, 
             "org.ekstep.analytics.model.GenericScreenerSummary", 
@@ -28,14 +27,13 @@ class TestJobDriver extends FlatSpec with Matchers {
             //Option(Array(Dispatcher("console", Map("test" -> "test")), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "sandbox.learning")))),
             Option(
                 Array(
-                    Dispatcher("console", Map("test" -> "test")),
-                    //Dispatcher("script", Map("script" -> "test", "outputFile" -> "", "outputFileName" -> "")),
+                    Dispatcher("console", Map()),
                     Dispatcher("file", Map("file" -> "/Users/Santhosh/ekStep/telemetry_processed/akshara_summary.log")),
                     Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "sandbox.learning")),
                     Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/akshara-log.json.gz", "zip" -> java.lang.Boolean.valueOf("true")))
                 )
             ),
-            Option(2), 
+            Option(8), 
             Option("TestJobDriver"))
             
         Console.println("Config", JSONUtils.serialize(jobConfig));

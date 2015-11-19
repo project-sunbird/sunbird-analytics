@@ -35,6 +35,8 @@ object S3Dispatcher extends IDispatcher {
         } else {
             S3Util.upload(bucket, finalPath, key);
         }
+        CommonUtil.deleteFile(finalPath);
+        if (zip) CommonUtil.deleteFile(filePath);
         events;
     }
 
