@@ -90,7 +90,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
         val itemMapping = sc.broadcast(getItemMapping(questionnaires));
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
         val userProfileMapping = sc.broadcast(UserAdapter.getUserProfileMapping());
-        val userQuestions = events.filter { x => x.uid.nonEmpty && CommonUtil.getEventId(x).equals("OE_ASSESS") }
+        val itemResponses = events.filter { x => x.uid.nonEmpty && CommonUtil.getEventId(x).equals("OE_ASSESS") }
             .map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
@@ -100,7 +100,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                     ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj._1.mc, itemObj._1.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score")); 
                 }
             };
-        val userGame = events.filter { x => x.uid.nonEmpty }
+        val screenerSummary = events.filter { x => x.uid.nonEmpty }
             .map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
@@ -132,11 +132,11 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                     }
                 }
                 val levels = levelMap.map(f => {
-                    Map("level" -> f._1, "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "givenSecondChance" -> false);
+                    Map("level" -> f._1, "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "noOfAttempts" -> false);
                 }).toArray;
                 ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), secondChance, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None);
             }
-        userQuestions.join(userGame, 1).map(f => {
+        itemResponses.join(screenerSummary, 1).map(f => {
             getMeasuredEvent(f, userProfileMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
@@ -155,7 +155,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
             "comments" -> game.comments,
             "fluency" -> game.fluency,
             "levels" -> game.levels,
-            "givenSecondChance" -> game.secondChance,
+            "noOfAttempts" -> game.secondChance,
             "currentLevel" -> game.currentLevel,
             "noOfLevelTransitions" -> game.noOfLevelTransitions
         );
