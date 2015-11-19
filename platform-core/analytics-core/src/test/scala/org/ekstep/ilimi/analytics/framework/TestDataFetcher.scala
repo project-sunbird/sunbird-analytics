@@ -1,6 +1,7 @@
 package org.ekstep.ilimi.analytics.framework
 
 import org.ekstep.ilimi.analytics.framework.exception.DataFetcherException
+import org.ekstep.ilimi.analytics.framework.SparkSpec
 
 /**
  * @author Santhosh

@@ -9,6 +9,7 @@ import org.json4s.jackson.JsonMethods
 import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.ilimi.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
+import org.ekstep.ilimi.analytics.framework.SparkSpec
 
 /**
  * @author Santhosh
@@ -106,7 +107,7 @@ class TestDataFilter extends SparkSpec {
     
     it should "match one of Events 'OE_ASSESS' & 'OE_LEVEL_SET'" in {
         val filters = Option(Array[Filter](
-            Filter("eventId", "IN", Option(Array("OE_ASSESS", "OE_LEVEL_SET")))
+            Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_LEVEL_SET")))
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
         filteredEvents.count() should be (1872);
@@ -115,7 +116,7 @@ class TestDataFilter extends SparkSpec {
     
     it should "filter by two criteria" in {
         val filters = Option(Array[Filter](
-            Filter("eventId", "IN", Option(Array("OE_ASSESS", "OE_LEVEL_SET"))),
+            Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_LEVEL_SET"))),
             Filter("gameId", "EQ", Option("org.ekstep.aser"))
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
