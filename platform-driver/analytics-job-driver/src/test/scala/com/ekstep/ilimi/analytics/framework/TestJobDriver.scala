@@ -1,6 +1,6 @@
 package com.ekstep.ilimi.analytics.framework
 
-import org.ekstep.ilimi.analytics.framework.BaseSpec
+import org.scalatest._
 import org.ekstep.ilimi.analytics.framework.JobDriver
 import org.ekstep.ilimi.analytics.framework.JobConfig
 import org.ekstep.ilimi.analytics.framework.util.JSONUtils
@@ -14,7 +14,7 @@ import org.ekstep.ilimi.analytics.framework.conf.AppConf
 /**
  * @author Santhosh
  */
-class TestJobDriver extends BaseSpec {
+class TestJobDriver extends FlatSpec with Matchers {
 
     "TestJobDriver" should "successfully execute batch job driver using local file" in {
         val jobConfig = JobConfig(
@@ -23,7 +23,8 @@ class TestJobDriver extends BaseSpec {
             None, 
             "org.ekstep.analytics.model.GenericScreenerSummary", 
             Option(Map("contentId" -> "numeracy_377")), 
-            Option(Array(Dispatcher("console", Map("test" -> "test")), Dispatcher("kafka", Map("test" -> "test")))), 
+            //Option(Array(Dispatcher("console", Map("test" -> "test")), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "sandbox.learning")))),
+            Option(Array(Dispatcher("console", Map("test" -> "test")), Dispatcher("file", Map("file" -> "/Users/Santhosh/ekStep/telemetry_processed/akshara_summary.log")))),
             Option(2), 
             Option("TestJobDriver"))
         JobDriver.main("batch", JSONUtils.serialize(jobConfig));
