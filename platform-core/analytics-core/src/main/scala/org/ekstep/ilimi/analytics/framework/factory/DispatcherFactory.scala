@@ -7,6 +7,7 @@ import org.ekstep.ilimi.analytics.framework.exception.DispatcherException
 import org.ekstep.ilimi.analytics.framework.dispatcher.S3Dispatcher
 import org.ekstep.ilimi.analytics.framework.dispatcher.KafkaDispatcher
 import org.ekstep.ilimi.analytics.framework.dispatcher.ScriptDispatcher
+import org.ekstep.ilimi.analytics.framework.dispatcher.FileDispatcher
 
 
 /**
@@ -24,6 +25,8 @@ object DispatcherFactory {
                 ScriptDispatcher;
             case "console" =>
                 ConsoleDispatcher;
+            case "file" =>
+                FileDispatcher;
             case _         =>
                 throw new DispatcherException("Unknown output dispatcher destination found");
         }

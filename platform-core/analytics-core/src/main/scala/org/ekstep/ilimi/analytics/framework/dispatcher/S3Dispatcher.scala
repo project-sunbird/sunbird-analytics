@@ -15,7 +15,12 @@ object S3Dispatcher extends IDispatcher {
         val filePath = config.getOrElse("filePath", null).asInstanceOf[String];
         val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
         val key = config.getOrElse("key", null).asInstanceOf[String];
-        val isPublic = config.getOrElse("public", null).asInstanceOf[Boolean];
+        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
+        
+        if (null == bucket || null == key) {
+            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to S3");
+        }
+        
         if (null != filePath) {
             outputToS3(bucket, isPublic, key, filePath);
         } else {
