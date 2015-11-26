@@ -85,7 +85,7 @@ object ItemAdapter {
             throw new DataAdapterException(isr.responseCode);
         }
         val itemSet = isr.result.assessment_item_set.get;
-        val metadata = itemSet.filter(p => relations.contains(p._1));
+        val metadata = itemSet.filterNot(p => relations.contains(p._1));
         val items = itemSet.getOrElse("items", List[String]()).asInstanceOf[List[String]].map(f => {
             getItem(f, subject);
         }).toArray;
@@ -123,7 +123,7 @@ object ItemAdapter {
             throw new DataAdapterException(qr.responseCode);
         }
         val questionnaire = qr.result.questionnaire.get;
-        val metadata = questionnaire.filter(p => relations.contains(p._1));
+        val metadata = questionnaire.filterNot(p => relations.contains(p._1));
         val itemSets = questionnaire.getOrElse("item_sets", List[Map[String, AnyRef]]()).asInstanceOf[List[AnyRef]].map(f => {
             val map = f.asInstanceOf[Map[String, AnyRef]];
             getItemSet(map.get("id").get.asInstanceOf[String], subject);
