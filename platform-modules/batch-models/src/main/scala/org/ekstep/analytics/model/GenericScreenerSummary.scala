@@ -39,7 +39,7 @@ case class ItemResponse(itemId: Option[String], itype: Option[AnyRef], ilevel: O
 /**
  * Case class to hold the screener summary
  */
-case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], secondChance: Boolean, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int]);
+case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int]);
 
 /**
  * Generic Screener Summary Model
@@ -81,7 +81,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
      * Get item from broadcast item mapping variable
      */
     private def getItem(itemMapping: Broadcast[Map[String, (Item, String)]], event: Event) : (Item, String) = {
-        itemMapping.value.getOrElse(event.edata.eks.qid.get, (Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]())), ""));
+        itemMapping.value.getOrElse(event.edata.eks.qid.getOrElse(""), (Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]())), "numeracy"));
     }
 
     def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
@@ -106,35 +106,41 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
                 val distinctEvents = x.distinct;
                 val assessEvents = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_ASSESS") }.sortBy { x => CommonUtil.getEventTS(x) };
-                val qids = assessEvents.map { x => x.edata.eks.qid.getOrElse("") };
-                val secondChance = (qids.length - qids.distinct.length) > 0;
+                val qids = assessEvents.map { x => x.edata.eks.qid.get}.filter { x => x != null };
+                val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
+                val noOfAttempts = if(qidMap.isEmpty) 1 else qidMap.max;
                 val oeStarts = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_START") };
                 val oeEnds = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_END") };
                 val startTimestamp = if (oeStarts.length > 0) { Option(CommonUtil.getEventTS(oeStarts(0))) } else { Option(0l) };
                 val endTimestamp = if (oeEnds.length > 0) { Option(CommonUtil.getEventTS(oeEnds(0))) } else { Option(0l) };
                 val timeSpent = if (oeEnds.length > 0) { CommonUtil.getTimeSpent(oeEnds.last.edata.eks.length) } else { Option(0d) };
                 val levelTransitions = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_LEVEL_SET") }.length - 1;
-                var levelMap = HashMap[String, Array[String]]();
+                var levelMap = HashMap[String, Buffer[String]]();
                 var domainMap = HashMap[String, String]();
                 var tempArr = ListBuffer[String]();
-                var lastItem: String = null;
+                var lastEvent: Event = null;
                 distinctEvents.foreach { x =>
                     CommonUtil.getEventId(x) match {
                         case "OE_ASSESS" => 
                             tempArr += x.edata.eks.qid.get;
-                            lastItem = x.edata.eks.qid.get;
+                            lastEvent = x;
                         case "OE_LEVEL_SET" =>
-                            levelMap(x.edata.eks.current.get) = tempArr.toArray;
+                            if(levelMap.getOrElse(x.edata.eks.current.get, null) != null) {
+                                levelMap(x.edata.eks.current.get) = levelMap(x.edata.eks.current.get) ++ tempArr;
+                            } else {
+                                levelMap(x.edata.eks.current.get) = tempArr;    
+                            }
                             tempArr = ListBuffer[String]();
-                            domainMap(x.edata.eks.current.get) = getItem(itemMapping, x)._2;
+                            domainMap(getItem(itemMapping, lastEvent)._2) = x.edata.eks.current.get;
                         case _ => ;
                             
                     }
                 }
                 val levels = levelMap.map(f => {
-                    Map("level" -> f._1, "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "noOfAttempts" -> false);
+                    val itemCounts = f._2.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
+                    Map("level" -> f._1, "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
                 }).toArray;
-                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), secondChance, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None);
+                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None);
             }
         itemResponses.join(screenerSummary, 1).map(f => {
             getMeasuredEvent(f, userProfileMapping.value);
@@ -155,7 +161,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
             "comments" -> game.comments,
             "fluency" -> game.fluency,
             "levels" -> game.levels,
-            "noOfAttempts" -> game.secondChance,
+            "noOfAttempts" -> game.noOfAttempts,
             "currentLevel" -> game.currentLevel,
             "noOfLevelTransitions" -> game.noOfLevelTransitions
         );
