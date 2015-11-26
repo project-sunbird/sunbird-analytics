@@ -28,16 +28,14 @@ import org.ekstep.ilimi.analytics.streaming.KafkaEventProducer
 object TelemetryDataMigrationModel extends Serializable {
 
     def main(args: Array[String]): Unit = {
+        /*
         val arr = getDeltaInput("s3://ep-production-backup/logs/telemetry/telemetry.log", 2);
         arr.foreach { x => Console.println(x); };
-        /*
+        */
         @transient val sc = CommonUtil.getSparkContext(8, "TelemetryDataMigrator");
         val accum = sc.accumulator(0, "Total Event Count Accumulator");
-        val fileAccum = sc.accumulator(0, "Event Count Accumulator");
-        outputEventPerLine("s3n://ep-production-backup/logs/telemetry/telemetry.log-2015-06-30-1435645954.gz", sc, 8, "s3://ekstep-telemetry", accum, fileAccum)
+        outputEventPerLine("s3n://ep-production-backup/logs/telemetry/telemetry.log-2015-10-15-1444890674.gz", sc, 8, "local:///Users/Santhosh/ekStep/telemetry_processed/test.log", accum, None)
         CommonUtil.closeSparkContext(sc);
-        * 
-        */
     }
 
     def getDeltaInput(input: String, delta: Int): Array[String] = {
@@ -96,12 +94,18 @@ object TelemetryDataMigrationModel extends Serializable {
                         null
                 }
             }
-        }.filter(_ != null).map { x => x.data.getOrElse(LineData(None, None, None, None, Array())).events }.collect();
+        }.filter(_ != null).map { x => x.data.getOrElse(LineData(None, None, None, None, Array())).events }.filter { x => x != null }.collect();
 
         Console.println("## Log Events Count - " + rdd.count() + " | Distinct Events Count - " + events.length + " ##");
-        
         val result = Buffer[String]();
-        events.foreach { x => { x.foreach { y => result += CommonUtil.jsonToString(y) } } };
+        events.foreach {
+            x => {
+                x.foreach { 
+                    y => 
+                        result += CommonUtil.jsonToString(y); 
+                } 
+            } 
+        };
         
         val distinctEvents = result.distinct;
         accum += distinctEvents.size;
