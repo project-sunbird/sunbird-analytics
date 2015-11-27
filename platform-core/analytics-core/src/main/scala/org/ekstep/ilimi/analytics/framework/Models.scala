@@ -6,7 +6,7 @@ import java.util.Date
 class Models extends Serializable {}
 
 // Raw Event Model
-case class Eks(subj: Option[String], mc: Option[Array[String]], mmc: Option[Array[String]], pass: Option[String], qid: Option[String], qtype: Option[String], qlevel: Option[String], score: Option[Int], maxscore: Option[Int], res: Option[Array[String]], exres: Option[Array[String]], length: Option[String], exlength: Option[Double], atmpts: Option[Int], failedatmpts: Option[Int], category: Option[String], current: Option[String], max: Option[String], `type`: Option[String], extype: Option[String], id: Option[String], gid: Option[String])
+case class Eks(loc: Option[String], mc: Option[Array[String]], mmc: Option[Array[String]], pass: Option[String], qid: Option[String], qtype: Option[String], qlevel: Option[String], score: Option[Int], maxscore: Option[Int], res: Option[Array[String]], exres: Option[Array[String]], length: Option[String], exlength: Option[Double], atmpts: Option[Int], failedatmpts: Option[Int], category: Option[String], current: Option[String], max: Option[String], `type`: Option[String], extype: Option[String], id: Option[String], gid: Option[String])
 case class EData(eks: Eks)
 case class GData(id: Option[String], ver: Option[String])
 case class Event(eid: Option[String], ts: Option[String], ver: Option[String], gdata: Option[GData], sid: Option[String], uid: Option[String], did: Option[String], edata: EData)
@@ -14,10 +14,10 @@ case class Event(eid: Option[String], ts: Option[String], ver: Option[String], g
 // Computed Event Model
 case class CData(id: String, `type`: Option[String]);
 case class MeasuredEvent(eid: String, ts: Long, ver: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
-case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile]);
+case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
 case class PData(id: String, model: String, ver: String);
 case class DtRange(from: Long, to: Long);
-case class Context(pdata: PData, dspec: Option[Map[String, String]], granularity: Option[String], dt_range: Option[DtRange]);
+case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: Option[String] = None, dt_range: Option[DtRange] = None);
 case class MEEdata(eks: AnyRef);
 
 // User Model
@@ -25,8 +25,8 @@ case class User(name: String, encoded_id: String, ekstep_id: String, gender: Str
 case class UserProfile(uid: String, handle: String, gender: String, age: Int, standard: Int, language: String);
 
 // Analytics Framework Job Models
-case class Query(bucket: Option[String], prefix: Option[String], startDate: Option[String], endDate: Option[String], gameId: Option[String], gameVersion: Option[String], telemetryVersion: Option[String], deviceInfo: Option[Map[String, AnyRef]], locationInfo: Option[Map[String, AnyRef]], brokerList: Option[String], topic: Option[String], windowType: Option[String], windowDuration: Option[Int], file: Option[String])
-case class Filter(name: String, operator: String, value: Option[AnyRef]);
+case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None)
+case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
 case class Sort(name: Option[String], order: Option[String]);
 case class Dispatcher(to: String, params: Map[String, AnyRef]);
 case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]]);

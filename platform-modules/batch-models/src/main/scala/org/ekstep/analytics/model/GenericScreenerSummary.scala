@@ -34,17 +34,18 @@ import org.ekstep.ilimi.analytics.framework.JobContext
 /**
  * Case class to hold the item responses 
  */
-case class ItemResponse(itemId: Option[String], itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Option[Int], timeStamp: Option[Long], maxScore: Option[AnyRef]);
+case class ItemResponse(itemId: Option[String], itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Option[Int], timeStamp: Option[Long], maxScore: Option[AnyRef], domain: Option[String]);
 
 /**
  * Case class to hold the screener summary
  */
-case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int]);
+case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String]);
 
 /**
  * Generic Screener Summary Model
  */
 class GenericScreenerSummary extends IBatchModel with Serializable {
+    
 
     /**
      * Get level to items mapping from Questionnaires
@@ -87,6 +88,8 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
     def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val questionnaires = ItemAdapter.getQuestionnaires(jobParams.getOrElse(Map[String, AnyRef]()).getOrElse("contentId", "").asInstanceOf[String]);
+        val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
+        val deviceMapping = sc.broadcast(JobContext.deviceMapping);
         val itemMapping = sc.broadcast(getItemMapping(questionnaires));
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
         val userProfileMapping = sc.broadcast(UserAdapter.getUserProfileMapping());
@@ -97,7 +100,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                 x.map { x => 
                     val itemObj = getItem(itemMapping, x);
                     val metadata = itemObj._1.metadata;
-                    ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj._1.mc, itemObj._1.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score")); 
+                    ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj._1.mc, itemObj._1.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), Option(itemObj._2)); 
                 }
             };
         val screenerSummary = events.filter { x => x.uid.nonEmpty }
@@ -131,7 +134,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                                 levelMap(x.edata.eks.current.get) = tempArr;    
                             }
                             tempArr = ListBuffer[String]();
-                            domainMap(getItem(itemMapping, lastEvent)._2) = x.edata.eks.current.get;
+                            domainMap(catMapping.value.getOrElse(x.edata.eks.category.getOrElse(""), getItem(itemMapping, lastEvent)._2)) = x.edata.eks.current.get;
                         case _ => ;
                             
                     }
@@ -140,7 +143,8 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                     val itemCounts = f._2.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
                     Map("level" -> f._1, "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
                 }).toArray;
-                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None);
+                val loc = deviceMapping.value.getOrElse(distinctEvents.last.did.get, "");
+                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc));
             }
         itemResponses.join(screenerSummary, 1).map(f => {
             getMeasuredEvent(f, userProfileMapping.value);
@@ -167,7 +171,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
         );
         MeasuredEvent("ME_SCREENER_SUMMARY", System.currentTimeMillis(), "1.0", Option(userMap._1), None, None, 
                 Context(PData("AnalyticsDataPipeline", "GenericScreenerSummary", "1.0"), None, None, None), 
-                Dimensions(None, Option(GData(game.id, game.ver)), None, None, Option(user)), 
+                Dimensions(None, Option(GData(game.id, game.ver)), None, None, Option(user), game.loc), 
                 MEEdata(measures));
     }
 
