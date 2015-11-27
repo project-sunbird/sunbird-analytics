@@ -9,6 +9,7 @@ import org.apache.spark.SparkContext
 object JobRunner {
   
     def executeBatch(jobClass: String, sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]) : RDD[String] = {
+        Console.println("### Executing the job - " + jobClass + " ###");
         val model = Class.forName(jobClass).newInstance.asInstanceOf[{ def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]) : RDD[String] }];;
         model.execute(sc, events, jobParams);
     }

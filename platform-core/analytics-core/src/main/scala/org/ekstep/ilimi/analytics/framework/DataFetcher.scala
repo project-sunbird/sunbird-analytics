@@ -9,6 +9,7 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods
 import org.ekstep.ilimi.analytics.framework.util.CommonUtil
 import org.apache.spark.streaming.StreamingContext
+import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -17,13 +18,16 @@ object DataFetcher {
 
     @throws(classOf[DataFetcherException])
     def fetchBatchData(sc: SparkContext, search: Fetcher): RDD[Event] = {
+        
         if(search.queries.isEmpty) {
             throw new DataFetcherException("Data fetch configuration not found");
         }
         val keys:Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
+                Console.println("### Fetching the batch data from S3 ###");
                 S3DataFetcher.getObjectKeys(search.queries.get).toArray;
             case "local" =>
+                Console.println("### Fetching the batch data from Local file ###");
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
             case _ =>
                 throw new DataFetcherException("Unknown fetcher type found");

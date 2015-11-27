@@ -15,6 +15,7 @@ object DataFilter {
      */
     @throws(classOf[DataFilterException])
     def filterAndSort(events: RDD[Event], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[Event] = {
+        Console.println("### Running the filter process ###");
         if (filters.nonEmpty) {
             events.filter { event =>
                 var valid = true;

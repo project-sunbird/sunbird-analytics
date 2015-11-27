@@ -31,6 +31,9 @@ object JobDriver extends Application {
             case e: JsonParseException =>
                 Console.err.println("JobDriver:main() - JobConfig parse error", e.getClass.getName, e.getMessage);
                 e.printStackTrace();
+            case e: Exception =>
+                Console.err.println("JobDriver:main() - Job error", e.getClass.getName, e.getMessage);
+                e.printStackTrace();
         }
         val t2 = System.currentTimeMillis;
         Console.println("## Model run complete - Time taken to compute - " + (t2 - t1) / 1000 + " ##");
