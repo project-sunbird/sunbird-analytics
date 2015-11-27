@@ -54,10 +54,11 @@ object S3Util {
         s3Objects.map { x => x.getKey }
     }
 
-    def search(bucketName: String, prefix: String, fromDate: Option[String], toDate: Option[String]): Buffer[String] = {
+    def search(bucketName: String, prefix: String, fromDate: Option[String] = None, toDate: Option[String] = None, delta: Option[Int] = None): Buffer[String] = {
         var paths = ListBuffer[String]();
-        if (fromDate.nonEmpty) {
-            val dates = CommonUtil.getDatesBetween(fromDate.get, toDate);
+        val from = if(delta.nonEmpty) CommonUtil.getStartDate(toDate, delta.get) else fromDate;
+        if (from.nonEmpty) {
+            val dates = CommonUtil.getDatesBetween(from.get, toDate);
             dates.foreach { x =>
                 {
                     paths ++= getPath(bucketName, prefix + x);

@@ -170,12 +170,14 @@ object CommonUtil {
         val numberOfDays = Days.daysBetween(from, to).getDays()
         for (f <- 0 to numberOfDays) yield from.plusDays(f)
     }
+    
+    def getStartDate(endDate: Option[String], delta: Int) : Option[String] = {
+        val to = if(endDate.nonEmpty) df4.parseLocalDate(endDate.get) else LocalDate.fromDateFields(new Date);
+        Option(to.minusDays(delta).toString());
+    }
 
     def getDatesBetween(fromDate: String, toDate: Option[String]): Array[String] = {
-        var to = LocalDate.fromDateFields(new Date);
-        if (toDate.nonEmpty) {
-            to = df4.parseLocalDate(toDate.get);
-        }
+        val to = if (toDate.nonEmpty) df4.parseLocalDate(toDate.get) else LocalDate.fromDateFields(new Date); 
         val from = df4.parseLocalDate(fromDate);
         val dates = datesBetween(from, to);
         dates.map { x => df4.print(x) }.toArray;

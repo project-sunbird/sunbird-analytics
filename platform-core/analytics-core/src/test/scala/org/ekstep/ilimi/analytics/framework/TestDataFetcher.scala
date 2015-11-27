@@ -1,7 +1,6 @@
 package org.ekstep.ilimi.analytics.framework
 
 import org.ekstep.ilimi.analytics.framework.exception.DataFetcherException
-import org.ekstep.ilimi.analytics.framework.SparkSpec
 
 /**
  * @author Santhosh
@@ -11,7 +10,7 @@ class TestDataFetcher extends SparkSpec {
     "DataFetcher" should "fetch the batch events matching query" in {
         
         val queries = Option(Array(
-            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-14"), Option("2015-06-16"), None, None, None, None, None, None, None, None, None, None)
+            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-14"), Option("2015-06-16"))
         ));
         val rdd = DataFetcher.fetchBatchData(sc, Fetcher("S3", None, queries));
         rdd.count should be (57)
@@ -28,7 +27,7 @@ class TestDataFetcher extends SparkSpec {
     "DataFetcher" should "throw DataFetcherException" in {
         
         val search = Fetcher("s3", None, Option(Array(
-            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"), None, None, None, None, None, None, None, None, None, None)
+            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"))
         )));
         a[DataFetcherException] should be thrownBy {
             DataFetcher.fetchBatchData(sc, search);
