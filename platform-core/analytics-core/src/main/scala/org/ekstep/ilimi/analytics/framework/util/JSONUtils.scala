@@ -9,6 +9,7 @@ import java.lang.reflect.{ Type, ParameterizedType }
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JacksonModule
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.fasterxml.jackson.databind.DeserializationFeature
 
 /**
  * @author Santhosh
@@ -17,7 +18,7 @@ object JSONUtils {
 
     @transient val mapper = new ObjectMapper();
     mapper.registerModule(DefaultScalaModule);
-    mapper.registerSubtypes(new NamedType(classOf[Array[Map[String, AnyRef]]], "questionnaires"));
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @throws(classOf[Exception])
     def serialize(obj: AnyRef): String = {
