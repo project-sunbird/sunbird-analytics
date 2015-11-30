@@ -40,7 +40,7 @@ class TestJobDriver extends FlatSpec with Matchers {
     it should "successfully execute batch job driver using s3 file" in {
 
         val jobConfig = JobConfig(
-            Fetcher("s3", None, Option(Array(Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-10-27"), Option("2015-11-24"))))),
+            Fetcher("s3", None, Option(Array(Query(None, None, Option("2015-10-27"), Option("2015-11-24"))))),
             Option(Array[Filter](
                 Filter("eventId", "IN", Option(Array("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET"))),
                 Filter("gameId", "IN", Option(Array("org.ekstep.aser", "org.ekstep.aser.lite")))
