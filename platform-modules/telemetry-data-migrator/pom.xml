@@ -14,7 +14,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.ekstep</groupId>
-			<artifactId>analytics-common</artifactId>
+			<artifactId>analytics-core</artifactId>
 			<version>1.0</version>
 		</dependency>
 		<dependency>
@@ -26,6 +26,12 @@
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.10</artifactId>
+			<version>${spark.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-streaming_2.10</artifactId>
 			<version>${spark.version}</version>
 			<scope>provided</scope>
 		</dependency>
