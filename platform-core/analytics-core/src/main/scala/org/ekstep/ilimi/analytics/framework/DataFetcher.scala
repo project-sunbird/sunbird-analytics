@@ -17,7 +17,7 @@ import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 object DataFetcher {
 
     @throws(classOf[DataFetcherException])
-    def fetchBatchData(sc: SparkContext, search: Fetcher): RDD[Event] = {
+    def fetchBatchData[T](sc: SparkContext, search: Fetcher)(implicit mf:Manifest[T]): RDD[T] = {
         
         if(search.queries.isEmpty) {
             throw new DataFetcherException("Data fetch configuration not found");
@@ -37,8 +37,7 @@ object DataFetcher {
         }
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
-                implicit val formats = DefaultFormats;
-                JsonMethods.parse(line).extract[Event]
+                JSONUtils.deserialize[T](line);
             }
         }.cache();
     }
