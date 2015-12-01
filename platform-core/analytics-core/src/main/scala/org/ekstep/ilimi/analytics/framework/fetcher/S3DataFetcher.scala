@@ -30,7 +30,7 @@ object S3DataFetcher {
     }
     
     private def getPrefix(prefix: Option[String]) : String = {
-        prefix.getOrElse("telemetry.raw-");
+        prefix.getOrElse("prod.telemetry.unique-");
     }
 
 }
