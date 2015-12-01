@@ -1,21 +1,12 @@
 package org.ekstep.ilimi.analytics.framework.util
 
-import scala.concurrent._
-import scala.concurrent.duration._
-import java.net.URL
-import org.ekstep.ilimi.analytics.framework.Response
-import org.ekstep.ilimi.analytics.framework.Metadata
-import org.ekstep.ilimi.analytics.framework.Search
-import org.ekstep.ilimi.analytics.framework.Request
-import org.ekstep.ilimi.analytics.framework.SearchFilter
-import java.nio.charset.Charset
-import ExecutionContext.Implicits.global
-import org.apache.http.impl.client.HttpClients
-import org.apache.http.client.methods.HttpGet
 import scala.io.Source
+
+import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.HttpEntity
 import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.HttpClients
+import org.ekstep.ilimi.analytics.framework.Response
 
 /**
  * @author Santhosh
@@ -37,9 +28,9 @@ object RestUtil {
             val entity = httpResponse.getEntity()
             val content = if (entity != null) {
                 val inputStream = entity.getContent()
-                val contentStr = Source.fromInputStream(inputStream).getLines.mkString
+                val contentStr = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString;
                 inputStream.close
-                contentStr;
+                contentStr
             } else null;
             JSONUtils.deserialize[T](content);
         } finally {
