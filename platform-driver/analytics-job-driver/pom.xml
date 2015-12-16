@@ -84,7 +84,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>analytics-framework-0.1</finalName>
+		<finalName>analytics-framework-0.2</finalName>
 		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
 		<plugins>
