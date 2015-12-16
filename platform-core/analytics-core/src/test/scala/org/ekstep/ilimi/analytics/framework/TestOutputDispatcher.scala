@@ -11,7 +11,7 @@ class TestOutputDispatcher extends SparkSpec {
   
     "OutputDispatcher" should "dispatch output to console" in {
         val outputs = Option(Array(
-            Dispatcher("console", Map())        
+            Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef]))        
         ))
         noException should be thrownBy {
             OutputDispatcher.dispatch(outputs, events.map { x => JSONUtils.serialize(x) });

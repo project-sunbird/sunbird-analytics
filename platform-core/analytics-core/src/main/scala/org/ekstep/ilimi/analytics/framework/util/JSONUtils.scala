@@ -1,15 +1,16 @@
 package org.ekstep.ilimi.analytics.framework.util
 
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+
 import org.json4s.DefaultFormats
-import org.json4s.jackson.JsonMethods
 import org.json4s.Extraction
+import org.json4s.jackson.JsonMethods
+
+import com.fasterxml.jackson.core.`type`.TypeReference
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import java.lang.reflect.{ Type, ParameterizedType }
-import com.fasterxml.jackson.core.`type`.TypeReference
-import com.fasterxml.jackson.module.scala.JacksonModule
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.fasterxml.jackson.databind.DeserializationFeature
 
 /**
  * @author Santhosh
@@ -33,7 +34,7 @@ object JSONUtils {
         override def getType = typeFromManifest(manifest[T])
     }
 
-    /*
+    
     private[this] def typeFromManifest(m: Manifest[_]): Type = {
         if (m.typeArguments.isEmpty) { m.runtimeClass }
         else new ParameterizedType {
@@ -41,9 +42,10 @@ object JSONUtils {
             def getActualTypeArguments = m.typeArguments.map(typeFromManifest).toArray
             def getOwnerType = null
         }
-    }*/
+    }
     
+    /*
     private[this] def typeFromManifest(m: Manifest[_]): Type = {
         m.runtimeClass
-    }
+    }*/
 }

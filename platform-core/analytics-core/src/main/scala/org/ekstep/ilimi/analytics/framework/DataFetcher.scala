@@ -37,9 +37,14 @@ object DataFetcher {
         }
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
-                JSONUtils.deserialize[T](line);
+                try {
+                    JSONUtils.deserialize[T](line);   
+                } catch {
+                    case ex:Exception => 
+                        null.asInstanceOf[T]
+                }                    
             }
-        }.cache();
+        }.filter { x => x != null }.cache();
     }
 
     /**
