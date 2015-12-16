@@ -11,7 +11,9 @@ object AppConf {
 
     def init() {
         if (!initialized) {
-            val is = getClass.getResourceAsStream("/config.properties")
+            val key = getConfigKey;
+            Console.println("### Using configuration file - " + key + " ###");
+            val is = getClass.getResourceAsStream(key)
             properties = new Properties();
             properties.load(is)
             is.close()
@@ -37,6 +39,12 @@ object AppConf {
 
     def getAwsSecret(): String = {
         getConfig("aws_secret");
+    }
+    
+    def getConfigKey(): String = {
+        val sysenv = sys.env.getOrElse("config-env", null);
+        val env = if(sysenv != null) sysenv else sys.props.getOrElse("env", "DEV");    
+        "/" + env.toLowerCase() + ".config.properties";
     }
 
 }
