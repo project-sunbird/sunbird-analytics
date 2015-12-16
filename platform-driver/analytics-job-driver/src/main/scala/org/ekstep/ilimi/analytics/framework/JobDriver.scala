@@ -33,7 +33,7 @@ object JobDriver extends Application {
                 e.printStackTrace();
             case e: Exception =>
                 Console.err.println("JobDriver:main() - Job error", e.getClass.getName, e.getMessage);
-                e.printStackTrace();
+                throw e;
         }
         val t2 = System.currentTimeMillis;
         Console.println("## Model run complete - Time taken to compute - " + (t2 - t1) / 1000 + " ##");
