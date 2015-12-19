@@ -86,12 +86,14 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
     }
 
     def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
-
-        val questionnaires = ItemAdapter.getQuestionnaires(jobParams.getOrElse(Map[String, AnyRef]()).getOrElse("contentId", "").asInstanceOf[String]);
+    
+        val config = jobParams.getOrElse(Map[String, AnyRef]());
+        val questionnaires = ItemAdapter.getQuestionnaires(config.getOrElse("contentId", "").asInstanceOf[String]);
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
         val itemMapping = sc.broadcast(getItemMapping(questionnaires));
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
+        val configMapping = sc.broadcast(config);
         val userProfileMapping = sc.broadcast(UserAdapter.getUserProfileMapping());
         val itemResponses = events.filter { x => x.uid.nonEmpty && CommonUtil.getEventId(x).equals("OE_ASSESS") }
             .map(event => (event.uid.get, Buffer(event)))
@@ -147,16 +149,16 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                 ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc));
             }
         itemResponses.join(screenerSummary, 1).map(f => {
-            getMeasuredEvent(f, userProfileMapping.value);
+            getMeasuredEvent(f, userProfileMapping.value, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
 
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (Buffer[ItemResponse], ScreenerSummary)), userMapping: Map[String, UserProfile]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (Buffer[ItemResponse], ScreenerSummary)), userMapping: Map[String, UserProfile], config: Map[String, AnyRef]): MeasuredEvent = {
         val game = userMap._2._2;
-        val user = userMapping.getOrElse(userMap._1, UserProfile(userMap._1, "Anonymous", "NA", 0, 0, "en"));
+        val user = userMapping.getOrElse(userMap._1, UserProfile(userMap._1, "NA", 0));
         val measures = Map(
             "itemResponses" -> userMap._2._1,
             "startTime" -> game.startTimestamp,
@@ -170,7 +172,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
             "noOfLevelTransitions" -> game.noOfLevelTransitions
         );
         MeasuredEvent("ME_SCREENER_SUMMARY", System.currentTimeMillis(), "1.0", Option(userMap._1), None, None, 
-                Context(PData("AnalyticsDataPipeline", "GenericScreenerSummary", "1.0"), None, None, None), 
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, None, None), 
                 Dimensions(None, Option(GData(game.id, game.ver)), None, None, Option(user), game.loc), 
                 MEEdata(measures));
     }

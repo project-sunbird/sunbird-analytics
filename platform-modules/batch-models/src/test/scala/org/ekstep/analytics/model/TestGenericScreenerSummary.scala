@@ -5,6 +5,7 @@ import java.io.FileWriter
 import org.ekstep.ilimi.analytics.framework.util.CommonUtil
 import org.ekstep.ilimi.analytics.framework.MeasuredEvent
 import org.ekstep.ilimi.analytics.framework.util.JSONUtils
+import org.ekstep.ilimi.analytics.framework.JobContext
 
 /**
  * @author Santhosh
@@ -12,13 +13,14 @@ import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 class TestGenericScreenerSummary extends SparkSpec {
     
     "GenericScreenerSummary" should "produce akshara measured events" in {
+        JobContext.deviceMapping = events.filter { x => CommonUtil.getEventId(x).equals("GE_GENIE_START") }.map { x => (x.did.get, x.edata.eks.loc.getOrElse("")) }.collect().toMap;
         val screener = new GenericScreenerSummary();
-        val rdd = screener.execute(sc, events, Option(Map("contentId" -> "numeracy_377")));
+        val rdd = screener.execute(sc, events, Option(Map("contentId" -> "numeracy_377", "modelVersion" -> "1.1", "modelId" -> "GenericContentSummary")));
         rdd.count() should be (54);
         val me = rdd.collect();
         val fw = new FileWriter("test_output.txt", true);
         for(e <- me) {
-            //Console.println(e);
+            Console.println(e);
             fw.write(e + "\n");
         }
         fw.close();
