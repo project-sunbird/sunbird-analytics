@@ -22,7 +22,7 @@ case class MEEdata(eks: AnyRef);
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
-case class UserProfile(uid: String, handle: String, gender: String, age: Int, standard: Int, language: String);
+case class UserProfile(uid: String, gender: String, age: Int);
 
 // Analytics Framework Job Models
 case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None)
