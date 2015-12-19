@@ -346,5 +346,18 @@ object CommonUtil {
             Option(0d);
         }
     }
+    
+    def getTimeDiff(start: Event, end: Event): Option[Double] = {
+        
+        try {
+            val st = df3.parseLocalDate(start.ts.getOrElse("")).toDate.getTime;
+            val et = df3.parseLocalDate(end.ts.getOrElse("")).toDate.getTime;
+            Option(et-st);
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid event time", "start", start.ts.getOrElse(""), "end", end.ts.getOrElse(""));
+                Option(0d);
+        }
+    }
 
 }

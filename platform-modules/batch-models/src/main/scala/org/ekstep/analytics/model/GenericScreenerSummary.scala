@@ -39,7 +39,7 @@ case class ItemResponse(itemId: Option[String], itype: Option[AnyRef], ilevel: O
 /**
  * Case class to hold the screener summary
  */
-case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String]);
+case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], itemResponses: Option[Buffer[ItemResponse]]);
 
 /**
  * Generic Screener Summary Model
@@ -95,30 +95,44 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
         val configMapping = sc.broadcast(config);
         val userProfileMapping = sc.broadcast(UserAdapter.getUserProfileMapping());
-        val itemResponses = events.filter { x => x.uid.nonEmpty && CommonUtil.getEventId(x).equals("OE_ASSESS") }
+        val gameSessions = events.filter { x => x.uid.nonEmpty }
             .map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
-                x.map { x => 
+                var sessions = Buffer[Buffer[Event]]();
+                var tmpArr = Buffer[Event]();
+                x.foreach { y =>
+                    CommonUtil.getEventId(y) match {
+                        case "OE_START" => 
+                            if(tmpArr.length > 0) {
+                                sessions += tmpArr;
+                                tmpArr = Buffer[Event]();
+                            }
+                            tmpArr += y;
+                        case _ => ;
+                            tmpArr += y;
+                    }
+                }
+                sessions += tmpArr;
+                sessions;
+            }.flatMap(f => f._2.map { x => (f._1, x) });
+        
+        val screenerSummary = gameSessions.mapValues { x =>
+                val distinctEvents = x;
+                val assessEvents = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_ASSESS") }.sortBy { x => CommonUtil.getEventTS(x) };
+                val itemResponses = assessEvents.map { x => 
                     val itemObj = getItem(itemMapping, x);
                     val metadata = itemObj._1.metadata;
                     ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj._1.mc, itemObj._1.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), Option(itemObj._2)); 
                 }
-            };
-        val screenerSummary = events.filter { x => x.uid.nonEmpty }
-            .map(event => (event.uid.get, Buffer(event)))
-            .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).mapValues { x =>
-                val distinctEvents = x.distinct;
-                val assessEvents = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_ASSESS") }.sortBy { x => CommonUtil.getEventTS(x) };
                 val qids = assessEvents.map { x => x.edata.eks.qid.get}.filter { x => x != null };
                 val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
                 val noOfAttempts = if(qidMap.isEmpty) 1 else qidMap.max;
                 val oeStarts = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_START") };
                 val oeEnds = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_END") };
                 val startTimestamp = if (oeStarts.length > 0) { Option(CommonUtil.getEventTS(oeStarts(0))) } else { Option(0l) };
-                val endTimestamp = if (oeEnds.length > 0) { Option(CommonUtil.getEventTS(oeEnds(0))) } else { Option(0l) };
-                val timeSpent = if (oeEnds.length > 0) { CommonUtil.getTimeSpent(oeEnds.last.edata.eks.length) } else { Option(0d) };
+                val endTimestamp = if (oeEnds.length > 0) { Option(CommonUtil.getEventTS(oeEnds(0))) } else { Option(CommonUtil.getEventTS(distinctEvents.last)) };
+                val timeSpent = if (oeEnds.length > 0) { CommonUtil.getTimeSpent(oeEnds.last.edata.eks.length) } else { CommonUtil.getTimeDiff(distinctEvents(0), distinctEvents.last) };
                 val levelTransitions = distinctEvents.filter { x => CommonUtil.getEventId(x).equals("OE_LEVEL_SET") }.length - 1;
                 var levelMap = HashMap[String, Buffer[String]]();
                 var domainMap = HashMap[String, String]();
@@ -146,9 +160,9 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                     Map("level" -> f._1, "domain" -> "", "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
                 }).toArray;
                 val loc = deviceMapping.value.getOrElse(distinctEvents.last.did.get, "");
-                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc));
+                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses));
             }
-        itemResponses.join(screenerSummary, 1).map(f => {
+        screenerSummary.map(f => {
             getMeasuredEvent(f, userProfileMapping.value, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
@@ -156,11 +170,11 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (Buffer[ItemResponse], ScreenerSummary)), userMapping: Map[String, UserProfile], config: Map[String, AnyRef]): MeasuredEvent = {
-        val game = userMap._2._2;
+    private def getMeasuredEvent(userMap: (String, ScreenerSummary), userMapping: Map[String, UserProfile], config: Map[String, AnyRef]): MeasuredEvent = {
+        val game = userMap._2;
         val user = userMapping.getOrElse(userMap._1, UserProfile(userMap._1, "NA", 0));
         val measures = Map(
-            "itemResponses" -> userMap._2._1,
+            "itemResponses" -> game.itemResponses,
             "startTime" -> game.startTimestamp,
             "endTime" -> game.endTimestamp,
             "timeSpent" -> game.timeSpent,
@@ -171,7 +185,7 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
             "currentLevel" -> game.currentLevel,
             "noOfLevelTransitions" -> game.noOfLevelTransitions
         );
-        MeasuredEvent("ME_SCREENER_SUMMARY", System.currentTimeMillis(), "1.0", Option(userMap._1), None, None, 
+        MeasuredEvent(config.getOrElse("eventId", "ME_SCREENER_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None, 
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, None, None), 
                 Dimensions(None, Option(GData(game.id, game.ver)), None, None, Option(user), game.loc), 
                 MEEdata(measures));
