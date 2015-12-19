@@ -9,7 +9,7 @@ class Models extends Serializable {}
 case class Eks(loc: Option[String], mc: Option[Array[String]], mmc: Option[Array[String]], pass: Option[String], qid: Option[String], qtype: Option[String], qlevel: Option[String], score: Option[Int], maxscore: Option[Int], res: Option[Array[String]], exres: Option[Array[String]], length: Option[String], exlength: Option[Double], atmpts: Option[Int], failedatmpts: Option[Int], category: Option[String], current: Option[String], max: Option[String], `type`: Option[String], extype: Option[String], id: Option[String], gid: Option[String])
 case class EData(eks: Eks)
 case class GData(id: Option[String], ver: Option[String])
-case class Event(eid: Option[String], ts: Option[String], ver: Option[String], gdata: Option[GData], sid: Option[String], uid: Option[String], did: Option[String], edata: EData)
+case class Event(eid: Option[String], ts: Option[String], `@timestamp`: Option[String], ver: Option[String], gdata: Option[GData], sid: Option[String], uid: Option[String], did: Option[String], edata: EData)
 
 // Computed Event Model
 case class CData(id: String, `type`: Option[String]);
