@@ -26,6 +26,7 @@ import scala.collection.mutable.ListBuffer
 import org.apache.spark.broadcast.Broadcast
 import org.ekstep.ilimi.analytics.framework.UserProfile
 import org.ekstep.ilimi.analytics.framework.JobContext
+import org.ekstep.ilimi.analytics.framework.DtRange
 
 /**
  * @author Santhosh
@@ -39,7 +40,7 @@ case class ItemResponse(itemId: Option[String], itype: Option[AnyRef], ilevel: O
 /**
  * Case class to hold the screener summary
  */
-case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], itemResponses: Option[Buffer[ItemResponse]]);
+case class ScreenerSummary(id: Option[String], ver: Option[String], levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], itemResponses: Option[Buffer[ItemResponse]], dtRange: DtRange);
 
 /**
  * Generic Screener Summary Model
@@ -94,7 +95,6 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
         val itemMapping = sc.broadcast(getItemMapping(questionnaires));
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
         val configMapping = sc.broadcast(config);
-        val userProfileMapping = sc.broadcast(UserAdapter.getUserProfileMapping());
         val gameSessions = events.filter { x => x.uid.nonEmpty }
             .map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -160,19 +160,18 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
                     Map("level" -> f._1, "domain" -> "", "items" -> levelMapping.value.get(f._1), "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
                 }).toArray;
                 val loc = deviceMapping.value.getOrElse(distinctEvents.last.did.get, "");
-                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses));
+                ScreenerSummary(Option(CommonUtil.getGameId(x(0))), Option(CommonUtil.getGameVersion(x(0))), Option(levels), noOfAttempts, timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)));
             }
         screenerSummary.map(f => {
-            getMeasuredEvent(f, userProfileMapping.value, configMapping.value);
+            getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
 
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, ScreenerSummary), userMapping: Map[String, UserProfile], config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, ScreenerSummary), config: Map[String, AnyRef]): MeasuredEvent = {
         val game = userMap._2;
-        val user = userMapping.getOrElse(userMap._1, UserProfile(userMap._1, "NA", 0));
         val measures = Map(
             "itemResponses" -> game.itemResponses,
             "startTime" -> game.startTimestamp,
@@ -186,8 +185,8 @@ class GenericScreenerSummary extends IBatchModel with Serializable {
             "noOfLevelTransitions" -> game.noOfLevelTransitions
         );
         MeasuredEvent(config.getOrElse("eventId", "ME_SCREENER_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None, 
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, None, None), 
-                Dimensions(None, Option(GData(game.id, game.ver)), None, None, Option(user), game.loc), 
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, Option("SESSION"), Option(game.dtRange)), 
+                Dimensions(None, Option(GData(game.id, game.ver)), None, None, None, game.loc), 
                 MEEdata(measures));
     }
 

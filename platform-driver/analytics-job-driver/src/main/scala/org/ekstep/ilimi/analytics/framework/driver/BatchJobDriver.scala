@@ -8,6 +8,7 @@ import org.ekstep.ilimi.analytics.framework.OutputDispatcher
 import org.ekstep.ilimi.analytics.framework.util.CommonUtil
 import org.ekstep.ilimi.analytics.framework.JobContext
 import org.ekstep.ilimi.analytics.framework.Event
+import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -18,11 +19,14 @@ object BatchJobDriver {
 
         JobContext.parallelization = CommonUtil.getParallelization(config);
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
-        val rdd = DataFetcher.fetchBatchData[Event](sc, config.search);
-        JobContext.deviceMapping = rdd.filter { x => CommonUtil.getEventId(x).equals("GE_GENIE_START") }.map { x => (x.did.get, x.edata.eks.loc.getOrElse("")) }.collect().toMap;
-        val filterRdd = DataFilter.filterAndSort(rdd, config.filters, config.sort);
-        val output = JobRunner.executeBatch(config.model, sc, filterRdd, config.modelParams);
-        OutputDispatcher.dispatch(config.output, output);
-        CommonUtil.closeSparkContext(sc);
+        try {
+            val rdd = DataFetcher.fetchBatchData[Event](sc, config.search);
+            JobContext.deviceMapping = rdd.filter { x => CommonUtil.getEventId(x).equals("GE_GENIE_START") }.map { x => (x.did.getOrElse("NO_DID"), if (x.edata != null) x.edata.eks.loc.getOrElse("") else "") }.collect().toMap;
+            val filterRdd = DataFilter.filterAndSort(rdd, config.filters, config.sort);
+            val output = JobRunner.executeBatch(config.model, sc, filterRdd, config.modelParams);
+            OutputDispatcher.dispatch(config.output, output);
+        } finally {
+            CommonUtil.closeSparkContext(sc);
+        }
     }
 }

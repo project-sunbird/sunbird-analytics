@@ -14,7 +14,7 @@ import com.fasterxml.jackson.core.JsonParseException
 object JobDriver extends Application {
 
     def main(t: String, config: String) {
-
+        println("### Starting " + t + " batch with config - " + config + " ###");
         AppConf.init();
         val t1 = System.currentTimeMillis;
         try {
