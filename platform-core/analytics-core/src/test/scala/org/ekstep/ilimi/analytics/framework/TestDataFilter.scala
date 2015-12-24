@@ -9,7 +9,6 @@ import org.json4s.jackson.JsonMethods
 import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.ilimi.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
-import org.ekstep.ilimi.analytics.framework.SparkSpec
 
 /**
  * @author Santhosh
@@ -21,9 +20,9 @@ class TestDataFilter extends SparkSpec {
         val filters = Option(Array[Filter](
             Filter("eventId", "EQ", Option("GE_GENIE_START"))   
         ));
-        val filteredEvents = DataFilter.filterAndSort(events, filters, None);
+        val filteredEvents = DataFilter.filterAndSort[Event](events, filters, None);
         filteredEvents.count() should be (20);
-        filteredEvents.first().eid.get should be("GE_GENIE_START")
+        filteredEvents.first().eid should be("GE_GENIE_START")
     }
     
     it should "filter the events where game id equals org.ekstep.aser" in {
@@ -32,7 +31,7 @@ class TestDataFilter extends SparkSpec {
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
         filteredEvents.count() should be (6276);
-        filteredEvents.first().gdata.get.id.get should be("genie.android")
+        filteredEvents.first().gdata.id should be("genie.android")
     }
     
     it should "filter the events where game id not equals org.ekstep.aser" in {
@@ -51,13 +50,12 @@ class TestDataFilter extends SparkSpec {
         filteredEvents.count() should be (1413);
     }
     
-    it should "throw DataFilterException when given filter key is not found " in {
+    it should "filter by custom key using bean property matching " in {
         val filters = Option(Array[Filter](
-            Filter("userName", "EQ", Option("xyz"))
+            Filter("edata.eks.loc", "EQ", Option("13.3421418,77.1194668"))
         ));
-        a[SparkException] should be thrownBy {
-            DataFilter.filterAndSort(events, filters, None).count();
-        }
+        val filteredEvents = DataFilter.filterAndSort(events, filters, None);
+        filteredEvents.count() should be (20);
     }
     
     it should "filter the events by event ts" in {
@@ -111,7 +109,7 @@ class TestDataFilter extends SparkSpec {
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
         filteredEvents.count() should be (1872);
-        filteredEvents.first().gdata.get.id.get should be("org.ekstep.aser")
+        filteredEvents.first().gdata.id should be("org.ekstep.aser")
     }
     
     it should "filter by two criteria" in {
@@ -121,7 +119,7 @@ class TestDataFilter extends SparkSpec {
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
         filteredEvents.count() should be (1872);
-        filteredEvents.first().gdata.get.id.get should be("org.ekstep.aser")
+        filteredEvents.first().gdata.id should be("org.ekstep.aser")
     }
     
     it should "filter all events when the 'IN' clause is followed by an null array" in {

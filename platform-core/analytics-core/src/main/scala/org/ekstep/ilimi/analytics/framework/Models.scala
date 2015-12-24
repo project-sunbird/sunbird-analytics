@@ -2,14 +2,39 @@ package org.ekstep.ilimi.analytics.framework
 
 import java.io.Serializable
 import java.util.Date
+import scala.beans.BeanProperty
 
 class Models extends Serializable {}
 
 // Raw Event Model
+/*
 case class Eks(loc: Option[String], mc: Option[Array[String]], mmc: Option[Array[String]], pass: Option[String], qid: Option[String], qtype: Option[String], qlevel: Option[String], score: Option[Int], maxscore: Option[Int], res: Option[Array[String]], exres: Option[Array[String]], length: Option[String], exlength: Option[Double], atmpts: Option[Int], failedatmpts: Option[Int], category: Option[String], current: Option[String], max: Option[String], `type`: Option[String], extype: Option[String], id: Option[String], gid: Option[String])
 case class EData(eks: Eks)
 case class GData(id: Option[String], ver: Option[String])
-case class Event(eid: Option[String], ts: Option[String], `@timestamp`: Option[String], ver: Option[String], gdata: Option[GData], sid: Option[String], uid: Option[String], did: Option[String], edata: EData)
+case class Event(eid: Option[String], ts: Option[String], `@timestamp`: Option[String], ver: Option[String],@BeanProperty gdata: Option[GData], sid: Option[String], uid: Option[String], did: Option[String], edata: EData)
+*/
+
+@scala.reflect.BeanInfo
+class GData(@BeanProperty val id: String, @BeanProperty val ver: String) extends Serializable {}
+
+@scala.reflect.BeanInfo
+class Eks(@BeanProperty val loc: String, @BeanProperty val mc: Array[String], @BeanProperty val mmc: Array[String],
+          @BeanProperty val pass: String, @BeanProperty val qid: String, @BeanProperty val qtype: String,
+          @BeanProperty val qlevel: String, @BeanProperty val score: Int, @BeanProperty val maxscore: Int,
+          @BeanProperty val res: Array[String], @BeanProperty val exres: Array[String], @BeanProperty val length: AnyRef,
+          @BeanProperty val exlength: Double, @BeanProperty val atmpts: Int, @BeanProperty val failedatmpts: Int,
+          @BeanProperty val category: String, @BeanProperty val current: String, @BeanProperty val max: String,
+          @BeanProperty val `type`: String, @BeanProperty val extype: String, @BeanProperty val id: String,
+          @BeanProperty val gid: String) extends Serializable {}
+
+@scala.reflect.BeanInfo
+class EData(@BeanProperty val eks: Eks) extends Serializable {}
+
+@scala.reflect.BeanInfo
+class Event(@BeanProperty val eid: String, @BeanProperty val ts: String, val `@timestamp`: String,
+            @BeanProperty val ver: String, @BeanProperty val gdata: GData, @BeanProperty val sid: String,
+            @BeanProperty val uid: String, @BeanProperty val did: String, @BeanProperty val edata: EData) extends Serializable {}
+
 
 // Computed Event Model
 case class CData(id: String, `type`: Option[String]);

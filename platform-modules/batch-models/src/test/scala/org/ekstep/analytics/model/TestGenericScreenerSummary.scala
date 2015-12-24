@@ -13,7 +13,7 @@ import org.ekstep.ilimi.analytics.framework.JobContext
 class TestGenericScreenerSummary extends SparkSpec {
     
     "GenericScreenerSummary" should "produce akshara measured events" in {
-        JobContext.deviceMapping = events.filter { x => CommonUtil.getEventId(x).equals("GE_GENIE_START") }.map { x => (x.did.get, x.edata.eks.loc.getOrElse("")) }.collect().toMap;
+        JobContext.deviceMapping = events.filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, x.edata.eks.loc) }.collect().toMap;
         val screener = new GenericScreenerSummary();
         val rdd = screener.execute(sc, events, Option(Map("contentId" -> "numeracy_377", "modelVersion" -> "1.1", "modelId" -> "GenericContentSummary")));
         rdd.count() should be (54);

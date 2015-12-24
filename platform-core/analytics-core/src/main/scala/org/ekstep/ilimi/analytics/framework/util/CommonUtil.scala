@@ -1,46 +1,37 @@
 package org.ekstep.ilimi.analytics.framework.util
 
+import java.io.BufferedInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.nio.file.Paths.get
-import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.zip.GZIPOutputStream
+
+import scala.collection.mutable.ListBuffer
+
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.Duration
-import org.apache.spark.streaming.StreamingContext
-import org.ekstep.ilimi.analytics.framework.conf.AppConf
 import org.ekstep.ilimi.analytics.framework.Event
+import org.ekstep.ilimi.analytics.framework.JobConfig
+import org.ekstep.ilimi.analytics.framework.conf.AppConf
+import org.joda.time.DateTime
+import org.joda.time.Days
+import org.joda.time.LocalDate
+import org.joda.time.Years
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
 import org.json4s.DefaultFormats
-import org.json4s.Extraction
 import org.json4s.jackson.JsonMethods
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.DateTime
-import org.ekstep.ilimi.analytics.framework.GData
-import org.joda.time.LocalDate
-import org.joda.time.Days
-import java.util.Calendar
-import scala.collection.mutable.ListBuffer
-import java.io.File
-import java.io.BufferedInputStream
-import java.io.FileInputStream
-import java.util.zip.GZIPOutputStream
-import java.io.FileOutputStream
-import java.io.FileNotFoundException
-import org.joda.time.Years
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.ekstep.ilimi.analytics.framework.JobConfig
-import org.json4s.JsonMethods
-import org.ekstep.ilimi.analytics.framework.Response
-import scala.reflect.ClassTag
 
 object CommonUtil {
 
@@ -202,40 +193,32 @@ object CommonUtil {
         df3.print(date);
     }
 
-    def getEventId(event: Event): String = {
-        event.eid.getOrElse(null);
-    }
-
     def getEventTS(event: Event): Long = {
         try {
-            df3.parseLocalDate(event.ts.getOrElse("")).toDate.getTime;
+            df3.parseLocalDate(event.ts).toDate.getTime;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid event time", event.ts.getOrElse(""));
+                Console.err.println("Invalid event time", event.ts);
                 0
         }
     }
     
     def getEventDate(event: Event): Date = {
         try {
-            df3.parseLocalDate(event.ts.getOrElse("")).toDate;
+            df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid event time", event.ts.getOrElse(""));
+                Console.err.println("Invalid event time", event.ts);
                 null;
         }
     }
 
     def getGameId(event: Event): String = {
-        event.gdata.getOrElse(GData(Option(null), Option(null))).id.getOrElse(null);
+        if(event.gdata != null) event.gdata.id else null;
     }
 
     def getGameVersion(event: Event): String = {
-        event.gdata.getOrElse(GData(Option(null), Option(null))).ver.getOrElse(null);
-    }
-
-    def getUserId(event: Event): String = {
-        event.uid.getOrElse(null);
+        if(event.gdata != null) event.gdata.ver else null;
     }
 
     def getParallelization(config: Option[Map[String, String]]): Int = {
@@ -331,14 +314,14 @@ object CommonUtil {
         if (gzip) CommonUtil.deleteFile(tmpFilePath);
     }
     
-    def getTimeSpent(len: Option[AnyRef]): Option[Double] = {
-        if (len.nonEmpty) {
-            if (len.get.isInstanceOf[String]) {
-                Option(len.get.asInstanceOf[String].toDouble)
-            } else if (len.get.isInstanceOf[Double]) {
-                Option(len.get.asInstanceOf[Double])
-            } else if (len.get.isInstanceOf[Int]) {
-                Option(len.get.asInstanceOf[Int].toDouble)
+    def getTimeSpent(len: AnyRef): Option[Double] = {
+        if (null != len) {
+            if (len.isInstanceOf[String]) {
+                Option(len.asInstanceOf[String].toDouble)
+            } else if (len.isInstanceOf[Double]) {
+                Option(len.asInstanceOf[Double])
+            } else if (len.isInstanceOf[Int]) {
+                Option(len.asInstanceOf[Int].toDouble)
             } else {
                 Option(0d);
             }
@@ -350,12 +333,12 @@ object CommonUtil {
     def getTimeDiff(start: Event, end: Event): Option[Double] = {
         
         try {
-            val st = df3.parseLocalDate(start.ts.getOrElse("")).toDate.getTime;
-            val et = df3.parseLocalDate(end.ts.getOrElse("")).toDate.getTime;
+            val st = df3.parseLocalDate(start.ts).toDate.getTime;
+            val et = df3.parseLocalDate(end.ts).toDate.getTime;
             Option(et-st);
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid event time", "start", start.ts.getOrElse(""), "end", end.ts.getOrElse(""));
+                Console.err.println("Invalid event time", "start", start.ts, "end", end.ts);
                 Option(0d);
         }
     }
