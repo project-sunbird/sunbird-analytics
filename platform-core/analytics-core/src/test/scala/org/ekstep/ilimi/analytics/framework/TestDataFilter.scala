@@ -9,6 +9,7 @@ import org.json4s.jackson.JsonMethods
 import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.ilimi.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
+import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -149,5 +150,14 @@ class TestDataFilter extends SparkSpec {
         ));
         val filteredEvents2 = DataFilter.filterAndSort(events, filters2, None);
         filteredEvents1.count() should be (filteredEvents2.count());
+    }
+    
+    it should "sort the events by edata.eks.id" in  {
+        val e1 = events.take(1)(0);
+        val sortedEvents = DataFilter.sortBy(events, Sort("edata.eks.id", Option("desc")));
+        val e2 = sortedEvents.take(1)(0);
+        e1.eid should not be (e2.eid)
+        e1.ts should not be (e2.ts)
+        e2.gdata.id should be ("org.ekstep.aser")
     }
 }

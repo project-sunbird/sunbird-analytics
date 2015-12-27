@@ -12,18 +12,25 @@ import org.ekstep.ilimi.analytics.framework.filter.Matcher
  * @author Santhosh
  */
 object DataFilter {
-
+    
     /**
-     * Execute multiple filters
+     * Execute multiple filters and sort
      */
     @throws(classOf[DataFilterException])
-    def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort])(implicit mf: Manifest[T]): RDD[T] = {
+    def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[T] = {
+        Console.println("### Running the filter and sort process ###");
+        val filteredEvents = if (filters.nonEmpty) { filter(events, filters.get) } else events;
+        if (sort.nonEmpty) { sortBy(filteredEvents, sort.get) } else filteredEvents;
+    }
+    
+    @throws(classOf[DataFilterException])
+    def filter[T](events: RDD[T], filters: Array[Filter]): RDD[T] = {
         Console.println("### Running the filter process ###");
-        if (filters.nonEmpty) {
+        if (null != filters && filters.nonEmpty) {
             events.filter { event =>
                 var valid = true;
                 Breaks.breakable {
-                    filters.get.foreach { filter =>
+                    filters.foreach { filter =>
                         val value = getValue(event, filter.name);
                         valid = Matcher.compare(value, filter);
                         if (!valid) Breaks.break;
@@ -36,36 +43,32 @@ object DataFilter {
         }
     }
 
-    /*
     @throws(classOf[DataFilterException])
-    def getValue(event: Event, name: String): AnyRef = {
-        name match {
-            case "eventId" =>
-                CommonUtil.getEventId(event);
-            case "ts" =>
-                CommonUtil.getEventDate(event);
-            case "gameId" =>
-                var gid = event.edata.eks.gid.getOrElse(null);
-                if (null == gid)
-                    gid = CommonUtil.getGameId(event);
-                gid;
-            case "gameVersion" =>
-                CommonUtil.getGameVersion(event);
-            case "userId" =>
-                CommonUtil.getUserId(event);
-            case "sessionId" =>
-                event.sid.getOrElse(null);
-            case "telemetryVersion" =>
-                event.ver.getOrElse(null);
-            case "itemId" =>
-                event.edata.eks.qid.getOrElse(null);
-            case _ =>
-                throw new DataFilterException("Unknown filter key found");
+    def filter[T](events: RDD[T], filter: Filter): RDD[T] = {
+        if (null != filter) {
+            events.filter { event =>
+                val value = getValue(event, filter.name);
+                Matcher.compare(value, filter);
+            }
+        } else {
+            events;
         }
-    }*/
+    }
+    
+    def sortBy[T](events: RDD[T], sort: Sort): RDD[T] = {
+        if (null != sort) {
+            events.sortBy(f => getStringValue(f, sort.name), "asc".equalsIgnoreCase(sort.order.getOrElse("asc")), JobContext.parallelization);
+        } else {
+            events;
+        }
+    }
+    
+    private def getStringValue(event: Any, name: String) : String = {
+        val value = getValue(event, name);
+        if(null == value) "" else value.toString()
+    }
 
-    @throws(classOf[DataFilterException])
-    def getValue(event: Any, name: String): AnyRef = {
+    private def getValue(event: Any, name: String): AnyRef = {
         name match {
             case "eventId" => getBeanProperty(event, "eid");
             case "ts"      => getBeanProperty(event, "ts");
@@ -83,7 +86,7 @@ object DataFilter {
         }
     }
 
-    def getBeanProperty(event: Any, prop: String): AnyRef = {
+    private def getBeanProperty(event: Any, prop: String): AnyRef = {
         val obj = PropertyUtils.getProperty(event, prop);
         if (null != obj) {
             val objClass = obj.getClass.getName;

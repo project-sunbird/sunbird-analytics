@@ -52,7 +52,7 @@ case class UserProfile(uid: String, gender: String, age: Int);
 // Analytics Framework Job Models
 case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None)
 case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
-case class Sort(name: Option[String], order: Option[String]);
+case class Sort(name: String, order: Option[String]);
 case class Dispatcher(to: String, params: Map[String, AnyRef]);
 case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]]);
 case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String]);
