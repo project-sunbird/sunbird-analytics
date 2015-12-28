@@ -8,37 +8,32 @@ import org.json4s.jackson.JsonMethods
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
 import org.scalatest.BeforeAndAfterAll
-
 import com.fasterxml.jackson.core.JsonParseException
+import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
  */
-class SparkSpec extends BaseSpec with BeforeAndAfterAll {
+class SparkSpec(val file: String =  "src/test/resources/sample_telemetry.log") extends BaseSpec with BeforeAndAfterAll {
     
     var events: RDD[Event] = null;
     var sc: SparkContext = null;
     
     override def beforeAll() {
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
-        val rdd = sc.textFile("src/test/resources/sample_telemetry.log", 1).cache();
-        events = rdd.map { line =>
-            {
-                implicit val formats = DefaultFormats;
-                try{
-                    JsonMethods.parse(line).extract[Event]   
-                } catch {
-                    case pe: JsonParseException =>
-                        null;
-                    case ex: Exception =>
-                       throw ex;
-                }
-            }
-        }.filter { x => x != null }.cache();
+        events = loadFile(file)
     }
     
     override def afterAll() {
         CommonUtil.closeSparkContext(sc);
+    }
+    
+    def loadFile(file: String): RDD[Event] = {
+        sc.textFile(file, 1).map { line =>
+            {
+                JSONUtils.deserialize[Event](line);
+            }
+        }.filter { x => x != null }.cache();
     }
   
 }

@@ -195,7 +195,7 @@ object CommonUtil {
 
     def getEventTS(event: Event): Long = {
         try {
-            df3.parseLocalDate(event.ts).toDate.getTime;
+            df3.parseDateTime(event.ts).getMillis;
         } catch {
             case _: Exception =>
                 Console.err.println("Invalid event time", event.ts);
@@ -342,5 +342,5 @@ object CommonUtil {
                 Option(0d);
         }
     }
-
+    
 }
