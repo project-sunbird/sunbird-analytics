@@ -14,14 +14,14 @@ import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 /**
  * @author Santhosh
  */
-class SparkSpec extends BaseSpec with BeforeAndAfterAll {
+class SparkSpec(val file: String =  "src/test/resources/sample_telemetry.log") extends BaseSpec with BeforeAndAfterAll {
     
     var events: RDD[Event] = null;
     var sc: SparkContext = null;
     
     override def beforeAll() {
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
-        val rdd = sc.textFile("src/test/resources/sample_telemetry.log", 1).cache();
+        val rdd = sc.textFile(file, 1).cache();
         events = rdd.map { line =>
             {
                 JSONUtils.deserialize[Event](line);
