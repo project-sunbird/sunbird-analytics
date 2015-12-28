@@ -333,9 +333,9 @@ object CommonUtil {
     def getTimeDiff(start: Event, end: Event): Option[Double] = {
         
         try {
-            val st = df3.parseLocalDate(start.ts).toDate.getTime;
-            val et = df3.parseLocalDate(end.ts).toDate.getTime;
-            Option(et-st);
+            val st = df3.parseDateTime(start.ts).getMillis;
+            val et = df3.parseDateTime(end.ts).getMillis;
+            Option((et-st)/1000);
         } catch {
             case _: Exception =>
                 Console.err.println("Invalid event time", "start", start.ts, "end", end.ts);
