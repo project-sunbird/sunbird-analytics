@@ -25,8 +25,8 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
         fw.close();
     }
 
-    it should "print events to a file" in {
-        val rdd = DataFilter.filter(events, Array(Filter("uid", "EQ", Option("63a2c136-eb3e-4d0c-ae12-f552a1fbda3f")), Filter("eventId", "IN", Option(Array("OE_START","OE_INTERACT","OE_ASSESS","OE_LEVEL_SET","OE_END")))));
+    it should "print summary events to console" in {
+        val rdd = DataFilter.filter(events, Array(Filter("uid", "EQ", Option("5704ec89-f6e3-4708-9833-ddf7c57b3949")), Filter("eventId", "IN", Option(List("OE_START","OE_INTERACT","OE_ASSESS","OE_LEVEL_SET","OE_END")))));
         println(rdd.count);
         val aserScreener = new AserScreenSummary();
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
@@ -35,4 +35,13 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
             Console.println(e);
         }
     }
+    
+    it should "print user raw telemetry to a file" in {
+        val rdd = DataFilter.filter(events, Array(Filter("uid", "EQ", Option("5704ec89-f6e3-4708-9833-ddf7c57b3949")), Filter("eventId", "IN", Option(List("OE_START","OE_INTERACT","OE_ASSESS","OE_LEVEL_SET","OE_END")))));
+        val fw = new FileWriter("aser_uid_raw.txt", true);
+        fw.write(JSONUtils.serialize(rdd.collect()));
+        fw.close();
+    }
+    
+    
 }
