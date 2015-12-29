@@ -21,16 +21,19 @@ class SparkSpec(val file: String =  "src/test/resources/sample_telemetry.log") e
     
     override def beforeAll() {
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
-        val rdd = sc.textFile(file, 1).cache();
-        events = rdd.map { line =>
-            {
-                JSONUtils.deserialize[Event](line);
-            }
-        }.filter { x => x != null }.cache();
+        events = loadFile(file)
     }
     
     override def afterAll() {
         CommonUtil.closeSparkContext(sc);
+    }
+    
+    def loadFile(file: String): RDD[Event] = {
+        sc.textFile(file, 1).map { line =>
+            {
+                JSONUtils.deserialize[Event](line);
+            }
+        }.filter { x => x != null }.cache();
     }
   
 }
