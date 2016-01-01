@@ -57,7 +57,6 @@ class AserScreenSummary extends IBatchModel with Serializable {
             }.flatMap(f => f._2.map { x => (f._1, x) });
 
         val aserSreenSummary = gameSessions.mapValues { x =>
-            
             var oeStart: Event = null;
             var oeInteractStartButton: Event = null;
             var storyReading: Event = null;
@@ -101,25 +100,20 @@ class AserScreenSummary extends IBatchModel with Serializable {
             var as = AserScreener();
 
             // Initializing 1st 5 Registration pages
-            if (oeInteractNextButton.length > 0)
+            if (oeInteractNextButton.length > 0 && oeStart != null)
                 as.activationKeyPage = CommonUtil.getTimeDiff(oeStart, oeInteractNextButton(0));
-            if (oeInteractNextButton.length > 1) 
-                as.surveyCodePage = CommonUtil.getTimeDiff(oeStart, oeInteractNextButton(1));
+            if (oeInteractNextButton.length > 1)
+                as.surveyCodePage = CommonUtil.getTimeDiff(oeInteractNextButton(0), oeInteractNextButton(1));
             if (oeInteractNextButton.length > 2)
-                as.childReg1 = CommonUtil.getTimeDiff(oeStart, oeInteractNextButton(2));
+                as.childReg1 = CommonUtil.getTimeDiff(oeInteractNextButton(1), oeInteractNextButton(2));
             if (oeInteractNextButton.length > 3)
-                as.childReg2 = CommonUtil.getTimeDiff(oeStart, oeInteractNextButton(3));
-            if (oeInteractNextButton.length > 4) 
-                as.childReg3 = CommonUtil.getTimeDiff(oeStart, oeInteractNextButton(4));
+                as.childReg2 = CommonUtil.getTimeDiff(oeInteractNextButton(2), oeInteractNextButton(3));
+            if (oeInteractNextButton.length > 4)
+                as.childReg3 = CommonUtil.getTimeDiff(oeInteractNextButton(3), oeInteractNextButton(4));
             //-----------
-            if (oeAssess.size > 2) {
+            if (oeAssess.size > 0) {
                 var first: Event = oeAssess(0)
-                var sec: Event = oeAssess(1)
-                var third: Event = oeAssess(2)
-
                 var firstOeAssLen = CommonUtil.getTimeSpent(first.edata.eks.length)
-                var secOeAssLen = CommonUtil.getTimeSpent(sec.edata.eks.length)
-                var thirdOeAssLen = CommonUtil.getTimeSpent(third.edata.eks.length)
 
                 //language
                 if (firstOeAssLen.get != 0)
@@ -132,6 +126,10 @@ class AserScreenSummary extends IBatchModel with Serializable {
                 //select Q1
                 if (storyReading != null && q1Select != null)
                     as.selectNumeracyQ1 = CommonUtil.getTimeDiff(storyReading, q1Select);
+            }
+            if (oeAssess.size > 1) {
+                var sec: Event = oeAssess(1)
+                var secOeAssLen = CommonUtil.getTimeSpent(sec.edata.eks.length)
 
                 //assess Q1
                 if (secOeAssLen.get != 0)
@@ -142,60 +140,33 @@ class AserScreenSummary extends IBatchModel with Serializable {
                 // select Q2
                 if (q2Select != null)
                     as.selectNumeracyQ2 = CommonUtil.getTimeDiff(sec, q2Select);
+            }
+            var third: Event = null
+            if (oeAssess.size > 2) {
+                third = oeAssess(2)
+                var thirdOeAssLen = CommonUtil.getTimeSpent(third.edata.eks.length)
 
                 // assess Q2
                 if (thirdOeAssLen.get != 0)
                     as.assessNumeracyQ2 = thirdOeAssLen;
                 else if (q2Select != null)
                     as.assessNumeracyQ2 = CommonUtil.getTimeDiff(q2Select, third);
-
-                if (oeAssess.size > 3) {
-                    var fourth = oeAssess(3)
-                    var fourthOeAssLen = CommonUtil.getTimeSpent(fourth.edata.eks.length)
-                    // assess Q3
-                    if (fourthOeAssLen.get != 0)
-                        as.assessNumeracyQ3 = fourthOeAssLen;
-                    else
-                        as.assessNumeracyQ3 = CommonUtil.getTimeDiff(third, fourth);
-
-                    if (endMath != null && endTest != null)
-                        as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
-                    if (endTest != null && exit != null)
-                        as.summary = CommonUtil.getTimeDiff(endTest, exit);
-
-                }
-            } else if (oeAssess.size == 2) { // when language test and only one question are attended 
-                var first: Event = oeAssess(0)
-                var sec: Event = oeAssess(1)
-
-                var firstOeAssLen = CommonUtil.getTimeSpent(first.edata.eks.length)
-                var secOeAssLen = CommonUtil.getTimeSpent(sec.edata.eks.length)
-
-                // language pages
-                if (firstOeAssLen.get != 0)
-                    as.assessLanguage = firstOeAssLen;
-                else
-                    as.assessLanguage = CommonUtil.getTimeDiff(oeInteractStartButton, first);
-
-                if (storyReading != null)
-                    as.languageLevel = CommonUtil.getTimeDiff(first, storyReading);
-
-                //select Q1
-                if (storyReading != null && q1Select != null)
-                    as.selectNumeracyQ1 = CommonUtil.getTimeDiff(storyReading, q1Select);
-
-                //assess Q1
-                if (secOeAssLen.get != 0)
-                    as.assessNumeracyQ1 = secOeAssLen;
-                else if (q1Select != null)
-                    as.assessNumeracyQ1 = CommonUtil.getTimeDiff(q1Select, sec);
-
-                // score card & summary
-                if (endMath != null && endTest != null)
-                    as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
-                if (endTest != null && exit != null)
-                    as.summary = CommonUtil.getTimeDiff(endTest, exit);
             }
+            if (oeAssess.size > 3) {
+                var fourth = oeAssess(3)
+                var fourthOeAssLen = CommonUtil.getTimeSpent(fourth.edata.eks.length)
+
+                // assess Q3
+                if (fourthOeAssLen.get != 0)
+                    as.assessNumeracyQ3 = fourthOeAssLen;
+                else
+                    as.assessNumeracyQ3 = CommonUtil.getTimeDiff(third, fourth);
+            }
+            // score card & summary
+            if (endMath != null && endTest != null)
+                as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
+            if (endTest != null && exit != null)
+                as.summary = CommonUtil.getTimeDiff(endTest, exit);
             as;
         }
 
