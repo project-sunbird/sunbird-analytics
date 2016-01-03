@@ -21,9 +21,9 @@ class TestRestUtil extends BaseSpec {
         response.responseCode should be("OK")
     }
 
-    it should "throw JsonParseException if unable to parse to Response object during GET" in {
+    it should "throw Exception if unable to parse to Response object during GET" in {
         val url = "https://www.google.com";
-        a[JsonParseException] should be thrownBy {
+        a[Exception] should be thrownBy {
             RestUtil.get[Response](url);
         }
     }
