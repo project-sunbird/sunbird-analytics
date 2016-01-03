@@ -1,26 +1,26 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.ilimi.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework.IBatchModel
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.ilimi.analytics.framework.Event
-import org.ekstep.ilimi.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.util.CommonUtil
 import scala.collection.mutable.Buffer
-import org.ekstep.ilimi.analytics.framework.JobContext
+import org.ekstep.analytics.framework.JobContext
 import org.apache.spark.HashPartitioner
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Queue
 import java.util.ArrayList
-import org.ekstep.ilimi.analytics.framework.MeasuredEvent
-import org.ekstep.ilimi.analytics.framework.Context
-import org.ekstep.ilimi.analytics.framework.PData
-import org.ekstep.ilimi.analytics.framework.Dimensions
-import org.ekstep.ilimi.analytics.framework.GData
-import org.ekstep.ilimi.analytics.framework.MEEdata
-import org.ekstep.ilimi.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.GData
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.util.JSONUtils
 import org.json4s.JsonUtil
 import java.io.FileWriter
-import org.ekstep.ilimi.analytics.framework.DtRange
+import org.ekstep.analytics.framework.DtRange
 
 case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d), 
         var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d), 

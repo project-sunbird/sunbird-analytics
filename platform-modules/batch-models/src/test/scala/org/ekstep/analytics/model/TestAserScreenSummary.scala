@@ -1,15 +1,15 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.ilimi.analytics.framework.SparkSpec
+import org.ekstep.analytics.framework.SparkSpec
 import java.io.FileWriter
-import org.ekstep.ilimi.analytics.framework.JobContext
-import org.ekstep.ilimi.analytics.framework.util.CommonUtil
-import org.ekstep.ilimi.analytics.framework.DataFilter
-import org.ekstep.ilimi.analytics.framework.Filter
-import org.ekstep.ilimi.analytics.framework.util.JSONUtils
-import org.ekstep.ilimi.analytics.framework.MeasuredEvent
-import org.ekstep.ilimi.analytics.framework.MEEdata
-import org.ekstep.ilimi.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.Filter
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.MeasuredEvent
 import scala.collection.immutable.HashMap.HashTrieMap
 
 class TestAserScreenSummary extends SparkSpec(null) {

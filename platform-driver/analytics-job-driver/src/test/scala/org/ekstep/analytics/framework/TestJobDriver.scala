@@ -1,14 +1,8 @@
 package org.ekstep.analytics.framework
 
 import org.scalatest._
-import org.ekstep.ilimi.analytics.framework.JobDriver
-import org.ekstep.ilimi.analytics.framework.JobConfig
-import org.ekstep.ilimi.analytics.framework.util.JSONUtils
-import org.ekstep.ilimi.analytics.framework.Fetcher
-import org.ekstep.ilimi.analytics.framework.Query
-import org.ekstep.ilimi.analytics.framework.Filter
-import org.ekstep.ilimi.analytics.framework.Dispatcher
-import org.ekstep.ilimi.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.conf.AppConf
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
