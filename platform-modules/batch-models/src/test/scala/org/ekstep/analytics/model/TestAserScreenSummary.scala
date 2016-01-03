@@ -12,48 +12,12 @@ import org.ekstep.ilimi.analytics.framework.MEEdata
 import org.ekstep.ilimi.analytics.framework.MeasuredEvent
 import scala.collection.immutable.HashMap.HashTrieMap
 
-class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry.unique-2015-12-20-07-47.json") {
-
-    "AserScreenSummary" should "produce aser page session into a file" in {
-
-        val aserScreener = new AserScreenSummary();
-        val rdd = DataFilter.filter(events, Filter("eventId", "IN", Option(Array("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
-        val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
-        Console.println("rdd2 count", rdd2.count);
-        val me = rdd2.collect();
-        val fw = new FileWriter("aser_test_output.txt", true);
-        for (e <- me) {
-            //Console.println(e);
-            fw.write(e + "\n");
-        }
-        fw.close();
-    }
-
-    it should "print summary events for a given 'uid' to console" in {
-        val rdd = DataFilter.filter(events, Array(Filter("uid", "EQ", Option("5704ec89-f6e3-4708-9833-ddf7c57b3949")), Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END")))));
-        println(rdd.count);
-        val aserScreener = new AserScreenSummary();
-        val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
-        val me = rdd2.collect();
-        for (e <- me) {
-            Console.println(e);
-        }
-    }
-
-    it should "print raw events to console from a given file" in {
-        val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/raw.telemetry.test2.json");
-        val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
-        val me = rdd.collect();
-        for (e <- me) {
-            Console.println(JSONUtils.serialize(e));
-        }
-    }
+class TestAserScreenSummary extends SparkSpec(null) {
 
     //-----test1-------
-    it should "check the correctness of summary events from 'raw.telemetry.test1.json'" in {
+    "AserScreenSummary" should "check the correctness of summary events from 'raw.telemetry.test1.json'" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/raw.telemetry.test1.json");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/raw.telemetry.test1.json");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -71,13 +35,10 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //------- test2--------
     it should "check the correctness of summary events from 'raw.telemetry.test2.json'" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/raw.telemetry.test2.json");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/raw.telemetry.test2.json");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
-        for (e <- me) {
-            Console.println(e);
-        }
         me.length should be(2)
         val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
@@ -87,7 +48,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //------- test3--------
     it should "check the correctness of summary events from 'raw.telemetry.test3.json'" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/raw.telemetry.test3.json");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/raw.telemetry.test3.json");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -96,7 +57,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //------- test4--------
     it should "check the correctness of summary events from 'raw.telemetry.test4.json'" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/raw.telemetry.test4.json");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/raw.telemetry.test4.json");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -105,7 +66,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //------- test5--------
     it should "check the correctness of summary events from 'raw.telemetry.test5.json'" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/raw.telemetry.test5.json");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/raw.telemetry.test5.json");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -124,14 +85,11 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //------- test6--------
     it should "check the correctness of summary events from 'raw.telemetry.test6.json'" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/raw.telemetry.test6.json");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/raw.telemetry.test6.json");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(4)
-        for(e<-me){
-            Console.println(e)
-        }
         
         val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
@@ -156,7 +114,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //-----test7--
     it should "check summary events , all having non-zero value" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/allAserEventsTest.txt");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/allAserEventsTest.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -197,7 +155,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //-----test8--
     it should "check summary events, not having any reg. pages" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/noRegPages.txt");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/noRegPages.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -212,7 +170,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
      //-----test9--
     it should "check summary events, having three reg. pages" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/3nextButton.txt");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/3nextButton.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -227,7 +185,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
      //-----test10--
     it should "check summary events, only having four assess pages" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/OE_ASSESS.txt");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/OE_ASSESS.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -252,7 +210,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //-----test11--
     it should "check summary events, only having three Reg. pages" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/only3NextButtonPressed.txt");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/only3NextButtonPressed.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -276,7 +234,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //-----test12--
     it should "check summary events, only having all Reg. pages" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/only5NextButtonPressed.txt");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/only5NextButtonPressed.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
@@ -300,7 +258,7 @@ class TestAserScreenSummary extends SparkSpec("src/test/resources/prod.telemetry
     //-----test13--
     it should "check two summary events, all having zero field value" in {
         val aserScreener = new AserScreenSummary();
-        val event = loadFile("src/test/resources/input/twoOE_START_only.txt");
+        val event = loadFile("src/test/resources/aserlite-screen-summary/twoOE_START_only.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
         val rdd2 = aserScreener.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
