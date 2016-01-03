@@ -42,7 +42,7 @@ case class MeasuredEvent(eid: String, ts: Long, ver: String, uid: Option[String]
 case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
 case class PData(id: String, model: String, ver: String);
 case class DtRange(from: Long, to: Long);
-case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: Option[String] = None, dt_range: Option[DtRange] = None);
+case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, dt_range: DtRange);
 case class MEEdata(eks: AnyRef);
 
 // User Model

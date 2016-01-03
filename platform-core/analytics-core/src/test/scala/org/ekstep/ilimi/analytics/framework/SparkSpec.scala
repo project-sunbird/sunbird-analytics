@@ -29,11 +29,10 @@ class SparkSpec(val file: String =  "src/test/resources/sample_telemetry.log") e
     }
     
     def loadFile(file: String): RDD[Event] = {
-        sc.textFile(file, 1).map { line =>
-            {
-                JSONUtils.deserialize[Event](line);
-            }
-        }.filter { x => x != null }.cache();
+        if(file == null) {
+            return null;
+        }
+        sc.textFile(file, 1).map { line => JSONUtils.deserialize[Event](line)}.filter { x => x != null }.cache();
     }
   
 }

@@ -19,7 +19,6 @@ object OutputDispatcher {
             throw new DispatcherException("No output configurations found");
         }
         val eventArr = events.collect();
-        Console.println("### Events produced - " + eventArr.length + " ###");
         if (eventArr.length == 0) {
             Console.println("### No events produced ###");
             throw new DispatcherException("No events produced for output dispatch");
@@ -28,5 +27,19 @@ object OutputDispatcher {
             Console.println("### Dispatching output to - " + dispatcher.to + " ###");
             DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
         }
+    }
+    
+    @throws(classOf[DispatcherException])
+    def dispatch(dispatcher: Dispatcher, events: RDD[String]) = {
+        if (null == dispatcher) {
+            throw new DispatcherException("No output configurations found");
+        }
+        val eventArr = events.collect();
+        if (eventArr.length == 0) {
+            Console.println("### No events produced ###");
+            throw new DispatcherException("No events produced for output dispatch");
+        }
+        Console.println("### Dispatching output to - " + dispatcher.to + " ###");
+        DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
     }
 }
