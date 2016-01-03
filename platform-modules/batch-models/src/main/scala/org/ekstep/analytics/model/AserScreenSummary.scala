@@ -20,8 +20,14 @@ import org.ekstep.ilimi.analytics.framework.MEEdata
 import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 import org.json4s.JsonUtil
 import java.io.FileWriter
+import org.ekstep.ilimi.analytics.framework.DtRange
 
-case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d), var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d), var assessLanguage: Option[Double] = Option(0d), var languageLevel: Option[Double] = Option(0d), var selectNumeracyQ1: Option[Double] = Option(0d), var assessNumeracyQ1: Option[Double] = Option(0d), var selectNumeracyQ2: Option[Double] = Option(0d), var assessNumeracyQ2: Option[Double] = Option(0d), var assessNumeracyQ3: Option[Double] = Option(0d), var scorecard: Option[Double] = Option(0d), var summary: Option[Double] = Option(0d))
+case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d), 
+        var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d), 
+        var assessLanguage: Option[Double] = Option(0d), var languageLevel: Option[Double] = Option(0d), var selectNumeracyQ1: Option[Double] = Option(0d), 
+        var assessNumeracyQ1: Option[Double] = Option(0d), var selectNumeracyQ2: Option[Double] = Option(0d), 
+        var assessNumeracyQ2: Option[Double] = Option(0d), var assessNumeracyQ3: Option[Double] = Option(0d), 
+        var scorecard: Option[Double] = Option(0d), var summary: Option[Double] = Option(0d))
 /**
  * Aser Screen Summary Model
  */
@@ -57,6 +63,9 @@ class AserScreenSummary extends IBatchModel with Serializable {
             }.flatMap(f => f._2.map { x => (f._1, x) });
 
         val aserSreenSummary = gameSessions.mapValues { x =>
+            
+            val startTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x(0))) } else { Option(0l) };
+            val endTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x.last)) } else { Option(0l) };
             var oeStart: Event = null;
             var oeInteractStartButton: Event = null;
             var storyReading: Event = null;
@@ -167,7 +176,7 @@ class AserScreenSummary extends IBatchModel with Serializable {
                 as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
             if (endTest != null && exit != null)
                 as.summary = CommonUtil.getTimeDiff(endTest, exit);
-            as;
+            (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)));
         }
 
         aserSreenSummary.map(f => {
@@ -177,10 +186,10 @@ class AserScreenSummary extends IBatchModel with Serializable {
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, AserScreener), config: Map[String, AnyRef]): MeasuredEvent = {
-        val measures = userMap._2;
+    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
+        val measures = userMap._2._1;
         MeasuredEvent(config.getOrElse("eventId", "ASER_SCREENER_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, Option("SESSION"), None),
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", userMap._2._2),
             Dimensions(None, None, None, None, None, None),
             MEEdata(measures));
     }
