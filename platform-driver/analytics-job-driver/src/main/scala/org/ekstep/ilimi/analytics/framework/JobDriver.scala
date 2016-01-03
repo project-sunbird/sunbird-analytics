@@ -7,6 +7,7 @@ import org.ekstep.ilimi.analytics.framework.driver.BatchJobDriver
 import org.ekstep.ilimi.analytics.framework.driver.StreamingJobDriver
 import org.ekstep.ilimi.analytics.framework.util.JSONUtils
 import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.JsonMappingException
 
 /**
  * @author Santhosh
@@ -28,9 +29,9 @@ object JobDriver extends Application {
                     throw new Exception("Unknown job type")
             }
         } catch {
-            case e: JsonParseException =>
+            case e: JsonMappingException =>
                 Console.err.println("JobDriver:main() - JobConfig parse error", e.getClass.getName, e.getMessage);
-                e.printStackTrace();
+                throw e;
             case e: Exception =>
                 Console.err.println("JobDriver:main() - Job error", e.getClass.getName, e.getMessage);
                 throw e;
