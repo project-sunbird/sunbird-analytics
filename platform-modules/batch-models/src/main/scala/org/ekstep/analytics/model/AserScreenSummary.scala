@@ -21,53 +21,30 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.json4s.JsonUtil
 import java.io.FileWriter
 import org.ekstep.analytics.framework.DtRange
+import org.ekstep.analytics.framework.SessionBatchModel
 
-case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d), 
-        var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d), 
-        var assessLanguage: Option[Double] = Option(0d), var languageLevel: Option[Double] = Option(0d), var selectNumeracyQ1: Option[Double] = Option(0d), 
-        var assessNumeracyQ1: Option[Double] = Option(0d), var selectNumeracyQ2: Option[Double] = Option(0d), 
-        var assessNumeracyQ2: Option[Double] = Option(0d), var assessNumeracyQ3: Option[Double] = Option(0d), 
-        var scorecard: Option[Double] = Option(0d), var summary: Option[Double] = Option(0d))
+case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d),
+                        var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d),
+                        var assessLanguage: Option[Double] = Option(0d), var languageLevel: Option[Double] = Option(0d), var selectNumeracyQ1: Option[Double] = Option(0d),
+                        var assessNumeracyQ1: Option[Double] = Option(0d), var selectNumeracyQ2: Option[Double] = Option(0d),
+                        var assessNumeracyQ2: Option[Double] = Option(0d), var assessNumeracyQ3: Option[Double] = Option(0d),
+                        var scorecard: Option[Double] = Option(0d), var summary: Option[Double] = Option(0d))
 /**
  * Aser Screen Summary Model
  */
-class AserScreenSummary extends IBatchModel with Serializable {
+class AserScreenSummary extends SessionBatchModel with Serializable {
 
     def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
-
-        val gameSessions = events.filter { x => x.uid != null }
-            .map(event => (event.uid, Buffer(event)))
-            .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).mapValues { x =>
-                var sessions = Buffer[Buffer[Event]]();
-                var tmpArr = Buffer[Event]();
-
-                x.foreach { y =>
-                    y.eid match {
-                        case "OE_START" =>
-                            if (tmpArr.length > 0) {
-                                sessions += tmpArr;
-                                tmpArr = Buffer[Event]();
-                            }
-                            tmpArr += y;
-                        case _ =>
-                            ;
-                            tmpArr += y;
-                    }
-                }
-                sessions += tmpArr;
-                sessions;
-            }.flatMap(f => f._2.map { x => (f._1, x) });
-
+        val gameSessions = getGameSessions(events);
         val aserSreenSummary = gameSessions.mapValues { x =>
             
             val startTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x(0))) } else { Option(0l) };
             val endTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x.last)) } else { Option(0l) };
-            var oeStart: Event = null;
-            var oeInteractStartButton: Event = null;
+            val oeStart: Event = x(0);
+
             var storyReading: Event = null;
             var q1Select: Event = null;
             var q2Select: Event = null;
@@ -75,36 +52,23 @@ class AserScreenSummary extends IBatchModel with Serializable {
             var endMath: Event = null;
             var exit: Event = null;
 
-            var oeInteractNextButton = Buffer[Event]();
-            var oeAssess = Buffer[Event]();
+            var oeInteractStartButton: Event = null;
+            val oeInteractNextButton = x.filter(e => "OE_INTERACT".equals(e.eid)).filter { e => "Next button pressed".equals(e.edata.eks.id) };
+            val oeAssess = x.filter(e => "OE_ASSESS".equals(e.eid));
 
-            x.foreach { y =>
-                y.eid match {
-                    case "OE_START" =>
-                        oeStart = y;
-                    case "OE_INTERACT" =>
-                        var id = y.edata.eks.id
-                        if (id.equals("Next button pressed")) {
-                            oeInteractNextButton += y;
-                        } else if (id.equals("Start button pressed")) {
-                            oeInteractStartButton = y;
-                        } else if (id.contains("read story radio button selected")) {
-                            storyReading = y;
-                        } else if (id.equals("Question one selected")) {
-                            q1Select = y;
-                        } else if (id.equals("Question two selected")) {
-                            q2Select = y;
-                        } else if (id.equals("End test button pressed")) {
-                            endTest = y;
-                        } else if (id.equals("End math test button pressed")) {
-                            endMath = y;
-                        } else if (id.equals("Exit button pressed")) {
-                            exit = y;
-                        }
-                    case "OE_ASSESS" =>
-                        oeAssess += y;
-                    case _ => ;
+            x.filter(e => "OE_INTERACT".equals(e.eid)).foreach { e =>
+                e.edata.eks.id.toLowerCase() match {
+                    case "start button pressed"                    => oeInteractStartButton = e;
+                    case "can read story radio button selected"    => storyReading = e;
+                    case "cannot read story radio button selected" => storyReading = e;
+                    case "question one selected"                   => q1Select = e;
+                    case "question two selected"                   => q2Select = e;
+                    case "end test button pressed"                 => endTest = e;
+                    case "end math test button pressed"            => endMath = e;
+                    case "exit button pressed"                     => exit = e;
+                    case _                                         =>
                 }
+
             }
             var as = AserScreener();
 
@@ -188,7 +152,7 @@ class AserScreenSummary extends IBatchModel with Serializable {
      */
     private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
-        MeasuredEvent(config.getOrElse("eventId", "ASER_SCREENER_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
+        MeasuredEvent(config.getOrElse("eventId", "ME_ASER_SCREENER_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", userMap._2._2),
             Dimensions(None, None, None, None, None, None),
             MEEdata(measures));
