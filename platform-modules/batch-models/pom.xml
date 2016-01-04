@@ -11,6 +11,7 @@
 		<scala.version>2.10.5</scala.version>
 		<spark.version>1.5.0</spark.version>
 		<scala.maj.version>2.10</scala.maj.version>
+		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -69,48 +70,6 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<relocations>
-								<relocation>
-									<pattern>org.jets3t.service</pattern>
-									<shadedPattern>shaded.org.jets3t.service</shadedPattern>
-								</relocation>
-							</relocations>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>META-INF/spring.handlers</resource>
-								</transformer>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>META-INF/spring.schemas</resource>
-								</transformer>
-							</transformers>
-							<!-- Additional configuration. -->
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
                 <version>1.0</version>
@@ -124,6 +83,16 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+				<groupId>org.scoverage</groupId>
+				<artifactId>scoverage-maven-plugin</artifactId>
+				<version>${scoverage.plugin.version}</version>
+				<configuration>
+					<scalaVersion>${scala.version}</scalaVersion>
+					<aggregate>true</aggregate>
+					<highlighting>true</highlighting>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

@@ -1,4 +1,4 @@
-package org.ekstep.ilimi.analytics.framework
+package org.ekstep.analytics.framework
 
 import org.scalatest._
 
