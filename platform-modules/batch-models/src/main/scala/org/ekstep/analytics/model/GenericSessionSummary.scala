@@ -27,6 +27,7 @@ import org.apache.spark.broadcast.Broadcast
 import org.ekstep.analytics.framework.UserProfile
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.DtRange
+import org.ekstep.analytics.framework.SessionBatchModel
 
 /**
  * @author Santhosh
@@ -51,7 +52,7 @@ case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[Stri
 /**
  * Generic Screener Summary Model
  */
-class GenericSessionSummary extends IBatchModel with Serializable {
+class GenericSessionSummary extends SessionBatchModel with Serializable {
 
     /**
      * Get level to items mapping from Questionnaires
@@ -100,28 +101,7 @@ class GenericSessionSummary extends IBatchModel with Serializable {
         val itemMapping = sc.broadcast(getItemMapping(questionnaires));
         val levelMapping = sc.broadcast(getLevelItems(questionnaires));
         val configMapping = sc.broadcast(config);
-        val gameSessions = events.filter { x => x.uid != null }
-            .map(event => (event.uid, Buffer(event)))
-            .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).mapValues { x =>
-                var sessions = Buffer[Buffer[Event]]();
-                var tmpArr = Buffer[Event]();
-                x.foreach { y =>
-                    y.eid match {
-                        case "OE_START" =>
-                            if (tmpArr.length > 0) {
-                                sessions += tmpArr;
-                                tmpArr = Buffer[Event]();
-                            }
-                            tmpArr += y;
-                        case _ =>
-                            ;
-                            tmpArr += y;
-                    }
-                }
-                sessions += tmpArr;
-                sessions;
-            }.flatMap(f => f._2.map { x => (f._1, x) });
+        val gameSessions = getGameSessions(events);
 
         val screenerSummary = gameSessions.mapValues { x =>
             val distinctEvents = x;
