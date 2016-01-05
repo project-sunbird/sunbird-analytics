@@ -342,5 +342,28 @@ object CommonUtil {
                 Option(0d);
         }
     }
+    def getTimeDiff(start: Long, end: Long): Option[Double] = {
+        
+        try {
+            val st = df3.parseDateTime(start.toString()).getMillis;
+            val et = df3.parseDateTime(end.toString()).getMillis;
+            Option((et-st)/1000);
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid time", "start", start, "end", end);
+                Option(0d);
+        }
+    }
+    def getHourOfDay(timeStamp: Long): Option[Int] = {
+        
+        try {
+            val hr = df3.parseDateTime(timeStamp.toString()).getHourOfDay;
+            Option(hr);
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid  time", timeStamp);
+                Option(0);
+        }
+    }
     
 }
