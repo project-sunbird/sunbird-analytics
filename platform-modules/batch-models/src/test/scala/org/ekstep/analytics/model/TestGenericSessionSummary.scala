@@ -36,7 +36,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary1.levels should not be (None);
         summary1.levels.get.length should be (2);
         summary1.noOfAttempts should be (2);
-        summary1.timeSpent.get should be (876);
+        summary1.timeSpent should be (876);
         summary1.interactEventsPerMin should be (2.74);
         summary1.currentLevel should not be (None);
         summary1.currentLevel.get.get("numeracy").get should be ("Can do subtraction");
@@ -72,7 +72,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary1.levels should not be (None);
         summary1.levels.get.length should be (0);
         summary1.noOfAttempts should be (1);
-        summary1.timeSpent.get should be (47);
+        summary1.timeSpent should be (47);
         summary1.interactEventsPerMin should be (6.38);
         summary1.currentLevel should not be (None);
         summary1.currentLevel.get.size should be (0);
@@ -88,7 +88,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary2.levels should not be (None);
         summary2.levels.get.length should be (1);
         summary2.noOfAttempts should be (1);
-        summary2.timeSpent.get should be (875);
+        summary2.timeSpent should be (875);
         summary2.interactEventsPerMin should be (1.71);
         summary2.currentLevel should not be (None);
         summary2.currentLevel.get.size should be (1);
@@ -105,7 +105,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary3.levels should not be (None);
         summary3.levels.get.length should be (0);
         summary3.noOfAttempts should be (1);
-        summary3.timeSpent.get should be (0);
+        summary3.timeSpent should be (0);
         summary3.interactEventsPerMin should be (0);
         summary3.currentLevel should not be (None);
         summary3.currentLevel.get.size should be (0);
@@ -119,7 +119,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary4.levels should not be (None);
         summary4.levels.get.length should be (0);
         summary4.noOfAttempts should be (1);
-        summary4.timeSpent.get should be (11);
+        summary4.timeSpent should be (11);
         summary4.interactEventsPerMin should be (16.36);
         summary4.currentLevel should not be (None);
         summary4.currentLevel.get.size should be (0);
