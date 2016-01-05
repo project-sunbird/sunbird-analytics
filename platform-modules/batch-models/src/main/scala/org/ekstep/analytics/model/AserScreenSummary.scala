@@ -152,7 +152,7 @@ class AserScreenSummary extends SessionBatchModel with Serializable {
      */
     private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange,String,String)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
-        MeasuredEvent(config.getOrElse("eventId", "ME_ASER_SCREENER_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
+        MeasuredEvent(config.getOrElse("eventId", "ME_ASER_SCREEN_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", userMap._2._2),
             Dimensions(None, Option(new GData(userMap._2._3, userMap._2._4)), None, None, None, None),
             MEEdata(measures));
