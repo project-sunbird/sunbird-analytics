@@ -44,7 +44,7 @@ case class ActivitySummary(count: Int, timeSpent: Double)
  * Case class to hold the screener summary
  */
 case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, 
-        timeSpent: Option[Double], startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], 
+        timeSpent: Double, interruptTime: Double, startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], 
         noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], 
         itemResponses: Option[Buffer[ItemResponse]], dtRange: DtRange, interactEventsPerMin: Double, activitySummary: Option[Map[String,ActivitySummary]],
         completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int);
@@ -160,7 +160,7 @@ class GenericSessionSummary extends SessionBatchModel with Serializable {
             val activitySummary = interactionEvents.groupBy(_._1).map{case (group: String, traversable) => traversable.reduce{(a,b) => (a._1, a._2 + b._2, a._3 + b._3)} }.map(f => (f._1, ActivitySummary(f._2, f._3))).toMap;
             
             SessionSummary(CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), Option(levels), noOfAttempts, 
-                    timeSpent, startTimestamp, endTimestamp, Option(domainMap.toMap), 
+                    timeSpent.get, 0d, startTimestamp, endTimestamp, Option(domainMap.toMap), 
                     Option(levelTransitions), None, None, Option(loc), 
                     Option(itemResponses), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary),
                     None, None, noOfInteractEvents);
@@ -180,6 +180,7 @@ class GenericSessionSummary extends SessionBatchModel with Serializable {
             "startTime" -> game.startTimestamp,
             "endTime" -> game.endTimestamp,
             "timeSpent" -> game.timeSpent,
+            "interruptTime" -> game.interruptTime,
             "comments" -> game.comments,
             "fluency" -> game.fluency,
             "levels" -> game.levels,
