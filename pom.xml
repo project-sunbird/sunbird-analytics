@@ -22,6 +22,7 @@
 	<modules>
 		<module>platform-core/analytics-core</module>
 		<module>platform-modules/batch-models</module>
+		<module>platform-modules/learner-adapter</module>
 		<module>platform-modules/streaming-models</module>
 		<module>platform-driver/analytics-job-driver</module>
 	</modules>
