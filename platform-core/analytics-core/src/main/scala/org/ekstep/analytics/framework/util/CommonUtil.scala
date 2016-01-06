@@ -13,9 +13,7 @@ import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.zip.GZIPOutputStream
-
 import scala.collection.mutable.ListBuffer
-
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -32,6 +30,7 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
+import scala.collection.mutable.Buffer
 
 object CommonUtil {
 
@@ -354,15 +353,22 @@ object CommonUtil {
                 Option(0d);
         }
     }
-    def getHourOfDay(timeStamp: Long): Option[Int] = {
-        
+    def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {
+        val hrList = ListBuffer[Int]();
         try {
-            val hr = df3.parseDateTime(timeStamp.toString()).getHourOfDay;
-            Option(hr);
+            val startHr = df3.parseDateTime(start.toString()).getHourOfDay;
+            val endHr = df3.parseDateTime(end.toString()).getHourOfDay;
+            var hr = startHr;
+            while(hr<=endHr)
+            {
+                hrList += hr;
+                hr = hr + 1;
+            }
+            hrList;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid  time", timeStamp);
-                Option(0);
+                Console.err.println("Invalid time", "start", start, "end", end);
+                null;
         }
     }
     

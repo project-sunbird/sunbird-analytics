@@ -15,8 +15,9 @@ import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DtRange
+import scala.collection.mutable.ListBuffer
 
-case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Option[Double], numOfSessionsOnPlatform: Long, lastVisitTimeStamp: Long, mostActiveHrOfTheDay: Int);
+case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Option[List[AnyRef]], numOfSessionsOnPlatform: Long, lastVisitTimeStamp: Long, mostActiveHrOfTheDay: Int, startTimestamp: Long, endTimestamp: Long);
 
 /**
  * Case class to hold the screener summary
@@ -31,17 +32,22 @@ class LearnerActivitySummarizer {
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
 
-                val startTimestamp = if (x.length > 0) { Option(x(0).ts) } else { Option(0l) };
-                val endTimestamp = if (x.length > 0) { Option(x.last.ts) } else { Option(0l) };
+                val eventStartTimestamp = if (x.length > 0) { Option(x(0).ts) } else { Option(0l) };
+                val eventEndTimestamp = if (x.length > 0) { Option(x.last.ts) } else { Option(0l) };
+
+                val startTimestamp = if (x.length > 0) { x(0).edata.eks.asInstanceOf[SessionSummary].startTimestamp.get } else { 0l };
+                val endTimestamp = if (x.length > 0) { x.last.edata.eks.asInstanceOf[SessionSummary].endTimestamp.get } else { 0l };
+
+                var meanInterruptTime = 0d;
+                
+                val hrMaxList = ListBuffer[ListBuffer[Int]]();
 
                 val numOfSessionsOnPlatform = x.length.toLong
                 val timeSpentList = Buffer[Double]();
                 val btwnGamePlays = Buffer[Double]();
                 var lastGame: Long = 0l;
                 var actCount = 0;
-                var totalTimeSpentOnAct = 0d;
                 var numOfAct = Set[String]();
-
                 val sortedWndTime = x.map(x => (x.edata.eks.asInstanceOf[SessionSummary].endTimestamp.get, x.gdata.get.id, x.edata.eks.asInstanceOf[SessionSummary])) sortBy (f => f._1)
                 val lastVisitTimeStamp = sortedWndTime.last._1
 
@@ -49,23 +55,33 @@ class LearnerActivitySummarizer {
                     var ss = y.edata.eks.asInstanceOf[SessionSummary];
                     timeSpentList += ss.timeSpent.get
                     if (lastGame == 0) { lastGame = ss.endTimestamp.get } else { btwnGamePlays += CommonUtil.getTimeDiff(lastGame, ss.startTimestamp.get).get; lastGame = 0l; }
-                    ss.activitySummary.get.values.foreach { x => actCount += x.count; totalTimeSpentOnAct += x.timeSpent; }
+
+                    val as = ss.activitySummary.get
+                    as.values.foreach { x => actCount += x.count }
                     numOfAct ++= ss.activitySummary.get.keySet
+                    hrMaxList += CommonUtil.getHourOfDay(ss.startTimestamp.get, ss.endTimestamp.get)
+                    //meanInterruptTime += ss.interruptTime
                 }
+                meanInterruptTime = meanInterruptTime/x.length
+                
+                val hrMax = hrMaxList.flatten.foldLeft(new Map.WithDefault(Map[Int, Int](), Function.const(0))) {
+                    (m, x) => m + (x -> (1 + m(x)))
+                }.maxBy(f => f._2)._1
 
-//                val hrMax = x.groupBy { x =>
-//                    var ss = x.edata.eks.asInstanceOf[SessionSummary]
-//                    List(CommonUtil.getHourOfDay(ss.startTimestamp.get).get to CommonUtil.getHourOfDay(ss.endTimestamp.get).get)
-//                }
+                //-------
+                val asMapList = x.map { x =>
+                    val as = x.edata.eks.asInstanceOf[SessionSummary].activitySummary.get
+                    as;
+                }.reduce((a, b) => a ++ b)
+                //asMap.reduce{(a,b) => (a._1, a._2 ++ b._2)}
 
-                val meanTimeSpentOnAnAct = totalTimeSpentOnAct / numOfAct.size
                 val meanCountOfAct = actCount / numOfAct.size
                 val totalTimeSpentOnPlatform = timeSpentList.sum
                 val meanTimeSpent = timeSpentList.sum / timeSpentList.length
                 val meanTimeBtwnGamePlays = btwnGamePlays.sum / btwnGamePlays.length
                 val topKcontent = sortedWndTime.map(f => f._2.distinct).take(5)
                 val meanActiveTimeOnPlatform = meanTimeSpent;
-                (TimeSummary(Option(meanTimeSpent), Option(meanTimeBtwnGamePlays), Option(meanActiveTimeOnPlatform), Option(0d), Option(totalTimeSpentOnPlatform), Option(meanTimeSpentOnAnAct), numOfSessionsOnPlatform, lastVisitTimeStamp, 0), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)));
+                (TimeSummary(Option(meanTimeSpent), Option(meanTimeBtwnGamePlays), Option(meanActiveTimeOnPlatform), Option(meanInterruptTime), Option(totalTimeSpentOnPlatform), None, numOfSessionsOnPlatform, lastVisitTimeStamp, hrMax, startTimestamp, endTimestamp), DtRange(eventStartTimestamp.getOrElse(0l), eventEndTimestamp.getOrElse(0l)));
             }
         activity.map(f => {
             getMeasuredEvent(f, configMapping.value);
