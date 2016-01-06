@@ -1,7 +1,5 @@
 package org.ekstep.analytics.framework
 
-import org.ekstep.analytics.framework.DataAdapter;
-
 /**
  * @author Santhosh
  */
