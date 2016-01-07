@@ -1,6 +1,7 @@
-CREATE TABLE learneractivitysummary (
+CREATE TABLE learnersnapshot (
 	leaner_id uuid, 
 	m_time_spent double, 
+	m_time_btw_gp double,
 	m_active_time_on_pf double, 
 	m_interrupt_time double, 
 	t_ts_on_pf double,

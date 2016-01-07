@@ -13,7 +13,7 @@ object Defaults {
 }
 
 class LearnerDatabase(val keyspace: KeySpaceDef) extends com.websudos.phantom.db.DatabaseImpl(keyspace) {
-    object LearnerActivitySummary extends LearnerActivityDAO with keyspace.Connector
+    object LearnerSnapshot extends LearnerActivityDAO with keyspace.Connector
 }
 
 object LearnerAdapter extends LearnerDatabase(Defaults.connector)
