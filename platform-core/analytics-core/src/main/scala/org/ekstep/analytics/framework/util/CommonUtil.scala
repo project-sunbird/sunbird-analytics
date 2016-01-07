@@ -31,6 +31,7 @@ import org.json4s.jackson.JsonMethods
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
 import scala.collection.mutable.Buffer
+import org.joda.time.Hours
 
 object CommonUtil {
 
@@ -343,9 +344,10 @@ object CommonUtil {
     }
     def getTimeDiff(start: Long, end: Long): Option[Double] = {
         
+        val dateTime = new DateTime();
         try {
-            val st = df3.parseDateTime(start.toString()).getMillis;
-            val et = df3.parseDateTime(end.toString()).getMillis;
+            val st = new DateTime(start).getMillis;
+            val et = new DateTime(end).getMillis;
             Option((et-st)/1000);
         } catch {
             case _: Exception =>
@@ -356,20 +358,21 @@ object CommonUtil {
     def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {
         val hrList = ListBuffer[Int]();
         try {
-            val startHr = df3.parseDateTime(start.toString()).getHourOfDay;
-            val endHr = df3.parseDateTime(end.toString()).getHourOfDay;
+            val startHr = new DateTime(start).getHourOfDay;
+            val endHr = new DateTime(end).getHourOfDay;
+            //println(startHr, endHr);
             var hr = startHr;
-            while(hr<=endHr)
+            while(hr != endHr)
             {
                 hrList += hr;
                 hr = hr + 1;
+                if(hr == 24) hr = 0;
             }
-            hrList;
+            hrList += endHr;
         } catch {
             case _: Exception =>
                 Console.err.println("Invalid time", "start", start, "end", end);
                 null;
         }
     }
-    
 }
