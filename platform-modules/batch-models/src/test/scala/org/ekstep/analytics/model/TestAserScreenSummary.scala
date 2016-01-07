@@ -1,6 +1,5 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.SparkSpec
 import java.io.FileWriter
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil

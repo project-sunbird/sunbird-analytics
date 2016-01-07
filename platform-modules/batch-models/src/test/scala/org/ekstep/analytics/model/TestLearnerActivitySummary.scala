@@ -1,6 +1,5 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.SparkSpec
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DataFetcher

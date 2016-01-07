@@ -1,4 +1,4 @@
-package org.ekstep.analytics.framework
+package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -10,6 +10,7 @@ import org.json4s.string2JsonInput
 import org.scalatest.BeforeAndAfterAll
 import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.Event
 
 /**
  * @author Santhosh

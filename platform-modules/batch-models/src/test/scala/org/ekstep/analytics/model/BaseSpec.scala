@@ -1,4 +1,4 @@
-package org.ekstep.analytics.framework
+package org.ekstep.analytics.model
 
 import org.scalatest._
 
