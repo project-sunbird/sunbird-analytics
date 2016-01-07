@@ -146,11 +146,13 @@ object GenericSessionSummary extends SessionBatchModel[Event] with Serializable 
             }).toArray;
             val loc = deviceMapping.value.getOrElse(distinctEvents.last.did, "");
             val noOfInteractEvents = distinctEvents.filter { x => "OE_INTERACT".equals(x.eid) }.length;
-            val interactEventsPerMin:Double = if(noOfInteractEvents == 0) 0d else BigDecimal(noOfInteractEvents/(timeSpent.get/60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+            val interactEventsPerMin:Double = if(noOfInteractEvents == 0 || timeSpent.get == 0) 0d else BigDecimal(noOfInteractEvents/(timeSpent.get/60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             var interactionEvents = ListBuffer[(String, Int, Double)]();
+            lastEvent = null;
             distinctEvents.foreach { x => 
                 x.eid match {
                     case "OE_INTERACT" =>
+                        if(lastEvent == null) lastEvent = x;
                         interactionEvents += Tuple3(x.edata.eks.`type`, 1, CommonUtil.getTimeDiff(lastEvent, x).get);
                         lastEvent = x;
                     case _ => 

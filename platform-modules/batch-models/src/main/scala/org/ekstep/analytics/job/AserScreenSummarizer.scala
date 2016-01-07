@@ -3,6 +3,7 @@ package org.ekstep.analytics.job
 import org.ekstep.analytics.framework.util.Application
 import org.ekstep.analytics.framework.JobDriver
 import org.ekstep.analytics.model.AserScreenSummary
+import org.ekstep.analytics.framework.Event
 
 /**
  * @author Santhosh
@@ -10,7 +11,7 @@ import org.ekstep.analytics.model.AserScreenSummary
 object AserScreenSummarizer extends Application {
     
     def main(config: String) {
-        JobDriver.run("batch", config, AserScreenSummary);
+        JobDriver.run[Event]("batch", config, AserScreenSummary);
     }
   
 }
