@@ -52,7 +52,7 @@ case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[Stri
 /**
  * Generic Screener Summary Model
  */
-class GenericSessionSummary extends SessionBatchModel with Serializable {
+object GenericSessionSummary extends SessionBatchModel[Event] with Serializable {
 
     /**
      * Get level to items mapping from Questionnaires
@@ -116,7 +116,7 @@ class GenericSessionSummary extends SessionBatchModel with Serializable {
             val noOfAttempts = if (qidMap.isEmpty) 1 else qidMap.max;
             val oeStarts = distinctEvents.filter { x => "OE_START".equals(x.eid) };
             val oeEnds = distinctEvents.filter { x => "OE_END".equals(x.eid) };
-            val startTimestamp = if (oeStarts.length > 0) { Option(CommonUtil.getEventTS(oeStarts(0))) } else { Option(0l) };
+            val startTimestamp = if (oeStarts.length > 0) { Option(CommonUtil.getEventTS(oeStarts(0))) } else { Option(CommonUtil.getEventTS(x(0))) };
             val endTimestamp = if (oeEnds.length > 0) { Option(CommonUtil.getEventTS(oeEnds(0))) } else { Option(CommonUtil.getEventTS(distinctEvents.last)) };
             val timeSpent = if (oeEnds.length > 0) { CommonUtil.getTimeSpent(oeEnds.last.edata.eks.length) } else { CommonUtil.getTimeDiff(distinctEvents(0), distinctEvents.last) };
             val levelTransitions = distinctEvents.filter { x => "OE_LEVEL_SET".equals(x.eid) }.length - 1;

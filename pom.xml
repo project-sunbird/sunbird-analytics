@@ -4,8 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.ekstep</groupId>
-	<artifactId>analytics-framework</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<artifactId>analytics-platform</artifactId>
+	<version>1.0</version>
 	<packaging>pom</packaging>
 	<name>EkStep Analytics Platform</name>
 
@@ -20,11 +20,11 @@
 	</properties>
 
 	<modules>
-		<module>platform-core/analytics-core</module>
+		<module>platform-framework/analytics-core</module>
+		<module>platform-framework/analytics-job-driver</module>
 		<module>platform-modules/batch-models</module>
 		<module>platform-modules/learner-adapter</module>
 		<module>platform-modules/streaming-models</module>
-		<module>platform-driver/analytics-job-driver</module>
 	</modules>
 
 	<dependencies>

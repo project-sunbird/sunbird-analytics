@@ -19,8 +19,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
     "GenericScreenerSummary" should "generate session summary and pass all positive test cases" in {
         
         val rdd = loadFile("src/test/resources/session-summary/test_data1.log");
-        val screener = new GenericSessionSummary();
-        val rdd2 = screener.execute(sc, rdd, Option(Map("contentId" -> "numeracy_382", "modelVersion" -> "1.4", "modelId" -> "GenericSessionSummary")));
+        val rdd2 = GenericSessionSummary.execute(sc, rdd, Option(Map("contentId" -> "numeracy_382", "modelVersion" -> "1.4", "modelId" -> "GenericSessionSummary")));
         val me = rdd2.collect();
         me.length should be (1);
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
@@ -53,8 +52,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
     it should "generate 4 session summarries and pass all negative test cases" in {
         
         val rdd = loadFile("src/test/resources/session-summary/test_data2.log");
-        val screener = new GenericSessionSummary();
-        val rdd2 = screener.execute(sc, rdd, Option(Map("contentId" -> "numeracy_382", "modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
+        val rdd2 = GenericSessionSummary.execute(sc, rdd, Option(Map("contentId" -> "numeracy_382", "modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be (4);
         
