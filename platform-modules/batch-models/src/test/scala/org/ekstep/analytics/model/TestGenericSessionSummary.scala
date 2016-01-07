@@ -10,6 +10,7 @@ import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.Event
 
 /**
  * @author Santhosh
@@ -18,7 +19,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
     
     "GenericScreenerSummary" should "generate session summary and pass all positive test cases" in {
         
-        val rdd = loadFile("src/test/resources/session-summary/test_data1.log");
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
         val rdd2 = GenericSessionSummary.execute(sc, rdd, Option(Map("contentId" -> "numeracy_382", "modelVersion" -> "1.4", "modelId" -> "GenericSessionSummary")));
         val me = rdd2.collect();
         me.length should be (1);
@@ -51,7 +52,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
     
     it should "generate 4 session summarries and pass all negative test cases" in {
         
-        val rdd = loadFile("src/test/resources/session-summary/test_data2.log");
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data2.log");
         val rdd2 = GenericSessionSummary.execute(sc, rdd, Option(Map("contentId" -> "numeracy_382", "modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be (4);
