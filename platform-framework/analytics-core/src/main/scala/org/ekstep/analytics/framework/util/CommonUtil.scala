@@ -13,9 +13,7 @@ import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.zip.GZIPOutputStream
-
 import scala.collection.mutable.ListBuffer
-
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -32,6 +30,8 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
+import scala.collection.mutable.Buffer
+import org.joda.time.Hours
 
 object CommonUtil {
 
@@ -342,5 +342,37 @@ object CommonUtil {
                 Option(0d);
         }
     }
-    
+    def getTimeDiff(start: Long, end: Long): Option[Double] = {
+        
+        val dateTime = new DateTime();
+        try {
+            val st = new DateTime(start).getMillis;
+            val et = new DateTime(end).getMillis;
+            Option((et-st)/1000);
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid time", "start", start, "end", end);
+                Option(0d);
+        }
+    }
+    def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {
+        val hrList = ListBuffer[Int]();
+        try {
+            val startHr = new DateTime(start).getHourOfDay;
+            val endHr = new DateTime(end).getHourOfDay;
+            //println(startHr, endHr);
+            var hr = startHr;
+            while(hr != endHr)
+            {
+                hrList += hr;
+                hr = hr + 1;
+                if(hr == 24) hr = 0;
+            }
+            hrList += endHr;
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid time", "start", start, "end", end);
+                null;
+        }
+    }
 }
