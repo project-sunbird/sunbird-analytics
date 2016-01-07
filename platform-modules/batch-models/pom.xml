@@ -15,7 +15,11 @@
 	</properties>
 
 	<dependencies>
-
+		<dependency>
+			<groupId>org.ekstep</groupId>
+			<artifactId>learner-adapter</artifactId>
+			<version>1.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.ekstep</groupId>
 			<artifactId>analytics-job-driver</artifactId>
@@ -33,6 +37,12 @@
 			<artifactId>spark-core_2.10</artifactId>
 			<version>${spark.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
@@ -45,7 +55,13 @@
 			<artifactId>scalatest_${scala.maj.version}</artifactId>
 			<version>2.2.4</version>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>16.0.1</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -95,6 +111,48 @@
 					<aggregate>true</aggregate>
 					<highlighting>true</highlighting>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<relocations>
+								<relocation>
+									<pattern>com.google.guava</pattern>
+									<shadedPattern>shaded.com.google.guava</shadedPattern>
+								</relocation>
+							</relocations>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/spring.handlers</resource>
+								</transformer>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/spring.schemas</resource>
+								</transformer>
+							</transformers>
+							<!-- Additional configuration. -->
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
