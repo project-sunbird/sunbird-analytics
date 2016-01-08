@@ -38,7 +38,7 @@ class TestLearnerAdapter extends FlatSpec with Matchers with Defaults.connector.
         res.sess_end_time.getMillis should be (1451915786405L)
         res.sess_start_time.getMillis should be (1451915786364L)
         res.l_visit_ts.getMillis should be (1451915786364L)
-        res.leaner_id should be (uuid)
+        res.learner_id should be (uuid)
         res.m_active_time_on_pf should be (450.34)
         res.m_time_spent should be (12.53)
         res.m_interrupt_time should be (10.23)

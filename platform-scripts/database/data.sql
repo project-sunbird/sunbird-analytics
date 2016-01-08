@@ -1,5 +1,5 @@
 CREATE TABLE learnersnapshot (
-	leaner_id uuid, 
+	learner_id uuid, 
 	m_time_spent double, 
 	m_time_btw_gp double,
 	m_active_time_on_pf double, 
@@ -15,5 +15,5 @@ CREATE TABLE learnersnapshot (
 	sess_end_time timestamp,
 	dp_start_time timestamp,
 	dp_end_time timestamp,
-	PRIMARY KEY (leaner_id)
+	PRIMARY KEY (learner_id)
 );

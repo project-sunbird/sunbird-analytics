@@ -9,14 +9,14 @@ import com.websudos.phantom.builder.Unspecified
  * @author Santhosh
  */
 
-case class LearnerSnapshot(leaner_id: UUID, m_time_spent: Double, m_time_btw_gp:Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
+case class LearnerSnapshot(learner_id: UUID, m_time_spent: Double, m_time_btw_gp:Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
                                   m_ts_on_an_act: Map[String,Double], m_count_on_an_act: Map[String,Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime, 
                                   most_active_hr_of_the_day: Int, top_k_content: List[String], sess_start_time: DateTime, sess_end_time: DateTime,
                                   dp_start_time: DateTime, dp_end_time: DateTime)
 
 class LearnerActivityEntity extends CassandraTable[LearnerActivityDAO, LearnerSnapshot] {
 
-    object leaner_id extends UUIDColumn(this) with PartitionKey[UUID]
+    object learner_id extends UUIDColumn(this) with PartitionKey[UUID]
     object m_time_spent extends DoubleColumn(this)
     object m_time_btw_gp extends DoubleColumn(this)
     object m_active_time_on_pf extends DoubleColumn(this)
@@ -34,7 +34,7 @@ class LearnerActivityEntity extends CassandraTable[LearnerActivityDAO, LearnerSn
     object dp_end_time extends DateTimeColumn(this)
 
     def fromRow(row: Row): LearnerSnapshot = {
-        LearnerSnapshot(leaner_id(row), m_time_spent(row), m_time_btw_gp(row), m_active_time_on_pf(row), m_interrupt_time(row),
+        LearnerSnapshot(learner_id(row), m_time_spent(row), m_time_btw_gp(row), m_active_time_on_pf(row), m_interrupt_time(row),
             t_ts_on_pf(row), m_ts_on_an_act(row), m_count_on_an_act(row), n_of_sess_on_pf(row), l_visit_ts(row),
             most_active_hr_of_the_day(row), top_k_content(row), sess_start_time(row), sess_end_time(row),
             dp_start_time(row), dp_end_time(row))
@@ -48,7 +48,7 @@ abstract class LearnerActivityDAO extends LearnerActivityEntity with RootConnect
     }
 
     private def getInsertQuery(learnerActSumm: LearnerSnapshot): InsertQuery[LearnerActivityDAO, LearnerSnapshot, Unspecified] = {
-        insert.value(_.leaner_id, learnerActSumm.leaner_id)
+        insert.value(_.learner_id, learnerActSumm.learner_id)
             .value(_.m_time_spent, learnerActSumm.m_time_spent)
             .value(_.m_time_btw_gp, learnerActSumm.m_time_btw_gp)
             .value(_.m_active_time_on_pf, learnerActSumm.m_active_time_on_pf)
@@ -67,7 +67,7 @@ abstract class LearnerActivityDAO extends LearnerActivityEntity with RootConnect
     }
 
     def getById(id: UUID): Future[Option[LearnerSnapshot]] = {
-        select.where(_.leaner_id eqs id).one()
+        select.where(_.learner_id eqs id).one()
     }
     
     def count(): Future[Option[Long]] = {
