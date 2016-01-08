@@ -9,7 +9,6 @@ import org.ekstep.analytics.adapter.model.LearnerActivityDAO
 
 object Defaults {
     val connector = ContactPoint.local.keySpace("learner_db");
-    implicit val session = connector.session
 }
 
 class LearnerDatabase(val keyspace: KeySpaceDef) extends com.websudos.phantom.db.DatabaseImpl(keyspace) {

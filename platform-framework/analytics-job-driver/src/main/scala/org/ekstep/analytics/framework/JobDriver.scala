@@ -37,7 +37,6 @@ object JobDriver  {
         }
         val t2 = System.currentTimeMillis;
         Console.println("## Model run complete - Time taken to compute - " + (t2 - t1) / 1000 + " ##");
-        System.exit(0);
     }
 
 }
