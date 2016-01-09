@@ -12,7 +12,7 @@ CommonUtil.setS3Conf(sc);
 
 **S3 Files**
 
-```java
+```scala
 val queries = Option(Array(Query(Option("ekstep-session-summary"), Option("prod.analytics.screener-"), Option("2015-12-20"), Option("2015-12-27"))));
 val rdd = DataFetcher.fetchBatchData[MeasuredEvent](sc, Fetcher("S3", None, queries));
 val aserRDD = rdd.filter(e => "org.ekstep.aser.lite".equals(e.dimensions.gdata.get.id.get)).cache();
@@ -22,7 +22,7 @@ timeSpent.mean();
 
 **Local Files**
 
-```java
+```scala
 val queries = Option(Array(JSONUtils.deserialize[Query]("{\"file\":\"/mnt/data/analytics/akshara_session_summary.log\"}")))
 val rdd = DataFetcher.fetchBatchData[MeasuredEvent](sc, Fetcher("local", None, queries));
 val timeSpent = rdd.map(e => e.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("timeSpent", 0d).asInstanceOf[Double]).cache();
@@ -33,7 +33,7 @@ timeSpent.mean();
 
 **Local Files**
 
-```java
+```scala
 val queries = Option(Array(JSONUtils.deserialize[Query]("{\"file\":\"/mnt/data/analytics/aser-screen-summary.log\"}")))
 val rdd = DataFetcher.fetchBatchData[MeasuredEvent](sc, Fetcher("local", None, queries));
 val akp = rdd.map(e => e.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("activationKeyPage", 0d).asInstanceOf[Double]).cache();
@@ -52,13 +52,12 @@ val sc = rdd.map(e => e.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("sc
 val su = rdd.map(e => e.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("summary", 0d).asInstanceOf[Double]).cache();
 print(akp.mean,scp.mean,cr1.mean,cr2.mean,cr3.mean,al.mean,ll.mean,snq1.mean,an1.mean,sn2.mean,an2.mean,an3.mean,sc.mean,su.mean);
 
-akp.mean+scp.mean+cr1.mean+cr2.mean+cr3.mean+al.mean+ll.mean+snq1.mean+an1.mean+sn2.mean+an2.mean+an3.mean+sc.mean+su.mean
-294
+akp.mean+scp.mean+cr1.mean+cr2.mean+cr3.mean+al.mean+ll.mean+snq1.mean+an1.mean+sn2.mean+an2.mean+an3.mean+sc.mean+su.mean;
 ```
 
 ## Events to Local File
 
-```java
+```scala
 val queries = Option(Array(Query(Option("ekstep-telemetry"), Option("prod.telemetry.unique-"), Option("2015-10-27"), Option("2016-01-04"))));
 val rdd = DataFetcher.fetchBatchData[Map[String,AnyRef]](sc, Fetcher("S3", None, queries));
 val aserRDD = DataFilter.filter(rdd, Filter("userId", "EQ", Option("409fe811-ef92-4ec5-b5f6-aceb787fc9ec"))).map(e => JSONUtils.serialize(e));
@@ -133,7 +132,7 @@ nohup spark-submit --master local[*] --jars /home/ec2-user/models/analytics-fram
 
 ## Aser sessions with more than one attempt
 
-```java
+```scala
 val queries = Option(Array(Query(Option("ekstep-session-summary"), Option("prod.analytics.screener-"), Option("2015-12-28"), Option("2015-12-29"))));
 val rdd = DataFetcher.fetchBatchData[MeasuredEvent](sc, Fetcher("S3", None, queries));
 val aserRDD = rdd.filter(e => "org.ekstep.aser.lite".equals(e.dimensions.gdata.get.id)).cache();
@@ -143,7 +142,7 @@ timeSpent.mean();
 
 ## Output events to file
 
-```java
+```scala
 val rdd = loadFile("/Users/Santhosh/Downloads/prod.telemetry.unique-2016-01-02-06-32.json");
 val rdd2 = DataFilter.filter(rdd, Array(Filter("eid","IN",Option(List("OE_START","OE_END","OE_ASSESS","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))),
                 Filter("gdata.id","EQ",Option("org.ekstep.aser.lite"))));
