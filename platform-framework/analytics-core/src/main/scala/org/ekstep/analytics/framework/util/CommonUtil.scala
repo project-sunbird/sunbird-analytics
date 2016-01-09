@@ -55,10 +55,14 @@ object CommonUtil {
             conf.setMaster("local[*]");
         }
         val sc = new SparkContext(conf);
-        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
-        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
+        setS3Conf(sc);
         Console.println("### Spark Context initialized ###");
         sc;
+    }
+    
+    def setS3Conf(sc: SparkContext) = {
+        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
+        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
 
     def closeSparkContext(sc: SparkContext) {
