@@ -47,7 +47,7 @@ case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[Stri
         timeSpent: Double, interruptTime: Double, startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], 
         noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], 
         itemResponses: Option[Buffer[ItemResponse]], dtRange: DtRange, interactEventsPerMin: Double, activitySummary: Option[Map[String,ActivitySummary]],
-        completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int);
+        completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int, eventsSummary: Map[String, Int]);
 
 /**
  * Generic Screener Summary Model
@@ -160,12 +160,12 @@ object GenericSessionSummary extends SessionBatchModel[Event] with Serializable 
                 }    
             }
             val activitySummary = interactionEvents.groupBy(_._1).map{case (group: String, traversable) => traversable.reduce{(a,b) => (a._1, a._2 + b._2, a._3 + b._3)} }.map(f => (f._1, ActivitySummary(f._2, f._3))).toMap;
-            
+            val eventSummary = distinctEvents.groupBy { x => x.eid }.map(f => (f._1, f._2.length)).toMap;
             SessionSummary(CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), Option(levels), noOfAttempts, 
                     timeSpent.get, 0d, startTimestamp, endTimestamp, Option(domainMap.toMap), 
                     Option(levelTransitions), None, None, Option(loc), 
                     Option(itemResponses), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary),
-                    None, None, noOfInteractEvents);
+                    None, None, noOfInteractEvents, eventSummary);
         }
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
@@ -193,6 +193,7 @@ object GenericSessionSummary extends SessionBatchModel[Event] with Serializable 
             "activitySummary" -> game.activitySummary,
             "completionStatus" -> game.completionStatus,
             "screenSummary" -> game.screenSummary,
+            "eventsSummary" -> game.eventsSummary,
             "noOfLevelTransitions" -> game.noOfLevelTransitions);
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.3").asInstanceOf[String]), None, "SESSION", game.dtRange),

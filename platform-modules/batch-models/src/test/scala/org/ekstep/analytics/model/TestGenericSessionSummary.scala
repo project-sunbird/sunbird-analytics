@@ -80,6 +80,10 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary1.activitySummary.get.get("TOUCH").get.count should be (5);
         summary1.activitySummary.get.get("TOUCH").get.timeSpent should be (47);
         
+        summary1.eventsSummary.size should be (2);
+        summary1.eventsSummary.get("OE_INTERACT").get should be (5);
+        summary1.eventsSummary.get("OE_START").get should be (1);
+        
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.noOfLevelTransitions.get should be (0);
@@ -96,6 +100,11 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary2.activitySummary.get.size should be (1);
         summary2.activitySummary.get.get("TOUCH").get.count should be (25);
         summary2.activitySummary.get.get("TOUCH").get.timeSpent should be (739);
+        summary2.eventsSummary.size should be (4);
+        summary2.eventsSummary.get("OE_INTERACT").get should be (25);
+        summary2.eventsSummary.get("OE_START").get should be (1);
+        summary2.eventsSummary.get("OE_LEVEL_SET").get should be (1);
+        summary2.eventsSummary.get("OE_ASSESS").get should be (2);
         
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
@@ -110,6 +119,8 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary3.noOfInteractEvents should be (0);
         summary3.itemResponses.get.length should be (0);
         summary3.activitySummary.get.size should be (0);
+        summary3.eventsSummary.size should be (1);
+        summary3.eventsSummary.get("OE_START").get should be (1);
         
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
         val summary4 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event4.edata.eks));
@@ -126,5 +137,8 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         summary4.activitySummary.get.size should be (1);
         summary4.activitySummary.get.get("TOUCH").get.count should be (3);
         summary4.activitySummary.get.get("TOUCH").get.timeSpent should be (11);
+        summary4.eventsSummary.size should be (2);
+        summary4.eventsSummary.get("OE_INTERACT").get should be (3);
+        summary4.eventsSummary.get("OE_START").get should be (1);
     }
 }
