@@ -2,9 +2,11 @@
 
 ## Setup
 
+```scala
 import org.ekstep.analytics.framework.util._
 import org.ekstep.analytics.framework._
 CommonUtil.setS3Conf(sc);
+```
 
 ## ASER Summary Events Mean Computation
 
