@@ -133,7 +133,7 @@
 					<aggregate>true</aggregate>
 					<highlighting>true</highlighting>
 					<excludedPackages>.*streaming.*</excludedPackages> 
-                    <excludedFiles>.*KafkaStreamFetcher.*</excludedFiles>
+                    <excludedFiles>.*KafkaStreamFetcher.*;.*JobRunner.*</excludedFiles>
 				</configuration>
 			</plugin>
 		</plugins>
