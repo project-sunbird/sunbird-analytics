@@ -162,4 +162,37 @@ class TestDataFilter extends SparkSpec {
         e1.ts should not be (e2.ts)
         e2.gdata.id should be ("org.ekstep.aser")
     }
+    
+    it should "filter and sort the events by edata.eks.id" in  {
+            
+        val e1 = events.take(1)(0);
+        val sortedEvents = DataFilter.filterAndSort(events, None, Option(Sort("edata.eks.id", Option("desc"))));
+        val e2 = sortedEvents.take(1)(0);
+        e1.eid should not be (e2.eid)
+        e1.ts should not be (e2.ts)
+        e2.gdata.id should be ("org.ekstep.aser")
+    }
+    
+    it should "not throw an exception if filter or sort is null " in  {
+        
+        noException should be thrownBy {
+            DataFilter.sortBy(events, null).collect()    
+        }
+        
+        noException should be thrownBy {
+            DataFilter.filter(events, null.asInstanceOf[Filter]).collect()    
+        }
+        
+        noException should be thrownBy {
+            DataFilter.filter(events, null.asInstanceOf[Array[Filter]]).collect()    
+        }
+        
+    }
+    
+    it should "throw DataFilterException for unknown matcher" in  {
+        a[SparkException] should be thrownBy {
+            DataFilter.filter(events, Filter("eid", "NOTIN", Option("OE_INTERACT"))).collect();
+        }
+    }
+    
 }

@@ -13,12 +13,6 @@ import org.ekstep.analytics.framework.Response
  */
 object RestUtil {
 
-    def main(args: Array[String]): Unit = {
-        val url = Constants.getContentAPIUrl("org.ekstep.story.hi.elephant");
-        val response = RestUtil.get[Response](url);
-        Console.println("response", response);
-    }
-
     def get[T](apiURL: String)(implicit mf: Manifest[T]) = {
         val httpClient = HttpClients.createDefault();
         val request = new HttpGet(apiURL);
@@ -26,12 +20,12 @@ object RestUtil {
         try {
             val httpResponse = httpClient.execute(request);
             val entity = httpResponse.getEntity()
-            val content = if (entity != null) {
+            var content:String = null;
+            if (entity != null) {
                 val inputStream = entity.getContent()
-                val contentStr = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString;
+                content = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString;
                 inputStream.close
-                contentStr
-            } else null;
+            }
             JSONUtils.deserialize[T](content);
         } finally {
             httpClient.close()
@@ -48,33 +42,16 @@ object RestUtil {
         try {
             val httpResponse = httpClient.execute(request);
             val entity = httpResponse.getEntity()
-            val content = if (entity != null) {
+            var content:String = null;
+            if (entity != null) {
                 val inputStream = entity.getContent()
-                val contentStr = Source.fromInputStream(inputStream).getLines.mkString
+                content = Source.fromInputStream(inputStream).getLines.mkString
                 inputStream.close
-                contentStr;
-            } else null;
+            }
             JSONUtils.deserialize[T](content);
         } finally {
             httpClient.close()
         }
     }
 
-    private def getRestContent(url: String): String = {
-        val httpClient = HttpClients.createDefault();
-        val request = new HttpGet(url);
-        request.addHeader("user-id", "analytics");
-        try {
-            val httpResponse = httpClient.execute(request);
-            val entity = httpResponse.getEntity()
-            if (entity != null) {
-                val inputStream = entity.getContent()
-                val contentStr = Source.fromInputStream(inputStream).getLines.mkString
-                inputStream.close
-                contentStr;
-            } else null;
-        } finally {
-            httpClient.close()
-        }
-    }
 }

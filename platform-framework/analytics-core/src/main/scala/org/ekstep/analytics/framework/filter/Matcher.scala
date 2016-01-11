@@ -8,6 +8,7 @@ import org.ekstep.analytics.framework.exception.DataFilterException
  */
 object Matcher {
 
+    @throws(classOf[DataFilterException])
     def getMatcher(op: String): IMatcher = {
         op match {
             case "NE"         => NotEqualsMatcher;
@@ -22,6 +23,7 @@ object Matcher {
         }
     }
 
+    @throws(classOf[DataFilterException])
     def compare(value: AnyRef, filter: Filter): Boolean = {
         getMatcher(filter.operator).matchValue(value, filter.value);
     }

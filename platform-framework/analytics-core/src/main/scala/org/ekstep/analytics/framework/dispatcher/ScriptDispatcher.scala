@@ -13,6 +13,9 @@ object ScriptDispatcher extends IDispatcher {
     @throws(classOf[DispatcherException])
     def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String] = {
         val script = config.getOrElse("script", null).asInstanceOf[String];
+        if (null == script) {
+            throw new DispatcherException("'script' parameter is required to send output to file");
+        }
         val envParams = config.map(f => f._1 + "=" + f._2.asInstanceOf[String]).toArray;
         val proc = Runtime.getRuntime.exec(script, envParams);
         new Thread("stderr reader for " + script) {

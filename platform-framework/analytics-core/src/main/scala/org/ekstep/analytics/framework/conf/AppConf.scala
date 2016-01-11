@@ -42,8 +42,7 @@ object AppConf {
     }
     
     def getConfigKey(): String = {
-        val sysenv = sys.env.getOrElse("config_env", null);
-        val env = if(sysenv != null) sysenv else sys.props.getOrElse("env", "DEV");    
+        val env = sys.props.getOrElse("env", "DEV");    
         "/" + env.toLowerCase() + ".config.properties";
     }
 

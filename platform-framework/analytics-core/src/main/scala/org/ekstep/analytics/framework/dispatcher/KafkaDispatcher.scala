@@ -8,6 +8,7 @@ import org.ekstep.analytics.streaming.KafkaEventProducer
  */
 object KafkaDispatcher extends IDispatcher {
     
+    @throws(classOf[DispatcherException])
     def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String] = {
         val brokerList = config.getOrElse("brokerList", null).asInstanceOf[String];
         val topic = config.getOrElse("topic", null).asInstanceOf[String];

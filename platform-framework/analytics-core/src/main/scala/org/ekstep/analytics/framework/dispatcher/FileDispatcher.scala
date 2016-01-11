@@ -8,6 +8,7 @@ import java.io.FileWriter
  */
 object FileDispatcher extends IDispatcher {
 
+    @throws(classOf[DispatcherException])
     def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
         val filePath = config.getOrElse("file", null).asInstanceOf[String];
         if (null == filePath) {
