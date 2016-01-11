@@ -26,6 +26,7 @@ object S3Util {
         Console.println("ETag - " + fileObj.getETag);
     }
 
+    // $COVERAGE-OFF$Disabling scoverage as this function is manually tested
     def uploadPublic(bucketName: String, filePath: String, key: String) {
 
         val bucketAcl = s3Service.getBucketAcl(bucketName);
@@ -43,9 +44,8 @@ object S3Util {
     def getMetadata(bucketName: String, key: String) {
         val bucket = s3Service.getBucket(bucketName);
         val s3Object = s3Service.getObjectDetails(bucket, key);
-        Console.println("ContentLength - " + s3Object.getContentLength);
-        Console.println("ContentLength - " + s3Object.getLastModifiedDate);
     }
+    // $COVERAGE-ON$
 
     def getAllKeys(bucketName: String, prefix: String): Array[String] = {
         val bucket = s3Service.getBucket(bucketName);
@@ -72,10 +72,6 @@ object S3Util {
 
     def getPath(bucket: String, prefix: String): Array[String] = {
         S3Util.getAllKeys(bucket, prefix).map { x => "s3n://" + bucket + "/" + x };
-    }
-
-    def main(args: Array[String]): Unit = {
-        getAllKeys("ep-production-backup", "logs/telemetry/*.gz");
     }
 
 }

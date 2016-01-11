@@ -13,6 +13,9 @@ import org.ekstep.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
 import org.ekstep.analytics.framework.util.JSONUtils
 
+@scala.reflect.BeanInfo
+case class Test(id: String, value: Option[String], optValue: Option[String]);
+
 /**
  * @author Santhosh
  */
@@ -193,6 +196,19 @@ class TestDataFilter extends SparkSpec {
         a[SparkException] should be thrownBy {
             DataFilter.filter(events, Filter("eid", "NOTIN", Option("OE_INTERACT"))).collect();
         }
+    }
+    
+    it should "filter optional fields also" in {
+        
+        val testArray = Array(Test("One", Option("1"), Option("Ek")),Test("Two", Option("2"), None));
+        val rdd = sc.parallelize(testArray, 1);
+        val result1 = DataFilter.filter(rdd, Filter("value", "EQ", Option("2"))).collect();
+        result1.size should be (1);
+        result1(0).id should be ("Two");
+        
+        val result2 = DataFilter.filter(rdd, Filter("optValue", "EQ", Option("Do"))).collect();
+        result2.size should be (0);
+        
     }
     
 }
