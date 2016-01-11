@@ -28,7 +28,7 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
             val m_active_time_on_pf = eks.getOrElse("meanActiveTimeOnPlatform", 0d).asInstanceOf[Double];
             val m_interrupt_time = eks.getOrElse("meanInterruptTime", 0d).asInstanceOf[Double];
             val t_ts_on_pf = eks.getOrElse("totalTimeSpentOnPlatform", 0d).asInstanceOf[Double];
-            val n_of_sess_on_pf = eks.getOrElse("numOfSessionsOnPlatform", 0d).asInstanceOf[Int];
+            val n_of_sess_on_pf = eks.getOrElse("numOfSessionsOnPlatform", 0).asInstanceOf[Int];
             val m_ts_on_an_act = eks.getOrElse("meanTimeSpentOnAnAct", Map()).asInstanceOf[Map[String, Double]];
             val m_count_on_an_act = eks.getOrElse("meanCountOfAct", Map()).asInstanceOf[Map[String, Double]];
             val l_visit_ts = new DateTime(eks.getOrElse("lastVisitTimeStamp", 0L).asInstanceOf[Long]);
