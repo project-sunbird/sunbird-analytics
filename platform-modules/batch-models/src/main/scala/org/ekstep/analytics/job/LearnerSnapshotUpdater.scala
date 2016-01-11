@@ -11,10 +11,12 @@ import org.ekstep.analytics.adapter.learner.LearnerAdapter
  */
 object LearnerSnapshotUpdater extends Application {
 
-    def main(config: String) {
+    def main(config: String, cc: Option[Boolean]) {
         JobDriver.run[MeasuredEvent]("batch", config, UpdateLearnerActivity);
-        LearnerAdapter.session.close();
-        LearnerAdapter.session.getCluster.close();
+        if(cc.nonEmpty && cc.get) {
+            LearnerAdapter.session.close();
+            LearnerAdapter.session.getCluster.close();            
+        }
     }
 
 }

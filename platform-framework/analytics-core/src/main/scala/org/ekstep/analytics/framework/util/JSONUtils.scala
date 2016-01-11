@@ -37,15 +37,13 @@ object JSONUtils {
     
     private[this] def typeFromManifest(m: Manifest[_]): Type = {
         if (m.typeArguments.isEmpty) { m.runtimeClass }
+        // $COVERAGE-OFF$Disabling scoverage as this code is impossible to test
         else new ParameterizedType {
             def getRawType = m.runtimeClass
             def getActualTypeArguments = m.typeArguments.map(typeFromManifest).toArray
             def getOwnerType = null
         }
+        // $COVERAGE-ON$
     }
     
-    /*
-    private[this] def typeFromManifest(m: Manifest[_]): Type = {
-        m.runtimeClass
-    }*/
 }
