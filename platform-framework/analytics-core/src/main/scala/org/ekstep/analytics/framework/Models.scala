@@ -6,34 +6,26 @@ import scala.beans.BeanProperty
 
 class Models extends Serializable {}
 
-// Raw Event Model
-/*
-case class Eks(loc: Option[String], mc: Option[Array[String]], mmc: Option[Array[String]], pass: Option[String], qid: Option[String], qtype: Option[String], qlevel: Option[String], score: Option[Int], maxscore: Option[Int], res: Option[Array[String]], exres: Option[Array[String]], length: Option[String], exlength: Option[Double], atmpts: Option[Int], failedatmpts: Option[Int], category: Option[String], current: Option[String], max: Option[String], `type`: Option[String], extype: Option[String], id: Option[String], gid: Option[String])
-case class EData(eks: Eks)
-case class GData(id: Option[String], ver: Option[String])
-case class Event(eid: Option[String], ts: Option[String], `@timestamp`: Option[String], ver: Option[String],@BeanProperty gdata: Option[GData], sid: Option[String], uid: Option[String], did: Option[String], edata: EData)
-*/
+@scala.reflect.BeanInfo
+class GData(val id: String, val ver: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class GData(@BeanProperty val id: String, @BeanProperty val ver: String) extends Serializable {}
+class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],
+          val pass: String, val qid: String, val qtype: String,
+          val qlevel: String, val score: Int, val maxscore: Int,
+          val res: Array[String], val exres: Array[String], val length: AnyRef,
+          val exlength: Double, val atmpts: Int, val failedatmpts: Int,
+          val category: String, val current: String, val max: String,
+          val `type`: String, val extype: String, val id: String,
+          val gid: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class Eks(@BeanProperty val loc: String, @BeanProperty val mc: Array[String], @BeanProperty val mmc: Array[String],
-          @BeanProperty val pass: String, @BeanProperty val qid: String, @BeanProperty val qtype: String,
-          @BeanProperty val qlevel: String, @BeanProperty val score: Int, @BeanProperty val maxscore: Int,
-          @BeanProperty val res: Array[String], @BeanProperty val exres: Array[String], @BeanProperty val length: AnyRef,
-          @BeanProperty val exlength: Double, @BeanProperty val atmpts: Int, @BeanProperty val failedatmpts: Int,
-          @BeanProperty val category: String, @BeanProperty val current: String, @BeanProperty val max: String,
-          @BeanProperty val `type`: String, @BeanProperty val extype: String, @BeanProperty val id: String,
-          @BeanProperty val gid: String) extends Serializable {}
+class EData(val eks: Eks) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class EData(@BeanProperty val eks: Eks) extends Serializable {}
-
-@scala.reflect.BeanInfo
-class Event(@BeanProperty val eid: String, @BeanProperty val ts: String, val `@timestamp`: String,
-            @BeanProperty val ver: String, @BeanProperty val gdata: GData, @BeanProperty val sid: String,
-            @BeanProperty val uid: String, @BeanProperty val did: String, @BeanProperty val edata: EData) extends Serializable {}
+class Event(val eid: String, val ts: String, val `@timestamp`: String,
+            val ver: String, val gdata: GData, val sid: String,
+            val uid: String, val did: String, val edata: EData) extends Serializable {}
 
 
 // Computed Event Model
@@ -58,10 +50,15 @@ case class UserProfile(uid: String, gender: String, age: Int);
 
 // Analytics Framework Job Models
 case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None)
+@scala.reflect.BeanInfo
 case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
+@scala.reflect.BeanInfo
 case class Sort(name: String, order: Option[String]);
+@scala.reflect.BeanInfo
 case class Dispatcher(to: String, params: Map[String, AnyRef]);
+@scala.reflect.BeanInfo
 case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]]);
+@scala.reflect.BeanInfo
 case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String], deviceMapping: Option[Boolean] = Option(false));
 
 // LP API Response Model
