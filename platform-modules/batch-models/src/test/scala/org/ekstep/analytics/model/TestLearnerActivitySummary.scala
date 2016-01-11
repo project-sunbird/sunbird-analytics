@@ -1,6 +1,5 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.SparkSpec
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DataFetcher
@@ -12,20 +11,18 @@ import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.util.CommonUtil
 
-class TestLearnerActivitySummarizer extends SparkSpec(null) {
+class TestLearnerActivitySummary extends SparkSpec(null) {
 
     "LearnerActivitySummarizer" should "generate LearnerActivitySummarizer events to a file" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/session-summary/learner_activity_test_sample.log");
-        val activitySummary = new LearnerActivitySummarizer();
-        val rdd2 = activitySummary.execute(sc, rdd.map { x => x.asInstanceOf[AnyRef] }, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
+        val rdd2 = LearnerActivitySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/learner_activity_test_output.log")), rdd2);
+        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/learner_activity_test_output.log")), rdd2);
     }
    
     it should "Print Learner Activity Summary events getting input from 'learner_activity_test_sample.log' and check the correctness" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/session-summary/learner_activity_test_sample.log");
-        val activitySummary = new LearnerActivitySummarizer();
-        val rdd2 = activitySummary.execute(sc, rdd.map { x => x.asInstanceOf[AnyRef] }, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
+        val rdd2 = LearnerActivitySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be (2)
         
@@ -58,12 +55,12 @@ class TestLearnerActivitySummarizer extends SparkSpec(null) {
         laSS2.numOfSessionsOnPlatform should be (1)
         laSS2.topKcontent.length should be (1)
         
-        OutputDispatcher.dispatch(Dispatcher("Console", Map("file" -> "src/test/resources/test_output.log")), rdd2);
+        //OutputDispatcher.dispatch(Dispatcher("Console", Map("file" -> "src/test/resources/test_output.log")), rdd2);
     }
+    
     it should "check the correctness of the learner activity summary" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/session-summary/learner_activity_summary_sample1.log");
-        val activitySummary = new LearnerActivitySummarizer();
-        val rdd2 = activitySummary.execute(sc, rdd.map { x => x.asInstanceOf[AnyRef] }, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_summary_sample1.log");
+        val rdd2 = LearnerActivitySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be (1)
         

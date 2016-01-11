@@ -15,6 +15,7 @@ import org.ekstep.analytics.framework.dispatcher.FileDispatcher
  */
 object DispatcherFactory {
 
+    @throws(classOf[DispatcherException])
     def getDispatcher(disp: Dispatcher): IDispatcher = {
         disp.to.toLowerCase() match {
             case "s3"      =>

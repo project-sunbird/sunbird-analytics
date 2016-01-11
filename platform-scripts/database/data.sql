@@ -1,6 +1,7 @@
-CREATE TABLE learneractivitysummary (
-	leaner_id uuid, 
+CREATE TABLE learnersnapshot (
+	learner_id uuid, 
 	m_time_spent double, 
+	m_time_btw_gp double,
 	m_active_time_on_pf double, 
 	m_interrupt_time double, 
 	t_ts_on_pf double,
@@ -14,5 +15,5 @@ CREATE TABLE learneractivitysummary (
 	sess_end_time timestamp,
 	dp_start_time timestamp,
 	dp_end_time timestamp,
-	PRIMARY KEY (leaner_id)
+	PRIMARY KEY (learner_id)
 );

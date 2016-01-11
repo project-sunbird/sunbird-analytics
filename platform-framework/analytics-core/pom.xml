@@ -132,6 +132,8 @@
 					<scalaVersion>${scala.version}</scalaVersion>
 					<aggregate>true</aggregate>
 					<highlighting>true</highlighting>
+					<excludedPackages>.*streaming.*</excludedPackages> 
+                    <excludedFiles>.*KafkaStreamFetcher.*</excludedFiles>
 				</configuration>
 			</plugin>
 		</plugins>

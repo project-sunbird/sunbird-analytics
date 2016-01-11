@@ -37,12 +37,19 @@ class Event(@BeanProperty val eid: String, @BeanProperty val ts: String, val `@t
 
 
 // Computed Event Model
+@scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
+@scala.reflect.BeanInfo
 case class MeasuredEvent(eid: String, ts: Long, ver: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
+@scala.reflect.BeanInfo
 case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
+@scala.reflect.BeanInfo
 case class PData(id: String, model: String, ver: String);
+@scala.reflect.BeanInfo
 case class DtRange(from: Long, to: Long);
+@scala.reflect.BeanInfo
 case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, dt_range: DtRange);
+@scala.reflect.BeanInfo
 case class MEEdata(eks: AnyRef);
 
 // User Model

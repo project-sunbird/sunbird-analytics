@@ -20,19 +20,19 @@ import org.ekstep.analytics.framework.SessionBatchModel
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.MeasuredEvent
 
-case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, lastVisitTimeStamp: Long, mostActiveHrOfTheDay: Int, topKcontent: Array[String],startTimestamp: Long, endTimestamp: Long);
 
 /**
- * Case class to hold the screener summary
+ * @author Amit Behera
  */
+case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, lastVisitTimeStamp: Long, mostActiveHrOfTheDay: Int, topKcontent: Array[String],startTimestamp: Long, endTimestamp: Long);
 
-class LearnerActivitySummarizer extends Serializable {
+object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
-    def execute(sc: SparkContext, events: RDD[AnyRef], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
 
-        val activity = events.map { x => x.asInstanceOf[MeasuredEvent] }.map(event => (event.uid.get, Buffer(event)))
+        val activity = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
 
