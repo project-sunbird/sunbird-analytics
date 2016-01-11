@@ -1,6 +1,6 @@
 package org.ekstep.analytics.job
 
-import org.ekstep.analytics.framework.util.Application
+import optional.Application
 import org.ekstep.analytics.framework.JobDriver
 import org.ekstep.analytics.updater.UpdateLearnerActivity
 import org.ekstep.analytics.framework.MeasuredEvent
