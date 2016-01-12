@@ -40,8 +40,8 @@ class TestAserScreenSummary extends SparkSpec(null) {
         me.length should be(2)
         val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        first.get("assessNumeracyQ3") should be (Option(0d))
-        sec.get("assessNumeracyQ3") should be (Option(0d))
+        first.get("assessNumeracyQ3") should be(Option(0d))
+        sec.get("assessNumeracyQ3") should be(Option(0d))
     }
     //------- test3--------
     it should "check the correctness of summary events from 'raw.telemetry.test3.json'" in {
@@ -84,7 +84,7 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(4)
-        
+
         val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         val fourth = JSONUtils.deserialize[MeasuredEvent](me(3)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
@@ -153,13 +153,13 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(1)
         val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        first.get("activationKeyPage") should be (Option(0d))
-        first.get("surveyCodePage") should be (Option(0d))
-        first.get("childReg1") should be (Option(0d))
-        first.get("childReg2") should be (Option(0d))
-        first.get("childReg3") should be (Option(0d))
+        first.get("activationKeyPage") should be(Option(0d))
+        first.get("surveyCodePage") should be(Option(0d))
+        first.get("childReg1") should be(Option(0d))
+        first.get("childReg2") should be(Option(0d))
+        first.get("childReg3") should be(Option(0d))
     }
-     //-----test9--
+    //-----test9--
     it should "check summary events, having three reg. pages" in {
         val event = loadFile[Event]("src/test/resources/aserlite-screen-summary/3nextButton.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
@@ -170,10 +170,10 @@ class TestAserScreenSummary extends SparkSpec(null) {
         first.get("activationKeyPage") should not be (Option(0d))
         first.get("surveyCodePage") should not be (Option(0d))
         first.get("childReg1") should not be (Option(0d))
-        first.get("childReg2") should be (Option(0d))
-        first.get("childReg3") should be (Option(0d))
+        first.get("childReg2") should be(Option(0d))
+        first.get("childReg3") should be(Option(0d))
     }
-     //-----test10--
+    //-----test10--
     it should "check summary events, only having four assess pages" in {
         val event = loadFile[Event]("src/test/resources/aserlite-screen-summary/OE_ASSESS.txt");
         val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
@@ -181,22 +181,22 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(1)
         val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        first.get("activationKeyPage") should be (Option(0d))
-        first.get("surveyCodePage") should be (Option(0d))
-        first.get("childReg1") should be (Option(0d))
-        first.get("childReg2") should be (Option(0d))
-        first.get("childReg3") should be (Option(0d))
+        first.get("activationKeyPage") should be(Option(0d))
+        first.get("surveyCodePage") should be(Option(0d))
+        first.get("childReg1") should be(Option(0d))
+        first.get("childReg2") should be(Option(0d))
+        first.get("childReg3") should be(Option(0d))
         first.get("assessLanguage") should not be (Option(0d))
-        first.get("languageLevel") should be (Option(0d))
-        first.get("selectNumeracyQ1") should be (Option(0d))
+        first.get("languageLevel") should be(Option(0d))
+        first.get("selectNumeracyQ1") should be(Option(0d))
         first.get("assessNumeracyQ1") should not be (Option(0d))
-        first.get("selectNumeracyQ2") should be (Option(0d))
+        first.get("selectNumeracyQ2") should be(Option(0d))
         first.get("assessNumeracyQ2") should not be (Option(0d))
         first.get("assessNumeracyQ3") should not be (Option(0d))
-        first.get("scorecard") should be (Option(0d))
-        first.get("summary") should be (Option(0d))
+        first.get("scorecard") should be(Option(0d))
+        first.get("summary") should be(Option(0d))
     }
-    
+
     //-----test11--
     it should "check summary events, only having three Reg. pages" in {
         val event = loadFile[Event]("src/test/resources/aserlite-screen-summary/only3NextButtonPressed.txt");
@@ -208,17 +208,17 @@ class TestAserScreenSummary extends SparkSpec(null) {
         first.get("activationKeyPage") should not be (Option(0d))
         first.get("surveyCodePage") should not be (Option(0d))
         first.get("childReg1") should not be (Option(0d))
-        first.get("childReg2") should be (Option(0d))
-        first.get("childReg3") should be (Option(0d))
-        first.get("assessLanguage") should be (Option(0d))
-        first.get("languageLevel") should be (Option(0d))
-        first.get("selectNumeracyQ1") should be (Option(0d))
-        first.get("assessNumeracyQ1") should be (Option(0d))
-        first.get("selectNumeracyQ2") should be (Option(0d))
-        first.get("assessNumeracyQ2") should be (Option(0d))
-        first.get("assessNumeracyQ3") should be (Option(0d))
-        first.get("scorecard") should be (Option(0d))
-        first.get("summary") should be (Option(0d))
+        first.get("childReg2") should be(Option(0d))
+        first.get("childReg3") should be(Option(0d))
+        first.get("assessLanguage") should be(Option(0d))
+        first.get("languageLevel") should be(Option(0d))
+        first.get("selectNumeracyQ1") should be(Option(0d))
+        first.get("assessNumeracyQ1") should be(Option(0d))
+        first.get("selectNumeracyQ2") should be(Option(0d))
+        first.get("assessNumeracyQ2") should be(Option(0d))
+        first.get("assessNumeracyQ3") should be(Option(0d))
+        first.get("scorecard") should be(Option(0d))
+        first.get("summary") should be(Option(0d))
     }
     //-----test12--
     it should "check summary events, only having all Reg. pages" in {
@@ -233,15 +233,15 @@ class TestAserScreenSummary extends SparkSpec(null) {
         first.get("childReg1") should not be (Option(0d))
         first.get("childReg2") should not be (Option(0d))
         first.get("childReg3") should not be (Option(0d))
-        first.get("assessLanguage") should be (Option(0d))
-        first.get("languageLevel") should be (Option(0d))
-        first.get("selectNumeracyQ1") should be (Option(0d))
-        first.get("assessNumeracyQ1") should be (Option(0d))
-        first.get("selectNumeracyQ2") should be (Option(0d))
-        first.get("assessNumeracyQ2") should be (Option(0d))
-        first.get("assessNumeracyQ3") should be (Option(0d))
-        first.get("scorecard") should be (Option(0d))
-        first.get("summary") should be (Option(0d))
+        first.get("assessLanguage") should be(Option(0d))
+        first.get("languageLevel") should be(Option(0d))
+        first.get("selectNumeracyQ1") should be(Option(0d))
+        first.get("assessNumeracyQ1") should be(Option(0d))
+        first.get("selectNumeracyQ2") should be(Option(0d))
+        first.get("assessNumeracyQ2") should be(Option(0d))
+        first.get("assessNumeracyQ3") should be(Option(0d))
+        first.get("scorecard") should be(Option(0d))
+        first.get("summary") should be(Option(0d))
     }
     //-----test13--
     it should "check two summary events, all having zero field value" in {
@@ -252,36 +252,60 @@ class TestAserScreenSummary extends SparkSpec(null) {
         me.length should be(2)
         val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        
-        first.get("activationKeyPage") should be (Option(0d))
-        first.get("surveyCodePage") should be (Option(0d))
-        first.get("childReg1") should be (Option(0d))
-        first.get("childReg2") should be (Option(0d))
-        first.get("childReg3") should be (Option(0d))
-        first.get("assessLanguage") should be (Option(0d))
-        first.get("languageLevel") should be (Option(0d))
-        first.get("selectNumeracyQ1") should be (Option(0d))
-        first.get("assessNumeracyQ1") should be (Option(0d))
-        first.get("selectNumeracyQ2") should be (Option(0d))
-        first.get("assessNumeracyQ2") should be (Option(0d))
-        first.get("assessNumeracyQ3") should be (Option(0d))
-        first.get("scorecard") should be (Option(0d))
-        first.get("summary") should be (Option(0d))
-        
-        sec.get("activationKeyPage") should be (Option(0d))
-        sec.get("surveyCodePage") should be (Option(0d))
-        sec.get("childReg1") should be (Option(0d))
-        sec.get("childReg2") should be (Option(0d))
-        sec.get("childReg3") should be (Option(0d))
-        sec.get("assessLanguage") should be (Option(0d))
-        sec.get("languageLevel") should be (Option(0d))
-        sec.get("selectNumeracyQ1") should be (Option(0d))
-        sec.get("assessNumeracyQ1") should be (Option(0d))
-        sec.get("selectNumeracyQ2") should be (Option(0d))
-        sec.get("assessNumeracyQ2") should be (Option(0d))
-        sec.get("assessNumeracyQ3") should be (Option(0d))
-        sec.get("scorecard") should be (Option(0d))
-        sec.get("summary") should be (Option(0d))
+
+        first.get("activationKeyPage") should be(Option(0d))
+        first.get("surveyCodePage") should be(Option(0d))
+        first.get("childReg1") should be(Option(0d))
+        first.get("childReg2") should be(Option(0d))
+        first.get("childReg3") should be(Option(0d))
+        first.get("assessLanguage") should be(Option(0d))
+        first.get("languageLevel") should be(Option(0d))
+        first.get("selectNumeracyQ1") should be(Option(0d))
+        first.get("assessNumeracyQ1") should be(Option(0d))
+        first.get("selectNumeracyQ2") should be(Option(0d))
+        first.get("assessNumeracyQ2") should be(Option(0d))
+        first.get("assessNumeracyQ3") should be(Option(0d))
+        first.get("scorecard") should be(Option(0d))
+        first.get("summary") should be(Option(0d))
+
+        sec.get("activationKeyPage") should be(Option(0d))
+        sec.get("surveyCodePage") should be(Option(0d))
+        sec.get("childReg1") should be(Option(0d))
+        sec.get("childReg2") should be(Option(0d))
+        sec.get("childReg3") should be(Option(0d))
+        sec.get("assessLanguage") should be(Option(0d))
+        sec.get("languageLevel") should be(Option(0d))
+        sec.get("selectNumeracyQ1") should be(Option(0d))
+        sec.get("assessNumeracyQ1") should be(Option(0d))
+        sec.get("selectNumeracyQ2") should be(Option(0d))
+        sec.get("assessNumeracyQ2") should be(Option(0d))
+        sec.get("assessNumeracyQ3") should be(Option(0d))
+        sec.get("scorecard") should be(Option(0d))
+        sec.get("summary") should be(Option(0d))
     }
+    //-----test14--
+    it should "check summary events from 'oe_assessLen0.txt' file, all having non-zero value" in {
+        val event = loadFile[Event]("src/test/resources/aserlite-screen-summary/oe_assessLen0.txt");
+        val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
+        val rdd2 = AserScreenSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
+        val me = rdd2.collect();
+        me.length should be(1)
+        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        first.get("activationKeyPage") should not be (Option(0d))
+        first.get("surveyCodePage") should not be (Option(0d))
+        first.get("childReg1") should not be (Option(0d))
+        first.get("childReg2") should not be (Option(0d))
+        first.get("childReg3") should not be (Option(0d))
+        first.get("assessLanguage") should not be (Option(0d))
+        first.get("languageLevel") should not be (Option(0d))
+        first.get("selectNumeracyQ1") should not be (Option(0d))
+        first.get("assessNumeracyQ1") should not be (Option(0d))
+        first.get("selectNumeracyQ2") should not be (Option(0d))
+        first.get("assessNumeracyQ2") should not be (Option(0d))
+        first.get("assessNumeracyQ3") should not be (Option(0d))
+        first.get("scorecard") should not be (Option(0d))
+        first.get("summary") should not be (Option(0d))
+    }
+
     //--------
 }
