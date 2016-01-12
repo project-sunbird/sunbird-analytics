@@ -19,6 +19,7 @@ object BatchJobDriver {
     def process[T](config: JobConfig, model: IBatchModel[T])(implicit mf:Manifest[T]) {
 
         JobContext.parallelization = CommonUtil.getParallelization(config);
+        //TODO: Create spark context as an implicit object
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
         try {
             val rdd = DataFetcher.fetchBatchData[T](sc, config.search);
