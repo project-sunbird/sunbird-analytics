@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.adapter.UserAdapter
  */
 object DataAdapter {
   
-    def getUserData(sc: SparkContext): RDD[(String, User)] = {
-        sc.parallelize(UserAdapter.getUserMapping().toSeq, 10);
+    def getUserData(sc: SparkContext): RDD[(String, UserProfile)] = {
+        sc.parallelize(UserAdapter.getUserProfileMapping().toSeq, 10);
     }
 }

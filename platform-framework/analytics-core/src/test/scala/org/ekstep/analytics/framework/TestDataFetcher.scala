@@ -29,12 +29,18 @@ class TestDataFetcher extends SparkSpec {
         val search = Fetcher("s3", None, Option(Array(
             Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"))
         )));
+        
         a[DataFetcherException] should be thrownBy {
             DataFetcher.fetchBatchData[Event](sc, search);
         }
         
         a[DataFetcherException] should be thrownBy {
             DataFetcher.fetchBatchData[Event](sc, Fetcher("s3", None, None));
+        }
+        
+        // Throw unknown fetcher type found
+        a[DataFetcherException] should be thrownBy {
+            DataFetcher.fetchBatchData[Event](sc, Fetcher("file", None, None));
         }
         
     }

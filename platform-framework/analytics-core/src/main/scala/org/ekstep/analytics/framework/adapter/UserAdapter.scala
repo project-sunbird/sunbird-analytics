@@ -16,24 +16,6 @@ import org.ekstep.analytics.framework.UserProfile
  */
 object UserAdapter {
 
-    private val userResultHandler = new ResultSetHandler[Map[String, User]]() {
-
-        override def handle(rs: ResultSet): Map[String, User] = {
-            if (!rs.next()) {
-                return null;
-            }
-
-            var result = new HashMap[String, User]();
-            var i = 0;
-
-            do {
-                result(rs.getString(2)) = User(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(5), rs.getDate(4), rs.getInt(6));
-            } while (rs.next())
-
-            result.toMap;
-        }
-    };
-    
     private val userProfileResultHandler = new ResultSetHandler[Map[String, UserProfile]]() {
 
         override def handle(rs: ResultSet): Map[String, UserProfile] = {
@@ -70,28 +52,37 @@ object UserAdapter {
         }
     };
 
-    def getUserMapping(): Map[String, User] = {
-        val conn = AppDBUtils.getConnection;
-        val qr = new QueryRunner();
-        val results = qr.query(conn, "SELECT name, encoded_id, ekstep_id, dob, gender, language_id FROM children", userResultHandler);
-        AppDBUtils.closeConnection(conn);
-        results;
-    }
     
     def getUserProfileMapping(): Map[String, UserProfile] = {
         val conn = AppDBUtils.getConnection;
         val qr = new QueryRunner();
-        val results = qr.query(conn, "SELECT uid, handle, gender, age, standard, language FROM profile", userProfileResultHandler);
-        AppDBUtils.closeConnection(conn);
-        results;
+        try {
+            qr.query(conn, "SELECT uid, handle, gender, age, standard, language FROM profile", userProfileResultHandler);
+        } finally {
+            AppDBUtils.closeConnection(conn);            
+        }
+    }
+    
+    def getUserProfileMapping(userId: String): UserProfile = {
+        val conn = AppDBUtils.getConnection;
+        val qr = new QueryRunner();
+        try {
+            val results = qr.query(conn, "SELECT uid, handle, gender, age, standard, language FROM profile where uid = '" + userId + "'", userProfileResultHandler);
+            if(results == null) return null;
+            results.getOrElse(userId, null);
+        } finally {
+            AppDBUtils.closeConnection(conn);            
+        }
     }
 
     def getLanguageMapping(): Map[Int, String] = {
         val conn = AppDBUtils.getConnection;
         val qr = new QueryRunner();
-        val results = qr.query(conn, "select * from languages", languageResultHandler);
-        AppDBUtils.closeConnection(conn);
-        results;
+        try {
+            qr.query(conn, "select * from languages", languageResultHandler);
+        } finally {
+            AppDBUtils.closeConnection(conn);    
+        }
     }
 
 }
