@@ -4,10 +4,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.ekstep</groupId>
-	<artifactId>analytics-platform</artifactId>
+	<artifactId>platform-framework</artifactId>
 	<version>1.0</version>
 	<packaging>pom</packaging>
-	<name>EkStep Analytics Platform</name>
+	<name>EkStep Analytics Framework</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,8 +16,8 @@
 	</properties>
 
 	<modules>
-		<module>platform-framework</module>
-		<module>platform-modules</module>
+		<module>analytics-core</module>
+		<module>analytics-job-driver</module>
 	</modules>
 
 	<dependencies>
@@ -36,6 +36,7 @@
 						</descriptors>
 					</configuration>
 				</plugin>
+
 				<plugin>
 					<groupId>org.scoverage</groupId>
 					<artifactId>scoverage-maven-plugin</artifactId>
@@ -49,4 +50,5 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
 </project>
