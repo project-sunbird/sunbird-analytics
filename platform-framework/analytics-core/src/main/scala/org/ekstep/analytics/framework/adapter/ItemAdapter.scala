@@ -28,9 +28,7 @@ object ItemAdapter {
 
     val relations = Array("concepts", "questionnaires", "item_sets", "items");
 
-    /**
-     *
-     */
+    @throws(classOf[DataAdapterException])
     def getItem(itemId: String, subject: String): Item = {
         val ir = RestUtil.get[Response](Constants.getItemAPIUrl(itemId, subject));
         if (!ir.responseCode.equals("OK")) {
@@ -45,6 +43,7 @@ object ItemAdapter {
         Item(item.get("identifier").get.asInstanceOf[String], item.filterNot(p => relations.contains(p._1)), getTags(item), Option(mc), None);
     }
 
+    @throws(classOf[DataAdapterException])
     def getItems(contentId: String): Array[Item] = {
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
         if (!cr.responseCode.equals("OK")) {
@@ -68,6 +67,7 @@ object ItemAdapter {
         }
     }
 
+    @throws(classOf[DataAdapterException])
     def searchItems(itemIds: Array[String], subject: String): Array[Item] = {
         val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(itemIds)))), itemIds.length));
         val sr = RestUtil.post[Response](Constants.getSearchItemAPIUrl(subject), JSONUtils.serialize(search));
@@ -79,6 +79,7 @@ object ItemAdapter {
         }
     }
 
+    @throws(classOf[DataAdapterException])
     def getItemSet(itemSetId: String, subject: String): ItemSet = {
         val isr = RestUtil.get[Response](Constants.getItemSetAPIUrl(itemSetId, subject));
         if (!isr.responseCode.equals("OK")) {
@@ -92,6 +93,7 @@ object ItemAdapter {
         ItemSet(itemSetId, metadata, items, getTags(itemSet), items.length);
     }
 
+    @throws(classOf[DataAdapterException])
     def getItemSets(contentId: String): Array[ItemSet] = {
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
         if (!cr.responseCode.equals("OK")) {
@@ -134,7 +136,6 @@ object ItemAdapter {
 
     @throws(classOf[DataAdapterException])
     def getQuestionnaires(contentId: String): Array[Questionnaire] = {
-
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
         if (!cr.responseCode.equals("OK")) {
             throw new DataAdapterException(cr.responseCode);

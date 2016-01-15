@@ -12,6 +12,10 @@ object Constants {
     def getContentAPIUrl(contentId: String): String = {
         s"$LP_URL/taxonomy-service/v1/content/$contentId";
     }
+    
+    def getGameList(): String = {
+        s"$LP_URL/taxonomy-service/v1/game/list";
+    }
 
     def getQuestionnaireAPIUrl(questionnaireId: String, subject: String): String = {
         s"$LP_URL/taxonomy-service/v1/questionnaire/$questionnaireId?taxonomyId=$subject";

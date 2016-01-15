@@ -1,12 +1,12 @@
 package org.ekstep.analytics.framework.util
 
 import scala.io.Source
-
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import org.ekstep.analytics.framework.Response
+import com.fasterxml.jackson.core.JsonParseException
 
 /**
  * @author Santhosh
@@ -27,6 +27,10 @@ object RestUtil {
                 inputStream.close
             }
             JSONUtils.deserialize[T](content);
+        } catch {
+            case ex: JsonParseException =>
+                println("### Error parsing response returned by url - " + apiURL + " ###");
+                null.asInstanceOf[T];
         } finally {
             httpClient.close()
         }
@@ -49,6 +53,10 @@ object RestUtil {
                 inputStream.close
             }
             JSONUtils.deserialize[T](content);
+        } catch {
+            case ex: JsonParseException =>
+                println("### Error parsing response returned by url - " + apiURL + " | body - " + body + " ###");
+                null.asInstanceOf[T];
         } finally {
             httpClient.close()
         }

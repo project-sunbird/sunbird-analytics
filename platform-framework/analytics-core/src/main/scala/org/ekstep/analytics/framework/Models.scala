@@ -63,7 +63,7 @@ case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Opti
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
-case class Result(content: Option[Map[String, AnyRef]], questionnaire: Option[Map[String, AnyRef]], assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]]);
+case class Result(content: Option[Map[String, AnyRef]], questionnaire: Option[Map[String, AnyRef]], assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]], games: Option[Array[Map[String, AnyRef]]]);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 
 // Search Items
@@ -78,4 +78,5 @@ case class Item(id: String, metadata: Map[String, AnyRef], tags: Option[Array[St
 case class ItemSet(id: String, metadata: Map[String, AnyRef], items: Array[Item], tags: Option[Array[String]], count: Int);
 case class Questionnaire(id: String, metadata: Map[String, AnyRef], itemSets: Array[ItemSet], items: Array[Item], tags: Option[Array[String]]);
 case class Content(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], questionnaires: Option[Array[Questionnaire]]);
+case class Game(identifier: String, code: String, subject: String, objectType: String);
 
