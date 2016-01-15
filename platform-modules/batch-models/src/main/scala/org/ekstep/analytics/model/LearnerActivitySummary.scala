@@ -24,7 +24,7 @@ import org.ekstep.analytics.framework.MeasuredEvent
 /**
  * @author Amit Behera
  */
-case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, lastVisitTimeStamp: Long, mostActiveHrOfTheDay: Int, topKcontent: Array[String],startTimestamp: Long, endTimestamp: Long);
+case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, lastVisitTimeStamp: Long, mostActiveHrOfTheDay: Option[Int], topKcontent: Array[String],startTimestamp: Long, endTimestamp: Long);
 
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -61,9 +61,16 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val totalTimeSpentOnPlatform = summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.reduce((a, b) => a + b);
                 val topKcontent = if (sortedGames.length > 5) sortedGames.take(5).toArray else sortedGames.toArray;
                 val meanActiveTimeOnPlatform = meanTimeSpent - meanInterruptTime;
-                val mostActiveHrOfTheDay = summaryEvents.map { f =>
-                    (CommonUtil.getHourOfDay(f.getOrElse("startTime", 0l).asInstanceOf[Long], f.getOrElse("endTime", 0l).asInstanceOf[Long]))
-                }.flatten.map { x => (x, 1) }.groupBy(_._1).map(x => (x._1, x._2.length)).maxBy(f => f._2)._1
+                val activeHours = summaryEvents.map { f =>
+                    try {
+                        (CommonUtil.getHourOfDay(f.getOrElse("startTime", 0l).asInstanceOf[Long], f.getOrElse("endTime", 0l).asInstanceOf[Long]))
+                    } catch {
+                        case ex: ClassCastException =>
+                            null;
+                    }
+                }.filter(_ != null).flatten.map { x => (x, 1) }.groupBy(_._1).map(x => (x._1, x._2.length));
+                
+                val mostActiveHrOfTheDay = if(activeHours.isEmpty) None else Option(activeHours.maxBy(f => f._2)._1);
                 
                 val meanTimeBtwnGamePlays = if(summaryEvents.length>1)(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get - totalTimeSpentOnPlatform)/(summaryEvents.length-1)else 0d 
 

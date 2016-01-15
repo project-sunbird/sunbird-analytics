@@ -81,7 +81,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS1.meanActiveTimeOnPlatform.get should be (laSS1.meanTimeSpent.get - laSS1.meanInterruptTime.get)
         laSS1.meanCountOfAct.get should not be (null) 
         laSS1.meanTimeSpentOnAnAct should not be (null)
-        laSS1.mostActiveHrOfTheDay should be >= (0)
+        laSS1.mostActiveHrOfTheDay.get should be >= (0)
         laSS1.numOfSessionsOnPlatform should not be (0)
         laSS1.topKcontent.length should be (1)
         
