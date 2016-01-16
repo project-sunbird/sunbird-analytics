@@ -1,5 +1,10 @@
+CREATE KEYSPACE learner_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
 CREATE TABLE learnersnapshot (
-	learner_id uuid, 
+	learner_id text, 
 	m_time_spent double, 
 	m_time_btw_gp double,
 	m_active_time_on_pf double, 
