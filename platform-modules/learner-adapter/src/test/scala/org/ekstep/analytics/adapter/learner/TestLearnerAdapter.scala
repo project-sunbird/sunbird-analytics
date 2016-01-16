@@ -16,7 +16,7 @@ class TestLearnerAdapter extends FlatSpec with Matchers with Defaults.connector.
     "LearnerAdapter" should "insert a record into leaner activity summary table" in {
         
         val count1 = Await.result(LearnerAdapter.LearnerSnapshot.count(), 5.seconds).get;
-        val learnerActSumm = LearnerSnapshot(UUID.randomUUID(), 12.53, 10.56, 450.34, 10.23, 430.00, Map("TOUCH" -> 12.12), Map("TOUCH" -> 50.12), 45,
+        val learnerActSumm = LearnerSnapshot(UUID.randomUUID().toString(), 12.53, 10.56, 450.34, 10.23, 430.00, Map("TOUCH" -> 12.12), Map("TOUCH" -> 50.12), 45,
             new DateTime(1451915786364L), 16, List("numeracy_369", "numeracy_377"), new DateTime(1451915786364L), new DateTime(1451915786405L),
             new DateTime(1449914267000L), new DateTime(1449914532000L));
         val res = Await.result(LearnerAdapter.LearnerSnapshot.store(learnerActSumm), 5.seconds);
@@ -27,7 +27,7 @@ class TestLearnerAdapter extends FlatSpec with Matchers with Defaults.connector.
     
     it should "fetch data from learner activity summary table" in {
         
-        val uuid = UUID.randomUUID();
+        val uuid = UUID.randomUUID().toString();
         val learnerActSumm = LearnerSnapshot(uuid, 12.53, 54.00, 450.34, 10.23, 430.00, Map("TOUCH" -> 13.12), Map("TOUCH" -> 60.12), 45,
             new DateTime(1451915786364L), 16, List("numeracy_369", "numeracy_377"), new DateTime(1451915786364L), new DateTime(1451915786405L),
             new DateTime(1449914267000L), new DateTime(1449914532000L));

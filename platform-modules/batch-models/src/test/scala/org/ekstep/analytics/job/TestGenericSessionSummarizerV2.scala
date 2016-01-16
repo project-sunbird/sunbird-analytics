@@ -19,7 +19,7 @@ class TestGenericSessionSummarizerV2 extends BaseSpec {
     ignore should "execute GenericSessionSummaryV2 job fetching data from S3" in {
 
         val config = JobConfig(
-                Fetcher("s3", None, Option(Array(Query(Option("sandbox-ekstep-telemetry"), Option("sandbox.telemetry.unique-"), Option("2015-12-01"), Option("2015-12-06"))))), Option(Array(Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))))), null, "org.ekstep.analytics.model.GenericSessionSummaryV2", Option(Map()), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestGenericSessionSummarizer"), Option(true))
+                Fetcher("s3", None, Option(Array(Query(Option("sandbox-ekstep-telemetry"), Option("sandbox.telemetry.unique-"), None, Option("2016-01-15"), Option(0))))), Option(Array(Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))))), null, "org.ekstep.analytics.model.GenericSessionSummaryV2", Option(Map()), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestGenericSessionSummarizer"), Option(true))
         GenericSessionSummarizerV2.main(JSONUtils.serialize(config));
     }
 }

@@ -9,14 +9,14 @@ import com.websudos.phantom.builder.Unspecified
  * @author Santhosh
  */
 
-case class LearnerSnapshot(learner_id: UUID, m_time_spent: Double, m_time_btw_gp:Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
+case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp:Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
                                   m_ts_on_an_act: Map[String,Double], m_count_on_an_act: Map[String,Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime, 
                                   most_active_hr_of_the_day: Int, top_k_content: List[String], sess_start_time: DateTime, sess_end_time: DateTime,
                                   dp_start_time: DateTime, dp_end_time: DateTime)
 
 class LearnerActivityEntity extends CassandraTable[LearnerActivityDAO, LearnerSnapshot] {
 
-    object learner_id extends UUIDColumn(this) with PartitionKey[UUID]
+    object learner_id extends StringColumn(this) with PartitionKey[String]
     object m_time_spent extends DoubleColumn(this)
     object m_time_btw_gp extends DoubleColumn(this)
     object m_active_time_on_pf extends DoubleColumn(this)
@@ -66,7 +66,7 @@ abstract class LearnerActivityDAO extends LearnerActivityEntity with RootConnect
             .value(_.dp_end_time, learnerActSumm.dp_end_time);
     }
 
-    def getById(id: UUID): Future[Option[LearnerSnapshot]] = {
+    def getById(id: String): Future[Option[LearnerSnapshot]] = {
         select.where(_.learner_id eqs id).one()
     }
     
