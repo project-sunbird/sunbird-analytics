@@ -13,6 +13,7 @@ object Matcher {
         op match {
             case "NE"         => NotEqualsMatcher;
             case "IN"         => InMatcher;
+            case "NIN"        => NotInMatcher;
             case "ISNULL"     => NullMatcher;
             case "ISEMPTY"    => EmptyMatcher;
             case "ISNOTNULL"  => NotNullMatcher;
