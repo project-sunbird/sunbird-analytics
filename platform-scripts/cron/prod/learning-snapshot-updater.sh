@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-export aws_key="AKIAIUGCZGHRNX2ZO3CQ"
-export aws_secret="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"
 export SPARK_HOME=/home/ec2-user/spark-1.5.2-bin-hadoop2.3
+export JAVA_HOME=/usr/java/current
 
 ## Job to run daily
 cd /mnt/data/analytics/scripts
