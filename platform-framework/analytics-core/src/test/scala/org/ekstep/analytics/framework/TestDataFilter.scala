@@ -118,6 +118,16 @@ class TestDataFilter extends SparkSpec {
         filteredEvents.first().gdata.id should be("org.ekstep.aser")
     }
     
+    it should "match none of Events 'OE_ASSESS' & 'OE_LEVEL_SET'" in {
+        val filters = Option(Array[Filter](
+            Filter("eventId", "NIN", Option(List("OE_ASSESS", "OE_LEVEL_SET")))
+        ));
+        val filteredEvents = DataFilter.filterAndSort(events, filters, None);
+        filteredEvents.count() should be (5564);
+        filteredEvents.filter { x => "OE_ASSESS".equals(x.eid) }.count should be (0);
+        filteredEvents.filter { x => "OE_LEVEL_SET".equals(x.eid) }.count should be (0);
+    }
+    
     it should "filter by two criteria" in {
         val filters = Option(Array[Filter](
             Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_LEVEL_SET"))),
