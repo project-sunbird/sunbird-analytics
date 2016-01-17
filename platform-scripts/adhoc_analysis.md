@@ -174,3 +174,11 @@ la_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-session-summary"
 
 nohup $SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.LearnerSnapshotUpdater /mnt/data/analytics/models/batch-models-1.0.jar --config "$la_config" > "batch-ls-updater.log" 2>&1&
 ```
+
+## Migration scripts in production
+
+```sh
+aser_config='{"search":{"type":"s3","queries":[{"prefix":"prod.telemetry.unique-","endDate":"2015-12-20","startDate":"2015-10-27"}]},"filters":[{"name":"eventId","operator":"IN","value":["OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"]},{"name":"gdata.id","operator":"NIN","value":["org.ekstep.aser.lite","numeracy_369"]}],"model":"org.ekstep.analytics.model.GenericSessionSummaryV2","modelParams":{"modelVersion":"1.0","modelId":"GenericSessionSummarizer"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"10.10.1.171:9092","topic":"prod.analytics.screener"}}],"parallelization":8,"appName":"Generic Session Summarizer","deviceMapping":true}'
+
+nohup $SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.GenericSessionSummarizerV2 /mnt/data/analytics/models/batch-models-1.0.jar --config "$aser_config" > "batch-sess-summary.log" 2>&1&
+```
