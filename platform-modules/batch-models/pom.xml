@@ -15,11 +15,7 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.ekstep</groupId>
-			<artifactId>learner-adapter</artifactId>
-			<version>1.0</version>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.ekstep</groupId>
 			<artifactId>analytics-job-driver</artifactId>
@@ -56,15 +52,16 @@
 			<version>2.2.4</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>16.0.1</version>
-		</dependency>
+		<!--  -->
 		<dependency>
 			<groupId>optional</groupId>
 			<artifactId>optional_2.10.5</artifactId>
 			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.datastax.spark</groupId>
+			<artifactId>spark-cassandra-connector_2.10</artifactId>
+			<version>1.5.0-M1</version>
 		</dependency>
 	</dependencies>
 
