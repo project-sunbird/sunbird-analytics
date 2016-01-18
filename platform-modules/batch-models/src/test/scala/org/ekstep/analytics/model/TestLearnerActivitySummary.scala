@@ -37,7 +37,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS1.meanActiveTimeOnPlatform.get should be (364.0d-0d)
         laSS1.meanCountOfAct.get should be (Map("TOUCH"->13.5)) 
         laSS1.meanTimeSpentOnAnAct should be (Map("TOUCH"->91.5))
-        laSS1.mostActiveHrOfTheDay should be (10)
+        laSS1.mostActiveHrOfTheDay.get should be (10)
         laSS1.numOfSessionsOnPlatform should be (3)
         laSS1.topKcontent.length should be (1)
         
@@ -51,7 +51,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS2.meanActiveTimeOnPlatform.get should be (4d)
         laSS2.meanCountOfAct.get should be (empty) 
         laSS2.meanTimeSpentOnAnAct should be (empty)
-        laSS2.mostActiveHrOfTheDay should be (12)
+        laSS2.mostActiveHrOfTheDay.get should be (12)
         laSS2.numOfSessionsOnPlatform should be (1)
         laSS2.topKcontent.length should be (1)
         

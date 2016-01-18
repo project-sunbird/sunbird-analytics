@@ -56,8 +56,10 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
      * Get Item id to Item mapping from Array of Questionnaires
      */
     private def getItemMapping(contentMap: Map[String, Array[Questionnaire]]): Map[String, (Item, String)] = {
-        if (contentMap.size > 0) {
-            contentMap.filter(_._2 != null).mapValues(questionnaires => {
+        
+        val cm = contentMap.filter(_._2 != null);
+        if (cm.size > 0) {
+            cm.filter(_._2 != null).mapValues(questionnaires => {
                 questionnaires.map { x =>
                     val domain = x.metadata.getOrElse("domain", "").asInstanceOf[String];
                     x.items.map { y => (y.id, y, domain) }
