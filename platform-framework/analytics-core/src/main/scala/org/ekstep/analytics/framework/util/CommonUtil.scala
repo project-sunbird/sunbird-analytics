@@ -54,6 +54,9 @@ object CommonUtil {
             Console.println("### Master not found. Setting it to local[*] ###");
             conf.setMaster("local[*]");
         }
+        if(!conf.contains("spark.cassandra.connection.host")) {
+            conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))            
+        }
         val sc = new SparkContext(conf);
         setS3Conf(sc);
         Console.println("### Spark Context initialized ###");
@@ -64,7 +67,7 @@ object CommonUtil {
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
-
+    
     def closeSparkContext(sc: SparkContext) {
         sc.stop();
     }
