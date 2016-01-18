@@ -5,32 +5,33 @@ import com.websudos.phantom.dsl._
 import com.websudos.phantom.builder.query.InsertQuery
 import com.websudos.phantom.builder.Unspecified
 
-//case class LearnerProficiency(conecpt_id:String,prof:Float,startTime:Long,endTime:Long)
-case class LearnerProficiencySnapshot(learner_id: UUID,conecpt_id:String,prof:Float,startTime:Long,endTime:Long)
+case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], startTime: Long, endTime: Long)
 
-class LearnerProficiencyEntity extends CassandraTable[LearnerProficiencyDAO, LearnerProficiencySnapshot]{
-     object learner_id extends UUIDColumn(this) with PartitionKey[UUID]
-     object conecpt_id extends StringColumn(this)
-     object prof extends FloatColumn(this)
-     object startTime extends LongColumn(this)
-     object endTime extends LongColumn(this)
-    
-     def fromRow(row: Row): LearnerProficiencySnapshot = {
-        LearnerProficiencySnapshot(learner_id(row), conecpt_id(row),prof(row),startTime(row),endTime(row))
+class LearnerProficiencyEntity extends CassandraTable[LearnerProficiencyDAO, LearnerProficiency] {
+    object learner_id extends StringColumn(this) with PartitionKey[String]
+    object proficiency extends MapColumn[LearnerProficiencyDAO, LearnerProficiency, String, Double](this)
+    object startTime extends LongColumn(this)
+    object endTime extends LongColumn(this)
+
+    def fromRow(row: Row): LearnerProficiency = {
+        LearnerProficiency(learner_id(row), proficiency(row), startTime(row), endTime(row))
     }
-  
+
 }
 abstract class LearnerProficiencyDAO extends LearnerProficiencyEntity with RootConnector {
 
-    def store(learnerActSumm: LearnerProficiencySnapshot): Future[ResultSet] = {
+    def store(learnerActSumm: LearnerProficiency): Future[ResultSet] = {
         getInsertQuery(learnerActSumm).future();
     }
 
-    private def getInsertQuery(learnerActSumm: LearnerProficiencySnapshot): InsertQuery[LearnerProficiencyDAO, LearnerProficiencySnapshot, Unspecified] = {
+    private def getInsertQuery(learnerActSumm: LearnerProficiency): InsertQuery[LearnerProficiencyDAO, LearnerProficiency, Unspecified] = {
         insert.value(_.learner_id, learnerActSumm.learner_id)
+            .value(_.proficiency, learnerActSumm.proficiency)
+            .value(_.startTime, learnerActSumm.startTime)
+            .value(_.endTime, learnerActSumm.endTime)
     }
 
-    def getById(id: UUID): Future[Option[LearnerProficiencySnapshot]] = {
+    def getById(id: String): Future[Option[LearnerProficiency]] = {
         select.where(_.learner_id eqs id).one()
     }
     
