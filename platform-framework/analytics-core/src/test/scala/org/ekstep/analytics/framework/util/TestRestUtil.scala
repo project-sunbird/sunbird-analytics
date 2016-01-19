@@ -45,16 +45,14 @@ class TestRestUtil extends BaseSpec {
 
     it should "throw JsonParseException if unable to parse to Response object during POST" in {
         val url = "https://www.google.com";
-        a[JsonParseException] should be thrownBy {
-            RestUtil.post[Response](url, "");
-        }
+        val resp = RestUtil.post[Response](url, "");
+        resp should be (null);
     }
     
     it should "return error response if body is not passed during POST" in {
         val url = Constants.getSearchItemAPIUrl("numeracy");
-        a[JsonParseException] should be thrownBy {
-            RestUtil.post[Response](url, "");
-        }
+        val resp = RestUtil.post[Response](url, "");
+        resp should be (null);
     }
     
     it should "return success response even if no data found for search query" in {
