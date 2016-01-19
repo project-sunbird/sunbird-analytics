@@ -1,7 +1,6 @@
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.model.SparkSpec
 
 class TestProficiencyInputMapper extends SparkSpec(null){
   it should "print the item data for testing" in {

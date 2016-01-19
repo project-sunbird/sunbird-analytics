@@ -18,7 +18,7 @@ case class Assessment(learner_id: String, itemId: String, itemMC: List[String], 
 
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], startTime: Long, endTime: Long)
 
-class ProficiencyInputMapper extends IBatchModel[MeasuredEvent] with Serializable {
+class LearnerProficiencyMapper extends IBatchModel[MeasuredEvent] with Serializable {
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val assessments = events.map(event => (event.uid.get, Buffer(event)))
