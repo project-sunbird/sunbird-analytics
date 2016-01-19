@@ -12,20 +12,29 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import scala.annotation.migration
 import org.ekstep.analytics.updater.UpdateProficiencyModelParam
+import org.ekstep.analytics.framework.DtRange
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.Context
+
 
 case class Assessment(learner_id: String, itemId: String, itemMC: List[String], itemMMC: List[String],
                       normScore: Double, maxScore: Int, itemMisconception: Array[String], timeSpent: Double);
 
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], startTime: Long, endTime: Long)
 
-class LearnerProficiencyMapper extends IBatchModel[MeasuredEvent] with Serializable {
+class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val assessments = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
                 var assessmentBuff = Buffer[Assessment]();
-                x.foreach { x =>
+                val sortedEvents = x.sortBy { x => x.ts };
+                val eventStartTimestamp = sortedEvents(0).ts;
+                val eventEndTimestamp = sortedEvents.last.ts;
+                sortedEvents.foreach { x =>
                     val learner_id = x.uid.get
                     val itemResponses = x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]]
                     itemResponses.foreach { f =>
@@ -70,5 +79,13 @@ class LearnerProficiencyMapper extends IBatchModel[MeasuredEvent] with Serializa
 
         return null;
         //return assessments;
+    }
+    private def getMeasuredEvent(userMap: (String, (TimeSummary, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
+        val measures = userMap._2._1;
+
+        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_ACTIVITY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", userMap._2._2),
+            Dimensions(None, None, None, None, None, None),
+            MEEdata(measures));
     }
 }
