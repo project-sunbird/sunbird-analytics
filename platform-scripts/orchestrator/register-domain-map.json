@@ -1,0 +1,10 @@
+{
+    "name": "getDomainMap",
+    "parameters": [],
+    "requestPath": {
+        "type": "GET",
+        "url": "/v1/analytics/domain/map",
+        "pathParams": ["graphId","contentId"]
+    },
+    "body": ""
+}

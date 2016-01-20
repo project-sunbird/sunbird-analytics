@@ -7,3 +7,4 @@ platform-core/analytics-common/.settings
 dependency-reduced-pom.xml
 .cache-tests
 target
+platform-scripts/orchestrator/node_modules

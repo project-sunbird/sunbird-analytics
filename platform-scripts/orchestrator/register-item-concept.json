@@ -1,0 +1,22 @@
+{
+    "name": "getItemConcepts",
+    "parameters": [{
+    	"name":"graphId",
+    	"index": 0,
+    	"routingParam": true
+    },{
+        "name": "contentId",
+        "index": 1,
+        "routingParam": false
+    }, {
+    	"name": "itemId",
+    	"index": 2,
+        "routingParam": false
+    }],
+    "requestPath": {
+        "type": "GET",
+        "url": "/v1/analytics/domain/*/*/*",
+        "pathParams": ["graphId","contentId", "itemId"]
+    },
+    "body": ""
+}
