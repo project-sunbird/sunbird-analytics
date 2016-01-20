@@ -36,9 +36,9 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
 
-                val sortedEvents = x.sortBy { x => x.ts };
-                val eventStartTimestamp = sortedEvents(0).ts;
-                val eventEndTimestamp = sortedEvents.last.ts;
+                val sortedEvents = x.sortBy { x => x.ets };
+                val eventStartTimestamp = sortedEvents(0).ets;
+                val eventEndTimestamp = sortedEvents.last.ets;
                 val startTimestamp = sortedEvents.map { x => x.context.dt_range.from }.sortBy { x => x }.toBuffer(0);
                 val sortedGames = sortedEvents.sortBy(-_.context.dt_range.to).map(f => f.dimensions.gdata.get.id).distinct;
                 val endTimestamp = sortedEvents.map { x => x.context.dt_range.to }.sortBy { x => x }.toBuffer.last;

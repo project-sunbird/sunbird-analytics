@@ -53,9 +53,7 @@ class TestOutputDispatcher extends SparkSpec {
         }
         
         // Invoke kafka dispatcher without starting kafka
-        a[Exception] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), events.map { x => JSONUtils.serialize(x) });
-        }
+        OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), sc.parallelize(Array("test")));
         
         // Invoke script dispatcher without required fields ('script')     
         a[DispatcherException] should be thrownBy {
