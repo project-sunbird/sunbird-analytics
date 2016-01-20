@@ -18,14 +18,16 @@ import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Context
 
-
 case class Assessment(learner_id: String, itemId: String, itemMC: List[String], itemMMC: List[String],
                       normScore: Double, maxScore: Int, itemMisconception: Array[String], timeSpent: Double);
 
-case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], startTime: Long, endTime: Long)
+case class LearnerProficiency(proficiency: Map[String, Double], startTime: Long, endTime: Long)
 
 class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+
+        val config = jobParams.getOrElse(Map[String, AnyRef]());
+        val configMapping = sc.broadcast(config);
 
         val assessments = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -64,27 +66,41 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                 val model = assessmentBuff.map { x => (x.learner_id, x.itemMC.mkString(","), x.normScore, x.maxScore) }
                     .map { f =>
                         val alpha = UpdateProficiencyModelParam.getParameterAlpha(f._1, f._2).get
-                        val beta = UpdateProficiencyModelParam.getParameterAlpha(f._1, f._2).get
+                        val beta = UpdateProficiencyModelParam.getParameterBeta(f._1, f._2).get
                         val X = Math.round((f._3 * f._4))
                         val N = f._4
 
                         val alphaNew = alpha + X;
                         val betaNew = beta + N - X;
                         val pi = (alphaNew / (alphaNew + betaNew));
-                        (f._2, alphaNew, betaNew, pi);
+                        (f._1, f._2, alphaNew, betaNew, pi);
                     }
-                model;
-            }//.map { x => JSONUtils.serialize(x) };
-        //val knwState = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map { x => (x.learner_id,x.proficiency) };
 
-        return null;
-        //return assessments;
+                // saving model param to DB
+                model.map(f => (f._1, f._2, f._3, f._4)).groupBy(f => f._2).map { f =>
+                    val lastEvent = f._2.last
+                    UpdateProficiencyModelParam.saveModelParamToDB(lastEvent._1, lastEvent._2, Option(lastEvent._3), Option(lastEvent._4))
+                }
+
+                var proficiencyMap = Map[String, Double]();
+                val proficiency = model.map(x => (x._2, x._5)).groupBy(f => f._1).map { f =>
+                    val lastEvent = f._2.last
+                    val concept = lastEvent._1
+                    val prof = lastEvent._2
+                    proficiencyMap += (concept -> prof);
+                }
+
+                (LearnerProficiency(proficiencyMap, eventStartTimestamp, eventEndTimestamp), DtRange(eventStartTimestamp, eventEndTimestamp));
+            }
+
+        assessments.map(f => {
+            getMeasuredEvent(f, configMapping.value);
+        }).map { x => JSONUtils.serialize(x) };
     }
-    private def getMeasuredEvent(userMap: (String, (TimeSummary, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (LearnerProficiency, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
-
-        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_ACTIVITY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", userMap._2._2),
+        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_PROFICIENCY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", userMap._2._2),
             Dimensions(None, None, None, None, None, None),
             MEEdata(measures));
     }
