@@ -20,7 +20,10 @@ class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],
           val gid: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class EData(val eks: Eks) extends Serializable {}
+class Ext(val stageId: String, val `type`: String) extends Serializable {}
+
+@scala.reflect.BeanInfo
+class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Event(val eid: String, val ts: String, val `@timestamp`: String,
