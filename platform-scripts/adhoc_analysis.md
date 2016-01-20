@@ -15,8 +15,9 @@ CommonUtil.setS3Conf(sc);
 ```scala
 val queries = Option(Array(Query(Option("ekstep-session-summary"), Option("prod.analytics.screener-"), Option("2015-12-20"), Option("2015-12-27"))));
 val rdd = DataFetcher.fetchBatchData[MeasuredEvent](sc, Fetcher("S3", None, queries));
-val aserRDD = rdd.filter(e => "org.ekstep.aser.lite".equals(e.dimensions.gdata.get.id.get)).cache();
-val timeSpent = aserRDD.map(e => e.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("timeSpent", 0d).asInstanceOf[Double]).cache();
+val sessSummaries = DataFilter.filter(rdd, Filter("eid","EQ",Option("ME_SESSION_SUMMARY")));
+val aserSummaries = sessSummaries.filter(e => "org.ekstep.aser.lite".equals(e.dimensions.gdata.get.id)).cache();
+val timeSpent = aserSummaries.map(e => e.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("timeSpent", 0d).asInstanceOf[Double]).cache();
 timeSpent.mean();
 ```
 
