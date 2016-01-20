@@ -7,6 +7,7 @@ import scala.util.control.Breaks
 import org.apache.commons.beanutils.BeanUtils
 import org.apache.commons.beanutils.PropertyUtils
 import org.ekstep.analytics.framework.filter.Matcher
+import scala.collection.mutable.Buffer
 
 /**
  * @author Santhosh
@@ -45,6 +46,18 @@ object DataFilter {
 
     @throws(classOf[DataFilterException])
     def filter[T](events: RDD[T], filter: Filter): RDD[T] = {
+        if (null != filter) {
+            events.filter { event =>
+                val value = getValue(event, filter.name);
+                Matcher.compare(value, filter);
+            }
+        } else {
+            events;
+        }
+    }
+    
+    @throws(classOf[DataFilterException])
+    def filter[T](events: Buffer[T], filter: Filter): Buffer[T] = {
         if (null != filter) {
             events.filter { event =>
                 val value = getValue(event, filter.name);
