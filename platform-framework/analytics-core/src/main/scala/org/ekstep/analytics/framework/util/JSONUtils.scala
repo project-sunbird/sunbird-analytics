@@ -2,15 +2,15 @@ package org.ekstep.analytics.framework.util
 
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
-
 import org.json4s.DefaultFormats
 import org.json4s.Extraction
 import org.json4s.jackson.JsonMethods
-
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.databind.SerializationFeature
 
 /**
  * @author Santhosh
@@ -20,11 +20,12 @@ object JSONUtils {
     @transient val mapper = new ObjectMapper();
     mapper.registerModule(DefaultScalaModule);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+    mapper.setSerializationInclusion(Include.NON_NULL);
 
     @throws(classOf[Exception])
     def serialize(obj: AnyRef): String = {
-        implicit val formats = DefaultFormats;
-        JsonMethods.compact(Extraction.decompose(obj));
+        mapper.writeValueAsString(obj);
     }
 
     @throws(classOf[Exception])
