@@ -20,8 +20,7 @@ import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.adapter.ContentAdapter
 import org.ekstep.analytics.framework.adapter.ItemAdapter
 
-case class Assessment(learner_id: String, itemId: String, itemMC: List[String], itemMMC: List[String],
-                      normScore: Double, maxScore: Int, itemMisconception: Array[String], timeSpent: Double);
+case class Evidence(learner_id: String, itemId: String, itemMC: String, normScore: Double, maxScore: Int);
 
 case class LearnerProficiency(proficiency: Map[String, Double], startTime: Long, endTime: Long)
 case class ModelParam(learner_id: String, concept: String, alpha: Double, beta: Double)
@@ -40,9 +39,13 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
         val codeIdMapBroadcast = sc.broadcast(codeIdMap);
         val idSubMapBroadcast = sc.broadcast(idSubMap);
 
-        val modelParams = sc.cassandraTable[ModelParam]("learner_db", "proficiencyparams").map(x => (x.learner_id,x.concept,x.alpha,x.beta) )
+        // Get learner concept model params
+        val profParams = events.map { x => x.uid.get }.joinWithCassandraTable[ModelParam]("learner_db", "proficiencyparams").groupBy(f => f._1);
         
-        val itemData = events.map(event => (event.uid.get, Buffer(event)))
+        // Get learner previous state
+        val prevLearnerState = events.map { x => x.uid.get }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency");
+        
+        val newEvidences = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
                 val sortedEvents = x.sortBy { x => x.ets };
@@ -88,11 +91,19 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                     mc.map{f=>(x._1,x._2,f,x._4,x._5)}
                 }.flatten
                 itemResponses;
-        }.map(x=>x._2).flatMap(f=>f)
-                
+        }.map(x=>x._2).flatMap(f=>f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5))).groupBy(f => f._1);
+              
         //val joinedRDD = itemData.joinWithCassandraTable("learner_db", "proficiencyparams", SomeColumns("learner_id","concept","alpha","beta"), SomeColumns("learner_id"))
          
-        val joinedRDD = itemData.map{f=>((f._1),(f._2,f._3,f._4,f._5))}.join(modelParams.map(x=>((x._1),(x._2,x._3,x._4))))
+        val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState).leftOuterJoin(profParams);
+        joinedRDD.mapValues(f => {
+            val evidences = f._1._1;
+            val prevLearnerState = f._1._2.getOrElse(null);
+            val conceptModelParams = f._2.getOrElse(Array());
+            
+            // Write your logic here....
+            null;
+        })
                 
        return null;
     }
