@@ -4,27 +4,12 @@ import scala.BigDecimal
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
-
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.Dimensions
-import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.Event
-import org.ekstep.analytics.framework.GData
-import org.ekstep.analytics.framework.Item
-import org.ekstep.analytics.framework.JobContext
-import org.ekstep.analytics.framework.MEEdata
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.framework.Questionnaire
-import org.ekstep.analytics.framework.SessionBatchModel
-import org.ekstep.analytics.framework.adapter.ContentAdapter
-import org.ekstep.analytics.framework.adapter.ItemAdapter
-import org.ekstep.analytics.framework.exception.DataAdapterException
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.adapter._
+import org.ekstep.analytics.framework.util._
 
 /**
  * @author Santhosh
@@ -56,7 +41,7 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
      * Get Item id to Item mapping from Array of Questionnaires
      */
     private def getItemMapping(contentMap: Map[String, Array[Questionnaire]]): Map[String, (Item, String)] = {
-        
+
         val cm = contentMap.filter(_._2 != null);
         if (cm.size > 0) {
             cm.filter(_._2 != null).mapValues(questionnaires => {
@@ -81,6 +66,9 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
         return (Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]())), "numeracy");
     }
 
+    /**
+     *
+     */
     private def getItemData(sc: SparkContext, games: Array[String]): Map[String, Array[Questionnaire]] = {
 
         val lpGameList = ContentAdapter.getGameList();
@@ -99,8 +87,59 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
         }.filter(x => x != null).toMap;
     }
 
-    def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    /**
+     * Compute screen summaries on the telemetry data produced by content app
+     */
+    def computeScreenSummary(events: Buffer[Event]): Map[String, Double] = {
         
+        val screenInteractEvents = DataFilter.filter(events, Filter("eid", "NIN", Option(List("OE_ASSESS", "OE_LEVEL_SET")))).filter { event =>
+            event.eid match {
+                case "OE_INTERACT" =>
+                    event.edata.ext != null && event.edata.ext.stageId != null;
+                case _ =>
+                    true
+            }
+        }
+        var stageMap = HashMap[String, Double]();
+        val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("OE_INTERACT"))).length;
+        if (screenInteractCount > 0) {
+            var stageList = ListBuffer[(String, Double)]();
+            var prevEvent = events(0);
+            screenInteractEvents.foreach { x =>
+                x.eid match {
+                    case "OE_START" =>
+                        stageList += Tuple2("splash", CommonUtil.getTimeDiff(prevEvent, x).get);
+                    case "OE_INTERACT" =>
+                        stageList += Tuple2(x.edata.ext.stageId, CommonUtil.getTimeDiff(prevEvent, x).get);
+                    case "OE_INTERRUPT" =>
+                        stageList += Tuple2(x.edata.eks.id, CommonUtil.getTimeDiff(prevEvent, x).get);
+                    case "OE_END" =>
+                        stageList += Tuple2("endStage", CommonUtil.getTimeDiff(prevEvent, x).get);
+                }
+                prevEvent = x;
+            }
+
+            var currStage: String = null;
+            stageList.foreach { x =>
+                if (currStage == null) {
+                    currStage = x._1;
+                }
+                if (stageMap.getOrElse(currStage, null) == null) {
+                    stageMap.put(currStage, x._2);
+                } else {
+                    stageMap.put(currStage, stageMap.get(currStage).get + x._2);
+                }
+                if (!currStage.equals(x._1)) {
+                    currStage = x._1;
+                }
+            }
+        }
+
+        stageMap.toMap;
+    }
+
+    def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+
         println("### Running the model GenericSessionSummaryV2 ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
         println("### Fetching the Item data from LP ###");
@@ -185,7 +224,7 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
                 timeSpent.get, 0d, startTimestamp, endTimestamp, Option(domainMap.toMap),
                 Option(levelTransitions), None, None, Option(loc),
                 Option(itemResponses), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary),
-                None, None, noOfInteractEvents, eventSummary);
+                None, Option(computeScreenSummary(events)), noOfInteractEvents, eventSummary);
         }
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
@@ -216,7 +255,7 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
             "eventsSummary" -> game.eventsSummary,
             "noOfLevelTransitions" -> game.noOfLevelTransitions);
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.3").asInstanceOf[String]), None, "SESSION", game.dtRange),
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));
     }

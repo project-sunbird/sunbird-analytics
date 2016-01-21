@@ -21,6 +21,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
         val rdd2 = GenericSessionSummaryV2.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
+        println(me(0));
         me.length should be (1);
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be ("ME_SESSION_SUMMARY");
@@ -47,6 +48,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         summary1.activitySummary.get.get("TOUCH").get.timeSpent should be (757);
         summary1.activitySummary.get.get("DRAG").get.count should be (9);
         summary1.activitySummary.get.get("DRAG").get.timeSpent should be (115);
+        summary1.screenSummary.get.size should be (0);
     }
     
     it should "generate 4 session summarries and pass all negative test cases" in {
@@ -57,7 +59,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         me.length should be (4);
         
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
-        // Validate for event envolope
+        // Validate for event envelope
         event1.eid should be ("ME_SESSION_SUMMARY");
         event1.context.pdata.model should be ("GenericContentSummary");
         event1.context.pdata.ver should be ("1.2");
@@ -141,4 +143,60 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         summary4.eventsSummary.get("OE_INTERACT").get should be (3);
         summary4.eventsSummary.get("OE_START").get should be (1);
     }
+    
+    it should "generate 3 session summaries and validate the screen summaries" in {
+        
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data3.log");
+        val rdd2 = GenericSessionSummaryV2.execute(sc, rdd, Option(Map("modelId" -> "GenericSessionSummary")));
+        val me = rdd2.collect();
+        me.length should be (3);
+        
+        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        // Validate for event envelope
+        event1.eid should be ("ME_SESSION_SUMMARY");
+        event1.context.pdata.model should be ("GenericSessionSummary");
+        event1.context.pdata.ver should be ("1.0");
+        event1.context.granularity should be ("SESSION");
+        event1.context.dt_range should not be null;
+        event1.dimensions.gdata.get.id should be ("org.ekstep.story.hi.nature");
+        
+        val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
+        summary1.screenSummary.get.size should be (18);
+        summary1.screenSummary.get.getOrElse("scene11", 0d) should be (4.0);
+        summary1.screenSummary.get.getOrElse("scene5", 0d) should be (5.0);
+        summary1.screenSummary.get.getOrElse("scene14", 0d) should be (4.0);
+        summary1.screenSummary.get.getOrElse("scene17", 0d) should be (17.0);
+        summary1.screenSummary.get.getOrElse("scene4", 0d) should be (5.0);
+        summary1.screenSummary.get.getOrElse("scene7", 0d) should be (5.0);
+        summary1.screenSummary.get.getOrElse("scene16", 0d) should be (5.0);
+        summary1.screenSummary.get.getOrElse("scene10", 0d) should be (12.0);
+        summary1.screenSummary.get.getOrElse("scene13", 0d) should be (4.0);
+        summary1.screenSummary.get.getOrElse("scene9", 0d) should be (5.0);
+        summary1.screenSummary.get.getOrElse("scene3", 0d) should be (4.0);
+        summary1.screenSummary.get.getOrElse("scene6", 0d) should be (4.0);
+        summary1.screenSummary.get.getOrElse("scene15", 0d) should be (6.0);
+        summary1.screenSummary.get.getOrElse("scene18", 0d) should be (1.0);
+        summary1.screenSummary.get.getOrElse("scene12", 0d) should be (9.0);
+        summary1.screenSummary.get.getOrElse("scene8", 0d) should be (10.0);
+        summary1.screenSummary.get.getOrElse("scene2", 0d) should be (9.0);
+        summary1.screenSummary.get.getOrElse("splash", 0d) should be (14.0);
+        
+        val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
+        val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
+        summary2.screenSummary.get.size should be (0);
+        
+        val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
+        val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
+        summary3.screenSummary.get.size should be (2);
+        summary3.screenSummary.get.getOrElse("ordinalNumbers", 0d) should be (226.0);
+        summary3.screenSummary.get.getOrElse("splash", 0d) should be (24.0);
+    }
+    
+    ignore should "generate send events to a file" in {
+        val rdd = loadFile[Event]("/Users/Santhosh/ekStep/telemetry_dump/prod.telemetry.unique-2016-01-18-10-25.json");
+        val filteredRDD = DataFilter.filter(rdd, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))));
+        val rdd2 = GenericSessionSummaryV2.execute(sc, filteredRDD, None);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output.log")), rdd2);
+    }
+    
 }
