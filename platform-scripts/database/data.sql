@@ -23,18 +23,11 @@ CREATE TABLE learnersnapshot (
 	PRIMARY KEY (learner_id)
 );
 
-CREATE TABLE learner_db.proficiencyparams(
-	learner_id text,
-	concept text,
-	alpha double,
-	beta double,
-	PRIMARY KEY(learner_id,concept)
-);
-
-CREATE TABLE learner_db.learnerproficiency(
+CREATE TABLE learnerproficiency(
 	learner_id text,
 	proficiency map<text,double>,
-	startTime bigint,
-	endTime bigint,
+	startTime timestamp,
+	endTime timestamp,
+	model_params map<text,text>,
 	PRIMARY KEY (learner_id)
 );
