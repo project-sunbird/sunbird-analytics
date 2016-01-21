@@ -30,6 +30,19 @@ proc relationsExist {relations} {
 	return $exist
 }
 
+proc getNodeProperty {graphId nodeId property} {
+
+	set response [getDataNode $graphId $nodeId]
+	set check_error [check_response_error $response]
+	if {$check_error} {
+		java::throw [java::new Exception "Error response from getDataNode"]
+	}
+	
+	set node [get_resp_value $response "node"]
+	set propValue [java::prop $node $property]
+	return $propValue
+}
+
 proc getConcepts {graphId nodeId} {
 
 	set concepts [java::new ArrayList]
@@ -48,6 +61,8 @@ proc getConcepts {graphId nodeId} {
 set resultMap [java::new HashMap]
 java::try {
 	set concepts [getConcepts $graphId $itemId]
+	set itemMetadata [getNodeProperty $graphId $itemId "metadata"]
+	set maxScore [$itemMetadata get "max_score"]
 	if {[$concepts size] == 0} {
 		set concepts [getConcepts $graphId $contentId]
 	}
@@ -57,5 +72,6 @@ java::try {
 }	
 
 $resultMap put "concepts" $concepts
+$resultMap put "maxScore" $maxScore
 set responseList [create_response $resultMap] 
 return $responseList

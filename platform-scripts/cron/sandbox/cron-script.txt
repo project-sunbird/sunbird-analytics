@@ -1,0 +1,4 @@
+30 6 * * * /mnt/data/analytics/scripts/session-summarizer.sh
+35 6 * * * /mnt/data/analytics/scripts/aser-screen-summmarizer.sh
+50 6 * * * /mnt/data/analytics/scripts/learning-activity-summarizer.sh
+10 7 * * * /mnt/data/analytics/scripts/learning-snapshot-updater.sh
