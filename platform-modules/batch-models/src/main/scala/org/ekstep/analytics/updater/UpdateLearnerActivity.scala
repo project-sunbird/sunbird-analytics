@@ -44,7 +44,7 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
                     n_of_sess_on_pf, l_visit_ts, most_active_hr_of_the_day, top_k_content, sess_start_time, sess_end_time, dp_start_time, dp_end_time)
             } catch {
                 case ex: Exception =>
-                    println("Unable to parse dates to Long");
+                    //println("Unable to parse dates to Long");
                     null;
             }
         }.filter(_ != null);
