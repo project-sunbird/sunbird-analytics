@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.adapter.ContentAdapter
 import org.ekstep.analytics.framework.adapter.ItemAdapter
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, normScore: Double, maxScore: Int);
-
+case class Summary(startTime:Long,endTime:Long,evidences: Array[Evidence])
 case class LearnerProficiency(proficiency: Map[String, Double], startTime: Long, endTime: Long)
 case class ModelParam(learner_id: String, concept: String, alpha: Double, beta: Double)
 
@@ -41,10 +41,10 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
         // Get learner concept model params
         val profParams = events.map { x => x.uid.get }.joinWithCassandraTable[ModelParam]("learner_db", "proficiencyparams").groupBy(f => f._1);
-        
+
         // Get learner previous state
         val prevLearnerState = events.map { x => x.uid.get }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency");
-        
+
         val newEvidences = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
@@ -76,36 +76,74 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                             val itemMMC = f.getOrElse("mmc", List()).asInstanceOf[List[String]]
                             val score = f.get("score").get.asInstanceOf[Int]
                             var maxScore = f.getOrElse("maxScore", 0).asInstanceOf[Int]
-                            
+
                             if (maxScore == 0) maxScore = ItemAdapter.getItemMaxScore(graphId, contentId, itemId);
-                            
+
                             val timeSpent = f.get("timeSpent").get.asInstanceOf[Double]
                             val itemMisconception = Array[String]();
                             val normScore = (score / maxScore);
                             //Assessment(learner_id, itemId, itemMC, itemMMC, normScore, maxScore, itemMisconception, timeSpent)
-                            (learner_id, itemId, itemMC, normScore, maxScore)
+                            (learner_id, itemId, itemMC, normScore, maxScore,eventStartTimestamp,eventEndTimestamp)
                         }
-                }.flatten.filter(p=>(!p._3.isEmpty)).toList.
-                map{x=>
-                    val mc = x._3;
-                    mc.map{f=>(x._1,x._2,f,x._4,x._5)}
-                }.flatten
+                }.flatten.filter(p => (!p._3.isEmpty)).toList.
+                    map { x =>
+                        val mc = x._3;
+                        mc.map { f => (x._1, x._2, f, x._4, x._5,x._6,x._7) }
+                    }.flatten
                 itemResponses;
-        }.map(x=>x._2).flatMap(f=>f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5))).groupBy(f => f._1);
-              
+            }.map(x => x._2).flatMap(f => f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5),f._6,f._7)).groupBy(f => f._1);
+
         //val joinedRDD = itemData.joinWithCassandraTable("learner_db", "proficiencyparams", SomeColumns("learner_id","concept","alpha","beta"), SomeColumns("learner_id"))
-         
+
         val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState).leftOuterJoin(profParams);
-        joinedRDD.mapValues(f => {
+        val lp = joinedRDD.mapValues(f => {
             val evidences = f._1._1;
             val prevLearnerState = f._1._2.getOrElse(null);
-            val conceptModelParams = f._2.getOrElse(Array());
+            //val conceptModelParams = f._2.getOrElse(Array());
+            val conceptModelParams = f._2.getOrElse(null);
             
+            val startTime = evidences.last._3
+            val endTime = evidences.last._4
+            var proficiencyMap = Map[String, Double]();
+            
+            evidences.foreach { x =>
+                val evidence = x._2
+                val concept = evidence.itemMC
+                val normScore = evidence.normScore;
+                val maxScore = evidence.maxScore
+                val X = Math.round(normScore * maxScore)
+                val N = maxScore
+
+                var alpha = 0.5d;
+                var beta = 1d;
+                var alphaNew = 0d;
+                var betaNew = 0d;
+                var pi = 0d;
+                if (conceptModelParams != null) {
+                    conceptModelParams.asInstanceOf[Iterable[(String, ModelParam)]].foreach { x =>
+                        val param = x._2
+                        alpha = param.alpha
+                        beta = param.beta
+
+                        alphaNew = alpha + X;
+                        betaNew = beta + N - X;
+                        pi = (alphaNew / (alphaNew + betaNew));
+                        proficiencyMap += (concept->pi) 
+                    }
+                } else {
+                    alphaNew = alpha + X;
+                    betaNew = beta + N - X;
+                    pi = (alphaNew / (alphaNew + betaNew));
+                    proficiencyMap += (concept->pi) 
+                }
+            }
             // Write your logic here....
-            null;
+            (LearnerProficiency(proficiencyMap,startTime,endTime),DtRange(startTime,endTime));
         })
-                
-       return null;
+
+        lp.map(f => {
+            getMeasuredEvent(f, configMapping.value);
+        }).map { x => JSONUtils.serialize(x) };
     }
     private def getMeasuredEvent(userMap: (String, (LearnerProficiency, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
