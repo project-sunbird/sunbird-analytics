@@ -30,3 +30,11 @@ CREATE TABLE learner_db.proficiencyparams(
 	beta double,
 	PRIMARY KEY(learner_id,concept)
 );
+
+CREATE TABLE learner_db.learnerproficiency(
+	learner_id text,
+	proficiency map<text,double>,
+	startTime bigint,
+	endTime bigint,
+	PRIMARY KEY (learner_id)
+);
