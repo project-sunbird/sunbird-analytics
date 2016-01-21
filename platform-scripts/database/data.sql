@@ -22,3 +22,11 @@ CREATE TABLE learnersnapshot (
 	dp_end_time timestamp,
 	PRIMARY KEY (learner_id)
 );
+
+CREATE TABLE learner_db.proficiencyparams(
+	learner_id text,
+	concept text,
+	alpha double,
+	beta double,
+	PRIMARY KEY(learner_id,concept)
+);

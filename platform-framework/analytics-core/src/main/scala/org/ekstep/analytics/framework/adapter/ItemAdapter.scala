@@ -38,6 +38,21 @@ object ItemAdapter {
         getItemWrapper(item);
     }
 
+    def getItemConcept(graphId:String,contentId:String,itemId:String) : Array[String] = {
+        val cr = RestUtil.get[Response](Constants.getConcept(graphId, contentId, itemId));
+        if (!cr.responseCode.equals("OK")) {
+            throw new DataAdapterException(cr.responseCode);
+        }
+        cr.result.concept.getOrElse(Array(""));
+    }
+    def getItemMaxScore(graphId:String,contentId:String,itemId:String) : Int = {
+        val msR = RestUtil.get[Response](Constants.getConcept(graphId, contentId, itemId));
+        if (!msR.responseCode.equals("OK")) {
+            throw new DataAdapterException(msR.responseCode);
+        }
+        msR.result.max_score.getOrElse(1);
+    }
+    
     private def getItemWrapper(item: Map[String, AnyRef]): Item = {
         val mc = item.getOrElse("concepts", List[Map[String, String]]()).asInstanceOf[List[AnyRef]].map(f => f.asInstanceOf[Map[String, String]].get("identifier").get).toArray;
         Item(item.get("identifier").get.asInstanceOf[String], item.filterNot(p => relations.contains(p._1)), getTags(item), Option(mc), None);
@@ -156,4 +171,5 @@ object ItemAdapter {
     private def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
         Option(metadata.getOrElse("tags", List[String]()).asInstanceOf[List[String]].toArray);
     }
+    
 }

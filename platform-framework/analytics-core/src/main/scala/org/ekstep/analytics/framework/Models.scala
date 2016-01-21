@@ -63,7 +63,7 @@ case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Opti
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
-case class Result(content: Option[Map[String, AnyRef]], questionnaire: Option[Map[String, AnyRef]], assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]], games: Option[Array[Map[String, AnyRef]]]);
+case class Result(content: Option[Map[String, AnyRef]], questionnaire: Option[Map[String, AnyRef]], assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]], games: Option[Array[Map[String, AnyRef]]],concept: Option[Array[String]],max_score: Option[Int]);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 
 // Search Items
