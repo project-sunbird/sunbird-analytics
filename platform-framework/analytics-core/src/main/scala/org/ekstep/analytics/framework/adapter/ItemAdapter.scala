@@ -41,14 +41,17 @@ object ItemAdapter {
     def getItemConcept(graphId:String,contentId:String,itemId:String) : Array[String] = {
         val cr = RestUtil.get[Response](Constants.getConcept(graphId, contentId, itemId));
         if (!cr.responseCode.equals("OK")) {
-            throw new DataAdapterException(cr.responseCode);
+            //println(graphId,contentId,itemId,"  graphId,contentId,itemId")
+            //throw new DataAdapterException(cr.responseCode);
+            cr.result.concept.getOrElse(Array());
         }
-        cr.result.concept.getOrElse(Array(""));
+        cr.result.concept.getOrElse(Array());
     }
     def getItemMaxScore(graphId:String,contentId:String,itemId:String) : Int = {
         val msR = RestUtil.get[Response](Constants.getConcept(graphId, contentId, itemId));
         if (!msR.responseCode.equals("OK")) {
-            throw new DataAdapterException(msR.responseCode);
+            //throw new DataAdapterException(msR.responseCode);
+            msR.result.max_score.getOrElse(1);
         }
         msR.result.max_score.getOrElse(1);
     }

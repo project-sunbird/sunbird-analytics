@@ -30,7 +30,6 @@ case class LearnerId(learner_id: String)
 
 class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
-
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         val lpGameList = ContentAdapter.getGameList();
@@ -43,7 +42,7 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
         val idSubMapBroadcast = sc.broadcast(idSubMap);
 
         // Get learner previous state
-        val prevLearnerState = events.map { x => LearnerId(x.uid.get) }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map(f => (f._1.learner_id, f._2))
+        //val prevLearnerState = events.map { x => LearnerId(x.uid.get) }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map(f => (f._1.learner_id, f._2))
 
         val newEvidences = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -85,15 +84,17 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                             //Assessment(learner_id, itemId, itemMC, itemMMC, normScore, maxScore, itemMisconception, timeSpent)
                             (learner_id, itemId, itemMC, normScore, maxScore, eventStartTimestamp, eventEndTimestamp)
                         }
-                }.flatten.filter(p => (!p._3.isEmpty)).toList.
-                    map { x =>
+                }.flatten.filter(p => (!(p._3).isEmpty)).toList
+                    .map { x =>
                         val mc = x._3;
-                        mc.map { f => (x._1, x._2, f, x._4, x._5, x._6, x._7) }
+                        val itemMc = mc.map { f => ((x._1), (x._2), (f), (x._4), (x._5), (x._6), (x._7)); }
+                        itemMc;
                     }.flatten
                 itemResponses;
             }.map(x => x._2).flatMap(f => f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5), f._6, f._7)).groupBy(f => f._1);
 
         //val joinedRDD = itemData.joinWithCassandraTable("learner_db", "proficiencyparams", SomeColumns("learner_id","concept","alpha","beta"), SomeColumns("learner_id"))
+        val prevLearnerState = newEvidences.map { x => LearnerId(x._1) }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map(f => (f._1.learner_id, f._2))
 
         val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState);
         val lp = joinedRDD.mapValues(f => {
@@ -101,16 +102,28 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
             val prevLearnerState = f._2.getOrElse(null);
             //val conceptModelParams = f._2.getOrElse(Array());
             var conceptModelParams = Buffer[ModelParam]();
+            var prvProficiencyMap = Map[String,Double]();
             if (null != prevLearnerState && null != prevLearnerState.model_params) {
+                prvProficiencyMap = prevLearnerState.proficiency;
                 conceptModelParams = prevLearnerState.model_params.map(f => {
-                    val params = JSONUtils.deserialize[Map[String, Double]](f._2);
+                    //val params = JSONUtils.deserialize[Map[String, Double]](f._2)
+                    var params = JSONUtils.deserialize[Map[String, Double]](f._2);
                     ModelParam(f._1, params.getOrElse("alpha", 0.5d), params.getOrElse("beta", 0.5d));
                 }).toBuffer;
+            }
+            val conceptsInModelParam = conceptModelParams.map { x => x.concept }
+
+            evidences.foreach { x =>
+                val evedence = x._2
+                if (!conceptsInModelParam.contains(evedence.itemMC)) {
+                    conceptModelParams += ModelParam(evedence.itemMC, 0.5d, 1d);
+                }
             }
 
             val startTime = evidences.last._3
             val endTime = evidences.last._4
             var proficiencyMap = Map[String, Double]();
+            var modelParams = Map[String, String]();
 
             evidences.foreach { x =>
                 val evidence = x._2
@@ -125,25 +138,40 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                 var alphaNew = 0d;
                 var betaNew = 0d;
                 var pi = 0d;
+
+                var params = Map[String, Double]();
+
                 if (conceptModelParams != null) {
                     conceptModelParams.foreach { x =>
                         alpha = x.alpha
                         beta = x.beta
-
                         alphaNew = alpha + X;
                         betaNew = beta + N - X;
                         pi = (alphaNew / (alphaNew + betaNew));
+
+                        params += ("alpha" -> alphaNew)
+                        params += ("beta" -> betaNew)
+
                         proficiencyMap += (concept -> pi)
                     }
                 } else {
                     alphaNew = alpha + X;
                     betaNew = beta + N - X;
                     pi = (alphaNew / (alphaNew + betaNew));
+
+                    params += ("alpha" -> alphaNew)
+                    params += ("beta" -> betaNew)
+
                     proficiencyMap += (concept -> pi)
                 }
+                modelParams += (concept -> JSONUtils.serialize(params))
             }
             // Write your logic here....
-            (proficiencyMap, new DateTime(startTime), new DateTime(endTime), if (null != prevLearnerState) prevLearnerState.model_params else null);
+            var prvModelParams = Map[String, String]();
+            conceptModelParams.foreach { x => prvModelParams += (x.concept -> JSONUtils.serialize(Map("alpha" -> x.alpha, "beta" -> x.beta)))}
+            
+            
+            (prvProficiencyMap ++ proficiencyMap, new DateTime(startTime), new DateTime(endTime), prvModelParams ++ modelParams);
         }).map(f => {
             LearnerProficiency(f._1, f._2._1, f._2._2, f._2._3, f._2._4);
         });
@@ -156,8 +184,8 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
     private def getMeasuredEvent(userProf: LearnerProficiency, config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = Map(
             "proficiency" -> userProf.proficiency,
-            "startTime" -> userProf.starttime,
-            "endTime" -> userProf.endtime);
+            "startTime" -> userProf.starttime.getMillis,
+            "endTime" -> userProf.endtime.getMillis);
         MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_PROFICIENCY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userProf.learner_id), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.starttime.getMillis, userProf.endtime.getMillis)),
             Dimensions(None, None, None, None, None, None),
