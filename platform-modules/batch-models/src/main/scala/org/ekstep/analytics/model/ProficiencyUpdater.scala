@@ -11,7 +11,6 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import scala.annotation.migration
-import org.ekstep.analytics.updater.UpdateProficiencyModelParam
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Dimensions
