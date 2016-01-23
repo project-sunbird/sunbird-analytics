@@ -21,8 +21,8 @@ import org.ekstep.analytics.framework.adapter.ItemAdapter
 import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 
-case class Evidence(learner_id: String, itemId: String, itemMC: String, normScore: Double, maxScore: Int);
-case class Summary(startTime: Long, endTime: Long, evidences: Array[Evidence])
+case class Evidence(learner_id: String, itemId: String, itemMC: String, normScore: Double, maxScore: Int)
+case class Summary(modelParam: ModelParam, normScore: Double, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], starttime: DateTime, endtime: DateTime, model_params: Map[String, String])
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class LearnerId(learner_id: String)
@@ -97,79 +97,69 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
         val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState);
         val lp = joinedRDD.mapValues(f => {
-            val evidences = f._1;
+            val evidences = f._1
             val prevLearnerState = f._2.getOrElse(null);
             //val conceptModelParams = f._2.getOrElse(Array());
-            var conceptModelParams = Buffer[ModelParam]();
-            var prvProficiencyMap = Map[String,Double]();
+
+            var conceptModelParamsPrv = Buffer[ModelParam]();
+            var prvProficiencyMap = Map[String, Double]();
+
             if (null != prevLearnerState && null != prevLearnerState.model_params) {
                 prvProficiencyMap = prevLearnerState.proficiency;
-                conceptModelParams = prevLearnerState.model_params.map(f => {
-                    //val params = JSONUtils.deserialize[Map[String, Double]](f._2)
+                conceptModelParamsPrv = prevLearnerState.model_params.map(f => {
                     var params = JSONUtils.deserialize[Map[String, Double]](f._2);
-                    ModelParam(f._1, params.getOrElse("alpha", 0.5d), params.getOrElse("beta", 0.5d));
+                    ModelParam(f._1, params.getOrElse("alpha", 0.5d), params.getOrElse("beta", 1d));
                 }).toBuffer;
             }
-            val conceptsInModelParam = conceptModelParams.map { x => x.concept }
 
-            evidences.foreach { x =>
-                val evedence = x._2
-                if (!conceptsInModelParam.contains(evedence.itemMC)) {
-                    conceptModelParams += ModelParam(evedence.itemMC, 0.5d, 1d);
-                }
+            val conceptsInModelParam = conceptModelParamsPrv.map { x => (x.concept, (x.alpha, x.beta)) }.toMap
+
+            var summaryBuff = Buffer[Summary]();
+            evidences.map { x =>
+                val evidence = x._2
+                summaryBuff += Summary(ModelParam(evidence.itemMC, 0.5d, 1d), evidence.normScore, evidence.maxScore);
             }
 
             val startTime = evidences.last._3
             val endTime = evidences.last._4
             var proficiencyMap = Map[String, Double]();
             var modelParams = Map[String, String]();
-
-            evidences.foreach { x =>
-                val evidence = x._2
-                val concept = evidence.itemMC
-                val normScore = evidence.normScore;
-                val maxScore = evidence.maxScore
+            summaryBuff.foreach { x =>
+                var params = Map[String, Double]();
+                val concept = x.modelParam.concept
+                val normScore = x.normScore;
+                val maxScore = x.maxScore
                 val X = Math.round(normScore * maxScore)
                 val N = maxScore
-
-                var alpha = 0.5d;
-                var beta = 1d;
-                var alphaNew = 0d;
-                var betaNew = 0d;
-                var pi = 0d;
-
-                var params = Map[String, Double]();
-
-                if (conceptModelParams != null) {
-                    conceptModelParams.foreach { x =>
-                        alpha = x.alpha
-                        beta = x.beta
-                        alphaNew = alpha + X;
-                        betaNew = beta + N - X;
-                        pi = (alphaNew / (alphaNew + betaNew));
-
-                        params += ("alpha" -> alphaNew)
-                        params += ("beta" -> betaNew)
-
-                        proficiencyMap += (concept -> pi)
-                    }
-                } else {
-                    alphaNew = alpha + X;
-                    betaNew = beta + N - X;
-                    pi = (alphaNew / (alphaNew + betaNew));
-
+                if (conceptsInModelParam.contains(concept)) {
+                    val alpha = conceptsInModelParam.get(concept).get._1
+                    val beta = conceptsInModelParam.get(concept).get._2
+                    val alphaNew = alpha + X;
+                    val betaNew = beta + N - X;
+                    val pi = (alphaNew / (alphaNew + betaNew));
                     params += ("alpha" -> alphaNew)
                     params += ("beta" -> betaNew)
-
                     proficiencyMap += (concept -> pi)
+                    modelParams += (concept -> JSONUtils.serialize(params))
+                } else {
+                    val alpha = 0.5d;
+                    val beta = 1d
+                    val alphaNew = alpha + X;
+                    val betaNew = beta + N - X;
+                    val pi = (alphaNew / (alphaNew + betaNew));
+                    params += ("alpha" -> alphaNew)
+                    params += ("beta" -> betaNew)
+                    proficiencyMap += (concept -> pi)
+                    modelParams += (concept -> JSONUtils.serialize(params))
                 }
-                modelParams += (concept -> JSONUtils.serialize(params))
             }
-            // Write your logic here....
             var prvModelParams = Map[String, String]();
-            conceptModelParams.foreach { x => prvModelParams += (x.concept -> JSONUtils.serialize(Map("alpha" -> x.alpha, "beta" -> x.beta)))}
-            
-            
+            if (prevLearnerState != null) {
+                prevLearnerState.model_params.foreach { x =>
+                    val map = JSONUtils.deserialize[Map[String, Double]](x._2);
+                    prvModelParams += (x._1 -> JSONUtils.serialize(Map("alpha" -> map.get("alpha").get, "beta" -> map.get("beta").get)))
+                }
+            }
             (prvProficiencyMap ++ proficiencyMap, new DateTime(startTime), new DateTime(endTime), prvModelParams ++ modelParams);
         }).map(f => {
             LearnerProficiency(f._1, f._2._1, f._2._2, f._2._3, f._2._4);

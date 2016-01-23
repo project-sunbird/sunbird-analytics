@@ -21,8 +21,12 @@ class TestProficiencyInputMapper extends SparkSpec(null) {
         proficiency2.model_params.contains("Num:C3:SC1:MC12") should be(true)
         proficiency2.model_params.contains("Num:C3:SC1:MC13") should be(true)
 
+        proficiency2.model_params.get("Num:C3:SC1:MC12").get should not be (proficiency1.model_params.get("Num:C3:SC1:MC12").get)
+        
         proficiency2.proficiency.contains("Num:C3:SC1:MC12") should be(true)
         proficiency2.proficiency.contains("Num:C3:SC1:MC13") should be(true)
+        
+        proficiency2.proficiency.get("Num:C3:SC1:MC12").get should not be (proficiency1.proficiency.get("Num:C3:SC1:MC12").get)
 
         var out = rdd01.collect();
         out.length should be(1)
@@ -31,13 +35,14 @@ class TestProficiencyInputMapper extends SparkSpec(null) {
         out1.length should be(1)
     }
 
-    "ProficiencyUpdater" should "print the item data for testing" in {
+    "it" should "print the item data for testing" in {
         val prof = new ProficiencyUpdater();
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test.log");
         val rdd2 = prof.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         var out = rdd2.collect();
         out.length should be (5)
     }
+    
     it should "check the zero Proficiency Updater event is coming" in {
         val prof = new ProficiencyUpdater();
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/emptyMC_test.log");
