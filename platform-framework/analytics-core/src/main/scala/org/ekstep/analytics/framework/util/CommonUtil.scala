@@ -39,6 +39,7 @@ object CommonUtil {
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ");
     @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
     @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     def getParallelization(config: JobConfig): Int = {
@@ -119,23 +120,24 @@ object CommonUtil {
     }
 
     def getEventTS(event: Event): Long = {
-        try {
-            df3.parseDateTime(event.ts).getMillis;
-        } catch {
-            case _: Exception =>
-                Console.err.println("Invalid event time", event.ts);
-                0
-        }
+        getTimestamp(event.ts);
     }
     
     def getEventSyncTS(event: Event): Long = {
-        try {
-            df5.parseDateTime(event.`@timestamp`).getMillis;
-        } catch {
-            case _: Exception =>
-                Console.err.println("Invalid event time", event.ts);
-                0
+        val timeInString = event.`@timestamp`;
+        var ts = getTimestamp(timeInString, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        if(ts == 0) {
+            ts = getTimestamp(timeInString, df3, "yyyy-MM-dd'T'HH:mm:ssZZ");
         }
+        if(ts == 0) {
+            try {
+                ts = getTimestamp(timeInString.substring(0,19), df6, "yyyy-MM-dd'T'HH:mm:ss");   
+            } catch {
+                case ex: Exception =>
+                    ts = 0L;
+            }
+        }
+        ts;
     }
     
     def getEventDate(event: Event): Date = {
@@ -223,9 +225,14 @@ object CommonUtil {
     def getTimeDiff(start: Event, end: Event): Option[Double] = {
 
         try {
-            val st = df3.parseDateTime(start.ts).getMillis;
-            val et = df3.parseDateTime(end.ts).getMillis;
-            Option((et - st) / 1000);
+            val st = getTimestamp(start.ts);
+            val et = getTimestamp(end.ts);
+            if(et == 0 || st == 0) {
+                Option(0d);
+            } else {
+                Option((et - st) / 1000);    
+            }
+            
         } catch {
             case _: Exception =>
                 Console.err.println("Invalid event time", "start", start.ts, "end", end.ts);
@@ -251,6 +258,32 @@ object CommonUtil {
             if (hr == 24) hr = 0;
         }
         hrList += endHr;
-
     }
+    
+    def getTimestamp(ts: String, df: DateTimeFormatter, pattern: String): Long = {
+        try {
+            df.parseDateTime(ts).getMillis;
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid time format", pattern, ts);
+                0;
+        }
+    }
+    
+    def getTimestamp(timeInString: String) : Long = {
+        var ts = getTimestamp(timeInString, df3, "yyyy-MM-dd'T'HH:mm:ssZZ");
+        if(ts == 0) {
+            ts = getTimestamp(timeInString, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        }
+        if(ts == 0) {
+            try {
+                ts = getTimestamp(timeInString.substring(0,19), df6, "yyyy-MM-dd'T'HH:mm:ss");   
+            } catch {
+                case ex: Exception =>
+                    ts = 0L;
+            }
+        }
+        ts;
+    }
+    
 }
