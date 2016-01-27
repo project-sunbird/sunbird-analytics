@@ -36,7 +36,7 @@ import org.ekstep.analytics.framework.SessionBatchModel
 /**
  * Case class to hold the item responses
  */
-case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, ets: Option[Long], maxScore: Option[AnyRef], domain: Option[String]);
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[String]);
 
 case class ActivitySummary(count: Int, timeSpent: Double)
 
