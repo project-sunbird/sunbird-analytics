@@ -59,7 +59,7 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
                             var contentId = "";
                             var graphId = "";
-                            var conceptsMaxScoreMap = Map[String,AnyRef]();
+                            var conceptsMaxScoreMap = Map[String, AnyRef]();
                             if (itemMC.isEmpty && itemMC.length == 0) {
                                 if (gameIdBroadcast.value.contains(gameId)) {
                                     contentId = gameId;
@@ -68,11 +68,11 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                                     contentId = codeIdMapBroadcast.value.get(gameId).get;
                                     graphId = idSubMapBroadcast.value.get(contentId).get;
                                 }
-                                conceptsMaxScoreMap = ItemAdapter.getItemConceptMaxScore(graphId, contentId, itemId); 
+                                conceptsMaxScoreMap = ItemAdapter.getItemConceptMaxScore(graphId, contentId, itemId);
                                 val item = conceptsMaxScoreMap.get("concepts").get.asInstanceOf[Array[String]];
-                                if(item!=null)itemMC=item.toList;
+                                if (item != null) itemMC = item.toList;
                                 else itemMC = null;
-                                
+
                             }
                             val itemMMC = f.getOrElse("mmc", List()).asInstanceOf[List[String]]
                             val score = f.get("score").get.asInstanceOf[Int]
@@ -86,7 +86,7 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                             //Assessment(learner_id, itemId, itemMC, itemMMC, normScore, maxScore, itemMisconception, timeSpent)
                             (learner_id, itemId, itemMC, normScore, maxScore, eventStartTimestamp, eventEndTimestamp)
                         }
-                }.flatten.filter(p => ((p._3)!=null)).toList
+                }.flatten.filter(p => ((p._3) != null)).toList
                     .map { x =>
                         val mc = x._3;
                         val itemMc = mc.map { f => ((x._1), (x._2), (f), (x._4), (x._5), (x._6), (x._7)); }
