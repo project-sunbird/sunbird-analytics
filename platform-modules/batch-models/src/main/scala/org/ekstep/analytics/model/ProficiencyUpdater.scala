@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.adapter.ItemAdapter
 import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 
-case class Evidence(learner_id: String, itemId: String, itemMC: String, normScore: Double, maxScore: Int)
+case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class LearnerId(learner_id: String)
@@ -82,9 +82,8 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
                             val timeSpent = f.get("timeSpent").get.asInstanceOf[Double]
                             val itemMisconception = Array[String]();
-                            val normScore = (score / maxScore);
                             //Assessment(learner_id, itemId, itemMC, itemMMC, normScore, maxScore, itemMisconception, timeSpent)
-                            (learner_id, itemId, itemMC, normScore, maxScore, eventStartTimestamp, eventEndTimestamp)
+                            (learner_id, itemId, itemMC, score, maxScore, eventStartTimestamp, eventEndTimestamp)
                         }
                 }.flatten.filter(p => ((p._3) != null)).toList
                     .map { x =>
@@ -122,9 +121,8 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                 val evidence = x._2
                 var params = Map[String, Double]();
                 val concept = evidence.itemMC
-                val normScore = evidence.normScore;
+                val score = evidence.score;
                 val maxScore = evidence.maxScore
-                val X = Math.round(normScore * maxScore)
                 val N = maxScore
                 var alpha = 0.5d;
                 var beta = 1d
@@ -132,8 +130,8 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                     alpha = conceptModelParamMap.get(concept).get._1
                     beta = conceptModelParamMap.get(concept).get._2
                 }
-                val alphaNew = alpha + X;
-                val betaNew = beta + N - X;
+                val alphaNew = alpha + score;
+                val betaNew = beta + N - score;
                 val pi = (alphaNew / (alphaNew + betaNew));
                 params += ("alpha" -> alphaNew)
                 params += ("beta" -> betaNew)
