@@ -1,0 +1,14 @@
+{
+    "name": "getContentItemsV1",
+    "parameters": [{
+        "name": "contentId",
+        "index": 0,
+        "routingParam": false
+    }],
+    "requestPath": {
+        "type": "GET",
+        "url": "/v1/analytics/items/*",
+        "pathParams": ["contentId"]
+    },
+    "body": ""
+}

@@ -1,0 +1,10 @@
+{
+    "name": "getContentList",
+    "parameters": [],
+    "requestPath": {
+        "type": "GET",
+        "url": "/v2/analytics/content/list",
+        "pathParams": []
+    },
+    "body": ""
+}

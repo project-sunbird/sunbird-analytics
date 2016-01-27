@@ -6,7 +6,7 @@ java::import -package com.ilimi.graph.dac.model Filter
 java::import -package com.ilimi.graph.dac.model Node
 java::import -package com.ilimi.graph.dac.model Relation
 
-proc getOutRelations {graphId nodeId} {
+proc getNode {graphId nodeId} {
 	set response [getDataNode $graphId $nodeId]
 	set check_error [check_response_error $response]
 	if {$check_error} {
@@ -14,8 +14,7 @@ proc getOutRelations {graphId nodeId} {
 	}
 	
 	set node [get_resp_value $response "node"]
-	set outRelations [java::prop $node "outRelations"]
-	return $outRelations
+	return $node
 }
 
 proc relationsExist {relations} {
@@ -30,10 +29,16 @@ proc relationsExist {relations} {
 	return $exist
 }
 
-proc getNodeRelationIds {graphId nodeId relationType property} {
+proc getNodeMetadata {node property} {
+	set metadata [java::prop $node "metadata"]
+	set propValue [$metadata get $property]
+	return $propValue
+}
+
+proc getNodeRelationIds {node relationType property} {
 
 	set relationIds [java::new ArrayList]
-	set outRelations [getOutRelations $graphId $nodeId]
+	set outRelations [java::prop $node "outRelations"]
 	set hasRelations [relationsExist $outRelations]
 	if {$hasRelations} {
 		java::for {Relation relation} $outRelations {
@@ -45,31 +50,28 @@ proc getNodeRelationIds {graphId nodeId relationType property} {
 	return $relationIds
 }
 
-set resultMap [java::new HashMap]
-set items [java::new ArrayList]
-java::try {
-	set questionnaires [getNodeRelationIds $graphId $contentId "Questionnaire" "endNodeId"]
-	if {[$questionnaires size] > 0} {
-		java::for {String questionnaireId} $questionnaires {
-			set qm [getNodeRelationIds $graphId $questionnaireId "ItemSet" "endNodeMetadata"]
-			if {[$qm size] > 0} {
-				set endNodeMetadataObj [$qm get 0]
-				set endNodeMetadata [java::cast Map $endNodeMetadataObj]
-				set itemIdsObj [$endNodeMetadata get "items"]
-				set itemIds [java::cast {String[]} $itemIdsObj]
-				if {[$itemIds length] > 0} {
-					java::for {String itemId} $itemIds {
-						$items add $itemId
-					}
-				}
-			}
-		}
+proc getItemConcepts {graphId itemId contentId} {
+	set resultMap [java::new HashMap]
+	set item [getNode $graphId $itemId]
+	set maxScore [getNodeMetadata $item "max_score"]
+	set concepts [getNodeRelationIds $item "Concept" "endNodeId"]
+	if {[$concepts size] == 0} {
+		set content [getNode $graphId $contentId]
+		set concepts [getNodeRelationIds $item "Concept" "endNodeId"]
 	}
+	$resultMap put "concepts" $concepts
+	$resultMap put "maxScore" $maxScore
+	return $resultMap
+}
+
+set graphId "domain"
+set resultMap [java::new HashMap]
+java::try {
+	set resultMap [getItemConcepts $graphId $itemId $contentId]
 } catch {Exception err} {
     puts [$err getMessage]
     $resultMap put "error" [$err getMessage]
 }	
 
-$resultMap put "items" $items
 set responseList [create_response $resultMap] 
 return $responseList
