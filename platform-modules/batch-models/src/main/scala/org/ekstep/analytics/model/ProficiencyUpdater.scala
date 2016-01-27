@@ -22,8 +22,7 @@ import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, normScore: Double, maxScore: Int)
-case class Summary(modelParam: ModelParam, normScore: Double, maxScore: Int)
-case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], starttime: DateTime, endtime: DateTime, model_params: Map[String, String])
+case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class LearnerId(learner_id: String)
 
@@ -60,7 +59,7 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
                             var contentId = "";
                             var graphId = "";
-
+                            var conceptsMaxScoreMap = Map[String,AnyRef]();
                             if (itemMC.isEmpty && itemMC.length == 0) {
                                 if (gameIdBroadcast.value.contains(gameId)) {
                                     contentId = gameId;
@@ -69,13 +68,17 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                                     contentId = codeIdMapBroadcast.value.get(gameId).get;
                                     graphId = idSubMapBroadcast.value.get(contentId).get;
                                 }
-                                itemMC = ItemAdapter.getItemConcept(graphId, contentId, itemId).toList;
+                                conceptsMaxScoreMap = ItemAdapter.getItemConceptMaxScore(graphId, contentId, itemId); 
+                                val item = conceptsMaxScoreMap.get("concepts").get.asInstanceOf[Array[String]];
+                                if(item!=null)itemMC=item.toList;
+                                else itemMC = null;
+                                
                             }
                             val itemMMC = f.getOrElse("mmc", List()).asInstanceOf[List[String]]
                             val score = f.get("score").get.asInstanceOf[Int]
                             var maxScore = f.getOrElse("maxScore", 0).asInstanceOf[Int]
 
-                            if (maxScore == 0) maxScore = ItemAdapter.getItemMaxScore(graphId, contentId, itemId);
+                            if (maxScore == 0) maxScore = conceptsMaxScoreMap.get("maxScore").get.asInstanceOf[Option[Int]].get
 
                             val timeSpent = f.get("timeSpent").get.asInstanceOf[Double]
                             val itemMisconception = Array[String]();
@@ -83,7 +86,7 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                             //Assessment(learner_id, itemId, itemMC, itemMMC, normScore, maxScore, itemMisconception, timeSpent)
                             (learner_id, itemId, itemMC, normScore, maxScore, eventStartTimestamp, eventEndTimestamp)
                         }
-                }.flatten.filter(p => (!(p._3).isEmpty)).toList
+                }.flatten.filter(p => ((p._3)!=null)).toList
                     .map { x =>
                         val mc = x._3;
                         val itemMc = mc.map { f => ((x._1), (x._2), (f), (x._4), (x._5), (x._6), (x._7)); }
@@ -99,59 +102,43 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
         val lp = joinedRDD.mapValues(f => {
             val evidences = f._1
             val prevLearnerState = f._2.getOrElse(null);
-            //val conceptModelParams = f._2.getOrElse(Array());
-
             var conceptModelParamsPrv = Buffer[ModelParam]();
             var prvProficiencyMap = Map[String, Double]();
 
             if (null != prevLearnerState && null != prevLearnerState.model_params) {
                 prvProficiencyMap = prevLearnerState.proficiency;
                 conceptModelParamsPrv = prevLearnerState.model_params.map(f => {
-                    var params = JSONUtils.deserialize[Map[String, Double]](f._2);
+                    val params = JSONUtils.deserialize[Map[String, Double]](f._2);
                     ModelParam(f._1, params.getOrElse("alpha", 0.5d), params.getOrElse("beta", 1d));
                 }).toBuffer;
             }
-
-            val conceptsInModelParam = conceptModelParamsPrv.map { x => (x.concept, (x.alpha, x.beta)) }.toMap
-
-            var summaryBuff = Buffer[Summary]();
-            evidences.map { x =>
-                val evidence = x._2
-                summaryBuff += Summary(ModelParam(evidence.itemMC, 0.5d, 1d), evidence.normScore, evidence.maxScore);
-            }
+            val conceptModelParamMap = conceptModelParamsPrv.map { x => (x.concept, (x.alpha, x.beta)) }.toMap
 
             val startTime = evidences.last._3
             val endTime = evidences.last._4
             var proficiencyMap = Map[String, Double]();
             var modelParams = Map[String, String]();
-            summaryBuff.foreach { x =>
+            evidences.foreach { x =>
+                val evidence = x._2
                 var params = Map[String, Double]();
-                val concept = x.modelParam.concept
-                val normScore = x.normScore;
-                val maxScore = x.maxScore
+                val concept = evidence.itemMC
+                val normScore = evidence.normScore;
+                val maxScore = evidence.maxScore
                 val X = Math.round(normScore * maxScore)
                 val N = maxScore
-                if (conceptsInModelParam.contains(concept)) {
-                    val alpha = conceptsInModelParam.get(concept).get._1
-                    val beta = conceptsInModelParam.get(concept).get._2
-                    val alphaNew = alpha + X;
-                    val betaNew = beta + N - X;
-                    val pi = (alphaNew / (alphaNew + betaNew));
-                    params += ("alpha" -> alphaNew)
-                    params += ("beta" -> betaNew)
-                    proficiencyMap += (concept -> pi)
-                    modelParams += (concept -> JSONUtils.serialize(params))
-                } else {
-                    val alpha = 0.5d;
-                    val beta = 1d
-                    val alphaNew = alpha + X;
-                    val betaNew = beta + N - X;
-                    val pi = (alphaNew / (alphaNew + betaNew));
-                    params += ("alpha" -> alphaNew)
-                    params += ("beta" -> betaNew)
-                    proficiencyMap += (concept -> pi)
-                    modelParams += (concept -> JSONUtils.serialize(params))
+                var alpha = 0.5d;
+                var beta = 1d
+                if (conceptModelParamMap.contains(concept)) {
+                    alpha = conceptModelParamMap.get(concept).get._1
+                    beta = conceptModelParamMap.get(concept).get._2
                 }
+                val alphaNew = alpha + X;
+                val betaNew = beta + N - X;
+                val pi = (alphaNew / (alphaNew + betaNew));
+                params += ("alpha" -> alphaNew)
+                params += ("beta" -> betaNew)
+                proficiencyMap += (concept -> pi)
+                modelParams += (concept -> JSONUtils.serialize(params))
             }
             var prvModelParams = Map[String, String]();
             if (prevLearnerState != null) {
@@ -173,10 +160,10 @@ class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
     private def getMeasuredEvent(userProf: LearnerProficiency, config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = Map(
             "proficiency" -> userProf.proficiency,
-            "startTime" -> userProf.starttime.getMillis,
-            "endTime" -> userProf.endtime.getMillis);
+            "startTime" -> userProf.start_time.getMillis,
+            "endTime" -> userProf.end_time.getMillis);
         MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_PROFICIENCY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userProf.learner_id), None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.starttime.getMillis, userProf.endtime.getMillis)),
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
             Dimensions(None, None, None, None, None, None),
             MEEdata(measures));
     }

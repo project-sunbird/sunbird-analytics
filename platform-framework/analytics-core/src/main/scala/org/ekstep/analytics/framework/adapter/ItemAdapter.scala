@@ -38,24 +38,21 @@ object ItemAdapter {
         getItemWrapper(item);
     }
 
-    def getItemConcept(graphId:String,contentId:String,itemId:String) : Array[String] = {
+    def getItemConceptMaxScore(graphId: String, contentId: String, itemId: String): Map[String, AnyRef] = {
+        var resMap = Map[String, AnyRef]();
         val cr = RestUtil.get[Response](Constants.getConcept(graphId, contentId, itemId));
         if (!cr.responseCode.equals("OK")) {
             //println(graphId,contentId,itemId,"  graphId,contentId,itemId")
             //throw new DataAdapterException(cr.responseCode);
-            cr.result.concept.getOrElse(Array());
+            resMap += ("concepts" -> cr.result.concept.getOrElse(null))
+            resMap += ("maxScore" -> Option(cr.result.max_score.getOrElse(1)))
+            resMap;
         }
-        cr.result.concept.getOrElse(Array());
+        resMap += ("concepts" -> cr.result.concept.getOrElse(null))
+        resMap += ("maxScore" -> Option(cr.result.max_score.getOrElse(1)))
+        resMap;
     }
-    def getItemMaxScore(graphId:String,contentId:String,itemId:String) : Int = {
-        val msR = RestUtil.get[Response](Constants.getConcept(graphId, contentId, itemId));
-        if (!msR.responseCode.equals("OK")) {
-            //throw new DataAdapterException(msR.responseCode);
-            msR.result.max_score.getOrElse(1);
-        }
-        msR.result.max_score.getOrElse(1);
-    }
-    
+   
     private def getItemWrapper(item: Map[String, AnyRef]): Item = {
         val mc = item.getOrElse("concepts", List[Map[String, String]]()).asInstanceOf[List[AnyRef]].map(f => f.asInstanceOf[Map[String, String]].get("identifier").get).toArray;
         Item(item.get("identifier").get.asInstanceOf[String], item.filterNot(p => relations.contains(p._1)), getTags(item), Option(mc), None);
@@ -78,8 +75,8 @@ object ItemAdapter {
                 val itemSet = questionnaire.getOrElse("items", Map[String, AnyRef]()).asInstanceOf[Map[String, List[String]]];
                 itemSet.map(f => {
                     f._2
-                }).reduce((a,b) => a ++ b);
-            }).reduce((a,b) => a ++ b).map { x => getItem(x, subject) }.toArray;
+                }).reduce((a, b) => a ++ b);
+            }).reduce((a, b) => a ++ b).map { x => getItem(x, subject) }.toArray;
         } else {
             null;
         }
@@ -129,7 +126,7 @@ object ItemAdapter {
                     val map = f.asInstanceOf[Map[String, AnyRef]];
                     map.get("id").get.asInstanceOf[String];
                 })
-            }).reduce((a,b) => a ++ b).map { x => getItemSet(x, subject) }.toArray;
+            }).reduce((a, b) => a ++ b).map { x => getItemSet(x, subject) }.toArray;
         } else {
             null;
         }
@@ -174,5 +171,5 @@ object ItemAdapter {
     private def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
         Option(metadata.getOrElse("tags", List[String]()).asInstanceOf[List[String]].toArray);
     }
-    
+
 }
