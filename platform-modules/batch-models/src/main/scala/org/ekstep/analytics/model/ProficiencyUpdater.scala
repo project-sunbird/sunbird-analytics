@@ -26,7 +26,7 @@ case class LearnerProficiency(learner_id: String, proficiency: Map[String, Doubl
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class LearnerId(learner_id: String)
 
-class ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
+object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
