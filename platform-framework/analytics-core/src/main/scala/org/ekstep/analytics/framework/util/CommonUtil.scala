@@ -38,6 +38,7 @@ object CommonUtil {
     @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ");
+    @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     def getParallelization(config: JobConfig): Int = {
@@ -126,7 +127,17 @@ object CommonUtil {
                 0
         }
     }
-
+    
+    def getEventSyncTS(event: Event): Long = {
+        try {
+            df5.parseDateTime(event.`@timestamp`).getMillis;
+        } catch {
+            case _: Exception =>
+                Console.err.println("Invalid event time", event.ts);
+                0
+        }
+    }
+    
     def getEventDate(event: Event): Date = {
         try {
             df3.parseLocalDate(event.ts).toDate;

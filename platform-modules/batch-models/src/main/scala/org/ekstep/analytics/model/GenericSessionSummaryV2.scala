@@ -224,7 +224,7 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
                 timeSpent.get, 0d, startTimestamp, endTimestamp, Option(domainMap.toMap),
                 Option(levelTransitions), None, None, Option(loc),
                 Option(itemResponses), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary),
-                None, Option(computeScreenSummary(events)), noOfInteractEvents, eventSummary);
+                None, Option(computeScreenSummary(events)), noOfInteractEvents, eventSummary, CommonUtil.getEventSyncTS(lastEvent));
         }
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
@@ -238,8 +238,9 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
         val game = userMap._2;
         val measures = Map(
             "itemResponses" -> game.itemResponses,
-            "startTime" -> game.startTimestamp,
-            "endTime" -> game.endTimestamp,
+            "start_time" -> game.start_ts,
+            "end_time" -> game.end_ts,
+            "syncDate" -> game.syncDate,
             "timeSpent" -> game.timeSpent,
             "interruptTime" -> game.interruptTime,
             "comments" -> game.comments,

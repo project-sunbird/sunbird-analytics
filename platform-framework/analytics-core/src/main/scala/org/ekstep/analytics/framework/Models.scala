@@ -43,7 +43,7 @@ case class PData(id: String, model: String, ver: String);
 @scala.reflect.BeanInfo
 case class DtRange(from: Long, to: Long);
 @scala.reflect.BeanInfo
-case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, dt_range: DtRange);
+case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange);
 @scala.reflect.BeanInfo
 case class MEEdata(eks: AnyRef);
 

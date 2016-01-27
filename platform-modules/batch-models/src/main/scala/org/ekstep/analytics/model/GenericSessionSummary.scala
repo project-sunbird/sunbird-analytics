@@ -36,7 +36,7 @@ import org.ekstep.analytics.framework.SessionBatchModel
 /**
  * Case class to hold the item responses
  */
-case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, timeStamp: Option[Long], maxScore: Option[AnyRef], domain: Option[String]);
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, ets: Option[Long], maxScore: Option[AnyRef], domain: Option[String]);
 
 case class ActivitySummary(count: Int, timeSpent: Double)
 
@@ -44,10 +44,11 @@ case class ActivitySummary(count: Int, timeSpent: Double)
  * Case class to hold the screener summary
  */
 case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, 
-        timeSpent: Double, interruptTime: Double, startTimestamp: Option[Long], endTimestamp: Option[Long], currentLevel: Option[Map[String, String]], 
+        timeSpent: Double, interruptTime: Double, start_ts: Option[Long], end_ts: Option[Long], currentLevel: Option[Map[String, String]], 
         noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], 
         itemResponses: Option[Buffer[ItemResponse]], dtRange: DtRange, interactEventsPerMin: Double, activitySummary: Option[Map[String,ActivitySummary]],
-        completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int, eventsSummary: Map[String, Int]);
+        completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int, eventsSummary: Map[String, Int],
+        syncDate: Long);
 
 /**
  * Generic Screener Summary Model
@@ -165,7 +166,7 @@ object GenericSessionSummary extends SessionBatchModel[Event] with Serializable 
                     timeSpent.get, 0d, startTimestamp, endTimestamp, Option(domainMap.toMap), 
                     Option(levelTransitions), None, None, Option(loc), 
                     Option(itemResponses), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary),
-                    None, None, noOfInteractEvents, eventSummary);
+                    None, None, noOfInteractEvents, eventSummary, CommonUtil.getEventSyncTS(distinctEvents.last));
         }
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
@@ -179,8 +180,8 @@ object GenericSessionSummary extends SessionBatchModel[Event] with Serializable 
         val game = userMap._2;
         val measures = Map(
             "itemResponses" -> game.itemResponses,
-            "startTime" -> game.startTimestamp,
-            "endTime" -> game.endTimestamp,
+            "start_ts" -> game.start_ts,
+            "end_ts" -> game.end_ts,
             "timeSpent" -> game.timeSpent,
             "interruptTime" -> game.interruptTime,
             "comments" -> game.comments,

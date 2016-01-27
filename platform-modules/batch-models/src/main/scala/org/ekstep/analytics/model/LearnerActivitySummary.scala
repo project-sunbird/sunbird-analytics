@@ -24,7 +24,7 @@ import org.ekstep.analytics.framework.MeasuredEvent
 /**
  * @author Amit Behera
  */
-case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, lastVisitTimeStamp: Long, mostActiveHrOfTheDay: Option[Int], topKcontent: Array[String],startTimestamp: Long, endTimestamp: Long);
+case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, last_visit_ts: Long, mostActiveHrOfTheDay: Option[Int], topKcontent: Array[String], start_ts: Long, end_ts: Long);
 
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -39,9 +39,9 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val sortedEvents = x.sortBy { x => x.ets };
                 val eventStartTimestamp = sortedEvents(0).ets;
                 val eventEndTimestamp = sortedEvents.last.ets;
-                val startTimestamp = sortedEvents.map { x => x.context.dt_range.from }.sortBy { x => x }.toBuffer(0);
-                val sortedGames = sortedEvents.sortBy(-_.context.dt_range.to).map(f => f.dimensions.gdata.get.id).distinct;
-                val endTimestamp = sortedEvents.map { x => x.context.dt_range.to }.sortBy { x => x }.toBuffer.last;
+                val startTimestamp = sortedEvents.map { x => x.context.date_range.from }.sortBy { x => x }.toBuffer(0);
+                val sortedGames = sortedEvents.sortBy(-_.context.date_range.to).map(f => f.dimensions.gdata.get.id).distinct;
+                val endTimestamp = sortedEvents.map { x => x.context.date_range.to }.sortBy { x => x }.toBuffer.last;
                 val summaryEvents = sortedEvents.map { x => x.edata.eks }.map { x => x.asInstanceOf[Map[String, AnyRef]] };
                 val numOfSessionsOnPlatform = x.length;
 
@@ -63,7 +63,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val meanActiveTimeOnPlatform = meanTimeSpent - meanInterruptTime;
                 val activeHours = summaryEvents.map { f =>
                     try {
-                        (CommonUtil.getHourOfDay(f.getOrElse("startTime", 0l).asInstanceOf[Long], f.getOrElse("endTime", 0l).asInstanceOf[Long]))
+                        (CommonUtil.getHourOfDay(f.getOrElse("start_time", 0l).asInstanceOf[Long], f.getOrElse("end_time", 0l).asInstanceOf[Long]))
                     } catch {
                         case ex: ClassCastException =>
                             null;

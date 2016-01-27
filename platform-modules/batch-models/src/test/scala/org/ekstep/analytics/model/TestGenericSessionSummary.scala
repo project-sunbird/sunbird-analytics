@@ -27,7 +27,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         event1.context.pdata.model should be ("GenericSessionSummary");
         event1.context.pdata.ver should be ("1.4");
         event1.context.granularity should be ("SESSION");
-        event1.context.dt_range should not be null;
+        event1.context.date_range should not be null;
         event1.dimensions.gdata.get.id should be ("org.ekstep.aser.lite");
         
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
@@ -62,7 +62,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
         event1.context.pdata.model should be ("GenericContentSummary");
         event1.context.pdata.ver should be ("1.2");
         event1.context.granularity should be ("SESSION");
-        event1.context.dt_range should not be null;
+        event1.context.date_range should not be null;
         event1.dimensions.gdata.get.id should be ("org.ekstep.aser.lite");
         
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));

@@ -21,14 +21,14 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
         val rdd2 = GenericSessionSummaryV2.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
-        println(me(0));
+        println(me(0))
         me.length should be (1);
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be ("ME_SESSION_SUMMARY");
         event1.context.pdata.model should be ("GenericSessionSummaryV2");
         event1.context.pdata.ver should be ("1.4");
         event1.context.granularity should be ("SESSION");
-        event1.context.dt_range should not be null;
+        event1.context.date_range should not be null;
         event1.dimensions.gdata.get.id should be ("org.ekstep.aser.lite");
         
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
@@ -49,6 +49,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         summary1.activitySummary.get.get("DRAG").get.count should be (9);
         summary1.activitySummary.get.get("DRAG").get.timeSpent should be (115);
         summary1.screenSummary.get.size should be (0);
+        summary1.syncDate should be (1451696364328L)
     }
     
     it should "generate 4 session summarries and pass all negative test cases" in {
@@ -64,7 +65,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         event1.context.pdata.model should be ("GenericContentSummary");
         event1.context.pdata.ver should be ("1.2");
         event1.context.granularity should be ("SESSION");
-        event1.context.dt_range should not be null;
+        event1.context.date_range should not be null;
         event1.dimensions.gdata.get.id should be ("org.ekstep.aser.lite");
         
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
@@ -85,6 +86,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         summary1.eventsSummary.size should be (2);
         summary1.eventsSummary.get("OE_INTERACT").get should be (5);
         summary1.eventsSummary.get("OE_START").get should be (1);
+        summary1.syncDate should be (1451694073672L)
         
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
@@ -107,6 +109,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         summary2.eventsSummary.get("OE_START").get should be (1);
         summary2.eventsSummary.get("OE_LEVEL_SET").get should be (1);
         summary2.eventsSummary.get("OE_ASSESS").get should be (2);
+        summary2.syncDate should be (1451696364325L)
         
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
@@ -123,6 +126,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         summary3.activitySummary.get.size should be (0);
         summary3.eventsSummary.size should be (1);
         summary3.eventsSummary.get("OE_START").get should be (1);
+        summary3.syncDate should be (1451696364329L)
         
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
         val summary4 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event4.edata.eks));
@@ -142,6 +146,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         summary4.eventsSummary.size should be (2);
         summary4.eventsSummary.get("OE_INTERACT").get should be (3);
         summary4.eventsSummary.get("OE_START").get should be (1);
+        summary4.syncDate should be (1451715800197L)
     }
     
     it should "generate 3 session summaries and validate the screen summaries" in {
@@ -157,7 +162,7 @@ class TestGenericSessionSummaryV2 extends SparkSpec(null) {
         event1.context.pdata.model should be ("GenericSessionSummary");
         event1.context.pdata.ver should be ("1.0");
         event1.context.granularity should be ("SESSION");
-        event1.context.dt_range should not be null;
+        event1.context.date_range should not be null;
         event1.dimensions.gdata.get.id should be ("org.ekstep.story.hi.nature");
         
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
