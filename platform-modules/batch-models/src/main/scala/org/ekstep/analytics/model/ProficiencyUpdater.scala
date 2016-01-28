@@ -27,7 +27,9 @@ case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class LearnerId(learner_id: String)
 
 object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
+    
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+        
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         val lpGameList = ContentAdapter.getGameList();
@@ -68,7 +70,7 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                                     contentId = codeIdMapBroadcast.value.get(gameId).get;
                                     graphId = idSubMapBroadcast.value.get(contentId).get;
                                 }
-                                conceptsMaxScoreMap = ItemAdapter.getItemConceptMaxScore(graphId, contentId, itemId);
+                                conceptsMaxScoreMap = ItemAdapter.getItemConceptMaxScore(contentId, itemId, configMapping.value.getOrElse("apiVersion", "v1").asInstanceOf[String]);
                                 val item = conceptsMaxScoreMap.get("concepts").get.asInstanceOf[Array[String]];
                                 if (item != null) itemMC = item.toList;
                                 else itemMC = null;
@@ -158,8 +160,8 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
     private def getMeasuredEvent(userProf: LearnerProficiency, config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = Map(
             "proficiency" -> userProf.proficiency,
-            "startTime" -> userProf.start_time.getMillis,
-            "endTime" -> userProf.end_time.getMillis);
+            "start_ts" -> userProf.start_time.getMillis,
+            "end_ts" -> userProf.end_time.getMillis);
         MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_PROFICIENCY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userProf.learner_id), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
             Dimensions(None, None, None, None, None, None),

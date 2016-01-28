@@ -286,4 +286,8 @@ object CommonUtil {
         ts;
     }
     
+    def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
+        Option(metadata.getOrElse("tags", List[String]()).asInstanceOf[List[String]].toArray);
+    }
+    
 }

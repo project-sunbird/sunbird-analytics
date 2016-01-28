@@ -75,4 +75,22 @@ class TestItemAdapter extends BaseSpec {
         itemSets.length should be (2);
         itemSets(0).items.length should be (15);
     }
+    
+    it should "return item concepts and max score" in {
+        val map = ItemAdapter.getItemConceptMaxScore("numeracy_382", "q_3_s_gujarati", "v1");
+        map should not be (null);
+        map.size should be (2);
+        val concepts = map.get("concepts").get
+        concepts should not be (null);
+        concepts.asInstanceOf[Array[String]].length should be (1);
+        concepts.asInstanceOf[Array[String]](0) should be ("LO50");
+        map.get("maxScore").get.asInstanceOf[Int] should be (1);
+        
+        val map2 = ItemAdapter.getItemConceptMaxScore("numeracy_382", "q_3_s_gujarati", "v2");
+        map2 should not be (null);
+        map2.size should be (2);
+        val concepts2 = map2.get("concepts").get
+        concepts2 should be (null);
+        map2.get("maxScore").get.asInstanceOf[Int] should be (1);
+    }
 }

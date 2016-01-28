@@ -39,6 +39,7 @@ java::try {
 	java::for {Node node} $nodes {
 		set metadata [java::prop $node "metadata"]
 		$metadata put "tags" [java::prop $node "tags"]
+		$metadata put "identifier" [java::prop $node "identifier"]
 		set concepts [java::new ArrayList]
 
 		set relations [java::prop $node "outRelations"]
