@@ -22,3 +22,12 @@ CREATE TABLE learnersnapshot (
 	dp_end_time timestamp,
 	PRIMARY KEY (learner_id)
 );
+
+CREATE TABLE learnerproficiency(
+	learner_id text,
+	proficiency map<text,double>,
+	start_time timestamp,
+	end_time timestamp,
+	model_params map<text,text>,
+	PRIMARY KEY (learner_id)
+);
