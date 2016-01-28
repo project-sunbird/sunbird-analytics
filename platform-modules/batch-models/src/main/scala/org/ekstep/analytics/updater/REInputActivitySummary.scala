@@ -12,6 +12,7 @@ import scala.annotation.migration
 import scala.reflect.runtime.universe
 
 case class Activity(learner_id: String, content: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
+
 object REInputActivitySummary {
     def writeIntoDB(sc: SparkContext, events: RDD[MeasuredEvent]) {
         val activity = events.map(event => (event.uid.get, Buffer(event)))
@@ -19,8 +20,7 @@ object REInputActivitySummary {
             .reduceByKey((a, b) => a ++ b).map { x =>
                 val learner_id = x._1;
                 val allEvents = x._2;
-                val perContentEvents = allEvents.groupBy { x => x.gdata.get.id }
-                val perContentAct = perContentEvents.map { x =>
+                val perContentAct = allEvents.sortBy { x => x.ets }.groupBy { x => x.dimensions.gdata.get.id }.map { x =>
                     val content = x._1;
                     val events = x._2;
                     val numOfSessionsPlayed = events.length;
@@ -31,6 +31,6 @@ object REInputActivitySummary {
                 }
                 perContentAct;
             }.flatMap { x => x };
-            activity.saveToCassandra("learner_db", "learnerproficiency");
+        activity.saveToCassandra("learner_db", "learneractivity");
     }
 }
