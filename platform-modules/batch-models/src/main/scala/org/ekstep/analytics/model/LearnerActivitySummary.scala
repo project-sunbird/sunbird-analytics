@@ -59,6 +59,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
 
                 //val totalTimeSpentOnPlatform = summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.reduce((a, b) => a + b);
                 val totalTimeSpentOnPlatform = sortedEvents.map { x => CommonUtil.getTimeDiff(x.context.date_range.from, x.context.date_range.to).get }.sum;
+
                 val topKcontent = if (sortedGames.length > 5) sortedGames.take(5).toArray else sortedGames.toArray;
                 val meanActiveTimeOnPlatform = meanTimeSpent - meanInterruptTime;
                 val activeHours = summaryEvents.map { f =>
