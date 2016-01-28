@@ -58,7 +58,8 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val meanTimeSpent = average(summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] });
                 val meanInterruptTime = average(summaryEvents.map { x => x.getOrElse("interruptTime", 0d).asInstanceOf[Double] });
 
-                val totalTimeSpentOnPlatform = summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.reduce((a, b) => a + b);
+                //val totalTimeSpentOnPlatform = summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.reduce((a, b) => a + b);
+                val totalTimeSpentOnPlatform = sortedEvents.map { x => CommonUtil.getTimeDiff(x.context.date_range.from, x.context.date_range.to).get }.sum;
                 val topKcontent = if (sortedGames.length > 5) sortedGames.take(5).toArray else sortedGames.toArray;
                 val meanActiveTimeOnPlatform = meanTimeSpent - meanInterruptTime;
                 val activeHours = summaryEvents.map { f =>
@@ -71,9 +72,9 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 }.filter(_ != null).flatten.map { x => (x, 1) }.groupBy(_._1).map(x => (x._1, x._2.length));
                 
                 val mostActiveHrOfTheDay = if(activeHours.isEmpty) None else Option(activeHours.maxBy(f => f._2)._1);
+                var meanTimeBtwnGamePlays = if(summaryEvents.length>1)(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get - totalTimeSpentOnPlatform)/(summaryEvents.length-1)else 0d 
+                if (meanTimeBtwnGamePlays < 0) meanTimeBtwnGamePlays = 0
                 
-                val meanTimeBtwnGamePlays = if(summaryEvents.length>1)(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get - totalTimeSpentOnPlatform)/(summaryEvents.length-1)else 0d 
-
                 (TimeSummary(Option(meanTimeSpent), Option(meanTimeBtwnGamePlays), Option(meanActiveTimeOnPlatform), Option(meanInterruptTime), Option(totalTimeSpentOnPlatform), meanTimeSpentOnAnAct, Option(meanCountOfAct), numOfSessionsOnPlatform, lastVisitTimeStamp, mostActiveHrOfTheDay, topKcontent ,startTimestamp, endTimestamp), DtRange(eventStartTimestamp, eventEndTimestamp));
             }
         activity.map(f => {
