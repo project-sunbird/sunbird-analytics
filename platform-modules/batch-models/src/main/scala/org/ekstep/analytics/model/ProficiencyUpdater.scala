@@ -20,6 +20,7 @@ import org.ekstep.analytics.framework.adapter.ContentAdapter
 import org.ekstep.analytics.framework.adapter.ItemAdapter
 import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.util.CommonUtil
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
@@ -27,9 +28,9 @@ case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class LearnerId(learner_id: String)
 
 object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
-    
+
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
-        
+
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         val lpGameList = ContentAdapter.getGameList();
@@ -60,15 +61,12 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                             var itemMC = f.getOrElse("mc", List()).asInstanceOf[List[String]]
 
                             var contentId = "";
-                            var graphId = "";
                             var conceptsMaxScoreMap = Map[String, AnyRef]();
                             if (itemMC.isEmpty && itemMC.length == 0) {
                                 if (gameIdBroadcast.value.contains(gameId)) {
                                     contentId = gameId;
-                                    graphId = idSubMapBroadcast.value.get(contentId).get;
                                 } else if (codeIdMapBroadcast.value.contains(gameId)) {
                                     contentId = codeIdMapBroadcast.value.get(gameId).get;
-                                    graphId = idSubMapBroadcast.value.get(contentId).get;
                                 }
                                 conceptsMaxScoreMap = ItemAdapter.getItemConceptMaxScore(contentId, itemId, configMapping.value.getOrElse("apiVersion", "v1").asInstanceOf[String]);
                                 val item = conceptsMaxScoreMap.get("concepts").get.asInstanceOf[Array[String]];
@@ -96,61 +94,56 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                 itemResponses;
             }.map(x => x._2).flatMap(f => f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5), f._6, f._7)).groupBy(f => f._1);
 
-        //val joinedRDD = itemData.joinWithCassandraTable("learner_db", "proficiencyparams", SomeColumns("learner_id","concept","alpha","beta"), SomeColumns("learner_id"))
         val prevLearnerState = newEvidences.map { x => LearnerId(x._1) }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map(f => (f._1.learner_id, f._2))
 
         val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState);
         val lp = joinedRDD.mapValues(f => {
+
+            val defaultAlpha = configMapping.value.getOrElse("alpha", 0.5d).asInstanceOf[Double];
+            val defaultBeta = configMapping.value.getOrElse("beta", 1d).asInstanceOf[Double];
             val evidences = f._1
             val prevLearnerState = f._2.getOrElse(null);
-            var conceptModelParamsPrv = Buffer[ModelParam]();
-            var prvProficiencyMap = Map[String, Double]();
-
-            if (null != prevLearnerState && null != prevLearnerState.model_params) {
-                prvProficiencyMap = prevLearnerState.proficiency;
-                conceptModelParamsPrv = prevLearnerState.model_params.map(f => {
+            val prvProficiencyMap = if (null != prevLearnerState) prevLearnerState.proficiency else Map[String, Double]();
+            val prvModelParams = if (null != prevLearnerState) prevLearnerState.model_params else Map[String, String]();
+            val prvConceptModelParams = if (null != prevLearnerState && null != prevLearnerState.model_params) {
+                prevLearnerState.model_params.map(f => {
                     val params = JSONUtils.deserialize[Map[String, Double]](f._2);
-                    ModelParam(f._1, params.getOrElse("alpha", 0.5d), params.getOrElse("beta", 1d));
-                }).toBuffer;
-            }
-            val conceptModelParamMap = conceptModelParamsPrv.map { x => (x.concept, (x.alpha, x.beta)) }.toMap
+                    (f._1, (params.getOrElse("alpha", defaultAlpha), params.getOrElse("beta", defaultBeta)));
+                });
+            } else Map[String, (Double, Double)]();
+            val startTime = new DateTime(evidences.last._3)
+            val endTime = new DateTime(evidences.last._4)
 
-            val startTime = evidences.last._3
-            val endTime = evidences.last._4
-            var proficiencyMap = Map[String, Double]();
-            var modelParams = Map[String, String]();
-            evidences.foreach { x =>
-                val evidence = x._2
-                var params = Map[String, Double]();
-                val concept = evidence.itemMC
-                val score = evidence.score;
-                val maxScore = evidence.maxScore
+            // Proficiency computation
+            
+            // Group by concepts and compute the sum of scores and maxscores
+            val conceptScores = evidences.map(f => (f._2.itemMC, f._2.score, f._2.maxScore)).groupBy(f => f._1).mapValues(f => {
+                (f.map(f => f._2).sum, f.map(f => f._3).sum);
+            });
+            
+            // Compute the new alpha, beta and pi
+            val conceptProfs = conceptScores.map { x =>
+                val concept = x._1;
+                val score = x._2._1;
+                val maxScore = x._2._2;
                 val N = maxScore
-                var alpha = 0.5d;
-                var beta = 1d
-                if (conceptModelParamMap.contains(concept)) {
-                    alpha = conceptModelParamMap.get(concept).get._1
-                    beta = conceptModelParamMap.get(concept).get._2
-                }
+                val alpha = if (prvConceptModelParams.contains(concept)) prvConceptModelParams.get(concept).get._1 else defaultAlpha;
+                val beta = if (prvConceptModelParams.contains(concept)) prvConceptModelParams.get(concept).get._2 else defaultBeta;
                 val alphaNew = alpha + score;
                 val betaNew = beta + N - score;
                 val pi = (alphaNew / (alphaNew + betaNew));
-                params += ("alpha" -> alphaNew)
-                params += ("beta" -> betaNew)
-                proficiencyMap += (concept -> pi)
-                modelParams += (concept -> JSONUtils.serialize(params))
+                (concept, CommonUtil.roundDouble(alphaNew, 4), CommonUtil.roundDouble(betaNew, 4), CommonUtil.roundDouble(pi, 2)) // Pass updated (alpha, beta, pi) for each concept
             }
-            var prvModelParams = Map[String, String]();
-            if (prevLearnerState != null) {
-                prevLearnerState.model_params.foreach { x =>
-                    val map = JSONUtils.deserialize[Map[String, Double]](x._2);
-                    prvModelParams += (x._1 -> JSONUtils.serialize(Map("alpha" -> map.get("alpha").get, "beta" -> map.get("beta").get)))
-                }
-            }
-            (prvProficiencyMap ++ proficiencyMap, new DateTime(startTime), new DateTime(endTime), prvModelParams ++ modelParams);
+
+            // Update the previous learner state with new proficiencies and model params
+            val newProfs = prvProficiencyMap ++ conceptProfs.map(f => (f._1, f._4)).toMap;
+            val newModelParams = prvModelParams ++ conceptProfs.map(f => (f._1, JSONUtils.serialize(Map("alpha" -> f._2, "beta" -> f._3)))).toMap;
+
+            (newProfs, startTime, endTime, newModelParams);
         }).map(f => {
             LearnerProficiency(f._1, f._2._1, f._2._2, f._2._3, f._2._4);
         });
+        
         lp.saveToCassandra("learner_db", "learnerproficiency");
         lp.map(f => {
             getMeasuredEvent(f, configMapping.value);

@@ -290,4 +290,8 @@ object CommonUtil {
         Option(metadata.getOrElse("tags", List[String]()).asInstanceOf[List[String]].toArray);
     }
     
+    def roundDouble(value: Double, precision: Int) : Double = {
+        BigDecimal(value).setScale(precision, BigDecimal.RoundingMode.HALF_UP).toDouble;
+    }
+    
 }
