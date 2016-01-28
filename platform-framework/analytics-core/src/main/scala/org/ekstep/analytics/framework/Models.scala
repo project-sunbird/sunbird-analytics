@@ -66,7 +66,9 @@ case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Opti
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
-case class Result(content: Option[Map[String, AnyRef]], questionnaire: Option[Map[String, AnyRef]], assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]], games: Option[Array[Map[String, AnyRef]]],concept: Option[Array[String]],max_score: Option[Int]);
+case class Result(content: Option[Map[String, AnyRef]], contents: Option[Array[Map[String, AnyRef]]], questionnaire: Option[Map[String, AnyRef]], 
+        assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]], 
+        games: Option[Array[Map[String, AnyRef]]], concepts: Option[Array[String]], maxScore: Option[Int], items: Option[Array[Map[String, AnyRef]]]);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 
 // Search Items
@@ -75,11 +77,19 @@ case class Metadata(filters: Array[SearchFilter])
 case class Request(metadata: Metadata, resultSize: Int)
 case class Search(request: Request);
 
-// Adapter Models
+// Item Models
 case class MicroConcept(id: String, metadata: Map[String, AnyRef]);
 case class Item(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], mc: Option[Array[String]], mmc: Option[Array[String]]);
 case class ItemSet(id: String, metadata: Map[String, AnyRef], items: Array[Item], tags: Option[Array[String]], count: Int);
 case class Questionnaire(id: String, metadata: Map[String, AnyRef], itemSets: Array[ItemSet], items: Array[Item], tags: Option[Array[String]]);
-case class Content(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], questionnaires: Option[Array[Questionnaire]]);
+
+// Content Models
+case class Content(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], concepts: Array[String]);
 case class Game(identifier: String, code: String, subject: String, objectType: String);
 
+// Domain Models
+case class Concept(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]]);
+case class Relation(startNodeId: String, endNodeId: String, startNodeType: String, endNodeType: String, relationType: String)
+case class DomainMap(concepts: Array[Concept], relations: Array[Relation])
+case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[Relation]);
+case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult);
