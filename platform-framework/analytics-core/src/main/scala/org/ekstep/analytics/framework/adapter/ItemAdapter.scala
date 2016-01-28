@@ -21,6 +21,7 @@ import scala.collection.immutable.List
 import scala.collection.immutable.Map
 import scala.collection.JavaConversions._
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.ItemConcept
 
 /**
  * @author Santhosh
@@ -39,18 +40,11 @@ object ItemAdapter {
         getItemWrapper(item);
     }
 
-    def getItemConceptMaxScore(contentId: String, itemId: String, apiVersion: String = "v1"): Map[String, AnyRef] = {
+    def getItemConceptMaxScore(contentId: String, itemId: String, apiVersion: String = "v1"): ItemConcept = {
 
         var resMap = Map[String, AnyRef]();
         val cr = RestUtil.get[Response](Constants.getItemConcept(apiVersion, contentId, itemId));
-        if (!cr.responseCode.equals("OK")) {
-            resMap += ("concepts" -> cr.result.concepts.getOrElse(null))
-            resMap += ("maxScore" -> cr.result.maxScore.getOrElse(1).asInstanceOf[AnyRef])
-            resMap;
-        }
-        resMap += ("concepts" -> cr.result.concepts.getOrElse(null))
-        resMap += ("maxScore" -> cr.result.maxScore.getOrElse(1).asInstanceOf[AnyRef])
-        resMap;
+        ItemConcept(cr.result.concepts.getOrElse(null), cr.result.maxScore.getOrElse(1));
     }
 
     private def getItemWrapper(item: Map[String, AnyRef]): Item = {

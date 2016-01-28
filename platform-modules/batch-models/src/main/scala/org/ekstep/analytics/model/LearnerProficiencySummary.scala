@@ -21,16 +21,49 @@ import org.ekstep.analytics.framework.adapter.ItemAdapter
 import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.ItemConcept
+import org.apache.spark.broadcast.Broadcast
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class LearnerId(learner_id: String)
 
-object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
+object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
-    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
+        val itemId = item.get("itemId").get.asInstanceOf[String];
+        val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]]
+        if (itemMC.isEmpty && itemMC.length == 0) {
+            val itemConcept = itemMapping.get(itemId);
+            if (itemConcept.isEmpty) {
+                Array[String]();
+            } else {
+                itemConcept.get.concepts;
+            }
+        } else {
+            itemMC.toArray
+        }
+    }
 
+    def getItemMaxScore(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Int = {
+        val itemId = item.get("itemId").get.asInstanceOf[String];
+        val maxScore = item.getOrElse("maxScore", 0).asInstanceOf[Int];
+        if (maxScore == 0) {
+            val itemConcept = itemMapping.get(itemId);
+            if (itemConcept.isEmpty) {
+                1;
+            } else {
+                itemConcept.get.maxScore;
+            }
+        } else {
+            maxScore;
+        }
+    }
+
+    def execute(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+
+        println("### Running the proficiency updater ###");
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         val lpGameList = ContentAdapter.getGameList();
@@ -38,61 +71,61 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
         val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
         val idSubMap: Map[String, String] = lpGameList.map { x => (x.identifier, x.subject) }.toMap;
 
-        val gameIdBroadcast = sc.broadcast(gameIds);
-        val codeIdMapBroadcast = sc.broadcast(codeIdMap);
-        val idSubMapBroadcast = sc.broadcast(idSubMap);
+        println("### Finding the items with missing mc ###");
+        val itemsWithMissingConcepts = data.map { event =>
+            val ir = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]];
+            ir.filter(item => {
+                val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]];
+                itemMC == null || itemMC.isEmpty
+            }).map(f => (event.dimensions.gdata.get.id, f.get("itemId").get.asInstanceOf[String]))
+        }.filter(f => f.nonEmpty);
 
-        // Get learner previous state
-        //val prevLearnerState = events.map { x => LearnerId(x.uid.get) }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map(f => (f._1.learner_id, f._2))
+        var itemConcepts = Map[String, ItemConcept]();
+        if (itemsWithMissingConcepts.count() > 0) {
+            val items = itemsWithMissingConcepts.reduce((a, b) => (a ++ b)).distinct;
+            println("### Items with missing concepts - " + items.length + " ###");
+            itemConcepts = items.map { x =>
+                var contentId = "";
+                if (gameIds.contains(x._1)) {
+                    contentId = x._1;
+                } else if (codeIdMap.contains(x._1)) {
+                    contentId = codeIdMap.get(x._1).get;
+                }
+                (x._2, ItemAdapter.getItemConceptMaxScore(x._1, x._2, config.getOrElse("apiVersion", "v1").asInstanceOf[String]));
+            }.toMap;
+            println("### MC fetched from Item Model and broadcasting the data ###");
+        }
 
-        val newEvidences = events.map(event => (event.uid.get, Buffer(event)))
+        val itemConceptMapping = sc.broadcast(itemConcepts);
+        val userSessions = data.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).mapValues { x =>
-                val sortedEvents = x.sortBy { x => x.ets };
-                val eventStartTimestamp = sortedEvents(0).ets;
-                val eventEndTimestamp = sortedEvents.last.ets;
+            .reduceByKey((a, b) => a ++ b);
 
-                val itemResponses = sortedEvents.map { x =>
-                    val gameId = x.dimensions.gdata.get.id
-                    val learner_id = x.uid.get
-                    x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]]
-                        .map { f =>
-                            val itemId = f.get("itemId").get.asInstanceOf[String];
-                            var itemMC = f.getOrElse("mc", List()).asInstanceOf[List[String]]
+        val newEvidences = userSessions.mapValues { x =>
+            val sortedEvents = x.sortBy { x => x.ets };
+            val eventStartTimestamp = sortedEvents(0).ets;
+            val eventEndTimestamp = sortedEvents.last.ets;
 
-                            var contentId = "";
-                            var conceptsMaxScoreMap = Map[String, AnyRef]();
-                            if (itemMC.isEmpty && itemMC.length == 0) {
-                                if (gameIdBroadcast.value.contains(gameId)) {
-                                    contentId = gameId;
-                                } else if (codeIdMapBroadcast.value.contains(gameId)) {
-                                    contentId = codeIdMapBroadcast.value.get(gameId).get;
-                                }
-                                conceptsMaxScoreMap = ItemAdapter.getItemConceptMaxScore(contentId, itemId, configMapping.value.getOrElse("apiVersion", "v1").asInstanceOf[String]);
-                                val item = conceptsMaxScoreMap.get("concepts").get.asInstanceOf[Array[String]];
-                                if (item != null) itemMC = item.toList;
-                                else itemMC = null;
-
-                            }
-                            val itemMMC = f.getOrElse("mmc", List()).asInstanceOf[List[String]]
-                            val score = f.get("score").get.asInstanceOf[Int]
-                            var maxScore = f.getOrElse("maxScore", 0).asInstanceOf[Int]
-
-                            if (maxScore == 0) maxScore = conceptsMaxScoreMap.get("maxScore").get.asInstanceOf[Int]
-
-                            val timeSpent = f.get("timeSpent").get.asInstanceOf[Double]
-                            val itemMisconception = Array[String]();
-                            //Assessment(learner_id, itemId, itemMC, itemMMC, normScore, maxScore, itemMisconception, timeSpent)
-                            (learner_id, itemId, itemMC, score, maxScore, eventStartTimestamp, eventEndTimestamp)
-                        }
-                }.flatten.filter(p => ((p._3) != null)).toList
-                    .map { x =>
-                        val mc = x._3;
-                        val itemMc = mc.map { f => ((x._1), (x._2), (f), (x._4), (x._5), (x._6), (x._7)); }
-                        itemMc;
-                    }.flatten
-                itemResponses;
-            }.map(x => x._2).flatMap(f => f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5), f._6, f._7)).groupBy(f => f._1);
+            val itemResponses = sortedEvents.map { x =>
+                val gameId = x.dimensions.gdata.get.id
+                val learner_id = x.uid.get
+                x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]]
+                    .map { f =>
+                        val itemId = f.get("itemId").get.asInstanceOf[String];
+                        val itemMC = getItemConcept(f, itemConceptMapping.value)
+                        val itemMMC = f.getOrElse("mmc", List()).asInstanceOf[List[String]]
+                        val score = f.get("score").get.asInstanceOf[Int]
+                        val maxScore = getItemMaxScore(f, itemConceptMapping.value)
+                        (learner_id, itemId, itemMC, score, maxScore, eventStartTimestamp, eventEndTimestamp)
+                    }
+            }.flatten.filter(p => ((p._3) != null)).toList
+                .map { x =>
+                    val mc = x._3;
+                    val itemMc = mc.map { f => ((x._1), (x._2), (f), (x._4), (x._5), (x._6), (x._7)); }
+                    itemMc;
+                }.flatten
+            itemResponses;
+        }.map(x => x._2).flatMap(f => f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5), f._6, f._7)).groupBy(f => f._1);
 
         val prevLearnerState = newEvidences.map { x => LearnerId(x._1) }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map(f => (f._1.learner_id, f._2))
 
@@ -115,12 +148,12 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
             val endTime = new DateTime(evidences.last._4)
 
             // Proficiency computation
-            
+
             // Group by concepts and compute the sum of scores and maxscores
             val conceptScores = evidences.map(f => (f._2.itemMC, f._2.score, f._2.maxScore)).groupBy(f => f._1).mapValues(f => {
                 (f.map(f => f._2).sum, f.map(f => f._3).sum);
             });
-            
+
             // Compute the new alpha, beta and pi
             val conceptProfs = conceptScores.map { x =>
                 val concept = x._1;
@@ -143,7 +176,7 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
         }).map(f => {
             LearnerProficiency(f._1, f._2._1, f._2._2, f._2._3, f._2._4);
         });
-        
+
         lp.saveToCassandra("learner_db", "learnerproficiency");
         lp.map(f => {
             getMeasuredEvent(f, configMapping.value);
