@@ -3,7 +3,7 @@ package org.ekstep.analytics.model
 import org.ekstep.analytics.framework.MeasuredEvent
 import com.datastax.spark.connector._
 
-class TestProficiencyInputMapper extends SparkSpec(null) {
+class TestProficiencyUpdater extends SparkSpec(null) {
 
     it should "check Proficiency and Model param should be updated in db" in {
         val rdd0 = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test1.log");

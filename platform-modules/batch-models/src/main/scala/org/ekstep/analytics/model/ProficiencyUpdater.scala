@@ -80,7 +80,7 @@ object ProficiencyUpdater extends IBatchModel[MeasuredEvent] with Serializable {
                             val score = f.get("score").get.asInstanceOf[Int]
                             var maxScore = f.getOrElse("maxScore", 0).asInstanceOf[Int]
 
-                            if (maxScore == 0) maxScore = conceptsMaxScoreMap.get("maxScore").get.asInstanceOf[Option[Int]].get
+                            if (maxScore == 0) maxScore = conceptsMaxScoreMap.get("maxScore").get.asInstanceOf[Int]
 
                             val timeSpent = f.get("timeSpent").get.asInstanceOf[Double]
                             val itemMisconception = Array[String]();
