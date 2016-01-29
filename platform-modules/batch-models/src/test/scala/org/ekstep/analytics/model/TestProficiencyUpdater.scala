@@ -7,7 +7,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestProficiencyUpdater extends SparkSpec(null) {
 
-    "ProficiencyUpdater" should "check Proficiency and Model param should be updated in db" in {
+    "LearnerProficiencySummary" should "check Proficiency and Model param should be updated in db" in {
         
         val modelParams = Map("alpha" -> 1, "beta" -> 1);
         // Override user data in learnerproficiency table
@@ -16,7 +16,7 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         rdd.saveToCassandra("learner_db", "learnerproficiency");
         
         val rdd0 = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test1.log");
-        val rdd01 = ProficiencyUpdater.execute(sc, rdd0, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
+        val rdd01 = LearnerProficiencySummary.execute(sc, rdd0, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         val proficiency1 = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").where("learner_id = ?", "8b4f3775-6f65-4abf-9afa-b15b8f82a24b").first();
         
         println("proficiency1", proficiency1);
@@ -30,7 +30,7 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         proficiency1.proficiency.get("Num:C3:SC1:MC12").get should be (0.67);
 
         val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test2.log");
-        val rdd11 = ProficiencyUpdater.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
+        val rdd11 = LearnerProficiencySummary.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
 
         // Check Proficiency and Model parameter values - Iteration 2
         val proficiency2 = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").where("learner_id = ?", "8b4f3775-6f65-4abf-9afa-b15b8f82a24b").first();
@@ -60,14 +60,14 @@ class TestProficiencyUpdater extends SparkSpec(null) {
 
     "it" should "print the item data for testing" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test.log");
-        val rdd2 = ProficiencyUpdater.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
+        val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         var out = rdd2.collect();
         out.length should be (10)
     }
     
     it should "check the zero Proficiency Updater event is coming" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/emptyMC_test.log");
-        val rdd2 = ProficiencyUpdater.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
+        val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         var out = rdd2.collect();
         out.length should be(2)
     }
