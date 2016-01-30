@@ -23,7 +23,7 @@ object BatchJobDriver {
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
         try {
             val rdd = DataFetcher.fetchBatchData[T](sc, config.search);
-            if(config.deviceMapping.get)
+            if(config.deviceMapping.nonEmpty && config.deviceMapping.get)
                 JobContext.deviceMapping = rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
             val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
             val output = model.execute(sc, filterRdd, config.modelParams);

@@ -6,12 +6,11 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.apache.spark.SparkContext
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods
-
 import com.fasterxml.jackson.core.JsonParseException
-
 import org.ekstep.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
 import org.ekstep.analytics.framework.util.JSONUtils
+import scala.collection.mutable.Buffer
 
 @scala.reflect.BeanInfo
 case class Test(id: String, value: Option[String], optValue: Option[String]);
@@ -197,6 +196,10 @@ class TestDataFilter extends SparkSpec {
         }
         
         noException should be thrownBy {
+            DataFilter.filter(events.collect().toBuffer, null.asInstanceOf[Filter]);    
+        }
+        
+        noException should be thrownBy {
             DataFilter.filter(events, null.asInstanceOf[Array[Filter]]).collect()    
         }
         
@@ -219,6 +222,13 @@ class TestDataFilter extends SparkSpec {
         val result2 = DataFilter.filter(rdd, Filter("optValue", "EQ", Option("Do"))).collect();
         result2.size should be (0);
         
+    }
+    
+    it should "filter buffer of events" in {
+        val rdd = Buffer(Test("One", Option("1"), Option("Ek")),Test("Two", Option("2"), None));
+        val result1 = DataFilter.filter(rdd, Filter("value", "EQ", Option("2")));
+        result1.size should be (1);
+        result1(0).id should be ("Two");
     }
     
 }

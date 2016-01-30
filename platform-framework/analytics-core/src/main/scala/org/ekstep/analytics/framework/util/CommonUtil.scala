@@ -224,19 +224,12 @@ object CommonUtil {
 
     def getTimeDiff(start: Event, end: Event): Option[Double] = {
 
-        try {
-            val st = getTimestamp(start.ts);
-            val et = getTimestamp(end.ts);
-            if(et == 0 || st == 0) {
-                Option(0d);
-            } else {
-                Option((et - st) / 1000);    
-            }
-            
-        } catch {
-            case _: Exception =>
-                Console.err.println("Invalid event time", "start", start.ts, "end", end.ts);
-                Option(0d);
+        val st = getTimestamp(start.ts);
+        val et = getTimestamp(end.ts);
+        if(et == 0 || st == 0) {
+            Option(0d);
+        } else {
+            Option((et - st) / 1000);    
         }
     }
 

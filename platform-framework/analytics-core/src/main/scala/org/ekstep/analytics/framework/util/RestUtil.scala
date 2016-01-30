@@ -28,7 +28,7 @@ object RestUtil {
             }
             JSONUtils.deserialize[T](content);
         } catch {
-            case ex: JsonParseException =>
+            case ex: Exception =>
                 println("### Error parsing response returned by url - " + apiURL + " ###");
                 null.asInstanceOf[T];
         } finally {

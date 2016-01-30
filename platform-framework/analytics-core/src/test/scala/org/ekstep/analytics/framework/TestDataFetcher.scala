@@ -24,6 +24,15 @@ class TestDataFetcher extends SparkSpec {
         
     }
     
+    it should "fetch the events from local file" in {
+        val search = Fetcher("local", None, Option(Array(
+            Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
+        )));
+        val rdd = DataFetcher.fetchBatchData[Event](sc, search);
+        rdd.count should be (7436)
+        
+    }
+    
     it should "throw DataFetcherException" in {
         
         val search = Fetcher("s3", None, Option(Array(
@@ -42,6 +51,10 @@ class TestDataFetcher extends SparkSpec {
         a[DataFetcherException] should be thrownBy {
             DataFetcher.fetchBatchData[Event](sc, Fetcher("file", None, None));
         }
+        
+        val search2 = Fetcher("xyz", None, Option(Array(
+            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"))
+        )));
         
     }
   
