@@ -41,6 +41,7 @@ proc getNodes {graphId type} {
 	java::for {Node node} $nodes {
 		set metadata [java::prop $node "metadata"]
 		$metadata put "objectType" $type
+		$metadata put "identifier" [java::prop $node "identifier"]
 		$metadata put "tags" [java::prop $node "tags"]
 		$nodeList add $metadata
 
