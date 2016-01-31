@@ -10,6 +10,8 @@ import com.datastax.spark.connector._
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import scala.annotation.migration
 import scala.reflect.runtime.universe
+import org.ekstep.analytics.framework.adapter.ContentAdapter
+import org.ekstep.analytics.framework.util.JSONUtils
 
 case class Activity(learner_id: String, content: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
 
