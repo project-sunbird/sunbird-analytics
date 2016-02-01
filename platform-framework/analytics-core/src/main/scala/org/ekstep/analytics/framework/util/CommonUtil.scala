@@ -229,15 +229,13 @@ object CommonUtil {
         if(et == 0 || st == 0) {
             Option(0d);
         } else {
-            Option((et - st) / 1000);    
+            Option(roundDouble(((et - st).toDouble / 1000), 2));    
         }
     }
-
+    
     def getTimeDiff(start: Long, end: Long): Option[Double] = {
 
-        val st = new DateTime(start).getMillis;
-        val et = new DateTime(end).getMillis;
-        Option((et - st) / 1000);
+        Option(roundDouble(((end - start).toDouble / 1000), 2));
     }
 
     def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {

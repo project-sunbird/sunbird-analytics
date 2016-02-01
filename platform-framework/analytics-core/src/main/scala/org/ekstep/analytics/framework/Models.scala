@@ -20,15 +20,30 @@ class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],
           val gid: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
+class EksV2(val dspec: Map[String, AnyRef], val loc: String, val duration: Double, val `type`: String,
+        val itype: String, val stageid: String, val stageto: String, val itemid: String, val pass: String,
+        val score: Int, val res: Array[AnyRef], val params: Array[Map[String, AnyRef]], val uri: String,
+        val state: String, val category: String, val current: String, val max: String, val subtype: String,
+        val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val id: String, val tid: String) extends Serializable {}
+
+@scala.reflect.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
+class EDataV2(val eks: EksV2) extends Serializable {}
+
+@scala.reflect.BeanInfo
 class Event(val eid: String, val ts: String, val `@timestamp`: String,
             val ver: String, val gdata: GData, val sid: String,
             val uid: String, val did: String, val edata: EData) extends Serializable {}
+
+@scala.reflect.BeanInfo
+class TelemetryEventV2(val eid: String, val ets: Long, val `@timestamp`: String,
+            val ver: String, val gdata: GData, val sid: String,
+            val uid: String, val did: String, val edata: EDataV2) extends Serializable {}
 
 
 // Computed Event Model
