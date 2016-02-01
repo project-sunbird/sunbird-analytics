@@ -4,13 +4,13 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.MeasuredEvent
 import com.datastax.spark.connector._
-import org.ekstep.analytics.updater.Activity
 import org.ekstep.analytics.framework.adapter.ContentAdapter
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.JobContext
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.updater.LearnerContentActivity
 
 case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
 
@@ -24,8 +24,8 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val conceptsBroadcast = sc.broadcast(concepts);
 
         //getting timespent for each content 
-        val activitiesInDB = sc.cassandraTable[Activity]("learner_db", "learneractivity");
-        val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, (contentConcepts.get(x.content).get, x.time_spent)) }
+        val activitiesInDB = sc.cassandraTable[LearnerContentActivity]("learner_db", "learneractivity");
+        val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, (contentConcepts.get(x.content_id).get, x.time_spent)) }
             .filter(f => (f._2._1.nonEmpty)).toArray.toMap.map { x =>
                 (x._1, (x._2._1.map(f => (f, x._2._2))).toMap);
             };
