@@ -19,23 +19,25 @@ object RecoEngine {
         val contents = ContentAdapter.getAllContent();
         val contentConcepts = contents.map { x => (x.id, x.concepts) }.toMap;
         val concepts = contentConcepts.values.flatten.toBuffer.distinct;
+        val conceptsBroadcast = sc.broadcast(concepts);
 
         //getting timespent for each content 
         val activitiesInDB = sc.cassandraTable[Activity]("learner_db", "learneractivity");
         val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, (contentConcepts.get(x.content).get, x.time_spent)) }
             .filter(f => (f._2._1.nonEmpty)).toArray.toMap.map { x =>
                 (x._1, (x._2._1.map(f => (f, x._2._2))).toMap);
-            }
+            };
+        val conceptTimeSpentBroadcast = sc.broadcast(conceptTimeSpent);
 
         //getting proficiency for each concept
         val proficiencies = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map { x => (x.learner_id, x.proficiency) }.toArray().toMap;
+        val proficienciesBroadcast = sc.broadcast(proficiencies);
 
         var Pij = Buffer[PijMatrix]();
         val learnerPij = events.map(event => (event.uid.get)).map { x =>
             val proficiency = proficiencies.get(x).get;
             val timeSpentMap = conceptTimeSpent.get(x).get
             val totalTimeSpent = timeSpentMap.values.sum;
-
             concepts.foreach { a =>
                 concepts.foreach { b =>
                     val PijValue = Math.max(proficiency.getOrElse(a, 0.5d), proficiency.getOrElse(b, 0.5d)) + (timeSpentMap.getOrElse(b, 0d) / totalTimeSpent);
