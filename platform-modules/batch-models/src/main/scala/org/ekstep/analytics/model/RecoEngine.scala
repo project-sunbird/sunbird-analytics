@@ -9,10 +9,12 @@ import org.ekstep.analytics.framework.adapter.ContentAdapter
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.JobContext
 import org.apache.spark.HashPartitioner
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.IBatchModel
 
 case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
 
-object RecoEngine {
+object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
 
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         // getting all concepts from concept model
@@ -47,6 +49,6 @@ object RecoEngine {
             (x, Pij)
         };
 
-        return null;
+        learnerPij.map { x => JSONUtils.serialize(x) };
     }
 }
