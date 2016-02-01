@@ -23,11 +23,11 @@ object RecoEngine {
         //getting timespent for each content 
         val activitiesInDB = sc.cassandraTable[Activity]("learner_db", "learneractivity");
         val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, (contentConcepts.get(x.content).get, x.time_spent)) }
-        .filter(f => (f._2._1.nonEmpty)).toArray.toMap.map{x=>
-            (x._1,(x._2._1.map(f=>(f,x._2._2))).toMap);
-        }
-        
-        //getting proficiency for each concepts
+            .filter(f => (f._2._1.nonEmpty)).toArray.toMap.map { x =>
+                (x._1, (x._2._1.map(f => (f, x._2._2))).toMap);
+            }
+
+        //getting proficiency for each concept
         val proficiencies = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map { x => (x.learner_id, x.proficiency) }.toArray().toMap;
 
         var Pij = Buffer[PijMatrix]();
@@ -35,14 +35,14 @@ object RecoEngine {
             val proficiency = proficiencies.get(x).get;
             val timeSpentMap = conceptTimeSpent.get(x).get
             val totalTimeSpent = timeSpentMap.values.sum;
-            
+
             concepts.foreach { a =>
                 concepts.foreach { b =>
-                    val PijValue = Math.max(proficiency.getOrElse(a,0.5d), proficiency.getOrElse(b,0.5d))+(timeSpentMap.getOrElse(b,0d)/totalTimeSpent);
-                    Pij += PijMatrix(a,b,PijValue)
+                    val PijValue = Math.max(proficiency.getOrElse(a, 0.5d), proficiency.getOrElse(b, 0.5d)) + (timeSpentMap.getOrElse(b, 0d) / totalTimeSpent);
+                    Pij += PijMatrix(a, b, PijValue)
                 }
             }
-            (x,Pij)
+            (x, Pij)
         };
 
         return null;
