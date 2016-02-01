@@ -13,8 +13,8 @@ import org.apache.spark.HashPartitioner
 case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
 
 object RecoEngine {
-    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
+    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         // getting all concepts from concept model
         val contents = ContentAdapter.getAllContent();
         val contentConcepts = contents.map { x => (x.id, x.concepts) }.toMap;
