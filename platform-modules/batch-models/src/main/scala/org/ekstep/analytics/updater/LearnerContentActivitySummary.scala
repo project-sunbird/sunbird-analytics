@@ -10,7 +10,7 @@ import org.apache.spark.HashPartitioner
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
 
-case class LearnerContentActivity(learner_id: String, content: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
+case class LearnerContentActivity(learner_id: String, content_id: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
 
 object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable{
     

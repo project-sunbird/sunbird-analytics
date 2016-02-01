@@ -34,9 +34,9 @@ CREATE TABLE learnerproficiency(
 
 CREATE TABLE learnercontentsummary(
 	learner_id text,
-	content text,
+	content_id text,
 	time_spent double,
 	interactions_per_min double,
 	num_of_sessions_played int,
-	PRIMARY KEY (learner_id,content)
+	PRIMARY KEY (learner_id,content_id)
 );

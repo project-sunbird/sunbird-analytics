@@ -16,7 +16,7 @@ class TestLearnerContentActivitySummary extends SparkSpec(null) {
         LearnerContentActivitySummary.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerContentActivitySummary")));
         val rowRDD = sc.cassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
         rowRDD.count() should be(3);
-        val learnerContent = rowRDD.map { x => ((x.learner_id), (x.content, x.interactions_per_min, x.num_of_sessions_played, x.time_spent)) }.toArray().toMap;
+        val learnerContent = rowRDD.map { x => ((x.learner_id), (x.content_id, x.interactions_per_min, x.num_of_sessions_played, x.time_spent)) }.toArray().toMap;
 
         val user1 = learnerContent.get("4320ab1a-7789-453d-910c-8d5a3e3ea52b").get;
         val user2 = learnerContent.get("5704ec89-f6e3-4708-9833-ddf7c57b3949").get;
