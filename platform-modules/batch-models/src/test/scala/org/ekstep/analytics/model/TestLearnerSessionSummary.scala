@@ -14,14 +14,14 @@ import org.ekstep.analytics.framework.Event
 /**
  * @author Santhosh
  */
-class TestGenericSessionSummary extends SparkSpec(null) {
+class TestLearnerSessionSummary extends SparkSpec(null) {
     
-    "GenericScreenerSummaryV2" should "generate session summary and pass all positive test cases" in {
+    "LearnerSessionSummary" should "generate session summary and pass all positive test cases" in {
         
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
-        val rdd2 = GenericSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
+        val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
-        println(me(0))
+        
         me.length should be (1);
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be ("ME_SESSION_SUMMARY");
@@ -55,7 +55,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
     it should "generate 4 session summarries and pass all negative test cases" in {
         
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data2.log");
-        val rdd2 = GenericSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
+        val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be (4);
         
@@ -152,7 +152,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
     it should "generate 3 session summaries and validate the screen summaries" in {
         
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data3.log");
-        val rdd2 = GenericSessionSummary.execute(sc, rdd, Option(Map("modelId" -> "GenericSessionSummary")));
+        val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelId" -> "GenericSessionSummary")));
         val me = rdd2.collect();
         me.length should be (3);
         
@@ -200,7 +200,7 @@ class TestGenericSessionSummary extends SparkSpec(null) {
     ignore should "generate send events to a file" in {
         val rdd = loadFile[Event]("/Users/Santhosh/ekStep/telemetry_dump/prod.telemetry.unique-2016-01-18-10-25.json");
         val filteredRDD = DataFilter.filter(rdd, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))));
-        val rdd2 = GenericSessionSummary.execute(sc, filteredRDD, None);
+        val rdd2 = LearnerSessionSummary.execute(sc, filteredRDD, None);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output.log")), rdd2);
     }
     

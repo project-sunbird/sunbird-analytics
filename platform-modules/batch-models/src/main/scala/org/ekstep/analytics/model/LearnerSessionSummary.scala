@@ -14,7 +14,7 @@ import org.ekstep.analytics.framework.util._
 /**
  * Case class to hold the item responses
  */
-case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[String]);
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
 
 case class ActivitySummary(count: Int, timeSpent: Double)
 
@@ -36,7 +36,7 @@ case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[Stri
 /**
  * Generic Screener Summary Model
  */
-object GenericSessionSummary extends SessionBatchModel[Event] with Serializable {
+object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable {
 
     /**
      * Get level to items mapping from Questionnaires
@@ -158,7 +158,7 @@ object GenericSessionSummary extends SessionBatchModel[Event] with Serializable 
 
     def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
-        println("### Running the model GenericSessionSummaryV2 ###");
+        println("### Running the model LearnerSessionSummary ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
         println("### Fetching the Item data from LP ###");
         val gameQuestionnaires = getItemData(sc, gameList);
