@@ -4,17 +4,17 @@ import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.MeasuredEvent
 import com.datastax.spark.connector._
 
-class TestREInputActivitySummary extends SparkSpec(null) {
+class TestLearnerContentActivitySummary extends SparkSpec(null) {
 
-    "REInputActivitySummary" should " write activities into learneractivity table and check the fields" in {
+    "LearnerContentActivitySummary" should " write activities into learneractivity table and check the fields" in {
 
-        val learnerContentAct = Activity("8b4f3775-6f65-4abf-9afa-b15b8f82a24b", "test_content", 0.0d, 1, 1);
+        val learnerContentAct = LearnerContentActivity("8b4f3775-6f65-4abf-9afa-b15b8f82a24b", "test_content", 0.0d, 1, 1);
         val rdd = sc.parallelize(Array(learnerContentAct));
-        rdd.saveToCassandra("learner_db", "learneractivity");
+        rdd.saveToCassandra("learner_db", "learnercontentsummary");
 
         val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-content-summary/learner_content_test_sample.log");
-        REInputActivitySummary.writeIntoDB(sc, rdd1);
-        val rowRDD = sc.cassandraTable[Activity]("learner_db", "learneractivity");
+        LearnerContentActivitySummary.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerContentActivitySummary")));
+        val rowRDD = sc.cassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
         rowRDD.count() should be(3);
         val learnerContent = rowRDD.map { x => ((x.learner_id), (x.content, x.interactions_per_min, x.num_of_sessions_played, x.time_spent)) }.toArray().toMap;
 

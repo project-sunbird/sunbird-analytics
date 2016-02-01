@@ -1,22 +1,20 @@
 package org.ekstep.analytics.updater
 
-import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
 import scala.collection.mutable.Buffer
+import org.apache.spark.HashPartitioner
 import com.datastax.spark.connector._
-import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
-import scala.annotation.migration
-import scala.reflect.runtime.universe
-import org.ekstep.analytics.framework.adapter.ContentAdapter
 import org.ekstep.analytics.framework.util.JSONUtils
 
-case class Activity(learner_id: String, content: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
+case class LearnerContentActivity(learner_id: String, content: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
 
-object REInputActivitySummary {
-    def writeIntoDB(sc: SparkContext, events: RDD[MeasuredEvent]) {
+object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable{
+    
+    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         val activity = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x =>
@@ -29,10 +27,11 @@ object REInputActivitySummary {
                     val eksMap = events.map { x => x.edata.eks }.map { x => x.asInstanceOf[Map[String, AnyRef]] };
                     val timeSpent = eksMap.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.sum;
                     val interactionsPerMin = eksMap.map(f => f.getOrElse("interactEventsPerMin", 0d).asInstanceOf[Double]).sum;
-                    Activity(learner_id, content, timeSpent, interactionsPerMin, numOfSessionsPlayed);
+                    LearnerContentActivity(learner_id, content, timeSpent, interactionsPerMin, numOfSessionsPlayed);
                 }
                 perContentAct;
             }.flatMap { x => x };
-        activity.saveToCassandra("learner_db", "learneractivity");
+        activity.saveToCassandra("learner_db", "learnercontentsummary");
+        activity.map { x => JSONUtils.serialize(x) };
     }
 }

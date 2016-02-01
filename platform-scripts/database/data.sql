@@ -32,7 +32,7 @@ CREATE TABLE learnerproficiency(
 	PRIMARY KEY (learner_id)
 );
 
-CREATE TABLE learneractivity(
+CREATE TABLE learnercontentsummary(
 	learner_id text,
 	content text,
 	time_spent double,
