@@ -6,7 +6,7 @@ import com.datastax.spark.connector._
 
 class TestREInputActivitySummary extends SparkSpec(null) {
 
-    "REInputActivitySummary" should " write activities into learneractivity table to a file" in {
+    "REInputActivitySummary" should " write activities into learneractivity table and check the fields" in {
 
         val learnerContentAct = Activity("8b4f3775-6f65-4abf-9afa-b15b8f82a24b", "test_content", 0.0d, 1, 1);
         val rdd = sc.parallelize(Array(learnerContentAct));
