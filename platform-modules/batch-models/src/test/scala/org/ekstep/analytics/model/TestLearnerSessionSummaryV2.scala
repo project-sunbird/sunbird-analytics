@@ -89,13 +89,17 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
         
-        summary3.screenSummary.get.size should be (0);
+        summary3.screenSummary.get.size should be (2);
+        summary3.screenSummary.get("activity") should be (74.55);
+        summary3.screenSummary.get("worksheet") should be (0.44);
         summary3.levels.get.length should be (0);
-        summary3.activitySummary.get.size should be (0);
-        summary3.timeSpent should be (23);
-        summary3.eventsSummary.size should be (2);
+        summary3.activitySummary.get.size should be (1);
+        summary3.timeSpent should be (74.99);
+        summary3.eventsSummary.size should be (3);
         summary3.eventsSummary.get("OE_START").get should be (1);
-        summary3.eventsSummary.get("OE_END").get should be (1);
+        summary3.eventsSummary.get("OE_NAVIGATE").get should be (1);
+        summary3.eventsSummary.get("OE_INTERACT").get should be (1);
+        summary3.interactEventsPerMin should be (0.8);
     }
     
     it should "generate session summary for v2 item model" in {
@@ -167,13 +171,17 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
         
-        summary3.screenSummary.get.size should be (0);
+        summary3.screenSummary.get.size should be (2);
+        summary3.screenSummary.get("activity") should be (74.55);
+        summary3.screenSummary.get("worksheet") should be (0.44);
         summary3.levels.get.length should be (0);
-        summary3.activitySummary.get.size should be (0);
-        summary3.timeSpent should be (23);
-        summary3.eventsSummary.size should be (2);
+        summary3.activitySummary.get.size should be (1);
+        summary3.timeSpent should be (74.99);
+        summary3.eventsSummary.size should be (3);
         summary3.eventsSummary.get("OE_START").get should be (1);
-        summary3.eventsSummary.get("OE_END").get should be (1);
+        summary3.eventsSummary.get("OE_NAVIGATE").get should be (1);
+        summary3.eventsSummary.get("OE_INTERACT").get should be (1);
+        summary3.interactEventsPerMin should be (0.8);
     }
     
 }

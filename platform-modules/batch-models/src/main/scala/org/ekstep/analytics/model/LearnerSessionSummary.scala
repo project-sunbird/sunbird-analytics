@@ -272,9 +272,10 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "completionStatus" -> game.completionStatus,
             "screenSummary" -> game.screenSummary,
             "eventsSummary" -> game.eventsSummary,
-            "noOfLevelTransitions" -> game.noOfLevelTransitions);
+            "noOfLevelTransitions" -> game.noOfLevelTransitions,
+            "telemetryVersion" -> "1.0");
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));
     }
