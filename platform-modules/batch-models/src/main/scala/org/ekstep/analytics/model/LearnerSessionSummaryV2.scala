@@ -76,10 +76,10 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
     /**
      * Compute screen summaries on the telemetry data produced by content app
      */
-    def computeScreenSummary(firstEvent: TelemetryEventV2, lastEvent: TelemetryEventV2, navigateEvents: Buffer[TelemetryEventV2]): Map[String, Double] = {
+    def computeScreenSummary(firstEvent: TelemetryEventV2, lastEvent: TelemetryEventV2, navigateEvents: Buffer[TelemetryEventV2], interruptSummary: Map[String, Double]): Map[String, Double] = {
 
-        var stageMap = HashMap[String, Double]();
         if (navigateEvents.length > 0) {
+            var stageMap = HashMap[String, Double]();
             var prevEvent = firstEvent;
             navigateEvents.foreach { x =>
                 val currStage = x.edata.eks.stageid;
@@ -99,10 +99,37 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             } else {
                 stageMap.put(lastStage, stageMap.get(lastStage).get + timeDiff);
             }
-
+            stageMap.map(f => {
+                (f._1, CommonUtil.roundDouble((f._2 - interruptSummary.getOrElse(f._1, 0d)), 2));
+            }).toMap;
+        } else {
+            Map[String, Double]();
         }
 
-        stageMap.toMap;
+    }
+    
+    def computeInterruptSummary(interruptEvents: Buffer[TelemetryEventV2]) : Map[String, Double] = {
+        
+        if (interruptEvents.length > 0) {
+            interruptEvents.groupBy { event => event.edata.eks.stageid }.mapValues { events => 
+                var prevTs:Long = 0;
+                var ts: Double = 0;
+                events.foreach { event => 
+                    event.edata.eks.`type` match {
+                        case "BACKGROUND" =>
+                            prevTs = event.ets;
+                        case "RESUME" =>
+                            if(prevTs == 0) prevTs = event.ets;
+                            ts += CommonUtil.getTimeDiff(prevTs, event.ets).get;
+                            prevTs == 0
+                        
+                    }                    
+                }
+                ts;
+            }.toMap;
+        } else {
+            Map[String, Double]();
+        }
     }
 
     def execute(sc: SparkContext, data: RDD[TelemetryEventV2], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
@@ -184,10 +211,13 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => (f._1, ActivitySummary(f._2, CommonUtil.roundDouble(f._3, 2)))).toMap;
             val eventSummary = events.groupBy { x => x.eid }.map(f => (f._1, f._2.length)).toMap;
             val navigateEvents = DataFilter.filter(events, Filter("eid", "EQ", Option("OE_NAVIGATE")));
-            SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent.get, 0d, Option(startTimestamp),
+            val interruptSummary = computeInterruptSummary(DataFilter.filter(events, Filter("eid", "EQ", Option("OE_INTERRUPT"))));
+            val screenSummary = computeScreenSummary(firstEvent, lastEvent, navigateEvents, interruptSummary);
+            val interruptTime = if(interruptSummary.size > 0) interruptSummary.map(f => f._2).sum else 0d;
+            SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent.get, interruptTime, Option(startTimestamp),
                 Option(endTimestamp), Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc),
                 Option(itemResponses), DtRange(startTimestamp, endTimestamp), interactEventsPerMin,
-                Option(activitySummary), None, Option(computeScreenSummary(firstEvent, lastEvent, navigateEvents)), noOfInteractEvents, eventSummary,
+                Option(activitySummary), None, Option(screenSummary), noOfInteractEvents, eventSummary,
                 lastEvent.ets);
         }
         screenerSummary.map(f => {

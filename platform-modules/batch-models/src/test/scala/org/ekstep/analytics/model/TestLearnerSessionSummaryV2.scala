@@ -184,4 +184,40 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         summary3.interactEventsPerMin should be (0.8);
     }
     
+    it should "compute interrupt summary and exclude interrupt summary in screen summary" in {
+        
+        val rdd = loadFile[TelemetryEventV2]("src/test/resources/session-summary/test_data4.log");
+        val rdd2 = LearnerSessionSummaryV2.execute(sc, rdd, Option(Map("modelId" -> "LearnerSessionSummaryV2", "apiVersion" -> "v2")));
+        val me = rdd2.collect();
+        me.length should be (1);
+        
+        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
+        summary1.noOfLevelTransitions.get should be (-1);
+        summary1.levels should not be (None);
+        summary1.levels.get.length should be (0);
+        summary1.noOfAttempts should be (1);
+        summary1.timeSpent should be (377);
+        summary1.interactEventsPerMin should be (3.5);
+        summary1.noOfInteractEvents should be (22);
+        summary1.interruptTime should be (15.34);
+        
+        summary1.activitySummary.get.size should be (4);
+        summary1.eventsSummary.size should be (5);
+        
+        summary1.screenSummary.get.size should be (9);
+        summary1.screenSummary.get("scene6") should be (20.16);
+        summary1.screenSummary.get("scene3") should be (110.05);
+        summary1.screenSummary.get("scene2") should be (20.46);
+        
+        summary1.screenSummary.get("splash") should be (44.35);
+        summary1.screenSummary.get("scene1") should be (25.37);
+        summary1.screenSummary.get("endScreen") should be (13.43);
+        
+        summary1.screenSummary.get("activity") should be (76.41);
+        summary1.screenSummary.get("scene4") should be (23.9);
+        summary1.screenSummary.get("scene5") should be (27.63);
+        
+    }
+    
 }
