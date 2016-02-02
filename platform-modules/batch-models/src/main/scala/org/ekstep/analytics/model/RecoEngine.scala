@@ -28,7 +28,7 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         //getting timespent for each content 
         val activitiesInDB = sc.cassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
         val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, (contentConcepts.getOrElse(x.content_id, Array()), x.time_spent)) }
-            .filter(f => (f._2._1.nonEmpty)).toArray.toMap.map { x =>
+            .filter(f => (f._2._1.nonEmpty)).collect.toMap.map { x =>
                 (x._1, (x._2._1.map(f => (f, x._2._2))).toMap);
             };
         val conceptTimeSpentBroadcast = sc.broadcast(conceptTimeSpent);
