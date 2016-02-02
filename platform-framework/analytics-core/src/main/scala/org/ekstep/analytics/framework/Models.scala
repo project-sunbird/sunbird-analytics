@@ -94,4 +94,4 @@ case class Relation(startNodeId: String, endNodeId: String, startNodeType: Strin
 case class DomainMap(concepts: Array[Concept], relations: Array[Relation])
 case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[Relation]);
 case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult);
-case class ConceptSimilarityJson(startNodeId: String, endNodeId: String, similarity: Map[String, AnyRef]);
+case class ConceptSimilarityJson(startNodeId: String, endNodeId: String, similarity: List[Map[String, AnyRef]]);
