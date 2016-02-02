@@ -25,7 +25,7 @@ class TestLearnerContentActivitySummary extends SparkSpec(null) {
         user1._3 should be(1)
         user1._4 should be(4)
 
-        user2._2 should be(8.43)
+        user2._2 should be(2.81)
         user2._3 should be(3)
         user2._4 should be(1092)
     }
