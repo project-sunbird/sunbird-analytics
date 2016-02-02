@@ -12,6 +12,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.updater.LearnerContentActivity
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.updater.ConceptSimilarity
 
 case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
 
@@ -33,11 +34,15 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val conceptTimeSpentBroadcast = sc.broadcast(conceptTimeSpent);
 
         //getting proficiency for each concept
-        val proficiencies = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map { x => (x.learner_id, x.proficiency) }.toArray().toMap;
+        val proficiencies = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map { x => (x.learner_id, x.proficiency) }.collect().toMap;
         val proficienciesBroadcast = sc.broadcast(proficiencies);
 
+        //getting concept similarity
+        val similarities = sc.cassandraTable[ConceptSimilarity]("learner_db", "conceptsimilaritymatrix").map { x => (x.concept1, x.concept2, x.relation_type, x.sim) };
+        val conceptSimilarities = sc.broadcast(similarities)
+        
         println(concepts.length, "concepts count")
-        println(events.toArray.length, "events count")
+        println(events.collect().length, "events count")
 
         var Pij = Buffer[PijMatrix]();
         val learnerPij = events.map(event => (event.uid.get, Buffer(event)))
@@ -45,8 +50,7 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
             .reduceByKey((a, b) => a ++ b).map(x => x._1).map { x =>
                 val proficiency = proficiencies.getOrElse(x, Map());
                 val timeSpentMap = conceptTimeSpent.getOrElse(x, Map());
-                var totalTimeSpent = timeSpentMap.values.sum;
-                if (totalTimeSpent == 0) totalTimeSpent = 1d
+                val totalTimeSpent = if (timeSpentMap.values.sum == 0)1;else timeSpentMap.values.sum;
                 concepts.foreach { a =>
                     concepts.foreach { b =>
                         if (!a.equals(b)) {
