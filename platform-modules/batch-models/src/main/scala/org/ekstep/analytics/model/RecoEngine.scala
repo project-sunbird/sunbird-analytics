@@ -11,6 +11,7 @@ import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.updater.LearnerContentActivity
+import org.ekstep.analytics.framework.util.CommonUtil
 
 case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
 
@@ -24,8 +25,8 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val conceptsBroadcast = sc.broadcast(concepts);
 
         //getting timespent for each content 
-        val activitiesInDB = sc.cassandraTable[LearnerContentActivity]("learner_db", "learneractivity");
-        val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, (contentConcepts.get(x.content_id).get, x.time_spent)) }
+        val activitiesInDB = sc.cassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
+        val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, (contentConcepts.getOrElse(x.content_id, Array()), x.time_spent)) }
             .filter(f => (f._2._1.nonEmpty)).toArray.toMap.map { x =>
                 (x._1, (x._2._1.map(f => (f, x._2._2))).toMap);
             };
@@ -35,20 +36,27 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val proficiencies = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map { x => (x.learner_id, x.proficiency) }.toArray().toMap;
         val proficienciesBroadcast = sc.broadcast(proficiencies);
 
-        var Pij = Buffer[PijMatrix]();
-        val learnerPij = events.map(event => (event.uid.get)).map { x =>
-            val proficiency = proficiencies.get(x).get;
-            val timeSpentMap = conceptTimeSpent.get(x).get
-            val totalTimeSpent = timeSpentMap.values.sum;
-            concepts.foreach { a =>
-                concepts.foreach { b =>
-                    val PijValue = Math.max(proficiency.getOrElse(a, 0.5d), proficiency.getOrElse(b, 0.5d)) + (timeSpentMap.getOrElse(b, 0d) / totalTimeSpent);
-                    Pij += PijMatrix(a, b, PijValue)
-                }
-            }
-            (x, Pij)
-        };
+        println(concepts.length, "concepts count")
+        println(events.toArray.length, "events count")
 
+        var Pij = Buffer[PijMatrix]();
+        val learnerPij = events.map(event => (event.uid.get, Buffer(event)))
+            .partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).map(x => x._1).map { x =>
+                val proficiency = proficiencies.getOrElse(x, Map());
+                val timeSpentMap = conceptTimeSpent.getOrElse(x, Map());
+                var totalTimeSpent = timeSpentMap.values.sum;
+                if (totalTimeSpent == 0) totalTimeSpent = 1d
+                concepts.foreach { a =>
+                    concepts.foreach { b =>
+                        if (!a.equals(b)) {
+                            val PijValue = Math.max(proficiency.getOrElse(a, 0.5d) - proficiency.getOrElse(b, 0.5d), 0) + ((timeSpentMap.getOrElse(b, 0d) / totalTimeSpent));
+                            Pij += PijMatrix(a, b, CommonUtil.roundDouble(PijValue, 2))
+                        }
+                    }
+                }
+                (x, Pij)
+            };
         learnerPij.map { x => JSONUtils.serialize(x) };
     }
 }
