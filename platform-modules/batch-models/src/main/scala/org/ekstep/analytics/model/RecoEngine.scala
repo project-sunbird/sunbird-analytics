@@ -65,13 +65,13 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
             val simTotal = f._2.map(a => a._4).sum
             row.map { x => (x._1, x._2, (x._4 / simTotal)) }.toBuffer;
         }.flatMap(f => f)
-        
+
         val learner = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map(x => x._1);
 
         // Pij & time spent computation
-        
+
         //time spent computation
         val learnerTimeSpent = learner.map { x =>
             val timeSpentMap = conceptTimeSpent.getOrElse(x, Map());
@@ -102,7 +102,7 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val sij = normSimilarities.map { x => (x._1 + "_" + x._2, x._3) }
 
         val learnerSigma = learnerPij.map { x =>
-            
+
             val pij = learnerPij.map { f =>
                 x._2.map { f => (f._1 + "__" + f._2, f._3) };
             }.flatMap(f => f)
@@ -114,7 +114,7 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
                 val concepts = x._1.split("__")
                 (concepts(0), concepts(1), (timeSpentNorm.getOrElse(concepts(1), 0.01) + x._2._1 + x._2._2));
             }.collect
-            (x._1,sigma);
+            (x._1, sigma);
         }
 
         //val relevaneMatrix = Buffer[(String,Double)](); 
