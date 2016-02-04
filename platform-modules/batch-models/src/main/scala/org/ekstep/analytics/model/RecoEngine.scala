@@ -20,8 +20,6 @@ import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.DtRange
 
-case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
-
 case class Relevance(learner_id: String, relevance: Map[String, Double])
 
 object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
@@ -52,13 +50,15 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val activitiesInDB = sc.cassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
         val conceptTimeSpent = activitiesInDB.map { x => (x.learner_id, Buffer(x)) }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).mapValues { x =>
-                val content = x.map { x => (contentConcepts.getOrElse(x.content_id, Array()), x.time_spent) }
+            .reduceByKey((a, b) => a ++ b).map { x =>
+                val mapValue = x._2
+                val content = mapValue.map { x => (contentConcepts.getOrElse(x.content_id, Array()), x.time_spent) }
                     .filter(f => (f._1.nonEmpty)).map { f =>
                         (f._1.map(a => (a, f._2)))
                     }.flatten.groupBy(a => a._1).map { f => (f._1, f._2.map(f => f._2).reduce((a, b) => a + b)) }
-                content;
+                (x._1, content);
             }.collect.toMap;
+
         //val conceptTimeSpentBroadcast = sc.broadcast(conceptTimeSpent);
 
         //getting proficiency for each concept
@@ -66,68 +66,82 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val proficienciesBroadcast = sc.broadcast(proficiencies);
 
         //getting concept similarity with default wight
-        val similarities = sc.cassandraTable[ConceptSimilarity]("learner_db", "conceptsimilaritymatrix").map { x => (x.concept1, x.concept2, x.relation_type, (defaultWeightSij) * (x.sim)) };
-        val conceptSimilarities = sc.broadcast(similarities)
+        val similarities = sc.cassandraTable[ConceptSimilarity]("learner_db", "conceptsimilaritymatrix")
+            .map { x => (x.concept1, x.concept2, (defaultWeightSij) * (x.sim)) }.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap;
 
-        // normalizing sij
-        val normSimilarities = similarities.groupBy { x => x._1 }.map { f =>
-            val row = f._2;
-            val simTotal = f._2.map(a => a._4).sum
-            row.map { x => (x._1, x._2, (x._4 / simTotal)) }.toBuffer;
-        }.flatMap(f => f)
-        val sijMap = normSimilarities.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap
+        // normalizing sij ####  Adding default sim value in Sij matrix new concept before normalization ####  
+        val normSimilarities = concepts.map { c1 =>
+            val row = concepts.map { c2 =>
+                if (similarities.contains(c1 + "__" + c2)) {
+                    (c1 + "__" + c2, similarities.get(c1 + "__" + c2).get);
+                } else {
+                    (c1 + "__" + c2, 0.001d);
+                }
+            }
+            val simTotal = row.map(a => a._2).sum
+            row.map { x => (x._1, (x._2 / simTotal)) };
+        }.flatten.toMap;
 
         val learner = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map(x => x._1);
 
         // Pij & time spent computation
-
         //time spent computation
-        val learnerTimeSpent = learner.map { x =>
-            val timeSpentMap = conceptTimeSpent.getOrElse(x, Map());
-            val totalTimeSpent = if (timeSpentMap.values.sum == 0) 1; else timeSpentMap.values.sum;
-            (x, timeSpentMap.map(f => (f._1, (defaultWeightTimeSpent) * (f._2 / totalTimeSpent))))
-        }.collect.toMap
+        // #### Adding default value to the conceptTimeSpent if concept is not there 
+        // #### & Calculating default timeSpent matrix if it is a fresh learner  
 
-        // pij computation
+        val value = (1.toDouble / concepts.length);
+        val defaultMatrix = concepts.map { x => (x, value) }.toMap;
+        val updatedconceptTimeSpent = conceptTimeSpent.map { x =>
+            val learner = x._1
+            val conceptTimeMap = x._2
+            var totalTimeSpent = 0d
+            if (conceptTimeMap.nonEmpty) totalTimeSpent = conceptTimeMap.values.sum; else totalTimeSpent = defaultMatrix.values.sum;
+            val conceptTime = concepts.map { f =>
+                if (!conceptTimeMap.contains(f)) {
+                    (f, (value / totalTimeSpent));
+                } else {
+                    (f, (conceptTimeMap.get(f).get / totalTimeSpent));
+                }
+            }
+            (learner, conceptTime.toMap);
+        }
+
+        //pij computation
         val normPij = learner.map { x =>
             val proficiency = proficiencies.getOrElse(x, Map());
-            val Pij = Map[String, Double]();
+            var Pij = Map[String, Double]();
             concepts.foreach { a =>
-                val PijRow = Buffer[PijMatrix]();
+                var PijRow = Buffer[(String, String, Double)]();
                 var sum = 0d;
                 concepts.foreach { b =>
                     val PijValue = (defaultWeightPij) * (Math.max(proficiency.getOrElse(a, 0.5d) - proficiency.getOrElse(b, 0.5d), 0.0001))
-                    val roundValue = CommonUtil.roundDouble(PijValue, 2);
-                    PijRow += PijMatrix(a, b, roundValue)
-                    sum += roundValue
+                    PijRow.append((a, b, PijValue))
+                    sum += PijValue
                 }
                 //Normalizing Pij values
-                Pij ++ PijRow.map { x => (x.concept1 + "__" + x.concept2, (x.pijValue / sum)) }.toMap;
+                Pij = Pij ++ PijRow.map { x => (x._1 + "__" + x._2, (x._3 / sum)) }.toMap;
             }
-            (x, Pij)
+            (x, Pij);
         }.collect().toMap;
 
-        //val relevanceMap = concepts.map { x => (x, 0.33d) }
         val learnerRelevanceMap = sc.cassandraTable[Relevance]("learner_db", "conceptrelevance").map { x => (x.learner_id, x.relevance) }.collect().toMap;
 
         //matrix Addition - (pij + sij + normTimeSpent) & relevance calculation at 1 iteration 
         val learnerConceptRelevance = learner.map { x =>
             val pijMap = normPij.get(x).get
-            val timeSpentMap = learnerTimeSpent.get(x).get
-            var relevanceMap = learnerRelevanceMap.getOrElse(x, Map());
-            var i = 0;
+            val timeSpentMap = updatedconceptTimeSpent.getOrElse(x, defaultMatrix)
+            var relevanceMap = learnerRelevanceMap.getOrElse(x, defaultMatrix);
             for (i <- 1 to numOfIteration) {
-                println("iteration start====>")
                 val relevance = concepts.map { a =>
                     var rel = 0d;
                     concepts.map { b =>
-                        val p = pijMap.getOrElse(a + "__" + b, 0.001d)
-                        val s = sijMap.getOrElse(a + "__" + b, 0d)
-                        val t = timeSpentMap.getOrElse(b, 0.01d)
+                        val p = pijMap.get(a + "__" + b).get
+                        val s = normSimilarities.get(a + "__" + b).get
+                        val t = timeSpentMap.get(b).get
                         val sigma = p + s + t;
-                        rel += sigma * relevanceMap.getOrElse(b, 0.33);
+                        rel += sigma * relevanceMap.getOrElse(b, value);
                     }
                     (a, rel);
                 }

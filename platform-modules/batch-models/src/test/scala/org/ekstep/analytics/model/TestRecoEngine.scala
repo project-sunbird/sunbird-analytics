@@ -10,8 +10,7 @@ class TestRecoEngine extends SparkSpec(null) {
 
         val rdd = loadFile[MeasuredEvent]("src/test/resources/reco-engine/reco_engine_test.log");
         val rdd2 = RecoEngine.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "RecoEngine")));
-        val pijValues = rdd2.collect()
-        println(pijValues.length, "pijValues")
+//        val me = rdd2.collect()
 //        for (pij <- pijValues) {
 //            println(pij)
 //        }
