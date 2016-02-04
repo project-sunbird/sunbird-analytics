@@ -43,7 +43,6 @@ CREATE TABLE learnercontentsummary(
 
 CREATE TABLE conceptrelevance(
 	learner_id text,
-	concept_id text,
-	relevance double,
+	relevance map<text,double>,
 	PRIMARY KEY (learner_id)
 );
