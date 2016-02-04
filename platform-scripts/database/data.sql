@@ -40,3 +40,10 @@ CREATE TABLE learnercontentsummary(
 	num_of_sessions_played int,
 	PRIMARY KEY (learner_id,content_id)
 );
+
+CREATE TABLE conceptrelevance(
+	learner_id text,
+	concept_id text,
+	relevance double,
+	PRIMARY KEY (learner_id)
+);

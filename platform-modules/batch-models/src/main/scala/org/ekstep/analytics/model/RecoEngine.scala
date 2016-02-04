@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.adapter.DomainAdapter
 
 case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
 
-//case class Relevance(concept: String, relevance: Double)
+case class Relevance(learner: String, concept: String, relevance: Double)
 
 object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -59,12 +59,14 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         //getting concept similarity with default wight
         val similarities = sc.cassandraTable[ConceptSimilarity]("learner_db", "conceptsimilaritymatrix").map { x => (x.concept1, x.concept2, x.relation_type, (defaultWeightSij) * (x.sim)) };
         val conceptSimilarities = sc.broadcast(similarities)
+
         // normalizing sij
         val normSimilarities = similarities.groupBy { x => x._1 }.map { f =>
             val row = f._2;
             val simTotal = f._2.map(a => a._4).sum
             row.map { x => (x._1, x._2, (x._4 / simTotal)) }.toBuffer;
         }.flatMap(f => f)
+        val sijMap = normSimilarities.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap
 
         val learner = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -80,9 +82,9 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         }.collect.toMap
 
         // pij computation
-        val Pij = Buffer[(String, String, Double)]();
-        val learnerPij = learner.map { x =>
+        val normPij = learner.map { x =>
             val proficiency = proficiencies.getOrElse(x, Map());
+            val Pij = Map[String, Double]();
             concepts.foreach { a =>
                 val PijRow = Buffer[PijMatrix]();
                 var sum = 0d;
@@ -93,32 +95,30 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
                     sum += roundValue
                 }
                 //Normalizing Pij values
-                Pij ++ PijRow.map { x => (x.concept1, x.concept2, (x.pijValue / sum)) }
+                Pij ++ PijRow.map { x => (x.concept1 + "__" + x.concept2, (x.pijValue / sum)) }.toMap;
             }
             (x, Pij)
-        };
+        }.collect().toMap;
 
-        //matrix Addition - (pij + sij + normTimeSpent)  
-        val sij = normSimilarities.map { x => (x._1 + "_" + x._2, x._3) }
+        //val relevanceMap = concepts.map { x => (x, 0.33d) }
+        val relevanceMap = sc.cassandraTable[Relevance]("learner_db", "conceptrelevance").map { x => (x.concept, x.relevance) }.collect().toMap;
 
-        val learnerSigma = learnerPij.map { x =>
-
-            val pij = learnerPij.map { f =>
-                x._2.map { f => (f._1 + "__" + f._2, f._3) };
-            }.flatMap(f => f)
-
-            val pijSijJoin = pij.join(sij)
-            val timeSpentNorm = learnerTimeSpent.get(x._1).get
-
-            val sigma = pijSijJoin.map { x =>
-                val concepts = x._1.split("__")
-                (concepts(0), concepts(1), (timeSpentNorm.getOrElse(concepts(1), 0.01) + x._2._1 + x._2._2));
-            }.collect
-            (x._1, sigma);
-        }
-
-        //val relevaneMatrix = Buffer[(String,Double)](); 
-
-        return null;
+        //matrix Addition - (pij + sij + normTimeSpent) & relevance calculation at 1 iteration 
+        val learnerRelevance = learner.map { x =>
+            val pijMap = normPij.get(x).get
+            val timeSpentMap = learnerTimeSpent.get(x).get
+            val relevance = concepts.map { a =>
+                var rel = 0d;
+                concepts.map { b =>
+                    val sigma = pijMap.get(a + "__" + b).get + sijMap.get(a + "__" + b).get + timeSpentMap.get(b).get
+                    rel += sigma * relevanceMap.getOrElse(b, 0.33);
+                }
+                Relevance(x, a, rel);
+            }
+            relevance;
+        }.flatMap { x => x }
+        
+        learnerRelevance.saveToCassandra("learner_db","conceptrelevance");
+        learnerRelevance.map { x => JSONUtils.serialize(x) };
     }
 }
