@@ -12,9 +12,9 @@ class TestRecoEngine extends SparkSpec(null) {
         val rdd2 = RecoEngine.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "RecoEngine")));
         val pijValues = rdd2.collect()
         println(pijValues.length, "pijValues")
-        for (pij <- pijValues) {
-            println(pij)
-        }
-        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/reco-engine/test_output.log")), rdd2);
+//        for (pij <- pijValues) {
+//            println(pij)
+//        }
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/reco-engine/test_output.log")), rdd2);
     }
 }

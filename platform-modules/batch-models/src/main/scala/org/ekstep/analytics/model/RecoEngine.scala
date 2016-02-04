@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.adapter.DomainAdapter
 
 case class PijMatrix(concept1: String, concept2: String, pijValue: Double);
 
-case class Relevance(learner: String, concept: String, relevance: Double)
+case class Relevance(learner_id: String, concept_id: String, relevance: Double)
 
 object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -27,9 +27,9 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val configMapping = sc.broadcast(config);
 
         // initializing lambda value 
-        val defaultWeightPij = configMapping.value.getOrElse("profWeight", (1 / 3)).asInstanceOf[Double];
-        val defaultWeightSij = configMapping.value.getOrElse("conSimWeight", (1 / 3)).asInstanceOf[Double];
-        val defaultWeightTimeSpent = configMapping.value.getOrElse("timeSpentWeight", (1 / 3)).asInstanceOf[Double];
+        val defaultWeightPij = configMapping.value.getOrElse("profWeight", 0.33).asInstanceOf[Double];
+        val defaultWeightSij = configMapping.value.getOrElse("conSimWeight", 0.33).asInstanceOf[Double];
+        val defaultWeightTimeSpent = configMapping.value.getOrElse("timeSpentWeight", 0.33).asInstanceOf[Double];
 
         // getting Content-Concepts Map
         val contents = ContentAdapter.getAllContent();
@@ -101,24 +101,28 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         }.collect().toMap;
 
         //val relevanceMap = concepts.map { x => (x, 0.33d) }
-        val relevanceMap = sc.cassandraTable[Relevance]("learner_db", "conceptrelevance").map { x => (x.concept, x.relevance) }.collect().toMap;
+        val relevanceMap = sc.cassandraTable[Relevance]("learner_db", "conceptrelevance").map { x => (x.concept_id, x.relevance) }.collect().toMap;
 
         //matrix Addition - (pij + sij + normTimeSpent) & relevance calculation at 1 iteration 
         val learnerRelevance = learner.map { x =>
             val pijMap = normPij.get(x).get
+            println(pijMap)
             val timeSpentMap = learnerTimeSpent.get(x).get
             val relevance = concepts.map { a =>
                 var rel = 0d;
                 concepts.map { b =>
-                    val sigma = pijMap.get(a + "__" + b).get + sijMap.get(a + "__" + b).get + timeSpentMap.get(b).get
+                    val p = pijMap.getOrElse(a + "__" + b, 0.001d)
+                    val s = sijMap.getOrElse(a + "__" + b, 0d)
+                    val t = timeSpentMap.getOrElse(b, 0.01d)
+                    val sigma = p + s + t;
                     rel += sigma * relevanceMap.getOrElse(b, 0.33);
                 }
                 Relevance(x, a, rel);
             }
             relevance;
         }.flatMap { x => x }
-        
-        learnerRelevance.saveToCassandra("learner_db","conceptrelevance");
+
+        learnerRelevance.saveToCassandra("learner_db", "conceptrelevance");
         learnerRelevance.map { x => JSONUtils.serialize(x) };
     }
 }
