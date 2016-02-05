@@ -111,23 +111,21 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         //pij computation
         val normPij = learner.map { x =>
             val proficiency = proficiencies.getOrElse(x, Map());
-            var Pij = Map[String, Double]();
-            concepts.foreach { a =>
-                var PijRow = Buffer[(String, String, Double)]();
-                var sum = 0d;
-                concepts.foreach { b =>
-                    val PijValue = (defaultWeightPij) * (Math.max(proficiency.getOrElse(a, 0.5d) - proficiency.getOrElse(b, 0.5d), 0.0001))
-                    PijRow.append((a, b, PijValue))
-                    sum += PijValue
+            val matrix = concepts.map { a =>
+                val row = concepts.map { b =>
+                    (a,b,(defaultWeightPij) * (Math.max(proficiency.getOrElse(a, 0.5d) - proficiency.getOrElse(b, 0.5d), 0.0001)))
                 }
                 //Normalizing Pij values
-                Pij = Pij ++ PijRow.map { x => (x._1 + "__" + x._2, (x._3 / sum)) }.toMap;
-            }
-            (x, Pij);
-        }.collect().toMap;
+                val rowSum = row.map(f=>f._3).sum
+                row.map{x=>(x._1+"__"+x._2,(x._3/rowSum))};
+            }.flatMap(f=>f).toMap
+            (x,matrix);
+        }.collect().toMap
+        
 
+        // getting previous Relevance 
         val learnerRelevanceMap = sc.cassandraTable[Relevance]("learner_db", "conceptrelevance").map { x => (x.learner_id, x.relevance) }.collect().toMap;
-
+        
         //matrix Addition - (pij + sij + normTimeSpent) & relevance calculation at 1 iteration 
         val learnerConceptRelevance = learner.map { x =>
             val pijMap = normPij.get(x).get
@@ -136,11 +134,13 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
             for (i <- 1 to numOfIteration) {
                 val relevance = concepts.map { a =>
                     var rel = 0d;
+                    val sigmaMatrix = Buffer[Double]();
                     concepts.map { b =>
                         val p = pijMap.get(a + "__" + b).get
                         val s = normSimilarities.get(a + "__" + b).get
                         val t = timeSpentMap.get(b).get
-                        val sigma = p + s + t;
+                        val sigma = (p + s + t)/3;
+                        sigmaMatrix += sigma
                         rel += sigma * relevanceMap.getOrElse(b, value);
                     }
                     (a, rel);
