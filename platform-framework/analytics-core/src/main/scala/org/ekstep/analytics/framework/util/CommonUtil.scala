@@ -44,7 +44,8 @@ object CommonUtil {
 
     def getParallelization(config: JobConfig): Int = {
 
-        config.parallelization.getOrElse(AppConf.getConfig("default.parallelization").toInt);
+        val defParallelization = AppConf.getConfig("default.parallelization").toInt;
+        config.parallelization.getOrElse(defParallelization);
     }
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {

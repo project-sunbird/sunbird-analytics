@@ -48,9 +48,12 @@ class TestDataFetcher extends SparkSpec {
         }
         
         // Throw unknown fetcher type found
-        a[DataFetcherException] should be thrownBy {
-            DataFetcher.fetchBatchData[Event](sc, Fetcher("file", None, None));
-        }
+        the[DataFetcherException] thrownBy {
+            val fileFetcher = Fetcher("file", None, Option(Array(
+                Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
+            )));
+            DataFetcher.fetchBatchData[Event](sc, fileFetcher);
+        } should have message "Unknown fetcher type found"
         
         val search2 = Fetcher("xyz", None, Option(Array(
             Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"))

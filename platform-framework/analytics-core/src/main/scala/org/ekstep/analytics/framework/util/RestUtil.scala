@@ -20,12 +20,9 @@ object RestUtil {
         try {
             val httpResponse = httpClient.execute(request);
             val entity = httpResponse.getEntity()
-            var content:String = null;
-            if (entity != null) {
-                val inputStream = entity.getContent()
-                content = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString;
-                inputStream.close
-            }
+            val inputStream = entity.getContent()
+            val content = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString;
+            inputStream.close
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: Exception =>
@@ -46,12 +43,9 @@ object RestUtil {
         try {
             val httpResponse = httpClient.execute(request);
             val entity = httpResponse.getEntity()
-            var content:String = null;
-            if (entity != null) {
-                val inputStream = entity.getContent()
-                content = Source.fromInputStream(inputStream).getLines.mkString
-                inputStream.close
-            }
+            val inputStream = entity.getContent()
+            val content = Source.fromInputStream(inputStream).getLines.mkString
+            inputStream.close
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>

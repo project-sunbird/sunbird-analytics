@@ -89,5 +89,7 @@ class TestItemAdapter extends BaseSpec {
         item2 should not be (null);
         item2.concepts should be (null);
         item2.maxScore should be (1);
+        
+        ItemAdapter.getItemWrapper(Map[String, AnyRef]("identifier" -> "i123"));
     }
 }

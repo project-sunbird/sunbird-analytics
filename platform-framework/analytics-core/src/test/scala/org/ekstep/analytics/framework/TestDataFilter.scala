@@ -145,6 +145,14 @@ class TestDataFilter extends SparkSpec {
         filteredEvents.count() should be (0);
     }
     
+    it should "filter all events when the 'NIN' clause is followed by an null array" in {
+        val filters = Option(Array[Filter](
+            Filter("eventId", "NIN", None)
+        ));
+        val filteredEvents = DataFilter.filterAndSort(events, filters, None);
+        filteredEvents.count() should be (0);
+    }
+    
     it should "filter all events when qid is not empty" in {
         val filters = Option(Array[Filter](
             Filter("itemId", "ISNOTEMPTY", None)

@@ -19,9 +19,6 @@ object DomainAdapter extends BaseAdapter {
     def getDomainMap() : DomainMap = {
         val dr = RestUtil.get[DomainResponse](Constants.getDomainMap);
         checkResponse(dr);
-        if(!dr.responseCode.equals("OK") || dr.result.concepts == null) {
-            throw new DataAdapterException("No concepts found in the domain graph");
-        }
         val concepts = dr.result.concepts.map(f => {
             getConceptWrapper(f);
         });
