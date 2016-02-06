@@ -3,6 +3,7 @@ package require java
 java::import -package java.util ArrayList List
 java::import -package java.util HashMap Map
 java::import -package com.ilimi.graph.dac.model Node
+java::import -package com.ilimi.graph.dac.model Filter
 java::import -package com.ilimi.graph.dac.model Relation
 
 proc relationsExist {relations} {
@@ -18,9 +19,18 @@ proc relationsExist {relations} {
 }
 
 proc getNodesByObjectType {graphId type} {
+
 	set map [java::new HashMap]
 	$map put "nodeType" "DATA_NODE"
 	$map put "objectType" $type
+	$map put "status" "Live"
+
+	set contentTypes [java::new {String[]} 3]
+	$contentTypes set 0 "Story"
+	$contentTypes set 1 "Worksheet"
+	$contentTypes set 2 "Game"
+
+	$map put "contentType" $contentTypes
 	set search_criteria [create_search_criteria $map]
 	set response [searchNodes $graphId $search_criteria]
 	set check_error [check_response_error $response]
@@ -37,9 +47,11 @@ set contentList [java::new ArrayList]
 java::try {
 	set nodes [getNodesByObjectType "domain" "Content"]
 	java::for {Node node} $nodes {
-		set metadata [java::prop $node "metadata"]
-		$metadata put "tags" [java::prop $node "tags"]
-		$metadata put "identifier" [java::prop $node "identifier"]
+		set content [java::prop $node "metadata"]
+		$content put "tags" [java::prop $node "tags"]
+		$content put "identifier" [java::prop $node "identifier"]
+		$content remove "body"
+		$content remove "editorState"
 		set concepts [java::new ArrayList]
 
 		set relations [java::prop $node "outRelations"]
@@ -50,8 +62,8 @@ java::try {
 				}
 			}
 		}
-		$metadata put "concepts" $concepts
-		$contentList add $metadata
+		$content put "concepts" $concepts
+		$contentList add $content
 	}
 } catch {Exception err} {
     puts [$err getMessage]
