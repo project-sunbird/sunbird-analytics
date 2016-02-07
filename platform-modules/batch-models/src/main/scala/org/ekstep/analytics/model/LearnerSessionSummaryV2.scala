@@ -134,6 +134,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
     def execute(sc: SparkContext, data: RDD[TelemetryEventV2], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
+        val filteredData = DataFilter.filter(data, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT","OE_NAVIGATE","OE_ITEM_RESPONSE"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         println("### Running the model LearnerSessionSummaryV2 ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
@@ -145,7 +146,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
         val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
-        val gameSessions = getGameSessionsV2(data);
+        val gameSessions = getGameSessionsV2(filteredData);
 
         val screenerSummary = gameSessions.mapValues { events =>
 
@@ -232,8 +233,8 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
         val game = userMap._2;
         val measures = Map(
             "itemResponses" -> game.itemResponses,
-            "start_time" -> game.start_ts,
-            "end_time" -> game.end_ts,
+            "start_time" -> game.start_time,
+            "end_time" -> game.end_time,
             "syncDate" -> game.syncDate,
             "timeSpent" -> game.timeSpent,
             "interruptTime" -> game.interruptTime,

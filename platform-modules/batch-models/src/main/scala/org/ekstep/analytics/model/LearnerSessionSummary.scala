@@ -22,7 +22,7 @@ case class ActivitySummary(count: Int, timeSpent: Double)
  * Case class to hold the screener summary
  */
 case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, 
-        timeSpent: Double, interruptTime: Double, start_ts: Option[Long], end_ts: Option[Long], currentLevel: Option[Map[String, String]], 
+        timeSpent: Double, interruptTime: Double, start_time: Option[Long], end_time: Option[Long], currentLevel: Option[Map[String, String]], 
         noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], 
         itemResponses: Option[Buffer[ItemResponse]], dtRange: DtRange, interactEventsPerMin: Double, activitySummary: Option[Map[String,ActivitySummary]],
         completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int, eventsSummary: Map[String, Int],
@@ -37,23 +37,6 @@ case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[Stri
  * Generic Screener Summary Model
  */
 object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable {
-
-    /**
-     * Get level to items mapping from Questionnaires
-     */
-    private def getLevelItems(contentMap: Map[String, Array[Questionnaire]]): Map[String, Map[String, Array[String]]] = {
-        if (contentMap.size > 0) {
-            contentMap.filter(_._2 != null).mapValues(questionnaires => {
-                questionnaires.map { x =>
-                    x.itemSets.map { y =>
-                        (y.metadata.getOrElse("level", "").asInstanceOf[String], y.items.map { z => z.id })
-                    }
-                }.reduce((a, b) => a ++ b).toMap;
-            })
-        } else {
-            Map[String, Map[String, Array[String]]]();
-        }
-    }
 
     /**
      * Get Item id to Item mapping from Array of Questionnaires
@@ -158,6 +141,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
     def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
+        val filteredData = DataFilter.filter(data, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))));
         println("### Running the model LearnerSessionSummary ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
         println("### Fetching the Item data from LP ###");
@@ -166,12 +150,11 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
         val contentItemMapping = getItemMapping(gameQuestionnaires);
-        //val contentLevelMapping = getLevelItems(gameQuestionnaires);
 
         val itemMapping = sc.broadcast(contentItemMapping);
-        //val levelMapping = sc.broadcast(contentLevelMapping);
         val configMapping = sc.broadcast(jobParams.getOrElse(Map[String, AnyRef]()));
-        val gameSessions = getGameSessions(data);
+        val gameSessions = getGameSessions(filteredData);
+        println("sessions", gameSessions.count());
 
         val screenerSummary = gameSessions.mapValues { events =>
 
@@ -216,10 +199,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             }
             val levels = levelMap.map(f => {
                 val itemCounts = f._2.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
-                //val gameItems = levelMapping.value.getOrElse(gameId, null);
-                //val items = if (gameItems != null) gameItems.get(f._1) else None;
-                val items = None;
-                Map("level" -> f._1, "domain" -> "", "items" -> items, "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
+                Map("level" -> f._1, "domain" -> "", "items" -> None, "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
             }).toArray;
             val loc = deviceMapping.value.getOrElse(firstEvent.did, "");
             val noOfInteractEvents = events.filter { x => "OE_INTERACT".equals(x.eid) }.length;
@@ -256,8 +236,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         val game = userMap._2;
         val measures = Map(
             "itemResponses" -> game.itemResponses,
-            "start_time" -> game.start_ts,
-            "end_time" -> game.end_ts,
+            "start_time" -> game.start_time,
+            "end_time" -> game.end_time,
             "syncDate" -> game.syncDate,
             "timeSpent" -> game.timeSpent,
             "interruptTime" -> game.interruptTime,
