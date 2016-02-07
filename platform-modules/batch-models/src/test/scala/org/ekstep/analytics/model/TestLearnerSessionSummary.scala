@@ -197,11 +197,23 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.screenSummary.get.getOrElse("splash", 0d) should be (24.0);
     }
     
-    ignore should "generate send events to a file" in {
-        val rdd = loadFile[Event]("/Users/Santhosh/ekStep/telemetry_dump/prod.telemetry.unique-2016-01-18-10-25.json");
-        val filteredRDD = DataFilter.filter(rdd, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))));
-        val rdd2 = LearnerSessionSummary.execute(sc, filteredRDD, None);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output.log")), rdd2);
+    
+    ignore should "extract timespent from takeoff summaries" in {
+        val rdd = loadFile[MeasuredEvent]("/Users/Santhosh/ekStep/telemetry_dump/takeoff-summ.log");
+        val rdd2 = rdd.map { x => (x.uid, JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(x.edata.eks))) };
+        val rdd3 = rdd2.map { x => 
+            (x._1, x._2.timeSpent, x._2.start_time, x._2.end_time) 
+            }
+            .sortBy(f => f._2, true, 1)
+            .map {JSONUtils.serialize(_);}
+        
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output.log")), rdd3);
+    }
+    
+     ignore should "generate send events to a file" in {
+        val rdd = loadFile[Event]("/Users/Santhosh/ekStep/telemetry_dump/87f90da2-31a4-41e9-ad83-5042f9a82da7.log");
+        val rdd2 = LearnerSessionSummary.execute(sc, rdd, None);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output2.log")), rdd2);
     }
     
 }
