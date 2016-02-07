@@ -12,8 +12,12 @@ import org.ekstep.analytics.framework.util.JSONUtils
 
 case class LearnerContentActivity(learner_id: String, content_id: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
 
-object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable{
-    
+object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
+
+    private def average[T](ts: Iterable[T])(implicit num: Numeric[T]) = {
+        num.toDouble(ts.sum) / ts.size
+    }
+
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         val activity = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -26,7 +30,7 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
                     val numOfSessionsPlayed = events.length;
                     val eksMap = events.map { x => x.edata.eks }.map { x => x.asInstanceOf[Map[String, AnyRef]] };
                     val timeSpent = eksMap.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.sum;
-                    val interactionsPerMin = eksMap.map(f => f.getOrElse("interactEventsPerMin", 0d).asInstanceOf[Double]).sum;
+                    val interactionsPerMin = average(eksMap.map(f => f.getOrElse("interactEventsPerMin", 0d).asInstanceOf[Double]));
                     LearnerContentActivity(learner_id, content, timeSpent, interactionsPerMin, numOfSessionsPlayed);
                 }
                 perContentAct;
