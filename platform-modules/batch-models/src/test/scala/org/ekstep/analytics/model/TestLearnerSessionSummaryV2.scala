@@ -49,7 +49,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         
         summary1.activitySummary.get.size should be (4);
         summary1.activitySummary.get.get("LISTEN").get.count should be (15);
-        summary1.activitySummary.get.get("LISTEN").get.timeSpent should be (183.06);
+        summary1.activitySummary.get.get("LISTEN").get.timeSpent should be (27.91);
         summary1.activitySummary.get.get("SHOW").get.count should be (8);
         summary1.activitySummary.get.get("SHOW").get.timeSpent should be (0);
         summary1.activitySummary.get.get("TOUCH").get.count should be (10);
@@ -131,7 +131,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         
         summary1.activitySummary.get.size should be (4);
         summary1.activitySummary.get.get("LISTEN").get.count should be (15);
-        summary1.activitySummary.get.get("LISTEN").get.timeSpent should be (183.06);
+        summary1.activitySummary.get.get("LISTEN").get.timeSpent should be (27.91);
         summary1.activitySummary.get.get("SHOW").get.count should be (8);
         summary1.activitySummary.get.get("SHOW").get.timeSpent should be (0);
         summary1.activitySummary.get.get("TOUCH").get.count should be (10);
