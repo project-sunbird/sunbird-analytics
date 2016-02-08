@@ -43,6 +43,7 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         val contentConcepts = contents.map { x => (x.id, x.concepts) }.toMap;
 
         //getting all concept from Domain Model
+        println("#### getting all concept from Domain Model ####")
         val concepts = DomainAdapter.getDomainMap().concepts.map { x => x.id }.distinct;
         //val conceptsBroadcast = sc.broadcast(concepts);
 
@@ -58,18 +59,18 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
                     }.flatten.groupBy(a => a._1).map { f => (f._1, f._2.map(f => f._2).reduce((a, b) => a + b)) }
                 (x._1, content);
             }.collect.toMap;
-
         //val conceptTimeSpentBroadcast = sc.broadcast(conceptTimeSpent);
 
         //getting proficiency for each concept
         val proficiencies = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map { x => (x.learner_id, x.proficiency) }.collect().toMap;
-        val proficienciesBroadcast = sc.broadcast(proficiencies);
+        //val proficienciesBroadcast = sc.broadcast(proficiencies);
 
         //getting concept similarity with default wight
         val similarities = sc.cassandraTable[ConceptSimilarity]("learner_db", "conceptsimilaritymatrix")
             .map { x => (x.concept1, x.concept2, (defaultWeightSij) * (x.sim)) }.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap;
 
-        // normalizing sij ####  Adding default sim value in Sij matrix new concept before normalization ####  
+        // normalizing sij ####  Adding default sim value in Sij matrix new concept before normalization ####
+        println("#### normalizing sij ####  Adding default sim value in Sij matrix new concept before normalization #### ###")
         val normSimilarities = concepts.map { c1 =>
             val row = concepts.map { c2 =>
                 if (similarities.contains(c1 + "__" + c2)) {
@@ -90,14 +91,13 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         //time spent computation
         // #### Adding default value to the conceptTimeSpent if concept is not there 
         // #### & Calculating default timeSpent matrix if it is a fresh learner  
-
+        println("#### time spent computation ####")
         val value = (1.toDouble / concepts.length);
         val defaultMatrix = concepts.map { x => (x, value) }.toMap;
         val updatedconceptTimeSpent = conceptTimeSpent.map { x =>
             val learner = x._1
             val conceptTimeMap = x._2
-            var totalTimeSpent = 0d
-            if (conceptTimeMap.nonEmpty) totalTimeSpent = conceptTimeMap.values.sum; else totalTimeSpent = defaultMatrix.values.sum;
+            val totalTimeSpent = if (conceptTimeMap.nonEmpty) conceptTimeMap.values.sum; else defaultMatrix.values.sum;
             val conceptTime = concepts.map { f =>
                 if (!conceptTimeMap.contains(f)) {
                     (f, (value / totalTimeSpent));
@@ -109,24 +109,25 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
         }
 
         //pij computation
+        println("#### pij computation ####")
         val normPij = learner.map { x =>
             val proficiency = proficiencies.getOrElse(x, Map());
             val matrix = concepts.map { a =>
                 val row = concepts.map { b =>
-                    (a,b,(defaultWeightPij) * (Math.max(proficiency.getOrElse(a, 0.5d) - proficiency.getOrElse(b, 0.5d), 0.0001)))
+                    (a, b, (defaultWeightPij) * (Math.max(proficiency.getOrElse(a, 0.5d) - proficiency.getOrElse(b, 0.5d), 0.0001)))
                 }
                 //Normalizing Pij values
-                val rowSum = row.map(f=>f._3).sum
-                row.map{x=>(x._1+"__"+x._2,(x._3/rowSum))};
-            }.flatMap(f=>f).toMap
-            (x,matrix);
+                val rowSum = row.map(f => f._3).sum
+                row.map { x => (x._1 + "__" + x._2, (x._3 / rowSum)) };
+            }.flatMap(f => f).toMap
+            (x, matrix);
         }.collect().toMap
-        
 
         // getting previous Relevance 
         val learnerRelevanceMap = sc.cassandraTable[Relevance]("learner_db", "conceptrelevance").map { x => (x.learner_id, x.relevance) }.collect().toMap;
-        
-        //matrix Addition - (pij + sij + normTimeSpent) & relevance calculation at 1 iteration 
+
+        //matrix Addition - (pij + sij + normTimeSpent) & relevance calculation at 1 iteration
+        println("#### matrix Addition - (pij + sij + normTimeSpent) & relevance calculation at 1 iteration ####")
         val learnerConceptRelevance = learner.map { x =>
             val pijMap = normPij.get(x).get
             val timeSpentMap = updatedconceptTimeSpent.getOrElse(x, defaultMatrix)
@@ -139,7 +140,7 @@ object RecoEngine extends IBatchModel[MeasuredEvent] with Serializable {
                         val p = pijMap.get(a + "__" + b).get
                         val s = normSimilarities.get(a + "__" + b).get
                         val t = timeSpentMap.get(b).get
-                        val sigma = (p + s + t)/3;
+                        val sigma = (p + s + t) / 3;
                         sigmaMatrix += sigma
                         rel += sigma * relevanceMap.getOrElse(b, value);
                     }
