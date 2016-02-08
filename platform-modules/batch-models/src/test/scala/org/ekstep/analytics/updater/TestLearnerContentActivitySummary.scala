@@ -29,4 +29,9 @@ class TestLearnerContentActivitySummary extends SparkSpec(null) {
         user2._3 should be(3)
         user2._4 should be(1092)
     }
+    
+//    it should " store learner content summary data into db from the given file " in {
+//        val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-content-summary/session-summary-prod-test.log");
+//        LearnerContentActivitySummary.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerContentActivitySummary")));
+//    }
 }
