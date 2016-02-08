@@ -54,7 +54,7 @@ proc getNodeRelationIds {node relationType property} {
 }
 
 proc getItem {graphId itemId} {
-	set node [getNode $graphId $nodeId]
+	set node [getNode $graphId $itemId]
 	set item [java::prop $node "metadata"]
 	$item put "tags" [java::prop $node "tags"]
 	set concepts [getNodeRelationIds $node "Concept" "endNodeId"]
@@ -70,7 +70,7 @@ java::try {
 	set itemSetIds [getNodeRelationIds $content "ItemSet" "endNodeId"]
 	java::for {String itemSetId} $itemSetIds {
 		set itemIds [getSetMemberIds $graphId $itemSetId]
-		if {[$itemIds length] > 0} {
+		if {[$itemIds size] > 0} {
 			java::for {String itemId} $itemIds {
 				$items add [getItem $graphId $itemId]
 			}
