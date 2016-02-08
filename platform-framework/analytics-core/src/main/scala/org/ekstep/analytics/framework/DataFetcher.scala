@@ -50,7 +50,7 @@ object DataFetcher {
     /**
      * API to fetch the streaming data given an array of query objects
      */
-    def fetchStreamData(sc: StreamingContext, search: Fetcher): DStream[Event] = {
+    def fetchStreamData[T](sc: StreamingContext, search: Fetcher)(implicit mf:Manifest[T]): DStream[T] = {
         null;
     }
     

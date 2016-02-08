@@ -29,7 +29,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         val laSS1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks));
         
         laSS1.meanTimeSpent.get should be (364.0d)
-        laSS1.meanTimeBtwnGamePlays.get should be (43520) 
+        laSS1.meanTimeBtwnGamePlays.get should be (43520.5) 
         laSS1.start_ts should be (1450497687000L)
         laSS1.end_ts should be (1450585819000L)
         laSS1.last_visit_ts should be (1450585819000L)

@@ -19,6 +19,7 @@ object UserAdapter {
     private val userProfileResultHandler = new ResultSetHandler[Map[String, UserProfile]]() {
 
         override def handle(rs: ResultSet): Map[String, UserProfile] = {
+            
             if (!rs.next()) {
                 return null;
             }
@@ -42,10 +43,9 @@ object UserAdapter {
             }
 
             var result = new HashMap[Int, String]();
-            var i = 0;
 
             do {
-                result(rs.getInt(1)) = rs.getString(2);
+                result(rs.getInt(1)) = rs.getString(3);
             } while (rs.next())
 
             result.toMap;
@@ -82,6 +82,18 @@ object UserAdapter {
             qr.query(conn, "select * from languages", languageResultHandler);
         } finally {
             AppDBUtils.closeConnection(conn);    
+        }
+    }
+    
+    def getLanguageMapping(langId: Int): String = {
+        val conn = AppDBUtils.getConnection;
+        val qr = new QueryRunner();
+        try {
+            val results = qr.query(conn, "select * from languages where id = " + langId , languageResultHandler);
+            if(results == null) return null;
+            results.getOrElse(langId, null);
+        } finally {
+            AppDBUtils.closeConnection(conn);            
         }
     }
 

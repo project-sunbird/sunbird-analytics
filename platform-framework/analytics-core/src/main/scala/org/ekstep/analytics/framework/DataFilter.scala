@@ -106,7 +106,7 @@ object DataFilter {
             objClass match {
                 case "scala.Some" =>
                     obj.asInstanceOf[Some[AnyRef]].get;
-                case "scala.None" => null;
+                case "scala.None$" => null;
                 case _            => obj.asInstanceOf[AnyRef];
             }
         } else {

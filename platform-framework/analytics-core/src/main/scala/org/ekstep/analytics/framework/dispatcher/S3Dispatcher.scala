@@ -30,11 +30,7 @@ object S3Dispatcher extends IDispatcher {
             fw.close();
         }
         val finalPath = if (zip) CommonUtil.gzip(filePath) else filePath;
-        if (isPublic) {
-            S3Util.uploadPublic(bucket, finalPath, key);
-        } else {
-            S3Util.upload(bucket, finalPath, key);
-        }
+        S3Util.upload(bucket, finalPath, key);
         CommonUtil.deleteFile(finalPath);
         if (zip) CommonUtil.deleteFile(filePath);
         events;

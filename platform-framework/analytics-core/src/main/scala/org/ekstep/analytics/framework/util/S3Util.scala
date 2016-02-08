@@ -26,7 +26,7 @@ object S3Util {
         Console.println("ETag - " + fileObj.getETag);
     }
 
-    // $COVERAGE-OFF$Disabling scoverage as this function is manually tested
+    /*
     def uploadPublic(bucketName: String, filePath: String, key: String) {
 
         val bucketAcl = s3Service.getBucketAcl(bucketName);
@@ -45,12 +45,11 @@ object S3Util {
         val bucket = s3Service.getBucket(bucketName);
         val s3Object = s3Service.getObjectDetails(bucket, key);
     }
-    // $COVERAGE-ON$
+    */
 
     def getAllKeys(bucketName: String, prefix: String): Array[String] = {
         val bucket = s3Service.getBucket(bucketName);
         val s3Objects = s3Service.listObjects(bucket, prefix, null);
-        //s3Objects.foreach { x => Console.println(" " + x.getKey() + " (" + x.getContentLength() + " bytes)") }
         s3Objects.map { x => x.getKey }
     }
 

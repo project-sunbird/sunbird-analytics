@@ -20,4 +20,5 @@ class TestDomainAdapter extends BaseSpec {
         objectTypes should contain("Dimension")
         objectTypes should contain("Concept")
     }
+    
 }

@@ -12,18 +12,13 @@ import org.ekstep.analytics.framework.util.CommonUtil
 /**
  * @author Santhosh
  */
-object DomainAdapter {
+object DomainAdapter extends BaseAdapter {
     
     val relations = Array("tags");
     
     def getDomainMap() : DomainMap = {
         val dr = RestUtil.get[DomainResponse](Constants.getDomainMap);
-        if (!dr.responseCode.equals("OK")) {
-            throw new DataAdapterException(dr.responseCode);
-        }
-        if(dr.result.concepts == null) {
-            throw new DataAdapterException("No concepts found in the domain graph");
-        }
+        checkResponse(dr);
         val concepts = dr.result.concepts.map(f => {
             getConceptWrapper(f);
         });

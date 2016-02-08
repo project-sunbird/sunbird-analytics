@@ -27,4 +27,12 @@ class TestUserAdapter extends BaseSpec {
         up should be (null);
     }
     
+    it should "return language mapping by id" in {
+        val language = UserAdapter.getLanguageMapping(4);
+        language should be ("en");
+        
+        val lang2 = UserAdapter.getLanguageMapping(1);
+        lang2 should be (null);
+    }
+    
 }

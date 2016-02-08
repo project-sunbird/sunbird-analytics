@@ -27,11 +27,11 @@ class TestOutputDispatcher extends SparkSpec {
     }
     
     it should "dispatch output to s3" in {
-        val outputs = Option(Array(
-            Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/akshara-log.json", "zip" -> true.asInstanceOf[AnyRef]))
-        ))
+        val output1 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
+        val output2 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/test-log2.json"));
         noException should be thrownBy {
-            OutputDispatcher.dispatch(outputs, events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(output1, events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(output2, events.map { x => JSONUtils.serialize(x) });
         }
     }
     

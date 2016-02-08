@@ -8,3 +8,4 @@ dependency-reduced-pom.xml
 .cache-tests
 target
 platform-scripts/orchestrator/node_modules
+node_modules/

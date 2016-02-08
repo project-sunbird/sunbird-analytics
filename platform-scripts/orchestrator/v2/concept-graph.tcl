@@ -6,10 +6,11 @@ java::import -package com.ilimi.graph.dac.model Filter
 java::import -package com.ilimi.graph.dac.model Node
 java::import -package com.ilimi.graph.dac.model Relation
 
-proc getNodesByObjectType {graphId type} {
+proc getNodesByObjectType {graphId type subject} {
 	set map [java::new HashMap]
 	$map put "nodeType" "DATA_NODE"
 	$map put "objectType" $type
+	$map put "subject" $subject
 	set search_criteria [create_search_criteria $map]
 	set response [searchNodes $graphId $search_criteria]
 	set check_error [check_response_error $response]
@@ -33,30 +34,27 @@ proc relationsExist {relations} {
 	return $exist
 }
 
-proc getNodes {graphId type} {
+proc getNodes {graphId type objectTypes domainId} {
 
 	set nodeList [java::new ArrayList]
 	set relationList [java::new ArrayList]
-	set nodes [getNodesByObjectType $graphId $type]
+
+	set nodes [getNodesByObjectType $graphId $type $domainId]
 	java::for {Node node} $nodes {
-		set metadata [java::prop $node "metadata"]
-		$metadata put "objectType" $type
-		$metadata put "identifier" [java::prop $node "identifier"]
-		$metadata put "tags" [java::prop $node "tags"]
-		$nodeList add $metadata
+		java::prop $node "tags" [java::new ArrayList]
+		$nodeList add $node
 
 		set relations [java::prop $node "outRelations"]
 		if {[relationsExist $relations]} {
 			java::for {Relation relation} $relations {
-				set relMetadata [java::prop $relation "metadata"]
-				$relMetadata put "relationType" [java::prop $relation "relationType"]
-				$relMetadata put "startNodeId" [java::prop $relation "startNodeId"]
-				$relMetadata put "endNodeId" [java::prop $relation "endNodeId"]
-				$relMetadata put "startNodeObjectType" [java::prop $relation "startNodeObjectType"]
-				$relMetadata put "endNodeObjectType" [java::prop $relation "endNodeObjectType"]
-				$relationList add $relMetadata
+				set nodeType [java::prop $relation "endNodeObjectType"]
+				if {[$objectTypes contains $nodeType]} {
+					$relationList add $relation
+				}
 			}
 		}
+		java::prop $node "outRelations"
+
 	}
 	set result [java::new HashMap]
 	$result put "nodes" $nodeList
@@ -67,13 +65,13 @@ proc getNodes {graphId type} {
 set resultMap [java::new HashMap]
 set nodeList [java::new ArrayList]
 set relationList [java::new ArrayList]
-set objectTypes [java::new {String[]} 3]
+set objectTypes [java::new ArrayList]
 java::try {
-	$objectTypes set 0 "Domain"
-	$objectTypes set 1 "Dimension"
-	$objectTypes set 2 "Concept"
+	$objectTypes add "Domain"
+	$objectTypes add "Dimension"
+	$objectTypes add "Concept"
 	java::for {String objectType} $objectTypes {
-		set result [getNodes "domain" $objectType]
+		set result [getNodes "domain" $objectType $objectTypes $domainId]
 		set nodes [$result get "nodes"]
 		set relations [$result get "relations"]
 		$nodeList addAll [java::cast {List} $nodes]
@@ -84,7 +82,7 @@ java::try {
     $resultMap put "error" [$err getMessage]
 }	
 
-$resultMap put "concepts" $nodeList
+$resultMap put "nodes" $nodeList
 $resultMap put "relations" $relationList
 set responseList [create_response $resultMap] 
 return $responseList

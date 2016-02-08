@@ -44,7 +44,8 @@ object CommonUtil {
 
     def getParallelization(config: JobConfig): Int = {
 
-        config.parallelization.getOrElse(AppConf.getConfig("default.parallelization").toInt);
+        val defParallelization = AppConf.getConfig("default.parallelization").toInt;
+        config.parallelization.getOrElse(defParallelization);
     }
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
@@ -224,27 +225,18 @@ object CommonUtil {
 
     def getTimeDiff(start: Event, end: Event): Option[Double] = {
 
-        try {
-            val st = getTimestamp(start.ts);
-            val et = getTimestamp(end.ts);
-            if(et == 0 || st == 0) {
-                Option(0d);
-            } else {
-                Option((et - st) / 1000);    
-            }
-            
-        } catch {
-            case _: Exception =>
-                Console.err.println("Invalid event time", "start", start.ts, "end", end.ts);
-                Option(0d);
+        val st = getTimestamp(start.ts);
+        val et = getTimestamp(end.ts);
+        if(et == 0 || st == 0) {
+            Option(0d);
+        } else {
+            Option(roundDouble(((et - st).toDouble / 1000), 2));    
         }
     }
-
+    
     def getTimeDiff(start: Long, end: Long): Option[Double] = {
 
-        val st = new DateTime(start).getMillis;
-        val et = new DateTime(end).getMillis;
-        Option((et - st) / 1000);
+        Option(roundDouble(((end - start).toDouble / 1000), 2));
     }
 
     def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {

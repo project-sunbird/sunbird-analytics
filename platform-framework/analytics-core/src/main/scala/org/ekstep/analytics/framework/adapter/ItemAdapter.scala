@@ -26,19 +26,9 @@ import org.ekstep.analytics.framework.ItemConcept
 /**
  * @author Santhosh
  */
-object ItemAdapter {
+object ItemAdapter extends BaseAdapter {
 
     val relations = Array("concepts", "questionnaires", "item_sets", "items");
-
-    @throws(classOf[DataAdapterException])
-    def getItem(itemId: String, subject: String): Item = {
-        val ir = RestUtil.get[Response](Constants.getItemAPIUrl(itemId, subject));
-        if (!ir.responseCode.equals("OK")) {
-            throw new DataAdapterException(ir.responseCode);
-        }
-        val item = ir.result.assessment_item.get;
-        getItemWrapper(item);
-    }
 
     def getItemConceptMaxScore(contentId: String, itemId: String, apiVersion: String = "v1"): ItemConcept = {
 
@@ -47,17 +37,26 @@ object ItemAdapter {
         ItemConcept(cr.result.concepts.getOrElse(null), cr.result.maxScore.getOrElse(1));
     }
 
-    private def getItemWrapper(item: Map[String, AnyRef]): Item = {
+    def getItemWrapper(item: Map[String, AnyRef]): Item = {
         val mc = item.getOrElse("concepts", List[Map[String, String]]()).asInstanceOf[List[AnyRef]].map(f => f.asInstanceOf[Map[String, String]].get("identifier").get).toArray;
         Item(item.get("identifier").get.asInstanceOf[String], item.filterNot(p => relations.contains(p._1)), CommonUtil.getTags(item), Option(mc), None);
     }
 
+    // $COVERAGE-OFF$ Disabling scoverage as the below methods are @deprecated
     @throws(classOf[DataAdapterException])
+    @deprecated
+    def getItem(itemId: String, subject: String): Item = {
+        val ir = RestUtil.get[Response](Constants.getItemAPIUrl(itemId, subject));
+        checkResponse(ir);
+        val item = ir.result.assessment_item.get;
+        getItemWrapper(item);
+    }
+    
+    @throws(classOf[DataAdapterException])
+    @deprecated
     def getItems(contentId: String): Array[Item] = {
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
-        if (!cr.responseCode.equals("OK")) {
-            throw new DataAdapterException(cr.responseCode);
-        }
+        checkResponse(cr);
         val content = cr.result.content.get;
         val questionnaires = content.getOrElse("questionnaires", null);
         val subject = content.get("subject").get.asInstanceOf[String];
@@ -77,9 +76,11 @@ object ItemAdapter {
     }
 
     @throws(classOf[DataAdapterException])
+    @deprecated
     def searchItems(itemIds: Array[String], subject: String): Array[Item] = {
         val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(itemIds)))), itemIds.length));
         val sr = RestUtil.post[Response](Constants.getSearchItemAPIUrl(subject), JSONUtils.serialize(search));
+        checkResponse(sr);
         val items = sr.result.assessment_items.getOrElse(null);
         if (null != items && items.nonEmpty) {
             items.map(f => getItemWrapper(f));
@@ -89,11 +90,10 @@ object ItemAdapter {
     }
 
     @throws(classOf[DataAdapterException])
+    @deprecated
     def getItemSet(itemSetId: String, subject: String): ItemSet = {
         val isr = RestUtil.get[Response](Constants.getItemSetAPIUrl(itemSetId, subject));
-        if (!isr.responseCode.equals("OK")) {
-            throw new DataAdapterException(isr.responseCode);
-        }
+        checkResponse(isr);
         val itemSet = isr.result.assessment_item_set.get;
         val metadata = itemSet.filterNot(p => relations.contains(p._1));
         val items = itemSet.getOrElse("items", List[String]()).asInstanceOf[List[String]].map(f => {
@@ -103,11 +103,10 @@ object ItemAdapter {
     }
 
     @throws(classOf[DataAdapterException])
+    @deprecated
     def getItemSets(contentId: String): Array[ItemSet] = {
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
-        if (!cr.responseCode.equals("OK")) {
-            throw new DataAdapterException(cr.responseCode);
-        }
+        checkResponse(cr);
         val content = cr.result.content.get;
         val questionnaires = content.getOrElse("questionnaires", null);
         val subject = content.get("subject").get.asInstanceOf[String];
@@ -127,12 +126,11 @@ object ItemAdapter {
     }
 
     @throws(classOf[DataAdapterException])
+    @deprecated
     def getQuestionnaire(questionnaireId: String, subject: String): Questionnaire = {
 
         val qr = RestUtil.get[Response](Constants.getQuestionnaireAPIUrl(questionnaireId, subject));
-        if (!qr.responseCode.equals("OK")) {
-            throw new DataAdapterException(qr.responseCode);
-        }
+        checkResponse(qr);
         val questionnaire = qr.result.questionnaire.get;
         val metadata = questionnaire.filterNot(p => relations.contains(p._1));
         val itemSets = questionnaire.getOrElse("item_sets", List[Map[String, AnyRef]]()).asInstanceOf[List[AnyRef]].map(f => {
@@ -144,11 +142,10 @@ object ItemAdapter {
     }
 
     @throws(classOf[DataAdapterException])
+    @deprecated
     def getQuestionnaires(contentId: String): Array[Questionnaire] = {
         val cr = RestUtil.get[Response](Constants.getContentAPIUrl(contentId));
-        if (!cr.responseCode.equals("OK")) {
-            throw new DataAdapterException(cr.responseCode);
-        }
+        checkResponse(cr);
         val content = cr.result.content.get;
         val questionnaires = content.getOrElse("questionnaires", null);
         val subject = content.get("subject").get.asInstanceOf[String];
@@ -161,5 +158,6 @@ object ItemAdapter {
             null;
         }
     }
+    // $COVERAGE-ON$
 
 }

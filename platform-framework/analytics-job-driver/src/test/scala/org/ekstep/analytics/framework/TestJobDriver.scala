@@ -21,7 +21,8 @@ class TestJobDriver extends FlatSpec with Matchers {
             Option(Map()),
             Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))),
             Option(8),
-            Option("TestJobDriver"))
+            Option("TestJobDriver"),
+            Option(true))
 
         noException should be thrownBy {
             val baos = new ByteArrayOutputStream

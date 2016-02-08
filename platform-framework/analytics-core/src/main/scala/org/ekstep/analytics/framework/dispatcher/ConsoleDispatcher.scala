@@ -8,12 +8,10 @@ object ConsoleDispatcher extends IDispatcher {
     def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
         if (config.getOrElse("printEvent", true).asInstanceOf[Boolean]) {
             for (event <- events) {
-                Console.println("Event", event);
+                println("Event", event);
             }
         }
-        if (config.getOrElse("printEventSize", true).asInstanceOf[Boolean]) {
-            Console.println("Total Events Size", events.length);
-        }
+        println("Total Events Size", events.length);
         events;
     }
 }

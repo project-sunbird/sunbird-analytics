@@ -1,0 +1,14 @@
+{
+    "name": "getDomainGraph",
+    "parameters": [{
+        "name": "domainId",
+        "index": 0,
+        "routingParam": false
+    }],
+    "requestPath": {
+        "type": "GET",
+        "url": "/v2/domain/graph/*",
+        "pathParams": ["domainId"]
+    },
+    "body": ""
+}

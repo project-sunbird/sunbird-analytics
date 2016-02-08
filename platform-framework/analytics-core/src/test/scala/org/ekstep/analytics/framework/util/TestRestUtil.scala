@@ -23,9 +23,8 @@ class TestRestUtil extends BaseSpec {
 
     it should "throw Exception if unable to parse to Response object during GET" in {
         val url = "https://www.google.com";
-        a[Exception] should be thrownBy {
-            RestUtil.get[Response](url);
-        }
+        val response = RestUtil.get[Response](url);
+        response should be (null);
     }
     
     it should "return error if the resource is not found" in {

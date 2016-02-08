@@ -12,30 +12,31 @@ import org.ekstep.analytics.framework.adapter._
 import org.ekstep.analytics.framework.util._
 
 /**
+ * Case class to hold the item responses
+ */
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
+
+case class ActivitySummary(count: Int, timeSpent: Double)
+
+/**
+ * Case class to hold the screener summary
+ */
+case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, 
+        timeSpent: Double, interruptTime: Double, start_time: Option[Long], end_time: Option[Long], currentLevel: Option[Map[String, String]], 
+        noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], 
+        itemResponses: Option[Buffer[ItemResponse]], dtRange: DtRange, interactEventsPerMin: Double, activitySummary: Option[Map[String,ActivitySummary]],
+        completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int, eventsSummary: Map[String, Int],
+        syncDate: Long);
+
+
+/**
  * @author Santhosh
  */
 
 /**
- * Generic Screener Summary V2 Model
+ * Generic Screener Summary Model
  */
-object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializable {
-
-    /**
-     * Get level to items mapping from Questionnaires
-     */
-    private def getLevelItems(contentMap: Map[String, Array[Questionnaire]]): Map[String, Map[String, Array[String]]] = {
-        if (contentMap.size > 0) {
-            contentMap.filter(_._2 != null).mapValues(questionnaires => {
-                questionnaires.map { x =>
-                    x.itemSets.map { y =>
-                        (y.metadata.getOrElse("level", "").asInstanceOf[String], y.items.map { z => z.id })
-                    }
-                }.reduce((a, b) => a ++ b).toMap;
-            })
-        } else {
-            Map[String, Map[String, Array[String]]]();
-        }
-    }
+object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable {
 
     /**
      * Get Item id to Item mapping from Array of Questionnaires
@@ -140,7 +141,8 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
 
     def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
-        println("### Running the model GenericSessionSummaryV2 ###");
+        val filteredData = DataFilter.filter(data, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))));
+        println("### Running the model LearnerSessionSummary ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
         println("### Fetching the Item data from LP ###");
         val gameQuestionnaires = getItemData(sc, gameList);
@@ -148,12 +150,11 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
         val contentItemMapping = getItemMapping(gameQuestionnaires);
-        //val contentLevelMapping = getLevelItems(gameQuestionnaires);
 
         val itemMapping = sc.broadcast(contentItemMapping);
-        //val levelMapping = sc.broadcast(contentLevelMapping);
         val configMapping = sc.broadcast(jobParams.getOrElse(Map[String, AnyRef]()));
-        val gameSessions = getGameSessions(data);
+        val gameSessions = getGameSessions(filteredData);
+        println("sessions", gameSessions.count());
 
         val screenerSummary = gameSessions.mapValues { events =>
 
@@ -198,10 +199,7 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
             }
             val levels = levelMap.map(f => {
                 val itemCounts = f._2.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
-                //val gameItems = levelMapping.value.getOrElse(gameId, null);
-                //val items = if (gameItems != null) gameItems.get(f._1) else None;
-                val items = None;
-                Map("level" -> f._1, "domain" -> "", "items" -> items, "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
+                Map("level" -> f._1, "domain" -> "", "items" -> None, "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
             }).toArray;
             val loc = deviceMapping.value.getOrElse(firstEvent.did, "");
             val noOfInteractEvents = events.filter { x => "OE_INTERACT".equals(x.eid) }.length;
@@ -238,8 +236,8 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
         val game = userMap._2;
         val measures = Map(
             "itemResponses" -> game.itemResponses,
-            "start_time" -> game.start_ts,
-            "end_time" -> game.end_ts,
+            "start_time" -> game.start_time,
+            "end_time" -> game.end_time,
             "syncDate" -> game.syncDate,
             "timeSpent" -> game.timeSpent,
             "interruptTime" -> game.interruptTime,
@@ -254,9 +252,10 @@ object GenericSessionSummaryV2 extends SessionBatchModel[Event] with Serializabl
             "completionStatus" -> game.completionStatus,
             "screenSummary" -> game.screenSummary,
             "eventsSummary" -> game.eventsSummary,
-            "noOfLevelTransitions" -> game.noOfLevelTransitions);
+            "noOfLevelTransitions" -> game.noOfLevelTransitions,
+            "telemetryVersion" -> "1.0");
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenericSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));
     }

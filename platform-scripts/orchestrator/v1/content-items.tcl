@@ -59,11 +59,13 @@ proc getSetMemberIds {graphId setId} {
 	return $members
 }
 
-proc getItem {graphId itemId} {
+proc getItem {graphId itemId domain} {
 	set node [getNode $graphId $itemId]
 	set item [java::prop $node "metadata"]
 	$item put "identifier" [java::prop $node "identifier"]
 	$item put "objectType" [java::prop $node "objectType"]
+	$item put "domain" [java::prop $node $domain]
+	
 	$item put "tags" [java::prop $node "tags"]
 	set concepts [getNodeRelationIds $node "Concept" "endNodeId"]
 	$item put "concepts" $concepts
@@ -72,21 +74,18 @@ proc getItem {graphId itemId} {
 
 proc getContentItems {graphId contentId} {
 
-	set itemSets [java::new ArrayList]
 	set items [java::new ArrayList]
 	set content [getNode $graphId $contentId]
 	set questionnaires [getNodeRelationIds $content "Questionnaire" "endNodeId"]
 	java::for {String questionnaireId} $questionnaires {
 		set questionnaire [getNode $graphId $questionnaireId]
+		set domain [java::prop $questionnaire domain]
 		set itemSetIds [getNodeRelationIds $questionnaire "ItemSet" "endNodeId"]
 		java::for {String itemSetId} $itemSetIds {
-			$itemSets add $itemSetId
-		}
-	}
-	java::for {String itemSetId} $itemSets {
-		set itemIds [getSetMemberIds $graphId $itemSetId]
-		java::for {String itemId} $itemIds {
-			$items add [getItem $graphId $itemId]
+			set itemIds [getSetMemberIds $graphId $itemSetId]
+			java::for {String itemId} $itemIds {
+				$items add [getItem $graphId $itemId $domain]
+			}
 		}
 	}
 	return $items
