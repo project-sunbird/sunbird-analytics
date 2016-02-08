@@ -64,7 +64,7 @@ proc getItem {graphId itemId domain} {
 	set item [java::prop $node "metadata"]
 	$item put "identifier" [java::prop $node "identifier"]
 	$item put "objectType" [java::prop $node "objectType"]
-	$item put "domain" [java::prop $node $domain]
+	$item put "domain" $domain
 	
 	$item put "tags" [java::prop $node "tags"]
 	set concepts [getNodeRelationIds $node "Concept" "endNodeId"]
@@ -79,7 +79,7 @@ proc getContentItems {graphId contentId} {
 	set questionnaires [getNodeRelationIds $content "Questionnaire" "endNodeId"]
 	java::for {String questionnaireId} $questionnaires {
 		set questionnaire [getNode $graphId $questionnaireId]
-		set domain [java::prop $questionnaire domain]
+		set domain [getNodeMetadata $questionnaire "domain"]
 		set itemSetIds [getNodeRelationIds $questionnaire "ItemSet" "endNodeId"]
 		java::for {String itemSetId} $itemSetIds {
 			set itemIds [getSetMemberIds $graphId $itemSetId]

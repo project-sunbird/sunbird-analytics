@@ -58,7 +58,7 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         out1.length should be(1)
     }
 
-    "it" should "print the item data for testing" in {
+    it should "print the item data for testing" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test.log");
         val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         var out = rdd2.collect();
@@ -70,5 +70,45 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         var out = rdd2.collect();
         out.length should be(2)
+    }
+    
+    it should "compute proficiency fetch item data from v2 domain model" in {
+        
+        val modelParams = Map("alpha" -> 1, "beta" -> 1);
+        val learnerProf = LearnerProficiency("53ef3f1f-40e7-4f18-82aa-db2ad920a4c0", Map(), DateTime.now(), DateTime.now(), Map());
+        val rdd = sc.parallelize(Array(learnerProf));
+        rdd.saveToCassandra("learner_db", "learnerproficiency");
+        
+        val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test_datav2.log");
+        val rdd2 = LearnerProficiencySummary.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater", "apiVersion" -> "v2")));
+        var out = rdd2.collect();
+        out.length should be (1)
+        
+        val event = JSONUtils.deserialize[MeasuredEvent](out(0));
+        val profs = JSONUtils.deserialize[LearnerProficiency](JSONUtils.serialize(event.edata.eks));
+        profs.proficiency.size should be (22);
+        profs.proficiency.get("Num:C3:SC3:MC4").get should be (0.6);
+        profs.proficiency.get("Num:C4:SC1:MC6").get should be (0.6);
+        profs.proficiency.get("Num:C3:SC7:MC8").get should be (0.6);
+        profs.proficiency.get("Num:C3:SC9:MC1").get should be (0.6);
+        profs.proficiency.get("Num:C1:SC2:MC23").get should be (0.6);
+        profs.proficiency.get("Num:C2:SC3:M7").get should be (0.6);
+        profs.proficiency.get("Num:C4:SC5:MC12").get should be (0.6);
+        profs.proficiency.get("Num:C1:SC2:MC22").get should be (0.6);
+        profs.proficiency.get("Num:C3:SC1:MC4").get should be (0.71);
+        profs.proficiency.get("Num:C4:SC5:MC9").get should be (0.6);
+        profs.proficiency.get("Num:C4:SC2:MC5").get should be (0.6);
+        profs.proficiency.get("Num:C4:SC6:MC1").get should be (0.2);
+        profs.proficiency.get("Num:C1:SC2:MC15").get should be (0.6);
+        profs.proficiency.get("Num:C3:SC1:MC3").get should be (0.71);
+        profs.proficiency.get("Num:C2:SC2:MC5").get should be (0.87);
+        profs.proficiency.get("Num:C4:SC7:MC1").get should be (0.2);
+        profs.proficiency.get("Num:C1:SC2:MC16").get should be (0.6);
+        profs.proficiency.get("Num:C3:SC2:MC5").get should be (0.6);
+        
+        val lp = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").where("learner_id = ?", "53ef3f1f-40e7-4f18-82aa-db2ad920a4c0").first();
+        lp.proficiency.size should be (22);
+        lp.model_params.size should be (22);
+        lp.proficiency should be (profs.proficiency)
     }
 }

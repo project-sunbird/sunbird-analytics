@@ -88,7 +88,7 @@ class TestItemAdapter extends BaseSpec {
         val item2 = ItemAdapter.getItemConceptMaxScore("numeracy_382", "q_3_s_gujarati", "v2");
         item2 should not be (null);
         item2.concepts should be (null);
-        item2.maxScore should be (1);
+        item2.maxScore should be (0);
         
         ItemAdapter.getItemWrapper(Map[String, AnyRef]("identifier" -> "i123"));
     }

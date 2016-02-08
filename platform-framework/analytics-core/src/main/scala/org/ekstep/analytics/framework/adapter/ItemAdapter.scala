@@ -34,7 +34,7 @@ object ItemAdapter extends BaseAdapter {
 
         var resMap = Map[String, AnyRef]();
         val cr = RestUtil.get[Response](Constants.getItemConcept(apiVersion, contentId, itemId));
-        ItemConcept(cr.result.concepts.getOrElse(null), cr.result.maxScore.getOrElse(1));
+        ItemConcept(cr.result.concepts.getOrElse(null), cr.result.maxScore.toInt);
     }
 
     def getItemWrapper(item: Map[String, AnyRef]): Item = {

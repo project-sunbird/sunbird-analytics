@@ -83,7 +83,7 @@ case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Opti
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
 case class Result(content: Option[Map[String, AnyRef]], contents: Option[Array[Map[String, AnyRef]]], questionnaire: Option[Map[String, AnyRef]], 
         assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]], 
-        games: Option[Array[Map[String, AnyRef]]], concepts: Option[Array[String]], maxScore: Option[Int], items: Option[Array[Map[String, AnyRef]]]);
+        games: Option[Array[Map[String, AnyRef]]], concepts: Option[Array[String]], maxScore: Double, items: Option[Array[Map[String, AnyRef]]]);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 
 // Search Items
