@@ -16,8 +16,8 @@ class TestRecoEngine extends SparkSpec(null) {
         relevance.count should be(1)
         val r = relevance.collect()(0)._2
         val value = r.values
-        Math.round(value.sum) should be (1)
-        value.size should be (323)
+        Math.round(value.sum) should be(1)
+        value.size should be(323)
         //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/reco-engine/test_output.log")), rdd2);
     }
 }

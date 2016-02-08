@@ -4,14 +4,14 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.ConceptSimilarityJson
 import org.ekstep.analytics.framework.util.JSONUtils
 
 case class ConceptSimilarity(concept1: String, concept2: String, relation_type: String, sim: Double)
+case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, similarity: List[Map[String, AnyRef]])
 
-object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityJson] with Serializable {
+object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity] with Serializable {
 
-    def execute(sc: SparkContext, jsonLines: RDD[ConceptSimilarityJson], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(sc: SparkContext, jsonLines: RDD[ConceptSimilarityEntity], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         val similarity = jsonLines.map { x =>
             val similarity = x.similarity.last
             ConceptSimilarity(x.startNodeId, x.endNodeId, similarity.get("relationType").get.asInstanceOf[String], similarity.get("sim").get.asInstanceOf[Double]);
