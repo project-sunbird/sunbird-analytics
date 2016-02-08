@@ -83,8 +83,8 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getGameVersion(event2) should be(null)
 
         //getHourOfDay
-        CommonUtil.getHourOfDay(1447154514000L, 1447158114000L) should be(ListBuffer(16, 17))
-        CommonUtil.getHourOfDay(1447154514000L, 1447000L) should be(ListBuffer(16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5))
+        CommonUtil.getHourOfDay(1447154514000L, 1447158114000L) should be(ListBuffer(11, 12))
+        CommonUtil.getHourOfDay(1447154514000L, 1447000L) should be(ListBuffer(11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0))
 
         //getParallelization
         val config = new JobConfig(null, None, None, null, None, None, Option(10), Option("testApp"), Option(false));

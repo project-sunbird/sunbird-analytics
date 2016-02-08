@@ -32,6 +32,7 @@ import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
 import scala.collection.mutable.Buffer
 import org.joda.time.Hours
+import org.joda.time.DateTimeZone
 
 object CommonUtil {
 
@@ -243,8 +244,8 @@ object CommonUtil {
 
     def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {
         val hrList = ListBuffer[Int]();
-        val startHr = new DateTime(start).getHourOfDay;
-        val endHr = new DateTime(end).getHourOfDay;
+        val startHr = new DateTime(start, DateTimeZone.UTC).getHourOfDay;
+        val endHr = new DateTime(end, DateTimeZone.UTC).getHourOfDay;
         var hr = startHr;
         while (hr != endHr) {
             hrList += hr;
