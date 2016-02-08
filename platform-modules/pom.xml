@@ -16,8 +16,9 @@
 	</properties>
 
 	<modules>
+		<module>optional-master</module>
+		<module>learner-adapter</module>	
 		<module>batch-models</module>
-		<module>learner-adapter</module>
 	</modules>
 
 	<dependencies>
