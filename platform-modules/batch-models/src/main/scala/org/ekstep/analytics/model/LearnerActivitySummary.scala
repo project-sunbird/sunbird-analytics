@@ -30,7 +30,8 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
-
+        val topK = configMapping.value.getOrElse("topContent", 1).asInstanceOf[Int];
+        
         val activity = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
@@ -47,24 +48,24 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val lastVisitTimeStamp = endTimestamp;
 
                 // Compute mean count and time spent of interact events grouped by type
-                val interactSummaries = summaryEvents.map { x => x.getOrElse("activitySummary", Map()).asInstanceOf[Map[String, Map[String, AnyRef]]] }.filter(x => x.nonEmpty).flatMap(f => f.map { x => x }).map(f => (f._1, (f._2.getOrElse("count", 0).asInstanceOf[Int], f._2.getOrElse("timeSpent", 0d).asInstanceOf[Double])));
+                val interactSummaries = summaryEvents.map { x => x.getOrElse("activitySummary", Map()).asInstanceOf[Map[String, Map[String, AnyRef]]] }.filter(x => x.nonEmpty).flatMap(f => f.map { x => x }).map(f => (f._1, (f._2.get("count").get.asInstanceOf[Int], f._2.get("timeSpent").get.asInstanceOf[Double])));
                 val meanInteractSummaries = interactSummaries.groupBy(f => f._1).map(f => {
                     (f._1, average(f._2.map(f => f._2._1)), average(f._2.map(f => f._2._2)))
                 })
                 val meanTimeSpentOnAnAct = meanInteractSummaries.map(f => (f._1, f._3)).toMap;
                 val meanCountOfAct = meanInteractSummaries.map(f => (f._1, f._2)).toMap;
 
-                val meanTimeSpent = average(summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] });
-                val meanInterruptTime = average(summaryEvents.map { x => x.getOrElse("interruptTime", 0d).asInstanceOf[Double] });
+                val meanTimeSpent = average(summaryEvents.map { x => x.get("timeSpent").get.asInstanceOf[Double] });
+                val meanInterruptTime = average(summaryEvents.map { x => x.get("interruptTime").get.asInstanceOf[Double] });
 
                 //val totalTimeSpentOnPlatform = summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.reduce((a, b) => a + b);
                 val totalTimeSpentOnPlatform = sortedEvents.map { x => CommonUtil.getTimeDiff(x.context.date_range.from, x.context.date_range.to).get }.sum;
 
-                val topKcontent = if (sortedGames.length > 5) sortedGames.take(5).toArray else sortedGames.toArray;
+                val topKcontent = if (sortedGames.length > topK) sortedGames.take(topK).toArray else sortedGames.toArray;
                 val meanActiveTimeOnPlatform = meanTimeSpent - meanInterruptTime;
                 val activeHours = summaryEvents.map { f =>
                     try {
-                        (CommonUtil.getHourOfDay(f.getOrElse("start_time", 0l).asInstanceOf[Long], f.getOrElse("end_time", 0l).asInstanceOf[Long]))
+                        (CommonUtil.getHourOfDay(f.get("start_time").get.asInstanceOf[Long], f.get("end_time").get.asInstanceOf[Long]))
                     } catch {
                         case ex: ClassCastException =>
                             null;
@@ -74,7 +75,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val mostActiveHrOfTheDay = if (activeHours.isEmpty) None else Option(activeHours.maxBy(f => f._2)._1);
 
                 var meanTimeBtwnGamePlays = if (summaryEvents.length > 1) (CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get - totalTimeSpentOnPlatform) / (summaryEvents.length - 1) else 0d
-                if (meanTimeBtwnGamePlays < 0) meanTimeBtwnGamePlays = 0
+                if (meanTimeBtwnGamePlays < 0) meanTimeBtwnGamePlays = 0;
 
                 (TimeSummary(Option(meanTimeSpent), Option(meanTimeBtwnGamePlays), Option(meanActiveTimeOnPlatform), Option(meanInterruptTime), Option(totalTimeSpentOnPlatform), meanTimeSpentOnAnAct, Option(meanCountOfAct), numOfSessionsOnPlatform, lastVisitTimeStamp, mostActiveHrOfTheDay, topKcontent, startTimestamp, endTimestamp), DtRange(eventStartTimestamp, eventEndTimestamp));
             }

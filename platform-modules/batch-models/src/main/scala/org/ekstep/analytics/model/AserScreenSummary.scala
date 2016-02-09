@@ -40,9 +40,12 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
         val configMapping = sc.broadcast(config);
         val gameSessions = getGameSessions(events);
         val aserSreenSummary = gameSessions.mapValues { x =>
-            
-            val startTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x(0))) } else { Option(0l) };
-            val endTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x.last)) } else { Option(0l) };
+            //            val startTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x(0))) } else { Option(0l) };
+            //            val endTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x.last)) } else { Option(0l) };
+
+            val startTimestamp = Option(CommonUtil.getEventTS(x(0)));
+            val endTimestamp = Option(CommonUtil.getEventTS(x.last));
+
             val oeStart: Event = x(0);
 
             var storyReading: Event = null;
@@ -150,7 +153,7 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange,String,String)), config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange, String, String)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
         MeasuredEvent(config.getOrElse("eventId", "ME_ASER_SCREEN_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", userMap._2._2),

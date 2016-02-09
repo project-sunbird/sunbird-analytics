@@ -307,5 +307,11 @@ class TestAserScreenSummary extends SparkSpec(null) {
         first.get("summary") should not be (Option(0d))
     }
 
+    it should " generate an event when input having only (OE_ASSESS of length=0) events " in {
+        val event = loadFile[Event]("src/test/resources/aserlite-screen-summary/zeroEvents.txt");
+        val rdd = DataFilter.filter(event, Filter("eventId", "IN", Option(List("OE_START", "OE_INTERACT", "OE_ASSESS", "OE_LEVEL_SET", "OE_END"))));
+        val rdd2 = AserScreenSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
+        rdd2.collect().length should be (1)
+    }
     //--------
 }
