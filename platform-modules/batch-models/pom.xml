@@ -63,6 +63,12 @@
 			<artifactId>spark-cassandra-connector_2.10</artifactId>
 			<version>1.5.0-M1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.scalanlp</groupId>
+			<artifactId>breeze_2.10</artifactId>
+			<version>0.11.2</version>
+		</dependency>
+				
 	</dependencies>
 
 	<build>
