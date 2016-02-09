@@ -32,14 +32,15 @@ import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
 import scala.collection.mutable.Buffer
 import org.joda.time.Hours
+import org.joda.time.DateTimeZone
 
 object CommonUtil {
 
     @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
-    @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ");
-    @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
+    @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();
+    @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
+    @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
     @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     def getParallelization(config: JobConfig): Int = {
@@ -53,13 +54,15 @@ object CommonUtil {
         Console.println("### Initializing Spark Context ###");
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
+        // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
-            Console.println("### Master not found. Setting it to local[*] ###");
+            println("### Master not found. Setting it to local[*] ###");
             conf.setMaster("local[*]");
         }
         if(!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))            
         }
+        // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
         Console.println("### Spark Context initialized ###");
@@ -241,8 +244,8 @@ object CommonUtil {
 
     def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {
         val hrList = ListBuffer[Int]();
-        val startHr = new DateTime(start).getHourOfDay;
-        val endHr = new DateTime(end).getHourOfDay;
+        val startHr = new DateTime(start, DateTimeZone.UTC).getHourOfDay;
+        val endHr = new DateTime(end, DateTimeZone.UTC).getHourOfDay;
         var hr = startHr;
         while (hr != endHr) {
             hrList += hr;

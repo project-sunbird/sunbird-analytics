@@ -22,17 +22,18 @@ object S3Dispatcher extends IDispatcher {
         if (null == bucket || null == key) {
             throw new DispatcherException("'bucket' & 'key' parameters are required to send output to S3");
         }
-        
+        var deleteFile = false;
         if (null == filePath) {
             filePath = AppConf.getConfig("spark_output_temp_dir") + "output-" + System.currentTimeMillis() + ".log";
             val fw = new FileWriter(filePath, true);
             events.foreach { x => { fw.write(x + "\n"); } };
             fw.close();
-        }
+            deleteFile = true;
+        } 
         val finalPath = if (zip) CommonUtil.gzip(filePath) else filePath;
         S3Util.upload(bucket, finalPath, key);
-        CommonUtil.deleteFile(finalPath);
-        if (zip) CommonUtil.deleteFile(filePath);
+        if(deleteFile) CommonUtil.deleteFile(filePath);
+        if (zip) CommonUtil.deleteFile(finalPath);
         events;
     }
 

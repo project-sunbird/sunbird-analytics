@@ -28,7 +28,7 @@ class TestOutputDispatcher extends SparkSpec {
     
     it should "dispatch output to s3" in {
         val output1 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
-        val output2 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/test-log2.json"));
+        val output2 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/test-log2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         noException should be thrownBy {
             OutputDispatcher.dispatch(output1, events.map { x => JSONUtils.serialize(x) });
             OutputDispatcher.dispatch(output2, events.map { x => JSONUtils.serialize(x) });
@@ -105,7 +105,7 @@ class TestOutputDispatcher extends SparkSpec {
     it should "execute test cases related to script dispatcher" in {
         
         val result = OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript.sh")), events.map { x => JSONUtils.serialize(x) });
-        result(0) should endWith ("platform-framework/analytics-core");
+        result(0) should endWith ("analytics-core");
         result(1) should include ("7435");
     }
     

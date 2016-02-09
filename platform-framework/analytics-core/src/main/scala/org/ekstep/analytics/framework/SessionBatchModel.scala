@@ -25,7 +25,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[Event]();
                                 }
-                                tmpArr += y;
+                                tmpArr += y;   
                             case "OE_END" =>
                                 tmpArr += y;
                                 sessions += tmpArr;
@@ -55,7 +55,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[TelemetryEventV2]();
                                 }
-                                tmpArr += y;
+                                tmpArr += y;   
                             case "OE_END" =>
                                 tmpArr += y;
                                 sessions += tmpArr;

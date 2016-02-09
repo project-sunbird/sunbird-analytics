@@ -68,7 +68,7 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getEventSyncTS(event) should be(1451696362924L)
         CommonUtil.getEventSyncTS(event2) should be(0L)
         CommonUtil.getEventSyncTS(event3) should be(1451676562000L)
-        CommonUtil.getEventSyncTS(event4) should be(1451676562000L)
+        CommonUtil.getEventSyncTS(event4) should be(1451696362000L)
         
         CommonUtil.getEventTS(event2) should be(0)
         
@@ -83,8 +83,8 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getGameVersion(event2) should be(null)
 
         //getHourOfDay
-        CommonUtil.getHourOfDay(1447154514000L, 1447158114000L) should be(ListBuffer(16, 17))
-        CommonUtil.getHourOfDay(1447154514000L, 1447000L) should be(ListBuffer(16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5))
+        CommonUtil.getHourOfDay(1447154514000L, 1447158114000L) should be(ListBuffer(11, 12))
+        CommonUtil.getHourOfDay(1447154514000L, 1447000L) should be(ListBuffer(11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0))
 
         //getParallelization
         val config = new JobConfig(null, None, None, null, None, None, Option(10), Option("testApp"), Option(false));
@@ -115,7 +115,7 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getTimeSpent(null) should be(Option(0d))
         CommonUtil.getTimeSpent(true.asInstanceOf[AnyRef]) should be(Option(0d))
         
-        CommonUtil.getTimestamp("2016-01-02T00:59:22+P:ST") should be(1451676562000L);
+        CommonUtil.getTimestamp("2016-01-02T00:59:22+P:ST") should be(1451696362000L);
         
         CommonUtil.roundDouble(12.7345, 2) should be (12.73);
 
