@@ -28,6 +28,6 @@ class TestRecommendationEngine extends SparkSpec(null) {
         
         val lcr = sc.cassandraTable[LearnerConceptRelevance]("learner_db", "learnerconceptrelevance").where("learner_id = ?", learner_id).first();
         val r = lcr.relevance;
-        r.size should be (332);
+        r.size should be > 100;
     }
 }
