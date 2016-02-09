@@ -44,7 +44,7 @@ object RestUtil {
             val httpResponse = httpClient.execute(request);
             val entity = httpResponse.getEntity()
             val inputStream = entity.getContent()
-            val content = Source.fromInputStream(inputStream).getLines.mkString
+            val content = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString
             inputStream.close
             JSONUtils.deserialize[T](content);
         } catch {
