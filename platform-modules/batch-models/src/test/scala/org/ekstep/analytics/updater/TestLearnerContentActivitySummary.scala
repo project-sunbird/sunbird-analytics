@@ -3,6 +3,8 @@ package org.ekstep.analytics.updater
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.MeasuredEvent
 import com.datastax.spark.connector._
+import java.util.UUID
+import org.ekstep.analytics.framework.LearnerId
 
 class TestLearnerContentActivitySummary extends SparkSpec(null) {
 
@@ -29,8 +31,21 @@ class TestLearnerContentActivitySummary extends SparkSpec(null) {
         user2._4 should be(1092)
     }
     
-//    it should " store learner content summary data into db from the given file " in {
-//        val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-content-summary/session-summary-prod-test.log");
-//        LearnerContentActivitySummary.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerContentActivitySummary")));
-//    }
+    /*
+    it should "test join with learner ids" in {
+        val learner_id = "32b8e28b-9945-4264-9bc5-3c8ce087231c";
+        
+        val lcs = Array(LearnerContentActivity(learner_id, "Content1", 0.0d, 1, 1),
+                LearnerContentActivity(learner_id, "Content2", 0.0d, 1, 1),
+                LearnerContentActivity(learner_id, "Content3", 0.0d, 1, 1));
+        val rdd = sc.parallelize(lcs);
+        rdd.saveToCassandra("learner_db", "learnercontentsummary");
+        
+        val rdd2 = sc.parallelize(Array(learner_id), 1);
+        val result = rdd2.map { x => LearnerId(x) }.joinWithCassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
+        result.groupBy(f => f._1).collect().foreach { x => 
+            println("learner_id", x._1);
+            println("content activity summaries size", x._2.size);
+        }
+    }*/
 }
