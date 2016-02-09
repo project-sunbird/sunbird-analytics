@@ -154,7 +154,6 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         val itemMapping = sc.broadcast(contentItemMapping);
         val configMapping = sc.broadcast(jobParams.getOrElse(Map[String, AnyRef]()));
         val gameSessions = getGameSessions(filteredData);
-        println("sessions", gameSessions.count());
 
         val screenerSummary = gameSessions.mapValues { events =>
 
