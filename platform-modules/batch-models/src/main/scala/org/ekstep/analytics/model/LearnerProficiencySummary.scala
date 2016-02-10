@@ -30,7 +30,7 @@ case class LearnerProficiency(learner_id: String, proficiency: Map[String, Doubl
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 
 object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Serializable {
-
+    
     def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
         val itemId = item.get("itemId").get.asInstanceOf[String];
         //val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]]
@@ -46,10 +46,22 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
             itemMC.toArray
         }
     }
+    
+    def getMaxScore(item: Map[String, AnyRef]) : Int = {
+        val maxScore = item.get("maxScore");
+        if(maxScore.nonEmpty) {
+            if(maxScore.get.isInstanceOf[Double]) {
+                maxScore.get.asInstanceOf[Double].toInt;
+            } else {
+                maxScore.get.asInstanceOf[Int];
+            }
+        } else 0;
+    }
 
     def getItemMaxScore(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Int = {
+        
         val itemId = item.get("itemId").get.asInstanceOf[String];
-        val maxScore = item.getOrElse("maxScore", 0).asInstanceOf[Int];
+        val maxScore = getMaxScore(item);
         if (maxScore == 0) {
             val itemConcept = itemMapping.get(itemId);
             if (0==itemConcept.get.maxScore) {
@@ -177,7 +189,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
             (newProfs, startTime, endTime, newModelParams);
         }).map(f => {
             LearnerProficiency(f._1, f._2._1, f._2._2, f._2._3, f._2._4);
-        });
+        }).cache();
 
         lp.saveToCassandra("learner_db", "learnerproficiency");
         lp.map(f => {
