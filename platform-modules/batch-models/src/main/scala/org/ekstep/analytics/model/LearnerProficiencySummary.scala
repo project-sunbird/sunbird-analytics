@@ -88,24 +88,24 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val itemsWithMissingConcepts = data.map { event =>
             val ir = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]];
             ir.filter(item => {
-                //val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]];
                 val itemMC = item.get("mc").get.asInstanceOf[List[String]];
                 itemMC == null || itemMC.isEmpty
-            }).map(f => (event.dimensions.gdata.get.id, f.get("itemId").get.asInstanceOf[String]))
-        }.filter(f => f.nonEmpty);
+            }).map(f => (f.get("itemId").get.asInstanceOf[String], event.dimensions.gdata.get.id))
+        }.filter(f => f.nonEmpty).cache();
 
         var itemConcepts = Map[String, ItemConcept]();
         if (itemsWithMissingConcepts.count() > 0) {
-            val items = itemsWithMissingConcepts.reduce((a, b) => (a ++ b)).distinct;
-            println("### Items with missing concepts - " + items.length + " ###");
+            
+            val items = itemsWithMissingConcepts.flatMap(f => f.map(x => x)).collect().toMap;
+            println("### Items with missing concepts - " + items.size + " ###");
             itemConcepts = items.map { x =>
                 var contentId = "";
-                if (gameIds.contains(x._1)) {
-                    contentId = x._1;
-                } else if (codeIdMap.contains(x._1)) {
-                    contentId = codeIdMap.get(x._1).get;
+                if (gameIds.contains(x._2)) {
+                    contentId = x._2;
+                } else if (codeIdMap.contains(x._2)) {
+                    contentId = codeIdMap.get(x._2).get;
                 }
-                (x._2, ItemAdapter.getItemConceptMaxScore(x._1, x._2, config.getOrElse("apiVersion", "v1").asInstanceOf[String]));
+                (x._1, ItemAdapter.getItemConceptMaxScore(x._2, x._1, config.getOrElse("apiVersion", "v1").asInstanceOf[String]));
             }.toMap;
             println("### MC fetched from Item Model and broadcasting the data ###");
         }
