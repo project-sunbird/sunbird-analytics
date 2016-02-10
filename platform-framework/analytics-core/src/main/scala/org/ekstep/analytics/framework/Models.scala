@@ -109,3 +109,6 @@ case class Relation(startNodeId: String, endNodeId: String, startNodeType: Strin
 case class DomainMap(concepts: Array[Concept], relations: Array[Relation])
 case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[Relation]);
 case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult);
+
+// Common models for all data products
+case class LearnerId(learner_id: String)

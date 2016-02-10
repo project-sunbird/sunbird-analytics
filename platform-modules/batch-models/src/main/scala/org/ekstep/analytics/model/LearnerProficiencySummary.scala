@@ -23,11 +23,11 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.ItemConcept
 import org.apache.spark.broadcast.Broadcast
+import org.ekstep.analytics.framework.LearnerId
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
 case class ModelParam(concept: String, alpha: Double, beta: Double)
-case class LearnerId(learner_id: String)
 
 object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Serializable {
 

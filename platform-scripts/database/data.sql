@@ -40,3 +40,17 @@ CREATE TABLE learnercontentsummary(
 	num_of_sessions_played int,
 	PRIMARY KEY (learner_id,content_id)
 );
+
+CREATE TABLE learnerconceptrelevance(
+	learner_id text,
+	relevance map<text,double>,
+	PRIMARY KEY (learner_id)
+);
+
+CREATE TABLE conceptsimilaritymatrix (
+	concept1 text,
+	concept2 text,
+	relation_type text,
+	sim double,
+	PRIMARY KEY (concept1, concept2)
+);
