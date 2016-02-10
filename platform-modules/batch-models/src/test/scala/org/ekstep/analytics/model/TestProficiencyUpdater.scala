@@ -4,6 +4,7 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import com.datastax.spark.connector._
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.JSONUtils
+import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestProficiencyUpdater extends SparkSpec(null) {
 
@@ -113,6 +114,10 @@ class TestProficiencyUpdater extends SparkSpec(null) {
     }
     
     it should " test the algo where concept is not empty " in {
+        val learner_id = "test_learner_id123";
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("DELETE FROM learner_db.learnerproficiency where learner_id = '" + learner_id + "'");
+        }
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test1.log");
         val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         var out = rdd2.collect();
