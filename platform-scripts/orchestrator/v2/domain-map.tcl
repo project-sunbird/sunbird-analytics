@@ -10,6 +10,7 @@ proc getNodesByObjectType {graphId type} {
 	set map [java::new HashMap]
 	$map put "nodeType" "DATA_NODE"
 	$map put "objectType" $type
+	$map put "status" "Live"
 	set search_criteria [create_search_criteria $map]
 	set response [searchNodes $graphId $search_criteria]
 	set check_error [check_response_error $response]
@@ -49,12 +50,16 @@ proc getNodes {graphId type} {
 		if {[relationsExist $relations]} {
 			java::for {Relation relation} $relations {
 				set relMetadata [java::prop $relation "metadata"]
-				$relMetadata put "relationType" [java::prop $relation "relationType"]
-				$relMetadata put "startNodeId" [java::prop $relation "startNodeId"]
-				$relMetadata put "endNodeId" [java::prop $relation "endNodeId"]
-				$relMetadata put "startNodeObjectType" [java::prop $relation "startNodeObjectType"]
-				$relMetadata put "endNodeObjectType" [java::prop $relation "endNodeObjectType"]
-				$relationList add $relMetadata
+				set nodeMetadata [java::prop $relation "endNodeMetadata"]
+				set nodeStatus [java::cast {String} [$nodeMetadata get "status"]]
+				if {[$nodeStatus equals "Live"]} {
+					$relMetadata put "relationType" [java::prop $relation "relationType"]
+					$relMetadata put "startNodeId" [java::prop $relation "startNodeId"]
+					$relMetadata put "endNodeId" [java::prop $relation "endNodeId"]
+					$relMetadata put "startNodeObjectType" [java::prop $relation "startNodeObjectType"]
+					$relMetadata put "endNodeObjectType" [java::prop $relation "endNodeObjectType"]
+					$relationList add $relMetadata
+				}
 			}
 		}
 	}
@@ -85,6 +90,7 @@ java::try {
 }	
 
 $resultMap put "concepts" $nodeList
+$resultMap put "conceptsSize" [$nodeList size]
 $resultMap put "relations" $relationList
 set responseList [create_response $resultMap] 
 return $responseList

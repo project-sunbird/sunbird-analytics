@@ -11,6 +11,7 @@ proc getNodesByObjectType {graphId type subject} {
 	$map put "nodeType" "DATA_NODE"
 	$map put "objectType" $type
 	$map put "subject" $subject
+	$map put "status" "Live"
 	set search_criteria [create_search_criteria $map]
 	set response [searchNodes $graphId $search_criteria]
 	set check_error [check_response_error $response]
@@ -48,8 +49,12 @@ proc getNodes {graphId type objectTypes domainId} {
 		if {[relationsExist $relations]} {
 			java::for {Relation relation} $relations {
 				set nodeType [java::prop $relation "endNodeObjectType"]
+				set nodeMetadata [java::prop $relation "endNodeMetadata"]
+				set nodeStatus [java::cast {String} [$nodeMetadata get "status"]]
 				if {[$objectTypes contains $nodeType]} {
-					$relationList add $relation
+					if {[$nodeStatus equals "Live"]} {
+						$relationList add $relation
+					}
 				}
 			}
 		}
