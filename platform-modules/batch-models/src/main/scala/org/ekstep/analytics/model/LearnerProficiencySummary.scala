@@ -33,10 +33,11 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
 
     def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
         val itemId = item.get("itemId").get.asInstanceOf[String];
-        val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]]
+        //val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]]
+        val itemMC = item.get("mc").get.asInstanceOf[List[String]]
         if (itemMC.isEmpty && itemMC.length == 0) {
             val itemConcept = itemMapping.get(itemId);
-            if (itemConcept.isEmpty) {
+            if (null==itemConcept.get.concepts) {
                 Array[String]();
             } else {
                 itemConcept.get.concepts;
@@ -51,7 +52,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val maxScore = item.getOrElse("maxScore", 0).asInstanceOf[Int];
         if (maxScore == 0) {
             val itemConcept = itemMapping.get(itemId);
-            if (itemConcept.isEmpty) {
+            if (0==itemConcept.get.maxScore) {
                 1;
             } else {
                 itemConcept.get.maxScore;
@@ -75,7 +76,8 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val itemsWithMissingConcepts = data.map { event =>
             val ir = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]];
             ir.filter(item => {
-                val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]];
+                //val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]];
+                val itemMC = item.get("mc").get.asInstanceOf[List[String]];
                 itemMC == null || itemMC.isEmpty
             }).map(f => (event.dimensions.gdata.get.id, f.get("itemId").get.asInstanceOf[String]))
         }.filter(f => f.nonEmpty);

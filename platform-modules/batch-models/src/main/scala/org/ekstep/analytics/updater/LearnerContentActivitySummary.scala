@@ -29,8 +29,8 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
                     val events = x._2;
                     val numOfSessionsPlayed = events.length;
                     val eksMap = events.map { x => x.edata.eks }.map { x => x.asInstanceOf[Map[String, AnyRef]] };
-                    val timeSpent = eksMap.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.sum;
-                    val interactionsPerMin = average(eksMap.map(f => f.getOrElse("interactEventsPerMin", 0d).asInstanceOf[Double]));
+                    val timeSpent = eksMap.map { x => x.get("timeSpent").get.asInstanceOf[Double] }.sum;
+                    val interactionsPerMin = average(eksMap.map(f => f.get("interactEventsPerMin").get.asInstanceOf[Double]));
                     LearnerContentActivity(learner_id, content, timeSpent, interactionsPerMin, numOfSessionsPlayed);
                 }
                 perContentAct;

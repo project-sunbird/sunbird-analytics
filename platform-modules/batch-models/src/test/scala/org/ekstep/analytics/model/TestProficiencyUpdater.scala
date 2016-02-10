@@ -111,4 +111,11 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         lp.model_params.size should be (22);
         lp.proficiency should be (profs.proficiency)
     }
+    
+    it should " test the algo where concept is not empty " in {
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test1.log");
+        val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
+        var out = rdd2.collect();
+        out.length should be (1)
+    }
 }
