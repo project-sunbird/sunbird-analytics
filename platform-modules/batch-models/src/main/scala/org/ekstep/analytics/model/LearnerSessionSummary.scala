@@ -39,53 +39,56 @@ case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[Stri
 object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable {
 
     /**
-     * Get Item id to Item mapping from Array of Questionnaires
+     * Get item from broadcast item mapping variable
      */
-    private def getItemMapping(contentMap: Map[String, Array[Questionnaire]]): Map[String, (Item, String)] = {
-
-        val cm = contentMap.filter(_._2 != null);
-        if (cm.size > 0) {
-            cm.filter(_._2 != null).mapValues(questionnaires => {
-                questionnaires.map { x =>
-                    val domain = x.metadata.getOrElse("domain", "").asInstanceOf[String];
-                    x.items.map { y => (y.id, y, domain) }
-                }.reduce((a, b) => a ++ b);
-            }).map(f => f._2).reduce((a, b) => a ++ b).map(f => (f._1, (f._2, f._3))).toMap;
-        } else {
-            Map[String, (Item, String)]();
+    private def getItem(itemMapping: Map[String, Item], event: Event): Item = {
+        val item = itemMapping.getOrElse(event.edata.eks.qid, null);
+        if (null != item) {
+            return item;
         }
+        return Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]()));
     }
 
     /**
      * Get item from broadcast item mapping variable
      */
-    private def getItem(itemMapping: Map[String, (Item, String)], event: Event): (Item, String) = {
+    private def getItemDomain(itemMapping: Map[String, Item], event: Event): String = {
         val item = itemMapping.getOrElse(event.edata.eks.qid, null);
         if (null != item) {
-            return item;
+            return item.metadata.getOrElse("domain", "").asInstanceOf[String];
         }
-        return (Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]())), "numeracy");
+        return "";
     }
 
     /**
      *
      */
-    private def getItemData(sc: SparkContext, games: Array[String]): Map[String, Array[Questionnaire]] = {
-
+    private def getItemData(games: Array[String], apiVersion: String): Map[String, Item] = {
+        
         val lpGameList = ContentAdapter.getGameList();
         val gameIds = lpGameList.map { x => x.identifier };
         val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
-        games.map { gameId =>
+        val contentItems = games.map { gameId =>
             {
                 if (gameIds.contains(gameId)) {
-                    (gameId, ItemAdapter.getQuestionnaires(gameId))
+                    (gameId, ContentAdapter.getContentItems(gameId, apiVersion))
                 } else if (codeIdMap.contains(gameId)) {
-                    (gameId, ItemAdapter.getQuestionnaires(codeIdMap.get(gameId).get))
+                    (gameId, ContentAdapter.getContentItems(codeIdMap.get(gameId).get, apiVersion))
                 } else {
                     null;
                 }
             }
-        }.filter(x => x != null).toMap;
+        }.filter(x => x != null).filter(_._2 != null).toMap;
+
+        if (contentItems.size > 0) {
+            contentItems.map(f => {
+                f._2.map { item =>
+                    (item.id, item)
+                }
+            }).reduce((a, b) => a ++ b).toMap;
+        } else {
+            Map[String, Item]();
+        }
     }
 
     /**
@@ -142,17 +145,17 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
     def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val filteredData = DataFilter.filter(data, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))));
+        val config = jobParams.getOrElse(Map[String, AnyRef]());
         println("### Running the model LearnerSessionSummary ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
         println("### Fetching the Item data from LP ###");
-        val gameQuestionnaires = getItemData(sc, gameList);
+        val itemData = getItemData(gameList, config.getOrElse("apiVersion", "v1").asInstanceOf[String]);
         println("### Broadcasting data to all worker nodes ###");
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
-        val contentItemMapping = getItemMapping(gameQuestionnaires);
 
-        val itemMapping = sc.broadcast(contentItemMapping);
-        val configMapping = sc.broadcast(jobParams.getOrElse(Map[String, AnyRef]()));
+        val itemMapping = sc.broadcast(itemData);
+        val configMapping = sc.broadcast(config);
         val gameSessions = getGameSessions(filteredData);
 
         val screenerSummary = gameSessions.mapValues { events =>
@@ -164,8 +167,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             val assessEvents = events.filter { x => "OE_ASSESS".equals(x.eid) }.sortBy { x => CommonUtil.getEventTS(x) };
             val itemResponses = assessEvents.map { x =>
                 val itemObj = getItem(itemMapping.value, x);
-                val metadata = itemObj._1.metadata;
-                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj._1.mc, itemObj._1.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), Option(itemObj._2));
+                val metadata = itemObj.metadata;
+                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), metadata.get("domain"));
             }
             val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
@@ -192,7 +195,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                             levelMap(x.edata.eks.current) = tempArr;
                         }
                         tempArr = ListBuffer[String]();
-                        domainMap(catMapping.value.getOrElse(x.edata.eks.category, getItem(itemMapping.value, lastEvent)._2)) = x.edata.eks.current;
+                        domainMap(catMapping.value.getOrElse(x.edata.eks.category, getItemDomain(itemMapping.value, lastEvent))) = x.edata.eks.current;
                     case _ => ;
                 }
             }
