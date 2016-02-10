@@ -21,7 +21,6 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
         val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
-        
         me.length should be (1);
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be ("ME_SESSION_SUMMARY");
@@ -152,14 +151,14 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
     it should "generate 3 session summaries and validate the screen summaries" in {
         
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data3.log");
-        val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelId" -> "GenericSessionSummary")));
+        val rdd2 = LearnerSessionSummary.execute(sc, rdd, None);
         val me = rdd2.collect();
         me.length should be (3);
         
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         // Validate for event envelope
         event1.eid should be ("ME_SESSION_SUMMARY");
-        event1.context.pdata.model should be ("GenericSessionSummary");
+        event1.context.pdata.model should be ("LearnerSessionSummary");
         event1.context.pdata.ver should be ("1.0");
         event1.context.granularity should be ("SESSION");
         event1.context.date_range should not be null;
@@ -195,6 +194,12 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.screenSummary.get.size should be (2);
         summary3.screenSummary.get.getOrElse("ordinalNumbers", 0d) should be (226.0);
         summary3.screenSummary.get.getOrElse("splash", 0d) should be (24.0);
+    }
+    
+    it should "generate a session even though OE_START and OE_END are present" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data5.log");
+        val rdd1 = LearnerSessionSummary.execute(sc, rdd, Option(Map("apiVersion" -> "v2")));
+        val rs = rdd1.collect();
     }
     
     

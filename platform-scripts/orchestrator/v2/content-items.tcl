@@ -57,6 +57,7 @@ proc getItem {graphId itemId} {
 	set node [getNode $graphId $itemId]
 	set item [java::prop $node "metadata"]
 	$item put "tags" [java::prop $node "tags"]
+	$item put "identifier" $itemId
 	set concepts [getNodeRelationIds $node "Concept" "endNodeId"]
 	$item put "concepts" $concepts
 	return $item
