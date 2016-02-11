@@ -30,7 +30,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
-        val topK = configMapping.value.getOrElse("topContent", 1).asInstanceOf[Int];
+        val topK = configMapping.value.getOrElse("topContent", 5).asInstanceOf[Int];
         
         val activity = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
