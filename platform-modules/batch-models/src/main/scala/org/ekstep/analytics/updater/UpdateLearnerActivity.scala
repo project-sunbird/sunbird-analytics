@@ -8,6 +8,7 @@ import java.util.UUID
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.util.Constants
 
 case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp:Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
                                   m_ts_on_an_act: Map[String,Double], m_count_on_an_act: Map[String,Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime, 
@@ -49,7 +50,7 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
             }
         }.filter(_ != null);
         try {
-            la.saveToCassandra("learner_db", "learnersnapshot");
+            la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
             sc.parallelize(Array("Learner database updated sucessfully"), 1);
         } catch {
             case ex: Exception =>

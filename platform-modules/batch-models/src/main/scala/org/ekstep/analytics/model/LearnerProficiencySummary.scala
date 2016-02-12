@@ -24,6 +24,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.ItemConcept
 import org.apache.spark.broadcast.Broadcast
 import org.ekstep.analytics.framework.LearnerId
+import org.ekstep.analytics.util.Constants
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
@@ -37,7 +38,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val itemMC = item.get("mc").get.asInstanceOf[List[String]]
         if (itemMC.isEmpty && itemMC.length == 0) {
             val itemConcept = itemMapping.get(itemId);
-            if (null==itemConcept.get.concepts) {
+            if (null == itemConcept.get.concepts) {
                 Array[String]();
             } else {
                 itemConcept.get.concepts;
@@ -52,7 +53,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val maxScore = item.getOrElse("maxScore", 0).asInstanceOf[Int];
         if (maxScore == 0) {
             val itemConcept = itemMapping.get(itemId);
-            if (0==itemConcept.get.maxScore) {
+            if (0 == itemConcept.get.maxScore) {
                 1;
             } else {
                 itemConcept.get.maxScore;
@@ -129,7 +130,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
             itemResponses;
         }.map(x => x._2).flatMap(f => f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5), f._6, f._7)).groupBy(f => f._1);
 
-        val prevLearnerState = newEvidences.map { x => LearnerId(x._1) }.joinWithCassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").map(f => (f._1.learner_id, f._2))
+        val prevLearnerState = newEvidences.map { x => LearnerId(x._1) }.joinWithCassandraTable[LearnerProficiency](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE).map(f => (f._1.learner_id, f._2))
 
         val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState);
         val lp = joinedRDD.mapValues(f => {
@@ -179,7 +180,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
             LearnerProficiency(f._1, f._2._1, f._2._2, f._2._3, f._2._4);
         });
 
-        lp.saveToCassandra("learner_db", "learnerproficiency");
+        lp.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
         lp.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };

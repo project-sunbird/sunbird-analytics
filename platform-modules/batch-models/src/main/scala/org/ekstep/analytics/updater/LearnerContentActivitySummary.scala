@@ -9,6 +9,7 @@ import scala.collection.mutable.Buffer
 import org.apache.spark.HashPartitioner
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.util.Constants
 
 case class LearnerContentActivity(learner_id: String, content_id: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
 
@@ -35,7 +36,7 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
                 }
                 perContentAct;
             }.flatMap { x => x };
-        activity.saveToCassandra("learner_db", "learnercontentsummary");
+        activity.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE);
         activity.map { x => JSONUtils.serialize(x) };
     }
 }

@@ -5,6 +5,7 @@ import org.apache.spark.rdd.RDD
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.util.Constants
 
 case class ConceptSimilarity(concept1: String, concept2: String, relation_type: String, sim: Double)
 case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, similarity: List[Map[String, AnyRef]])
@@ -16,7 +17,7 @@ object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity] wit
             val similarity = x.similarity.last
             ConceptSimilarity(x.startNodeId, x.endNodeId, similarity.get("relationType").get.asInstanceOf[String], similarity.get("sim").get.asInstanceOf[Double]);
         }
-        similarity.saveToCassandra("learner_db", "conceptsimilaritymatrix");
+        similarity.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE);
         similarity.map { x =>
             val similarityMap = Map(
                 "concept1" -> x.concept1,
