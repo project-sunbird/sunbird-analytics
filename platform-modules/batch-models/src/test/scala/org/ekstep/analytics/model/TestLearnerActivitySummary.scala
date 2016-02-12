@@ -122,5 +122,27 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         eksMap2.get("meanCountOfAct").get.asInstanceOf[Map[String,Double]].size should be (0)
     }
     
-    
+    it should " check the event fields where activitySummary is empty but timeSpent is non-zero" in {
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/empty_activity_summary_nonzero_timeSpent.log");
+        val rdd2 = LearnerActivitySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val me = rdd2.collect()
+        me.length should be (2)
+        
+        val e1 = JSONUtils.deserialize[MeasuredEvent](me(0))
+        val eksMap1 = e1.edata.eks.asInstanceOf[Map[String,AnyRef]];
+        eksMap1.get("meanTimeSpent").get should not be (0)
+        eksMap1.get("meanActiveTimeOnPlatform").get should not be (0)
+        eksMap1.get("meanInterruptTime").get should be (0)
+        eksMap1.get("totalTimeSpentOnPlatform").get should not be (0)
+        eksMap1.get("meanTimeSpentOnAnAct").get.asInstanceOf[Map[String,Double]].size should be (0)
+        eksMap1.get("meanCountOfAct").get.asInstanceOf[Map[String,Double]].size should be (0)
+        
+        val e2 = JSONUtils.deserialize[MeasuredEvent](me(1))
+        val eksMap2 = e2.edata.eks.asInstanceOf[Map[String,AnyRef]];
+        eksMap2.get("meanTimeSpent").get should not be (0)
+        eksMap2.get("meanActiveTimeOnPlatform").get should not be (0)
+        eksMap2.get("meanInterruptTime").get should be (0)
+        eksMap2.get("meanTimeSpentOnAnAct").get.asInstanceOf[Map[String,Double]].size should be (0)
+        eksMap2.get("meanCountOfAct").get.asInstanceOf[Map[String,Double]].size should be (0)
+    }
 }
