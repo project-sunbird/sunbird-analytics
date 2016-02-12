@@ -62,7 +62,7 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test.log");
         val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("apiVersion" -> "v2")));
         var out = rdd2.collect();
-        out.length should be (11)
+        out.length should be (44)
     }
     
     it should "check the zero Proficiency Updater event is coming" in {
