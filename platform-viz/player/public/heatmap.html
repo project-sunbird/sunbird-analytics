@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" ng-app>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ekStep Learning Platform</title>
+    <link rel="stylesheet" href="css/thirdparty/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="bower_components/bootstrap-combobox/css/bootstrap-combobox.css" />
+    <link rel="stylesheet" href="bower_components/jquery.json-viewer/json-viewer/jquery.json-viewer.css" />
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/thirdparty/angular.min.js"></script>
+</head>
+
+<body>
+    <div id="heatmap" class="col-md-9">
+        <img src="/img/Num_PU_Cluster_Heatmap.svg" style="width: 100%" ng-if="showNumeracy"/>
+        <img src="/img/Lit_PU_Cluster_Heatmap.svg" style="width: 100%" ng-if="!showNumeracy"/>
+    </div>
+    <div ng-init="showNumeracy=true"/>
+    <div id="control-pane">
+        <div class="row">
+            <div class="col-md-12">
+                <label class="radio-inline">
+                    <input type="radio" name="graphId" id="graphId" value="numeracy" ng-click="showNumeracy=true" checked="checked"> Numeracy
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="graphId" id="graphId" value="literacy" ng-click="showNumeracy=false"> Literacy
+                </label>
+            </div>
+        </div>
+    </div>
+    <script src="js/thirdparty/jquery.min.js"></script>
+    <script src="js/thirdparty/bootstrap.min.js"></script>
+    <script src="js/thirdparty/underscore.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ekStep Learning Platform</title>
+    <link rel="stylesheet" href="css/thirdparty/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="bower_components/bootstrap-combobox/css/bootstrap-combobox.css" />
+    <link rel="stylesheet" href="bower_components/jquery.json-viewer/json-viewer/jquery.json-viewer.css" />
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+    .word.w0 {
+        font-family: 'BebasNeue';
+        text-transform: capitalize;
+        font-size: 20px;
+    }
+    
+    .word.w1,
+    .word.w2 {
+        font-family: 'Frutiger Serif LT W01';
+        font-size: 15px;
+    }
+    
+    .word.w3 {
+        font-family: 'Frutiger Serif LT W01';
+        font-size: 15px;
+    }
+    
+    .wordsDiv {
+        text-align: center;
+        height: 100%;
+        display: block;
+    }
+    
+    .pad-top {
+        padding-top: 20px;
+    }
+    
+    s .node circle {
+        fill: #fff;
+        stroke: steelblue;
+        stroke-width: 1.5px
+    }
+    
+    .node circle:hover {
+        stroke: red;
+        stroke-width: 3px
+    }
+    
+    .link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 2px
+    }
+    
+    .nodeText:hover {
+        text-decoration: underline;
+        fill: steelblue !important
+    }
+    
+    .selectedText {
+        font-size: 16px;
+        font-weight: bold;
+        fill: steelblue !important
+    }
+    
+    #sigmaGraph,
+    #sunburst,
+    #treeLayout {
+        min-width: 400px;
+        min-height: 600px;
+        margin: auto;
+        position: relative;
+        /*top: 50px;*/
+    }
+    
+    .graph-container {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .nodeJSONPreview pre {
+        margin: 0;
+    }
+    .noPad {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="row legend">
+        <div class="com-md-12" style="display: block">
+            <h5>Precision -> Node size </h5>
+            <h5>Proficiency -> Color</h5>
+            <div class="circle bg-black"><span class="mar-left-20">Low</span></div>
+            <div class="circle bg-blue"><span class="mar-left-20">Medium</span></div>
+            <div class="circle bg-orange"><span class="mar-left-20">High</span></div>
+        </div>
+        <!--  <div class="com-md-12">
+            <div class="cir-cont">
+                <div class="size-1 bg-black "></div>  
+                <span class="mar-left-20">Below Average</span>
+            </div>
+            <div class="cir-cont">
+                <div class="size-2 bg-black "></div>       
+                <span class="mar-left-20">Average</span>          
+            </div>
+            <div>
+                <div class="circle bg-black "><span class="mar-left-20">Above Average</span></div>                
+            </div> 
+        </div>-->
+    </div>
+    <div id="sigmaGraph" class="col-md-9"></div>
+    <div id="control-pane">
+        <div class="row">
+            <div class="col-md-12 noPad" style="padding-left: 2px">
+                <label class="radio-inline">
+                    <input type="radio" name="graphId" id="graphId" value="numeracy" onclick="loadGraph('numeracy')" checked="checked"> Numeracy
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="graphId" id="graphId" value="literacy" onclick="loadGraph('literacy')"> Literacy
+                </label>
+                <span class="line"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 noPad">
+                <h5>Learner ID</h5>
+                <input type="text" class="form-control" id="learnerId" placeholder="Learner ID">
+                <input type="button" class="btn btn-sm btn-primary pull-right clearfix mar-top-5" id="learnerSubmit" value="Submit">
+            </div>
+            <div class="col-md-12 selectContainer noPad">
+                <h5>Node Names</h5>
+                <select class="node-name-select form-control" id="node-category">
+                    <option value="" selected>Choose Node</option>
+                </select>
+                <span class="line"></span>
+                <input type="button" class="btn btn-primary btn-sm pull-right mar-top-5" id="reset-btn" value="Reset filters">
+            </div>
+        </div>
+        <span class="line"></span>
+        <div class="panel-group" id="accordion2">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion2" href="#learnerSnapshot">Learner Activity Summary</a>
+                    </h4>
+                </div>
+                <div id="learnerSnapshot" class="panel-collapse collapse in">
+                    <table class="table table-striped table-condensed table-bordered" id="learnerSnapshotDetails">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/thirdparty/jquery.min.js"></script>
+    <script src="js/thirdparty/bootstrap.min.js"></script>
+    <script src="js/thirdparty/underscore.js"></script>
+    <script src="js/thirdparty/angular.min.js"></script>
+    <script src="bower_components/bootstrap-combobox/js/bootstrap-combobox.js"></script>
+    <script src="bower_components/jquery.json-viewer/json-viewer/jquery.json-viewer.js"></script>
+    <script src="bower_components/sigma.js/build/sigma.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.layout.forceAtlas2.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.parsers.json.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.plugins.filter.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.plugins.locate.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.plugins.dragNodes.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.plugins.neighborhoods.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.renderers.edgeLabels.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.renderers.customEdgeShapes.min.js"></script>
+    <script src="bower_components/sigma.js/build/plugins/sigma.renderers.customShapes.min.js"></script>
+    <script src="js/app/main.js"></script>
+</body>
+
+</html>
