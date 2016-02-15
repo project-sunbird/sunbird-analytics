@@ -5,6 +5,7 @@ var learnProfData = {};
 var learnerDetails;
 var currentGraph = undefined;
 var graphs = {};
+var recoEdges = [];
 
 var jsContants = {
     API: {
@@ -65,12 +66,13 @@ function resetNode(node) {
     }
 }
 
-function getProficiency() {
+function getLearnerInfo() {
     var learnerId = $('#learnerId').val();
     $.get('/learner/info/' + learnerId)
     .then(function(response) {
         updateProficiency(response.proficiency);
         updateLearnerSnapshot(response.snapshot);
+        showRecommendations(response.recos);
     });
 }
 
@@ -784,7 +786,7 @@ function loadSigmaGraph() {
 
             filtersApplied.objectType = [];
             filtersApplied.relationType = [];
-
+            deleteRecos();
             sigma.plugins.locate(s).center(1);
             s.stopForceAtlas2();
             s.graph.edges().forEach(function(e) {
@@ -894,42 +896,52 @@ $(document).ready(function() {
     loadGraph('numeracy');
     //loadLearnerProfData();
     $('#learnerSubmit').bind('click', function() {
-        getProficiency();
+        getLearnerInfo();
     });
 });
 
-function showRelevance() {
+function showRecommendations(recos) {
+    deleteRecos();
+    if(recos) {
+        s.settings({
+            maxEdgeSize: 5
+        });
+        var nodes = s.graph.nodes();
+        var startNodeId = recos.startNode.cid;
+        var endNodes = recos.endNodes;
 
-    s.settings({
-        maxEdgeSize: 5
-    });
-    var nodes = s.graph.nodes();
-    var startNodeId = "Num:C1:SC1:MC1";
-    var endNodes = ["Num:C1:SC2:MC14","Num:C1:SC3:MC14","Num:C3:SC6","Num:C1:SC1:MC1","Num:C3:SC2:MC7"];
-
-    endNodes.forEach(function(endNodeId, idx) {
+        endNodes.forEach(function(node, idx) {
+            var nodeFound = _.findWhere(nodes, {
+                'identifier': node.cid
+            });
+            if (nodeFound && node.cid !== startNodeId) {
+                nodeFound.size = 0.4;
+                nodeFound.color = '#617db4';
+            }
+            var id = 'e_' + Math.random();
+            recoEdges.push(id);
+            s.graph.addEdge({
+                id: id,
+                source: startNodeId.replace(/\:/g, '_'),
+                target: node.cid.replace(/\:/g, '_'),
+                size: idx,
+                type: 'curvedArrow',
+                color: '#b956af'
+            });
+        })
         var nodeFound = _.findWhere(nodes, {
-            'identifier': endNodeId
+            'identifier': startNodeId
         });
-        if (nodeFound) {
-            nodeFound.size = 0.4;
-            nodeFound.color = '#617db4';
-        }
-        s.graph.addEdge({
-            id: 'e_' + Math.random(),
-            source: "Num:C1:SC1:MC1".replace(/\:/g, '_'),
-            target: endNodeId.replace(/\:/g, '_'),
-            size: idx,
-            type: 'curvedArrow',
-            color: '#b956af'
-        });
-    })
-    var nodeFound = _.findWhere(nodes, {
-        'identifier': startNodeId
-    });
-    if (nodeFound) {
-        nodeFound.size = 0.6;
-        nodeFound.color = '#c6583e';
+        s.refresh();
     }
-    s.refresh();
+}
+
+function deleteRecos() {
+    s.settings({
+        maxEdgeSize: 2
+    });
+    _.each(recoEdges, function(id) {
+        s.graph.dropEdge(id);
+    });
+    recoEdges = [];
 }

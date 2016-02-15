@@ -5,6 +5,7 @@ var restUtils = require('./RestUtils'),
 exports.graphs = {};
 exports.conceptConverage = {};
 exports.contents = {};
+exports.num_concepts = [];
 
 exports.refreshDomainModel = function(req, res) {
 	exports.cacheDomainModel(function(err, msg) {
@@ -44,6 +45,7 @@ exports.cacheDomainModel = function(cb) {
 			exports.graphs['numeracy'] = results.numeracy;
 			exports.graphs['literacy'] = results.literacy;
 			populateConceptCoverage(results.contentList);
+			exports.num_concepts = _.pluck(results.numeracy.nodes, 'identifier');
 		}
 		console.log('Domain model populated/refreshed in cache');
 		if(cb) {

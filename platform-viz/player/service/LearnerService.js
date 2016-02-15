@@ -1,6 +1,7 @@
 var cassandra = require('cassandra-driver');
 var fs = require('fs');
 var async = require('async');
+var _ = require('underscore');
 var ds = require('./DomainService');
 var client = new cassandra.Client({
     contactPoints: ['52.77.223.20'],
@@ -51,11 +52,54 @@ getLearnerProficiency = function(learnerProf) {
 }
 
 getConceptTS = function(contentSummaries) {
-	
+	var contentTS = {};
+	_.each(contentSummaries, function(c) {
+		contentTS[c.content_id] = c.time_spent
+	});
+	var concepts = [];
+	for (k in ds.conceptConverage) {
+		var cts = _.map(ds.conceptConverage[k], function(content) {
+			return (contentTS[content] || 0)
+		})
+		concepts[k] = _.reduce(cts, function(ts, agg) { return (ts + agg)}, 0);
+	}
+	return concepts[k];
 }
 
-getLearnerRecos = function(relevance, contentSummaries, proficiency) {
-	console.log('ds.contents.length', ds.contents.length);
+sortFn = function(a,b) {
+	if (a.prof < b.prof) {
+		return -1;
+	} else if (a.prof > b.prof) {
+		return 1;
+	} else if (a.ts < b.ts) {
+		return -1;
+	} else if (a.ts > b.ts) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+getLearnerRecos = function(conceptRelevance, contentSummaries, cp) {
+	var conceptTS = getConceptTS(contentSummaries);
+	var concepts = [];
+	for(k in cp.proficiency) {
+		concepts.push({cid: k, ts: conceptTS[k] || 0, prof: cp.proficiency[k]});
+	}
+	var rootConcept = _.filter(concepts, function(c) {
+		return (ds.num_concepts.indexOf(c.cid) != -1)
+	}).sort(sortFn);
+	var cr = [];
+	for (k in conceptRelevance.relevance) {
+		cr.push({cid: k, r: conceptRelevance.relevance[k]});
+	}
+	var numeracyCR = _.filter(cr, function(c) {
+		return (ds.num_concepts.indexOf(c.cid) != -1)
+	})
+	var sortedCR = _.first(numeracyCR.sort(function(a, b) {
+    	return b.r - a.r;
+	}), 5);
+	return {startNode: rootConcept[0], endNodes: sortedCR.reverse()}
 }
 
 exports.getLearnerInfo = function(req, res) {
@@ -74,12 +118,16 @@ exports.getLearnerInfo = function(req, res) {
 			multipleRecords(LEARNER_CONTENT_SUMMARY, learnerId, callback);
 		}
 	}, function(err, results) {
-		var data = {};
-		if(results) {
-			data.snapshot = results.snapshot;
-			data.proficiency = getLearnerProficiency(results.proficiency);
-			data.recos = getLearnerRecos(results.relevance_scores, results.contentSummaries, results.proficiency);
+		if(err) {
+			res.send({error: err});
+		} else {
+			var data = {};
+			if(results) {
+				data.snapshot = results.snapshot;
+				data.proficiency = getLearnerProficiency(results.proficiency);
+				data.recos = getLearnerRecos(results.relevance_scores, results.contentSummaries, results.proficiency);
+			}
+			res.send(data);
 		}
-		res.send(data);
 	});
 }
