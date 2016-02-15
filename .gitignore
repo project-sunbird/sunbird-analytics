@@ -9,3 +9,4 @@ dependency-reduced-pom.xml
 target
 platform-scripts/orchestrator/node_modules
 node_modules/
+platform-viz/viz-player

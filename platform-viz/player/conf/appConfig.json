@@ -1,0 +1,4 @@
+{
+    "LP_URL": "http://lp-sandbox.ekstep.org:8080/taxonomy-service",
+    "CASSANDRA_HOST": "52.77.223.20"
+}

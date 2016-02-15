@@ -3,8 +3,9 @@ var fs = require('fs');
 var async = require('async');
 var _ = require('underscore');
 var ds = require('./DomainService');
+var config = require('../conf/appConfig.json')
 var client = new cassandra.Client({
-    contactPoints: ['52.77.223.20'],
+    contactPoints: [config.CASSANDRA_HOST],
     keyspace: 'learner_db'
 });
 var LEARNER_SNAPSHOT = "SELECT * FROM learnersnapshot where learner_id = ':learnerId'";

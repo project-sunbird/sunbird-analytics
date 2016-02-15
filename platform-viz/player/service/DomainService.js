@@ -1,7 +1,8 @@
 var restUtils = require('./RestUtils'),
 	_ = require('underscore'),
 	async = require('async'),
-	baseUrl = "http://lp-sandbox.ekstep.org:8080/taxonomy-service";
+	config = require('../conf/appConfig.json'),
+	baseUrl = config.LP_URL;
 exports.graphs = {};
 exports.conceptConverage = {};
 exports.contents = {};

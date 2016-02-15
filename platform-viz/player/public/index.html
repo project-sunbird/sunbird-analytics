@@ -134,7 +134,7 @@
     </div>
     <div id="sigmaGraph" class="col-md-9"></div>
     <div id="control-pane">
-        <div class="row">
+        <div class="row hide">
             <div class="col-md-12 noPad" style="padding-left: 2px">
                 <label class="radio-inline">
                     <input type="radio" name="graphId" id="graphId" value="numeracy" onclick="loadGraph('numeracy')" checked="checked"> Numeracy
@@ -147,17 +147,17 @@
         </div>
         <div class="row">
         
+            <div class="col-md-12 noPad">
+                <h5>Learner ID</h5>
+                <input type="text" class="form-control" id="learnerId" placeholder="Learner ID">
+                <input type="button" class="btn btn-sm btn-primary pull-right clearfix mar-top-5 tg-btn" id="proficiencySubmit" value="Show Proficiency">
+                <input type="button" class="btn btn-sm btn-primary pull-right clearfix mar-top-5 tg-btn" id="relevanceSubmit" value="Show Recos">
+            </div>
             <div class="col-md-12 selectContainer noPad">
                 <h5>Grade</h5>
                 <select class="node-name-select form-control" id="gradesDropdown">
                     <option value="" selected>Choose Grade</option>
                 </select>
-            </div>
-            <div class="col-md-12 noPad">
-                <h5>Learner ID</h5>
-                <input type="text" class="form-control" id="learnerId" placeholder="Learner ID">
-                <input type="button" class="btn btn-sm btn-primary pull-right clearfix mar-top-5 tg-btn" id="proficiencySubmit" value="Show Proficiency">
-                <input type="button" class="btn btn-sm btn-primary pull-right clearfix mar-top-5 tg-btn" id="relevanceSubmit" value="Toggle Recos">
             </div>
             <div class="col-md-12 selectContainer noPad">
                 <h5>Node Names</h5>
