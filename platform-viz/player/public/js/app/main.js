@@ -66,13 +66,20 @@ function resetNode(node) {
     }
 }
 
+var _learnerInfo = {};
 function getLearnerInfo() {
+    $($('#gradesDropdown option')[0]).attr('selected', true);
+    filter.undo('grade').apply();
     var learnerId = $('#learnerId').val();
+    deleteRecos();
+
     $.get('/learner/info/' + learnerId)
     .then(function(response) {
+        $('#relevanceSubmit').show().removeClass('btn-selected');
+        _learnerInfo = response;
         updateProficiency(response.proficiency);
         updateLearnerSnapshot(response.snapshot);
-        showRecommendations(response.recos);
+        //showRecommendations(response.recos);
     });
 }
 
@@ -264,14 +271,17 @@ function loadSigmaGraph() {
         toKeep[node.id] = node;
 
         s.graph.edges().forEach(function(e) {
-            if (toKeep[e.source] && toKeep[e.target]) {
-                e.color = e.originalColor;
-                e.size = 2;
-            } else {
-                e.size = 1;
-                e.color = '#eee';
+            if(e.type !== 'curvedArrow'){
+                if (toKeep[e.source] && toKeep[e.target]) {
+                    e.color = e.selectedColor;
+                    e.size = 2;
+                } else {
+                    e.size = 1;
+                    e.color = e.originalColor;
+                }
             }
         });
+        console.log('node metadata: ', node.metadata);
         $('#json-viewer').jsonViewer(node);
 
         // Since the data has been modified, we need to
@@ -294,14 +304,15 @@ function loadSigmaGraph() {
 
         s.bind('clickStage', function() {
             s.stopForceAtlas2();
+            /*resetGraph();
             s.graph.edges().forEach(function(e) {
                 e.color = e.originalColor;
             });
-            /*s.graph.nodes().forEach(function(e) {
+            s.graph.nodes().forEach(function(e) {
                 e.size = sigma.settings.maxNodeSize / 2;
                 e.color = jsContants.DEFAULT_COLOR;
-            });*/
-            s.refresh();
+            });
+            s.refresh();*/
         });
 
         s.bind('clickEdge', function(evt) {
@@ -417,13 +428,18 @@ function loadSigmaGraph() {
                     var alphaVal = customShape == true ? 1 : Math.random();
 
                     var colorVal = Math.ceil(3 * Math.random());
-                    node.color = color.hexToRgba(jsContants.DEFAULT_COLOR, 1);
+                    node.color = color.hexToRgba(jsContants.DEFAULT_COLOR, 1);                    
 
                     nodes.push(node);
                 } else {
                     //This is assesmentItem
                     node.size = 0.4;
                     node.color = '#FF00FF';
+                }
+
+                if(node.metadata.gradeLevel){
+                    updateGrades(node);
+                    //console.log("gradeLevel: ", node.metadata.gradeLevel);
                 }
             });
             inputJsonData.nodes = nodes;
@@ -433,6 +449,10 @@ function loadSigmaGraph() {
             var nodeEdges = [];
             _.each(edges, function(edge, index) {
                 //check startNodeType
+                edge.size = 1;
+                edge.color = '#F0F0F0';
+                edge.originalColor = '#F0F0F0';
+                edge.selectedColor = '#AAAAAA';
                 if (edge.startNodeObjectType) {
                     // Dont add edges of "AssesmentItem" because those nodes are not added to graph
                     // So you will get error if you add
@@ -443,9 +463,6 @@ function loadSigmaGraph() {
                             edge.id = 'e_' + Math.random();
                             edge.source = startNodeId;
                             edge.target = endNodeId;
-                            edge.size = 1;
-                            edge.color = '#F0F0F0'
-                            edge.Label = 'Lab';
                             if (edge.relationType === 'associatedTo') {
                                 edge.type = 'dashed';
                             } else {
@@ -460,8 +477,6 @@ function loadSigmaGraph() {
                     edge.id = 'e_' + Math.random();
                     edge.source = startNodeId1;
                     edge.target = endNodeId1;
-                    edge.size = 1;
-                    edge.Label = 'Lab';
                     edge.type = 'dotted';
 
                     nodeEdges.push(edge);
@@ -560,6 +575,26 @@ function loadSigmaGraph() {
                 }, 'min-degree')
                 .apply();
         }
+
+          function filterByGrade(e) {
+            if(e.target.selectedIndex === 0){
+                filter.undo('grade').apply();
+                return;
+            }
+
+            var c = e.target[e.target.selectedIndex].text;
+            filter
+                .undo('grade')
+                .nodesBy(function(n) {
+                    var returnval = true;
+                    if(n.metadata.gradeLevel){
+                        returnval = n.metadata.gradeLevel.indexOf(c);
+                        return returnval < 0? false : true;
+                    }
+                    return returnval;
+                }, 'grade')
+                .apply();
+            }
 
         function applyCategoryFilter(e) {
             var c = e.target[e.target.selectedIndex].name;
@@ -660,26 +695,42 @@ function loadSigmaGraph() {
                 .apply();
         }
 
-
-        /*function searchNode(e){
-          var c = e.target[e.target.selectedIndex].value;
-          filter
-            .undo('node-category')
-            .nodesBy(function(n) {
-              return !c.length || n.data.method.name === c;
-            }, 'node-category')
-            .apply();
-        }*/
-
-        //__.$('min-degree').addEventListener('input', applyMinDegreeFilter);  // for Chrome and FF
-        //__.$('min-degree').addEventListener('change', applyMinDegreeFilter); // for IE10+, that sucks
-        //__.$('search-node').addEventListener("input", searchNode); // for Chrome and FF
-        //__.$('search-node').addEventListener("change", searchNode); // for IE10+, that sucks
         __.$('node-category').addEventListener('change', applyCategoryFilter);
+        __.$('gradesDropdown').addEventListener('change', filterByGrade);
         $('#listObjectTypes input').bind('change', filterByNodeObjectType);
         $('#listRelationTypes input').bind('change', filterByNodeRelationType);
 
 
+
+        // reset button
+        __.$('reset-btn').addEventListener('click', function() {
+            //__.$('min-degree').value = 0;
+            //__.$('min-degree-val').textContent = '0';
+            $('#listObjectTypes li input').each(function() {
+                $(this).prop('checked', false);
+            });
+
+            $('#listRelationTypes li input').each(function() {
+                $(this).prop('checked', false);
+            });
+
+            filtersApplied.objectType = [];
+            filtersApplied.relationType = [];
+            deleteRecos();
+
+            s.settings({
+                maxEdgeSize: 2
+            });
+            resetGraph();
+            $('#learnerId').val('');
+            $('#learnerSnapshotDetails').empty();
+            $('#relevanceSubmit').removeClass('btn-selected').hide();
+            __.$('node-category').selectedIndex = 0;
+            __.$('gradesDropdown').selectedIndex = 0;
+            filterInput.undo().apply();
+            __.$('dump').textContent = '';
+            __.hide('#dump');
+        });
         (function() {
             if (defaultMinDegree) {
                 filterByInputValue(defaultMinDegree);
@@ -728,10 +779,24 @@ function loadSigmaGraph() {
         });
     }
 
+    function addGradesToDropdown(){
+        $($('#gradesDropdown option')[0]).siblings().remove();
+        var gradesDropdownEle = __.$('gradesDropdown');
+        _grades.sort();
+        _grades.forEach(function(c) {
+            var optionElt = document.createElement('option');
+            optionElt.text = c;
+            gradesDropdownEle.add(optionElt);
+            //$("#gradesDropdown").append('<option>'+ c +'</option>');
+        });
+    }
+
+
     function updatePane(graph, filterInput) {
         // get max degree
         var maxDegree = 0,
-            categories = [];
+            categories = [],
+            _grades = [];
         // read nodes
         var nodes = graph.nodes();
         nodes.forEach(function(n) {
@@ -761,6 +826,9 @@ function loadSigmaGraph() {
 
         $('#node-category option').width(250);
 
+        //To Add the the grades to dropdown element
+        addGradesToDropdown();
+
         graphLoadTimeout = setTimeout(function() {
             /*s.graph.nodes().forEach(function(e) {
                 e.size = sigma.settings.maxNodeSize / 2;
@@ -770,39 +838,6 @@ function loadSigmaGraph() {
             s.refresh();
             s.stopForceAtlas2();
         }, jsContants.FORCE_LAYOUT_STOP_TIMER);
-
-        // reset button
-
-        __.$('reset-btn').addEventListener('click', function() {
-            //__.$('min-degree').value = 0;
-            //__.$('min-degree-val').textContent = '0';
-            $('#listObjectTypes li input').each(function() {
-                $(this).prop('checked', false);
-            });
-
-            $('#listRelationTypes li input').each(function() {
-                $(this).prop('checked', false);
-            });
-
-            filtersApplied.objectType = [];
-            filtersApplied.relationType = [];
-            deleteRecos();
-            sigma.plugins.locate(s).center(1);
-            s.stopForceAtlas2();
-            s.graph.edges().forEach(function(e) {
-                e.color = e.originalColor;
-            });
-            s.graph.nodes().forEach(function(e) {
-                resetNode(e);
-            });
-            s.refresh();
-            $('#learnerId').val('');
-            $('#learnerSnapshotDetails').empty();
-            __.$('node-category').selectedIndex = 0;
-            filterInput.undo().apply();
-            __.$('dump').textContent = '';
-            __.hide('#dump');
-        });
     }
 
 
@@ -859,6 +894,19 @@ function loadSigmaGraph() {
     updateProficiency();
 }
 
+function resetGraph(){
+    filter.undo().apply();
+    sigma.plugins.locate(s).center(1);
+    s.stopForceAtlas2();
+    s.graph.edges().forEach(function(e) {
+        e.color = e.originalColor;
+    });
+    s.graph.nodes().forEach(function(e) {
+        resetNode(e);
+    });
+    s.refresh();
+}
+
 /* 
  * ********* Generic function ************
  */
@@ -893,14 +941,44 @@ var color = {
 }
 
 $(document).ready(function() {
+    $('#relevanceSubmit').hide();
     loadGraph('numeracy');
     //loadLearnerProfData();
-    $('#learnerSubmit').bind('click', function() {
-        getLearnerInfo();
+
+    $('#proficiencySubmit').bind('click', function(e) {
+        $('#relevanceSubmit').removeClass('btn-selected');
+
+        if($(this).hasClass('btn-selected')){
+            //$('#relevanceSubmit').hide();
+        }else{
+            getLearnerInfo();
+        }
+        //$(this).toggleClass('btn-selected');
+    });
+
+    $('#relevanceSubmit').bind('click', function(e) {
+        if($(this).hasClass('btn-selected')){
+            //$(this).val('Show Recommends');
+            deleteRecos();
+            s.refresh();
+        }else{
+            //$(this).val('Hide Recommends');
+            showRecommendations(_learnerInfo.recos);
+        }
+        $(this).toggleClass('btn-selected');
+        $(this).focusout();
     });
 });
 
+var _grades = [];
+function updateGrades(node){
+    if(node.metadata.gradeLevel){
+        _grades = _.union(_grades, node.metadata.gradeLevel);            
+    }
+}
+
 function showRecommendations(recos) {
+    //resetGraph();
     deleteRecos();
     if(recos) {
         s.settings({
@@ -914,9 +992,11 @@ function showRecommendations(recos) {
             var nodeFound = _.findWhere(nodes, {
                 'identifier': node.cid
             });
-            if (nodeFound && node.cid !== startNodeId) {
-                nodeFound.size = 0.4;
-                nodeFound.color = '#617db4';
+            if (nodeFound && (node.cid !== startNodeId)) {
+                if(!nodeFound.proficiency){
+                    nodeFound.size = 0.4;
+                    nodeFound.color = '#617db4';                    
+                }
             }
             var id = 'e_' + Math.random();
             recoEdges.push(id);
@@ -926,7 +1006,8 @@ function showRecommendations(recos) {
                 target: node.cid.replace(/\:/g, '_'),
                 size: idx,
                 type: 'curvedArrow',
-                color: '#b956af'
+                color: '#b956af',
+                originalColor: '#b956af'
             });
         })
         var nodeFound = _.findWhere(nodes, {
@@ -940,8 +1021,25 @@ function deleteRecos() {
     s.settings({
         maxEdgeSize: 2
     });
-    _.each(recoEdges, function(id) {
-        s.graph.dropEdge(id);
-    });
-    recoEdges = [];
+    if(_learnerInfo.recos){
+        var nodes = s.graph.nodes();
+        var startNodeId = _learnerInfo.recos.startNode.cid;
+        var endNodes = _learnerInfo.recos.endNodes;
+
+        endNodes.forEach(function(node, idx) {
+        var nodeFound = _.findWhere(nodes, {
+                    'identifier': node.cid
+                });
+                if (nodeFound && (node.cid !== startNodeId)) {
+                    if(!nodeFound.proficiency){   
+                        resetNode(nodeFound);
+                    }
+                }
+        });
+        _.each(recoEdges, function(id) {
+            s.graph.dropEdge(id);
+        });
+        s.refresh();      
+        recoEdges = [];  
+    }
 }
