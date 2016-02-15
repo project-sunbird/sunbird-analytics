@@ -10,10 +10,10 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 
-case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp:Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
-                                  m_ts_on_an_act: Map[String,Double], m_count_on_an_act: Map[String,Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime, 
-                                  most_active_hr_of_the_day: Int, top_k_content: List[String], sess_start_time: DateTime, sess_end_time: DateTime,
-                                  dp_start_time: DateTime, dp_end_time: DateTime)
+case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp: Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
+                           m_ts_on_an_act: Map[String, Double], m_count_on_an_act: Map[String, Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime,
+                           most_active_hr_of_the_day: Int, top_k_content: List[String], sess_start_time: DateTime, sess_end_time: DateTime,
+                           dp_start_time: DateTime, dp_end_time: DateTime)
 
 /**
  * @author Santhosh
@@ -23,40 +23,28 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val la = events.map { event =>
-            try {
-                val eks = event.edata.eks.asInstanceOf[Map[String, AnyRef]];
-                val leaner_id = event.uid.get;
-                val m_time_spent = eks.getOrElse("meanTimeSpent", 0d).asInstanceOf[Double];
-                val m_time_btw_gp = eks.getOrElse("meanTimeBtwnGamePlays", 0d).asInstanceOf[Double];
-                val m_active_time_on_pf = eks.getOrElse("meanActiveTimeOnPlatform", 0d).asInstanceOf[Double];
-                val m_interrupt_time = eks.getOrElse("meanInterruptTime", 0d).asInstanceOf[Double];
-                val t_ts_on_pf = eks.getOrElse("totalTimeSpentOnPlatform", 0d).asInstanceOf[Double];
-                val n_of_sess_on_pf = eks.getOrElse("numOfSessionsOnPlatform", 0).asInstanceOf[Int];
-                val m_ts_on_an_act = eks.getOrElse("meanTimeSpentOnAnAct", Map()).asInstanceOf[Map[String, Double]];
-                val m_count_on_an_act = eks.getOrElse("meanCountOfAct", Map()).asInstanceOf[Map[String, Double]];
-                val l_visit_ts = new DateTime(eks.getOrElse("last_visit_ts", 0L).asInstanceOf[Long]);
-                val sess_start_time = new DateTime(eks.getOrElse("start_ts", 0L).asInstanceOf[Long]);
-                val sess_end_time = new DateTime(eks.getOrElse("end_ts", 0L).asInstanceOf[Long]);
-                val most_active_hr_of_the_day = eks.getOrElse("mostActiveHrOfTheDay", 0).asInstanceOf[Int];
-                val top_k_content = eks.getOrElse("topKcontent", List[String]()).asInstanceOf[List[String]];
-                val dp_start_time = new DateTime(event.context.date_range.from);
-                val dp_end_time = new DateTime(event.context.date_range.to);
-                LearnerSnapshot(leaner_id, m_time_spent, m_time_btw_gp, m_active_time_on_pf, m_interrupt_time, t_ts_on_pf, m_ts_on_an_act, m_count_on_an_act,
-                    n_of_sess_on_pf, l_visit_ts, most_active_hr_of_the_day, top_k_content, sess_start_time, sess_end_time, dp_start_time, dp_end_time)
-            } catch {
-                case ex: Exception =>
-                    //println("Unable to parse dates to Long");
-                    null;
-            }
+
+            val eks = event.edata.eks.asInstanceOf[Map[String, AnyRef]];
+            val leaner_id = event.uid.get;
+            val m_time_spent = eks.getOrElse("meanTimeSpent", 0d).asInstanceOf[Double];
+            val m_time_btw_gp = eks.getOrElse("meanTimeBtwnGamePlays", 0d).asInstanceOf[Double];
+            val m_active_time_on_pf = eks.getOrElse("meanActiveTimeOnPlatform", 0d).asInstanceOf[Double];
+            val m_interrupt_time = eks.getOrElse("meanInterruptTime", 0d).asInstanceOf[Double];
+            val t_ts_on_pf = eks.getOrElse("totalTimeSpentOnPlatform", 0d).asInstanceOf[Double];
+            val n_of_sess_on_pf = eks.getOrElse("numOfSessionsOnPlatform", 0).asInstanceOf[Int];
+            val m_ts_on_an_act = eks.getOrElse("meanTimeSpentOnAnAct", Map()).asInstanceOf[Map[String, Double]];
+            val m_count_on_an_act = eks.getOrElse("meanCountOfAct", Map()).asInstanceOf[Map[String, Double]];
+            val l_visit_ts = new DateTime(eks.getOrElse("last_visit_ts", 0L).asInstanceOf[Long]);
+            val sess_start_time = new DateTime(eks.getOrElse("start_ts", 0L).asInstanceOf[Long]);
+            val sess_end_time = new DateTime(eks.getOrElse("end_ts", 0L).asInstanceOf[Long]);
+            val most_active_hr_of_the_day = eks.getOrElse("mostActiveHrOfTheDay", 0).asInstanceOf[Int];
+            val top_k_content = eks.getOrElse("topKcontent", List[String]()).asInstanceOf[List[String]];
+            val dp_start_time = new DateTime(event.context.date_range.from);
+            val dp_end_time = new DateTime(event.context.date_range.to);
+            LearnerSnapshot(leaner_id, m_time_spent, m_time_btw_gp, m_active_time_on_pf, m_interrupt_time, t_ts_on_pf, m_ts_on_an_act, m_count_on_an_act,
+                n_of_sess_on_pf, l_visit_ts, most_active_hr_of_the_day, top_k_content, sess_start_time, sess_end_time, dp_start_time, dp_end_time)
         }.filter(_ != null);
-        try {
-            la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
-            sc.parallelize(Array("Learner database updated sucessfully"), 1);
-        } catch {
-            case ex: Exception =>
-                ex.printStackTrace();
-                sc.parallelize(Array("Learner database updated failed" + ex.getMessage), 1);
-        }
-        
+        la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
+        sc.parallelize(Array("Learner database updated sucessfully"), 1);
     }
 }

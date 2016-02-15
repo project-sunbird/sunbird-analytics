@@ -202,6 +202,11 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rs = rdd1.collect();
     }
     
+    it should "generate a session where the content is not a valid one" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data6.log");
+        val rdd1 = LearnerSessionSummary.execute(sc, rdd, Option(Map("apiVersion" -> "v2")));
+        val rs = rdd1.collect();
+    }
     
     ignore should "extract timespent from takeoff summaries" in {
         val rdd = loadFile[MeasuredEvent]("/Users/Santhosh/ekStep/telemetry_dump/takeoff-summ.log");

@@ -117,6 +117,7 @@
 					<scalaVersion>${scala.version}</scalaVersion>
 					<aggregate>true</aggregate>
 					<highlighting>true</highlighting>
+					<excludedFiles>.*LearnerSessionSummaryV2.*</excludedFiles>
 				</configuration>
 			</plugin>
 			<plugin>

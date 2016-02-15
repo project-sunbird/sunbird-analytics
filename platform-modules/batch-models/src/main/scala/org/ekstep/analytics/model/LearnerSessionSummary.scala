@@ -195,7 +195,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                             levelMap(x.edata.eks.current) = tempArr;
                         }
                         tempArr = ListBuffer[String]();
-                        domainMap(catMapping.value.getOrElse(x.edata.eks.category, getItemDomain(itemMapping.value, lastEvent))) = x.edata.eks.current;
+                        domainMap(catMapping.value.getOrElse(x.edata.eks.category, getItemDomain(itemMapping.value, tmpLastEvent))) = x.edata.eks.current;
                     case _ => ;
                 }
             }
