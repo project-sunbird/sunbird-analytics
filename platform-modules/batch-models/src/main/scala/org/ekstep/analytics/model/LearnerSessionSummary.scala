@@ -21,13 +21,13 @@ case class ActivitySummary(count: Int, timeSpent: Double)
 /**
  * Case class to hold the screener summary
  */
-case class SessionSummary(id: String, ver: String, levels: Option[Array[Map[String, Any]]], noOfAttempts: Int, 
-        timeSpent: Double, interruptTime: Double, start_time: Option[Long], end_time: Option[Long], currentLevel: Option[Map[String, String]], 
-        noOfLevelTransitions: Option[Int], comments: Option[String], fluency: Option[Int], loc: Option[String], 
-        itemResponses: Option[Buffer[ItemResponse]], dtRange: DtRange, interactEventsPerMin: Double, activitySummary: Option[Map[String,ActivitySummary]],
-        completionStatus: Option[Boolean], screenSummary: Option[Map[String, Double]], noOfInteractEvents: Int, eventsSummary: Map[String, Int],
-        syncDate: Long);
-
+class SessionSummary(
+    val id: String, val ver: String, val levels: Option[Array[Map[String, Any]]], val noOfAttempts: Int,
+    val timeSpent: Double, val interruptTime: Double, val timeDiff: Double, val start_time: Option[Long], val end_time: Option[Long], val currentLevel: Option[Map[String, String]],
+    val noOfLevelTransitions: Option[Int], val comments: Option[String], val fluency: Option[Int], val loc: Option[String],
+    val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Map[String, ActivitySummary]],
+    val completionStatus: Option[Boolean], val screenSummary: Option[Map[String, Double]], val noOfInteractEvents: Int, val eventsSummary: Map[String, Int],
+    val syncDate: Long) {};
 
 /**
  * @author Santhosh
@@ -64,7 +64,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
      *
      */
     private def getItemData(games: Array[String], apiVersion: String): Map[String, Item] = {
-        
+
         val lpGameList = ContentAdapter.getGameList();
         val gameIds = lpGameList.map { x => x.identifier };
         val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
@@ -95,7 +95,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
      * Compute screen summaries on the telemetry data produced by content app
      */
     def computeScreenSummary(events: Buffer[Event]): Map[String, Double] = {
-        
+
         val screenInteractEvents = DataFilter.filter(events, Filter("eid", "NIN", Option(List("OE_ASSESS", "OE_LEVEL_SET")))).filter { event =>
             event.eid match {
                 case "OE_INTERACT" =>
@@ -144,7 +144,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
     def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
-        val filteredData = DataFilter.filter(data, Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))));
+        val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         println("### Running the model LearnerSessionSummary ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
@@ -177,7 +177,21 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             val oeEnds = events.filter { x => "OE_END".equals(x.eid) };
             val startTimestamp = if (oeStarts.length > 0) { Option(CommonUtil.getEventTS(oeStarts(0))) } else { Option(CommonUtil.getEventTS(firstEvent)) };
             val endTimestamp = if (oeEnds.length > 0) { Option(CommonUtil.getEventTS(oeEnds(0))) } else { Option(CommonUtil.getEventTS(lastEvent)) };
-            val timeSpent = if (oeEnds.length > 0) { CommonUtil.getTimeSpent(oeEnds.last.edata.eks.length) } else { CommonUtil.getTimeDiff(firstEvent, lastEvent) };
+
+            val timeDiff = CommonUtil.getTimeDiff(firstEvent, lastEvent);
+            //val timeSpent = if (oeEnds.length > 0) { CommonUtil.getTimeSpent(oeEnds.last.edata.eks.length) } else { CommonUtil.getTimeDiff(firstEvent, lastEvent) };
+            val largeTimeBuff = Buffer[Double]();
+            val shortTimeBuff = Buffer[Double]();
+            var index = 0;
+            for (index <- 0 to (events.length - 2)) {
+                val first = events(index)
+                val second = events(index + 1)
+                val time = CommonUtil.getTimeDiff(first, second).get;
+                if ((time / 60) < 10) shortTimeBuff += time; else largeTimeBuff += time;
+            }
+            val timeSpent = shortTimeBuff.sum;
+            val interruptTime = largeTimeBuff.sum;
+
             val levelTransitions = events.filter { x => "OE_LEVEL_SET".equals(x.eid) }.length - 1;
             var levelMap = HashMap[String, Buffer[String]]();
             var domainMap = HashMap[String, String]();
@@ -204,8 +218,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                 Map("level" -> f._1, "domain" -> "", "items" -> None, "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
             }).toArray;
             val loc = deviceMapping.value.getOrElse(firstEvent.did, "");
-            val noOfInteractEvents = events.filter { x => "OE_INTERACT".equals(x.eid) }.length;
-            val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent.get == 0) 0d else BigDecimal(noOfInteractEvents / (timeSpent.get / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+            val noOfInteractEvents = DataFilter.filter(events, Filter("edata.eks.type", "IN", Option(List("TOUCH", "DRAG", "DROP", "PINCH", "ZOOM", "SHAKE", "ROTATE", "SPEAK", "LISTEN", "WRITE", "DRAW", "START", "END", "CHOOSE", "ACTIVATE")))).length;
+            val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d else BigDecimal(noOfInteractEvents / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             var interactionEvents = ListBuffer[(String, Int, Double)]();
             tmpLastEvent = null;
             events.foreach { x =>
@@ -220,11 +234,13 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             }
             val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => (f._1, ActivitySummary(f._2, f._3))).toMap;
             val eventSummary = events.groupBy { x => x.eid }.map(f => (f._1, f._2.length)).toMap;
-            SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts,
-                timeSpent.get, 0d, startTimestamp, endTimestamp, Option(domainMap.toMap),
+
+            new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts,
+                timeSpent, interruptTime, timeDiff.get, startTimestamp, endTimestamp, Option(domainMap.toMap),
                 Option(levelTransitions), None, None, Option(loc),
                 Option(itemResponses), DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary),
                 None, Option(computeScreenSummary(events)), noOfInteractEvents, eventSummary, CommonUtil.getEventSyncTS(lastEvent));
+
         }
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
@@ -241,6 +257,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "start_time" -> game.start_time,
             "end_time" -> game.end_time,
             "syncDate" -> game.syncDate,
+            "timeDiff" -> game.timeDiff,
             "timeSpent" -> game.timeSpent,
             "interruptTime" -> game.interruptTime,
             "comments" -> game.comments,
