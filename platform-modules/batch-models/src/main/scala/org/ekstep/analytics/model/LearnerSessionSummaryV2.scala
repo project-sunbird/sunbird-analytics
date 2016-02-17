@@ -237,7 +237,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
                 Option(endTimestamp), Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc),
                 Option(itemResponses), DtRange(startTimestamp, endTimestamp), interactEventsPerMin,
                 Option(activitySummary), None, Option(screenSummary), noOfInteractEvents, eventSummary,
-                lastEvent.ets);
+                lastEvent.ets, null, null);
         }
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);

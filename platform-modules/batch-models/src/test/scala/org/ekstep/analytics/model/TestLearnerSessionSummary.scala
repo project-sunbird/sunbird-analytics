@@ -22,6 +22,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
         me.length should be(1);
+        println(me(0));
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be("ME_SESSION_SUMMARY");
         event1.context.pdata.model should be("GenericSessionSummaryV2");
@@ -49,6 +50,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.activitySummary.get.get("DRAG").get.timeSpent should be(115);
         summary1.screenSummary.get.size should be(0);
         summary1.syncDate should be(1451696364328L)
+        summary1.mimeType should be("application/vnd.android.package-archive");
+        summary1.contentType should be("Game");
     }
 
     it should "generate 4 session summarries and pass all negative test cases" in {
@@ -86,6 +89,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.eventsSummary.get("OE_INTERACT").get should be(5);
         summary1.eventsSummary.get("OE_START").get should be(1);
         summary1.syncDate should be(1451694073672L)
+        summary1.mimeType should be("application/vnd.android.package-archive");
+        summary1.contentType should be("Game");
 
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
@@ -109,6 +114,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary2.eventsSummary.get("OE_LEVEL_SET").get should be(1);
         summary2.eventsSummary.get("OE_ASSESS").get should be(2);
         summary2.syncDate should be(1451696364325L)
+        summary2.mimeType should be("application/vnd.android.package-archive");
+        summary2.contentType should be("Game");
 
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
@@ -126,6 +133,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.eventsSummary.size should be(1);
         summary3.eventsSummary.get("OE_START").get should be(1);
         summary3.syncDate should be(1451696364329L)
+        summary3.mimeType should be("application/vnd.android.package-archive");
+        summary3.contentType should be("Game");
 
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
         val summary4 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event4.edata.eks));
@@ -146,6 +155,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary4.eventsSummary.get("OE_INTERACT").get should be(3);
         summary4.eventsSummary.get("OE_START").get should be(1);
         summary4.syncDate should be(1451715800197L)
+        summary4.mimeType should be("application/vnd.android.package-archive");
+        summary4.contentType should be("Game");
     }
 
     it should "generate 3 session summaries and validate the screen summaries" in {
@@ -184,16 +195,22 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.screenSummary.get.getOrElse("scene8", 0d) should be(10.0);
         summary1.screenSummary.get.getOrElse("scene2", 0d) should be(9.0);
         summary1.screenSummary.get.getOrElse("splash", 0d) should be(14.0);
+        summary1.mimeType should be("application/vnd.ekstep.ecml-archive");
+        summary1.contentType should be("Story");
 
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.screenSummary.get.size should be(0);
+        summary2.mimeType should be("application/vnd.ekstep.content-collection");
+        summary2.contentType should be("Collection");
 
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
         summary3.screenSummary.get.size should be(2);
         summary3.screenSummary.get.getOrElse("ordinalNumbers", 0d) should be(226.0);
         summary3.screenSummary.get.getOrElse("splash", 0d) should be(24.0);
+        summary3.mimeType should be("application/vnd.ekstep.ecml-archive");
+        summary3.contentType should be("Worksheet");
     }
 
     it should "generate a session even though OE_START and OE_END are present" in {
