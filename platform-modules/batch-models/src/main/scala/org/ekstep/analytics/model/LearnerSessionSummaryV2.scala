@@ -47,9 +47,9 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
      */
     private def getItemData(games: Array[String], apiVersion: String): Map[String, Item] = {
 
-        val lpGameList = ContentAdapter.getGameList();
-        val gameIds = lpGameList.map { x => x.identifier };
-        val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
+        val lpGameList = ContentAdapter.getAllContent();
+        val gameIds = lpGameList.map { x => x.id };
+        val codeIdMap: Map[String, String] = lpGameList.map { x => (x.metadata.getOrElse("code", x.id).asInstanceOf[String], x.id) }.toMap;
         val contentItems = games.map { gameId =>
             {
                 if (gameIds.contains(gameId)) {

@@ -10,16 +10,16 @@ import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestLearnerSessionSummarizer extends BaseSpec {
 
-    "GenericSessionSummarizer" should "execute GenericSessionSummary job and won't throw any Exception" in {
+    "LearnerSessionSummarizer" should "execute LearnerSessionSummary job and won't throw any Exception" in {
 
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/session-summary/test_data1.log"))))), null, null, "org.ekstep.analytics.model.GenericSessionSummary", Option(Map("contentId" -> "numeracy_382")), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestGenericSessionSummarizer"), Option(true))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/session-summary/test_data1.log"))))), null, null, "org.ekstep.analytics.model.LearnerSessionSummary", Option(Map("contentId" -> "numeracy_382")), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestLearnerSessionSummarizer"), Option(true))
         LearnerSessionSummarizer.main(JSONUtils.serialize(config));
     }
     
-    ignore should "execute GenericSessionSummary job fetching data from S3" in {
+    ignore should "execute LearnerSessionSummary job fetching data from local file" in {
 
         val config = JobConfig(
-                Fetcher("s3", None, Option(Array(Query(Option("sandbox-ekstep-telemetry"), Option("sandbox.telemetry.unique-"), None, Option("2016-01-15"), Option(0))))), Option(Array(Filter("eventId","IN",Option(List("OE_ASSESS","OE_START","OE_END","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT"))))), null, "org.ekstep.analytics.model.GenericSessionSummaryV2", Option(Map()), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestGenericSessionSummarizer"), Option(true))
+                Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("/Users/Santhosh/ekStep/telemetry_dump/2fd63fbe-6cad-4846-9919-ac1a66e0139e.log"))))), None, null, "org.ekstep.analytics.model.LearnerSessionSummary", Option(Map("apiVersion" -> "v2")), Option(Array(Dispatcher("file", Map("file" -> "output.log")))), Option(10), Option("TestLearnerSessionSummarizer"), Option(true))
         LearnerSessionSummarizer.main(JSONUtils.serialize(config));
     }
 }
