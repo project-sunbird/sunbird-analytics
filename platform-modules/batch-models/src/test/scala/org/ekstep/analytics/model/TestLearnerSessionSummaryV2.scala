@@ -40,11 +40,11 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         summary1.levels should not be (None);
         summary1.levels.get.length should be (0);
         summary1.noOfAttempts should be (2);
-        summary1.timeSpent should be (389);
-        summary1.interactEventsPerMin should be (5.55);
+        summary1.timeSpent should be (389.29);
+        summary1.interactEventsPerMin should be (5.24);
         summary1.currentLevel should not be (None);
         summary1.currentLevel.get.size should be (0);
-        summary1.noOfInteractEvents should be (36);
+        summary1.noOfInteractEvents should be (34);
         summary1.itemResponses.get.length should be (7);
         
         summary1.activitySummary.get.size should be (4);
@@ -122,11 +122,11 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         summary1.levels should not be (None);
         summary1.levels.get.length should be (0);
         summary1.noOfAttempts should be (2);
-        summary1.timeSpent should be (389);
-        summary1.interactEventsPerMin should be (5.55);
+        summary1.timeSpent should be (389.29);
+        summary1.interactEventsPerMin should be (5.24);
         summary1.currentLevel should not be (None);
         summary1.currentLevel.get.size should be (0);
-        summary1.noOfInteractEvents should be (36);
+        summary1.noOfInteractEvents should be (34);
         summary1.itemResponses.get.length should be (7);
         
         summary1.activitySummary.get.size should be (4);
@@ -197,9 +197,9 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         summary1.levels should not be (None);
         summary1.levels.get.length should be (0);
         summary1.noOfAttempts should be (1);
-        summary1.timeSpent should be (377);
-        summary1.interactEventsPerMin should be (3.5);
-        summary1.noOfInteractEvents should be (22);
+        summary1.timeSpent should be (329.15);
+        summary1.interactEventsPerMin should be (3.28);
+        summary1.noOfInteractEvents should be (18);
         summary1.interruptTime should be (15.34);
         
         summary1.activitySummary.get.size should be (4);
