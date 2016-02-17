@@ -108,6 +108,7 @@ function updateProficiency(learnerDetails) {
 }
 
 function updateLearnerSnapshot(response) {
+    $('#learnerSnapshotDetails').empty();
     if(response) {
         var tsa = [], mca = [];
         for (k in response.m_ts_on_an_act) {
