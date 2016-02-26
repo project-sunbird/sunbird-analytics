@@ -10,6 +10,7 @@ import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.adapter._
 import org.ekstep.analytics.framework.util._
+import java.security.MessageDigest
 
 /**
  * @author Santhosh
@@ -24,7 +25,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
      * Get item from broadcast item mapping variable
      */
     private def getItem(itemMapping: Map[String, Item], event: TelemetryEventV2): Item = {
-        val item = itemMapping.getOrElse(event.edata.eks.itemid, null);
+        val item = itemMapping.getOrElse(event.edata.eks.qid, null);
         if (null != item) {
             return item;
         }
@@ -35,7 +36,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
      * Get item from broadcast item mapping variable
      */
     private def getItemDomain(itemMapping: Map[String, Item], event: TelemetryEventV2): String = {
-        val item = itemMapping.getOrElse(event.edata.eks.itemid, null);
+        val item = itemMapping.getOrElse(event.edata.eks.qid, null);
         if (null != item) {
             return item.metadata.getOrElse("domain", "").asInstanceOf[String];
         }
@@ -158,10 +159,9 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             val itemResponses = assessEvents.map { x =>
                 val itemObj = getItem(itemMapping.value, x);
                 val metadata = itemObj.metadata;
-                val res = if (x.edata.eks.res != null) x.edata.eks.res else Array[AnyRef]();
-                ItemResponse(x.edata.eks.itemid, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.eks.duration), metadata.get("ex_time_spent"), res.map { x => x.asInstanceOf[String] }, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(x.ets), metadata.get("max_score"), metadata.get("domain"));
+                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.resvalues.map(f => f.asInstanceOf[AnyRef]), metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(x.ets), metadata.get("max_score"), metadata.get("domain"));
             }
-            val qids = assessEvents.map { x => x.edata.eks.itemid }.filter { x => x != null };
+            val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
             val noOfAttempts = if (qidMap.isEmpty) 1 else qidMap.max;
             val oeStarts = events.filter { x => "OE_START".equals(x.eid) };
@@ -177,7 +177,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             events.foreach { x =>
                 x.eid match {
                     case "OE_ASSESS" =>
-                        tempArr += x.edata.eks.itemid;
+                        tempArr += x.edata.eks.qid;
                         tmpLastEvent = x;
                     case "OE_LEVEL_SET" =>
                         if (levelMap.getOrElse(x.edata.eks.current, null) != null) {
@@ -243,11 +243,18 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
+    
+    private def getMessageId(eventId: String, userId: String, sessionSummary: SessionSummary) : String = {
+        val key = Array(eventId, userId, sessionSummary.id, sessionSummary.start_time, sessionSummary.end_time, "SESSION").mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
+    }
 
     /**
      * Get the measured event from the UserMap
      */
     private def getMeasuredEvent(userMap: (String, SessionSummary), config: Map[String, AnyRef]): MeasuredEvent = {
+        
+        val mid = getMessageId("ME_SESSION_SUMMARY", userMap._1, userMap._2);
         val game = userMap._2;
         val measures = Map(
             "itemResponses" -> game.itemResponses,
@@ -270,7 +277,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             "eventsSummary" -> game.eventsSummary,
             "noOfLevelTransitions" -> game.noOfLevelTransitions,
             "telemetryVersion" -> "2.0");
-        MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
+        MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));

@@ -22,9 +22,10 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
         me.length should be(1);
-        println(me(0));
+        
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be("ME_SESSION_SUMMARY");
+        event1.mid should be("DBAE008003BE57397613683AB359B0D5");
         event1.context.pdata.model should be("GenericSessionSummaryV2");
         event1.context.pdata.ver should be("1.4");
         event1.context.granularity should be("SESSION");
@@ -64,6 +65,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
+        event1.mid should be("AD6231AC346C49471CAA7D38637201A5");
         event1.context.pdata.model should be("GenericContentSummary");
         event1.context.pdata.ver should be("1.2");
         event1.context.granularity should be("SESSION");
@@ -93,6 +95,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.contentType should be("Game");
 
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
+        event2.mid should be("DBAE008003BE57397613683AB359B0D5");
+        
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.noOfLevelTransitions.get should be(0);
         summary2.levels should not be (None);
@@ -118,6 +122,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary2.contentType should be("Game");
 
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
+        event3.mid should be("448384AD9CFBB40F39C74C38769A06D1");
+        
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
         summary3.noOfLevelTransitions.get should be(-1);
         summary3.levels should not be (None);
@@ -137,6 +143,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.contentType should be("Game");
 
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
+        event4.mid should be("B3A56AD84EEDCCC626980739B6A5ECFF");
+        
         val summary4 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event4.edata.eks));
         summary4.noOfLevelTransitions.get should be(-1);
         summary4.levels should not be (None);
@@ -169,6 +177,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
+        event1.mid should be("D579A95F89BC32D2D68E43B80DCF1974");
         event1.context.pdata.model should be("LearnerSessionSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
