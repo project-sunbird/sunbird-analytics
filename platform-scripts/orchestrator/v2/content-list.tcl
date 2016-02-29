@@ -25,10 +25,11 @@ proc getNodesByObjectType {graphId type} {
 	$map put "objectType" $type
 	$map put "status" "Live"
 
-	set contentTypes [java::new {String[]} 3]
+	set contentTypes [java::new {String[]} 4]
 	$contentTypes set 0 "Story"
 	$contentTypes set 1 "Worksheet"
 	$contentTypes set 2 "Game"
+	$contentTypes set 3 "Collection"
 
 	$map put "contentType" $contentTypes
 	set search_criteria [create_search_criteria $map]
