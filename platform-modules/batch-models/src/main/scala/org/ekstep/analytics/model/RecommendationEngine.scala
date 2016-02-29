@@ -266,12 +266,12 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
       val random = new scala.util.Random;
       val lcr = learnerConceptRelevance.relevance;
       val r = DenseMatrix.zeros[Double](1, N);
-//      for (i <- 0 until r.rows)
-//        r(i, 0) = lcr.getOrElse(conceptsData.value(i), random.nextDouble())
+      //      for (i <- 0 until r.rows)
+      //        r(i, 0) = lcr.getOrElse(conceptsData.value(i), random.nextDouble())
 
       for (i <- 0 until r.rows)
         r(0, i) = 1
-        
+
       var Rt = r :/ sum(r);
       for (1 <- 0 until iterations) {
         Rt = Rt * Eij;
