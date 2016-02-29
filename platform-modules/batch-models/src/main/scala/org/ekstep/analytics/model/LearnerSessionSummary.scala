@@ -10,11 +10,12 @@ import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.adapter._
 import org.ekstep.analytics.framework.util._
+import java.security.MessageDigest
 
 /**
  * Case class to hold the item responses
  */
-case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[AnyRef], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
 
 case class ActivitySummary(count: Int, timeSpent: Double)
 
@@ -173,7 +174,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             val itemResponses = assessEvents.map { x =>
                 val itemObj = getItem(itemMapping.value, x);
                 val metadata = itemObj.metadata;
-                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), metadata.get("domain"));
+                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.res.asInstanceOf[Array[AnyRef]], metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), metadata.get("domain"));
             }
             val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
@@ -250,11 +251,17 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
+    
+    private def getMessageId(eventId: String, userId: String, sessionSummary: SessionSummary) : String = {
+        val key = Array(eventId, userId, sessionSummary.id, sessionSummary.start_time, sessionSummary.end_time, "SESSION").mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
+    }
 
     /**
      * Get the measured event from the UserMap
      */
     private def getMeasuredEvent(userMap: (String, SessionSummary), config: Map[String, AnyRef]): MeasuredEvent = {
+        val mid = getMessageId("ME_SESSION_SUMMARY", userMap._1, userMap._2);
         val game = userMap._2;
         val measures = Map(
             "itemResponses" -> game.itemResponses,
@@ -279,7 +286,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "telemetryVersion" -> "1.0",
             "contentType" -> game.contentType,
             "mimeType" -> game.mimeType);
-        MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
+        MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(new GData(game.id, game.ver,game.did)), None, None, None, game.loc),
             MEEdata(measures));

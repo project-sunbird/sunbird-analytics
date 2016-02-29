@@ -22,6 +22,7 @@ import org.json4s.JsonUtil
 import java.io.FileWriter
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.SessionBatchModel
+import java.security.MessageDigest
 
 case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d),
                         var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d),
@@ -47,7 +48,7 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
             val endTimestamp = Option(CommonUtil.getEventTS(x.last));
 
             val oeStart: Event = x(0);
-            val did = oeStart.did
+
             var storyReading: Event = null;
             var q1Select: Event = null;
             var q2Select: Event = null;
@@ -143,21 +144,28 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
                 as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
             if (endTest != null && exit != null)
                 as.summary = CommonUtil.getTimeDiff(endTest, exit);
-            (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), did);
+            (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)));
         }
 
         aserSreenSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
+    
+    private def getMessageId(eventId: String, userId: String, gameId: String, dtRange: DtRange) : String = {
+        val key = Array(eventId, userId, gameId, dtRange.from, dtRange.to, "SESSION").mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
+    }
+    
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange, String, String, String)), config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange, String, String)), config: Map[String, AnyRef]): MeasuredEvent = {
+        val mid = getMessageId("ME_ASER_SCREEN_SUMMARY", userMap._1, userMap._2._3, userMap._2._2);
         val measures = userMap._2._1;
-        MeasuredEvent(config.getOrElse("eventId", "ME_ASER_SCREEN_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
+        MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), null, "1.0", Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", userMap._2._2),
-            Dimensions(None, Option(new GData(userMap._2._3, userMap._2._4, userMap._2._5)), None, None, None, None),
+            Dimensions(None, Option(new GData(userMap._2._3, userMap._2._4)), None, None, None, None),
             MEEdata(measures));
     }
 }

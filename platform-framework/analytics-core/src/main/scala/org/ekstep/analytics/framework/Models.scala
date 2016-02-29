@@ -20,11 +20,12 @@ class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],
           val gid: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class EksV2(val dspec: Map[String, AnyRef], val loc: String, val duration: Double, val `type`: String,
-        val itype: String, val stageid: String, val stageto: String, val itemid: String, val pass: String,
-        val score: Int, val res: Array[AnyRef], val params: Array[Map[String, AnyRef]], val uri: String,
+class EksV2(val dspec: Map[String, AnyRef], val loc: String, val length: Double, val `type`: String,
+        val itype: String, val stageid: String, val stageto: String, val qid: String, val pass: String,
+        val score: Int, val resvalues: Array[Map[String, AnyRef]], val params: Array[Map[String, AnyRef]], val uri: String,
         val state: String, val category: String, val current: String, val max: String, val subtype: String,
-        val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val id: String, val tid: String) extends Serializable {}
+        val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val id: String, val tid: String,
+        val extype: String, val exlength: Double) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -50,7 +51,7 @@ class TelemetryEventV2(val eid: String, val ets: Long, val `@timestamp`: String,
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
-case class MeasuredEvent(eid: String, ets: Long, ver: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
+case class MeasuredEvent(eid: String, ets: Long, ver: String, mid: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
 @scala.reflect.BeanInfo
 case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
 @scala.reflect.BeanInfo
