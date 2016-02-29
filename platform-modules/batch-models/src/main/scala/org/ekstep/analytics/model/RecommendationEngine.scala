@@ -187,12 +187,12 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
   }
 
   private def getMeasuredEvent(uid: String, relevance: Map[String, Double], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
-    MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_CONCEPT_RELEVANCE").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(uid), None, None,
+    MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_CONCEPT_RELEVANCE").asInstanceOf[String], System.currentTimeMillis(), "1.0", null, Option(uid), None, None,
       Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", dtRange),
       Dimensions(None, None, None, None, None, None),
       MEEdata(relevance));
-  }
 
+  }
   def executeExp(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
     val config = jobParams.getOrElse(Map[String, AnyRef]());
