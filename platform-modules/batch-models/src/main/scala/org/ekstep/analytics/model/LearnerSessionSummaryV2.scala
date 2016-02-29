@@ -232,12 +232,12 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
             val noOfInteractEvents = DataFilter.filter(events, Filter("edata.eks.type", "IN", Option(List("TOUCH", "DRAG", "DROP", "PINCH", "ZOOM", "SHAKE", "ROTATE", "SPEAK", "LISTEN", "WRITE", "DRAW", "START", "END", "CHOOSE", "ACTIVATE")))).length;
             val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d else CommonUtil.roundDouble((noOfInteractEvents / (timeSpent / 60)), 2);
-
+            val did = firstEvent.did
             new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff.get, Option(startTimestamp),
                 Option(endTimestamp), Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc),
                 Option(itemResponses), DtRange(startTimestamp, endTimestamp), interactEventsPerMin,
                 Option(activitySummary), None, Option(screenSummary), noOfInteractEvents, eventSummary,
-                lastEvent.ets, null, null);
+                lastEvent.ets, null, null, did);
         }
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
@@ -272,7 +272,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             "telemetryVersion" -> "2.0");
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
-            Dimensions(None, Option(new GData(game.id, game.ver)), None, None, None, game.loc),
+            Dimensions(None, Option(new GData(game.id, game.ver, game.did)), None, None, None, game.loc),
             MEEdata(measures));
     }
 

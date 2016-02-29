@@ -8,6 +8,8 @@ import org.ekstep.analytics.framework.MeasuredEvent
 /**
  * @author Santhosh
  */
+
+@Deprecated
 object LearnerSnapshotUpdater extends Application {
 
     def main(config: String) {

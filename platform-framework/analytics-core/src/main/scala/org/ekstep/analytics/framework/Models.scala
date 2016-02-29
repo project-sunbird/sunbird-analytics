@@ -7,7 +7,7 @@ import scala.beans.BeanProperty
 class Models extends Serializable {}
 
 @scala.reflect.BeanInfo
-class GData(val id: String, val ver: String) extends Serializable {}
+class GData(val id: String, val ver: String, val did: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],

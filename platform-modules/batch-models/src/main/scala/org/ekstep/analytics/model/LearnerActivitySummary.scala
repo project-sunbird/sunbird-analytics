@@ -19,11 +19,18 @@ import scala.collection.mutable.ListBuffer
 import org.ekstep.analytics.framework.SessionBatchModel
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.joda.time.DateTime
+import com.datastax.spark.connector._
+import org.ekstep.analytics.util.Constants
 
 /**
  * @author Amit Behera
  */
 case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, last_visit_ts: Long, mostActiveHrOfTheDay: Option[Int], topKcontent: Array[String], start_ts: Long, end_ts: Long);
+case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp: Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
+                           m_ts_on_an_act: Map[String, Double], m_count_on_an_act: Map[String, Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime,
+                           most_active_hr_of_the_day: Int, top_k_content: List[String], sess_start_time: DateTime, sess_end_time: DateTime,
+                           dp_start_time: DateTime, dp_end_time: DateTime)
 
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -31,7 +38,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         val topK = configMapping.value.getOrElse("topContent", 5).asInstanceOf[Int];
-        
+
         val activity = events.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
@@ -79,6 +86,17 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
 
                 (TimeSummary(Option(meanTimeSpent), Option(meanTimeBtwnGamePlays), Option(meanActiveTimeOnPlatform), Option(meanInterruptTime), Option(totalTimeSpentOnPlatform), meanTimeSpentOnAnAct, Option(meanCountOfAct), numOfSessionsOnPlatform, lastVisitTimeStamp, mostActiveHrOfTheDay, topKcontent, startTimestamp, endTimestamp), DtRange(eventStartTimestamp, eventEndTimestamp));
             }
+
+        val la = activity.map { x =>
+            val learner_id = x._1
+            val summary = x._2._1
+            val dataRange = x._2._2
+            LearnerSnapshot(learner_id, summary.meanTimeSpent.getOrElse(0d), summary.meanTimeBtwnGamePlays.getOrElse(0d),
+                summary.meanActiveTimeOnPlatform.getOrElse(0d), summary.meanInterruptTime.getOrElse(0d), summary.totalTimeSpentOnPlatform.getOrElse(0d),
+                summary.meanTimeSpentOnAnAct, summary.meanCountOfAct.getOrElse(Map()), summary.numOfSessionsOnPlatform.toInt, new DateTime(summary.last_visit_ts),
+                summary.mostActiveHrOfTheDay.getOrElse(0), summary.topKcontent.toList, new DateTime(summary.start_ts), new DateTime(summary.end_ts), new DateTime(dataRange.from), new DateTime(dataRange.to));
+        }
+        la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
         activity.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
