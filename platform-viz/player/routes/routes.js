@@ -13,6 +13,7 @@ module.exports = function(app, dirname) {
 	/** Content List Routes */
 	app.get('/learner/info/:id', learnerService.getLearnerInfo);
 	app.get('/domain/graph/:id', domainService.getDomainGraph);
+	app.get('/domain/map', domainService.getDomainMap);
 	app.get('/domain/model/refresh', domainService.refreshDomainModel);
 };
 
