@@ -7,6 +7,7 @@ exports.graphs = {};
 exports.conceptConverage = {};
 exports.contents = {};
 exports.num_concepts = [];
+exports.domainMap = {};
 
 exports.refreshDomainModel = function(req, res) {
 	exports.cacheDomainModel(function(err, msg) {
@@ -16,6 +17,10 @@ exports.refreshDomainModel = function(req, res) {
 
 exports.getDomainGraph = function(req, res) {
 	res.send(exports.graphs[req.params.id])
+}
+
+exports.getDomainMap = function(req, res) {
+	res.send(exports.domainMap)
 }
 
 exports.cacheDomainModel = function(cb) {
@@ -34,6 +39,13 @@ exports.cacheDomainModel = function(cb) {
 			}
 			restUtils.getCall(baseUrl + '/v2/domain/graph/literacy', args, callback);
 		},
+		domainMap: function(callback) {
+			var args = {
+				path: {},
+				parameters: {}
+			}
+			restUtils.getCall(baseUrl + '/v2/analytics/domain/map', args, callback);
+		},
 		contentList: function(callback) {
 			var args = {
 				path: {},
@@ -45,6 +57,7 @@ exports.cacheDomainModel = function(cb) {
 		if(results) {
 			exports.graphs['numeracy'] = results.numeracy;
 			exports.graphs['literacy'] = results.literacy;
+			exports.domainMap = results.domainMap;
 			populateConceptCoverage(results.contentList);
 			exports.num_concepts = _.pluck(results.numeracy.nodes, 'identifier');
 		}

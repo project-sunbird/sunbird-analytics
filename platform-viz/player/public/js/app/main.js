@@ -1,10 +1,9 @@
-var graphData = {};
+var graphData = undefined;
 var graphDataFormated = {};
 var graphLoadTimeout;
 var learnProfData = {};
 var learnerDetails;
 var currentGraph = undefined;
-var graphs = {};
 var recoEdges = [];
 
 var jsContants = {
@@ -21,23 +20,18 @@ var jsContants = {
 }
 
 function loadGraph(graphId) {
-    if(graphId != currentGraph) {
-        $('#sigmaGraph').html('');
-        if(graphs[graphId]) {
-            graphData = graphs[graphId];
+    $('#sigmaGraph').html('');
+    if(graphData) {
+        loadSigmaGraph();
+    } else {
+        $.ajax({
+            method: 'GET',
+            url: '/domain/map'
+        })
+        .then(function(response) {
+            graphData = response;
             loadSigmaGraph();
-        } else {
-            var subject = graphId == 'numeracy' ? jsContants.API.NUMERACY : jsContants.API.LITERACY;
-            $.ajax({
-                method: 'GET',
-                url: '/domain/graph/' + subject
-            })
-            .then(function(response) {
-                graphs[graphId] = response;
-                graphData = response;
-                loadSigmaGraph();
-            });
-        }
+        });
     }
 }
 
@@ -152,9 +146,9 @@ function getProficiencyColor(proficiencyValue) {
 
 function getNode(nodes, graphNode, level) {
     var node = {
-        name: graphNode.metadata.name,
+        name: graphNode.name,
         conceptId: graphNode.identifier,
-        gamesCount: graphNode.metadata.gamesCount,
+        gamesCount: graphNode.gamesCount,
         children: [],
         level: level,
         size: 1,
@@ -282,7 +276,6 @@ function loadSigmaGraph() {
                 }
             }
         });
-        console.log('node metadata: ', node.metadata);
         $('#json-viewer').jsonViewer(node);
 
         // Since the data has been modified, we need to
@@ -383,7 +376,7 @@ function loadSigmaGraph() {
 
         parse.toSigmaJSON = function(inputJsonData) {
             //changing node id's
-            var inputArr = inputJsonData.nodes;
+            var inputArr = inputJsonData.concepts;
             var nodes = [];
             var nodesLength = inputArr.length;
             _.each(inputArr, function(node, index) {
@@ -394,8 +387,8 @@ function loadSigmaGraph() {
                 // node.x = Math.random();
                 // node.y = Math.random();
                 var nodeName = 'Node ' + Math.random();
-                if (node.metadata.name) {
-                    nodeName = node.metadata.name;
+                if (node.name) {
+                    nodeName = node.name;
                 } else {
                     nodeName = identifier;
                 }
@@ -438,11 +431,12 @@ function loadSigmaGraph() {
                     node.color = '#FF00FF';
                 }
 
-                if(node.metadata.gradeLevel){
+                if(node.gradeLevel){
                     updateGrades(node);
                     //console.log("gradeLevel: ", node.metadata.gradeLevel);
                 }
             });
+            _.omit(inputJsonData, 'concepts');
             inputJsonData.nodes = nodes;
 
             //changing relations/edges id's
@@ -454,34 +448,18 @@ function loadSigmaGraph() {
                 edge.color = '#F0F0F0';
                 edge.originalColor = '#F0F0F0';
                 edge.selectedColor = '#AAAAAA';
-                if (edge.startNodeObjectType) {
-                    // Dont add edges of "AssesmentItem" because those nodes are not added to graph
-                    // So you will get error if you add
-                    if (edge.startNodeObjectType !== 'AssessmentItem') {
-                        if (edge.endNodeObjectType !== 'AssessmentItem') {
-                            var startNodeId = edge.startNodeId.replace(/\:/g, '_');
-                            var endNodeId = edge.endNodeId.replace(/\:/g, '_');
-                            edge.id = 'e_' + Math.random();
-                            edge.source = startNodeId;
-                            edge.target = endNodeId;
-                            if (edge.relationType === 'associatedTo') {
-                                edge.type = 'dashed';
-                            } else {
-                                edge.type = 'arrow';
-                            }
-                            nodeEdges.push(edge);
-                        }
-                    }
-                } else if (edge.startNodeType === 'TAG') {
-                    var startNodeId1 = edge.startNodeId.replace(/\:/g, '_');
-                    var endNodeId1 = edge.endNodeId.replace(/\:/g, '_');
-                    edge.id = 'e_' + Math.random();
-                    edge.source = startNodeId1;
-                    edge.target = endNodeId1;
-                    edge.type = 'dotted';
-
-                    nodeEdges.push(edge);
+                
+                var startNodeId = edge.startNodeId.replace(/\:/g, '_');
+                var endNodeId = edge.endNodeId.replace(/\:/g, '_');
+                edge.id = 'e_' + Math.random();
+                edge.source = startNodeId;
+                edge.target = endNodeId;
+                if (edge.relationType === 'associatedTo') {
+                    edge.type = 'dashed';
+                } else {
+                    edge.type = 'arrow';
                 }
+                nodeEdges.push(edge);
             });
             _.omit(inputJsonData, 'relations');
             inputJsonData.edges = nodeEdges;
@@ -588,8 +566,8 @@ function loadSigmaGraph() {
                 .undo('grade')
                 .nodesBy(function(n) {
                     var returnval = true;
-                    if(n.metadata.gradeLevel){
-                        returnval = n.metadata.gradeLevel.indexOf(c);
+                    if(n.gradeLevel){
+                        returnval = n.gradeLevel.indexOf(c);
                         return returnval < 0? false : true;
                     }
                     return returnval;
@@ -973,8 +951,8 @@ $(document).ready(function() {
 
 var _grades = [];
 function updateGrades(node){
-    if(node.metadata.gradeLevel){
-        _grades = _.union(_grades, node.metadata.gradeLevel);            
+    if(node.gradeLevel){
+        _grades = _.union(_grades, node.gradeLevel);            
     }
 }
 
