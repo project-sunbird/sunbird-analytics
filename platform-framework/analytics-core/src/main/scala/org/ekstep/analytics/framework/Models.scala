@@ -7,7 +7,7 @@ import scala.beans.BeanProperty
 class Models extends Serializable {}
 
 @scala.reflect.BeanInfo
-class GData(val id: String, val ver: String, val did: String) extends Serializable {}
+class GData(val id: String, val ver: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],
@@ -21,11 +21,11 @@ class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],
 
 @scala.reflect.BeanInfo
 class EksV2(val dspec: Map[String, AnyRef], val loc: String, val length: Double, val `type`: String,
-        val itype: String, val stageid: String, val stageto: String, val qid: String, val pass: String,
-        val score: Int, val resvalues: Array[Map[String, AnyRef]], val params: Array[Map[String, AnyRef]], val uri: String,
-        val state: String, val category: String, val current: String, val max: String, val subtype: String,
-        val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val id: String, val tid: String,
-        val extype: String, val exlength: Double) extends Serializable {}
+            val itype: String, val stageid: String, val stageto: String, val qid: String, val pass: String,
+            val score: Int, val resvalues: Array[Map[String, AnyRef]], val params: Array[Map[String, AnyRef]], val uri: String,
+            val state: String, val category: String, val current: String, val max: String, val subtype: String,
+            val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val id: String, val tid: String,
+            val extype: String, val exlength: Double) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -43,9 +43,8 @@ class Event(val eid: String, val ts: String, val `@timestamp`: String,
 
 @scala.reflect.BeanInfo
 class TelemetryEventV2(val eid: String, val ets: Long, val `@timestamp`: String,
-            val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EDataV2) extends Serializable {}
-
+                       val ver: String, val gdata: GData, val sid: String,
+                       val uid: String, val did: String, val edata: EDataV2) extends Serializable {}
 
 // Computed Event Model
 @scala.reflect.BeanInfo
@@ -53,7 +52,7 @@ case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, ver: String, mid: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
 @scala.reflect.BeanInfo
-case class Dimensions(uid: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
 @scala.reflect.BeanInfo
 case class PData(id: String, model: String, ver: String);
 @scala.reflect.BeanInfo
@@ -82,9 +81,9 @@ case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Opti
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
-case class Result(content: Option[Map[String, AnyRef]], contents: Option[Array[Map[String, AnyRef]]], questionnaire: Option[Map[String, AnyRef]], 
-        assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]], 
-        games: Option[Array[Map[String, AnyRef]]], concepts: Option[Array[String]], maxScore: Double, items: Option[Array[Map[String, AnyRef]]]);
+case class Result(content: Option[Map[String, AnyRef]], contents: Option[Array[Map[String, AnyRef]]], questionnaire: Option[Map[String, AnyRef]],
+                  assessment_item: Option[Map[String, AnyRef]], assessment_items: Option[Array[Map[String, AnyRef]]], assessment_item_set: Option[Map[String, AnyRef]],
+                  games: Option[Array[Map[String, AnyRef]]], concepts: Option[Array[String]], maxScore: Double, items: Option[Array[Map[String, AnyRef]]]);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 
 // Search Items

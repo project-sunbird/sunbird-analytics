@@ -279,7 +279,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             "telemetryVersion" -> "2.0");
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
-            Dimensions(None, Option(new GData(game.id, game.ver, game.did)), None, None, None, game.loc),
+            Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));
     }
 

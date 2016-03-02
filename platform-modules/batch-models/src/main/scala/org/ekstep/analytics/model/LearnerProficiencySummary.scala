@@ -205,7 +205,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
             "end_ts" -> userProf.end_time.getMillis);
         MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_PROFICIENCY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", null, Option(userProf.learner_id), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
-            Dimensions(None, None, None, None, None, None),
+            Dimensions(None, None, None, None, None, None, None),
             MEEdata(measures));
     }
 }

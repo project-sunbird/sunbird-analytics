@@ -251,8 +251,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
-    
-    private def getMessageId(eventId: String, userId: String, sessionSummary: SessionSummary) : String = {
+
+    private def getMessageId(eventId: String, userId: String, sessionSummary: SessionSummary): String = {
         val key = Array(eventId, userId, sessionSummary.id, sessionSummary.start_time, sessionSummary.end_time, "SESSION").mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
@@ -288,7 +288,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "mimeType" -> game.mimeType);
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
-            Dimensions(None, Option(new GData(game.id, game.ver,game.did)), None, None, None, game.loc),
+            Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));
     }
 
