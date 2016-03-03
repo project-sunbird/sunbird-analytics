@@ -6,6 +6,7 @@ using JSON
 using LightGraphs
 using Requests
 using DataStructures
+using Distances
 
 # given the file containing domain map extract all the s
 # in the domain model - in particular read the relationships and  definitions
