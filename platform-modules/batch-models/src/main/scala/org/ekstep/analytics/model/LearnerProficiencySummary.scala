@@ -210,7 +210,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis));
         MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), "1.0", mid, Option(userProf.learner_id), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
-            Dimensions(None, None, None, None, None, None),
+            Dimensions(None, None, None, None, None, None, None),
             MEEdata(measures));
     }
 }

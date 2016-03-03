@@ -106,7 +106,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
         val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", userMap._1, "WEEK", userMap._2._2);
         MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", userMap._2._2),
-            Dimensions(None, None, None, None, None, None),
+            Dimensions(None, null, None, None, None, None, None),
             MEEdata(measures));
     }
 }
