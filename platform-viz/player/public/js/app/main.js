@@ -103,7 +103,7 @@ function updateProficiency(learnerDetails) {
 
 function updateLearnerSnapshot(response) {
     $('#learnerSnapshotDetails').empty();
-    if(response) {
+    if(response && response.n_of_sess_on_pf) {
         var tsa = [], mca = [];
         for (k in response.m_ts_on_an_act) {
             tsa.push(k + " : " + (Math.round(response.m_ts_on_an_act[k] * 100) / 100));

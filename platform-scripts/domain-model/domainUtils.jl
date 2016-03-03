@@ -2,43 +2,61 @@ module domainUtils
 # Following functions can be imported as modules
 
 
-import JSON
+using JSON
 using LightGraphs
-# given the file containing domain map extract all the concepts
-# in the domain model - in particular read the relationships and concept definitions
+using Requests
+using DataStructures
 
-function validateDomainModelSchema(filename)
+# given the file containing domain map extract all the s
+# in the domain model - in particular read the relationships and  definitions
+
+
+function readDomainModel(strname, src="url")
   status=false
+  domainModelData = []
   try
-    status=false
-    if(!isfile(filename))
+    if(src=="url")
+      resp = get(strname)
+      if(statuscode(resp)==200)
+        domainModelData = readall(resp)
+      else
+        error("domain model url response failed")
+      end
+    elseif(src=="file")
+      if(!isfile(filename))
+        error("File name specifying Domain Model is not a valid file")
+      elseif (!isreadable(filename))
+        error("File containing Domain Model is not readable")
+      else
+        # read the file containing the domain model
+        f=open(filename)
+        domainModelData=readall(f)
+        close(f)
+      end
+    else
       error("File name specifying Domain Model is not a valid file")
-    elseif (!isreadable(filename))
-      error("File containing Domain Model is not readable")
     end
+    domainModelData=JSON.parse(domainModelData)
 
-    f=open(filename)
-    s=readall(f)
-    close(f)
-    s=JSON.parse(s)
-
-    if(!haskey(s,"result"))
+    if(!haskey(domainModelData,"result"))
       error("invalid schema. \"result\" attribute not found.")
-    elseif (!haskey(s["result",],"concepts"))
-      error("invalid schema. \"concepts\" attribute not found.")
+    elseif (!haskey(domainModelData["result",],"s"))
+      error("invalid schema. \"s\" attribute not found.")
     end
 
-    dC = s["result",]["concepts",]
+    #  dictionary
+    dC = domainModelData["result",]["s",]
 
     if(!haskey(dC[1],"identifier"))
       error("invalid schema. \"result\" attribute not found. invalid schema")
     end
 
-    if (!haskey(s["result",],"relations"))
+    if (!haskey(domainModelData["result",],"relations"))
       error("invalid schema. \"relations\" attribute not found.")
     end
 
-    dR = s["result",]["relations",]
+    # relationship dictionary
+    dR = domainModelData["result",]["relations",]
     if (!haskey(dR[1],"startNodeId"))
       error("invalid schema. \"startNodeId\" attribute not found.")
     elseif (!haskey(dR[1],"endNodeId"))
@@ -50,20 +68,14 @@ function validateDomainModelSchema(filename)
     status=true
 
   finally
-    return status
+    return status,domainModelData
   end
 end
 
-function getConceptsFromConceptMap(conceptFileName)
-  if(!validateDomainModelSchema(conceptFileName))
-    error("can not process the domain model file")
-  end
-  f=open(conceptFileName)
-  s=readall(f)
-  close(f)
-  s=JSON.parse(s)
+function getsFromMap(domainModelData)
 
-  dC = s["result",]["concepts",]
+  #  dictionary
+  dC = domainModelData["result",]["s",]
   concepts = []
 
   nC = length(dC)
@@ -74,47 +86,45 @@ function getConceptsFromConceptMap(conceptFileName)
     push!(concepts,ln)
   end
 
-  dR = s["result",]["relations",]
-  nR = length(dR)
-  for i in 1:nR
-    x = dR[i]
-    ln = x["startNodeId",]
-    rn = x["endNodeId",]
-    val = x["relationType",]
-    if val == "isParentOf"
-      push!(concepts,ln)
-      push!(concepts,rn)
-    end
-  end
-  return union(concepts)
-end
+  sort!(concepts)
 
-function getConceptSimilarity(conceptFileName)
-
-  if(!validateDomainModelSchema(conceptFileName))
-    error("can not process the domain model file")
-  end
-  # get the list of unique concept names from the domain model
-
-  f=open(conceptFileName)
-  s=readall(f)
-  close(f)
-  s=JSON.parse(s)
-
-
-  c = getConceptsFromConceptMap(conceptFileName)
-  n=length(c)
-
-  # create a look-up from index to concept
-  indMap = Dict()
+  # create a look-up from index to
+  conceptHash = Dict()
   ind=1
-  for c1 in c
-    indMap[ind]=c1
+  for c in concepts
+    conceptHash[ind]=c
     ind=ind+1
   end
 
+#  in-case s are preesent in the relationships, but not in the  definitions
+#   # relationship dictionary
+#   dR = domainModelData["result",]["relations",]
+#   nR = length(dR)
+#   for i in 1:nR
+#     x = dR[i]
+#     ln = x["startNodeId",]
+#     rn = x["endNodeId",]
+#     val = x["relationType",]
+#     if val == "isParentOf"
+#       push!(s,ln)
+#       push!(s,rn)
+#     end
+#   end
+#   s = union(s)
+  return concepts, conceptHash
+end
+
+
+function getConceptGraph(domainModelData,relationType="isParentOf")
+
+  concepts, conceptHash = getsFromMap(domainModelData)
+  n=length(s)
+  cGraph=Array{Int64,2}(zeros(n,n))
+
+
+  #  dictionary
   cDict = Dict()
-  dR = s["result",]["relations",]
+  dR = domainModelData["result",]["relations",]
   nR = length(dR)
 
   for i in 1:nR
@@ -122,31 +132,139 @@ function getConceptSimilarity(conceptFileName)
     ln = x["startNodeId",]
     rn = x["endNodeId",]
     val = x["relationType",]
-    if val == "isParentOf"
+    if val == relationType[1]
       cDict[ln,rn] = 1
     end
   end
 
-  gu = Graph(n)
   for i in 1:n
     for j in 1:n
-      if (haskey(cDict,(indMap[i],indMap[j])))
-        add_edge!(gu,i,j)
+      if (haskey(cDict,(conceptHash[i],conceptHash[j])))
+        cGraph[i,j]=1
       end
     end
   end
+  return cGraph
+end
 
-  B=zeros(n,n)
-  M=6 # depth of the tree
+function getGraphFromAdj(cGraph,directed=true)
+  n,m=size(cGraph)
+  if(n!=m)
+    error("graph has to be a square matrix")
+  end
+
+  if(directed)
+    g = DiGraph(n)
+  else
+    g = Graph(n)
+    # make the adj symmetric
+    cGraph = (cGraph+cGraph')
+    cGraph[cGraph.>1]=1
+  end
   for i in 1:n
-    d = dijkstra_shortest_paths(gu, i).dists
-    #println("shortest distance is: ",d)
     for j in 1:n
-      x=min(d[j],M)/M
-      B[i,j]=round((1-x)*1e2)/1e2 #round((1-x)*1e4)/1e4
+      if (cGraph[i,j]==1)
+        add_edge!(g,i,j)
+      end
     end
   end
+  return g
+end
+
+function getConceptSimilarityByRelation(cGraph,directed=true,dist="geodesic",weight=1,maxDepth=6)
+
+  g = getGraphFromAdj(cGraph*weight,directed)
+  n = size(cGraph)[1]
+
+  B=Array{Float64,2}(zeros(n,n))
+
+  for i in 1:n
+    d = dijkstra_shortest_paths(g, i).dists
+    d[d.>=maxDepth]=maxDepth
+      B[i,:]=d
+  end
+  B = 1 - (B/maximum(B))
   return B
+end
+
+function getConceptGradeCoverageVec(domainModelData,impute=true,directed=false,gradeTag="gradeLevel",weight=1)
+
+  concepts, conceptHash = getConceptsFromConceptMap(domainModelData)
+  n=length(s)
+
+  dC = domainModelData["result",]["s",]
+  # get all the unique grade levels
+  grades = []
+
+  # in the 1st pass, look-up the grades
+  for i in 1:n
+    x = dC[i]
+    ln = x["identifier",]
+    Dict[ln]=
+    if(haskey(x,"gradeLevel"))
+      push!(grades,x["gradeLevel"])
+    end
+  end
+  sort!(unique(grades))
+
+  # create a hash for grades
+  gradeHash = Dict()
+  ind=1
+  for grade in grades
+    gradeHash[grade]=ind
+    ind=ind+1
+  end
+
+  # 2nd pass
+  # create  by grade count matrix
+  # rows are s, cols are grade levels
+  cGraph=Array{Int64,2}(zeros(n,ind-1))
+
+  # default assume it is grade 1
+  cGraph[:,1] = 1
+
+  for i in 1:n
+    x = dC[i]
+    c = x["identifier",]
+    if(haskey(x,"gradeLevel"))
+      vals = x["gradeLevel",]
+        for val in vals
+          cGraph[conceptHash[c],gradeHash[val]]+=1
+        end
+    end
+  end
+
+  # if grades need to be imputed at dimension and domain level (as of Domain Model v2)
+  # using the parent-child relationship to aggregate the children's grade-count-vecs
+  if(impute)
+    rGraph = getConceptGraph(domainModelData,relationType="isParentOf")
+    for c in s
+      i = conceptHash[c]
+      # get the parents of this list
+      parList = find(rGraph[i,:])
+      m = length(parList)
+      if(m>0)
+        for parent in parList
+          cGraph[parent,:] += cGraph[i,:]
+        end
+      end
+    end
+
+  end
+  return cGraph,grades,gradeHash,concepts,conceptHash
+end
+
+
+function getGradeDiffWeights(grades,method="ordinal")
+  # park - need to develop
+  m=length(grades)
+  W=Array{Int64,2}(zeros(m,m))
+  return W
+end
+
+function getConceptSimilarityByGrade(cGraph,)
+  d = pairwise(Euclidean(), cGraph)
+  return(d)
 end
 
 end
