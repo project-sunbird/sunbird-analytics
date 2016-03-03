@@ -2,6 +2,7 @@ package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.Filter
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import java.util.UUID
@@ -9,6 +10,7 @@ import org.joda.time.DateTime
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.DataFilter
 
 case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp: Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
                            m_ts_on_an_act: Map[String, Double], m_count_on_an_act: Map[String, Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime,
@@ -22,7 +24,8 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
 
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
-        val la = events.map { event =>
+        val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_LEARNER_ACTIVITY_SUMMARY")));
+        val la = filteredData.map { event =>
 
             val eks = event.edata.eks.asInstanceOf[Map[String, AnyRef]];
             val leaner_id = event.uid.get;

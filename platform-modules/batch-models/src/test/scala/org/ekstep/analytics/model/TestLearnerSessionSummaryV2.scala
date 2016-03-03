@@ -29,7 +29,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be ("ME_SESSION_SUMMARY");
-        event1.mid should be ("D2EC164E229CDA1E7E990F405F1C4225");
+        event1.mid should be ("288F7A6E4E7BA48031386E84774DC61A");
         event1.context.pdata.model should be ("LearnerSessionSummaryV2");
         event1.context.pdata.ver should be ("1.0");
         event1.context.granularity should be ("SESSION");
@@ -41,8 +41,9 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         summary1.levels should not be (None);
         summary1.levels.get.length should be (0);
         summary1.noOfAttempts should be (2);
-        summary1.timeSpent should be (543.54);
-        summary1.interactEventsPerMin should be (14.46);
+        summary1.timeSpent should be (553.01);
+        summary1.timeDiff should be (553.01);
+        summary1.interactEventsPerMin should be (14.21);
         summary1.currentLevel should not be (None);
         summary1.currentLevel.get.size should be (0);
         summary1.noOfInteractEvents should be (131);
@@ -53,11 +54,11 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         summary1.activitySummary.get.get("LISTEN").get.count should be (1);
         summary1.activitySummary.get.get("LISTEN").get.timeSpent should be (0.17);
         summary1.activitySummary.get.get("DROP").get.count should be (39);
-        summary1.activitySummary.get.get("DROP").get.timeSpent should be (0.42);
+        summary1.activitySummary.get.get("DROP").get.timeSpent should be (0.34);
         summary1.activitySummary.get.get("TOUCH").get.count should be (39);
-        summary1.activitySummary.get.get("TOUCH").get.timeSpent should be (464.28);
+        summary1.activitySummary.get.get("TOUCH").get.timeSpent should be (464.25);
         summary1.activitySummary.get.get("CHOOSE").get.count should be (26);
-        summary1.activitySummary.get.get("CHOOSE").get.timeSpent should be (0.26);
+        summary1.activitySummary.get.get("CHOOSE").get.timeSpent should be (0.22);
         
         summary1.eventsSummary.size should be (7);
         summary1.eventsSummary.get("OE_ITEM_RESPONSE").get should be (65);

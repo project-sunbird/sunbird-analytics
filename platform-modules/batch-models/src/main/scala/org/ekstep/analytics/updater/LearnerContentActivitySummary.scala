@@ -2,6 +2,7 @@ package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.Filter
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.JobContext
@@ -10,6 +11,7 @@ import org.apache.spark.HashPartitioner
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.DataFilter
 
 case class LearnerContentActivity(learner_id: String, content_id: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
 
@@ -20,7 +22,9 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
     }
 
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
-        val activity = events.map(event => (event.uid.get, Buffer(event)))
+        
+        val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
+        val activity = filteredData.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x =>
                 val learner_id = x._1;

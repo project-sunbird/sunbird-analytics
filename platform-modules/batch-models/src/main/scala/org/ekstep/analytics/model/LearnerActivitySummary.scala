@@ -3,25 +3,18 @@ package org.ekstep.analytics.model
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import scala.collection.mutable.Buffer
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.framework.Dimensions
-import org.ekstep.analytics.framework.GData
-import org.ekstep.analytics.framework.MEEdata
 import scala.collection.immutable.HashMap.HashTrieMap
 import org.apache.spark.HashPartitioner
-import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DtRange
 import scala.collection.mutable.ListBuffer
-import org.ekstep.analytics.framework.SessionBatchModel
-import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework._
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.DataFilter
+import java.security.MessageDigest
 
 /**
  * @author Amit Behera
@@ -35,11 +28,13 @@ case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+        
+        val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         val topK = configMapping.value.getOrElse("topContent", 5).asInstanceOf[Int];
 
-        val activity = events.map(event => (event.uid.get, Buffer(event)))
+        val activity = filteredData.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
 
@@ -93,7 +88,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             val dataRange = x._2._2
             LearnerSnapshot(learner_id, summary.meanTimeSpent.getOrElse(0d), summary.meanTimeBtwnGamePlays.getOrElse(0d),
                 summary.meanActiveTimeOnPlatform.getOrElse(0d), summary.meanInterruptTime.getOrElse(0d), summary.totalTimeSpentOnPlatform.getOrElse(0d),
-                summary.meanTimeSpentOnAnAct, summary.meanCountOfAct.getOrElse(Map()), summary.numOfSessionsOnPlatform.toInt, new DateTime(summary.last_visit_ts),
+                summary.meanTimeSpentOnAnAct, summary.meanCountOfAct.get, summary.numOfSessionsOnPlatform.toInt, new DateTime(summary.last_visit_ts),
                 summary.mostActiveHrOfTheDay.getOrElse(0), summary.topKcontent.toList, new DateTime(summary.start_ts), new DateTime(summary.end_ts), new DateTime(dataRange.from), new DateTime(dataRange.to));
         }
         la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
@@ -105,11 +100,11 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
     private def average[T](ts: Iterable[T])(implicit num: Numeric[T]) = {
         num.toDouble(ts.sum) / ts.size
     }
-
+    
     private def getMeasuredEvent(userMap: (String, (TimeSummary, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
-
-        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_ACTIVITY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", null, Option(userMap._1), None, None,
+        val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", userMap._1, "WEEK", userMap._2._2);
+        MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", userMap._2._2),
             Dimensions(None, None, None, None, None, None),
             MEEdata(measures));

@@ -3,6 +3,7 @@ package org.ekstep.analytics.model
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.Filter
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.adapter.ContentAdapter
 import scala.collection.mutable.Buffer
@@ -24,6 +25,7 @@ import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 import breeze.linalg._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.DataFilter
 
 case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double])
 
@@ -90,6 +92,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
     def execute(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
+        val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
 
@@ -117,7 +120,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
         println("### Preparing Learner data ###");
         // Get all learners date ranges
-        val learnerDtRanges = data.map(event => (event.uid.get, Buffer[MeasuredEvent](event)))
+        val learnerDtRanges = filteredData.map(event => (event.uid.get, Buffer[MeasuredEvent](event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
                 val e = events.map { x => x.ets };
@@ -126,7 +129,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
         println("### Join learners with learner database ###");
         // Get all learners
-        val allLearners = data.map(event => LearnerId(event.uid.get)).distinct;
+        val allLearners = filteredData.map(event => LearnerId(event.uid.get)).distinct;
 
         // Join all learners with learner content activity summary 
         val lcs = allLearners.joinWithCassandraTable[LearnerContentActivity](Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE).groupBy(f => f._1).mapValues(f => f.map(x => x._2));
@@ -186,7 +189,8 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
     }
 
     private def getMeasuredEvent(uid: String, relevance: Map[String, Double], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
-        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_CONCEPT_RELEVANCE").asInstanceOf[String], System.currentTimeMillis(), "1.0", null, Option(uid), None, None,
+        val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", uid, "DAY", dtRange);
+        MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), "1.0", mid, Option(uid), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", dtRange),
             Dimensions(None, None, None, None, None, None),
             MEEdata(relevance));
