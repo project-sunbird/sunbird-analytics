@@ -1,5 +1,7 @@
+# Author: Soma S Dhavala
+
 module domainUtils
-# Following functions can be imported as modules
+# Functions defined in this file can be imported as modules
 
 
 using JSON
@@ -8,9 +10,16 @@ using Requests
 using DataStructures
 using Distances
 
-# given the file containing domain map extract all the s
+# given the file/url containing domain map extract all the concepts
 # in the domain model - in particular read the relationships and  definitions
+# create various graphs based on relationships and node attributes in the Domain Model
 
+# Domain Model V2, 4th March, 2016
+# Ref: https://github.com/ekstep/Learning-Platform/tree/master/docs/domain_model_v2
+
+
+# read the domain model (concepts, relationships)
+# returns status and the domain model object (Julia dictonary)
 
 function readDomainModel(strname, src="url")
   status=false
@@ -35,28 +44,33 @@ function readDomainModel(strname, src="url")
         close(f)
       end
     else
-      error("File name specifying Domain Model is not a valid file")
+      error("Neither an url nor a file name is supplied to read Domain Model")
     end
+
     domainModelData=JSON.parse(domainModelData)
+
+    # all the data is stored in the "result" key
+    # concept definitions on are in "concepts" nested under "results"
 
     if(!haskey(domainModelData,"result"))
       error("invalid schema. \"result\" attribute not found.")
-    elseif (!haskey(domainModelData["result",],"s"))
-      error("invalid schema. \"s\" attribute not found.")
+    elseif (!haskey(domainModelData["result",],"concepts"))
+      error("invalid schema. \"concepts\" attribute not found.")
     end
 
-    #  dictionary
-    dC = domainModelData["result",]["s",]
+    #  check concept definition
+    dC = domainModelData["result",]["concepts",]
 
     if(!haskey(dC[1],"identifier"))
       error("invalid schema. \"result\" attribute not found. invalid schema")
     end
 
+    #  check relation definition
     if (!haskey(domainModelData["result",],"relations"))
       error("invalid schema. \"relations\" attribute not found.")
     end
 
-    # relationship dictionary
+    # check relation schema
     dR = domainModelData["result",]["relations",]
     if (!haskey(dR[1],"startNodeId"))
       error("invalid schema. \"startNodeId\" attribute not found.")
@@ -73,10 +87,12 @@ function readDomainModel(strname, src="url")
   end
 end
 
-function getsFromMap(domainModelData)
 
-  #  dictionary
-  dC = domainModelData["result",]["s",]
+function getConceptsFromConceptMap(domainModelData)
+  # read sorted unique list of concepts
+
+  #  read all concepts
+  dC = domainModelData["result",]["concepts",]
   concepts = []
 
   nC = length(dC)
@@ -86,14 +102,13 @@ function getsFromMap(domainModelData)
     #println(ln)
     push!(concepts,ln)
   end
+  sort!(unique(concepts))
 
-  sort!(concepts)
-
-  # create a look-up from index to
+  # create a look-up from concept-to-index
   conceptHash = Dict()
   ind=1
   for c in concepts
-    conceptHash[ind]=c
+    conceptHash[c]=ind
     ind=ind+1
   end
 
@@ -118,12 +133,14 @@ end
 
 function getConceptGraph(domainModelData,relationType="isParentOf")
 
-  concepts, conceptHash = getsFromMap(domainModelData)
-  n=length(s)
+  # create a graph where nodes are concepts and edges satisfy "relationType"
+  # property as defined in the Domain Model
+
+  concepts, conceptHash = getConceptsFromConceptMap(domainModelData)
+  n=length(concepts)
   cGraph=Array{Int64,2}(zeros(n,n))
 
-
-  #  dictionary
+  #  read relation data
   cDict = Dict()
   dR = domainModelData["result",]["relations",]
   nR = length(dR)
@@ -138,9 +155,11 @@ function getConceptGraph(domainModelData,relationType="isParentOf")
     end
   end
 
-  for i in 1:n
-    for j in 1:n
-      if (haskey(cDict,(conceptHash[i],conceptHash[j])))
+  for ci in concepts
+    i=conceptHash[ci]
+    for cj in concepts
+      j=conceptHash[cj]
+      if (haskey(cDict,(ci,cj)))
         cGraph[i,j]=1
       end
     end
@@ -149,6 +168,7 @@ function getConceptGraph(domainModelData,relationType="isParentOf")
 end
 
 function getGraphFromAdj(cGraph,directed=true)
+  # create an LighGraph graph object from adj matrix
   n,m=size(cGraph)
   if(n!=m)
     error("graph has to be a square matrix")
@@ -158,7 +178,7 @@ function getGraphFromAdj(cGraph,directed=true)
     g = DiGraph(n)
   else
     g = Graph(n)
-    # make the adj symmetric
+    # make the adj symmetric for undirected graph
     cGraph = (cGraph+cGraph')
     cGraph[cGraph.>1]=1
   end
@@ -174,41 +194,51 @@ end
 
 function getConceptSimilarityByRelation(cGraph,directed=true,dist="geodesic",weight=1,maxDepth=6)
 
+  # given an graph (adj matrix), compute a concept similarity matrix (between concepts)
   g = getGraphFromAdj(cGraph*weight,directed)
   n = size(cGraph)[1]
 
   B=Array{Float64,2}(zeros(n,n))
 
+  # compute shortes-distance between every pair of concepts (Dijkstra's shortest path/ Geodesic distance)
   for i in 1:n
     d = dijkstra_shortest_paths(g, i).dists
     d[d.>=maxDepth]=maxDepth
       B[i,:]=d
   end
+  # turn "normalized" distance into a simialrity matrix
   B = 1 - (B/maximum(B))
   return B
 end
 
 function getConceptGradeCoverageVec(domainModelData,impute=true,directed=false,gradeTag="gradeLevel",weight=1)
 
-  concepts, conceptHash = getConceptsFromConceptMap(domainModelData)
-  n=length(s)
+  # grade is an attribute at concept level. each concept can have multple grades
+  # prepare, for each concept, count of each grade (for concepts, the count can be either 0 or 1)
+  # but at dimension level, they can vary
 
-  dC = domainModelData["result",]["s",]
+  concepts, conceptHash = getConceptsFromConceptMap(domainModelData)
+
+  n=length(concepts)
+
+  dC = domainModelData["result",]["concepts",]
   # get all the unique grade levels
   grades = []
 
-  # in the 1st pass, look-up the grades
+  # in the 1st pass, look-up the grades to create unique grades levels
   for i in 1:n
     x = dC[i]
-    ln = x["identifier",]
-    Dict[ln]=
     if(haskey(x,"gradeLevel"))
-      push!(grades,x["gradeLevel"])
+      for val in x["gradeLevel"]
+        push!(grades,val)
+      end
     end
   end
-  sort!(unique(grades))
+  # need to figure out how to sort strings (crazy)
+  #sort!(unique(grades))
+  grades = (unique(grades))
 
-  # create a hash for grades
+  # create a hash for grades (grade-to-index)
   gradeHash = Dict()
   ind=1
   for grade in grades
@@ -238,8 +268,8 @@ function getConceptGradeCoverageVec(domainModelData,impute=true,directed=false,g
   # if grades need to be imputed at dimension and domain level (as of Domain Model v2)
   # using the parent-child relationship to aggregate the children's grade-count-vecs
   if(impute)
-    rGraph = getConceptGraph(domainModelData,relationType="isParentOf")
-    for c in s
+    rGraph = getConceptGraph(domainModelData)
+    for c in concepts
       i = conceptHash[c]
       # get the parents of this list
       parList = find(rGraph[i,:])
@@ -263,7 +293,10 @@ function getGradeDiffWeights(grades,method="ordinal")
   return W
 end
 
-function getConceptSimilarityByGrade(cGraph,)
+function getConceptSimilarityByGrade(cGraph)
+  # compute similarity between each pair of concepts (nodes) based on grade coverage
+  # for future use: possibly consider that distances need to be weighed by grade levels
+  # eg: grade-1 is farther from grade-5 than grade-1 is from grade-3
   d = pairwise(Euclidean(), cGraph)
   return(d)
 end
