@@ -97,10 +97,10 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         val configMapping = sc.broadcast(config);
 
         // initializing lambda value 
-        val defaultWeightPij = configMapping.value.getOrElse("profWeight", 0.05).asInstanceOf[Double];
-        val defaultWeightSij = configMapping.value.getOrElse("conSimWeight", 0.05).asInstanceOf[Double];
-        val defaultWeightTj = configMapping.value.getOrElse("timeSpentWeight", 0.9).asInstanceOf[Double];
-        val iterations = configMapping.value.getOrElse("iterations", 3).asInstanceOf[Int];
+        val defaultWeightPij = config.getOrElse("profWeight", 0.33).asInstanceOf[Double];
+        val defaultWeightSij = config.getOrElse("conSimWeight", 0.33).asInstanceOf[Double];
+        val defaultWeightTj = config.getOrElse("timeSpentWeight", 0.33).asInstanceOf[Double];
+        val iterations = config.getOrElse("iterations", 3).asInstanceOf[Int];
 
         println("#### Fetching Content List and Domain Map ####")
         val contents = ContentAdapter.getAllContent();
