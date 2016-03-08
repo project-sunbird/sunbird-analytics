@@ -106,7 +106,7 @@ class TestOutputDispatcher extends SparkSpec {
         
         val result = OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript.sh")), events.map { x => JSONUtils.serialize(x) });
         result(0) should endWith ("analytics-core");
-        result(1) should include ("7435");
+        result(1) should include ("7436");
     }
     
     

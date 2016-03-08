@@ -29,7 +29,7 @@ class TestDataFetcher extends SparkSpec {
             Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
         )));
         val rdd = DataFetcher.fetchBatchData[Event](sc, search);
-        rdd.count should be (7436)
+        rdd.count should be (7437)
         
     }
     

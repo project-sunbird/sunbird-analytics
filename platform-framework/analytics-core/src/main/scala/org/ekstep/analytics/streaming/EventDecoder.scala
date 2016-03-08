@@ -6,14 +6,14 @@ import kafka.utils.VerifiableProperties
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 
-class EventDecoder(props: VerifiableProperties = null) extends Decoder[Event] {
+class EventDecoder[T](props: VerifiableProperties = null)(implicit mf:Manifest[T]) extends Decoder[T] {
     val encoding =
         if (props == null)
             "UTF8"
         else
             props.getString("serializer.encoding", "UTF8");
             
-    def fromBytes(bytes: Array[Byte]): Event = {
-        JSONUtils.deserialize[Event](new String(bytes, encoding));
+    def fromBytes(bytes: Array[Byte]): T = {
+        JSONUtils.deserialize[T](new String(bytes, encoding));
     }
 }

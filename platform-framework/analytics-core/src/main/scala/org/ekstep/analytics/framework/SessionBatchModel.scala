@@ -18,6 +18,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                 events.sortBy { x => CommonUtil.getEventTS(x) }.groupBy { e => e.sid }.mapValues { x =>
                     var sessions = Buffer[Buffer[Event]]();
                     var tmpArr = Buffer[Event]();
+                    var lastContentId:String = x(0).gdata.id;
                     x.foreach { y =>
                         y.eid match {
                             case "OE_START" =>
@@ -25,13 +26,19 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[Event]();
                                 }
-                                tmpArr += y;   
+                                tmpArr += y;  
+                                lastContentId = y.gdata.id;
                             case "OE_END" =>
                                 tmpArr += y;
                                 sessions += tmpArr;
                                 tmpArr = Buffer[Event]();
                             case _ =>
+                                if(!lastContentId.equals(y.gdata.id)) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[Event]();
+                                }
                                 tmpArr += y;
+                                lastContentId = y.gdata.id;
                         }
                     }   
                     sessions += tmpArr;
@@ -48,6 +55,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                 events.sortBy { x => x.ets }.groupBy { e => e.sid }.mapValues { x =>
                     var sessions = Buffer[Buffer[TelemetryEventV2]]();
                     var tmpArr = Buffer[TelemetryEventV2]();
+                    var lastContentId:String = x(0).gdata.id;
                     x.foreach { y =>
                         y.eid match {
                             case "OE_START" =>
@@ -55,13 +63,19 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[TelemetryEventV2]();
                                 }
-                                tmpArr += y;   
+                                tmpArr += y;
+                                lastContentId = y.gdata.id;
                             case "OE_END" =>
                                 tmpArr += y;
                                 sessions += tmpArr;
                                 tmpArr = Buffer[TelemetryEventV2]();
                             case _ =>
+                                if(!lastContentId.equals(y.gdata.id)) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[TelemetryEventV2]();
+                                }
                                 tmpArr += y;
+                                lastContentId = y.gdata.id;
                         }
                     }   
                     sessions += tmpArr;

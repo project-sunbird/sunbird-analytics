@@ -21,7 +21,7 @@ case class Test(id: String, value: Option[String], optValue: Option[String]);
 class TestDataFilter extends SparkSpec {
     
     "DataFilter" should "filter the events by event id 'GE_GENIE_START'" in {
-        events.count() should be (7436);
+        events.count() should be (7437);
         val filters = Option(Array[Filter](
             Filter("eventId", "EQ", Option("GE_GENIE_START"))   
         ));
@@ -44,7 +44,7 @@ class TestDataFilter extends SparkSpec {
             Filter("gameId", "NE", Option("org.ekstep.aser"))
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
-        filteredEvents.count() should be (1160);
+        filteredEvents.count() should be (1161);
     }
     
     it should "filter the events by game version" in {
@@ -68,7 +68,7 @@ class TestDataFilter extends SparkSpec {
             Filter("ts", "ISNOTNULL", None)
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
-        filteredEvents.count() should be (7436);
+        filteredEvents.count() should be (7437);
     }
     
     it should "filter the events by user id" in {
@@ -84,7 +84,7 @@ class TestDataFilter extends SparkSpec {
             Filter("itemId", "ISNULL", None)
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
-        filteredEvents.count() should be (5794);
+        filteredEvents.count() should be (5795);
     }
     
     it should "filter the events where user session id is empty" in {
@@ -100,12 +100,12 @@ class TestDataFilter extends SparkSpec {
             Filter("telemetryVersion", "EQ", Option("1.0"))
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
-        filteredEvents.count() should be (7436);
+        filteredEvents.count() should be (7437);
     }
     
     it should "return all events if filters are none" in {
         val filteredEvents = DataFilter.filterAndSort(events, None, None);
-        filteredEvents.count() should be (7436);
+        filteredEvents.count() should be (7437);
     }
     
     it should "match one of Events 'OE_ASSESS' & 'OE_LEVEL_SET'" in {
@@ -122,7 +122,7 @@ class TestDataFilter extends SparkSpec {
             Filter("eventId", "NIN", Option(List("OE_ASSESS", "OE_LEVEL_SET")))
         ));
         val filteredEvents = DataFilter.filterAndSort(events, filters, None);
-        filteredEvents.count() should be (5564);
+        filteredEvents.count() should be (5565);
         filteredEvents.filter { x => "OE_ASSESS".equals(x.eid) }.count should be (0);
         filteredEvents.filter { x => "OE_LEVEL_SET".equals(x.eid) }.count should be (0);
     }
