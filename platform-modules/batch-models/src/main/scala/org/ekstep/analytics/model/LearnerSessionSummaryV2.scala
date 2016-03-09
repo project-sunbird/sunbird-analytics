@@ -76,7 +76,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
     /**
      * Compute screen summaries on the telemetry data produced by content app
      */
-    def computeScreenSummary(firstEvent: TelemetryEventV2, lastEvent: TelemetryEventV2, navigateEvents: Buffer[TelemetryEventV2], interruptSummary: Map[String, Double]): Map[String, Double] = {
+    def computeScreenSummary(firstEvent: TelemetryEventV2, lastEvent: TelemetryEventV2, navigateEvents: Buffer[TelemetryEventV2], interruptSummary: Map[String, Double]): Iterable[ScreenSummary] = {
 
         if (navigateEvents.length > 0) {
             var stageMap = HashMap[String, Double]();
@@ -100,10 +100,10 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
                 stageMap.put(lastStage, stageMap.get(lastStage).get + timeDiff);
             }
             stageMap.map(f => {
-                (f._1, CommonUtil.roundDouble((f._2 - interruptSummary.getOrElse(f._1, 0d)), 2));
-            }).toMap;
+                ScreenSummary(f._1, CommonUtil.roundDouble((f._2 - interruptSummary.getOrElse(f._1, 0d)), 2));
+            });
         } else {
-            Map[String, Double]();
+            Iterable[ScreenSummary]();
         }
 
     }
@@ -214,14 +214,13 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
                 Map("level" -> f._1, "domain" -> "", "items" -> None, "choices" -> f._2, "noOfAttempts" -> (if (itemCounts.isEmpty) 1 else itemCounts.max));
             }).toArray;
             val loc = deviceMapping.value.getOrElse(firstEvent.did, "");
-
             val noOfInteractEvents = DataFilter.filter(events, Filter("edata.eks.type", "IN", Option(List("TOUCH", "DRAG", "DROP", "PINCH", "ZOOM", "SHAKE", "ROTATE", "SPEAK", "LISTEN", "WRITE", "DRAW", "START", "END", "CHOOSE", "ACTIVATE")))).length;
             val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d else BigDecimal(noOfInteractEvents / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             var interactionEvents = eventsWithTs.filter(f => "OE_INTERACT".equals(f._1.eid)).map(f => {
                 (f._1.edata.eks.`type`, 1, f._2)
-            })
-            val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => (f._1, ActivitySummary(f._2, CommonUtil.roundDouble(f._3, 2)))).toMap;
-            val eventSummary = events.groupBy { x => x.eid }.map(f => (f._1, f._2.length)).toMap;
+            })            
+            val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => ActivitySummary(f._1, f._2, CommonUtil.roundDouble(f._3, 2)));
+            val eventSummary = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
             val navigateEvents = DataFilter.filter(events, Filter("eid", "EQ", Option("OE_NAVIGATE")));
             val interruptSummary = computeInterruptSummary(DataFilter.filter(events, Filter("eid", "EQ", Option("OE_INTERRUPT"))));
             val screenSummary = computeScreenSummary(firstEvent, lastEvent, navigateEvents, interruptSummary);

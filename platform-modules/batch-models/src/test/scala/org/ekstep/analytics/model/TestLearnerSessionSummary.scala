@@ -22,7 +22,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
         me.length should be(1);
-        
+
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be("ME_SESSION_SUMMARY");
         event1.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
@@ -44,11 +44,16 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.currentLevel.get.get("literacy").get should be("Can read story");
         summary1.noOfInteractEvents should be(40);
         summary1.itemResponses.get.length should be(5);
-        summary1.activitySummary.get.size should be(2);
-        summary1.activitySummary.get.get("TOUCH").get.count should be(31);
-        summary1.activitySummary.get.get("TOUCH").get.timeSpent should be(757);
-        summary1.activitySummary.get.get("DRAG").get.count should be(9);
-        summary1.activitySummary.get.get("DRAG").get.timeSpent should be(115);
+
+        val asList = summary1.activitySummary.get
+        asList.size should be(2);
+        val asActCountMap = asList.map { x => (x.actType, x.count) }.toMap
+        val asActTimeSpentMap = asList.map { x => (x.actType, x.timeSpent) }.toMap
+
+        asActCountMap.get("TOUCH").get should be(31);
+        asActTimeSpentMap.get("TOUCH").get should be(757);
+        asActCountMap.get("DRAG").get should be(9);
+        asActTimeSpentMap.get("DRAG").get should be(115);
         summary1.screenSummary.get.size should be(0);
         summary1.syncDate should be(1451696364328L)
         summary1.mimeType.get should be("application/vnd.android.package-archive");
@@ -84,12 +89,21 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.noOfInteractEvents should be(5);
         summary1.itemResponses.get.length should be(0);
         summary1.activitySummary.get.size should be(1);
-        summary1.activitySummary.get.get("TOUCH").get.count should be(5);
-        summary1.activitySummary.get.get("TOUCH").get.timeSpent should be(47);
 
-        summary1.eventsSummary.size should be(2);
-        summary1.eventsSummary.get("OE_INTERACT").get should be(5);
-        summary1.eventsSummary.get("OE_START").get should be(1);
+        val asList = summary1.activitySummary.get
+        val asActCountMap = asList.map { x => (x.actType, x.count) }.toMap
+        val asActTimeSpentMap = asList.map { x => (x.actType, x.timeSpent) }.toMap
+
+        asActCountMap.get("TOUCH").get should be(5);
+        asActTimeSpentMap.get("TOUCH").get should be(47);
+
+        val esList = summary1.eventsSummary
+        esList.size should be(2);
+
+        val esMap = esList.map { x => (x.id, x.count) }.toMap
+
+        esMap.get("OE_INTERACT").get should be(5);
+        esMap.get("OE_START").get should be(1);
         summary1.syncDate should be(1451694073672L)
         summary1.mimeType.get should be("application/vnd.android.package-archive");
         summary1.contentType.get should be("Game");
@@ -110,20 +124,29 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary2.noOfInteractEvents should be(25);
         summary2.itemResponses.get.length should be(2);
         summary2.activitySummary.get.size should be(1);
-        summary2.activitySummary.get.get("TOUCH").get.count should be(25);
-        summary2.activitySummary.get.get("TOUCH").get.timeSpent should be(739);
-        summary2.eventsSummary.size should be(4);
-        summary2.eventsSummary.get("OE_INTERACT").get should be(25);
-        summary2.eventsSummary.get("OE_START").get should be(1);
-        summary2.eventsSummary.get("OE_LEVEL_SET").get should be(1);
-        summary2.eventsSummary.get("OE_ASSESS").get should be(2);
+
+        val asList2 = summary2.activitySummary.get
+        val asActCountMap2 = asList2.map { x => (x.actType, x.count) }.toMap
+        val asActTimeSpentMap2 = asList2.map { x => (x.actType, x.timeSpent) }.toMap
+
+        asActCountMap2.get("TOUCH").get should be(25);
+        asActTimeSpentMap2.get("TOUCH").get should be(739);
+
+        val esList2 = summary2.eventsSummary
+        esList2.size should be(4);
+        val esMap2 = esList2.map { x => (x.id, x.count) }.toMap
+
+        esMap2.get("OE_INTERACT").get should be(25);
+        esMap2.get("OE_START").get should be(1);
+        esMap2.get("OE_LEVEL_SET").get should be(1);
+        esMap2.get("OE_ASSESS").get should be(2);
         summary2.syncDate should be(1451696364325L)
         summary2.mimeType.get should be("application/vnd.android.package-archive");
         summary2.contentType.get should be("Game");
 
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         event3.mid should be("2D6AB5FC7D5D7961AB300D8E4D459538");
-        
+
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
         summary3.noOfLevelTransitions.get should be(-1);
         summary3.levels should not be (None);
@@ -136,15 +159,20 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.noOfInteractEvents should be(0);
         summary3.itemResponses.get.length should be(0);
         summary3.activitySummary.get.size should be(0);
-        summary3.eventsSummary.size should be(1);
-        summary3.eventsSummary.get("OE_START").get should be(1);
+
+        val esList3 = summary3.eventsSummary
+        val esMap3 = esList3.map { x => (x.id, x.count) }.toMap
+
+        esList3.size should be(1);
+        esMap3.get("OE_START").get should be(1);
+
         summary3.syncDate should be(1451696364329L)
         summary3.mimeType.get should be("application/vnd.android.package-archive");
         summary3.contentType.get should be("Game");
 
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
         event4.mid should be("08D37F42C718121C6140EDF9F89889B2");
-        
+
         val summary4 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event4.edata.eks));
         summary4.noOfLevelTransitions.get should be(-1);
         summary4.levels should not be (None);
@@ -157,11 +185,20 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary4.noOfInteractEvents should be(3);
         summary4.itemResponses.get.length should be(0);
         summary4.activitySummary.get.size should be(1);
-        summary4.activitySummary.get.get("TOUCH").get.count should be(3);
-        summary4.activitySummary.get.get("TOUCH").get.timeSpent should be(11);
-        summary4.eventsSummary.size should be(2);
-        summary4.eventsSummary.get("OE_INTERACT").get should be(3);
-        summary4.eventsSummary.get("OE_START").get should be(1);
+
+        val asList4 = summary4.activitySummary.get
+        val asActCountMap4 = asList4.map { x => (x.actType, x.count) }.toMap
+        val asActTimeSpentMap4 = asList4.map { x => (x.actType, x.timeSpent) }.toMap
+        asActCountMap4.get("TOUCH").get should be(3);
+        asActTimeSpentMap4.get("TOUCH").get should be(11);
+
+        val esList4 = summary4.eventsSummary
+        val esMap4 = esList4.map { x => (x.id,x.count) }.toMap 
+        
+        esList4.size should be(2);
+        esMap4.get("OE_INTERACT").get should be(3);
+        esMap4.get("OE_START").get should be(1);
+
         summary4.syncDate should be(1451715800197L)
         summary4.mimeType.get should be("application/vnd.android.package-archive");
         summary4.contentType.get should be("Game");
@@ -173,7 +210,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(sc, rdd, None);
         val me = rdd2.collect();
         me.length should be(3);
-
+        
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
@@ -185,27 +222,31 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("org.ekstep.story.hi.nature");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.screenSummary.get.size should be(18);
-        summary1.screenSummary.get.getOrElse("scene11", 0d) should be(4.0);
-        summary1.screenSummary.get.getOrElse("scene5", 0d) should be(5.0);
-        summary1.screenSummary.get.getOrElse("scene14", 0d) should be(4.0);
-        summary1.screenSummary.get.getOrElse("scene17", 0d) should be(17.0);
-        summary1.screenSummary.get.getOrElse("scene4", 0d) should be(5.0);
-        summary1.screenSummary.get.getOrElse("scene7", 0d) should be(5.0);
-        summary1.screenSummary.get.getOrElse("scene16", 0d) should be(5.0);
-        summary1.screenSummary.get.getOrElse("scene10", 0d) should be(12.0);
-        summary1.screenSummary.get.getOrElse("scene13", 0d) should be(4.0);
-        summary1.screenSummary.get.getOrElse("scene9", 0d) should be(5.0);
-        summary1.screenSummary.get.getOrElse("scene3", 0d) should be(4.0);
-        summary1.screenSummary.get.getOrElse("scene6", 0d) should be(4.0);
-        summary1.screenSummary.get.getOrElse("scene15", 0d) should be(6.0);
-        summary1.screenSummary.get.getOrElse("scene18", 0d) should be(1.0);
-        summary1.screenSummary.get.getOrElse("scene12", 0d) should be(9.0);
-        summary1.screenSummary.get.getOrElse("scene8", 0d) should be(10.0);
-        summary1.screenSummary.get.getOrElse("scene2", 0d) should be(9.0);
-        summary1.screenSummary.get.getOrElse("splash", 0d) should be(14.0);
-        summary1.mimeType.get should be("application/vnd.ekstep.ecml-archive");
-        summary1.contentType.get should be("Story");
+
+        val ssList = summary1.screenSummary.get
+        ssList.size should be(18);
+        val summaryMap = ssList.map { x => (x.id, x.timeSpent) }.toMap
+
+        summaryMap.getOrElse("scene11", 0d) should be(4.0);
+        summaryMap.getOrElse("scene5", 0d) should be(5.0);
+        summaryMap.getOrElse("scene14", 0d) should be(4.0);
+        summaryMap.getOrElse("scene17", 0d) should be(17.0);
+        summaryMap.getOrElse("scene4", 0d) should be(5.0);
+        summaryMap.getOrElse("scene7", 0d) should be(5.0);
+        summaryMap.getOrElse("scene16", 0d) should be(5.0);
+        summaryMap.getOrElse("scene10", 0d) should be(12.0);
+        summaryMap.getOrElse("scene13", 0d) should be(4.0);
+        summaryMap.getOrElse("scene9", 0d) should be(5.0);
+        summaryMap.getOrElse("scene3", 0d) should be(4.0);
+        summaryMap.getOrElse("scene6", 0d) should be(4.0);
+        summaryMap.getOrElse("scene15", 0d) should be(6.0);
+        summaryMap.getOrElse("scene18", 0d) should be(1.0);
+        summaryMap.getOrElse("scene12", 0d) should be(9.0);
+        summaryMap.getOrElse("scene8", 0d) should be(10.0);
+        summaryMap.getOrElse("scene2", 0d) should be(9.0);
+        summaryMap.getOrElse("splash", 0d) should be(14.0);
+        summary1.mimeType should be("application/vnd.ekstep.ecml-archive");
+        summary1.contentType should be("Story");
 
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
@@ -215,11 +256,16 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
-        summary3.screenSummary.get.size should be(2);
-        summary3.screenSummary.get.getOrElse("ordinalNumbers", 0d) should be(226.0);
-        summary3.screenSummary.get.getOrElse("splash", 0d) should be(24.0);
-        summary3.mimeType.get should be("application/vnd.ekstep.ecml-archive");
-        summary3.contentType.get should be("Worksheet");
+        
+        val ssList3 = summary3.screenSummary.get
+        val ssMap3 = ssList3.map { x => (x.id,x.timeSpent) }.toMap
+        
+        ssList3.size should be(2);
+        ssMap3.getOrElse("ordinalNumbers", 0d) should be(226.0);
+        ssMap3.getOrElse("splash", 0d) should be(24.0);
+        
+        summary3.mimeType should be("application/vnd.ekstep.ecml-archive");
+        summary3.contentType should be("Worksheet");
     }
 
     it should "generate a session even though OE_START and OE_END are present" in {
@@ -233,7 +279,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd1 = LearnerSessionSummary.execute(sc, rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
     }
-    
+
     ignore should "extract timespent from takeoff summaries" in {
         val rdd = loadFile[MeasuredEvent]("/Users/Santhosh/ekStep/telemetry_dump/takeoff-summ.log");
         val rdd2 = rdd.map { x => (x.uid, JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(x.edata.eks))) };
