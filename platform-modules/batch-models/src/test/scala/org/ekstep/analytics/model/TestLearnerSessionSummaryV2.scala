@@ -57,11 +57,11 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         asActCountMap.get("LISTEN").get should be (1);
         asActTimeSpentMap.get("LISTEN").get should be (0.17);
         asActCountMap.get("DROP").get should be (39);
-        asActTimeSpentMap.get("DROP").get should be (0.42);
+        asActTimeSpentMap.get("DROP").get should be (0.34);
         asActCountMap.get("TOUCH").get should be (39);
-        asActTimeSpentMap.get("TOUCH").get should be (464.28);
+        asActTimeSpentMap.get("TOUCH").get should be (464.25);
         asActCountMap.get("CHOOSE").get should be (26);
-        asActTimeSpentMap.get("CHOOSE").get should be (0.26);
+        asActTimeSpentMap.get("CHOOSE").get should be (0.22);
         
         val esList = summary1.eventsSummary
         val esMap = esList.map { x => (x.id,x.count) }.toMap
