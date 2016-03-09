@@ -17,7 +17,10 @@ import java.security.MessageDigest
  */
 case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[AnyRef], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
 
-case class ActivitySummary(count: Int, timeSpent: Double)
+//case class ActivitySummary(count: Int, timeSpent: Double)
+case class ActivitySummary(actType: String, count: Int, timeSpent: Double)
+case class ScreenSummary(id: String, timeSpent: Double)
+case class EventSummary(id: String, count: Int)
 
 /**
  * Case class to hold the screener summary
@@ -25,8 +28,8 @@ case class ActivitySummary(count: Int, timeSpent: Double)
 class SessionSummary(val id: String, val ver: String, val levels: Option[Array[Map[String, Any]]], val noOfAttempts: Int, val timeSpent: Double,
                      val interruptTime: Double, val timeDiff: Double, val start_time: Option[Long], val end_time: Option[Long], val currentLevel: Option[Map[String, String]],
                      val noOfLevelTransitions: Option[Int], val comments: Option[String], val fluency: Option[Int], val loc: Option[String],
-                     val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Map[String, ActivitySummary]],
-                     val completionStatus: Option[Boolean], val screenSummary: Option[Map[String, Double]], val noOfInteractEvents: Int, val eventsSummary: Map[String, Int],
+                     val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Iterable[ActivitySummary]],
+                     val completionStatus: Option[Boolean], val screenSummary: Option[Iterable[ScreenSummary]], val noOfInteractEvents: Int, val eventsSummary: Iterable[EventSummary],
                      val syncDate: Long, val contentType: String, val mimeType: String, val did: String) extends Serializable {};
 
 /**
@@ -93,7 +96,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
     /**
      * Compute screen summaries on the telemetry data produced by content app
      */
-    def computeScreenSummary(events: Buffer[Event]): Map[String, Double] = {
+    def computeScreenSummary(events: Buffer[Event]): Iterable[ScreenSummary] = {
 
         val screenInteractEvents = DataFilter.filter(events, Filter("eid", "NIN", Option(List("OE_ASSESS", "OE_LEVEL_SET")))).filter { event =>
             event.eid match {
@@ -104,6 +107,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             }
         }
         var stageMap = HashMap[String, Double]();
+        var screenSummaryList = Buffer[HashMap[String, Double]]();
         val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("OE_INTERACT"))).length;
         if (screenInteractCount > 0) {
             var stageList = ListBuffer[(String, Double)]();
@@ -137,8 +141,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                 }
             }
         }
-
-        stageMap.toMap;
+        stageMap.map{x=>ScreenSummary(x._1,x._2)};
     }
 
     def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
@@ -238,8 +241,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                 (f._1.edata.eks.`type`, 1, f._2)
             })
 
-            val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => (f._1, ActivitySummary(f._2, f._3))).toMap;
-            val eventSummary = events.groupBy { x => x.eid }.map(f => (f._1, f._2.length)).toMap;
+            val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => ActivitySummary(f._1, f._2, f._3));
+            val eventSummary = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
             val did = firstEvent.did
             new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff.get, startTimestamp, endTimestamp,
                 Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp.getOrElse(0l),

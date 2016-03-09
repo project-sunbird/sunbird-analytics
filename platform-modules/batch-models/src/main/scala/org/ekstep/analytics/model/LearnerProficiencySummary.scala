@@ -29,9 +29,10 @@ import org.ekstep.analytics.util.Constants
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
 case class ModelParam(concept: String, alpha: Double, beta: Double)
+case class ProficiencySummary(conceptId: String, proficiency: Double, start_ts: Long, end_ts: Long)
 
 object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Serializable {
-    
+
     def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
         val itemId = item.get("itemId").get.asInstanceOf[String];
         //val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]]
@@ -47,11 +48,11 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
             itemMC.toArray
         }
     }
-    
-    def getMaxScore(item: Map[String, AnyRef]) : Int = {
+
+    def getMaxScore(item: Map[String, AnyRef]): Int = {
         val maxScore = item.get("maxScore");
-        if(maxScore.nonEmpty) {
-            if(maxScore.get.isInstanceOf[Double]) {
+        if (maxScore.nonEmpty) {
+            if (maxScore.get.isInstanceOf[Double]) {
                 maxScore.get.asInstanceOf[Double].toInt;
             } else {
                 maxScore.get.asInstanceOf[Int];
@@ -60,7 +61,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
     }
 
     def getItemMaxScore(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Int = {
-        
+
         val itemId = item.get("itemId").get.asInstanceOf[String];
         val maxScore = getMaxScore(item);
         if (maxScore == 0) {
@@ -96,7 +97,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
 
         var itemConcepts = Map[String, ItemConcept]();
         if (itemsWithMissingConcepts.count() > 0) {
-            
+
             val items = itemsWithMissingConcepts.flatMap(f => f.map(x => x)).collect().toMap;
             println("### Items with missing concepts - " + items.size + " ###");
             itemConcepts = items.map { x =>
@@ -199,10 +200,8 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
     }
 
     private def getMeasuredEvent(userProf: LearnerProficiency, config: Map[String, AnyRef]): MeasuredEvent = {
-        val measures = Map(
-            "proficiency" -> userProf.proficiency,
-            "start_ts" -> userProf.start_time.getMillis,
-            "end_ts" -> userProf.end_time.getMillis);
+        val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2, userProf.start_time.getMillis, userProf.end_time.getMillis) }
+        val measures = Map("proficiencySummary" -> proficiencySummary)
         MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_PROFICIENCY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", null, Option(userProf.learner_id), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
             Dimensions(None, None, None, None, None, None, None),

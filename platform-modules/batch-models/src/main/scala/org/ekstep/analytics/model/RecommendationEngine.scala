@@ -26,6 +26,7 @@ import breeze.linalg._
 import org.ekstep.analytics.util.Constants
 
 case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double])
+case class RelevanceScores(conceptId: String, relevance: Double)
 
 object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -179,17 +180,17 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
 
         println("### Creating summary events ###");
-        learnerConceptRelevance.map {
-            f => getMeasuredEvent(f._1, f._2, configMapping.value, f._3);
+        learnerConceptRelevance.map { f =>
+            val relevanceScores = (f._2).map { x => RelevanceScores(x._1, x._2) }
+            getMeasuredEvent(f._1, relevanceScores, configMapping.value, f._3);
         }.map { x => JSONUtils.serialize(x) };
-
     }
 
-    private def getMeasuredEvent(uid: String, relevance: Map[String, Double], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
+    private def getMeasuredEvent(uid: String, relevance: Iterable[RelevanceScores], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
         MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_CONCEPT_RELEVANCE").asInstanceOf[String], System.currentTimeMillis(), "1.0", null, Option(uid), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", dtRange),
             Dimensions(None, None, None, None, None, None),
-            MEEdata(relevance));
+            MEEdata(Map("relevanceScores" -> relevance)));
     }
 
 }
