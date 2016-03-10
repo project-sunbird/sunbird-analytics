@@ -19,6 +19,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.JobConfig
+import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
 import org.joda.time.Days
@@ -33,6 +34,7 @@ import org.json4s.string2JsonInput
 import scala.collection.mutable.Buffer
 import org.joda.time.Hours
 import org.joda.time.DateTimeZone
+import java.security.MessageDigest
 
 object CommonUtil {
 
@@ -239,7 +241,7 @@ object CommonUtil {
     
     def getTimeDiff(start: Long, end: Long): Option[Double] = {
 
-        Option(roundDouble(((end - start).toDouble / 1000), 2));
+        Option((end - start).toDouble / 1000);
     }
 
     def getHourOfDay(start: Long, end: Long): ListBuffer[Int] = {
@@ -287,6 +289,11 @@ object CommonUtil {
     
     def roundDouble(value: Double, precision: Int) : Double = {
         BigDecimal(value).setScale(precision, BigDecimal.RoundingMode.HALF_UP).toDouble;
+    }
+    
+    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA") : String = {
+        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId).mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
     
 }

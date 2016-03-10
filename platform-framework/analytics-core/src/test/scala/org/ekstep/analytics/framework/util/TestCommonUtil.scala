@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat
 import scala.collection.mutable.ListBuffer
 import org.joda.time.format.DateTimeFormat
 import org.ekstep.analytics.framework.JobConfig
+import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.Event
 
 class TestCommonUtil extends BaseSpec {
@@ -130,6 +131,9 @@ class TestCommonUtil extends BaseSpec {
         }
         
         CommonUtil.getParallelization(None) should be (10);
+        
+        CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L)) should be ("C19F6BCE41181AD104CA3C706C2F5FD7");
+        CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L), "org.ekstep.aser.lite") should be ("08EF6AB8668213851E407CEBCEFDF425");
 
     }
 }
