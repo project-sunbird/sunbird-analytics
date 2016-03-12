@@ -39,3 +39,12 @@ println("dist: ",d2)
 status, d3, mdl, flow, cost = domainUtils.getMinCostDistance(x1,x3,w,wext,false);
 println("dist: ",d3)
 println("triangle: ",[d1+d2,d3])
+
+
+# read content and get its attributes
+url="http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/content/org.ekstep.money.worksheet"
+using Requests
+url="http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/content/org.ekstep.daysoftheweek"
+resp = get(url)
+
+

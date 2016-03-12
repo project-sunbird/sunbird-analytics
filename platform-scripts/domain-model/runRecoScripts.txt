@@ -1,0 +1,94 @@
+####################
+Run RE Scala script
+####################
+
+$./bin/spark-shell -i RunRE.scala --jars ./models/analytics-framework-0.5.jar,./models/batch-models-1.0.jar --conf spark.cassandra.connection.host=127.0.0.1
+
+
+##############################
+# Spark shell to execute RE #
+##############################
+
+# Starting spark-shell with jars
+
+./spark-shell --jars ../model/analytics-framework-0.5.jar,../model/batch-models-1.0.jar --conf spark.cassandra.connection.host=127.0
+.0.1
+
+
+import org.ekstep.analytics.framework.util._
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.updater._
+import org.ekstep.analytics.model._
+CommonUtil.setS3Conf(sc);
+
+
+# Fetch Data from S3:
+
+val queries = Option(Array(Query(Option("ekstep-session-summary"), Option("prod.analytics.screener-"), Option("2016-02-21"), Option("2016-02-23"))));
+val rdd = DataFetcher.fetchBatchData[MeasuredEvent](sc, Fetcher("S3", None, queries));
+val sessSummaries = DataFilter.filter(rdd, Filter("eid","EQ",Option("ME_SESSION_SUMMARY")));
+
+# content isd's to look for!
+
+
+val ordinalWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.ordinal.worksheet".equals(e.dimensions.gdata.get.id)).cache();
+val moneyWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.money.worksheet".equals(e.dimensions.gdata.get.id)).cache();
+val numWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.numchart.worksheet".equals(e.dimensions.gdata.get.id)).cache();
+val moreWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.moreless.worksheet".equals(e.dimensions.gdata.get.id)).cache();
+
+
+# Running LAS
+val LASordinalWorkSheetRDD = LearnerContentActivitySummary.execute(sc,ordinalWorkSheetRDD,None);
+val LASmoneyWorkSheetRDD = LearnerContentActivitySummary.execute(sc,moneyWorkSheetRDD,None);
+val LASnumWorkSheetRDD = LearnerContentActivitySummary.execute(sc,numWorkSheetRDD,None);
+val LASmoreWorkSheetRDD = LearnerContentActivitySummary.execute(sc,moreWorkSheetRDD,None);
+
+##########################################
+#  1.    Learner Content Activity Summary
+##########################################
+
+#  Set config for the model in terminal
+ 
+config='{"search":{"type":"s3","queries":[{"prefix":"prod.analytics.screener-","endDate":"2016-02-23","startDate":"2016-02-21"}]},"filters":{"name":"eventId","operator":"EQ","value":["ME_SESSION_SUMMARY"]}
+"model":"org.ekstep.analytics.updater.LearnerContentActivitySummary","modelVersion":"1.0","modelId":"LearnerContentActivityUpdater"},
+"output":[{"to":"console","params":{"printEvent": false}}],
+"parallelization":8,"appName":"Learner Content Activity Summary","deviceMapping":false}'
+
+⇒    Run Job
+nohup spark-submit --master local[*] --jars /path/to/analytics_framework_jar/analytics-framework-0.5.jar --class org.ekstep.analytics.job.LearnerContentActivityUpdater /path/to/batch_model_jar/batch-models-1.0.jar --config "$config" >> "learner_content_summary.log" &
+
+2.    Learner Proficiency Summary
+
+⇒    Set config for the model in terminal
+ 
+config='{"search":{"type":"s3","queries":[{"prefix":"prod.analytics.screener-","endDate":"yyyy-mm-dd","startDate":" yyyy-mm-dd"}]},
+"model":"org.ekstep.analytics.model.LearnerProficiencySummary","modelVersion":"1.0","modelId":"ProficiencyUpdater"},
+"output":[{"to":"console","params":{"printEvent": false}}],
+"parallelization":8,"appName":"Learner Proficiency Summary","deviceMapping":false}'
+
+⇒    Run Job
+nohup spark-submit --master local[*] --jars /path/to/analytics_framework_jar/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ProficiencyUpdater /path/to/batch_model_jar/batch-models-1.0.jar --config "$config" >> "learner_proficiency_summary.log" &
+
+3.    Concept Similarity
+
+⇒    Set config for the model in terminal
+
+config='{"search":{"type":"s3","queries":[{"prefix":"prod.analytics.screener-","endDate":"yyyy-mm-dd","startDate":" yyyy-mm-dd"}]},
+"model":"org.ekstep.analytics.updater.ConceptSimilarityUpdater","modelVersion":"1.0","modelId":"ConceptSimilarityUpdaterJob"},
+"output":[{"to":"console","params":{"printEvent": false}}],
+"parallelization":8,"appName":"Concept Similarity","deviceMapping":false}'
+
+⇒    Run Job
+nohup spark-submit --master local[*] --jars  /path/to/analytics_framework_jar/analytics-framework-0.5.jar --class org.ekstep.analytics.job. ConceptSimilarityUpdaterJob  /path/to/batch_model_jar/batch-models-1.0.jar --config "$config" >> "concept_similarity.log" &
+
+4. RE
+    
+⇒    Set config for the model in terminal
+
+config='{"search":{"type":"s3","queries":[{"prefix":"prod.analytics.screener-","endDate":"yyyy-mm-dd","startDate":" yyyy-mm-dd"}]},
+"model":"org.ekstep.analytics.model.RecommendationEngine","modelVersion":"1.0","modelId":"RecommendationEngineJob"},
+"output":[{"to":"console","params":{"printEvent": false}}],
+"parallelization":8,"appName":"Concept Similarity","deviceMapping":false}'
+
+⇒    Run Job
+nohup spark-submit --master local[*] --jars  /path/to/analytics_framework_jar/analytics-framework-0.5.jar --class org.ekstep.analytics.job.RecommendationEngineJob /path/to/batch_model_jar/batch-models-1.0.jar --config "$config" >> "concept_similarity.log" &

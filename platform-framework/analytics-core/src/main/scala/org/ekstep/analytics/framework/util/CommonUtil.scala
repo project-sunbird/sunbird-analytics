@@ -62,7 +62,8 @@ object CommonUtil {
             conf.setMaster("local[*]");
         }
         if(!conf.contains("spark.cassandra.connection.host")) {
-            conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))            
+            //conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
+          conf.set("spark.cassandra.connection.host", "127.0.0.1")
         }
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);

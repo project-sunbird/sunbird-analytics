@@ -25,181 +25,18 @@ import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 import breeze.linalg._
 import org.ekstep.analytics.util.Constants
-<<<<<<< HEAD
-import org.ekstep.analytics.framework.MeasuredEvent
-=======
 import org.ekstep.analytics.framework.DataFilter
->>>>>>> 7a4d360f88fcfd57731aaad2fdaec7c0afd99b4d
 
 case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double])
 case class RelevanceScores(conceptId: String, relevance: Double)
 
 object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable {
 
-<<<<<<< HEAD
-  /**
-   * Function to return the concept similary matrix value
-   */
-  def getConceptSimilarity(i: Int, j: Int, concepts: Array[String], conceptSimilarityMatrix: Map[String, Double]): Double = {
-    conceptSimilarityMatrix.getOrElse(concepts(i) + "__" + concepts(j), 0.001d);
-  }
+  
 
-  /**
-   * Generic function to normalize matrix
-   *
-   * @param m - The NxN matrix to be normalized
-   * @param j - The Nx1 constant matrix used for normalization. Usually it contains only 1.0
-   * @param l - Lambda constant
-   */
-  def normalizeMatrix(m: DenseMatrix[Double], j: DenseMatrix[Double], l: Double): DenseMatrix[Double] = {
-    val x = m * j; // Row sums
-    val y = j :/ x; // Create inverse of row sums
-    l * (m :* (y * j.t)) // Normalization
-  }
+  
 
-  def computeSijMatrix(sc: SparkContext, concepts: Array[String], j: DenseMatrix[Double], l: Double, n: Int): DenseMatrix[Double] = {
-
-    val conceptSimilarityMatrix = sc.cassandraTable[ConceptSimilarity](Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE).map { x => (x.concept1, x.concept2, (x.sim)) }.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap;
-    println("#### Normalizing the Concept Similarity matrix and broadcasting it to all nodes ####")
-    val conceptSimilarities = DenseMatrix.zeros[Double](n, n);
-    for (i <- 0 until conceptSimilarities.rows)
-      for (j <- 0 until conceptSimilarities.cols)
-        conceptSimilarities(i, j) = getConceptSimilarity(i, j, concepts, conceptSimilarityMatrix);
-
-    normalizeMatrix(conceptSimilarities, j, l);
-  }
-
-  def computeTijMatrix(contentSummaries: Iterable[LearnerContentActivity], conceptContentMapping: Array[(String, String)], c: Array[String], j: DenseMatrix[Double], l: Double, n: Int): DenseMatrix[Double] = {
-    val default = 1d / n;
-    val contentTS = contentSummaries.map { x => (x.content_id, x.time_spent) }.toMap;
-    val learnerConceptTS = conceptContentMapping.map(f => (f._2, contentTS.getOrElse(f._1, 0d))).groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum);
-    val conceptTS = c.map { x => (x, learnerConceptTS.getOrElse(x, default)) }.toMap;
-
-    // 2. Total timeSpent on all concepts
-    val totalTime = conceptTS.map(f => f._2).sum;
-
-    // 3. Compute the Concept Tj Matrix
-    val conceptTj = DenseMatrix.zeros[Double](1, n);
-    for (i <- 0 until conceptTj.cols)
-      conceptTj(0, i) = (conceptTS.get(c(i)).get) / totalTime
-
-    l * j * conceptTj;
-  }
-
-  def computePijMatrix(learnerProficiency: LearnerProficiency, j: DenseMatrix[Double], c: Array[String], l: Double, n: Int): DenseMatrix[Double] = {
-
-    val proficiencyMap = learnerProficiency.proficiency;
-    val conceptPi = DenseMatrix.tabulate(n, 1) { case (i, j) => proficiencyMap.getOrElse(c(i), 0d) };
-    val cpj = conceptPi * j.t;
-    val profMatrix = cpj - cpj.t;
-    val Pij = profMatrix.map { x => if (x <= 0) 0.0001d else x }
-    normalizeMatrix(Pij, j, l);
-  }
-
-  def execute(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
-
-    val config = jobParams.getOrElse(Map[String, AnyRef]());
-    val configMapping = sc.broadcast(config);
-
-    // initializing lambda value 
-    val defaultWeightPij = configMapping.value.getOrElse("profWeight", 0.05).asInstanceOf[Double];
-    val defaultWeightSij = configMapping.value.getOrElse("conSimWeight", 0.05).asInstanceOf[Double];
-    val defaultWeightTj = configMapping.value.getOrElse("timeSpentWeight", 0.9).asInstanceOf[Double];
-    val iterations = configMapping.value.getOrElse("iterations", 3).asInstanceOf[Int];
-
-    println("#### Fetching Content List and Domain Map ####")
-    val contents = ContentAdapter.getAllContent();
-    val concepts = DomainAdapter.getDomainMap().concepts.map { x => x.id };
-    val N = concepts.length;
-    val Jn = DenseMatrix.fill[Double](N, 1) { 1.0 };
-    val conceptContentMap = contents.filterNot(x => (null == x.concepts || x.concepts.isEmpty)).map { x => (x.id, x.concepts) }.flatMap(f => f._2.map { x => (f._1, x) });
-
-    println("### Content Coverage:" + conceptContentMap.length + " ###");
-    println("### Concept Count:" + concepts.length + " ###");
-
-    println("#### Broadcasting all required data ####")
-    val conceptsData = sc.broadcast(concepts);
-    val conceptContentMapping = sc.broadcast(conceptContentMap);
-    val jBroadcast = sc.broadcast(Jn);
-    val SijBroadcast = sc.broadcast(computeSijMatrix(sc, concepts, Jn, defaultWeightSij, N));
-
-    println("### Preparing Learner data ###");
-    // Get all learners date ranges
-    val learnerDtRanges = data.map(event => (event.uid.get, Buffer[MeasuredEvent](event)))
-      .partitionBy(new HashPartitioner(JobContext.parallelization))
-      .reduceByKey((a, b) => a ++ b).mapValues { events =>
-        val e = events.map { x => x.ets };
-        DtRange(e.min, e.max);
-      }.map { f => (LearnerId(f._1), f._2) };
-
-    println("### Join learners with learner database ###");
-    // Get all learners
-    val allLearners = data.map(event => LearnerId(event.uid.get)).distinct;
-
-    // Join all learners with learner content activity summary 
-    val lcs = allLearners.joinWithCassandraTable[LearnerContentActivity](Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE).groupBy(f => f._1).mapValues(f => f.map(x => x._2));
-
-    // Join all learners with learner proficiency summaries
-    val lp = allLearners.joinWithCassandraTable[LearnerProficiency](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
-
-    // Join all learners with learner concept relevances
-    val lcr = allLearners.joinWithCassandraTable[LearnerConceptRelevance](Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
-
-    val learners = learnerDtRanges.leftOuterJoin(lp).map(f => (f._1, (f._2._1, f._2._2.getOrElse(LearnerProficiency(f._1.learner_id, Map(), DateTime.now(), DateTime.now(), Map())))))
-      .leftOuterJoin(lcs).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._2.getOrElse(Buffer[LearnerContentActivity]()))))
-      .leftOuterJoin(lcr).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._1._3, f._2._2.getOrElse(LearnerConceptRelevance(f._1.learner_id, Map())))));
-
-    val learnerConceptRelevance = learners.map(learner => {
-
-      val J = jBroadcast.value;
-      val C = conceptsData.value;
-      val Sij = SijBroadcast.value;
-      val L = Array(defaultWeightSij, defaultWeightPij, defaultWeightTj);
-
-      val dtRange = learner._2._1;
-      val contentSummaries = learner._2._3;
-      val learnerProficiency = learner._2._2;
-      val learnerConceptRelevance = learner._2._4;
-      val default = 1d / N;
-
-      val Tij = computeTijMatrix(contentSummaries, conceptContentMapping.value, C, J, L(1), N);
-      val Pij = computePijMatrix(learnerProficiency, J, C, L(2), N);
-      val Eij = Pij + Sij + Tij;
-
-      val random = new scala.util.Random;
-      val lcr = learnerConceptRelevance.relevance;
-      val r = DenseMatrix.zeros[Double](N, 1);
-      for (i <- 0 until r.rows)
-        r(i, 0) = lcr.getOrElse(conceptsData.value(i), random.nextDouble())
-
-      var Rt = r :/ sum(r);
-      for (1 <- 0 until iterations) {
-        Rt = Eij * Rt;
-      }
-
-      val newConceptRelevance = Array.tabulate(N) { i => (C(i), Rt.valueAt(i)) }.toMap;
-      (learner._1.learner_id, newConceptRelevance, dtRange);
-    }).cache();
-
-    println("### Saving the data to Cassandra ###");
-    learnerConceptRelevance.map(f => {
-      LearnerConceptRelevance(f._1, f._2)
-    }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
-
-    println("### Creating summary events ###");
-    learnerConceptRelevance.map {
-      f => getMeasuredEvent(f._1, f._2, configMapping.value, f._3);
-    }.map { x => JSONUtils.serialize(x) };
-
-  }
-
-  private def getMeasuredEvent(uid: String, relevance: Map[String, Double], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
-    MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_CONCEPT_RELEVANCE").asInstanceOf[String], System.currentTimeMillis(), "1.0", null, Option(uid), None, None,
-      Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", dtRange),
-      Dimensions(None, None, None, None, None, None),
-      MEEdata(relevance));
-
-  }
+ 
   def executeExp(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
     val config = jobParams.getOrElse(Map[String, AnyRef]());
@@ -294,12 +131,12 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
     }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
 
     println("### Creating summary events ###");
-    learnerConceptRelevance.map {
-      f => getMeasuredEvent(f._1, f._2, configMapping.value, f._3);
+    learnerConceptRelevance.map { f =>
+      val relevanceScores = (f._2).map { x => RelevanceScores(x._1, x._2) }
+      getMeasuredEvent(f._1, relevanceScores, configMapping.value, f._3);
     }.map { x => JSONUtils.serialize(x) };
 
   }
-=======
     /**
      * Function to return the concept similary matrix value
      */
@@ -320,7 +157,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         l * (m :* (y * j.t)) // Normalization
     }
 
-    def computeSijMatrix(sc: SparkContext, concepts: Array[String], j: DenseMatrix[Double], l: Double, n: Int): DenseMatrix[Double] = {
+    def computeSijMatrix(sc: SparkContext, concepts: Array[String], Jn: DenseMatrix[Double], l: Double, n: Int): DenseMatrix[Double] = {
 
         val conceptSimilarityMatrix = sc.cassandraTable[ConceptSimilarity](Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE).map { x => (x.concept1, x.concept2, (x.sim)) }.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap;
         println("#### Normalizing the Concept Similarity matrix and broadcasting it to all nodes ####")
@@ -329,7 +166,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
             for (j <- 0 until conceptSimilarities.cols)
                 conceptSimilarities(i, j) = getConceptSimilarity(i, j, concepts, conceptSimilarityMatrix);
 
-        normalizeMatrix(conceptSimilarities, j, l);
+        normalizeMatrix(conceptSimilarities, Jn, l);
     }
 
     def computeTijMatrix(contentSummaries: Iterable[LearnerContentActivity], conceptContentMapping: Array[(String, String)], c: Array[String], j: DenseMatrix[Double], l: Double, n: Int): DenseMatrix[Double] = {
@@ -464,6 +301,4 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
             Dimensions(None, None, None, None, None, None),
             MEEdata(Map("relevanceScores" -> relevance)));
     }
-
->>>>>>> 7a4d360f88fcfd57731aaad2fdaec7c0afd99b4d
 }

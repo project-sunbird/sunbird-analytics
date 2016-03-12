@@ -12,7 +12,7 @@ class TestRecommendationEngine extends SparkSpec(null) {
     "RecommendationEngine" should "run the recommendation for a push data to learner db" in {
 
         val rdd = loadFile[MeasuredEvent]("src/test/resources/reco-engine/reco_engine_test.log");
-        val rdd2 = RecommendationEngine.execute(sc, rdd, None);
+        val rdd2 = RecommendationEngine.executeExp(sc, rdd, None);
         val result = rdd2.collect();
     }
 
@@ -27,7 +27,7 @@ class TestRecommendationEngine extends SparkSpec(null) {
         }
 
         val rdd = loadFile[MeasuredEvent]("src/test/resources/reco-engine/reco_test_data_1.log");
-        val rdd2 = RecommendationEngine.execute(sc, rdd, None);
+        val rdd2 = RecommendationEngine.executeExp(sc, rdd, None);
         val result = rdd2.collect();
         //println(result(0));
 
