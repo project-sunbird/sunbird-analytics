@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.Dispatcher
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.CommonUtil
 import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestRecommendationEngine extends SparkSpec(null) {
 
@@ -29,7 +30,9 @@ class TestRecommendationEngine extends SparkSpec(null) {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/reco-engine/reco_test_data_1.log");
         val rdd2 = RecommendationEngine.execute(sc, rdd, None);
         val result = rdd2.collect();
-        //println(result(0));
+        val event = JSONUtils.deserialize[MeasuredEvent](result(0));
+        event.mid should be ("D5BB7D44D8EC0C3131EF25A677ED40A2")
+        event.syncts should be (1454897876605L)
 
         val lcr = sc.cassandraTable[LearnerConceptRelevance]("learner_db", "learnerconceptrelevance").where("learner_id = ?", learner_id).first();
         val r = lcr.relevance;

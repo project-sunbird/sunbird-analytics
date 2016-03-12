@@ -17,7 +17,6 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
         val rdd2 = LearnerActivitySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         rdd2.collect().length should be(2)
-        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/learner_activity_test_output.log")), rdd2);
     }
 
     it should "Print Learner Activity Summary events getting input from 'learner_activity_test_sample.log' and check the correctness" in {
@@ -26,7 +25,8 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         val me = rdd2.collect()
         me.length should be(2)
 
-        val laSS1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks));
+        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        val laSS1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(event1.edata.eks));
 
         laSS1.meanTimeSpent.get should be(364.0d)
         laSS1.meanTimeBtwnGamePlays.get should be(43520.5)
@@ -40,8 +40,11 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS1.mostActiveHrOfTheDay.get should be(4)
         laSS1.numOfSessionsOnPlatform should be(3)
         laSS1.topKcontent.length should be(1)
+        event1.mid should be ("807C892AA2A66840DACE1870C0C18AD4")
+        event1.syncts should be (1452080546615L)
 
-        val laSS2 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks));
+        val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
+        val laSS2 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(event2.edata.eks));
         laSS2.meanTimeSpent.get should be(4d)
         laSS2.meanTimeBtwnGamePlays.get should be(0d)
         laSS2.start_ts should be(1450508862000L)
@@ -54,8 +57,8 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS2.mostActiveHrOfTheDay.get should be(7)
         laSS2.numOfSessionsOnPlatform should be(1)
         laSS2.topKcontent.length should be(1)
-
-        //OutputDispatcher.dispatch(Dispatcher("Console", Map("file" -> "src/test/resources/test_output.log")), rdd2);
+        event2.mid should be ("48A8FFC32DAAE1607916D245F23683B5")
+        event2.syncts should be (1452080546620L)
     }
 
     it should "check the correctness of the learner activity summary" in {
@@ -71,6 +74,8 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         event1.context.granularity should be("WEEK");
         event1.context.date_range should not be null;
         event1.uid.get should be("62e0fb81-f7e5-4e03-8ca0-fe67764b0039")
+        event1.mid should be ("FE0C3870E68D97198FF67AE5BAAEB390")
+        event1.syncts should be (1452080546895L)
 
         val laSS1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(event1.edata.eks));
 
@@ -84,19 +89,15 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS1.mostActiveHrOfTheDay.get should be >= (0)
         laSS1.numOfSessionsOnPlatform should not be (0)
         laSS1.topKcontent.length should be(1)
-
     }
 
     it should " generate events with some special case in the input data (i.e missing activitySummary field, duplicate events / meanTimeBtwnGamePlays= -ve, etc..)" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample1.log");
         val rdd2 = LearnerActivitySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary", "topContent" -> Int.box(0))));
         rdd2.collect().length should be(2)
-
     }
     
-    
     //Test cases for all the field in Learner Activity Summary
-
     it should " check all the fields, for timeSpent=0" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/time_spent_zero.log");
         val rdd2 = LearnerActivitySummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));

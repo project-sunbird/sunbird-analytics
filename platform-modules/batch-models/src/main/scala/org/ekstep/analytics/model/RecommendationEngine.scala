@@ -124,7 +124,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         val learnerDtRanges = filteredData.map(event => (event.uid.get, Buffer[MeasuredEvent](event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
-                val e = events.map { x => x.ets };
+                val e = events.map { x => x.syncts };
                 DtRange(e.min, e.max);
             }.map { f => (LearnerId(f._1), f._2) };
 
@@ -190,8 +190,8 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
     }
 
     private def getMeasuredEvent(uid: String, relevance: Iterable[RelevanceScores], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
-        val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", uid, "DAY", dtRange);
-        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_CONCEPT_RELEVANCE").asInstanceOf[String], System.currentTimeMillis(), "1.0", mid, Option(uid), None, None,
+        val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", uid, "DAY", dtRange.to);
+        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_CONCEPT_RELEVANCE").asInstanceOf[String], System.currentTimeMillis(), dtRange.to, "1.0", mid, Option(uid), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", dtRange),
             Dimensions(None, None, None, None, None, None),
             MEEdata(Map("relevanceScores" -> relevance)));

@@ -50,7 +50,7 @@ class TelemetryEventV2(val eid: String, val ets: Long, val `@timestamp`: String,
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
-case class MeasuredEvent(eid: String, ets: Long, ver: String, mid: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
+case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
 @scala.reflect.BeanInfo
 case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
 @scala.reflect.BeanInfo

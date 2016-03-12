@@ -1,34 +1,34 @@
 package org.ekstep.analytics.model
 
+import scala.collection.mutable.Buffer
+
+import org.apache.spark.HashPartitioner
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import scala.collection.mutable.Buffer
-import scala.collection.immutable.HashMap.HashTrieMap
-import org.apache.spark.HashPartitioner
+import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
+import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.DtRange
+import org.ekstep.analytics.framework.Filter
+import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.DtRange
-import scala.collection.mutable.ListBuffer
-import org.ekstep.analytics.framework._
 import org.joda.time.DateTime
-import com.datastax.spark.connector._
-import org.ekstep.analytics.util.Constants
-import org.ekstep.analytics.framework.DataFilter
-import java.security.MessageDigest
 
 /**
  * @author Amit Behera
  */
 case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, last_visit_ts: Long, mostActiveHrOfTheDay: Option[Int], topKcontent: Array[String], start_ts: Long, end_ts: Long);
-case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp: Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
-                           m_ts_on_an_act: Map[String, Double], m_count_on_an_act: Map[String, Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime,
-                           most_active_hr_of_the_day: Int, top_k_content: List[String], sess_start_time: DateTime, sess_end_time: DateTime,
-                           dp_start_time: DateTime, dp_end_time: DateTime)
 
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
     def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
-        
+
         val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -38,9 +38,9 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
 
-                val sortedEvents = x.sortBy { x => x.ets };
-                val eventStartTimestamp = sortedEvents(0).ets;
-                val eventEndTimestamp = sortedEvents.last.ets;
+                val sortedEvents = x.sortBy { x => x.syncts };
+                val eventStartTimestamp = sortedEvents(0).syncts;
+                val eventEndTimestamp = sortedEvents.last.syncts;
                 val startTimestamp = sortedEvents.map { x => x.context.date_range.from }.sortBy { x => x }.toBuffer(0);
                 val sortedGames = sortedEvents.sortBy(-_.context.date_range.to).map(f => f.dimensions.gdata.get.id).distinct;
                 val endTimestamp = sortedEvents.map { x => x.context.date_range.to }.sortBy { x => x }.toBuffer.last;
@@ -82,16 +82,6 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 (TimeSummary(Option(meanTimeSpent), Option(meanTimeBtwnGamePlays), Option(meanActiveTimeOnPlatform), Option(meanInterruptTime), Option(totalTimeSpentOnPlatform), meanTimeSpentOnAnAct, Option(meanCountOfAct), numOfSessionsOnPlatform, lastVisitTimeStamp, mostActiveHrOfTheDay, topKcontent, startTimestamp, endTimestamp), DtRange(eventStartTimestamp, eventEndTimestamp));
             }
 
-        val la = activity.map { x =>
-            val learner_id = x._1
-            val summary = x._2._1
-            val dataRange = x._2._2
-            LearnerSnapshot(learner_id, summary.meanTimeSpent.getOrElse(0d), summary.meanTimeBtwnGamePlays.getOrElse(0d),
-                summary.meanActiveTimeOnPlatform.getOrElse(0d), summary.meanInterruptTime.getOrElse(0d), summary.totalTimeSpentOnPlatform.getOrElse(0d),
-                summary.meanTimeSpentOnAnAct, summary.meanCountOfAct.get, summary.numOfSessionsOnPlatform.toInt, new DateTime(summary.last_visit_ts),
-                summary.mostActiveHrOfTheDay.getOrElse(0), summary.topKcontent.toList, new DateTime(summary.start_ts), new DateTime(summary.end_ts), new DateTime(dataRange.from), new DateTime(dataRange.to));
-        }
-        la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
         activity.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
@@ -100,11 +90,11 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
     private def average[T](ts: Iterable[T])(implicit num: Numeric[T]) = {
         num.toDouble(ts.sum) / ts.size
     }
-    
+
     private def getMeasuredEvent(userMap: (String, (TimeSummary, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
-        val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", userMap._1, "WEEK", userMap._2._2);
-        MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
+        val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", userMap._1, "WEEK", userMap._2._2.to);
+        MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), userMap._2._2.to, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", userMap._2._2),
             Dimensions(None, null, None, None, None, None, None),
             MEEdata(measures));

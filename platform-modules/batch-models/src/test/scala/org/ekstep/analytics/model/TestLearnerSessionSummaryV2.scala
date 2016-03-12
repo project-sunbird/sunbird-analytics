@@ -84,6 +84,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         ssMap.get("splash").get should be (15.16);
         
         summary1.syncDate should be (1456314643296L)
+        event1.syncts should be (summary1.syncDate);
     }
     
     ignore should "parse telemetry file" in {

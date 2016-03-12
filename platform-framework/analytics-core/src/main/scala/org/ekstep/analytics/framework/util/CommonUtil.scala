@@ -296,4 +296,9 @@ object CommonUtil {
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
     
+    def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long) : String = {
+        val key = Array(eventId, userId, df4.print(syncDate), granularity).mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
+    }
+    
 }

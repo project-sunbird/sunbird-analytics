@@ -52,11 +52,17 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         proficiency2.proficiency.contains("Num:C3:SC1:MC13") should be(true)
         proficiency2.proficiency.get("Num:C3:SC1:MC13").get should be(0.71);
 
-        var out = rdd01.collect();
+        val out = rdd01.collect();
         out.length should be(1)
+        val event1 = JSONUtils.deserialize[MeasuredEvent](out(0));
+        event1.mid should be ("8A749DA5439E8AD3C96303D44D557A38");
+        event1.syncts should be (1453207670750L);
 
-        var out1 = rdd11.collect();
+        val out1 = rdd11.collect();
         out1.length should be(1)
+        val event2 = JSONUtils.deserialize[MeasuredEvent](out1(0));
+        event2.mid should be ("8A749DA5439E8AD3C96303D44D557A38");
+        event2.syncts should be (1453207670750L);
     }
 
     it should "print the item data for testing" in {
@@ -70,9 +76,9 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/emptyMC_test.log");
         val rdd2 = LearnerProficiencySummary.execute(sc, rdd, Option(Map("apiVersion" -> "v2")));
         var out = rdd2.collect();
-        for (e <- out) {
+        /*for (e <- out) {
             println(e)
-        }
+        }*/
         out.length should be(2)
     }
 

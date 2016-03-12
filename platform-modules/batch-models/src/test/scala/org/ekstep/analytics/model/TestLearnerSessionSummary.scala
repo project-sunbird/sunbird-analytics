@@ -44,6 +44,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.currentLevel.get.get("literacy").get should be("Can read story");
         summary1.noOfInteractEvents should be(40);
         summary1.itemResponses.get.length should be(5);
+        event1.syncts should be (summary1.syncDate);
 
         val asList = summary1.activitySummary.get
         asList.size should be(2);
@@ -89,6 +90,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.noOfInteractEvents should be(5);
         summary1.itemResponses.get.length should be(0);
         summary1.activitySummary.get.size should be(1);
+        event1.syncts should be (summary1.syncDate);
 
         val asList = summary1.activitySummary.get
         val asActCountMap = asList.map { x => (x.actType, x.count) }.toMap
@@ -124,6 +126,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary2.noOfInteractEvents should be(25);
         summary2.itemResponses.get.length should be(2);
         summary2.activitySummary.get.size should be(1);
+        event2.syncts should be (summary2.syncDate);
 
         val asList2 = summary2.activitySummary.get
         val asActCountMap2 = asList2.map { x => (x.actType, x.count) }.toMap
@@ -169,6 +172,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.syncDate should be(1451696364329L)
         summary3.mimeType.get should be("application/vnd.android.package-archive");
         summary3.contentType.get should be("Game");
+        event3.syncts should be (summary3.syncDate);
 
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
         event4.mid should be("08D37F42C718121C6140EDF9F89889B2");
@@ -202,6 +206,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary4.syncDate should be(1451715800197L)
         summary4.mimeType.get should be("application/vnd.android.package-archive");
         summary4.contentType.get should be("Game");
+        event4.syncts should be (summary4.syncDate);
     }
 
     it should "generate 3 session summaries and validate the screen summaries" in {
