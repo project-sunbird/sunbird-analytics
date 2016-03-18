@@ -7,6 +7,6 @@ export JAVA_HOME=/usr/java/current
 cd /mnt/data/analytics/scripts
 endDate=$(date --date yesterday "+%Y-%m-%d")
 
-sess_config='{"search":{"type":"s3","queries":[{"prefix":"prod.telemetry.unique-","endDate":"'$endDate'","delta":0}]},"filters":[{"name":"ver","operator":"EQ","value":"1.0"}],"model":"org.ekstep.analytics.model.LearnerSessionSummarizer","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"10.10.1.171:9092","topic":"prod.analytics.screener"}}],"parallelization":8,"appName":"Learner Session Summarizer","deviceMapping":true}'
+sess_config='{"search":{"type":"s3","queries":[{"endDate":"'$endDate'","delta":0}]},"filters":[{"name":"ver","operator":"EQ","value":"1.0"}],"model":"org.ekstep.analytics.model.LearnerSessionSummarizer","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"10.10.1.171:9092","topic":"prod.analytics.screener"}}],"parallelization":8,"appName":"Learner Session Summarizer","deviceMapping":true}'
 
 nohup $SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.LearnerSessionSummarizer /mnt/data/analytics/models/batch-models-1.0.jar --config "$sess_config" > "logs/$endDate-sess-summary.log" 2>&1&
