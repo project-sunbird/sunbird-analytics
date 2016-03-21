@@ -7,13 +7,14 @@ import org.ekstep.analytics.framework.driver.StreamingJobDriver
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
+import org.apache.spark.SparkContext
 
 /**
  * @author Santhosh
  */
 object JobDriver  {
 
-    def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf:Manifest[T]) {
+    def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf:Manifest[T], sc: SparkContext) {
         println("### Starting " + t + " batch with config - " + config + " ###");
         AppConf.init();
         val t1 = System.currentTimeMillis;

@@ -76,7 +76,8 @@ object CommonUtil {
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
     
-    def closeSparkContext(sc: SparkContext) {
+    def closeSparkContext()(implicit sc: SparkContext) {
+        println("### Closing Spark Context ###");
         sc.stop();
     }
 

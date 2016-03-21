@@ -27,8 +27,8 @@ case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Opt
 
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
-    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
-
+    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+        
         val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);

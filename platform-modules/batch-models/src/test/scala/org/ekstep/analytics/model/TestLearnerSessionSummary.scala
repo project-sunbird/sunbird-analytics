@@ -19,7 +19,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
     "LearnerSessionSummary" should "generate session summary and pass all positive test cases" in {
 
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
-        val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
+        val rdd2 = LearnerSessionSummary.execute(rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
         me.length should be(1);
 
@@ -64,7 +64,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
     it should "generate 4 session summarries and pass all negative test cases" in {
 
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data2.log");
-        val rdd2 = LearnerSessionSummary.execute(sc, rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
+        val rdd2 = LearnerSessionSummary.execute(rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be(4);
 
@@ -212,7 +212,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
     it should "generate 3 session summaries and validate the screen summaries" in {
 
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data3.log");
-        val rdd2 = LearnerSessionSummary.execute(sc, rdd, None);
+        val rdd2 = LearnerSessionSummary.execute(rdd, None);
         val me = rdd2.collect();
         me.length should be(3);
         
@@ -275,13 +275,13 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
     it should "generate a session even though OE_START and OE_END are present" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data5.log");
-        val rdd1 = LearnerSessionSummary.execute(sc, rdd, Option(Map("apiVersion" -> "v2")));
+        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
     }
 
     it should "generate a session where the content is not a valid one" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data6.log");
-        val rdd1 = LearnerSessionSummary.execute(sc, rdd, Option(Map("apiVersion" -> "v2")));
+        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
     }
 
@@ -299,7 +299,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
     ignore should "generate send events to a file" in {
         val rdd = loadFile[Event]("/Users/Santhosh/ekStep/telemetry_dump/87f90da2-31a4-41e9-ad83-5042f9a82da7.log");
-        val rdd2 = LearnerSessionSummary.execute(sc, rdd, None);
+        val rdd2 = LearnerSessionSummary.execute(rdd, None);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output2.log")), rdd2);
     }
 

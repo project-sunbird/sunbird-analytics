@@ -12,7 +12,7 @@ class TestDataFetcher extends SparkSpec {
         val queries = Option(Array(
             Query(Option("sandbox-ekstep-telemetry"), Option("sandbox.telemetry.unique-"), Option("2015-09-12"), Option("2015-09-24"))
         ));
-        val rdd = DataFetcher.fetchBatchData[Event](sc, Fetcher("S3", None, queries));
+        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
         rdd.count should be (521)
         
     }
@@ -28,7 +28,7 @@ class TestDataFetcher extends SparkSpec {
         val search = Fetcher("local", None, Option(Array(
             Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
         )));
-        val rdd = DataFetcher.fetchBatchData[Event](sc, search);
+        val rdd = DataFetcher.fetchBatchData[Event](search);
         rdd.count should be (7437)
         
     }
@@ -40,11 +40,11 @@ class TestDataFetcher extends SparkSpec {
         )));
         
         a[DataFetcherException] should be thrownBy {
-            DataFetcher.fetchBatchData[Event](sc, search);
+            DataFetcher.fetchBatchData[Event](search);
         }
         
         a[DataFetcherException] should be thrownBy {
-            DataFetcher.fetchBatchData[Event](sc, Fetcher("s3", None, None));
+            DataFetcher.fetchBatchData[Event](Fetcher("s3", None, None));
         }
         
         // Throw unknown fetcher type found
@@ -52,7 +52,7 @@ class TestDataFetcher extends SparkSpec {
             val fileFetcher = Fetcher("file", None, Option(Array(
                 Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
             )));
-            DataFetcher.fetchBatchData[Event](sc, fileFetcher);
+            DataFetcher.fetchBatchData[Event](fileFetcher);
         } should have message "Unknown fetcher type found"
         
         val search2 = Fetcher("xyz", None, Option(Array(

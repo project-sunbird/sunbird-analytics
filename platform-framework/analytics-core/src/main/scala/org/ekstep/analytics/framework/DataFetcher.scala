@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 object DataFetcher {
 
     @throws(classOf[DataFetcherException])
-    def fetchBatchData[T](sc: SparkContext, search: Fetcher)(implicit mf:Manifest[T]): RDD[T] = {
+    def fetchBatchData[T](search: Fetcher)(implicit mf:Manifest[T], sc: SparkContext): RDD[T] = {
         
         if(search.queries.isEmpty) {
             throw new DataFetcherException("Data fetch configuration not found");

@@ -5,6 +5,8 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.conf.AppConf
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework.util.CommonUtil
 
 /**
  * @author Santhosh
@@ -28,6 +30,7 @@ class TestJobDriver extends FlatSpec with Matchers {
             val baos = new ByteArrayOutputStream
             val ps = new PrintStream(baos)
             Console.setOut(ps);
+            implicit val sc: SparkContext = null;
             JobDriver.run[Event]("batch", JSONUtils.serialize(jobConfig), new TestModel);
             baos.toString should include ("(Total Events Size,1699)");
             baos.close()
@@ -36,18 +39,21 @@ class TestJobDriver extends FlatSpec with Matchers {
 
     it should "invoke stream job driver" in {
         val jobConfig = JobConfig(Fetcher("stream", None, None), None, None, "", None, None, None, None)
+        implicit val sc: SparkContext = null;
         JobDriver.run("streaming", JSONUtils.serialize(jobConfig), new TestModel);
     }
 
     it should "thrown an exception if unknown job type is found" in {
         val jobConfig = JobConfig(Fetcher("stream", None, None), None, None, "", None, None, None, None)
         a[Exception] should be thrownBy {
+            implicit val sc: SparkContext = null;
             JobDriver.run("xyz", JSONUtils.serialize(jobConfig), new TestModel);
         }
     }
     
     it should "thrown an exception if unable to parse the config file" in {
         a[Exception] should be thrownBy {
+            implicit val sc: SparkContext = null;
             JobDriver.run("streaming", JSONUtils.serialize(""), new TestModel);
         }
     }
@@ -66,7 +72,9 @@ class TestJobDriver extends FlatSpec with Matchers {
             None)
 
         noException should be thrownBy {
+            implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
             JobDriver.run[Event]("batch", JSONUtils.serialize(jobConfig), new TestModel);
+            CommonUtil.closeSparkContext();
         }
     }
 

@@ -22,7 +22,7 @@ case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_
  */
 object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializable {
 
-    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_LEARNER_ACTIVITY_SUMMARY")));
         val la = filteredData.map { event =>

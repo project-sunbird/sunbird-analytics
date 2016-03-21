@@ -132,7 +132,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
         }
     }
 
-    def execute(sc: SparkContext, data: RDD[TelemetryEventV2], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(data: RDD[TelemetryEventV2], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());

@@ -35,7 +35,7 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
  */
 object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
 
-    def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);

@@ -12,7 +12,7 @@ case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, simil
 
 object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity] with Serializable {
 
-    def execute(sc: SparkContext, jsonLines: RDD[ConceptSimilarityEntity], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(jsonLines: RDD[ConceptSimilarityEntity], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
         val similarity = jsonLines.map { x =>
             val similarity = x.similarity.last
             ConceptSimilarity(x.startNodeId, x.endNodeId, similarity.get("relationType").get.asInstanceOf[String], similarity.get("sim").get.asInstanceOf[Double]);

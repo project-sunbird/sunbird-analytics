@@ -8,5 +8,5 @@ import org.apache.spark.SparkContext
  * @author Santhosh
  */
 trait IBatchModel[T] {
-    def execute(sc: SparkContext, events: RDD[T], jobParams: Option[Map[String, AnyRef]]) : RDD[String]
+    def execute(events: RDD[T], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String]
 }

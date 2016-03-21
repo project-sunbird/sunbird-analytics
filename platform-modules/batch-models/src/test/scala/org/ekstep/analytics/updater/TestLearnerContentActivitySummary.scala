@@ -15,7 +15,7 @@ class TestLearnerContentActivitySummary extends SparkSpec(null) {
         rdd.saveToCassandra("learner_db", "learnercontentsummary");
 
         val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-content-summary/learner_content_test_sample.log");
-        LearnerContentActivitySummary.execute(sc, rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerContentActivitySummary")));
+        LearnerContentActivitySummary.execute(rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerContentActivitySummary")));
         val rowRDD = sc.cassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
         val learnerContent = rowRDD.map { x => ((x.learner_id), (x.content_id, x.interactions_per_min, x.num_of_sessions_played, x.time_spent)) }.collect.toMap;
 

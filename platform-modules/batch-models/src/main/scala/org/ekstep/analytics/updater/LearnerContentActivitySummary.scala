@@ -21,7 +21,7 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
         num.toDouble(ts.sum) / ts.size
     }
 
-    def execute(sc: SparkContext, events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
         
         val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val activity = filteredData.map(event => (event.uid.get, Buffer(event)))
