@@ -16,12 +16,16 @@ val moreWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.moreless.worksheet"
 val rdd1 = ordinalWorkSheetRDD.union(moneyWorkSheetRDD)
 val rdd2 = numWorkSheetRDD.union(moreWorkSheetRDD)
 val rddAll = rdd1.union(rdd2)
+
 println("### Running LCAS ###")
 LearnerContentActivitySummary.execute(sc,rddAll,None);
 println("### Running LP ###")
 LearnerProficiencySummary.execute(sc,rddAll,Option(Map("apiVersion" -> "v2")));
 println("### Running RE ###")
-RecommendationEngine.execute(sc, rddAll, None);
+//RecommendationEngine.executeExp(sc, rddAll,Option(Map("profWeightPij" -> 1.0,"conSimWeight" -> 0.0,"timeSpentWeight" -> 0.0,"iterations" -> 20)) );
+
+RecommendationEngine.executeExp(sc, rddAll,Option(Map("profWeight" -> 1.0d.asInstanceOf[AnyRef],"conSimWeight" -> 1.0d.asInstanceOf[AnyRef],"timeSpentWeight" -> 1.0d.asInstanceOf[AnyRef],"iterations" -> 20.asInstanceOf[AnyRef])) );
+
 println("### Running Learner Snapshot ###")
 LearnerActivitySummary.execute(sc, rddAll, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")))
 System.exit(0)

@@ -22,7 +22,7 @@ from py2neo import Node, Relationship
 # neo4j graph connector
 graph = Graph()
 # delete entire graph
-graph.delete_all()
+# graph.delete_all()
 
 
 # bool flag database connections
@@ -77,18 +77,18 @@ session.row_factory = dict_factory
 
 
 # move proficiency table
-def moveRelevancyTable():
+def moveRelevancyTableAll():
 
     graph = Graph()
     
     # get a list of all unique learners
     lids = session.execute("SELECT DISTINCT learner_id from learnerconceptrelevance")
-    for lid in lids:
+
+    for lid in uids:
         # get the knowledge state for this guy
-        # <concept-id>,<socre> in schema
-    
-        # create a learner node
-        uid = lid['learner_id']
+        # <concept-id>,<score> in schema
+        
+        uids = [ lid['learner_id'] for lid in lids]
         node = graph.merge_one("Learner","id",uid)
         
 
@@ -96,7 +96,7 @@ def moveRelevancyTable():
 
         relDict = session.execute("SELECT relevance from learnerconceptrelevance WHERE learner_id='" + uid + "'")[0]['relevance']
         for cid, score in relDict.items():
-            print("concept:",cid,"score",score)
+            #print("concept:",cid,"score",score)
             # create a node, if it does not exist
             # else, merge with it
             node2 = graph.merge_one("Concept","id",cid)
@@ -154,7 +154,7 @@ def moveProficiencyTable():
             # create/find concept node
             node2 = graph.merge_one("Concept","id",cid)
             # add a relationship with property score
-            graph.create(Relationship(node, "ASSESSED_IN", node,score=score))
+            graph.create(Relationship(node, "ASSESSED_IN", node2,score=score))
 
 
 # move domain model graphs
@@ -240,9 +240,6 @@ def moveContentModel():
 
 
 # move concept map 
-
-
-
 def moveConceptMap():
     # neo4j graph connector
     graph = Graph()
@@ -293,6 +290,48 @@ def moveConceptMap():
 
 
 
+# move proficiency table
+def moveRelevancyTable(n=10):
+    # get a list of all unique learners
+    # filepath = "batch-models/src/test/resources/concept-similarity/ConceptSimilarity.json"
+    # neo4j graph connector
+    graph = Graph()
+    # only compute bottom "n" and top "n" relevent concepts
+    
+    lids = session.execute("SELECT DISTINCT learner_id from learnerconceptrelevance")
+    for lid in lids:
+        # get the knowledge state for this guy
+        # <concept-id>,<rel score> in schema
+        uid = lid['learner_id']
+        # create a learner node
+        node = graph.merge_one("Learner","id",uid)
+
+        print("** learner:",uid)
+
+        relDict = session.execute("SELECT relevance from learnerconceptrelevance WHERE learner_id='" + uid + "'")[0]['relevance']
+        rawScores = relDict.values()
+        qU = round(sorted(rawScores,reverse=True)[n-1]*1e4)/1e4
+        qL = round(sorted(rawScores)[n-1]*1e4)/1e4
+
+        for cid, rawscore in relDict.items():
+            score = round(rawscore*1e4)/1e4
+            if(score >= qU):
+                
+                print("concept:",cid,"score",score)
+                # create/find concept node
+                node2 = graph.merge_one("Concept","id",cid)
+                # add a relationship with property score
+                graph.create(Relationship(node2, "RELEVENT_FOR", node,score=score))
+            elif(score <= qL):
+                print("concept:",cid,"score",score)
+                # create/find concept node
+                node2 = graph.merge_one("Concept","id",cid)
+                # add a relationship with property score
+                graph.create(Relationship(node2, "NOT_RELEVENT_FOR", node,score=score))
+            else:
+                pass;
+
+
 # concept map
 print('*******************')
 print('1: populating Neo4js with Concept Map')
@@ -317,6 +356,4 @@ moveContentSummaryTable();
 print('*******************')
 print('5: populating Neo4js with Relevancy Score')
 print('*******************')
-# moveRelevancyTable();
-print('Disabled')
-
+moveRelevancyTable(10);

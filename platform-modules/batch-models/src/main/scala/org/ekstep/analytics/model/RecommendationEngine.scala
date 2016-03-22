@@ -43,12 +43,22 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
     val configMapping = sc.broadcast(config);
 
     // initializing lambda value 
-    val defaultWeightPij = configMapping.value.getOrElse("profWeight", 0.05).asInstanceOf[Double];
-    val defaultWeightSij = configMapping.value.getOrElse("conSimWeight", 0.05).asInstanceOf[Double];
-    val defaultWeightTj = configMapping.value.getOrElse("timeSpentWeight", 0.9).asInstanceOf[Double];
-    val iterations = configMapping.value.getOrElse("iterations", 10).asInstanceOf[Int];
+    val defaultWeightPij = configMapping.value.getOrElse("profWeight", 1.0).asInstanceOf[Double];
+    val defaultWeightSij = configMapping.value.getOrElse("conSimWeight", 1.0).asInstanceOf[Double];
+    val defaultWeightTj = configMapping.value.getOrElse("timeSpentWeight", 1.0).asInstanceOf[Double];
+    val iterations = configMapping.value.getOrElse("iterations", 20).asInstanceOf[Int];
+    
+    var L = Array(defaultWeightSij, defaultWeightPij, defaultWeightTj);
+    //val Ltmp = L.map{_/L.sum};
+    L = L.map{_/L.sum};
+      
+    println("### Prof Weight:" + defaultWeightPij+ ":" +L(1)+ " ###");
+    println("### ConSim Weight:" + defaultWeightSij + ":" +L(0) + " ###");
+    println("### tsp Weight:" + defaultWeightTj + ":"+L(2) + " ###");
+    println("### iterations:" + iterations + " ###");
 
     println("#### Fetching Content List and Domain Map ####")
+    
     val contents = ContentAdapter.getAllContent();
     val concepts = DomainAdapter.getDomainMap().concepts.map { x => x.id };
     val N = concepts.length;
@@ -62,7 +72,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
     val conceptsData = sc.broadcast(concepts);
     val conceptContentMapping = sc.broadcast(conceptContentMap);
     val jBroadcast = sc.broadcast(Jn);
-    val SijBroadcast = sc.broadcast(computeSijMatrix(sc, concepts, Jn, defaultWeightSij, N));
+    val SijBroadcast = sc.broadcast(computeSijMatrix(sc, concepts, Jn, L(0), N));
 
     println("### Preparing Learner data ###");
     // Get all learners date ranges
@@ -95,7 +105,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
       val J = jBroadcast.value;
       val C = conceptsData.value;
       val Sij = SijBroadcast.value;
-      val L = Array(defaultWeightSij, defaultWeightPij, defaultWeightTj);
+      
 
       val dtRange = learner._2._1;
       val contentSummaries = learner._2._3;
@@ -103,9 +113,12 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
       val learnerConceptRelevance = learner._2._4;
       val default = 1d / N;
 
-      val Tij = computeTijMatrix(contentSummaries, conceptContentMapping.value, C, J, L(1), N);
-      val Pij = computePijMatrix(learnerProficiency, J, C, L(2), N);
-      val Eij = Pij + Sij + Tij;
+      //val Tij = computeTijMatrix(contentSummaries, conceptContentMapping.value, C, J, L(2), N);
+      val Pij = computePijMatrix(learnerProficiency, J, C, L(1), N);
+      val boostTij = boostTijMatrix(learnerProficiency, J, C, L(2), N);
+      val EijTmp = Pij + Sij + boostTij;
+      val Eij = normalizeMatrix(EijTmp,J,1.0d);
+      
 
       val random = new scala.util.Random;
       val lcr = learnerConceptRelevance.relevance;
@@ -116,8 +129,10 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
       for (i <- 0 until r.rows)
         r(0, i) = 1
 
+        
       var Rt = r :/ sum(r);
-      for (1 <- 0 until iterations) {
+      for (i <- 0 until iterations) {
+      
         Rt = Rt * Eij;
       }
 
@@ -177,6 +192,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
         // 2. Total timeSpent on all concepts
         val totalTime = conceptTS.map(f => f._2).sum;
+        //println(" -- Total time spent across all concepts:" + totalTime);
 
         // 3. Compute the Concept Tj Matrix
         val conceptTj = DenseMatrix.zeros[Double](1, n);
@@ -196,6 +212,23 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         normalizeMatrix(Pij, j, l);
     }
 
+    def boostTijMatrix(learnerProficiency: LearnerProficiency, j: DenseMatrix[Double], c: Array[String], l: Double, n: Int): DenseMatrix[Double] = {
+
+      /* when content-to-concept coverge matrix is very sparse,
+       boost time_spent in a concept if certain assessment has taken place
+       it assumes that learner has had some familiarity with the concept, because of which an assessment is given
+       in this concept */
+        val proficiencyMap = learnerProficiency.proficiency;
+        val conceptPi = DenseMatrix.tabulate(n, 1) { case (i, j) => proficiencyMap.getOrElse(c(i), -1d) };
+        //println("concept pi"+conceptPi)
+        val cpj = conceptPi * j.t;
+        val profMatrix = cpj.t; //- cpj.t;
+        val boostTijTmp = profMatrix.map { x => if (x > 0.0) 1.1d else x }
+        val boostTij = boostTijTmp.map { x => if (x <= 0.5d) 1.0d else x }
+        normalizeMatrix(boostTij, j, l);
+    }
+
+    
     def execute(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
