@@ -134,8 +134,9 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
                         val itemId = f.get("itemId").get.asInstanceOf[String];
                         val itemMC = getItemConcept(f, itemConceptMapping.value)
                         val itemMMC = f.getOrElse("mmc", List()).asInstanceOf[List[String]]
-                        val score = f.get("score").get.asInstanceOf[Int]
+                        var score = f.get("score").get.asInstanceOf[Int]
                         val maxScore = getItemMaxScore(f, itemConceptMapping.value)
+                        if (maxScore < score) score = maxScore;
                         (learner_id, itemId, itemMC, score, maxScore, eventStartTimestamp, eventEndTimestamp)
                     }
             }.flatten.filter(p => ((p._3) != null)).toList
@@ -202,7 +203,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
-    
+
     private def getMeasuredEvent(userProf: LearnerProficiency, config: Map[String, AnyRef]): MeasuredEvent = {
         val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "DAY", userProf.end_time.getMillis);
         val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2) }

@@ -39,5 +39,6 @@ object BatchJobDriver {
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         val output = model.execute(filterRdd, config.modelParams);
         OutputDispatcher.dispatch(config.output, output);
+        output.unpersist(true)
     }
 }
