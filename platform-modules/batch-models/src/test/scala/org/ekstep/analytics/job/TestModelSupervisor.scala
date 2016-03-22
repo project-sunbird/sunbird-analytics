@@ -10,7 +10,7 @@ import org.ekstep.analytics.model.BaseSpec
 
 class TestModelSupervisor extends BaseSpec {
 
-    ignore should " Run LP from S3 " in {
+    "TestModelSupervisor" should " Run LP from S3 " in {
         val config = JobConfig(Fetcher("s3", None,  Option(Array(Query(Option("ekstep-session-summary"), Option("prod.analytics.screener-"), Option("2016-02-21"), Option("2016-02-23"))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ProficiencyUpdater", Option(Map("alpha" -> 1.0d.asInstanceOf[AnyRef], "beta" -> 1.0d.asInstanceOf[AnyRef])), Option(Array(Dispatcher("file", Map("file" -> "prof_output.log")))), Option(10), Option("TestModelSupervisor"), Option(false))
         RePlayModelSupervisor.main("LearnerProficiencySummary", "2016-02-22", "2016-02-23", JSONUtils.serialize(config));
     }
