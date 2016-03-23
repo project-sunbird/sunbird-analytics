@@ -168,8 +168,8 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
      */
     def normalizeMatrix(m: DenseMatrix[Double], j: DenseMatrix[Double], l: Double): DenseMatrix[Double] = {
         val x = m * j; // Row sums
-        val y = j :/ x; // Create inverse of row sums
-        l * (m :* (y * j.t)) // Normalization
+        //val y = j :/ x; // Create inverse of row sums
+        l * (m :/ (x * j.t)) // Normalization
     }
 
     def computeSijMatrix(sc: SparkContext, concepts: Array[String], Jn: DenseMatrix[Double], l: Double, n: Int): DenseMatrix[Double] = {
