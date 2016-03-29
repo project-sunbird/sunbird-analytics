@@ -22,7 +22,7 @@ from py2neo import Node, Relationship
 # neo4j graph connector
 graph = Graph()
 # delete entire graph
-# graph.delete_all()
+graph.delete_all()
 
 
 # bool flag database connections
@@ -124,7 +124,7 @@ def moveContentSummaryTable():
 
         node2 = graph.merge_one("Content","id",cid)
         # add a relationship with property score
-        graph.create(Relationship(node, "INTERACTED_WITH", node2,timeSpnet=tsp,ipm=ipm))
+        graph.create(Relationship(node, "INTERACTED_WITH", node2,timeSpent=tsp,ipm=ipm))
         print('content: ', cid, 'tsp: ',tsp, 'ipm', ipm)
 
 
@@ -269,6 +269,11 @@ def moveConceptMap():
             node.properties["gradeLevel"]=gradeLevel
             node.push()
 
+        if(conceptDict.has_key('objectType')):
+            objectType = conceptDict['objectType']
+            node.properties["objectType"]=objectType
+            node.push()
+    
 
         # move all relations
         relationList = resp["result"]["relations"]
@@ -325,9 +330,10 @@ def moveRelevancyTable(n=10):
             elif(score <= qL):
                 print("concept:",cid,"score",score)
                 # create/find concept node
-                node2 = graph.merge_one("Concept","id",cid)
+                #node2 = graph.merge_one("Concept","id",cid)
                 # add a relationship with property score
-                graph.create(Relationship(node2, "NOT_RELEVENT_FOR", node,score=score))
+                #graph.create(Relationship(node2, "NOT_RELEVENT_FOR", node,score=score))
+                pass;
             else:
                 pass;
 
@@ -356,4 +362,4 @@ moveContentSummaryTable();
 print('*******************')
 print('5: populating Neo4js with Relevancy Score')
 print('*******************')
-moveRelevancyTable(10);
+#moveRelevancyTable(20);

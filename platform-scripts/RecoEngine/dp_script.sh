@@ -43,7 +43,7 @@ fi
 
 
 echo "Running Recommendation Engine"
-spark-shell -i $scriptDir/RunRE.scala --jars $modelJar,$fwJar, --conf spark.cassandra.connection.host=127.0.0.1
+spark-shell -i $scriptDir/RunRE.scala --jars $modelJar,$fwJar, --conf spark.cassandra.connection.host=127.0.0.1 spark.default.parallelism=4
 
 # neo4j (IP)
 # http://localhost:7474/browser/

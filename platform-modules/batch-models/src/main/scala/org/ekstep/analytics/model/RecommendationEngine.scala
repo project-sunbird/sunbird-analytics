@@ -37,7 +37,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
   
 
  
-  def executeExp(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+  def execute(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
     val config = jobParams.getOrElse(Map[String, AnyRef]());
     val configMapping = sc.broadcast(config);
@@ -46,15 +46,18 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
     val defaultWeightPij = configMapping.value.getOrElse("profWeight", 1.0).asInstanceOf[Double];
     val defaultWeightSij = configMapping.value.getOrElse("conSimWeight", 1.0).asInstanceOf[Double];
     val defaultWeightTj = configMapping.value.getOrElse("timeSpentWeight", 1.0).asInstanceOf[Double];
+    val defaultWeightBoostTj = configMapping.value.getOrElse("BoostTimeSpentWeight", 1.0).asInstanceOf[Double];
     val iterations = configMapping.value.getOrElse("iterations", 20).asInstanceOf[Int];
     
-    var L = Array(defaultWeightSij, defaultWeightPij, defaultWeightTj);
+    var L = Array(defaultWeightSij, defaultWeightPij, defaultWeightTj,defaultWeightBoostTj);
     //val Ltmp = L.map{_/L.sum};
     L = L.map{_/L.sum};
       
-    println("### Prof Weight:" + defaultWeightPij+ ":" +L(1)+ " ###");
+    
     println("### ConSim Weight:" + defaultWeightSij + ":" +L(0) + " ###");
+    println("### Prof Weight:" + defaultWeightPij+ ":" +L(1)+ " ###");
     println("### tsp Weight:" + defaultWeightTj + ":"+L(2) + " ###");
+    println("### tsp Weight:" + defaultWeightBoostTj + ":"+L(3) + " ###");
     println("### iterations:" + iterations + " ###");
 
     println("#### Fetching Content List and Domain Map ####")
@@ -113,10 +116,10 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
       val learnerConceptRelevance = learner._2._4;
       val default = 1d / N;
 
-      //val Tij = computeTijMatrix(contentSummaries, conceptContentMapping.value, C, J, L(2), N);
+      val Tij = computeTijMatrix(contentSummaries, conceptContentMapping.value, C, J, L(2), N);
       val Pij = computePijMatrix(learnerProficiency, J, C, L(1), N);
-      val boostTij = boostTijMatrix(learnerProficiency, J, C, L(2), N);
-      val EijTmp = Pij + Sij + boostTij;
+      val boostTij = boostTijMatrix(learnerProficiency, J, C, L(3), N);
+      val EijTmp = Pij + Sij + boostTij +Tij;
       val Eij = normalizeMatrix(EijTmp,J,1.0d);
       
 
@@ -134,7 +137,9 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
       for (i <- 0 until iterations) {
       
         Rt = Rt * Eij;
+        //Rt = Rt:/sum(Rt);
       }
+      
 
       val newConceptRelevance = Array.tabulate(N) { i => (C(i), Rt.valueAt(i)) }.toMap;
       (learner._1.learner_id, newConceptRelevance, dtRange);
@@ -208,7 +213,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         val conceptPi = DenseMatrix.tabulate(n, 1) { case (i, j) => proficiencyMap.getOrElse(c(i), 0d) };
         val cpj = conceptPi * j.t;
         val profMatrix = cpj - cpj.t;
-        val Pij = profMatrix.map { x => if (x <= 0) 0.0001d else x }
+        val Pij = profMatrix.map { x => if (x <= 0) 0.05d else x }
         normalizeMatrix(Pij, j, l);
     }
 
@@ -223,13 +228,13 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         //println("concept pi"+conceptPi)
         val cpj = conceptPi * j.t;
         val profMatrix = cpj.t; //- cpj.t;
-        val boostTijTmp = profMatrix.map { x => if (x > 0.0) 1.1d else x }
-        val boostTij = boostTijTmp.map { x => if (x <= 0.5d) 1.0d else x }
+        val boostTijTmp = profMatrix.map { x => if (x > 0.0) 1d else x }
+        val boostTij = boostTijTmp.map { x => if (x <= 0.5d) 0.01d else x }
         normalizeMatrix(boostTij, j, l);
     }
 
     
-    def execute(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def executeRetired(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());

@@ -2,6 +2,9 @@ import org.ekstep.analytics.framework.util._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.updater._
 import org.ekstep.analytics.model._
+
+val inputFile = "/Users/soma/github/ekStep/Learning-Platform-Analytics/platform-scripts/RecoEngine/Data/inputRE.txt";
+
 println("### Setting S3 Keys ###")
 CommonUtil.setS3Conf(sc);
 println("### Fetching Data with filter ###")
@@ -16,6 +19,8 @@ val moreWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.moreless.worksheet"
 val rdd1 = ordinalWorkSheetRDD.union(moneyWorkSheetRDD)
 val rdd2 = numWorkSheetRDD.union(moreWorkSheetRDD)
 val rddAll = rdd1.union(rdd2)
+// rddAll2.saveAsTextFile(inputFile);
+// val rddAll = sc.textFile(inputFile).asInstanceof(org.apache.spark.rdd.RDD[org.ekstep.analytics.framework.MeasuredEvent])
 
 println("### Running LCAS ###")
 LearnerContentActivitySummary.execute(sc,rddAll,None);
@@ -24,7 +29,10 @@ LearnerProficiencySummary.execute(sc,rddAll,Option(Map("apiVersion" -> "v2")));
 println("### Running RE ###")
 //RecommendationEngine.executeExp(sc, rddAll,Option(Map("profWeightPij" -> 1.0,"conSimWeight" -> 0.0,"timeSpentWeight" -> 0.0,"iterations" -> 20)) );
 
-RecommendationEngine.executeExp(sc, rddAll,Option(Map("profWeight" -> 1.0d.asInstanceOf[AnyRef],"conSimWeight" -> 1.0d.asInstanceOf[AnyRef],"timeSpentWeight" -> 1.0d.asInstanceOf[AnyRef],"iterations" -> 20.asInstanceOf[AnyRef])) );
+RecommendationEngine.executeExp(sc, rddAll,Option(Map("profWeight" -> 0.0d.asInstanceOf[AnyRef],
+	"conSimWeight" -> 0.0d.asInstanceOf[AnyRef],"timeSpentWeight" -> 0.0d.asInstanceOf[AnyRef],
+	"BoostTimeSpentWeight" -> 1.0d.asInstanceOf[AnyRef],
+	"iterations" -> 20.asInstanceOf[AnyRef])) );
 
 println("### Running Learner Snapshot ###")
 LearnerActivitySummary.execute(sc, rddAll, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")))

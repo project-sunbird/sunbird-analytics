@@ -313,7 +313,7 @@ function getGradeVecSim(g1,g2,dist=Euclidean(),method="ordinal")
   return d
 end
 
-# obsolte
+# obsolete
 function getGradeDiffWeights(grades,method="ordinal")
   # park - need to develop
   m=length(grades)
