@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
 import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework.TelemetryEventV2
 
 /**
  * @author Santhosh
@@ -34,11 +35,17 @@ object BatchJobDriver {
 
     private def _process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
         val rdd = DataFetcher.fetchBatchData[T](config.search);
+        
         if (config.deviceMapping.nonEmpty && config.deviceMapping.get)
-            JobContext.deviceMapping = rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
+            JobContext.deviceMapping = mf.toString() match {
+            case "org.ekstep.analytics.framework.TelemetryEventV2" =>
+                rdd.map(x => x.asInstanceOf[TelemetryEventV2]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
+            case "org.ekstep.analytics.framework.Event" =>
+                rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
+            case _ => Map()
+        }
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         val output = model.execute(filterRdd, config.modelParams);
         OutputDispatcher.dispatch(config.output, output);
-        output.unpersist(true)
     }
 }

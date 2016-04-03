@@ -7,10 +7,28 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.apache.spark.rdd.RDD
 
 /**
  * @author Santhosh
  */
+
+object TestModel2 extends IBatchModel[MeasuredEvent] with Serializable {
+    
+    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+        events.map { x => JSONUtils.serialize(x) };
+    }
+  
+}
+
+object TestModel3 extends IBatchModel[TelemetryEventV2] with Serializable {
+    
+    def execute(events: RDD[TelemetryEventV2], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+        events.map { x => JSONUtils.serialize(x) };
+    }
+  
+}
+
 class TestJobDriver extends FlatSpec with Matchers {
 
     "TestJobDriver" should "successfully test the job driver" in {
@@ -23,7 +41,7 @@ class TestJobDriver extends FlatSpec with Matchers {
             Option(Map()),
             Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))),
             Option(8),
-            Option("TestJobDriver"),
+            None,
             Option(true))
 
         noException should be thrownBy {
@@ -74,6 +92,46 @@ class TestJobDriver extends FlatSpec with Matchers {
         noException should be thrownBy {
             implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
             JobDriver.run[Event]("batch", JSONUtils.serialize(jobConfig), new TestModel);
+            CommonUtil.closeSparkContext();
+        }
+    }
+    
+    it should "run the job driver on measured event" in {
+        
+        val jobConfig = JobConfig(
+            Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))),
+            Option(Array[Filter](Filter("eventId", "EQ", Option("OE_START")))),
+            None,
+            "org.ekstep.analytics.framework.TestModel",
+            Option(Map()),
+            Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))),
+            Option(8),
+            None,
+            Option(true))
+
+        noException should be thrownBy {
+            implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
+            JobDriver.run[MeasuredEvent]("batch", JSONUtils.serialize(jobConfig), TestModel2);
+            CommonUtil.closeSparkContext();
+        }
+    }
+    
+    it should "run the job driver on telemetry event v2" in {
+        
+        val jobConfig = JobConfig(
+            Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))),
+            Option(Array[Filter](Filter("eventId", "EQ", Option("OE_START")))),
+            None,
+            "org.ekstep.analytics.framework.TestModel",
+            Option(Map()),
+            Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))),
+            Option(8),
+            None,
+            Option(true))
+
+        noException should be thrownBy {
+            implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
+            JobDriver.run[TelemetryEventV2]("batch", JSONUtils.serialize(jobConfig), TestModel3);
             CommonUtil.closeSparkContext();
         }
     }
