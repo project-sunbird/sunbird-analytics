@@ -126,7 +126,7 @@ object CommonUtil {
 
     def dateIsAfterOrEqual(date1: String, date2: String): Boolean = {
         val d1 = df4.parseLocalDate(date1);
-        val d2 = df4.parseLocalDateTime(date2);
+        val d2 = df4.parseLocalDate(date2);
         (d1.isAfter(d2) || d1.isEqual(d2));
     }
 

@@ -11,49 +11,62 @@ import org.ekstep.analytics.framework.driver.BatchJobDriver
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.model.LearnerProficiencySummary
 import org.ekstep.analytics.framework.JobDriver
-
+import org.ekstep.analytics.framework.DataFetcher
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.OutputDispatcher
+import scala.sys.process._
 object RePlayModelSupervisor extends Application {
 
-    def main(model: String, fromDate: String, toDate: String, config: String) {
-        
+    def main(model: String, fromDate: String, toDate: String, delta: Int, config: String) {
+
         val con = JSONUtils.deserialize[JobConfig](config)
+
         implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
 
         // patterns for start-date and end-date for yyyy-mm-dd formt 
-        val matcher1 = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})").matcher(config)
-        val matcher2 = Pattern.compile("(endDate\":\"\\d{4}-\\d{2}-\\d{2})").matcher(config)
-        val matcher3 = Pattern.compile("(startDate\":\"\\d{4}-\\d{2}-\\d{2})").matcher(config)
+        val matcher1Str = "(\\d{4}-\\d{2}-\\d{2})"
+        val matcher2Str = "(endDate\":\"\\d{4}-\\d{2}-\\d{2})"
+        val matcher3Str = "(startDate\":\"\\d{4}-\\d{2}-\\d{2})"
+        val matcher1 = Pattern.compile(matcher1Str).matcher(config)
+        val matcher2 = Pattern.compile(matcher2Str).matcher(config)
+        val matcher3 = Pattern.compile(matcher3Str).matcher(config)
 
         model match {
             case "LearnerProficiencySummary" =>
                 var jobConfig = config;
                 val dateRange = CommonUtil.getDatesBetween(fromDate, Option(toDate))
-                if (matcher1.find) {
+                if (matcher2.find || matcher3.find) {
+                    var end = CommonUtil.getEndDate(Option(fromDate), delta)
                     for (date <- dateRange) {
-                        try {
-                            println("Running for date: ", date)
-                            jobConfig = matcher1.replaceAll(date);
-                            //ProficiencyUpdater.main(jobConfig)(Option(sc))
-                            JobDriver.run("batch", jobConfig, LearnerProficiencySummary);
-                        } catch {
-                            case e: Exception => println("Got an empty result: " + e);
-                        }
+                        println("processing for the date : " + date + "to" + end.get)
+                        jobConfig = matcher2.replaceAll("endDate\":\"" + end.get);
+                        jobConfig = Pattern.compile(matcher3Str).matcher(jobConfig).replaceAll("startDate\":\"" + date);
+                        ProficiencyUpdater.main(jobConfig)(Option(sc));
+                        end = CommonUtil.getEndDate(end, 1)
                     }
                 } else {
-                    println("#### Executing Proficiency Summary from local file ####")
                     ProficiencyUpdater.main(jobConfig)(Option(sc))
                 }
                 CommonUtil.closeSparkContext()(sc)
             case "LearnerActivitySummary" =>
-                val con = JSONUtils.deserialize[JobConfig](config)
                 var jobConfig = config;
                 val dateRange = CommonUtil.getDatesBetween(fromDate, Option(toDate))
-                if (matcher2.find && matcher3.find) {
-                    var end = CommonUtil.getEndDate(Option(fromDate), 6)
+                if (matcher2.find || matcher3.find) {
+                    var end = CommonUtil.getEndDate(Option(fromDate), delta)
+                    
+                    //#### if date interval is less than the delta ####
+                    if (!CommonUtil.dateIsAfterOrEqual(toDate, end.get)) {
+                        println("processing for the date : " + fromDate + "to" + toDate)
+                        jobConfig = matcher2.replaceAll("endDate\":\"" + toDate);
+                        jobConfig = Pattern.compile(matcher3Str).matcher(jobConfig).replaceAll("startDate\":\"" + fromDate);
+                        LearnerContentActivityUpdater.main(jobConfig)(Option(sc))
+                    }
                     for (date <- dateRange) {
                         if (CommonUtil.dateIsAfterOrEqual(toDate, end.get)) {
+                            println("processing for the date : " + date + "to" + end.get)
                             jobConfig = matcher2.replaceAll("endDate\":\"" + end.get);
-                            jobConfig = matcher3.replaceAll("startDate\":\"" + date);
+                            jobConfig = Pattern.compile(matcher3Str).matcher(jobConfig).replaceAll("startDate\":\"" + date);
                             LearnerActivitySummarizer.main(jobConfig)(Option(sc))
                             end = CommonUtil.getEndDate(end, 1)
                         }
@@ -66,15 +79,22 @@ object RePlayModelSupervisor extends Application {
                 val con = JSONUtils.deserialize[JobConfig](config)
                 var jobConfig = config;
                 val dateRange = CommonUtil.getDatesBetween(fromDate, Option(toDate))
-                if (matcher2.find && matcher3.find) {
+                if (matcher2.find || matcher3.find) {
+                    var end = CommonUtil.getEndDate(Option(fromDate), delta)
 
-                    val end = CommonUtil.getEndDate(Option(fromDate), 6)
+                    //#### if date interval is less than 7 days ####
+                    if (CommonUtil.dateIsAfterOrEqual(toDate, end.get)) {
+                        jobConfig = matcher2.replaceAll("endDate\":\"" + toDate);
+                        jobConfig = Pattern.compile(matcher3Str).matcher(jobConfig).replaceAll("startDate\":\"" + fromDate);
+                        LearnerContentActivityUpdater.main(jobConfig)(Option(sc))
+                    }
+
                     for (date <- dateRange) {
-
                         if (CommonUtil.dateIsAfterOrEqual(toDate, end.get)) {
                             jobConfig = matcher2.replaceAll("endDate\":\"" + end.get);
-                            jobConfig = matcher3.replaceAll("startDate\":\"" + date);
+                            jobConfig = Pattern.compile(matcher3Str).matcher(jobConfig).replaceAll("startDate\":\"" + date);
                             LearnerContentActivityUpdater.main(jobConfig)(Option(sc))
+                            end = CommonUtil.getEndDate(end, 1)
                         }
                     }
                 } else {
@@ -82,14 +102,16 @@ object RePlayModelSupervisor extends Application {
                 }
                 CommonUtil.closeSparkContext()(sc)
             case "RecommendationEngine" =>
-                val con = JSONUtils.deserialize[JobConfig](config)
                 var jobConfig = config;
                 val dateRange = CommonUtil.getDatesBetween(fromDate, Option(toDate))
-                if (matcher1.find) {
-                    jobConfig = matcher1.replaceAll("__date__")
+                if (matcher2.find || matcher3.find) {
+                    var end = CommonUtil.getEndDate(Option(fromDate), delta)
                     for (date <- dateRange) {
-                        jobConfig = jobConfig.replace("__date__", date);
-                        RecommendationEngineJob.main(jobConfig)(Option(sc))
+                        println("processing for the date : " + date + "to" + end.get)
+                        jobConfig = matcher2.replaceAll("endDate\":\"" + end.get);
+                        jobConfig = Pattern.compile(matcher3Str).matcher(jobConfig).replaceAll("startDate\":\"" + date);
+                        RecommendationEngineJob.main(jobConfig)(Option(sc));
+                        end = CommonUtil.getEndDate(end, 1)
                     }
                 } else {
                     RecommendationEngineJob.main(jobConfig)(Option(sc))
