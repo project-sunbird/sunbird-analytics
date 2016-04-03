@@ -11,19 +11,19 @@ import org.ekstep.analytics.model.BaseSpec
 class TestRePlayModelSupervisor extends BaseSpec {
 
     it should " Run LP from S3 and dispatching to kafka " in {
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-01-10"), Option("2016-02-23"))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ProficiencyUpdater", Option(Map("alpha" -> 1.0d.asInstanceOf[AnyRef], "beta" -> 1.0d.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))))), Option(10), Option("TestModelSupervisor"), Option(false))
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-01-10"), Option("2016-02-23"))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ProficiencyUpdater", Option(Map("alpha" -> 1.0d.asInstanceOf[AnyRef], "beta" -> 1.0d.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestModelSupervisor"), Option(false))
         println(JSONUtils.serialize(config))
         RePlayModelSupervisor.main("LearnerProficiencySummary", "2016-02-15", "2016-02-16", 0, JSONUtils.serialize(config));
     }
 
     it should " Run LAS from s3 data and dispatching to kafka " in {
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-01-15"), Option("2016-01-20"))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.LearnerActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))))), Option(10), Option("TestModelSupervisor"), Option(false))
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-01-15"), Option("2016-01-20"))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.LearnerActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestModelSupervisor"), Option(false))
         println(JSONUtils.serialize(config))
         RePlayModelSupervisor.main("LearnerActivitySummary", "2016-02-15", "2016-02-22", 6, JSONUtils.serialize(config));
     }
 
     it should " Run LCAS from s3 data and dispatching to kafka " in {
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-01-15"), Option("2016-01-20"))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.LearnerContentActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))))), Option(10), Option("TestModelSupervisor"), Option(false))
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-01-15"), Option("2016-01-20"))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.LearnerContentActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestModelSupervisor"), Option(false))
         println(JSONUtils.serialize(config))
         RePlayModelSupervisor.main("LearnerContentActivitySummary", "2016-02-01", "2016-02-10", 6, JSONUtils.serialize(config));
     }
