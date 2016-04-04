@@ -119,17 +119,6 @@ object CommonUtil {
         Option(to.minusDays(delta).toString());
     }
 
-    def getEndDate(startDate: Option[String], delta: Int): Option[String] = {
-        val to = if (startDate.nonEmpty) df4.parseLocalDate(startDate.get) else LocalDate.fromDateFields(new Date);
-        Option(to.plusDays(delta).toString());
-    }
-
-    def dateIsAfterOrEqual(date1: String, date2: String): Boolean = {
-        val d1 = df4.parseLocalDate(date1);
-        val d2 = df4.parseLocalDate(date2);
-        (d1.isAfter(d2) || d1.isEqual(d2));
-    }
-
     def getDatesBetween(fromDate: String, toDate: Option[String]): Array[String] = {
         val to = if (toDate.nonEmpty) df4.parseLocalDate(toDate.get) else LocalDate.fromDateFields(new Date);
         val from = df4.parseLocalDate(fromDate);
