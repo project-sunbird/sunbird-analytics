@@ -24,9 +24,9 @@ class TestRePlayModelSupervisor extends BaseSpec {
         val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), None, Option("__endDate__"), Option(6))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.LearnerContentActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestModelSupervisor"), Option(false))
         RePlayModelSupervisor.main("LearnerContentActivitySummary", "2016-02-01", "2016-02-10", JSONUtils.serialize(config));
     }
-    
+
     it should " Run RE from S3 and dispatching to kafka " in {
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), None, Option("__endDate__"), Option(0))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.RecommendationEngine", None , Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestModelSupervisor"), Option(false))
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), None, Option("__endDate__"), Option(0))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.RecommendationEngine", None, Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestModelSupervisor"), Option(false))
         RePlayModelSupervisor.main("RecommendationEngine", "2016-02-15", "2016-02-16", JSONUtils.serialize(config));
     }
 

@@ -22,22 +22,22 @@ object RePlayModelSupervisor extends Application {
 
         val con = JSONUtils.deserialize[JobConfig](config)
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
-        
+
         val dateRange = CommonUtil.getDatesBetween(fromDate, Option(toDate))
         for (date <- dateRange) {
             val jobConfig = config.replace("__endDate__", date)
             model match {
                 case "LearnerProficiencySummary" =>
-                    println("Running LearnerProficiencySummary for the date : "+date)
+                    println("Running LearnerProficiencySummary for the date : " + date)
                     ProficiencyUpdater.main(jobConfig)(Option(sc));
                 case "LearnerActivitySummary" =>
-                    println("Running LearnerActivitySummary for the date : "+date)
+                    println("Running LearnerActivitySummary for the date : " + date)
                     LearnerContentActivityUpdater.main(jobConfig)(Option(sc))
                 case "LearnerContentActivitySummary" =>
-                    println("Running LearnerContentActivitySummary for the date : "+date)
+                    println("Running LearnerContentActivitySummary for the date : " + date)
                     LearnerContentActivityUpdater.main(jobConfig)(Option(sc))
                 case "RecommendationEngine" =>
-                    println("Running RecommendationEngine for the date : "+date)
+                    println("Running RecommendationEngine for the date : " + date)
                     RecommendationEngineJob.main(jobConfig)(Option(sc));
                 case _ =>
                     throw new Exception("Model name is not correct");
