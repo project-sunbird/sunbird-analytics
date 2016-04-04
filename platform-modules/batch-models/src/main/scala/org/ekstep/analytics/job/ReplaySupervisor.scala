@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.model.LearnerProficiencySummary
+import org.ekstep.analytics.framework.exception.DataFetcherException
 
 object ReplaySupervisor extends Application {
 
@@ -17,23 +18,32 @@ object ReplaySupervisor extends Application {
 
         val dateRange = CommonUtil.getDatesBetween(fromDate, Option(toDate))
         for (date <- dateRange) {
-            val jobConfig = config.replace("__endDate__", date)
-            model match {
-                case "lp" =>
-                    println("Running LearnerProficiencySummary for the date : " + date);
-                    ProficiencyUpdater.main(jobConfig)(Option(sc));
-                case "las" =>
-                    println("Running LearnerActivitySummary for the date : " + date);
-                    LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
-                case "lcas" =>
-                    println("Running LearnerContentActivitySummary for the date : " + date);
-                    LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
-                case "lcr" =>
-                    println("Running RecommendationEngine for the date : " + date);
-                    RecommendationEngineJob.main(jobConfig)(Option(sc));
-                case _ =>
-                    CommonUtil.closeSparkContext()(sc);
-                    throw new Exception("Model Code is not correct");
+            try {
+                val jobConfig = config.replace("__endDate__", date)
+                model match {
+                    case "lp" =>
+                        println("Running LearnerProficiencySummary for the date : " + date);
+                        ProficiencyUpdater.main(jobConfig)(Option(sc));
+                    case "las" =>
+                        println("Running LearnerActivitySummary for the date : " + date);
+                        LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
+                    case "lcas" =>
+                        println("Running LearnerContentActivitySummary for the date : " + date);
+                        LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
+                    case "lcr" =>
+                        println("Running RecommendationEngine for the date : " + date);
+                        RecommendationEngineJob.main(jobConfig)(Option(sc));
+                    case _ =>
+                        CommonUtil.closeSparkContext()(sc);
+                        throw new Exception("Model Code is not correct");
+                }
+            } catch {
+                case ex: DataFetcherException => {
+                    println("File is missing in S3 with date " + date)
+                }
+                case ex: Exception => {
+                    println(ex)
+                }
             }
         }
         CommonUtil.closeSparkContext()(sc)
