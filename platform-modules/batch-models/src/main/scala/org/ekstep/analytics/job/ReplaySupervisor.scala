@@ -28,10 +28,11 @@ object ReplaySupervisor extends Application {
                 case "lcas" =>
                     println("Running LearnerContentActivitySummary for the date : " + date);
                     LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
-                case "re" =>
+                case "lcr" =>
                     println("Running RecommendationEngine for the date : " + date);
                     RecommendationEngineJob.main(jobConfig)(Option(sc));
                 case _ =>
+                    CommonUtil.closeSparkContext()(sc);
                     throw new Exception("Model Code is not correct");
             }
         }
