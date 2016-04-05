@@ -26,6 +26,8 @@ class TestContentSummary extends SparkSpec(null){
         eks.get("averageTsSession").get should be (20.5)
         eks.get("numSessions").get should be (2)
         eks.get("timeSpent").get should be (41.0)
+        eks.get("numSessionsWeek").get should be (Map("1:Wed Mar 30 00:00:00 IST 2016-Wed Mar 30 00:00:00 IST 2016" -> 2))
+        eks.get("tsWeek").get should be (Map("1:Wed Mar 30 00:00:00 IST 2016-Wed Mar 30 00:00:00 IST 2016" -> 41.0))
         
   }
 }

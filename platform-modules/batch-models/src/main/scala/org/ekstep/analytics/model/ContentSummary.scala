@@ -7,6 +7,7 @@ import org.apache.spark.rdd.RDD
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
+import scala.collection.mutable.HashMap
 
 class Summary(val contentId: String,val ver: String, val dtRange: DtRange,val syncDate: Long, 
                  val loc: Option[String], val timeSpent: Double, val numSessions: Long, val averageTsSession: Double, 
@@ -23,6 +24,11 @@ object ContentSummary extends SessionBatchModel[Event] with Serializable {
     val config = jobParams.getOrElse(Map[String, AnyRef]());
     val configMapping = sc.broadcast(config);
     val deviceMapping = sc.broadcast(JobContext.deviceMapping);
+    
+//    val gameSessions = getGameSessions(filteredEvents).map(x => x._2)
+//    val sessions = gameSessions.map{x => x}.groupBy { x => x.head.gdata.id}.asInstanceOf[RDD[(String, Buffer[Event])]]
+//    println("checking")
+    
     val contentMap = filteredEvents.groupBy { x => x.gdata.id }//.asInstanceOf[RDD[(String,RDD[Event])]]
     val contentSummary = contentMap.mapValues { events =>
       val firstEvent = events.head//first();
@@ -31,6 +37,8 @@ object ContentSummary extends SessionBatchModel[Event] with Serializable {
       val gameVersion = CommonUtil.getGameVersion(lastEvent);
       val startTimestamp = Option(CommonUtil.getEventTS(firstEvent));
       val endTimestamp = Option(CommonUtil.getEventTS(lastEvent));
+      val startDate = Option(CommonUtil.getEventDate(firstEvent));
+      val lastDate = Option(CommonUtil.getEventDate(lastEvent));
       val loc = deviceMapping.value.getOrElse(firstEvent.did, "");
      
       val oeEnds = events.filter { x => "OE_END".equals(x.eid) };
@@ -39,34 +47,33 @@ object ContentSummary extends SessionBatchModel[Event] with Serializable {
         (x.edata.eks.length.asInstanceOf[Double])
       }.sum
       val averageTsSession = timeSpent/numSessions
-//      println(numSessions)
-//      println(timeSpent)
-//      println(averageTsSession)
-      
-//      val sessions = getGameSessions(events).map(x => x._2);
-//      println("checking outside interactionsMinSession ")
-//      val interactionsMinSession = sessions.map { sess =>
-//        println("checking inside interactionsMinSession ")
-//        val noOfInteractEvents = DataFilter.filter(sess, Filter("edata.eks.type", "IN", Option(List("TOUCH", "DRAG", "DROP", "PINCH", "ZOOM", "SHAKE", "ROTATE", "SPEAK", "LISTEN", "WRITE", "DRAW", "START", "END", "CHOOSE", "ACTIVATE")))).length;
-//        var tmpLastEvent: Event = null;
-//           val eventsWithTs = sess.map { x =>
+//    println("checking outside sessions")     
+//      val interactionsMinSession = sessions.mapValues { sess =>
+//        println("checking inside sessions")
+//        if(sess.head.gdata.id.equals(firstEvent.gdata.id))
+//        {
+//          val sessionsPerContent = sess.asInstanceOf[RDD[Event]]
+//          val noOfInteractEvents = DataFilter.filter(sessionsPerContent, Filter("edata.eks.type", "IN", Option(List("TOUCH", "DRAG", "DROP", "PINCH", "ZOOM", "SHAKE", "ROTATE", "SPEAK", "LISTEN", "WRITE", "DRAW", "START", "END", "CHOOSE", "ACTIVATE")))).count();
+//          var tmpLastEvent: Event = null;
+//          val eventsWithTs = sessionsPerContent.map { x =>
 //               if (tmpLastEvent == null) tmpLastEvent = x;
 //               val ts = CommonUtil.getTimeDiff(tmpLastEvent, x).get;
 //               tmpLastEvent = x;
 //               (x, ts)
 //           }
-//        val tS = eventsWithTs.map(f => f._2).sum;
-//        val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || tS == 0) 0d else BigDecimal(noOfInteractEvents / (tS / 60)).toDouble;
-//        interactEventsPerMin
-//      }
+//          val tS = eventsWithTs.map(f => f._2).sum;
+//          val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || tS == 0) 0d else BigDecimal(noOfInteractEvents / (tS / 60)).toDouble;
+//          interactEventsPerMin
+//        }
+//          
+//      }.asInstanceOf[RDD[Double]]
 //      val averageInteractionsMin = (interactionsMinSession.map{ x => x}.sum)/interactionsMinSession.count()
       val interactionsMinSession = null
       val averageInteractionsMin = 0d
-      
-      
-      
-      val numSessionsWeek = null
-      val tsWeek = null
+      val numSessionsWeek = Map(1+":"+startDate.get+"-"+lastDate.get -> numSessions )
+      //println(numSessionsWeek)
+      val tsWeek = Map(1+":"+startDate.get+"-"+lastDate.get -> timeSpent )
+      //println(tsWeek)
       new Summary(gameId,gameVersion,DtRange(startTimestamp.getOrElse(0l),endTimestamp.getOrElse(0l)), CommonUtil.getEventSyncTS(lastEvent), 
                Option(loc), timeSpent, numSessions, averageTsSession, interactionsMinSession.asInstanceOf[List[Double]], 
                averageInteractionsMin, numSessionsWeek, tsWeek )
