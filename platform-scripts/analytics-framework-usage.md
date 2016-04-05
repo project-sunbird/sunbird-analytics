@@ -9,7 +9,9 @@ Before going into the document go through the framework design document located 
 ### Nomenclature
 
 **spark-home** - Spark home directory
+
 **models** - Directory where the framework and models/data products are stored. Models are classes which contain the actual algorithm
+
 **sc** - Short hand for spark context
 
 ***
@@ -79,9 +81,157 @@ import org.ekstep.analytics.framework.job._
 
 #### Fetch Data/Input
 
+Following are the supported fetch types in the framework abstracted by `DataFetcher`:
+
+1. S3 - Fetch data from S3
+2. Local - Fetch data from local file. Using the local file once can fetch data from hdfs too.
+
+Following are the APIs available in the DataFetcher
+
+```scala
+
+// API to fetch data. Fetch the data as an RDD when an explicit type parameter is passed.
+val rdd:RDD[T] = DataFetcher.fetchBatchData[T](search: Fetcher);
+```
+
+A `Fetcher` object should be passed to the DataFetcher along with the type the data should be serialized to. Following are the example structures of the `Fetcher` object.
+
+```scala
+
+// Example fetcher to fetch data from S3
+val s3Fetcher = Fetcher("s3", Option(Query("<bucket>", "<prefix>", "<startDate>", "<endDate>", "<delta>")))
+
+// S3 Fetcher JSON schema
+{
+	"type": "S3",
+	"query": {
+    	"bucket": "ekstep-telemetry",
+     	"prefix": "telemetry.raw",
+    	"startDate": "2015-09-01",
+    	"endDate": "2015-09-03"
+	}
+}
+
+// Example fetcher to fetch data from Local
+
+val localFetcher = Fetcher("local", Option(Query(None, None, None, None, None, None, None, None, None, "/mnt/data/analytics/raw-telemetry-2016-01-01.log.gz")))
+
+// Local Fetcher JSON schema
+{
+	"type": "local",
+	"query": {
+    	"file": "/mnt/data/analytics/raw-telemetry-2016-01-01.log.gz"
+	}
+}
+```
+
 #### Filter & Sort Data
 
+Framework has inbuilt filters and sort utilities abtracted by the DataFilter object. Following are the APIs exposed by the DataFilter
+
+```scala
+/**
+ * Filter and sort an RDD. This function does an 'and' sort on multiple filters
+ */
+def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[T]
+
+/**
+ * Filter a RDD on multiple filters
+ */
+def filter[T](events: RDD[T], filters: Array[Filter]): RDD[T]
+
+/**
+ * Filter a RDD on single filter
+ */
+def filter[T](events: RDD[T], filter: Filter): RDD[T]
+
+/**
+ * Filter a buffer of events.
+ */
+def filter[T](events: Buffer[T], filter: Filter): Buffer[T]
+
+/**
+ * Sort an RDD. The current sort supported is just plain String sort.
+ */
+def sortBy[T](events: RDD[T], sort: Sort): RDD[T]
+```
+
+The `DataFilter` can do a nested filter too based on bean properties (silimar to json filter). 
+
+Structure of the `Filter` and `Sort` objects are 
+
+```scala
+/*
+ * Supported operators are:
+ * 1. NE - Property not equals a value
+ * 2. IN - Property in an array of values
+ * 4. NIN - Property not in an array of values
+ * 5. ISNULL - Property is null
+ * 6. ISEMPTY - Property is empty
+ * 7. ISNOTNULL - Property in not null
+ * 8. ISNOTEMPTY - Property in not empty
+ * 9. EQ - Property in equal to a value
+ */
+case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
+
+case class Sort(name: String, order: Option[String]);
+```
+
+Example Usage:
+
+```scala
+val rdd:RDD[Event] = DataFetcher.fetchBatchData[Event](Fetcher(...));
+
+// Filter the rdd of events to only contain either OE_ASSESS or OE_INTERACT events only
+val filterdRDD = DataFilter.filter[Event](rdd, Filter("eid", "IN", Option(Array("OE_ASSESS", "OE_INTERACT"))));
+```
+
 #### Output Data
+
+As discussed in the design document framework has support for the following output dispatchers:
+
+1. ConsoleDispatcher - Dispatch output to the console. Basically used for debugging.
+2. FileDispatcher - Dispatch output to a file.
+3. KafkaDispatcher - Dispatch output to a kakfa topic
+4. S3Dispatcher - Dispatch output to S3. Not recommended option. Can be used only for debugging purposes
+5. ScriptDispatcher - Dispatch output to an external script (can be R, Python, Shell etc). Can be used for specific purposes like converting json output to a csv output (or) generating a static html report using R
+
+Each and every output dispatcher should extend the `IDispatcher` and implement the following function
+
+```scala
+def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String];
+```
+
+Output dispatchers are abstracted by the OutputDispatcher object.
+
+APIs and example usage of OutputDispatcher
+
+```scala
+// APIs
+
+// Dispatch to multiple outputs
+def dispatch(outputs: Option[Array[Dispatcher]], events: RDD[String])
+
+// Dispatch to single output
+def dispatch(dispatcher: Dispatcher, events: RDD[String])
+
+// Example Usage:
+val rdd: RDD[String] = ....;
+// File dispatcher
+OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "/mnt/data/analytics/test_ouput.log")), rdd);
+
+// Dispatcher JSON schema
+
+{
+	"to": "", // file, s3, kafka, console, script
+	"params": {
+		// Dispatcher specific config parameters. Like topic and brokerList for kafka
+	}
+}
+
+// Dispatcher Schema definition
+case class Dispatcher(to: String, params: Map[String, AnyRef]);
+```
 
 #### Utility APIs
 
