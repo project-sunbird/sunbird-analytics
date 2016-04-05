@@ -55,7 +55,7 @@ Following are the package structures that are required to be imported to invoke 
 ```scala
 
 /**
- * This package contains all the models currently implemented. All the models are required to extend IBatchModel and implement the generic interface <code>def execute(events: RDD[T], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String]</code>. Following are the models implemented
+ * This package contains all the models currently implemented. All the models are required to extend IBatchModel and implement the generic interface `def execute(events: RDD[T], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String]`. Following are the models implemented
  * 1. LearnerSessionSummary - To compute the session summaries from raw telemetry of version v1
  * 2. LearnerSessionSummaryV2 - To compute the session summaries from raw telemetry of version v2
  * 3. LearnerActivitySummary - To compute the learner activity summary for the past one week
@@ -65,7 +65,7 @@ Following are the package structures that are required to be imported to invoke 
 import org.ekstep.analytics.framework.model._
 
 /**
- * This package contains all the database updaters currently implemented. Database updaters are also implemeted as models so should extend IBatchModel and implement the <code>execute()</code> function. Following are the updaters implemented
+ * This package contains all the database updaters currently implemented. Database updaters are also implemeted as models so should extend IBatchModel and implement the `execute()` function. Following are the updaters implemented
  * 1. UpdateLearnerActivity - To store the learner activity snapshot into learner db
  * 2. LearnerContentActivitySummary - To store the learner activity per content. Used for RE
  */
@@ -303,7 +303,7 @@ def post[T](apiURL: String, body: String) : T = {}
 val url = Constants.getContentAPIUrl("org.ekstep.story.hi.elephant");
 val response = RestUtil.get[Response](url); //Get content by content ID and parse it to response object
 
-// Refer to the test case <b>TestRestUtil</b> for more examples
+// Refer to the test case `TestRestUtil` for more examples
 ```
 
 Following are the utility APIs in JSONUtils
@@ -325,11 +325,46 @@ val event = JSONUtils.deserialize[Event](line);
 
 Following are the APIs of Content Adapter
 
+```scala
+// Get the game list - V1 api which is the same API used by genie services
+def getGameList(): Array[Game] = {}
+
+// Get all content list with status "Live"
+def getAllContent(): Array[Content] = {}
+
+// Get all items linked to a content.
+def getContentItems(contentId: String, apiVersion: String = "v1") : Array[Item] = {}
+```
+
 Following are the APIs of Item Adapter
+
+```scala
+// Get item concept and max score given a content and item id. This is used by proficiency updater.
+def getItemConceptMaxScore(contentId: String, itemId: String, apiVersion: String = "v1"): ItemConcept = {}
+```
 
 Following are the APIs of Domain Adapter
 
+```scala
+// Get the domain map from the LP. It contains all the "Live" concepts and relations.
+def getDomainMap() : DomainMap = {}
+```
+
 Following are the APIs of User Adapter
+
+```scala
+
+// Get the user profile fields (handle, age, gender, language, standard etc) for a specific user
+def getUserProfileMapping(userId: String): UserProfile = {}
+
+// Get the language mapping in the system. id to code mapping.
+def getLanguageMapping(): Map[Int, String] = {}
+
+// Get the language mapping in the system for a given id.
+def getLanguageMapping(langId: Int): String = {}
+```
+
+Go through the `Models` defined in the framework to get better understanding of the models passed by the adapters
 
 ***
 
