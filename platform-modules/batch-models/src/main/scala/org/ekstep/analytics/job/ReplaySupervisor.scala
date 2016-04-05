@@ -12,15 +12,21 @@ import org.ekstep.analytics.framework.exception.DataFetcherException
 object ReplaySupervisor extends Application {
 
     def main(model: String, fromDate: String, toDate: String, config: String) {
-
         val con = JSONUtils.deserialize[JobConfig](config)
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
+        try {
+            execute(model, fromDate, toDate, config)(sc);
+        } finally {
+            CommonUtil.closeSparkContext()(sc);  
+        }
+    }
 
+    def execute(model: String, fromDate: String, toDate: String, config: String)(implicit sc: SparkContext) {
         val dateRange = CommonUtil.getDatesBetween(fromDate, Option(toDate))
         for (date <- dateRange) {
             try {
                 val jobConfig = config.replace("__endDate__", date)
-                model match {
+                model.toLowerCase() match {
                     case "lp" =>
                         println("Running LearnerProficiencySummary for the date : " + date);
                         ProficiencyUpdater.main(jobConfig)(Option(sc));
@@ -34,18 +40,16 @@ object ReplaySupervisor extends Application {
                         println("Running RecommendationEngine for the date : " + date);
                         RecommendationEngineJob.main(jobConfig)(Option(sc));
                     case _ =>
-                        CommonUtil.closeSparkContext()(sc);
                         throw new Exception("Model Code is not correct");
                 }
             } catch {
                 case ex: DataFetcherException => {
-                    println("File is missing in S3 with date " + date)
+                    println("### File is missing in S3 with date - " + date + " | Model - " + model + " ###");
                 }
                 case ex: Exception => {
-                    println(ex)
+                    throw ex;
                 }
             }
         }
-        CommonUtil.closeSparkContext()(sc)
     }
 }
