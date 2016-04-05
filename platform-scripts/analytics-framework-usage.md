@@ -156,8 +156,6 @@ def filter[T](events: Buffer[T], filter: Filter): Buffer[T]
 def sortBy[T](events: RDD[T], sort: Sort): RDD[T]
 ```
 
-The `DataFilter` can do a nested filter too based on bean properties (silimar to json filter). 
-
 Structure of the `Filter` and `Sort` objects are 
 
 ```scala
@@ -185,6 +183,14 @@ val rdd:RDD[Event] = DataFetcher.fetchBatchData[Event](Fetcher(...));
 // Filter the rdd of events to only contain either OE_ASSESS or OE_INTERACT events only
 val filterdRDD = DataFilter.filter[Event](rdd, Filter("eid", "IN", Option(Array("OE_ASSESS", "OE_INTERACT"))));
 ```
+
+The `DataFilter` can do a nested filter too based on bean properties (silimar to json filter). For ex:
+
+```scala
+val filterdRDD = DataFilter.filter[Event](rdd, Filter("gdata.id", "EQ", Option("org.ekstep.delta")));
+val filterdRDD = DataFilter.filter[Event](rdd, Filter("edata.eks.id", "ISNOTNULL", None));
+```
+
 
 #### Output Data
 
@@ -235,16 +241,199 @@ case class Dispatcher(to: String, params: Map[String, AnyRef]);
 
 #### Utility APIs
 
+Following are the key utility APIs in CommonUtil
+
+```scala
+
+// Create and return the spark context
+def getSparkContext(parallelization: Int, appName: String): SparkContext {}
+
+// Set the s3 access key and secret fetched from environment variables
+def setS3Conf(sc: SparkContext) {}
+
+// Get dates between two dates
+def getDatesBetween(fromDate: String, toDate: Option[String]): Array[String] {}
+
+// Get the event (telemetry v1) timestamp in epoch format.
+def getEventTS(event: Event): Long {}
+
+// Get the event sync ts (telemetry v1) in epoch format.
+def getEventSyncTS(event: Event): Long {}
+
+// Get the time diff between two events
+def getTimeDiff(start: Event, end: Event): Option[Double] {}
+
+// Get the timestamp in epoch format from the datetime in string
+def getTimestamp(timeInString: String): Long {}
+
+// Round the decimal
+def roundDouble(value: Double, precision: Int): Double {}
+
+// Get the message id for an event. This is used as document id while indexing the data in ES
+def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long): String {}
+
+```
+
+Following are the utility APIs in S3Util
+
+```scala
+
+// Upload a local file to S3 to the given bucket and key
+def upload(bucketName: String, filePath: String, key: String) {}
+
+// Get all keys in the bucket matching the prefix
+def getAllKeys(bucketName: String, prefix: String): Array[String] = {}
+
+// Search the bucket for all the keys matching the prefix and the date range. Delta is used in conjunction with toDate here. For ex: a toDate of 10-01-2016 and delta of 2 returns all keys matching the date range 08-01-2016 to 10-01-2016
+def search(bucketName: String, prefix: String, fromDate: Option[String] = None, toDate: Option[String] = None, delta:Option[Int] = None): Buffer[String] = {}
+
+```
+
+Following are the utility APIs in RestUtil
+
+```scala
+
+// API to get data from the given URL. The expected response type is JSON and is serialized to the type passed
+def get[T](apiURL: String) : T = {}
+
+// API to post data to the given URL. The expected response type is JSON and is serialized to the type passed
+def post[T](apiURL: String, body: String) : T = {}
+
+// Example Usage
+val url = Constants.getContentAPIUrl("org.ekstep.story.hi.elephant");
+val response = RestUtil.get[Response](url); //Get content by content ID and parse it to response object
+
+// Refer to the test case <b>TestRestUtil</b> for more examples
+```
+
+Following are the utility APIs in JSONUtils
+
+```scala
+// Serialize any object to JSON
+def serialize(obj: AnyRef): String = {}
+
+// Deserialize a JSON string to object of the Type T.
+def deserialize[T: Manifest](value: String): T = {}
+
+// Example Usage
+val line = {"eid":"OE_START","ts":"2016-01-01T12:13:20+05:30","@timestamp":"2016-01-02T00:59:22.924Z","ver":"1.0","gdata":{"id":"org.ekstep.aser.lite","ver":"5.7"},"sid":"a6e4b3e2-5c40-4d5c-b2bd-44f1d5c7dd7f","uid":"2ac2ebf4-89bb-4d5d-badd-ba402ee70182","did":"828bd4d6c37c300473fb2c10c2d28868bb88fee6","edata":{"eks":{"loc":null,"mc":null,"mmc":null,"pass":null,"qid":null,"qtype":null,"qlevel":null,"score":0,"maxscore":0,"res":null,"exres":null,"length":null,"exlength":0.0,"atmpts":0,"failedatmpts":0,"category":null,"current":null,"max":null,"type":null,"extype":null,"id":null,"gid":null}}};
+val event = JSONUtils.deserialize[Event](line);
+
+```
+
+#### Data Adapters
+
+Following are the APIs of Content Adapter
+
+Following are the APIs of Item Adapter
+
+Following are the APIs of Domain Adapter
+
+Following are the APIs of User Adapter
+
 ***
 
 ### Examples
 
 #### Connect to spark-shell
 
+```sh
+# Connect to spark-shell with analytics framework and batch models included in classpath
+<spark-home>/bin/spark-shell --jars <models-dir>/analytics-framework-0.5.jar,<models-dir>/batch-models-1.0.jar
+
+# Connect to spark-shell with analytics framework and batch models included in classpath and providing custom cassandra host 
+<spark-home>/bin/spark-shell --jars <models-dir>/analytics-framework-0.5.jar,<models-dir>/batch-models-1.0.jar --conf "spark.cassandra.connection.host=127.0.0.1"
+```
+
 #### Example scripts to read data
+
+```scala
+
+// Import required packages and set s3 credentials
+import org.ekstep.analytics.framework.util._
+import org.ekstep.analytics.framework._
+CommonUtil.setS3Conf(sc);
+
+implicit val sparkContext = sc; // Re-assign the spark context as an implicit variable. Framework is designed to expect sc as implicit variable
+
+// Read some data form S3
+val queries = Option(Array(Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-01-04"))));
+val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
+// Print the count on the console
+rdd.count();
+
+// Read data from local file
+val queries = Option(Array(JSONUtils.deserialize[Query]("{\"file\":\"/mnt/data/analytics/akshara_session_summary.log\"}")))
+val rdd = DataFetcher.fetchBatchData[MeasuredEvent](Fetcher("local", None, queries));
+rdd.count();
+```
 
 #### Example scripts to filter data
 
+```scala
+// Get rdd as done in the first script
+val filteredEvents = DataFilter.filter[Event](rdd, Filter("eid", "EQ", Option("OE_ASSESS")));
+filteredEvents.count();
+
+// Go through the test case TestDataFilter for more examples
+```
+
 #### Example scripts to dispatch output
 
+```scala
+// Get rdd as done in the first script
+val rddAsString = rdd.map(JSONUtils.serialize(_));
+
+/*
+ * Dispatch output to file. Available params is "file" which is required
+ */
+OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "/mnt/data/analytics/test_ouput.log")), rddAsString);
+
+/*
+ * Dispatch output to console. By default prints the total events size to console. Available params are:
+ * 1. printEvent -> whether to print each event to console
+ */
+OutputDispatcher.dispatch(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])), rddAsString);
+
+/*
+ * Dispatch output to kafka. Available params are:
+ * 1. brokerList -> Kafka broker list. Required parameter
+ * 2. topic -> topic to dispatch the data. Required parameter
+ */
+OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "telemetry.derived")), rddAsString);
+
+/*
+ * Dispatch output to s3. Available params are:
+ * 1. bucket -> S3 bucket name. Required parameter
+ * 2. key -> S3 key for the uploaded file. Required parameter
+ * 3. zip -> true/false. Defaults to false. Whether to gzip the file or not.
+ * 4. filePath -> Local file path to upload. Optional. Defaults to rdd if this is empty
+ */
+OutputDispatcher.dispatch(Dispatcher("s3", Map("bucket" -> "lpdev-ekstep", "key" -> "test-key", "zip" -> true.asInstanceOf[AnyRef])), rddAsString);
+
+/*
+ * Dispatch output to a script. Available params are:
+ * 1. script -> script to invoke including the path. Required parameter
+ */
+OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "/mnt/data/analytics/generateReport.R")), rddAsString);
+```
+
 #### End to End sample script
+
+Following is a sample script to fetch "takeoff" game data from production and compute average timespent per session
+
+```scala
+import org.ekstep.analytics.framework.util._
+import org.ekstep.analytics.framework._
+CommonUtil.setS3Conf(sc);
+
+implicit val sparkContext = sc;
+
+// Read some data form S3
+val queries = Option(Array(Query(Option("ekstep-telemetry"), Option("prod.telemetry.unique-"), Option("2016-01-15"), Option("2016-01-20"))));
+val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
+val oeEndEvents = DataFilter.filter(rdd, Filter("eid", "EQ", Option("OE_END")));
+val takeOffSessions = DataFilter.filter(oeEndEvents, Filter("gdata.id", "EQ", Option("org.ekstep.delta")));
+val timeSpent = takeOffSessions.map(e => CommonUtil.getTimeSpent(e.edata.eks.length).get);
+timeSpent.mean(); // = 685.88
+```
