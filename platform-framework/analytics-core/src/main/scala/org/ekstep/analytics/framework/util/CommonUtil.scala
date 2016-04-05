@@ -61,8 +61,8 @@ object CommonUtil {
             println("### Master not found. Setting it to local[*] ###");
             conf.setMaster("local[*]");
         }
-        if(!conf.contains("spark.cassandra.connection.host")) {
-            conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))            
+        if (!conf.contains("spark.cassandra.connection.host")) {
+            conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
@@ -75,7 +75,7 @@ object CommonUtil {
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
-    
+
     def closeSparkContext()(implicit sc: SparkContext) {
         println("### Closing Spark Context ###");
         sc.stop();
@@ -129,16 +129,16 @@ object CommonUtil {
     def getEventTS(event: Event): Long = {
         getTimestamp(event.ts);
     }
-    
+
     def getEventSyncTS(event: Event): Long = {
         val timeInString = event.`@timestamp`;
         var ts = getTimestamp(timeInString, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-        if(ts == 0) {
+        if (ts == 0) {
             ts = getTimestamp(timeInString, df3, "yyyy-MM-dd'T'HH:mm:ssZZ");
         }
-        if(ts == 0) {
+        if (ts == 0) {
             try {
-                ts = getTimestamp(timeInString.substring(0,19), df6, "yyyy-MM-dd'T'HH:mm:ss");   
+                ts = getTimestamp(timeInString.substring(0, 19), df6, "yyyy-MM-dd'T'HH:mm:ss");
             } catch {
                 case ex: Exception =>
                     ts = 0L;
@@ -146,7 +146,7 @@ object CommonUtil {
         }
         ts;
     }
-    
+
     def getEventDate(event: Event): Date = {
         try {
             df3.parseLocalDate(event.ts).toDate;
@@ -233,13 +233,13 @@ object CommonUtil {
 
         val st = getTimestamp(start.ts);
         val et = getTimestamp(end.ts);
-        if(et == 0 || st == 0) {
+        if (et == 0 || st == 0) {
             Option(0d);
         } else {
-            Option(roundDouble(((et - st).toDouble / 1000), 2));    
+            Option(roundDouble(((et - st).toDouble / 1000), 2));
         }
     }
-    
+
     def getTimeDiff(start: Long, end: Long): Option[Double] = {
 
         Option((end - start).toDouble / 1000);
@@ -257,7 +257,7 @@ object CommonUtil {
         }
         hrList += endHr;
     }
-    
+
     def getTimestamp(ts: String, df: DateTimeFormatter, pattern: String): Long = {
         try {
             df.parseDateTime(ts).getMillis;
@@ -267,15 +267,15 @@ object CommonUtil {
                 0;
         }
     }
-    
-    def getTimestamp(timeInString: String) : Long = {
+
+    def getTimestamp(timeInString: String): Long = {
         var ts = getTimestamp(timeInString, df3, "yyyy-MM-dd'T'HH:mm:ssZZ");
-        if(ts == 0) {
+        if (ts == 0) {
             ts = getTimestamp(timeInString, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         }
-        if(ts == 0) {
+        if (ts == 0) {
             try {
-                ts = getTimestamp(timeInString.substring(0,19), df6, "yyyy-MM-dd'T'HH:mm:ss");   
+                ts = getTimestamp(timeInString.substring(0, 19), df6, "yyyy-MM-dd'T'HH:mm:ss");
             } catch {
                 case ex: Exception =>
                     ts = 0L;
@@ -283,23 +283,23 @@ object CommonUtil {
         }
         ts;
     }
-    
+
     def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
         Option(metadata.getOrElse("tags", List[String]()).asInstanceOf[List[String]].toArray);
     }
-    
-    def roundDouble(value: Double, precision: Int) : Double = {
+
+    def roundDouble(value: Double, precision: Int): Double = {
         BigDecimal(value).setScale(precision, BigDecimal.RoundingMode.HALF_UP).toDouble;
     }
-    
-    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA") : String = {
+
+    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA"): String = {
         val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
-    
-    def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long) : String = {
+
+    def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long): String = {
         val key = Array(eventId, userId, df4.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
-    
+
 }
