@@ -8,7 +8,12 @@ import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.mutable.HashMap
-import org.joda.time.Days
+import java.text.SimpleDateFormat
+import java.util.Date
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
+import org.joda.time.LocalDate
+import org.joda.time.DateTime
 
 class Summary(val contentId: String,val ver: String, val dtRange: DtRange,val syncDate: Long, 
                  val loc: Option[String], val timeSpent: Double, val numSessions: Long, val averageTsSession: Double, 
@@ -16,6 +21,8 @@ class Summary(val contentId: String,val ver: String, val dtRange: DtRange,val sy
                  val numSessionsWeek: Long, val tsWeek: Double) extends Serializable {};
 
 object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
+  
+  val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
   
   def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
     println("### Running the model ContentSummary ###");
@@ -34,8 +41,8 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
       val gameVersion = events.head.ver
       val eventStartTimestamp = firstEvent.syncts
       val eventEndTimestamp = lastEvent.syncts
-      val startDate = null
-      val currentDate = null
+      val startDate = new DateTime(firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent"))
+      val currentDate = null//getMeasuredEventStartDate(lastEvent)
       val numSessions = events.size
       val timeSpent = events.map{x => 
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
@@ -45,8 +52,8 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("interactEventsPerMin").get.asInstanceOf[Double])
       }.asInstanceOf[List[Double]]
       val averageInteractionsMin = ((interactionsMinSession.map(x => x).sum)/interactionsMinSession.size)
-      val numSessionsWeek = numSessions/getWeeksBetween(startDate,currentDate)
-      val tsWeek = timeSpent/getWeeksBetween(startDate,currentDate)
+      val numSessionsWeek = 0l//numSessions/getWeeksBetween(startDate,currentDate)
+      val tsWeek = 0l//timeSpent/getWeeksBetween(startDate,currentDate)
       new Summary(gameId,gameVersion,DtRange(eventStartTimestamp,eventEndTimestamp), lastEvent.syncts, 
                None, timeSpent, numSessions, averageTsSession, interactionsMinSession.asInstanceOf[List[Double]], 
                averageInteractionsMin, numSessionsWeek, tsWeek )
@@ -73,9 +80,18 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
             MEEdata(measures));
     
   }
-  private def getWeeksBetween(fromDate: String, toDate: Option[String]): Int = {
-    val dates = CommonUtil.getDatesBetween(fromDate,toDate)
+  private def getWeeksBetween(fromDate: LocalDate, toDate: LocalDate): Int = {
+    val dates = CommonUtil.datesBetween(fromDate,toDate)
     val weeks = dates.size/7
     weeks
   }
+//  def getMeasuredEventStartDate(event: MeasuredEvent): LocalDate = {
+//        try {
+//            df4.parseLocalDate(event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("start_time").asInstanceOf[String]);
+//        } catch {
+//            case _: Exception =>
+//                Console.err.println("Invalid event time", event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("start_time"));
+//                null;
+//        }
+//    }
 }
