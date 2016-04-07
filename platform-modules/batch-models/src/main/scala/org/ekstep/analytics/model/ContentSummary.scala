@@ -8,11 +8,12 @@ import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.mutable.HashMap
+import org.joda.time.Days
 
 class Summary(val contentId: String,val ver: String, val dtRange: DtRange,val syncDate: Long, 
                  val loc: Option[String], val timeSpent: Double, val numSessions: Long, val averageTsSession: Double, 
                  val interactionsMinSession: List[Double], val averageInteractionsMin: Double, 
-                 val numSessionsWeek: Map[String, Int], val tsWeek: Map[String, Double]) extends Serializable {};
+                 val numSessionsWeek: Long, val tsWeek: Double) extends Serializable {};
 
 object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
   
@@ -33,7 +34,8 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
       val gameVersion = events.head.ver
       val eventStartTimestamp = firstEvent.syncts
       val eventEndTimestamp = lastEvent.syncts
- 
+      val startDate = null
+      val currentDate = null
       val numSessions = events.size
       val timeSpent = events.map{x => 
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
@@ -43,8 +45,8 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("interactEventsPerMin").get.asInstanceOf[Double])
       }.asInstanceOf[List[Double]]
       val averageInteractionsMin = ((interactionsMinSession.map(x => x).sum)/interactionsMinSession.size)
-      val numSessionsWeek = null
-      val tsWeek = null
+      val numSessionsWeek = numSessions/getWeeksBetween(startDate,currentDate)
+      val tsWeek = timeSpent/getWeeksBetween(startDate,currentDate)
       new Summary(gameId,gameVersion,DtRange(eventStartTimestamp,eventEndTimestamp), lastEvent.syncts, 
                None, timeSpent, numSessions, averageTsSession, interactionsMinSession.asInstanceOf[List[Double]], 
                averageInteractionsMin, numSessionsWeek, tsWeek )
@@ -56,9 +58,8 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
 
   private def getMeasuredEvent(userMap: (String, Summary), config: Map[String, AnyRef]): MeasuredEvent = {
         val game = userMap._2;
-        val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", userMap._1, "CONTENT", game.dtRange, game.contentId);
+        val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, "CONTENT", game.dtRange, game.contentId);
         val measures = Map(
-            "contentId" -> game.contentId,
             "timeSpent" -> game.timeSpent,
             "numSessions" -> game.numSessions,
             "averageTsSession" -> game.averageTsSession,
@@ -68,8 +69,13 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
             "tsWeek" -> game.tsWeek);
         MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CONTENT", game.dtRange),
-            Dimensions(None, Option(game.contentId), Option(new GData(game.contentId, game.ver)), None, None, None, game.loc),
+            Dimensions(None, None, None, None, None, None, None),
             MEEdata(measures));
     
+  }
+  private def getWeeksBetween(fromDate: String, toDate: Option[String]): Int = {
+    val dates = CommonUtil.getDatesBetween(fromDate,toDate)
+    val weeks = dates.size/7
+    weeks
   }
 }
