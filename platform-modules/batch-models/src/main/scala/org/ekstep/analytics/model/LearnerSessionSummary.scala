@@ -144,7 +144,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         stageMap.map{x=>ScreenSummary(x._1,x._2)};
     }
 
-    def execute(sc: SparkContext, data: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
@@ -276,7 +276,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "telemetryVersion" -> "1.0",
             "contentType" -> game.contentType,
             "mimeType" -> game.mimeType);
-        MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), "1.0", mid, Option(userMap._1), None, None,
+        MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));

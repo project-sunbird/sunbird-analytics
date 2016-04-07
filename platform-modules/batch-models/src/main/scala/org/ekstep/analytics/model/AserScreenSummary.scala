@@ -35,7 +35,7 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
  */
 object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
 
-    def execute(sc: SparkContext, events: RDD[Event], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -144,7 +144,7 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
                 as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
             if (endTest != null && exit != null)
                 as.summary = CommonUtil.getTimeDiff(endTest, exit);
-            (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)),did);
+            (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), did, CommonUtil.getTimestamp(oeStart.`@timestamp`));
         }
 
         aserSreenSummary.map(f => {
@@ -155,10 +155,10 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange, String, String, String)), config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange, String, String, String, Long)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
         val mid = CommonUtil.getMessageId("ME_ASER_SCREEN_SUMMARY", userMap._1, "SESSION", userMap._2._2, userMap._2._3);
-        MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), null, "1.0", Option(userMap._1), None, None,
+        MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), userMap._2._6, mid, "1.0", Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", userMap._2._2),
             Dimensions(None, Option(userMap._2._5), Option(new GData(userMap._2._3, userMap._2._4)), None, None, None, None),
             MEEdata(measures));

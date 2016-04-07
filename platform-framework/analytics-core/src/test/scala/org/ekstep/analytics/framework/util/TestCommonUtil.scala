@@ -134,6 +134,8 @@ class TestCommonUtil extends BaseSpec {
         
         CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L)) should be ("C19F6BCE41181AD104CA3C706C2F5FD7");
         CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L), "org.ekstep.aser.lite") should be ("08EF6AB8668213851E407CEBCEFDF425");
+        
+        CommonUtil.getMessageId("ME_TEST", "123", "MONTH", 1451650400000L) should be ("95A1A252B816DAAAAE2A3E986FC91ABB");
 
     }
 }

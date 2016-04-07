@@ -10,26 +10,42 @@ import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
+import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework.TelemetryEventV2
 
 /**
  * @author Santhosh
  */
 object BatchJobDriver {
 
-    def process[T](config: JobConfig, model: IBatchModel[T])(implicit mf:Manifest[T]) {
+    def process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
 
         JobContext.parallelization = CommonUtil.getParallelization(config);
-        //TODO: Create spark context as an implicit object
-        val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
-        try {
-            val rdd = DataFetcher.fetchBatchData[T](sc, config.search);
-            if(config.deviceMapping.nonEmpty && config.deviceMapping.get)
-                JobContext.deviceMapping = rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
-            val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
-            val output = model.execute(sc, filterRdd, config.modelParams);
-            OutputDispatcher.dispatch(config.output, output);
-        } finally {
-            CommonUtil.closeSparkContext(sc);
+        if (null == sc) {
+            implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
+            try {
+                _process(config, model);
+            } finally {
+                CommonUtil.closeSparkContext();
+            }
+        } else {
+            _process(config, model);
         }
+    }
+
+    private def _process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
+        val rdd = DataFetcher.fetchBatchData[T](config.search);
+        
+        if (config.deviceMapping.nonEmpty && config.deviceMapping.get)
+            JobContext.deviceMapping = mf.toString() match {
+            case "org.ekstep.analytics.framework.TelemetryEventV2" =>
+                rdd.map(x => x.asInstanceOf[TelemetryEventV2]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
+            case "org.ekstep.analytics.framework.Event" =>
+                rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
+            case _ => Map()
+        }
+        val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
+        val output = model.execute(filterRdd, config.modelParams);
+        OutputDispatcher.dispatch(config.output, output);
     }
 }

@@ -32,7 +32,7 @@ import java.security.MessageDigest
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
 case class ModelParam(concept: String, alpha: Double, beta: Double)
-case class ProficiencySummary(conceptId: String, proficiency: Double, start_ts: Long, end_ts: Long)
+case class ProficiencySummary(conceptId: String, proficiency: Double)
 
 object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -79,7 +79,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         }
     }
 
-    def execute(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
+    def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         println("### Running the proficiency updater ###");
@@ -123,8 +123,8 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
 
         val newEvidences = userSessions.mapValues { x =>
             val sortedEvents = x.sortBy { x => x.ets };
-            val eventStartTimestamp = sortedEvents(0).ets;
-            val eventEndTimestamp = sortedEvents.last.ets;
+            val eventStartTimestamp = sortedEvents(0).syncts;
+            val eventEndTimestamp = sortedEvents.last.syncts;
 
             val itemResponses = sortedEvents.map { x =>
                 val gameId = x.dimensions.gdata.get.id
@@ -204,10 +204,10 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
     }
     
     private def getMeasuredEvent(userProf: LearnerProficiency, config: Map[String, AnyRef]): MeasuredEvent = {
-        val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis));
-        val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2, userProf.start_time.getMillis, userProf.end_time.getMillis) }
+        val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "DAY", userProf.end_time.getMillis);
+        val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2) }
         val measures = Map("proficiencySummary" -> proficiencySummary)
-        MeasuredEvent(config.getOrElse("eventId", "ME_LEARNER_PROFICIENCY_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), "1.0", mid, Option(userProf.learner_id), None, None,
+        MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, Option(userProf.learner_id), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
             Dimensions(None, None, None, None, None, None, None),
             MEEdata(measures));
