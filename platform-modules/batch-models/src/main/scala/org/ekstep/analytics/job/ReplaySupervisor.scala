@@ -17,7 +17,7 @@ object ReplaySupervisor extends Application {
         try {
             execute(model, fromDate, toDate, config)(sc);
         } finally {
-            CommonUtil.closeSparkContext()(sc);  
+            CommonUtil.closeSparkContext()(sc);
         }
     }
 
@@ -27,6 +27,9 @@ object ReplaySupervisor extends Application {
             try {
                 val jobConfig = config.replace("__endDate__", date)
                 model.toLowerCase() match {
+                    case "ss" =>
+                        println("Running LearnerSessionSummary for the date : " + date);
+                        LearnerSessionSummarizer.main(jobConfig)(Option(sc));
                     case "lp" =>
                         println("Running LearnerProficiencySummary for the date : " + date);
                         ProficiencyUpdater.main(jobConfig)(Option(sc));

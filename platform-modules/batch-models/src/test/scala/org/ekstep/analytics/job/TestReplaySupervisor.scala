@@ -30,9 +30,12 @@ class TestReplaySupervisor extends BaseSpec {
         ReplaySupervisor.main("lcr", "2016-02-15", "2016-02-16", JSONUtils.serialize(config));
     }
 
+    it should " Run SS from local data " in {
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/test_data_telemetry-__endDate__*"))))), null, null, "org.ekstep.analytics.model.LearnerSessionSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(true))
+        ReplaySupervisor.main("ss", "2016-03-10", "2016-03-11", JSONUtils.serialize(config));
+    }
     it should " Run LP from local file" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/__endDate__*"))))), None, None, "org.ekstep.analytics.model.ProficiencyUpdater", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(false))
-        println(JSONUtils.serialize(config))
         ReplaySupervisor.main("lp", "2016-02-15", "2016-02-16", JSONUtils.serialize(config));
     }
     it should " Run RE from local file " in {
