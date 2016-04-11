@@ -34,6 +34,12 @@ class TestReplaySupervisor extends BaseSpec {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/test_data_telemetry-__endDate__*"))))), null, null, "org.ekstep.analytics.model.LearnerSessionSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(true))
         ReplaySupervisor.main("ss", "2016-03-10", "2016-03-11", JSONUtils.serialize(config));
     }
+
+    it should " Run ASS from local data " in {
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/test_data_telemetry-__endDate__*"))))), null, null, "org.ekstep.analytics.model.AserScreenSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(true))
+        ReplaySupervisor.main("ass", "2016-03-10", "2016-03-11", JSONUtils.serialize(config));
+    }
+    
     it should " Run LP from local file" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/__endDate__*"))))), None, None, "org.ekstep.analytics.model.ProficiencyUpdater", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(false))
         ReplaySupervisor.main("lp", "2016-02-15", "2016-02-16", JSONUtils.serialize(config));
@@ -48,8 +54,13 @@ class TestReplaySupervisor extends BaseSpec {
         ReplaySupervisor.main("las", "2016-02-19", "2016-02-20", JSONUtils.serialize(config))
     }
     
+    it should " Run LS from local file " in {
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/learner-snapshot/__endDate__*"))))), None, None, "org.ekstep.analytics.updater.UpdateLearnerActivity", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(false))
+        ReplaySupervisor.main("ls", "2016-04-01", "2016-04-06", JSONUtils.serialize(config))
+    }
+    
     it should " Run LCAS from local file " in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/__endDate__*"))))), None, None, "org.ekstep.analytics.model.LearnerActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), None, Option(false))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/__endDate__*"))))), None, None, "org.ekstep.analytics.updater.LearnerContentActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), None, Option(false))
         ReplaySupervisor.main("lcas", "2016-02-21", "2016-02-22", JSONUtils.serialize(config))
     }
     the[Exception] thrownBy {
