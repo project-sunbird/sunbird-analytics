@@ -35,7 +35,7 @@ object ReplaySupervisor extends Application {
                         ProficiencyUpdater.main(jobConfig)(Option(sc));
                     case "las" =>
                         println("Running LearnerActivitySummary for the date : " + date);
-                        LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
+                        LearnerActivitySummarizer.main(jobConfig)(Option(sc));
                     case "lcas" =>
                         println("Running LearnerContentActivitySummary for the date : " + date);
                         LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
