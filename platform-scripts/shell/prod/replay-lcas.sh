@@ -8,7 +8,7 @@ start_date=$1
 end_date=$2
 job_config='{"search":{"type":"s3","queries":[{"bucket":"prod-data-store","prefix":"ss/","endDate":"__endDate__","delta":6}]},"model":"org.ekstep.analytics.updater.LearnerContentActivitySummary","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"10.10.1.171:9092","topic":"prod.analytics.screener"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
 
-./replay-backup $start_date $end_date "prod-data-store" "lcas" "backup-lcas"
+./replay-backup.sh $start_date $end_date "prod-data-store" "lcas" "backup-lcas"
 if [ $? == 0 ]
  	then
   	echo "Backup Done Successfully..."
@@ -21,7 +21,7 @@ if [ $? == 0 ]
 	then
   		echo "Replay Supervisor Executed Successfully..."
   		echo "Deleting the back-up files"
-  		./replay-delete "prod-data-store" "backup-lcas"
+  		./replay-delete.sh "prod-data-store" "backup-lcas"
 else
  	echo "Unable to take backup"
 fi
