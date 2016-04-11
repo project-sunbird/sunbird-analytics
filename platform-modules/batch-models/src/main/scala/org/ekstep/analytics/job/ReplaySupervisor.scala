@@ -30,12 +30,18 @@ object ReplaySupervisor extends Application {
                     case "ss" =>
                         println("Running LearnerSessionSummary for the date : " + date);
                         LearnerSessionSummarizer.main(jobConfig)(Option(sc));
+                    case "ass" =>
+                        println("Running AserScreenSummary for the date : " + date);
+                        AserScreenSummarizer.main(jobConfig)(Option(sc));
                     case "lp" =>
                         println("Running LearnerProficiencySummary for the date : " + date);
                         ProficiencyUpdater.main(jobConfig)(Option(sc));
                     case "las" =>
                         println("Running LearnerActivitySummary for the date : " + date);
                         LearnerActivitySummarizer.main(jobConfig)(Option(sc));
+                    case "ls" =>
+                        println("Running LearnerSnapshot for the date : " + date);
+                        LearnerSnapshotUpdater.main(jobConfig)(Option(sc));    
                     case "lcas" =>
                         println("Running LearnerContentActivitySummary for the date : " + date);
                         LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
