@@ -12,7 +12,7 @@ class TestS3Util extends BaseSpec {
         val keys = S3Util.search("lpdev-ekstep", "output/test", None, None, None);
         keys.length should be > 0;
         
-        val keys2 = S3Util.search("sandbox-ekstep-telemetry", "sandbox.telemetry.unique-", None, None, Option(2));
+        val keys2 = S3Util.search("sandbox-data-store", "raw/", None, Option("2016-01-03"), Option(2));
         keys2 should not be null;
     }
   
