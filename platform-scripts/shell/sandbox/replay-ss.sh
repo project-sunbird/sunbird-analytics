@@ -12,7 +12,7 @@ echo "Backing up the proficiency summary records to s3://sandbox-data-store/back
 if [ $? == 0 ]
  	then
   	echo "Backup completed Successfully..."
-  	echo "Running the Proficiency Updater Replay..."
+  	echo "Running the session summarizer Replay..."
   	$SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ReplaySupervisor /mnt/data/analytics/models/batch-models-1.0.jar --model "ss" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-ss-replay.log"
 else
   	echo "Unable to take backup"
@@ -20,7 +20,7 @@ fi
 
 if [ $? == 0 ]
 	then
-  		echo "Proficiency Updater Replay Executed Successfully..."
+  		echo "Session summarizer Replay Executed Successfully..."
   		echo "Deleting the back-up files s3://sandbox-data-store/backup-ss "
   		./replay-delete.sh "sandbox-data-store" "backup-ss"
 else
