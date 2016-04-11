@@ -33,7 +33,7 @@ object ReplaySupervisor extends Application {
                     case "ssv2" =>
                         println("Running LearnerSessionSummaryV2 for the date : " + date);
                         LearnerSessionSummarizerV2.main(jobConfig)(Option(sc));
-                    case "ass" =>
+                    case "as" =>
                         println("Running AserScreenSummary for the date : " + date);
                         AserScreenSummarizer.main(jobConfig)(Option(sc));
                     case "lp" =>

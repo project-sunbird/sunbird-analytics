@@ -6,7 +6,7 @@ cd /mnt/data/analytics/scripts
 
 start_date=$1
 end_date=$2
-job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"__endDate__","delta":6}]},"model":"org.ekstep.analytics.updater.LearnerContentActivitySummary","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
+job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"__endDate__","delta":6}]},"model":"org.ekstep.analytics.updater.LearnerContentActivitySummary","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Learner Content Activity Summary","deviceMapping":false}'
 
 ./replay-backup.sh $start_date $end_date "sandbox-data-store" "lcas" "backup-lcas"
 if [ $? == 0 ]
