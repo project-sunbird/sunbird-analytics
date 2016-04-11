@@ -30,6 +30,9 @@ object ReplaySupervisor extends Application {
                     case "ss" =>
                         println("Running LearnerSessionSummary for the date : " + date);
                         LearnerSessionSummarizer.main(jobConfig)(Option(sc));
+                    case "ssv2" =>
+                        println("Running LearnerSessionSummaryV2 for the date : " + date);
+                        LearnerSessionSummarizerV2.main(jobConfig)(Option(sc));
                     case "ass" =>
                         println("Running AserScreenSummary for the date : " + date);
                         AserScreenSummarizer.main(jobConfig)(Option(sc));
@@ -41,7 +44,7 @@ object ReplaySupervisor extends Application {
                         LearnerActivitySummarizer.main(jobConfig)(Option(sc));
                     case "ls" =>
                         println("Running LearnerSnapshot for the date : " + date);
-                        LearnerSnapshotUpdater.main(jobConfig)(Option(sc));    
+                        LearnerSnapshotUpdater.main(jobConfig)(Option(sc));
                     case "lcas" =>
                         println("Running LearnerContentActivitySummary for the date : " + date);
                         LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
