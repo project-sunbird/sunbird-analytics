@@ -19,10 +19,11 @@ class Summary(val contentId: String,val ver: String, val dtRange: DtRange,val sy
                  val loc: Option[String], val timeSpent: Double, val numSessions: Long, val averageTsSession: Double, 
                  val interactionsMinSession: List[Double], val averageInteractionsMin: Double, 
                  val numSessionsWeek: Long, val tsWeek: Double) extends Serializable {};
-
+case class Content_Summary(content_id: String,start_date:DateTime, total_ts:Double,total_num_sessions:Long,
+                           average_ts_session:Double,interactions_min_session:List[Double],average_interactions_min:Double,
+                           num_sessions_week:Long,ts_week:Double)
+                 
 object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
-  
-  val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
   
   def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
     println("### Running the model ContentSummary ###");
@@ -33,16 +34,17 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
     val configMapping = sc.broadcast(config);
     val deviceMapping = sc.broadcast(JobContext.deviceMapping);
     
-    val contentMap = sortedEvents.groupBy { x => x.dimensions.gdata.head.id }
+    val contentMap = sortedEvents.groupBy { x => x.dimensions.gdata.get.id }
     val contentSummary = contentMap.mapValues { events =>
       val firstEvent = events.head
       val lastEvent = events.last
-      val gameId = events.head.dimensions.gdata.last.id
-      val gameVersion = events.head.ver
-      val eventStartTimestamp = firstEvent.syncts
-      val eventEndTimestamp = lastEvent.syncts
-      val startDate = new DateTime(firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent"))
-      val currentDate = null//getMeasuredEventStartDate(lastEvent)
+      val gameId = firstEvent.dimensions.gdata.get.id
+      val gameVersion = firstEvent.ver
+      //println(JSONUtils.serialize(lastEvent))
+      val eventStartTimestamp = firstEvent.context.date_range.from
+      val eventEndTimestamp = lastEvent.context.date_range.to
+      val currentDate = new LocalDate(eventStartTimestamp)
+      val startDate = new LocalDate(1450523803000l)
       val numSessions = events.size
       val timeSpent = events.map{x => 
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
@@ -52,8 +54,8 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("interactEventsPerMin").get.asInstanceOf[Double])
       }.asInstanceOf[List[Double]]
       val averageInteractionsMin = ((interactionsMinSession.map(x => x).sum)/interactionsMinSession.size)
-      val numSessionsWeek = 0l//numSessions/getWeeksBetween(startDate,currentDate)
-      val tsWeek = 0l//timeSpent/getWeeksBetween(startDate,currentDate)
+      val numSessionsWeek = numSessions/getWeeksBetween(startDate,currentDate)
+      val tsWeek = timeSpent/getWeeksBetween(startDate,currentDate)
       new Summary(gameId,gameVersion,DtRange(eventStartTimestamp,eventEndTimestamp), lastEvent.syncts, 
                None, timeSpent, numSessions, averageTsSession, interactionsMinSession.asInstanceOf[List[Double]], 
                averageInteractionsMin, numSessionsWeek, tsWeek )
@@ -85,13 +87,4 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
     val weeks = dates.size/7
     weeks
   }
-//  def getMeasuredEventStartDate(event: MeasuredEvent): LocalDate = {
-//        try {
-//            df4.parseLocalDate(event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("start_time").asInstanceOf[String]);
-//        } catch {
-//            case _: Exception =>
-//                Console.err.println("Invalid event time", event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("start_time"));
-//                null;
-//        }
-//    }
 }
