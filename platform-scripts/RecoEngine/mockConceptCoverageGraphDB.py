@@ -18,6 +18,8 @@ from cassandra.query import dict_factory
 # neo4j libs
 from py2neo import Graph
 from py2neo import Node, Relationship
+from py2neo import authenticate
+
 
 
 
@@ -75,7 +77,11 @@ session.row_factory = dict_factory
 # move proficiency table
 def mockConceptCoverage():
 
+    # neo4j graph connector
+    authenticate("localhost:7474", "neo4j", "1sTep123")
     graph = Graph()
+
+    
     cypher = graph.cypher
     # get a list of all content
     conceptDict = cypher.execute("MATCH (x:Concept) RETURN x.id as concept")

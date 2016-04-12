@@ -18,11 +18,14 @@ from cassandra.query import dict_factory
 # neo4j libs
 from py2neo import Graph
 from py2neo import Node, Relationship
+from py2neo import authenticate
 
 # neo4j graph connector
+authenticate("localhost:7474", "neo4j", "1sTep123")
 graph = Graph()
 # delete entire graph
 graph.delete_all()
+
 
 
 # bool flag database connections
