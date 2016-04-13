@@ -44,36 +44,57 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
       val gameVersion = firstEvent.ver
       val eventStartTimestamp = firstEvent.context.date_range.from
       val eventEndTimestamp = lastEvent.context.date_range.to
-      //val currentDate = eventStartTimestamp
-      val startDate = 1450523803000l
-      val numSessions = events.size
-      val timeSpent = events.map{x => 
+      val date_range = DtRange(eventStartTimestamp,eventEndTimestamp)
+      val prevcontentSummary = prevData.value.lookup(gameId).head
+      val prevStartDate = prevcontentSummary.start_date
+      var startDate = 0l
+      var numSessions = 0l
+      var timeSpent = 0d
+      var interactionsMinSession:List[Double] = Nil
+      var numWeeks =0
+      if(prevStartDate > eventStartTimestamp)
+      {
+        startDate = prevStartDate
+        numSessions = events.size + prevcontentSummary.total_num_sessions
+        timeSpent = events.map{x => 
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
-      }.sum
-      val averageTsSession = timeSpent/numSessions  
-      val interactionsMinSession = events.map{ x => 
+        }.sum + prevcontentSummary.total_ts
+        var prevInter = prevcontentSummary.interactions_min_session
+        interactionsMinSession = events.map{ x => 
           (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("interactEventsPerMin").get.asInstanceOf[Double])
-      }.asInstanceOf[List[Double]]
+        }.asInstanceOf[List[Double]].++(prevInter)
+        numWeeks = getWeeksBetween(startDate,eventEndTimestamp)
+      }
+      else
+      {
+        startDate = eventStartTimestamp
+        numSessions = events.size 
+        timeSpent = events.map{x => 
+          (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
+        }.sum  
+        interactionsMinSession = events.map{ x => 
+          (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("interactEventsPerMin").get.asInstanceOf[Double])
+        }.asInstanceOf[List[Double]]
+        numWeeks = getWeeksBetween(startDate,eventEndTimestamp)
+      }
+      val averageTsSession = timeSpent/numSessions  
       val averageInteractionsMin = ((interactionsMinSession.map(x => x).sum)/interactionsMinSession.size)
-      val numWeeks = getWeeksBetween(startDate,eventStartTimestamp)
-      val numSessionsWeek = numSessions/numWeeks//if(numWeeks>numSessions) numSessions else numSessions/numWeeks
-      val tsWeek = timeSpent/numWeeks
-     
-      (gameId,startDate,numSessions,timeSpent,averageTsSession,interactionsMinSession,averageInteractionsMin,numSessionsWeek,tsWeek)
-      
+      val numSessionsWeek = if(numWeeks==0) numSessions else numSessions/numWeeks//numSessions/numWeeks
+      val tsWeek = if(numWeeks==0) timeSpent else numSessions/numWeeks//timeSpent/numWeeks 
+      (gameId,startDate,numSessions,timeSpent,averageTsSession,interactionsMinSession,averageInteractionsMin,numSessionsWeek,tsWeek,date_range)     
     }.map{f => {
-      ContentSummary(f._2._1,f._2._2,f._2._3,f._2._4,f._2._5,f._2._6,f._2._7,f._2._8,f._2._9)
+      (ContentSummary(f._2._1,f._2._2,f._2._3,f._2._4,f._2._5,f._2._6,f._2._7,f._2._8,f._2._9),f._2._10)
     } 
     }.cache();
-    contentSummary.saveToCassandra("content_db", "contentsummarizer");
+    contentSummary.map(f => f._1).saveToCassandra("content_db", "contentsummarizer");
     contentSummary.map(f => {
-            getMeasuredEvent(f, configMapping.value);
+            getMeasuredEvent(f._1, configMapping.value,f._2);
         }).map { x => JSONUtils.serialize(x) };
   }
 
-  private def getMeasuredEvent(userMap: (ContentSummary), config: Map[String, AnyRef]): MeasuredEvent = {
+  private def getMeasuredEvent(userMap: ContentSummary, config: Map[String, AnyRef],date_range:DtRange): MeasuredEvent = {
         val game = userMap;
-        val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, "CONTENT", DtRange(0,0), game.content_id);
+        val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, "CONTENT", date_range, game.content_id);
         val measures = Map(
             "timeSpent" -> game.total_ts,
             "numSessions" -> game.total_num_sessions,
@@ -83,11 +104,11 @@ object ContentSummary extends IBatchModel[MeasuredEvent] with Serializable {
             "numSessionsWeek" -> game.num_sessions_week,
             "tsWeek" -> game.ts_week);
         MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), 0, "1.0", mid, Option(userMap.content_id), None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CONTENT", DtRange(0,0)),
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CONTENT", date_range),
             Dimensions(None, None, None, None, None, None, None),
             MEEdata(measures));
-    
   }
+  
   private def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
     val from = new LocalDate(fromDate)
     val to = new LocalDate(toDate)

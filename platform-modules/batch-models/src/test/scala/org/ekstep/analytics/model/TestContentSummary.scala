@@ -28,8 +28,8 @@ class TestContentSummary extends SparkSpec(null){
         eks.get("numSessions").get should be (3)
         eks.get("timeSpent").get should be (383.0)
         eks.get("averageInteractionsMin").get should be (32.123333333333335)
-//        eks.get("numSessionsWeek").get should be ()
-//        eks.get("tsWeek").get should be ()
+        eks.get("numSessionsWeek").get should be (3)
+        eks.get("tsWeek").get should be (383.0)
         
   }
 }
