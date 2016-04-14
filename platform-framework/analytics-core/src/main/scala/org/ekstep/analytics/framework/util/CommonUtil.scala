@@ -35,9 +35,12 @@ import scala.collection.mutable.Buffer
 import org.joda.time.Hours
 import org.joda.time.DateTimeZone
 import java.security.MessageDigest
+import org.apache.log4j.Logger
 
 object CommonUtil {
 
+    val logger = Logger.getLogger(JobLogger.jobName)
+    val className = this.getClass.getName
     @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();
@@ -54,11 +57,13 @@ object CommonUtil {
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
         Console.println("### Initializing Spark Context ###");
+        JobLogger.debug(logger, "Initializing Spark Context", className)
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
             println("### Master not found. Setting it to local[*] ###");
+            JobLogger.info(logger, "Master not found. Setting it to local[*]", className)
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
@@ -72,11 +77,13 @@ object CommonUtil {
     }
 
     def setS3Conf(sc: SparkContext) = {
+        JobLogger.debug(logger, "CommonUtil: setS3Conf. Configuring S3 AccessKey& SecrateKey to SparkContext", className)
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
+        JobLogger.info(logger, "Closing Spark Context", className)
         println("### Closing Spark Context ###");
         sc.stop();
     }
@@ -102,10 +109,12 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
+        JobLogger.debug(logger, "Deleting directory " + path, className)
         Files.walkFileTree(path, new Visitor());
     }
 
     def deleteFile(file: String) {
+        JobLogger.debug(logger, "Deleting file " + file, className)
         Files.delete(get(file));
     }
 

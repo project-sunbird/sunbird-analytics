@@ -8,17 +8,25 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.model.LearnerProficiencySummary
 import org.ekstep.analytics.framework.exception.DataFetcherException
+import org.ekstep.analytics.framework.util.JobLogger
+import org.apache.log4j.Logger
 
 object ReplaySupervisor extends Application {
 
+    val logger = Logger.getLogger(JobLogger.jobName)
+    logger.setLevel(JobLogger.level)
+    val className = this.getClass.getName
+
     def main(model: String, fromDate: String, toDate: String, config: String) {
+        JobLogger.info(logger, "Started executing ReplaySupervisor", className)
         val con = JSONUtils.deserialize[JobConfig](config)
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
         try {
             execute(model, fromDate, toDate, config)(sc);
         } finally {
-            CommonUtil.closeSparkContext()(sc);  
+            CommonUtil.closeSparkContext()(sc);
         }
+        JobLogger.info(logger, "Replay Supervisor completed...", className)
     }
 
     def execute(model: String, fromDate: String, toDate: String, config: String)(implicit sc: SparkContext) {
@@ -44,9 +52,11 @@ object ReplaySupervisor extends Application {
                 }
             } catch {
                 case ex: DataFetcherException => {
+                    JobLogger.error(logger, "File is missing in S3 with date - " + date + " | Model - " + model, className, ex)
                     println("### File is missing in S3 with date - " + date + " | Model - " + model + " ###");
                 }
                 case ex: Exception => {
+                    JobLogger.error(logger, "Unable to execute a Model with the code: "+model, className, ex)
                     throw ex;
                 }
             }

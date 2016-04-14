@@ -23,6 +23,8 @@ import java.io.FileWriter
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.SessionBatchModel
 import java.security.MessageDigest
+import org.ekstep.analytics.framework.util.JobLogger
+import org.apache.log4j.Logger
 
 case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d),
                         var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d),
@@ -35,11 +37,18 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
  */
 object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
 
+    val logger = Logger.getLogger(JobLogger.jobName)
+    val className = this.getClass.getName
     def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.info(logger, "AserScreenSummary: execute method starting", className)
         val config = jobParams.getOrElse(Map[String, AnyRef]());
+        JobLogger.debug(logger, "Broadcasting job config", className)
         val configMapping = sc.broadcast(config);
+        JobLogger.debug(logger, "Doing game sessionization", className)
         val gameSessions = getGameSessions(events);
+
+        JobLogger.debug(logger, "AserScreenSummary: Started calculating screener information", className)
         val aserSreenSummary = gameSessions.mapValues { x =>
             //            val startTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x(0))) } else { Option(0l) };
             //            val endTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x.last)) } else { Option(0l) };
@@ -147,11 +156,13 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
             (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), did, CommonUtil.getTimestamp(oeStart.`@timestamp`));
         }
 
+        JobLogger.debug(logger, "Serializing 'ME_ASER_SCREEN_SUMMARY' MeasuredEvent", className)
+        JobLogger.info(logger, "AserScreenSummary: execute method ending", className)
         aserSreenSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
-    
+
     /**
      * Get the measured event from the UserMap
      */

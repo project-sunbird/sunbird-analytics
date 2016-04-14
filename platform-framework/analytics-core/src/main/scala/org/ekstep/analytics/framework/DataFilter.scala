@@ -8,25 +8,31 @@ import org.apache.commons.beanutils.BeanUtils
 import org.apache.commons.beanutils.PropertyUtils
 import org.ekstep.analytics.framework.filter.Matcher
 import scala.collection.mutable.Buffer
+import org.apache.log4j.Logger
+import org.ekstep.analytics.framework.util.JobLogger
 
 /**
  * @author Santhosh
  */
 object DataFilter {
-    
+
     /**
      * Execute multiple filters and sort
      */
+    val logger = Logger.getLogger(JobLogger.jobName)
+    val className = this.getClass.getName
     @throws(classOf[DataFilterException])
     def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[T] = {
         Console.println("### Running the filter and sort process ###");
+        JobLogger.info(logger, "Running the filter and sort process", className)
         val filteredEvents = if (filters.nonEmpty) { filter(events, filters.get) } else events;
         if (sort.nonEmpty) { sortBy(filteredEvents, sort.get) } else filteredEvents;
     }
-    
+
     @throws(classOf[DataFilterException])
     def filter[T](events: RDD[T], filters: Array[Filter]): RDD[T] = {
         Console.println("### Running the filter process ###");
+        JobLogger.info(logger, "Running the filter process", className)
         if (null != filters && filters.nonEmpty) {
             events.filter { event =>
                 var valid = true;
@@ -55,7 +61,7 @@ object DataFilter {
             events;
         }
     }
-    
+
     @throws(classOf[DataFilterException])
     def filter[T](events: Buffer[T], filter: Filter): Buffer[T] = {
         if (null != filter) {
@@ -67,7 +73,7 @@ object DataFilter {
             events;
         }
     }
-    
+
     def sortBy[T](events: RDD[T], sort: Sort): RDD[T] = {
         if (null != sort) {
             events.sortBy(f => getStringValue(f, sort.name), "asc".equalsIgnoreCase(sort.order.getOrElse("asc")), JobContext.parallelization);
@@ -75,10 +81,10 @@ object DataFilter {
             events;
         }
     }
-    
-    private def getStringValue(event: Any, name: String) : String = {
+
+    private def getStringValue(event: Any, name: String): String = {
         val value = getValue(event, name);
-        if(null == value) "" else value.toString()
+        if (null == value) "" else value.toString()
     }
 
     private def getValue(event: Any, name: String): AnyRef = {
@@ -107,7 +113,7 @@ object DataFilter {
                 case "scala.Some" =>
                     obj.asInstanceOf[Some[AnyRef]].get;
                 case "scala.None$" => null;
-                case _            => obj.asInstanceOf[AnyRef];
+                case _             => obj.asInstanceOf[AnyRef];
             }
         } else {
             obj;

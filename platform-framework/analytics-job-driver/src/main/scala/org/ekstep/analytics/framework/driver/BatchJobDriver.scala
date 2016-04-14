@@ -12,30 +12,38 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.TelemetryEventV2
+import org.ekstep.analytics.framework.util.JobLogger
+import org.apache.log4j.Logger
 
 /**
  * @author Santhosh
  */
 object BatchJobDriver {
 
+    val logger = Logger.getLogger(JobLogger.jobName)
+    val className = this.getClass.getName
     def process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
-
+        
         JobContext.parallelization = CommonUtil.getParallelization(config);
+        JobLogger.debug(logger,"Setting number of parallelization to "+ JobContext.parallelization, className)
         if (null == sc) {
             implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
+            JobLogger.debug(logger, "SparkContext initialized ",className)
             try {
                 _process(config, model);
             } finally {
+                JobLogger.debug(logger, "Closing SparkContext",className)
                 CommonUtil.closeSparkContext();
             }
         } else {
+            JobLogger.debug(logger, "BatchJobDriver: process, SparkContext is not null and starting the job",className)
             _process(config, model);
         }
     }
 
     private def _process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
+        JobLogger.debug(logger, "Fetching data with query "+config.search,className)
         val rdd = DataFetcher.fetchBatchData[T](config.search);
-        
         if (config.deviceMapping.nonEmpty && config.deviceMapping.get)
             JobContext.deviceMapping = mf.toString() match {
             case "org.ekstep.analytics.framework.TelemetryEventV2" =>
@@ -44,7 +52,10 @@ object BatchJobDriver {
                 rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
             case _ => Map()
         }
+        JobLogger.debug(logger, "Filtering input data using query "+config.filters,className)
+        JobLogger.debug(logger, "Sorting input data using query "+config.sort,className)
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
+        JobLogger.info(logger, "BatchJobDriver: _process. Started executing the model "+model.getClass.getName,className)
         val output = model.execute(filterRdd, config.modelParams);
         OutputDispatcher.dispatch(config.output, output);
     }
