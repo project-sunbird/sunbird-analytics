@@ -35,12 +35,24 @@ object ReplaySupervisor extends Application {
             try {
                 val jobConfig = config.replace("__endDate__", date)
                 model.toLowerCase() match {
+                    case "ss" =>
+                        println("Running LearnerSessionSummary for the date : " + date);
+                        LearnerSessionSummarizer.main(jobConfig)(Option(sc));
+                    case "ssv2" =>
+                        println("Running LearnerSessionSummaryV2 for the date : " + date);
+                        LearnerSessionSummarizerV2.main(jobConfig)(Option(sc));
+                    case "as" =>
+                        println("Running AserScreenSummary for the date : " + date);
+                        AserScreenSummarizer.main(jobConfig)(Option(sc));
                     case "lp" =>
                         println("Running LearnerProficiencySummary for the date : " + date);
                         ProficiencyUpdater.main(jobConfig)(Option(sc));
                     case "las" =>
                         println("Running LearnerActivitySummary for the date : " + date);
-                        LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
+                        LearnerActivitySummarizer.main(jobConfig)(Option(sc));
+                    case "ls" =>
+                        println("Running LearnerSnapshot for the date : " + date);
+                        LearnerSnapshotUpdater.main(jobConfig)(Option(sc));
                     case "lcas" =>
                         println("Running LearnerContentActivitySummary for the date : " + date);
                         LearnerContentActivityUpdater.main(jobConfig)(Option(sc));

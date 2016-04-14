@@ -92,14 +92,14 @@ class TestOutputDispatcher extends SparkSpec {
         val noEvents = sc.parallelize(Array[String]());
         
         // Invoke dispatch with Empty events
-        a[DispatcherException] should be thrownBy {
+        //a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])), noEvents);
-        }
+        //}
         
         // Invoke dispatch with Empty events
-        a[DispatcherException] should be thrownBy {
+        //a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), noEvents);
-        }
+        //}
     }
     
     it should "execute test cases related to script dispatcher" in {

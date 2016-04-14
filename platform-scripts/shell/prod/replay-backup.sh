@@ -1,8 +1,8 @@
 #!/bin/bash
 date1=$1
 date2=$2
-prefix=$4
 bucket_name=$3
+prefix=$4
 backup_dir=$5
 
 start_date=$(date -d $date1 +%s)

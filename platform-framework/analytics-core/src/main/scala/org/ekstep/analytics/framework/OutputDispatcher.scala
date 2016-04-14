@@ -19,14 +19,16 @@ object OutputDispatcher {
             throw new DispatcherException("No output configurations found");
         }
         val eventArr = events.collect();
-        if (eventArr.length == 0) {
-            Console.println("### No events produced ###");
-            throw new DispatcherException("No events produced for output dispatch");
+        if (eventArr.length != 0) {
+            outputs.get.foreach { dispatcher =>
+                Console.println("### Dispatching output to - " + dispatcher.to + " ###");
+                DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
+            }
+        } else {
+            Console.println("### No events produced for dispatch ###");
+            null;
         }
-        outputs.get.foreach { dispatcher =>
-            Console.println("### Dispatching output to - " + dispatcher.to + " ###");
-            DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
-        }
+        
     }
     
     @throws(classOf[DispatcherException])
@@ -35,11 +37,12 @@ object OutputDispatcher {
             throw new DispatcherException("No output configurations found");
         }
         val eventArr = events.collect();
-        if (eventArr.length == 0) {
+        if (eventArr.length != 0) {
+            Console.println("### Dispatching output to - " + dispatcher.to + " ###");
+            DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
+        } else {
             Console.println("### No events produced ###");
-            throw new DispatcherException("No events produced for output dispatch");
+            null;
         }
-        Console.println("### Dispatching output to - " + dispatcher.to + " ###");
-        DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
     }
 }

@@ -20,3 +20,6 @@ mkdir -p ~/secor-me
 nohup java -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.prod.properties -Dconfig=secor.prod.partition.properties -cp /home/ubuntu/secor-raw/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
 
 nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.prod.properties -Dconfig=secor.prod.partition.properties -cp /home/ubuntu/secor-me/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
+
+
+java -Xms256M -Xmx512M -ea -Dsecor_group=raw-telemetry-bkp -Dlog4j.configuration=log4j.prod.properties -Dconfig=secor.prod.partition.properties -cp secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain
