@@ -12,24 +12,26 @@ class TestContentSummary extends SparkSpec(null){
         val rdd2 = ContentSummary.execute(rdd, None);
         val me = rdd2.collect();
         
-        me.length should be(23);
+        me.length should be(3360);
 
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(1));
         println(JSONUtils.serialize(event1))
         event1.eid should be("ME_CONTENT_SUMMARY");
-        event1.mid should be("8224701A2A442F3CD81995791700435C");
+        event1.mid should be("64377A7220193B41191B8C75D861B7FF");
         event1.context.pdata.model should be("ContentSummary");
         event1.context.pdata.ver should be("1.0");
-        event1.context.granularity should be("CONTENT");
+        event1.context.granularity should be("DAY");
         event1.context.date_range should not be null;
         
         val eks = event1.edata.eks.asInstanceOf[Map[String,AnyRef]]
-        eks.get("averageTsSession").get should be (127.6667)
-        eks.get("numSessions").get should be (3)
-        eks.get("timeSpent").get should be (383.0)
-        eks.get("averageInteractionsMin").get should be (32.1233)
-        eks.get("numSessionsWeek").get should be (3)
-        eks.get("tsWeek").get should be (383.0)
+        eks.get("averageTsSession").get should be (52.0)
+        eks.get("numSessions").get should be (1)
+        eks.get("timeSpent").get should be (52.0)
+        eks.get("averageInteractionsMin").get should be (9.23)
+        eks.get("numSessionsWeek").get should be (1)
+        eks.get("tsWeek").get should be (52.0)
         
+        val event2 = JSONUtils.deserialize[MeasuredEvent](me(2));
+        println(JSONUtils.serialize(event2))
   }
 }
