@@ -23,7 +23,7 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
 
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
         
-        val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
+        val filteredData = DataFilter.filter(DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY"))), Filter("uid", "ISNOTEMPTY", None));
         val activity = filteredData.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x =>
