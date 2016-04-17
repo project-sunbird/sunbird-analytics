@@ -6,7 +6,7 @@ cd /mnt/data/analytics/scripts
 
 start_date=$1
 end_date=$2
-job_config='{"search":{"type":"s3","queries":[{"bucket":"prod-data-store","prefix":"ss/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.model.ProficiencyUpdater","modelParams":{"alpha":1.0,"beta":1.0},"output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"10.10.1.171:9092","topic":"prod.analytics.screener"}}],"parallelization":10,"appName":"Proficiency Updater","deviceMapping":false}'
+job_config='{"search":{"type":"s3","queries":[{"bucket":"prod-data-store","prefix":"ss/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.model.ProficiencyUpdater","modelParams":{"apiVersion":"v2","alpha":1.0,"beta":1.0},"output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"10.10.1.207:9092","topic":"production.telemetry.derived"}}],"parallelization":10,"appName":"Proficiency Updater","deviceMapping":false}'
 
 echo "Backing up the proficiency summary records to s3://prod-data-store/backup-lp"
 ./replay-backup.sh $start_date $end_date "prod-data-store" "lp" "backup-lp"

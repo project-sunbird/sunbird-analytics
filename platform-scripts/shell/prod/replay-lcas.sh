@@ -6,22 +6,14 @@ cd /mnt/data/analytics/scripts
 
 start_date=$1
 end_date=$2
-job_config='{"search":{"type":"s3","queries":[{"bucket":"prod-data-store","prefix":"ss/","endDate":"__endDate__","delta":6}]},"model":"org.ekstep.analytics.updater.LearnerContentActivitySummary","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"10.10.1.171:9092","topic":"prod.analytics.screener"}}],"parallelization":10,"appName":"Learner Content Activity Summary","deviceMapping":false}'
+job_config='{"search":{"type":"s3","queries":[{"bucket":"prod-data-store","prefix":"ss/","endDate":"__endDate__","delta":6}]},"model":"org.ekstep.analytics.updater.LearnerContentActivitySummary","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Learner Content Activity Summary","deviceMapping":false}'
 
-./replay-backup.sh $start_date $end_date "prod-data-store" "lcas" "backup-lcas"
-if [ $? == 0 ]
- 	then
-  	echo "Backup Done Successfully..."
-  	$SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ReplaySupervisor /mnt/data/analytics/models/batch-models-1.0.jar --model "lcas" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-lcas.log"
-else
-  	echo "Unable to take backup"
-fi
+echo "Running the Learner Content Summary Replay..."
+$SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ReplaySupervisor /mnt/data/analytics/models/batch-models-1.0.jar --model "lcas" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-lcas.log"
 
 if [ $? == 0 ] 
 	then
-  		echo "Replay Supervisor Executed Successfully..."
-  		echo "Deleting the back-up files"
-  		./replay-delete.sh "prod-data-store" "backup-lcas"
+  		echo "Learner Content Summary Replay Executed Successfully..."
 else
- 	echo "Unable to take backup"
+ 	echo "Unable to run Learner Content Summary replay"
 fi
