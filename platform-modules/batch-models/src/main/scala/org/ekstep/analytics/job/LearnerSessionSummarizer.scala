@@ -12,14 +12,12 @@ import org.ekstep.analytics.framework.util.JobLogger
  */
 object LearnerSessionSummarizer extends optional.Application {
 
-    val logger = Logger.getLogger(JobLogger.jobName)
-    logger.setLevel(JobLogger.level)
     val className = this.getClass.getName
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobLogger.info(logger, " Started executing LearnerSessionSummarizer Job", className)
+        JobLogger.info("Started executing LearnerSessionSummarizer Job", className)
         JobDriver.run[Event]("batch", config, LearnerSessionSummary);
-        JobLogger.info(logger, "LearnerSessionSummarizer Job completed....", className)
+        JobLogger.info("LearnerSessionSummarizer Job completed....", className)
     }
 
 }

@@ -18,7 +18,6 @@ import org.ekstep.analytics.framework.util.JobLogger
  */
 object DataFetcher {
 
-    val logger = Logger.getLogger(JobLogger.jobName)
     val className = this.getClass.getName
     @throws(classOf[DataFetcherException])
     def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext): RDD[T] = {
@@ -29,30 +28,30 @@ object DataFetcher {
         val keys: Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
                 Console.println("### Fetching the batch data from S3 ###");
-                JobLogger.info(logger, " Fetching the batch data from S3 ", className)
+                JobLogger.info(" Fetching the batch data from S3 ", className)
                 S3DataFetcher.getObjectKeys(search.queries.get).toArray;
             case "local" =>
                 Console.println("### Fetching the batch data from Local file ###");
-                JobLogger.info(logger, "Fetching the batch data from Local file", className)
+                JobLogger.info("Fetching the batch data from Local file", className)
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
             case _ =>
                 val exp = new DataFetcherException("Unknown fetcher type found");
-                JobLogger.error(logger, "Unable to fetch data ", className, exp)
+                JobLogger.error("Unable to fetch data ", className, exp)
                 throw exp;
         }
         if (null == keys || keys.length == 0) {
             val exp = new DataFetcherException("No S3/Local Objects found for the qiven queries");
-            JobLogger.error(logger, "File is missing", className, exp)
+            JobLogger.error("File is missing", className, exp)
             throw exp
         }
-        JobLogger.info(logger, "Deserializing Input Data", className)
+        JobLogger.info("Deserializing Input Data", className)
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
                 try {
                     JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
-                        JobLogger.error(logger, "Unable to deserialize", className, ex)
+                        JobLogger.error("Unable to deserialize", className, ex)
                         null.asInstanceOf[T]
                 }
             }

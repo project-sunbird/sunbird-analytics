@@ -8,15 +8,13 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
 
 object ProficiencyUpdater extends optional.Application {
-    
-    val logger = Logger.getLogger(JobLogger.jobName)
-    logger.setLevel(JobLogger.level)
-    val className= this.getClass.getName
-    
+
+    val className = this.getClass.getName
+
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobLogger.info(logger, "Started executing ProficiencyUpdater Job",className)
+        JobLogger.info("Started executing ProficiencyUpdater Job", className)
         JobDriver.run[MeasuredEvent]("batch", config, LearnerProficiencySummary);
-        JobLogger.info(logger, "ProficiencyUpdater Job completed",className)
+        JobLogger.info("ProficiencyUpdater Job completed", className)
     }
 }

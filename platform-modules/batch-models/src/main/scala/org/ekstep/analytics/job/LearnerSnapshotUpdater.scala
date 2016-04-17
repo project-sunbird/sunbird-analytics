@@ -14,15 +14,13 @@ import org.apache.log4j.Logger
 @Deprecated
 object LearnerSnapshotUpdater extends optional.Application {
 
-    val logger = Logger.getLogger(JobLogger.jobName)
-    logger.setLevel(JobLogger.level)
     val className = this.getClass.getName
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.info(logger, "Started executing LearnerSnapshotUpdater Job", className)
+        JobLogger.info("Started executing LearnerSnapshotUpdater Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run[MeasuredEvent]("batch", config, UpdateLearnerActivity);
-        JobLogger.info(logger, "LearnerSnapshotUpdater Job completed", className)
+        JobLogger.info("LearnerSnapshotUpdater Job completed", className)
     }
 
 }

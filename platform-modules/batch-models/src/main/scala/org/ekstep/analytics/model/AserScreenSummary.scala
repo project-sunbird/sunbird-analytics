@@ -37,18 +37,17 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
  */
 object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
 
-    val logger = Logger.getLogger(JobLogger.jobName)
     val className = this.getClass.getName
     def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.info(logger, "AserScreenSummary: execute method starting", className)
+        JobLogger.info("AserScreenSummary: execute method starting", className)
         val config = jobParams.getOrElse(Map[String, AnyRef]());
-        JobLogger.debug(logger, "Broadcasting job config", className)
+        JobLogger.debug("Broadcasting job config", className)
         val configMapping = sc.broadcast(config);
-        JobLogger.debug(logger, "Doing game sessionization", className)
+        JobLogger.debug("Doing game sessionization", className)
         val gameSessions = getGameSessions(events);
 
-        JobLogger.debug(logger, "AserScreenSummary: Started calculating screener information", className)
+        JobLogger.debug("AserScreenSummary: Started calculating screener information", className)
         val aserSreenSummary = gameSessions.mapValues { x =>
             //            val startTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x(0))) } else { Option(0l) };
             //            val endTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x.last)) } else { Option(0l) };
@@ -156,8 +155,8 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
             (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), did, CommonUtil.getTimestamp(oeStart.`@timestamp`));
         }
 
-        JobLogger.debug(logger, "Serializing 'ME_ASER_SCREEN_SUMMARY' MeasuredEvent", className)
-        JobLogger.info(logger, "AserScreenSummary: execute method ending", className)
+        JobLogger.debug("Serializing 'ME_ASER_SCREEN_SUMMARY' MeasuredEvent", className)
+        JobLogger.info("AserScreenSummary: execute method ending", className)
         aserSreenSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };

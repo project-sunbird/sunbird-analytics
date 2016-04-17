@@ -12,15 +12,13 @@ import org.apache.log4j.Logger
  */
 object LearnerSessionSummarizerV2 extends optional.Application {
 
-    val logger = Logger.getLogger(JobLogger.jobName)
-    logger.setLevel(JobLogger.level)
     val className = this.getClass.getName
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobLogger.info(logger, "Started executing LearnerSessionSummarizerV2 Job", className)
+        JobLogger.info("Started executing LearnerSessionSummarizerV2 Job", className)
         JobDriver.run[TelemetryEventV2]("batch", config, LearnerSessionSummaryV2);
-        JobLogger.info(logger, "LearnerSessionSummarizerV2 Job completed", className)
+        JobLogger.info("LearnerSessionSummarizerV2 Job completed", className)
     }
 
 }

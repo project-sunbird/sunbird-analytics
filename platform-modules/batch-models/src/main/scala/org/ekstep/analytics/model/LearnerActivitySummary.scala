@@ -28,19 +28,18 @@ case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Opt
 
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
-    val logger = Logger.getLogger("org.ekstep")
     val className = this.getClass.getName
 
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-        JobLogger.info(logger, "LearnerActivitySummary: execute method Starting", className)
-        JobLogger.debug(logger, "Filtering for ME_SESSION_SUMMARY events", className)
+        JobLogger.info("LearnerActivitySummary: execute method Starting", className)
+        JobLogger.debug("Filtering for ME_SESSION_SUMMARY events", className)
         val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         val topK = configMapping.value.getOrElse("topContent", 5).asInstanceOf[Int];
-        JobLogger.debug(logger, "Initialized 'top k content' value from config. Default = 5", className)
+        JobLogger.debug("Initialized 'top k content' value from config. Default = 5", className)
 
-        JobLogger.debug(logger, "Calculating all activities per learner", className)
+        JobLogger.debug("Calculating all activities per learner", className)
         val activity = filteredData.map(event => (event.uid.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
@@ -90,8 +89,8 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 (TimeSummary(Option(meanTimeSpent), Option(CommonUtil.roundDouble(meanTimeBtwnGamePlays, 2)), Option(meanActiveTimeOnPlatform), Option(meanInterruptTime), Option(totalTimeSpentOnPlatform), meanTimeSpentOnAnAct, Option(meanCountOfAct), numOfSessionsOnPlatform, lastVisitTimeStamp, mostActiveHrOfTheDay, topKcontent, startTimestamp, endTimestamp), DtRange(eventStartTimestamp, eventEndTimestamp));
             }
 
-        JobLogger.debug(logger, "Serializing 'ME_LEARNER_ACTIVITY_SUMMARY' MeasuredEvent", className)
-        JobLogger.info(logger, "LearnerActivitySummary: execute method Ending", className)
+        JobLogger.debug("Serializing 'ME_LEARNER_ACTIVITY_SUMMARY' MeasuredEvent", className)
+        JobLogger.info("LearnerActivitySummary: execute method Ending", className)
         activity.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
