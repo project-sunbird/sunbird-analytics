@@ -88,7 +88,6 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         JobLogger.info("LearnerProficiencySummary : execute method starting", className)
         JobLogger.debug("Filtering ME_SESSION_SUMMARY events", className)
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
-        println("### Running the proficiency updater ###");
 
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -99,7 +98,6 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
         val idSubMap: Map[String, String] = lpGameList.map { x => (x.identifier, x.subject) }.toMap;
 
-        println("### Finding the items with missing mc ###");
         JobLogger.debug("Finding the items with missing mc", className)
         val itemsWithMissingConcepts = filteredData.map { event =>
             val ir = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]];
@@ -113,7 +111,6 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         if (itemsWithMissingConcepts.count() > 0) {
 
             val items = itemsWithMissingConcepts.flatMap(f => f.map(x => x)).collect().toMap;
-            println("### Items with missing concepts - " + items.size + " ###");
             JobLogger.debug("Items with missing concepts - " + items.size, className)
             itemConcepts = items.map { x =>
                 var contentId = "";
@@ -124,7 +121,6 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
                 }
                 (x._1, ItemAdapter.getItemConceptMaxScore(x._2, x._1, config.getOrElse("apiVersion", "v1").asInstanceOf[String]));
             }.toMap;
-            println("### MC fetched from Item Model and broadcasting the data ###");
             JobLogger.debug("MC fetched from Item Model and broadcasting the data", className)
         }
 

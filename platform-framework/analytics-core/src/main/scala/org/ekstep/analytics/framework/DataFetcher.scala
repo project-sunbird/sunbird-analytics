@@ -27,11 +27,9 @@ object DataFetcher {
         }
         val keys: Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
-                Console.println("### Fetching the batch data from S3 ###");
                 JobLogger.info(" Fetching the batch data from S3 ", className)
                 S3DataFetcher.getObjectKeys(search.queries.get).toArray;
             case "local" =>
-                Console.println("### Fetching the batch data from Local file ###");
                 JobLogger.info("Fetching the batch data from Local file", className)
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
             case _ =>

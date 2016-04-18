@@ -40,11 +40,9 @@ object JobDriver {
             }
         } catch {
             case e: JsonMappingException =>
-                Console.err.println("JobDriver:main() - JobConfig parse error", e.getClass.getName, e.getMessage);
                 JobLogger.error("JobDriver:main() - JobConfig parse error", className, e)
                 throw e;
             case e: Exception =>
-                Console.err.println("JobDriver:main() - Job error", e.getClass.getName, e.getMessage);
                 JobLogger.error("JobDriver:main() - Job error", className, e)
                 throw e;
         }

@@ -58,7 +58,6 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
     def computeSijMatrix(sc: SparkContext, concepts: Array[String], j: DenseMatrix[Double], l: Double, n: Int): DenseMatrix[Double] = {
 
         val conceptSimilarityMatrix = sc.cassandraTable[ConceptSimilarity](Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE).map { x => (x.concept1, x.concept2, (x.sim)) }.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap;
-        println("#### Normalizing the Concept Similarity matrix and broadcasting it to all nodes ####")
         JobLogger.debug("Normalizing the Concept Similarity matrix", className)
         val conceptSimilarities = DenseMatrix.zeros[Double](n, n);
         for (i <- 0 until conceptSimilarities.rows)
@@ -111,7 +110,6 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         val defaultWeightTj = config.getOrElse("timeSpentWeight", 0.33).asInstanceOf[Double];
         val iterations = config.getOrElse("iterations", 3).asInstanceOf[Int];
 
-        println("#### Fetching Content List and Domain Map ####")
         JobLogger.debug("Fetching Content List and Domain Map", className)
         val contents = ContentAdapter.getAllContent();
         val concepts = DomainAdapter.getDomainMap().concepts.map { x => x.id };
@@ -120,18 +118,14 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         val conceptContentMap = contents.filterNot(x => (null == x.concepts || x.concepts.isEmpty)).map { x => (x.id, x.concepts) }.flatMap(f => f._2.map { x => (f._1, x) });
 
         JobLogger.debug("Content Coverage: " + conceptContentMap.length, className)
-        println("### Content Coverage:" + conceptContentMap.length + " ###");
-        println("### Concept Count:" + concepts.length + " ###");
         JobLogger.debug("Concept Count:" + concepts.length, className)
 
-        println("#### Broadcasting all required data ####")
         JobLogger.debug("Broadcasting all required data", className)
         val conceptsData = sc.broadcast(concepts);
         val conceptContentMapping = sc.broadcast(conceptContentMap);
         val jBroadcast = sc.broadcast(Jn);
         val SijBroadcast = sc.broadcast(computeSijMatrix(sc, concepts, Jn, defaultWeightSij, N));
 
-        println("### Preparing Learner data ###");
         JobLogger.debug("Preparing Learner data", className)
         // Get all learners date ranges
         val learnerDtRanges = filteredData.map(event => (event.uid.get, Buffer[MeasuredEvent](event)))
@@ -141,7 +135,6 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
                 DtRange(e.min, e.max);
             }.map { f => (LearnerId(f._1), f._2) };
 
-        println("### Join learners with learner database ###");
         JobLogger.debug("Join learners with learner database", className)
         // Get all learners
         val allLearners = filteredData.map(event => LearnerId(event.uid.get)).distinct;
@@ -198,14 +191,12 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         }).cache();
 
         JobLogger.debug("Saving concept relevance data to Cassandra", className)
-        println("### Saving the data to Cassandra ###");
         learnerConceptRelevance.map(f => {
             LearnerConceptRelevance(f._1, f._2)
         }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
 
         JobLogger.debug("Creating summary events", className)
         JobLogger.info("execute method end", className)
-        println("### Creating summary events ###");
         learnerConceptRelevance.map { f =>
             val relevanceScores = (f._2).map { x => RelevanceScores(x._1, x._2) }
             getMeasuredEvent(f._1, relevanceScores, configMapping.value, f._3);

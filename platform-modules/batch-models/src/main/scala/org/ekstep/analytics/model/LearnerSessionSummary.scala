@@ -153,13 +153,10 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
         val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
-        println("### Running the model LearnerSessionSummary ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
-        println("### Fetching the Content and Item data from LP ###");
         JobLogger.debug("Fetching the Content and Item data from Learing Platform", className)
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, config.getOrElse("apiVersion", "v2").asInstanceOf[String]);
-        println("### Broadcasting data to all worker nodes ###");
         JobLogger.debug("Broadcasting data to all worker nodes", className)
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);

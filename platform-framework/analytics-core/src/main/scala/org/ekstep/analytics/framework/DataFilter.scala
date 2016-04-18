@@ -22,7 +22,6 @@ object DataFilter {
     val className = this.getClass.getName
     @throws(classOf[DataFilterException])
     def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[T] = {
-        Console.println("### Running the filter and sort process ###");
         JobLogger.info("Running the filter and sort process", className)
         val filteredEvents = if (filters.nonEmpty) { filter(events, filters.get) } else events;
         if (sort.nonEmpty) { sortBy(filteredEvents, sort.get) } else filteredEvents;
@@ -30,7 +29,6 @@ object DataFilter {
 
     @throws(classOf[DataFilterException])
     def filter[T](events: RDD[T], filters: Array[Filter]): RDD[T] = {
-        Console.println("### Running the filter process ###");
         JobLogger.info("Running the filter process", className)
         if (null != filters && filters.nonEmpty) {
             events.filter { event =>

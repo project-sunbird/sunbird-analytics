@@ -34,28 +34,28 @@ object ReplaySupervisor extends Application {
                 val jobConfig = config.replace("__endDate__", date)
                 model.toLowerCase() match {
                     case "ss" =>
-                        println("Running LearnerSessionSummary for the date : " + date);
+                        JobLogger.debug("Running LearnerSessionSummary for the date : " + date, className)
                         LearnerSessionSummarizer.main(jobConfig)(Option(sc));
                     case "ssv2" =>
-                        println("Running LearnerSessionSummaryV2 for the date : " + date);
+                        JobLogger.debug("Running LearnerSessionSummaryV2 for the date : " + date, className);
                         LearnerSessionSummarizerV2.main(jobConfig)(Option(sc));
                     case "as" =>
-                        println("Running AserScreenSummary for the date : " + date);
+                        JobLogger.debug("Running AserScreenSummary for the date : " + date, className);
                         AserScreenSummarizer.main(jobConfig)(Option(sc));
                     case "lp" =>
-                        println("Running LearnerProficiencySummary for the date : " + date);
+                        JobLogger.debug("Running LearnerProficiencySummary for the date : " + date, className);
                         ProficiencyUpdater.main(jobConfig)(Option(sc));
                     case "las" =>
-                        println("Running LearnerActivitySummary for the date : " + date);
+                        JobLogger.debug("Running LearnerActivitySummary for the date : " + date, className);
                         LearnerActivitySummarizer.main(jobConfig)(Option(sc));
                     case "ls" =>
-                        println("Running LearnerSnapshot for the date : " + date);
+                        JobLogger.debug("Running LearnerSnapshot for the date : " + date, className);
                         LearnerSnapshotUpdater.main(jobConfig)(Option(sc));
                     case "lcas" =>
-                        println("Running LearnerContentActivitySummary for the date : " + date);
+                        JobLogger.debug("Running LearnerContentActivitySummary for the date : " + date, className);
                         LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
                     case "lcr" =>
-                        println("Running RecommendationEngine for the date : " + date);
+                        JobLogger.debug("Running RecommendationEngine for the date : " + date, className);
                         RecommendationEngineJob.main(jobConfig)(Option(sc));
                     case _ =>
                         throw new Exception("Model Code is not correct");
