@@ -22,7 +22,7 @@ object JobDriver {
     val className = "org.ekstep.analytics.framework.JobDriver"
     def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
         
-        JobLogger.init(model.getClass.getSimpleName);
+        JobLogger.init(model.getClass.getName.split("\\$").last);
         JobLogger.debug("Starting " + t + " job with config - " + config, className)
         AppConf.init();
         val t1 = System.currentTimeMillis;
