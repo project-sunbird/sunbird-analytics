@@ -62,11 +62,11 @@ CREATE KEYSPACE content_db WITH replication = {
 
 CREATE TABLE contentsummary (
 	content_id text, 
-	start_date bigint, 
+	start_date timestamp, 
 	total_ts double,
 	total_num_sessions bigint, 
 	average_ts_session double, 
-	interactions_min_session list<double>,
+	total_interactions bigint,
 	average_interactions_min double,
 	num_sessions_week bigint,
 	ts_week double,
