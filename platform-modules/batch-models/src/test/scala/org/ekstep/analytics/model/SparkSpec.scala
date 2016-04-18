@@ -11,6 +11,8 @@ import org.scalatest.BeforeAndAfterAll
 import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.util.JobLogger
+import org.apache.logging.log4j.Logger
 
 /**
  * @author Santhosh
@@ -21,6 +23,7 @@ class SparkSpec(val file: String =  "src/test/resources/sample_telemetry.log") e
     implicit var sc: SparkContext = null;
     
     override def beforeAll() {
+        JobLogger.init("org.ekstep.analytics.test-cases");
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
         events = loadFile[Event](file)
     }

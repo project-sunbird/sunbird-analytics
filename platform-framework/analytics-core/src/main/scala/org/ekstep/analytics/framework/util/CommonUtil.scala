@@ -39,7 +39,7 @@ import org.apache.log4j.Logger
 
 object CommonUtil {
 
-    val className = this.getClass.getName
+    val className = CommonUtil.getClass.getName;
     @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();
@@ -55,13 +55,11 @@ object CommonUtil {
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
-        Console.println("### Initializing Spark Context ###");
         JobLogger.debug("Initializing Spark Context", className)
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
-            println("### Master not found. Setting it to local[*] ###");
             JobLogger.info("Master not found. Setting it to local[*]", className)
             conf.setMaster("local[*]");
         }
@@ -71,7 +69,7 @@ object CommonUtil {
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
-        Console.println("### Spark Context initialized ###");
+        JobLogger.debug("Spark Context initialized", className);
         sc;
     }
 
@@ -83,7 +81,6 @@ object CommonUtil {
 
     def closeSparkContext()(implicit sc: SparkContext) {
         JobLogger.info("Closing Spark Context", className)
-        println("### Closing Spark Context ###");
         sc.stop();
     }
 
@@ -160,7 +157,7 @@ object CommonUtil {
             df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid event time", event.ts);
+                JobLogger.warn("Invalid event time - " + event.ts, className);
                 null;
         }
     }
@@ -208,7 +205,7 @@ object CommonUtil {
             }
         } catch {
             case e: Exception =>
-                Console.err.println("Exception", e.getMessage)
+                JobLogger.error("Error in gzip", className, e)
                 throw e
         }
         path ++ ".gz";
@@ -271,7 +268,7 @@ object CommonUtil {
             df.parseDateTime(ts).getMillis;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid time format", pattern, ts);
+                JobLogger.warn("Invalid time format - " + pattern + ts, className);
                 0;
         }
     }
