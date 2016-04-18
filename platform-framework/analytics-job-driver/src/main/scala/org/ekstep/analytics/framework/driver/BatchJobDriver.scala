@@ -20,7 +20,7 @@ import org.apache.log4j.Logger
  */
 object BatchJobDriver {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
     def process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
 
         JobContext.parallelization = CommonUtil.getParallelization(config);

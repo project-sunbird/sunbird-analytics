@@ -18,7 +18,7 @@ import org.ekstep.analytics.framework.util.JobLogger
  */
 object DataFetcher {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.framework.DataFetcher"
     @throws(classOf[DataFetcherException])
     def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext): RDD[T] = {
 

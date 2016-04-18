@@ -9,7 +9,7 @@ import org.apache.log4j.Logger
 
 object LearnerContentActivityUpdater extends optional.Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.LearnerContentActivityUpdater"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.info("Started executing LearnerContentActivityUpdater Job", className)

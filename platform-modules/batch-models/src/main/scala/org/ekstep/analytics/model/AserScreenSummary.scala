@@ -37,7 +37,7 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
  */
 object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.model.AserScreenSummary"
     def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         JobLogger.info("AserScreenSummary: execute method starting", className)

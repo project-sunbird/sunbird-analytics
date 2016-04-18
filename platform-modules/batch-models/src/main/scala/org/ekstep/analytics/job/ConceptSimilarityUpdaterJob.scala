@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 object ConceptSimilarityUpdaterJob extends optional.Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.ConceptSimilarityUpdaterJob"
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobLogger.info("Started executing ConceptSimilarityUpdaterJob", className)

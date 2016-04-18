@@ -14,7 +14,7 @@ import org.apache.log4j.Logger
 @Deprecated
 object LearnerSnapshotUpdater extends optional.Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.LearnerSnapshotUpdater"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.info("Started executing LearnerSnapshotUpdater Job", className)

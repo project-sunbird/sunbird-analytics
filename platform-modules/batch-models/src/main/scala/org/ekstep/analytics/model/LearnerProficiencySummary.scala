@@ -38,7 +38,7 @@ case class ProficiencySummary(conceptId: String, proficiency: Double)
 
 object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.model.LearnerProficiencySummary"
 
     def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
         val itemId = item.get("itemId").get.asInstanceOf[String];

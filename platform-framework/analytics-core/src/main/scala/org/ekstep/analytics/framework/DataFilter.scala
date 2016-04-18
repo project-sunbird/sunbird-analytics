@@ -19,7 +19,7 @@ object DataFilter {
     /**
      * Execute multiple filters and sort
      */
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.framework.DataFilter"
     @throws(classOf[DataFilterException])
     def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[T] = {
         JobLogger.info("Running the filter and sort process", className)

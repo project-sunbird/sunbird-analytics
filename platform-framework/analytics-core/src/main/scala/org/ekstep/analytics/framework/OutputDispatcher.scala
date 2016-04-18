@@ -14,7 +14,7 @@ import org.ekstep.analytics.framework.util.JobLogger
  */
 object OutputDispatcher {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.framework.OutputDispatcher"
     @throws(classOf[DispatcherException])
     def dispatch(outputs: Option[Array[Dispatcher]], events: RDD[String]) = {
         if (outputs.isEmpty) {

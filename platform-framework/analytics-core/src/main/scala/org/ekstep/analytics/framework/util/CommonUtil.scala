@@ -39,7 +39,7 @@ import org.apache.log4j.Logger
 
 object CommonUtil {
 
-    val className = CommonUtil.getClass.getName;
+    val className = "org.ekstep.analytics.framework.util.CommonUtil"
     @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();

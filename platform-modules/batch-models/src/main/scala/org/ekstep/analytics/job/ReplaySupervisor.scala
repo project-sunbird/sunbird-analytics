@@ -13,7 +13,7 @@ import org.apache.log4j.Logger
 
 object ReplaySupervisor extends Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.ReplaySupervisor"
 
     def main(model: String, fromDate: String, toDate: String, config: String) {
         JobLogger.info("Started executing ReplaySupervisor", className)

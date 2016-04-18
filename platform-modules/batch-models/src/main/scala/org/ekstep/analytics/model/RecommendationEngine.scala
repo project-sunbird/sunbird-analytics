@@ -34,7 +34,7 @@ case class RelevanceScores(conceptId: String, relevance: Double)
 
 object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.model.RecommendationEngine"
     /**
      * Function to return the concept similary matrix value
      */

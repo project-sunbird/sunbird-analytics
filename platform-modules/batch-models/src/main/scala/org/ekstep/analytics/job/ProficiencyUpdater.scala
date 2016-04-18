@@ -9,7 +9,7 @@ import org.apache.log4j.Logger
 
 object ProficiencyUpdater extends optional.Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.ProficiencyUpdater"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);

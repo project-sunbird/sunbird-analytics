@@ -28,7 +28,7 @@ case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Opt
 
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.model.LearnerActivitySummary"
 
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
         JobLogger.info("LearnerActivitySummary: execute method Starting", className)

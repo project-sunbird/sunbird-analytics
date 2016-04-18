@@ -42,7 +42,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
  */
 object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.model.LearnerSessionSummary"
 
     /**
      * Get item from broadcast item mapping variable

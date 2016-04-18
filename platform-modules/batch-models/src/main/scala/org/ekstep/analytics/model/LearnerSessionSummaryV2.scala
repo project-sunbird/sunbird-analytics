@@ -22,7 +22,7 @@ import org.apache.log4j.Logger
  */
 object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with Serializable {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.model.LearnerSessionSummaryV2"
     /**
      * Get item from broadcast item mapping variable
      */

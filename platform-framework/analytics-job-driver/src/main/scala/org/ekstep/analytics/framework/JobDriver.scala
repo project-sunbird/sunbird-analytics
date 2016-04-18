@@ -19,7 +19,7 @@ import org.apache.logging.log4j.LogManager
  */
 object JobDriver {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.framework.JobDriver"
     def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
         
         JobLogger.init(model.getClass.getSimpleName);

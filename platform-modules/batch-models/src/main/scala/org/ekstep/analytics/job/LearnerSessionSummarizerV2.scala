@@ -12,7 +12,7 @@ import org.apache.log4j.Logger
  */
 object LearnerSessionSummarizerV2 extends optional.Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.LearnerSessionSummarizerV2"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);

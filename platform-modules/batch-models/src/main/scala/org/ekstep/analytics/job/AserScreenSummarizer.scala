@@ -12,7 +12,7 @@ import org.apache.log4j.Logger
  */
 object AserScreenSummarizer extends optional.Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.AserScreenSummarizer"
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.info("Started executing AserScreenSummarizer Job", className)

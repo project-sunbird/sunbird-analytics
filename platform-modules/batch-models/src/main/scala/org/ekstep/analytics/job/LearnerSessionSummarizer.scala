@@ -12,7 +12,7 @@ import org.ekstep.analytics.framework.util.JobLogger
  */
 object LearnerSessionSummarizer extends optional.Application {
 
-    val className = this.getClass.getName
+    val className = "org.ekstep.analytics.job.LearnerSessionSummarizer"
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobLogger.info("Started executing LearnerSessionSummarizer Job", className)
