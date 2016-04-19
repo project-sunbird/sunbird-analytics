@@ -65,10 +65,9 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             val numWeeks = getWeeksBetween(startDate.getMillis, eventEndTimestamp)
 
             val averageTsSession = (timeSpent / numSessions);
-            val averageInteractionsMin = CommonUtil.roundDouble(BigDecimal(totalInteractions / (timeSpent / 60)).toDouble, 2);
+            val averageInteractionsMin = if (totalInteractions == 0 || timeSpent == 0) 0d else CommonUtil.roundDouble(BigDecimal(totalInteractions / (timeSpent / 60)).toDouble, 2);
             val numSessionsWeek = if (numWeeks == 0) numSessions else numSessions / numWeeks
             val tsWeek = if (numWeeks == 0) timeSpent else timeSpent / numWeeks
-
             (ContentSummary(gameId, startDate, numSessions, timeSpent, CommonUtil.roundDouble(averageTsSession, 2), totalInteractions, CommonUtil.roundDouble(averageInteractionsMin, 2), numSessionsWeek, tsWeek), date_range, gameVersion)
         }.cache();
 

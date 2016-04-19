@@ -21,6 +21,7 @@ class TestContentSummary extends SparkSpec(null) {
         me.length should be(1);
 
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        println(JSONUtils.serialize(event1))
         event1.eid should be("ME_CONTENT_SUMMARY");
         event1.mid should be("1080007CF2C413B606497B29D3AD5909");
         event1.context.pdata.model should be("ContentSummary");
