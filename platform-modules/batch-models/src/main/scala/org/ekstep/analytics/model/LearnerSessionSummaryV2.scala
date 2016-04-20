@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.adapter._
 import org.ekstep.analytics.framework.util._
 import java.security.MessageDigest
+import org.apache.log4j.Logger
 
 /**
  * @author Santhosh
@@ -21,6 +22,7 @@ import java.security.MessageDigest
  */
 object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with Serializable {
 
+    val className = "org.ekstep.analytics.model.LearnerSessionSummaryV2"
     /**
      * Get item from broadcast item mapping variable
      */
@@ -134,24 +136,27 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
     def execute(data: RDD[TelemetryEventV2], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.info("LearnerSessionSummaryV2 : execute method starting", className)
+        JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT,OE_NAVIGATE,OE_ITEM_RESPONSE", className)
         val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
-        println("### Running the model LearnerSessionSummaryV2 ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
-        println("### Fetching the Item data from LP ###");
+        JobLogger.debug("Fetching the Content and Item data from Learing Platform", className)
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, config.getOrElse("apiVersion", "v2").asInstanceOf[String]);
-        println("### Broadcasting data to all worker nodes ###");
+        JobLogger.debug("Broadcasting data to all worker nodes", className)
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
 
         val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
+        JobLogger.debug("Doing Game Sessionization", className)
         val gameSessions = getGameSessionsV2(filteredData);
         val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
         val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
+        JobLogger.debug("Calculating Screen Summary", className)
         val screenerSummary = gameSessions.mapValues { events =>
 
             val firstEvent = events(0);
@@ -218,7 +223,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d else BigDecimal(noOfInteractEvents / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             var interactionEvents = eventsWithTs.filter(f => "OE_INTERACT".equals(f._1.eid)).map(f => {
                 (f._1.edata.eks.`type`, 1, f._2)
-            })            
+            })
             val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => ActivitySummary(f._1, f._2, CommonUtil.roundDouble(f._3, 2)));
             val eventSummary = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
             val navigateEvents = DataFilter.filter(events, Filter("eid", "EQ", Option("OE_NAVIGATE")));
@@ -232,6 +237,8 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
                 DtRange(startTimestamp, endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
                 eventSummary, lastEvent.ets, contentType, mimeType, did);
         }
+        JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
+        JobLogger.info("LearnerSessionSummary: execute method Ending", className)
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
@@ -265,7 +272,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             "eventsSummary" -> game.eventsSummary,
             "noOfLevelTransitions" -> game.noOfLevelTransitions,
             "telemetryVersion" -> "2.0");
-        
+
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),

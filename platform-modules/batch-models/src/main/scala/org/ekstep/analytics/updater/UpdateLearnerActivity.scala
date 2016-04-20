@@ -12,6 +12,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp: Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
                            m_ts_on_an_act: Map[String, Double], m_count_on_an_act: Map[String, Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime,
@@ -23,6 +24,7 @@ case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_
  */
 object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializable {
 
+    val className = "org.ekstep.analytics.updater.UpdateLearnerActivity"
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val filteredData = DataFilter.filter(DataFilter.filter(events, Filter("eid", "EQ", Option("ME_LEARNER_ACTIVITY_SUMMARY"))), Filter("uid", "ISNOTEMPTY", None));
@@ -49,6 +51,7 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
             LearnerSnapshot(leaner_id, m_time_spent, m_time_btw_gp, m_active_time_on_pf, m_interrupt_time, t_ts_on_pf, m_ts_on_an_act, m_count_on_an_act,
                 n_of_sess_on_pf, l_visit_ts, most_active_hr_of_the_day, top_k_content, sess_start_time, sess_end_time, dp_start_time, dp_end_time)
         }.filter(_ != null);
+        JobLogger.debug("Saving learner snapshot to DB", className)
         la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
         println("Count:", la.count());
         la.map { x => JSONUtils.serialize(x) };

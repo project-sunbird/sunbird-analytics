@@ -7,12 +7,14 @@ import org.ekstep.analytics.framework.dispatcher.KafkaDispatcher
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.ekstep.analytics.framework.factory.DispatcherFactory
 import org.ekstep.analytics.framework.exception.DispatcherException
+import org.ekstep.analytics.framework.util.JobLogger
 
 /**
  * @author Santhosh
  */
 object OutputDispatcher {
 
+    val className = "org.ekstep.analytics.framework.OutputDispatcher"
     @throws(classOf[DispatcherException])
     def dispatch(outputs: Option[Array[Dispatcher]], events: RDD[String]) = {
         if (outputs.isEmpty) {
@@ -21,16 +23,16 @@ object OutputDispatcher {
         val eventArr = events.collect();
         if (eventArr.length != 0) {
             outputs.get.foreach { dispatcher =>
-                Console.println("### Dispatching output to - " + dispatcher.to + " ###");
+                JobLogger.debug("Dispatching output to - " + dispatcher.to, className);
                 DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
             }
         } else {
-            Console.println("### No events produced for dispatch ###");
+            JobLogger.debug("No events produced for dispatch", className);
             null;
         }
-        
+
     }
-    
+
     @throws(classOf[DispatcherException])
     def dispatch(dispatcher: Dispatcher, events: RDD[String]) = {
         if (null == dispatcher) {
@@ -38,10 +40,10 @@ object OutputDispatcher {
         }
         val eventArr = events.collect();
         if (eventArr.length != 0) {
-            Console.println("### Dispatching output to - " + dispatcher.to + " ###");
+            JobLogger.debug("Dispatching output to - " + dispatcher.to, className);
             DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
         } else {
-            Console.println("### No events produced ###");
+            JobLogger.debug("No events produced", className);
             null;
         }
     }

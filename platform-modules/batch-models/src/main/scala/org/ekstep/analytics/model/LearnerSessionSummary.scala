@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.adapter._
 import org.ekstep.analytics.framework.util._
 import java.security.MessageDigest
+import org.apache.log4j.Logger
 
 /**
  * Case class to hold the item responses
@@ -40,6 +41,8 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
  * Generic Screener Summary Model
  */
 object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable {
+
+    val className = "org.ekstep.analytics.model.LearnerSessionSummary"
 
     /**
      * Get item from broadcast item mapping variable
@@ -141,29 +144,32 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                 }
             }
         }
-        stageMap.map{x=>ScreenSummary(x._1,x._2)};
+        stageMap.map { x => ScreenSummary(x._1, x._2) };
     }
 
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.info("LearnerSessionSummary : execute method starting", className)
+        JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
         val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
-        println("### Running the model LearnerSessionSummary ###");
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
-        println("### Fetching the Content and Item data from LP ###");
+        JobLogger.debug("Fetching the Content and Item data from Learing Platform", className)
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, config.getOrElse("apiVersion", "v2").asInstanceOf[String]);
-        println("### Broadcasting data to all worker nodes ###");
+        JobLogger.debug("Broadcasting data to all worker nodes", className)
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
 
         val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
+        JobLogger.debug("Doing Game Sessionization", className)
         val gameSessions = getGameSessions(filteredData);
         val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
         val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
+        JobLogger.debug("Calculating Screen Summary", className)
         val screenerSummary = gameSessions.mapValues { events =>
 
             val firstEvent = events(0);
@@ -241,6 +247,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                 eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did);
 
         }
+        JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
+        JobLogger.info("LearnerSessionSummary: execute method Ending", className)
         screenerSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
@@ -250,7 +258,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
      * Get the measured event from the UserMap
      */
     private def getMeasuredEvent(userMap: (String, SessionSummary), config: Map[String, AnyRef]): MeasuredEvent = {
-        
+
         val game = userMap._2;
         val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap._1, "SESSION", game.dtRange, game.id);
         val measures = Map(

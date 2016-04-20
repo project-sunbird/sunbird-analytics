@@ -35,9 +35,11 @@ import scala.collection.mutable.Buffer
 import org.joda.time.Hours
 import org.joda.time.DateTimeZone
 import java.security.MessageDigest
+import org.apache.log4j.Logger
 
 object CommonUtil {
 
+    val className = "org.ekstep.analytics.framework.util.CommonUtil"
     @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();
@@ -53,12 +55,12 @@ object CommonUtil {
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
-        Console.println("### Initializing Spark Context ###");
+        JobLogger.debug("Initializing Spark Context", className)
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
-            println("### Master not found. Setting it to local[*] ###");
+            JobLogger.info("Master not found. Setting it to local[*]", className)
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
@@ -67,17 +69,18 @@ object CommonUtil {
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
-        Console.println("### Spark Context initialized ###");
+        JobLogger.debug("Spark Context initialized", className);
         sc;
     }
 
     def setS3Conf(sc: SparkContext) = {
+        JobLogger.debug("CommonUtil: setS3Conf. Configuring S3 AccessKey& SecrateKey to SparkContext", className)
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
-        println("### Closing Spark Context ###");
+        JobLogger.info("Closing Spark Context", className)
         sc.stop();
     }
 
@@ -102,10 +105,12 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
+        JobLogger.debug("Deleting directory " + path, className)
         Files.walkFileTree(path, new Visitor());
     }
 
     def deleteFile(file: String) {
+        JobLogger.debug("Deleting file " + file, className)
         Files.delete(get(file));
     }
 
@@ -152,7 +157,7 @@ object CommonUtil {
             df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid event time", event.ts);
+                JobLogger.warn("Invalid event time - " + event.ts, className);
                 null;
         }
     }
@@ -200,7 +205,7 @@ object CommonUtil {
             }
         } catch {
             case e: Exception =>
-                Console.err.println("Exception", e.getMessage)
+                JobLogger.error("Error in gzip", className, e)
                 throw e
         }
         path ++ ".gz";
@@ -263,7 +268,7 @@ object CommonUtil {
             df.parseDateTime(ts).getMillis;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid time format", pattern, ts);
+                JobLogger.warn("Invalid time format - " + pattern + ts, className);
                 0;
         }
     }
