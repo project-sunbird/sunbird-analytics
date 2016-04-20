@@ -7,4 +7,6 @@ object Constants {
     val LEARNER_CONTENT_SUMMARY_TABLE = "learnercontentsummary";
     val LEARNER_CONCEPT_RELEVANCE_TABLE = "learnerconceptrelevance";
     val CONCEPT_SIMILARITY_TABLE = "conceptsimilaritymatrix";
+    val CONTENT_KEY_SPACE_NAME = "content_db";
+    val CONTENT_SUMMARY_TABLE = "contentsummary"
 }

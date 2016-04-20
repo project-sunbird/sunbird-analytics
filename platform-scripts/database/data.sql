@@ -54,3 +54,24 @@ CREATE TABLE conceptsimilaritymatrix (
 	sim double,
 	PRIMARY KEY (concept1, concept2)
 );
+
+CREATE KEYSPACE content_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
+CREATE TABLE contentsummary (
+	content_id text, 
+	start_date timestamp, 
+	total_ts double,
+	total_num_sessions bigint, 
+	average_ts_session double, 
+	total_interactions bigint,
+	average_interactions_min double,
+	num_sessions_week double,
+	ts_week double,
+	content_type text,
+	mime_type text,
+	PRIMARY KEY (content_id)
+);
+
