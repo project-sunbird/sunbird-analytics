@@ -11,7 +11,7 @@ class TestContentSummary extends SparkSpec(null) {
     
     "ContentSummary" should "generate contentsummary and pass all positive test cases" in {
 
-        val cs = ContentSummary("org.ekstep.vayuthewind", DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0)
+        val cs = ContentSummary("org.ekstep.vayuthewind", DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0,"","")
         val crdd = sc.parallelize(Array(cs));
         crdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SUMMARY_TABLE);
         
@@ -37,6 +37,7 @@ class TestContentSummary extends SparkSpec(null) {
         eks.get("tsPerWeek").get should be(212.8)
         eks.get("totalSessions").get should be(3)
         eks.get("sessionsPerWeek").get should be(3)
+        eks.get("contentType").get should be("Story")
 
         val rdd2 = loadFile[MeasuredEvent]("src/test/resources/content-summary/test_data_2.log");
         val me2 = ContentActivitySummary.execute(rdd2, None).collect();
@@ -50,6 +51,7 @@ class TestContentSummary extends SparkSpec(null) {
         eks2.get("tsPerWeek").get should be(510.08)
         eks2.get("totalSessions").get should be(5)
         eks2.get("sessionsPerWeek").get should be(5)
+        eks2.get("contentType").get should be("Story")
         
         val rdd3 = loadFile[MeasuredEvent]("src/test/resources/content-summary/test_data_3.log");
         val me3 = ContentActivitySummary.execute(rdd3, None).collect();
@@ -63,6 +65,7 @@ class TestContentSummary extends SparkSpec(null) {
         eks3.get("tsPerWeek").get should be(335.95)
         eks3.get("totalSessions").get should be(6)
         eks3.get("sessionsPerWeek").get should be(3)
+        eks3.get("contentType").get should be("Story")
     }
 
 }

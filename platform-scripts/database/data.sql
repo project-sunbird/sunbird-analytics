@@ -68,7 +68,10 @@ CREATE TABLE contentsummary (
 	average_ts_session double, 
 	total_interactions bigint,
 	average_interactions_min double,
-	num_sessions_week bigint,
+	num_sessions_week double,
 	ts_week double,
+	content_type text,
+	mime_type text,
 	PRIMARY KEY (content_id)
 );
+

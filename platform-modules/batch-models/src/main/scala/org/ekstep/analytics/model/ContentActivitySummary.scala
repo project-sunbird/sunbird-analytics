@@ -19,7 +19,7 @@ import com.datastax.spark.connector._
 import org.apache.spark.HashPartitioner
 
 case class ContentSummary(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
-                          total_interactions: Long, average_interactions_min: Double, num_sessions_week: Long, ts_week: Double)
+                          total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type:String, mime_type:String)
 case class ContentId(content_id: String)
 
 object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
@@ -53,7 +53,7 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             val eventStartDate = new DateTime(eventStartTimestamp);
             val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
 
-            val prevContentSummary = events._2.getOrElse(ContentSummary(gameId, DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0));
+            val prevContentSummary = events._2.getOrElse(ContentSummary(gameId, DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0,"",""));
             val startDate = if (eventStartDate.isBefore(prevContentSummary.start_date)) eventStartDate else prevContentSummary.start_date;
             val numSessions = sortedEvents.size + prevContentSummary.total_num_sessions;
             val timeSpent = sortedEvents.map { x =>
@@ -66,9 +66,12 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
 
             val averageTsSession = (timeSpent / numSessions);
             val averageInteractionsMin = if (totalInteractions == 0 || timeSpent == 0) 0d else CommonUtil.roundDouble(BigDecimal(totalInteractions / (timeSpent / 60)).toDouble, 2);
-            val numSessionsWeek = if (numWeeks == 0) numSessions else numSessions / numWeeks
+            val numSessionsWeek:Double = if (numWeeks == 0) numSessions else numSessions / numWeeks
             val tsWeek = if (numWeeks == 0) timeSpent else timeSpent / numWeeks
-            (ContentSummary(gameId, startDate, numSessions, timeSpent, CommonUtil.roundDouble(averageTsSession, 2), totalInteractions, CommonUtil.roundDouble(averageInteractionsMin, 2), numSessionsWeek, tsWeek), date_range, gameVersion)
+            val contentType = if(prevContentSummary.content_type.isEmpty()) firstEvent.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("contentType", "").asInstanceOf[String] else prevContentSummary.content_type
+            val mimeType = if(prevContentSummary.mime_type.isEmpty()) firstEvent.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("mimeType", "").asInstanceOf[String] else prevContentSummary.mime_type
+            
+            (ContentSummary(gameId, startDate, numSessions, timeSpent, CommonUtil.roundDouble(averageTsSession, 2), totalInteractions, CommonUtil.roundDouble(averageInteractionsMin, 2), numSessionsWeek, tsWeek,contentType,mimeType), date_range, gameVersion)
         }.cache();
 
         contentSummary.map(f => f._2._1).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SUMMARY_TABLE);
@@ -88,7 +91,9 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             "totalInteractionEvents" -> contentSumm.total_interactions,
             "averageInteractionsPerMin" -> contentSumm.average_interactions_min,
             "sessionsPerWeek" -> contentSumm.num_sessions_week,
-            "tsPerWeek" -> contentSumm.ts_week);
+            "tsPerWeek" -> contentSumm.ts_week,
+            "contentType" -> contentSumm.content_type,
+            "mimeType" -> contentSumm.mime_type);
         MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, None, Option(new GData(contentSumm.content_id, game_version)), None, None, None, None),
