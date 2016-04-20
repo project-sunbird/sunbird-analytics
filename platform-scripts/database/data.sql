@@ -55,12 +55,25 @@ CREATE TABLE conceptsimilaritymatrix (
 	PRIMARY KEY (concept1, concept2)
 );
 
+CREATE TABLE learnerprofile (
+	learner_id text,
+	gender text,
+	language text,
+	loc text,
+	standard int,
+	age int,
+	year_of_birth int,
+	group_user boolean,
+	anonymous_user boolean,
+	PRIMARY KEY (learner_id)
+);
+
 CREATE KEYSPACE content_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
 };
 
-CREATE TABLE contentsummary (
+CREATE TABLE contentcumulativesummary (
 	content_id text, 
 	start_date timestamp, 
 	total_ts double,
@@ -73,5 +86,12 @@ CREATE TABLE contentsummary (
 	content_type text,
 	mime_type text,
 	PRIMARY KEY (content_id)
+);
+
+CREATE TABLE contentcumulativemetrics (
+	id text, 
+	top_k_timespent map<text,double>,
+	top_k_sessions map<text,bigint>,
+	PRIMARY KEY (id)
 );
 

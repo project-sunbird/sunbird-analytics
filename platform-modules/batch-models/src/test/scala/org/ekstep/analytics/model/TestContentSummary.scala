@@ -13,7 +13,7 @@ class TestContentSummary extends SparkSpec(null) {
 
         val cs = ContentSummary("org.ekstep.vayuthewind", DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0,"","")
         val crdd = sc.parallelize(Array(cs));
-        crdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SUMMARY_TABLE);
+        crdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
         
         val rdd = loadFile[MeasuredEvent]("src/test/resources/content-summary/test_data_1.log");
         val me = ContentActivitySummary.execute(rdd, None).collect();
@@ -21,7 +21,7 @@ class TestContentSummary extends SparkSpec(null) {
         me.length should be(1);
 
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
-        println(JSONUtils.serialize(event1))
+        
         event1.eid should be("ME_CONTENT_SUMMARY");
         event1.mid should be("1080007CF2C413B606497B29D3AD5909");
         event1.context.pdata.model should be("ContentSummary");
@@ -32,7 +32,7 @@ class TestContentSummary extends SparkSpec(null) {
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eks.get("averageTimeSpent").get should be(70.93)
         eks.get("averageInteractionsPerMin").get should be(22.27)
-        eks.get("timeSpent").get should be(212.8)
+        eks.get("timeSpent").get should be(0.06)
         eks.get("totalInteractionEvents").get should be(79)
         eks.get("tsPerWeek").get should be(212.8)
         eks.get("totalSessions").get should be(3)
@@ -44,11 +44,11 @@ class TestContentSummary extends SparkSpec(null) {
         val event2 = JSONUtils.deserialize[MeasuredEvent](me2(0));
         
         val eks2 = event2.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        eks2.get("averageTimeSpent").get should be(102.02)
-        eks2.get("averageInteractionsPerMin").get should be(28.82)
-        eks2.get("timeSpent").get should be(510.08)
+        eks2.get("averageTimeSpent").get should be(102.66)
+        eks2.get("averageInteractionsPerMin").get should be(28.64)
+        eks2.get("timeSpent").get should be(0.14)
         eks2.get("totalInteractionEvents").get should be(245)
-        eks2.get("tsPerWeek").get should be(510.08)
+        eks2.get("tsPerWeek").get should be(513.28)
         eks2.get("totalSessions").get should be(5)
         eks2.get("sessionsPerWeek").get should be(5)
         eks2.get("contentType").get should be("Story")
@@ -58,11 +58,11 @@ class TestContentSummary extends SparkSpec(null) {
         val event3 = JSONUtils.deserialize[MeasuredEvent](me3(0));
         
         val eks3 = event3.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        eks3.get("averageTimeSpent").get should be(111.98)
-        eks3.get("averageInteractionsPerMin").get should be(24.38)
-        eks3.get("timeSpent").get should be(671.9)
+        eks3.get("averageTimeSpent").get should be(110.97)
+        eks3.get("averageInteractionsPerMin").get should be(24.6)
+        eks3.get("timeSpent").get should be(0.18)
         eks3.get("totalInteractionEvents").get should be(273)
-        eks3.get("tsPerWeek").get should be(335.95)
+        eks3.get("tsPerWeek").get should be(332.91)
         eks3.get("totalSessions").get should be(6)
         eks3.get("sessionsPerWeek").get should be(3)
         eks3.get("contentType").get should be("Story")

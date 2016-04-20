@@ -21,6 +21,7 @@ import org.apache.spark.HashPartitioner
 case class ContentSummary(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type:String, mime_type:String)
 case class ContentId(content_id: String)
+case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -34,7 +35,7 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
         val newEvents = filteredEvents.map(event => (event.dimensions.gdata.get.id, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
-        val prevContentState = newEvents.map(f => ContentId(f._1)).joinWithCassandraTable[ContentSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SUMMARY_TABLE).map(f => (f._1.content_id, f._2))
+        val prevContentState = newEvents.map(f => ContentId(f._1)).joinWithCassandraTable[ContentSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE).map(f => (f._1.content_id, f._2))
         val contentData = newEvents.leftOuterJoin(prevContentState);
 
         val contentSummary = contentData.mapValues { events =>
@@ -58,7 +59,7 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             val numSessions = sortedEvents.size + prevContentSummary.total_num_sessions;
             val timeSpent = sortedEvents.map { x =>
                 (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
-            }.sum + prevContentSummary.total_ts;
+            }.sum + (prevContentSummary.total_ts * 3600);
             val totalInteractions = sortedEvents.map { x =>
                 (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int])
             }.sum + prevContentSummary.total_interactions;
@@ -71,11 +72,19 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             val contentType = if(prevContentSummary.content_type.isEmpty()) firstEvent.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("contentType", "").asInstanceOf[String] else prevContentSummary.content_type
             val mimeType = if(prevContentSummary.mime_type.isEmpty()) firstEvent.edata.eks.asInstanceOf[Map[String,AnyRef]].getOrElse("mimeType", "").asInstanceOf[String] else prevContentSummary.mime_type
             
-            (ContentSummary(gameId, startDate, numSessions, timeSpent, CommonUtil.roundDouble(averageTsSession, 2), totalInteractions, CommonUtil.roundDouble(averageInteractionsMin, 2), numSessionsWeek, tsWeek,contentType,mimeType), date_range, gameVersion)
+            (ContentSummary(gameId, startDate, numSessions, CommonUtil.roundDouble(timeSpent/3600, 2), CommonUtil.roundDouble(averageTsSession, 2), totalInteractions, CommonUtil.roundDouble(averageInteractionsMin, 2), numSessionsWeek, tsWeek,contentType,mimeType), date_range, gameVersion)
         }.cache();
 
-        contentSummary.map(f => f._2._1).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SUMMARY_TABLE);
-
+        contentSummary.map(f => f._2._1).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
+        
+        val summaries = sc.cassandraTable[ContentSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE).filter { x => !"Collection".equals(x.content_type)};
+        val count = summaries.count().intValue();
+        val defaultVal = if(5 > count) count else 5;
+        val topContentByTime = summaries.sortBy(f => f.total_ts, false, 1).take(config.getOrElse("topK", defaultVal).asInstanceOf[Int]);
+        val topContentBySessions = summaries.sortBy(f => f.total_num_sessions, false, 1).take(config.getOrElse("topK", defaultVal).asInstanceOf[Int]);
+        
+        val rdd = sc.parallelize(Array(ContentMetrics("content", topContentByTime.map { x => (x.content_id, x.total_ts) }.toMap, topContentBySessions.map { x => (x.content_id, x.total_num_sessions) }.toMap)), 1);
+        rdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_METRICS_TABLE);
         contentSummary.map(f => {
             getMeasuredEvent(f._2._1, configMapping.value, f._2._2, f._2._3);
         }).map { x => JSONUtils.serialize(x) };
