@@ -15,8 +15,8 @@ class TestContentActivitySummarizer extends SparkSpec(null) {
         ContentActivitySummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
     
-    "ContentActivitySummarizer" should "execute the job from s3 data" in {
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("sandbox-data-store"), Option("ss/"), Option("2016-01-01"), Option("2016-04-14"))))), Option(Array(Filter("eventId","EQ",Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ContentActivitySummary", None, Option(Array(Dispatcher("file", Map("file" -> "/home/sowmya/Documents/sandbox/content-data.log")))), Option(10), Option("TestContentActivitySummarizer"), Option(false))
+    ignore should "execute the job from s3 data" in {
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("sandbox-data-store"), Option("ss/"), Option("2016-01-01"), Option("2016-04-14"))))), Option(Array(Filter("eventId","EQ",Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ContentActivitySummary", None, Option(Array(Dispatcher("file", Map("file" -> "content-data.log/")))), Option(10), Option("TestContentActivitySummarizer"), Option(false))
         ContentActivitySummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
 }
