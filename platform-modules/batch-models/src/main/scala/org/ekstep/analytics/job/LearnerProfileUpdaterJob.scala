@@ -9,7 +9,6 @@ import org.ekstep.analytics.updater.LearnerProfileUpdater
 
 object LearnerProfileUpdaterJob extends optional.Application {
 
-    val className = "org.ekstep.analytics.job.ConceptSimilarityUpdaterJob"
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run[ProfileEvent]("batch", config, LearnerProfileUpdater);

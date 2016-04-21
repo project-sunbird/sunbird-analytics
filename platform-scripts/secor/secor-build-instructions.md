@@ -10,7 +10,7 @@ nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.sa
 
 
 
-### Sandbox
+### Production
 
 mkdir -p ~/secor-me
 

@@ -29,7 +29,7 @@
 		</Async>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.ekstep.analytics" level="debug" additivity="false">
+		<Logger name="org.ekstep.analytics" level="info" additivity="false">
 			<AppenderRef ref="Console" />
 			<!-- <AppenderRef ref="Async"/> -->
 		</Logger>
