@@ -57,6 +57,7 @@ CREATE TABLE conceptsimilaritymatrix (
 
 CREATE TABLE learnerprofile (
 	learner_id text,
+	did text,
 	gender text,
 	language text,
 	loc text,
@@ -65,6 +66,8 @@ CREATE TABLE learnerprofile (
 	year_of_birth int,
 	group_user boolean,
 	anonymous_user boolean,
+	created_date timestamp,
+	updated_date timestamp,
 	PRIMARY KEY (learner_id)
 );
 
