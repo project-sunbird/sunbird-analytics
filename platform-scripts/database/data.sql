@@ -82,7 +82,7 @@ CREATE TABLE devicespecification (
 	cpu text,
 	num_sims double,
 	capabilities list<text>,
-	PRIMARY KEY (device_id)
+	PRIMARY KEY (device_id,os,screen_size)
 );
 
 CREATE KEYSPACE content_db WITH replication = {
