@@ -62,6 +62,15 @@ case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, gran
 @scala.reflect.BeanInfo
 case class MEEdata(eks: AnyRef);
 
+// User profile event models
+
+@scala.reflect.BeanInfo
+class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err: String, val attrs: Array[AnyRef], val uid: String, val age: Int, val day: Int, val month: Int, val gender: String, val language: String, val standard: Int, val is_group_user: Boolean) extends Serializable {}
+@scala.reflect.BeanInfo
+class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
+@scala.reflect.BeanInfo
+class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Serializable {}
+
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
 case class UserProfile(uid: String, gender: String, age: Int);

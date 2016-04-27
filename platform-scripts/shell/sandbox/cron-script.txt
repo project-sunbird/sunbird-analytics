@@ -5,3 +5,5 @@
 00 7 * * * /mnt/data/analytics/scripts/learner-prof-updater.sh
 10 7 * * * /mnt/data/analytics/scripts/learner-snapshot-updater.sh
 30 7 * * * /mnt/data/analytics/scripts/learner-reco-engine.sh
+20 7 * * * /mnt/data/analytics/scripts/content-summarizer.sh
+25 7 * * * /mnt/data/analytics/scripts/learner-profile-updater.sh

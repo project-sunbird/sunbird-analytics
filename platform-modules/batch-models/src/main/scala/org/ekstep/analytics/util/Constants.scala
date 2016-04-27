@@ -11,4 +11,5 @@ object Constants {
     val CONTENT_KEY_SPACE_NAME = "content_db";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "contentcumulativesummary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "contentcumulativemetrics";
+    val LEARNER_PROFILE_TABLE = "learnerprofile";
 }
