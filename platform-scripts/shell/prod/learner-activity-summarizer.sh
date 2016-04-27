@@ -5,7 +5,7 @@ export JAVA_HOME=/usr/java/current
 
 ## Job to run daily
 cd /mnt/data/analytics/scripts
-endDate=$(date "+%Y-%m-%d")
+endDate=$(date --date yesterday "+%Y-%m-%d")
 
 la_config='{"search":{"type":"s3","queries":[{"bucket":"prod-data-store","prefix":"ss/","endDate":"'$endDate'","delta":6}]},"model":"org.ekstep.analytics.model.LearnerActivitySummary","modelParams":{"modelVersion":"1.0","modelId":"LearnerActivitySummarizer"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"10.10.1.207:9092","topic":"production.telemetry.derived"}}],"parallelization":8,"appName":"Learner Activity Summarizer","deviceMapping":false}'
 
