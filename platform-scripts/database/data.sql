@@ -115,3 +115,21 @@ CREATE TABLE contentcumulativemetrics (
 	PRIMARY KEY (id)
 );
 
+CREATE TABLE contentusagesummary (
+	content_id text, 
+	period bigint, 
+	partner_id text, 
+	group_user boolean, 
+	publish_date timestamp, 
+	total_ts double, 
+	total_num_sessions bigint, 
+	average_ts_session double, 
+	total_interactions bigint, 
+	average_interactions_min double, 
+	num_sessions_week double, 
+	ts_week double, 
+	content_type text, 
+	mime_type text, 
+	PRIMARY KEY (content_id, period, group_user, partner_id) 
+);
+
