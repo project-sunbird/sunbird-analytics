@@ -18,7 +18,7 @@ object DeviceSpecification extends IBatchModel[Event] with Serializable {
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_GENIE_START")));
-        val filteredEvents = DataFilter.filter(events, Filter("edata.eks.dspec", "ISNOTNULL", None));
+        val filteredEvents = DataFilter.filter(DataFilter.filter(events, Filter("edata", "ISNOTNULL", None)), Filter("edata.eks.dspec", "ISNOTNULL", None));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
 
@@ -39,8 +39,7 @@ object DeviceSpecification extends IBatchModel[Event] with Serializable {
             val capabilities = deviceSpec.getOrElse("cap", "").asInstanceOf[List[String]]
 
             DeviceSpec(deviceId, deviceName, deviceLocalName, os, make, memory, internalDisk, externalDisk, screenSize, primarySecondaryCamera, cpu, numSims, capabilities)
-
-        }
+        }.cache();
 
         deviceSummary.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE);
         deviceSummary.map { x => JSONUtils.serialize(x) };
