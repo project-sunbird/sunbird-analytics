@@ -13,9 +13,9 @@ case class DeviceSpec(device_id: String, device_name: String, device_local_name:
                       memory: Double, internal_disk: Double, external_disk: Double, screen_size: Double,
                       primary_secondary_camera: String, cpu: String, num_sims: Double, capabilities: List[String])
 
-object DeviceSpecification extends IBatchModel[TelemetryEventV2] with Serializable {
+object DeviceSpecification extends IBatchModel[Event] with Serializable {
 
-    def execute(data: RDD[TelemetryEventV2], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+    def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_GENIE_START")));
         val filteredEvents = DataFilter.filter(events, Filter("edata.eks.dspec", "ISNOTNULL", None));
