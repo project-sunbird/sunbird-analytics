@@ -285,6 +285,19 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rs = rdd1.collect();
     }
 
+    it should " generate ME by adding partnerid as org.ekstep.partner.pratham " in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_partnerId.log");
+        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
+        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String,AnyRef]];
+        eventMap.get("partnerId").get should be ("org.ekstep.partner.pratham")
+    }
+    
+    it should "check group_info and partner id will be empty" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
+        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
+        //val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String,AnyRef]];
+    }
+    
     ignore should "extract timespent from takeoff summaries" in {
         val rdd = loadFile[MeasuredEvent]("/Users/Santhosh/ekStep/telemetry_dump/takeoff-summ.log");
         val rdd2 = rdd.map { x => (x.uid, JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(x.edata.eks))) };
@@ -302,5 +315,4 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(rdd, None);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output2.log")), rdd2);
     }
-
 }
