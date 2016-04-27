@@ -71,6 +71,23 @@ CREATE TABLE learnerprofile (
 	PRIMARY KEY (learner_id)
 );
 
+CREATE TABLE devicespecification (
+	device_id text, 
+	device_name text, 
+	device_local_name text,
+	os text, 
+	make text, 
+	memory double,
+	internal_disk double,
+	external_disk double,
+	screen_size double,
+	primary_secondary_camera text,
+	cpu text,
+	num_sims double,
+	capabilities list<text>,
+	PRIMARY KEY (device_id,os,screen_size)
+);
+
 CREATE KEYSPACE content_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
