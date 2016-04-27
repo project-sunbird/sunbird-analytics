@@ -25,18 +25,18 @@ object DeviceSpecification extends IBatchModel[Event] with Serializable {
         val deviceSummary = filteredEvents.map { event =>
             val deviceSpec = event.edata.eks.dspec.asInstanceOf[Map[String, AnyRef]]
             val deviceId = event.did
-            val deviceName = deviceSpec.get("dname").get.asInstanceOf[String]
-            val deviceLocalName = deviceSpec.get("dlocname").get.asInstanceOf[String]
-            val os = deviceSpec.get("os").get.asInstanceOf[String]
-            val make = deviceSpec.get("make").get.asInstanceOf[String]
-            val memory = deviceSpec.get("mem").get.asInstanceOf[Double]
-            val internalDisk = deviceSpec.get("idisk").get.asInstanceOf[Double]
-            val externalDisk = deviceSpec.get("edisk").get.asInstanceOf[Double]
-            val screenSize = deviceSpec.get("scrn").get.asInstanceOf[Double]
-            val primarySecondaryCamera = deviceSpec.get("camera").get.asInstanceOf[String]
-            val cpu = deviceSpec.get("cpu").get.asInstanceOf[String]
-            val numSims = deviceSpec.get("sims").get.asInstanceOf[Double]
-            val capabilities = deviceSpec.get("cap").get.asInstanceOf[List[String]]
+            val deviceName = deviceSpec.getOrElse("dname", "").asInstanceOf[String]
+            val deviceLocalName = deviceSpec.getOrElse("dlocname", "").asInstanceOf[String]
+            val os = deviceSpec.getOrElse("os", "").asInstanceOf[String]
+            val make = deviceSpec.getOrElse("make", "").asInstanceOf[String]
+            val memory = deviceSpec.getOrElse("mem", 0d).asInstanceOf[Double]
+            val internalDisk = deviceSpec.getOrElse("idisk", 0d).asInstanceOf[Double]
+            val externalDisk = deviceSpec.getOrElse("edisk", 0d).asInstanceOf[Double]
+            val screenSize = deviceSpec.getOrElse("scrn", 0d).asInstanceOf[Double]
+            val primarySecondaryCamera = deviceSpec.getOrElse("camera", "").asInstanceOf[String]
+            val cpu = deviceSpec.getOrElse("cpu", "").asInstanceOf[String]
+            val numSims = deviceSpec.getOrElse("sims", "").asInstanceOf[Double]
+            val capabilities = deviceSpec.getOrElse("cap", "").asInstanceOf[List[String]]
 
             DeviceSpec(deviceId, deviceName, deviceLocalName, os, make, memory, internalDisk, externalDisk, screenSize, primarySecondaryCamera, cpu, numSims, capabilities)
 
