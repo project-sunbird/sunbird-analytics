@@ -42,7 +42,7 @@ class Event(val tags: List[Map[String, AnyRef]], val eid: String, val ts: String
             val uid: String, val did: String, val edata: EData) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class TelemetryEventV2(val eid: String, val ets: Long, val `@timestamp`: String,
+class TelemetryEventV2(val tags: List[Map[String, AnyRef]], val eid: String, val ets: Long, val `@timestamp`: String,
                        val ver: String, val gdata: GData, val sid: String,
                        val uid: String, val did: String, val edata: EDataV2) extends Serializable {}
 

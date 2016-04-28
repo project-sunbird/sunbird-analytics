@@ -10,6 +10,7 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.Event
+import com.datastax.spark.connector.cql.CassandraConnector
 
 /**
  * @author Santhosh
@@ -44,7 +45,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.currentLevel.get.get("literacy").get should be("Can read story");
         summary1.noOfInteractEvents should be(40);
         summary1.itemResponses.get.length should be(5);
-        event1.syncts should be (summary1.syncDate);
+        event1.syncts should be(summary1.syncDate);
 
         val asList = summary1.activitySummary.get
         asList.size should be(2);
@@ -90,7 +91,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.noOfInteractEvents should be(5);
         summary1.itemResponses.get.length should be(0);
         summary1.activitySummary.get.size should be(1);
-        event1.syncts should be (summary1.syncDate);
+        event1.syncts should be(summary1.syncDate);
 
         val asList = summary1.activitySummary.get
         val asActCountMap = asList.map { x => (x.actType, x.count) }.toMap
@@ -112,7 +113,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
         event2.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
-        
+
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.noOfLevelTransitions.get should be(0);
         summary2.levels should not be (None);
@@ -126,7 +127,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary2.noOfInteractEvents should be(25);
         summary2.itemResponses.get.length should be(2);
         summary2.activitySummary.get.size should be(1);
-        event2.syncts should be (summary2.syncDate);
+        event2.syncts should be(summary2.syncDate);
 
         val asList2 = summary2.activitySummary.get
         val asActCountMap2 = asList2.map { x => (x.actType, x.count) }.toMap
@@ -172,7 +173,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.syncDate should be(1451696364329L)
         summary3.mimeType.get should be("application/vnd.android.package-archive");
         summary3.contentType.get should be("Game");
-        event3.syncts should be (summary3.syncDate);
+        event3.syncts should be(summary3.syncDate);
 
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
         event4.mid should be("08D37F42C718121C6140EDF9F89889B2");
@@ -197,8 +198,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         asActTimeSpentMap4.get("TOUCH").get should be(11);
 
         val esList4 = summary4.eventsSummary
-        val esMap4 = esList4.map { x => (x.id,x.count) }.toMap 
-        
+        val esMap4 = esList4.map { x => (x.id, x.count) }.toMap
+
         esList4.size should be(2);
         esMap4.get("OE_INTERACT").get should be(3);
         esMap4.get("OE_START").get should be(1);
@@ -206,7 +207,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary4.syncDate should be(1451715800197L)
         summary4.mimeType.get should be("application/vnd.android.package-archive");
         summary4.contentType.get should be("Game");
-        event4.syncts should be (summary4.syncDate);
+        event4.syncts should be(summary4.syncDate);
     }
 
     it should "generate 3 session summaries and validate the screen summaries" in {
@@ -215,7 +216,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(rdd, None);
         val me = rdd2.collect();
         me.length should be(3);
-        
+
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
@@ -261,14 +262,14 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
-        
+
         val ssList3 = summary3.screenSummary.get
-        val ssMap3 = ssList3.map { x => (x.id,x.timeSpent) }.toMap
-        
+        val ssMap3 = ssList3.map { x => (x.id, x.timeSpent) }.toMap
+
         ssList3.size should be(2);
         ssMap3.getOrElse("ordinalNumbers", 0d) should be(226.0);
         ssMap3.getOrElse("splash", 0d) should be(24.0);
-        
+
         summary3.mimeType.get should be("application/vnd.ekstep.ecml-archive");
         summary3.contentType.get should be("Worksheet");
     }
@@ -288,16 +289,38 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
     it should " generate ME by adding partnerid as org.ekstep.partner.pratham " in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_partnerId.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
-        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String,AnyRef]];
-        eventMap.get("partnerId").get should be ("org.ekstep.partner.pratham")
+        println(rdd1.collect().last)
+        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect().last).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        eventMap.get("partnerId").get should be("org.ekstep.partner.pratham")
     }
-    
-    it should "check group_info and partner id will be empty" in {
+
+    it should "check group_user and partner id will be empty" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
-        //val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String,AnyRef]];
+        //val learner_id = "1aca2342-3865-4f67-aff5-048027cba8b1"
+        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        val eventMapLast = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()last).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        eventMap.get("groupUser").get.asInstanceOf[Boolean] should be(false)
+        eventMapLast.get("groupUser").get.asInstanceOf[Boolean] should be(false)
+        eventMap.get("partnerId").get should be("")
+        eventMapLast.get("partnerId").get should be("")
     }
-    
+
+    it should "check group_user for a learner_id = 1aca2342-3865-4f67-aff5-048027cba8b1" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("INSERT INTO learner_db.learnerprofile (learner_id,did,gender,language,loc,standard,age,year_of_birth,group_user,anonymous_user,created_date,updated_date) VALUES ('1aca2342-3865-4f67-aff5-048027cba8b1','d5ef0395fb76e056d54758007ae353f16d898a7b','','','',0,0,0,true,false,1461829438478,1461829438478)");
+        }
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
+        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
+        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        eventMap.get("groupUser").get.asInstanceOf[Boolean] should be(true)
+        
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("DELETE FROM learner_db.learnerconceptrelevance where learner_id='1aca2342-3865-4f67-aff5-048027cba8b1'");
+        }
+    }
+
     ignore should "extract timespent from takeoff summaries" in {
         val rdd = loadFile[MeasuredEvent]("/Users/Santhosh/ekStep/telemetry_dump/takeoff-summ.log");
         val rdd2 = rdd.map { x => (x.uid, JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(x.edata.eks))) };

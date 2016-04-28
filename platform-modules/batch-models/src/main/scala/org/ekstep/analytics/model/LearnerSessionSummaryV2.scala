@@ -12,6 +12,9 @@ import org.ekstep.analytics.framework.adapter._
 import org.ekstep.analytics.framework.util._
 import java.security.MessageDigest
 import org.apache.log4j.Logger
+import com.datastax.spark.connector._
+import org.ekstep.analytics.updater.LearnerProfile
+import org.ekstep.analytics.util.Constants
 
 /**
  * @author Santhosh
@@ -161,6 +164,12 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
             val firstEvent = events(0);
             val lastEvent = events.last;
+
+            var partnerId = ""
+            if (null != firstEvent.tags) {
+                partnerId = firstEvent.tags.find(p => p.contains("partnerid")).getOrElse(Map()).getOrElse("partnerid", "").asInstanceOf[String]
+            }
+
             val gameId = firstEvent.gdata.id;
             val gameVersion = firstEvent.gdata.ver;
             val content = contentTypeMapping.value.getOrElse(gameId, (Option("Game"), Option("application/vnd.android.package-archive")));
@@ -235,11 +244,18 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, Option(startTimestamp),
                 Option(endTimestamp), Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses),
                 DtRange(startTimestamp, endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, lastEvent.ets, contentType, mimeType, did);
+                eventSummary, lastEvent.ets, contentType, mimeType, did, partnerId);
         }
+
+        JobLogger.debug("'screenerSummary' joining with 'LearnerProfile' table to get group_user value for each learner", className)
+        //Joining with LearnerProfile table to add group info
+        val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1))
+            .joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, x._2.group_user) }
+        val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
+
         JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
         JobLogger.info("LearnerSessionSummary: execute method Ending", className)
-        screenerSummary.map(f => {
+        sessionSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
     }
@@ -247,9 +263,9 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, SessionSummary), config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[Boolean])), config: Map[String, AnyRef]): MeasuredEvent = {
 
-        val game = userMap._2;
+        val game = userMap._2._1;
         val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap._1, "SESSION", game.dtRange, game.id);
         val measures = Map(
             "itemResponses" -> game.itemResponses,
@@ -273,7 +289,9 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             "noOfLevelTransitions" -> game.noOfLevelTransitions,
             "telemetryVersion" -> "2.0",
             "contentType" -> game.contentType,
-            "mimeType" -> game.mimeType);
+            "mimeType" -> game.mimeType,
+            "partnerId" -> game.partnerId,
+            "groupUser" -> (userMap._2._2).getOrElse(false));
 
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
