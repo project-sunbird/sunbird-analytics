@@ -10,7 +10,7 @@ class Models extends Serializable {}
 class GData(val id: String, val ver: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class Eks(val loc: String, val mc: Array[String], val mmc: Array[String],
+class Eks(val dspec: Map[String, AnyRef], val loc: String, val mc: Array[String], val mmc: Array[String],
           val pass: String, val qid: String, val qtype: String,
           val qlevel: String, val score: Int, val maxscore: Int,
           val res: Array[String], val exres: Array[String], val length: AnyRef,
