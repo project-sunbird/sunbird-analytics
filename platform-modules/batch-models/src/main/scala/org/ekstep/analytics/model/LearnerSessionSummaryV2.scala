@@ -245,7 +245,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
                 Option(endTimestamp), Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses),
                 DtRange(startTimestamp, endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
                 eventSummary, lastEvent.ets, contentType, mimeType, did, partnerId);
-        }
+        }.filter(f=>(f._2.timeSpent>=0))// Skiping the events, if timeSpent is -ve
 
         JobLogger.debug("'screenerSummary' joining with 'LearnerProfile' table to get group_user value for each learner", className)
         //Joining with LearnerProfile table to add group info

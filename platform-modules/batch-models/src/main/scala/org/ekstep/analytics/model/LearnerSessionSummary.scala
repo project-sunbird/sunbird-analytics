@@ -254,7 +254,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                     endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary), None, Option(computeScreenSummary(events)), noOfInteractEvents,
                 eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, partnerId);
 
-        }
+        }.filter(f=>(f._2.timeSpent>=0))// Skiping the events, if timeSpent is -ve
         
 
         JobLogger.debug("'screenerSummary' joining with LearnerProfile table to get group_user value for each learner", className)
