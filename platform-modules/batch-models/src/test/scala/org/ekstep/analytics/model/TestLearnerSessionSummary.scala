@@ -286,7 +286,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rs = rdd1.collect();
     }
 
-    it should " generate ME by adding partnerid as org.ekstep.partner.pratham " in {
+    it should "generate ME by adding partnerid as org.ekstep.partner.pratham" in {
+        
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_partnerId.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         println(rdd1.collect().last)
@@ -305,21 +306,6 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         eventMap.get("partnerId").get should be("")
         eventMapLast.get("partnerId").get should be("")
     }
-
-//    it should "check group_user for a learner_id = 1aca2342-3865-4f67-aff5-048027cba8b1" in {
-//
-//        CassandraConnector(sc.getConf).withSessionDo { session =>
-//            session.execute("INSERT INTO learner_db.learnerprofile (learner_id,did,gender,language,loc,standard,age,year_of_birth,group_user,anonymous_user,created_date,updated_date) VALUES ('1aca2342-3865-4f67-aff5-048027cba8b1','d5ef0395fb76e056d54758007ae353f16d898a7b','','','',0,0,0,true,false,1461829438478,1461829438478)");
-//        }
-//        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
-//        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
-//        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String, AnyRef]];
-//        eventMap.get("groupUser").get.asInstanceOf[Boolean] should be(true)
-//        
-//        CassandraConnector(sc.getConf).withSessionDo { session =>
-//            session.execute("DELETE FROM learner_db.learnerprofile where learner_id='1aca2342-3865-4f67-aff5-048027cba8b1'");
-//        }
-//    }
 
     ignore should "extract timespent from takeoff summaries" in {
         val rdd = loadFile[MeasuredEvent]("/Users/Santhosh/ekStep/telemetry_dump/takeoff-summ.log");
