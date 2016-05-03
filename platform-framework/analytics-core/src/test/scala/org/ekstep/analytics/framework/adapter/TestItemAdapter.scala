@@ -20,7 +20,7 @@ class TestItemAdapter extends BaseSpec {
         }
     }
     
-    it should "return Questionnaires" in {
+    ignore should "return Questionnaires" in {
         val questionnaires = ItemAdapter.getQuestionnaires("numeracy_377");
         questionnaires should not be(null);
     }
@@ -39,7 +39,7 @@ class TestItemAdapter extends BaseSpec {
         }
     }
     
-    it should "return all items" in {
+    ignore should "return all items" in {
         val items = ItemAdapter.getItems("numeracy_377");
         items should not be(null);
         items.length should be (30);
@@ -69,7 +69,7 @@ class TestItemAdapter extends BaseSpec {
         }
     }
     
-    it should "return item sets" in {
+    ignore should "return item sets" in {
         val itemSets = ItemAdapter.getItemSets("numeracy_377");
         itemSets should not be(null);
         itemSets.length should be (2);

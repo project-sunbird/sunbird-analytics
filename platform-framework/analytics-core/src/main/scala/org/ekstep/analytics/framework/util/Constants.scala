@@ -48,4 +48,8 @@ object Constants {
     def getItemSetAPIUrl(itemSetId: String, subject: String): String = {
         s"$LP_URL/taxonomy-service/v1/assessmentitemset/$itemSetId?taxonomyId=$subject";
     }
+    
+    def getContentUpdateAPIUrl(contentId: String): String = {
+        s"$LP_URL/taxonomy-service/v2/content/$contentId";
+    }
 }
