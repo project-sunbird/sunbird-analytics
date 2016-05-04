@@ -13,8 +13,7 @@
 				<pattern>%m%n</pattern>
 			</PatternLayout>
 		</File>
-		<RollingFile name="RollingFile" fileName="${baseDir}/joblog.log"
-			filePattern="${baseDir}/joblog-%d{MM-dd-yyyy}-%i.log">
+		<!-- <RollingFile name="RollingFile" fileName="${baseDir}/joblog.log" filePattern="${baseDir}/joblog-%d{MM-dd-yyyy}-%i.log">
 			<PatternLayout>
 				<Pattern>%m%n</Pattern>
 			</PatternLayout>
@@ -23,13 +22,13 @@
 				<SizeBasedTriggeringPolicy size="250 MB" />
 			</Policies>
 			<DefaultRolloverStrategy max="20" />
-		</RollingFile>
+		</RollingFile>  -->
 		<Async name="Async">
 			<AppenderRef ref="File" />
 		</Async>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.ekstep.analytics" level="info" additivity="false">
+		<Logger name="org.ekstep.analytics" level="error" additivity="false">
 			<AppenderRef ref="Console" />
 			<!-- <AppenderRef ref="Async"/> -->
 		</Logger>
