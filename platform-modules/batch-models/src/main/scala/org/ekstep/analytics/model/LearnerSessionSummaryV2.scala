@@ -15,6 +15,7 @@ import org.apache.log4j.Logger
 import com.datastax.spark.connector._
 import org.ekstep.analytics.updater.LearnerProfile
 import org.ekstep.analytics.util.Constants
+import java.net.URLEncoder
 
 /**
  * @author Santhosh
@@ -141,7 +142,8 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
         JobLogger.info("LearnerSessionSummaryV2 : execute method starting", className)
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT,OE_NAVIGATE,OE_ITEM_RESPONSE", className)
-        val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE"))));
+        val v2Events = DataFilter.filter(data, Filter("ver", "EQ", Option("2.0")));
+        val filteredData = DataFilter.filter(v2Events, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
         JobLogger.debug("Fetching the Content and Item data from Learing Platform", className)
@@ -180,7 +182,8 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             val itemResponses = assessEvents.map { x =>
                 val itemObj = getItem(itemMapping.value, x);
                 val metadata = itemObj.metadata;
-                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.eks.length), metadata.get("ex_time_spent"), x.edata.eks.resvalues.map(f => f.asInstanceOf[AnyRef]), metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(x.ets), metadata.get("max_score"), metadata.get("domain"));
+                val resValues = if(null == x.edata.eks.resvalues) Array[Map[String, AnyRef]]() else x.edata.eks.resvalues;
+                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.eks.length), metadata.get("ex_time_spent"), resValues.map(f => f.asInstanceOf[AnyRef]), metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(x.ets), metadata.get("max_score"), metadata.get("domain"));
             }
             val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
@@ -299,4 +302,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             MEEdata(measures));
     }
 
+    def main(args: Array[String]): Unit = {
+        println(URLEncoder.encode("E2E_QA_Delete Content_Collection", "UTF-8"));
+    }
 }

@@ -290,7 +290,6 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_partnerId.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
-        println(rdd1.collect().last)
         val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect().last).edata.eks.asInstanceOf[Map[String, AnyRef]];
         eventMap.get("partnerId").get should be("org.ekstep.partner.pratham")
     }
