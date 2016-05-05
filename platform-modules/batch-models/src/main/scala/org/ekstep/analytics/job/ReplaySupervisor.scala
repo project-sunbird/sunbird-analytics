@@ -64,6 +64,7 @@ object ReplaySupervisor extends Application {
                 case ex: DataFetcherException => {
                     JobLogger.error("File is missing in S3 with date - " + date + " | Model - " + model, className, ex)
                     println("### File is missing in S3 with date - " + date + " | Model - " + model + " ###");
+                    throw ex;
                 }
                 case ex: Exception => {
                     JobLogger.error("Unable to execute a Model with the code: " + model, className, ex)
