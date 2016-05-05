@@ -6,11 +6,12 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.joda.time.DateTime
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestContentSummary extends SparkSpec(null) {
     
     "ContentSummary" should "generate contentsummary and pass all positive test cases" in {
-
+        
         val cs = ContentSummary("org.ekstep.vayuthewind", DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0,"","")
         val crdd = sc.parallelize(Array(cs));
         crdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
@@ -67,5 +68,16 @@ class TestContentSummary extends SparkSpec(null) {
         eks3.get("sessionsPerWeek").get should be(3)
         eks3.get("contentType").get should be("Story")
     }
-
+    
+    it should "generate contentsummary for more than 5 content, those are not Collection type" in {
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/content-summary/test_data_4.log");
+        val me = ContentActivitySummary.execute(rdd, None).collect;
+        
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.vayuthewind'");
+            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.delta'");
+            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.hindistorypart1'");
+            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.moreless.worksheet'");
+        }
+    }
 }

@@ -306,5 +306,4 @@ object CommonUtil {
         val key = Array(eventId, userId, df4.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
-
 }
