@@ -81,7 +81,6 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                     }
                 }.filter(_ != null).flatten.map { x => (x, 1) }.groupBy(_._1).map(x => (x._1, x._2.length));
 
-                println("activeHours====> ",activeHours.size)
                 val mostActiveHrOfTheDay = if (activeHours.isEmpty) None else Option(activeHours.maxBy(f => f._2)._1);
 
                 var meanTimeBtwnGamePlays = if (summaryEvents.length > 1) (CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get - totalTimeSpentOnPlatform) / (summaryEvents.length - 1) else 0d

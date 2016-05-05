@@ -71,10 +71,8 @@ class TestReplaySupervisor extends BaseSpec {
     } should have message "Model Code is not correct"
 
     it should "throw DataFetcherException" in {
-        a[DataFetcherException] should be thrownBy {
-            val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), None, Option("__endDate__"), Option(0))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ProficiencyUpdater", Option(Map("alpha" -> 1.0d.asInstanceOf[AnyRef], "beta" -> 1.0d.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestReplaySupervisor"), Option(false))
-            ReplaySupervisor.main("lp", "2015-09-02", "2015-09-02", JSONUtils.serialize(config));
-        }
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), None, Option("__endDate__"), Option(0))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ProficiencyUpdater", Option(Map("alpha" -> 1.0d.asInstanceOf[AnyRef], "beta" -> 1.0d.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestReplaySupervisor"), Option(false))
+        ReplaySupervisor.main("lp", "2015-09-02", "2015-09-02", JSONUtils.serialize(config));
     }
 
 }
