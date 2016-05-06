@@ -37,11 +37,6 @@ class TestReplaySupervisor extends BaseSpec {
         ReplaySupervisor.main("ss", "2016-03-10", "2016-03-11", JSONUtils.serialize(config));
     }
 
-    it should " Run SS V2 from local data " in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/v2_telemetry-__endDate__*"))))), null, null, "org.ekstep.analytics.model.LearnerSessionSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(true))
-        ReplaySupervisor.main("ssv2", "2016-02-24", "2016-02-24", JSONUtils.serialize(config));
-    }
-
     it should " Run Aser Screener Summary from local data " in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/test_data_telemetry-__endDate__*"))))), null, null, "org.ekstep.analytics.model.AserScreenSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(true))
         ReplaySupervisor.main("as", "2016-03-10", "2016-03-11", JSONUtils.serialize(config));
@@ -76,10 +71,8 @@ class TestReplaySupervisor extends BaseSpec {
     } should have message "Model Code is not correct"
 
     it should "throw DataFetcherException" in {
-        a[DataFetcherException] should be thrownBy {
-            val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), None, Option("__endDate__"), Option(0))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ProficiencyUpdater", Option(Map("alpha" -> 1.0d.asInstanceOf[AnyRef], "beta" -> 1.0d.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestReplaySupervisor"), Option(false))
-            ReplaySupervisor.main("lp", "2015-09-02", "2015-09-02", JSONUtils.serialize(config));
-        }
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), None, Option("__endDate__"), Option(0))))), Option(Array(Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")))), None, "org.ekstep.analytics.model.ProficiencyUpdater", Option(Map("alpha" -> 1.0d.asInstanceOf[AnyRef], "beta" -> 1.0d.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> Option(false))), Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "replay")))), Option(10), Option("TestReplaySupervisor"), Option(false))
+        ReplaySupervisor.main("lp", "2015-09-02", "2015-09-02", JSONUtils.serialize(config));
     }
 
 }

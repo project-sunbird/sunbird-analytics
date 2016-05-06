@@ -36,9 +36,7 @@ object ReplaySupervisor extends Application {
                     case "ss" =>
                         JobLogger.debug("Running LearnerSessionSummary for the date : " + date, className)
                         LearnerSessionSummarizer.main(jobConfig)(Option(sc));
-                    case "ssv2" =>
                         JobLogger.debug("Running LearnerSessionSummaryV2 for the date : " + date, className);
-                        LearnerSessionSummarizerV2.main(jobConfig)(Option(sc));
                     case "as" =>
                         JobLogger.debug("Running AserScreenSummary for the date : " + date, className);
                         AserScreenSummarizer.main(jobConfig)(Option(sc));
@@ -64,7 +62,6 @@ object ReplaySupervisor extends Application {
                 case ex: DataFetcherException => {
                     JobLogger.error("File is missing in S3 with date - " + date + " | Model - " + model, className, ex)
                     println("### File is missing in S3 with date - " + date + " | Model - " + model + " ###");
-                    throw ex;
                 }
                 case ex: Exception => {
                     JobLogger.error("Unable to execute a Model with the code: " + model, className, ex)

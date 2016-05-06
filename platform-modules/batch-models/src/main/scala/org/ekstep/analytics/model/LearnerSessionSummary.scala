@@ -21,7 +21,6 @@ import org.ekstep.analytics.updater.LearnerProfile
  */
 case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[AnyRef], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
 
-//case class ActivitySummary(count: Int, timeSpent: Double)
 case class ActivitySummary(actType: String, count: Int, timeSpent: Double)
 case class ScreenSummary(id: String, timeSpent: Double)
 case class EventSummary(id: String, count: Int)
@@ -154,7 +153,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
         JobLogger.info("LearnerSessionSummary : execute method starting", className)
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
-        val filteredData = DataFilter.filter(data, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT"))));
+        val v1Events = DataFilter.filter(data, Filter("ver", "EQ", Option("1.0")));
+        val filteredData = DataFilter.filter(v1Events, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
         JobLogger.debug("Fetching the Content and Item data from Learing Platform", className)
