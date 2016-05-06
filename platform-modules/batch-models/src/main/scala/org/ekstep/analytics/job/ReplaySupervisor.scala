@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.JobFactory
+import org.ekstep.analytics.framework.exception.JobNotFoundException
 
 object ReplaySupervisor extends Application {
 
@@ -40,7 +41,7 @@ object ReplaySupervisor extends Application {
                     JobLogger.error("File is missing in S3 with date - " + date + " | Model - " + model, className, ex)
                     println("### File is missing in S3 with date - " + date + " | Model - " + model + " ###");
                 }
-                case ex: Exception => {
+                case ex: JobNotFoundException => {
                     JobLogger.error("Unable to execute a Model with the code: " + model, className, ex)
                     throw ex;
                 }
