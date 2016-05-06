@@ -254,18 +254,17 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
                     endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary), None, Option(computeScreenSummary(events)), noOfInteractEvents,
                 eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, partnerId);
 
-        }.filter(f=>(f._2.timeSpent>=0))// Skiping the events, if timeSpent is -ve
-        
+        }.filter(f => (f._2.timeSpent >= 0)) // Skipping the events, if timeSpent is -ve
 
         JobLogger.debug("'screenerSummary' joining with LearnerProfile table to get group_user value for each learner", className)
         //Joining with LearnerProfile table to add group info
         val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1))
-            .joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, x._2.group_user) }
+            .joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
         val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
-        
+
         JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
         JobLogger.info("LearnerSessionSummary: execute method Ending", className)
-        
+
         sessionSummary.map(x => {
             getMeasuredEvent(x, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
@@ -274,9 +273,10 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[Boolean])), config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[(Boolean, Boolean)])), config: Map[String, AnyRef]): MeasuredEvent = {
 
         val game = userMap._2._1;
+        val booleanTuple = userMap._2._2.getOrElse((false,false))
         val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap._1, "SESSION", game.dtRange, game.id);
         val measures = Map(
             "itemResponses" -> game.itemResponses,
@@ -302,7 +302,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "contentType" -> game.contentType,
             "mimeType" -> game.mimeType,
             "partnerId" -> game.partnerId,
-            "groupUser" -> (userMap._2._2).getOrElse(false));
+            "groupUser" -> booleanTuple._1,
+            "anonymousUser" -> booleanTuple._2);
         MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),

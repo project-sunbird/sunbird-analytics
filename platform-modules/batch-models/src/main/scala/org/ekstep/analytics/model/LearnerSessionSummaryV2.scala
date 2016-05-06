@@ -182,7 +182,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             val itemResponses = assessEvents.map { x =>
                 val itemObj = getItem(itemMapping.value, x);
                 val metadata = itemObj.metadata;
-                val resValues = if(null == x.edata.eks.resvalues) Array[Map[String, AnyRef]]() else x.edata.eks.resvalues;
+                val resValues = if (null == x.edata.eks.resvalues) Array[Map[String, AnyRef]]() else x.edata.eks.resvalues;
                 ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.eks.length), metadata.get("ex_time_spent"), resValues.map(f => f.asInstanceOf[AnyRef]), metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(x.ets), metadata.get("max_score"), metadata.get("domain"));
             }
             val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
@@ -248,12 +248,12 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
                 Option(endTimestamp), Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses),
                 DtRange(startTimestamp, endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
                 eventSummary, lastEvent.ets, contentType, mimeType, did, partnerId);
-        }.filter(f=>(f._2.timeSpent>=0))// Skiping the events, if timeSpent is -ve
+        }.filter(f => (f._2.timeSpent >= 0)) // Skipping the events, if timeSpent is -ve
 
         JobLogger.debug("'screenerSummary' joining with 'LearnerProfile' table to get group_user value for each learner", className)
         //Joining with LearnerProfile table to add group info
         val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1))
-            .joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, x._2.group_user) }
+            .joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)) }
         val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
 
         JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
@@ -266,9 +266,10 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
     /**
      * Get the measured event from the UserMap
      */
-    private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[Boolean])), config: Map[String, AnyRef]): MeasuredEvent = {
+    private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[(Boolean, Boolean)])), config: Map[String, AnyRef]): MeasuredEvent = {
 
         val game = userMap._2._1;
+        val booleanTuple = userMap._2._2.getOrElse((false,false))
         val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap._1, "SESSION", game.dtRange, game.id);
         val measures = Map(
             "itemResponses" -> game.itemResponses,
@@ -294,7 +295,8 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             "contentType" -> game.contentType,
             "mimeType" -> game.mimeType,
             "partnerId" -> game.partnerId,
-            "groupUser" -> (userMap._2._2).getOrElse(false));
+            "groupUser" -> booleanTuple._1,
+            "anonymousUser" -> booleanTuple._2);
 
         MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
