@@ -24,5 +24,8 @@ if [ $? == 0 ]
   		echo "Deleting the back-up files s3://prod-data-store/backup-ss "
   		./replay-delete.sh "prod-data-store" "backup-ss"
 else
- 	echo "Unable to take backup"
+ 	echo "Copy back the Session Summarizer files to source directory '/ss' from backup directory '/backup-ss'"
+ 	./replay-copy-back.sh "prod-data-store" "ss" "backup-ss"
+ 	echo "Deleting the back-up files s3://prod-data-store/backup-ss "
+	./replay-delete.sh "prod-data-store" "backup-ss"
 fi
