@@ -21,8 +21,11 @@ fi
 if [ $? == 0 ]
 	then
   		echo "Session Summary Replay Executed Successfully..."
-  		echo "Deleting the back-up files s3://sandbox-data-store/backup-ss "
+  		echo "Deleting the back-up files s3://sandbox-data-store/backup-ss"
   		./replay-delete.sh "sandbox-data-store" "backup-ss"
 else
- 	echo "Unable to take backup"
+ 	echo "Copy back the Session Summarizer files to source directory '/ss' from backup directory '/backup-ss'"
+ 	./replay-copy-back.sh "sandbox-data-store" "ss" "backup-ss"
+ 	echo "Deleting the back-up files s3://sandbox-data-store/backup-ss"
+ 	./replay-delete.sh "sandbox-data-store" "backup-ss"
 fi

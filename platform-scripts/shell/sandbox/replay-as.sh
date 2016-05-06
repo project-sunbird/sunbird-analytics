@@ -24,5 +24,8 @@ if [ $? == 0 ]
   		echo "Deleting the back-up files s3://sandbox-data-store/backup-as "
   		./replay-delete.sh "sandbox-data-store" "backup-as"
 else
- 	echo "Unable to take backup"
+	echo "Copy back the Aser Screener Summarizer files to source directory '/as' from backup directory '/backup-as'"
+	./replay-copy-back.sh "sandbox-data-store" "as" "backup-as"
+	echo "Deleting the back-up files s3://sandbox-data-store/backup-as "
+  	./replay-delete.sh "sandbox-data-store" "backup-as"
 fi

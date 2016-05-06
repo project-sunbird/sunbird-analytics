@@ -23,5 +23,8 @@ if [ $? == 0 ]
   		echo "Deleting the back-up files"
   		./replay-delete.sh "sandbox-data-store" "backup-las"
 else
- 	echo "Unable to take backup"
+	echo "Copy back the Learner Activity Summarizer files to source directory '/las' from backup directory '/backup-las'"
+ 	./replay-copy-back.sh "sandbox-data-store" "las" "backup-las"
+ 	echo "Deleting the back-up files"
+    ./replay-delete.sh "sandbox-data-store" "backup-las"
 fi

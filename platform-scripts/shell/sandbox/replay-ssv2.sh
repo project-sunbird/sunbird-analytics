@@ -24,5 +24,8 @@ if [ $? == 0 ]
   		echo "Deleting the back-up files s3://sandbox-data-store/backup-ssv2 "
   		./replay-delete.sh "sandbox-data-store" "backup-ssv2"
 else
- 	echo "Unable to take backup"
+	echo "Copy back the Session Summarizer V2 files to source directory '/ssv2' from backup directory '/backup-ssv2'"
+ 	./replay-copy-back.sh "sandbox-data-store" "ssv2" "backup-ssv2"
+	echo "Deleting the back-up files s3://sandbox-data-store/backup-ssv2 "
+  	./replay-delete.sh "sandbox-data-store" "backup-ssv2"
 fi

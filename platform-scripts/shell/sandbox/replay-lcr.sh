@@ -23,5 +23,8 @@ if [ $? == 0 ]
   		echo "Deleting the back-up files"
   		./replay-delete.sh "sandbox-data-store" "backup-lcr"
 else
- 	echo "Unable to take backup"
+ 	echo "Copy back the Content Relevance files to source directory '/lcr' from backup directory '/backup-lcr'"
+ 	./replay-copy-back.sh "sandbox-data-store" "lcr" "backup-lcr"
+ 	echo "Deleting the back-up files"
+ 	./replay-delete.sh "sandbox-data-store" "backup-lcr"
 fi

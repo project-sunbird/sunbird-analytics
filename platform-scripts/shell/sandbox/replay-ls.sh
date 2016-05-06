@@ -23,5 +23,5 @@ if [ $? == 0 ]
   		echo "Deleting the back-up files"
   		./replay-delete.sh "sandbox-data-store" "backup-ls"
 else
- 	echo "Unable to take backup"
+ 	echo "Unable write Learner Snapshot to DB"
 fi

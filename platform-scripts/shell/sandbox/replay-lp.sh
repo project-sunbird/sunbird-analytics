@@ -25,5 +25,8 @@ if [ $? == 0 ]
   		echo "Deleting the back-up files s3://sandbox-data-store/backup-lp "
   		./replay-delete.sh "sandbox-data-store" "backup-lp"
 else
- 	echo "Unable to take backup"
+ 	echo "Copy back the Proficiency Updater files to source directory '/lp' from backup directory '/backup-lp'"
+ 	./replay-copy-back.sh "sandbox-data-store" "lp" "backup-lp"
+ 	echo "Deleting the back-up files s3://sandbox-data-store/backup-lp "
+	./replay-delete.sh "sandbox-data-store" "backup-lp"
 fi
