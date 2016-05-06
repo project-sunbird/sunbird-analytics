@@ -8,11 +8,12 @@ import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.TelemetryEventV2
 import org.ekstep.analytics.model.LearnerSessionSummaryV2
+import org.ekstep.analytics.framework.IJob
 
 /**
  * @author Santhosh
  */
-object LearnerSessionSummarizer extends optional.Application {
+object LearnerSessionSummarizer extends optional.Application with IJob {
 
     val className = "org.ekstep.analytics.job.LearnerSessionSummarizer"
     def main(config: String)(implicit sc: Option[SparkContext] = None) {

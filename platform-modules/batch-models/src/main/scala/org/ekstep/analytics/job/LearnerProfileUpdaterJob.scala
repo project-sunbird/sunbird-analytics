@@ -6,6 +6,7 @@ import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.ProfileEvent
 import org.ekstep.analytics.updater.LearnerProfileUpdater
+import org.ekstep.analytics.framework.IJob
 
 object LearnerProfileUpdaterJob extends optional.Application {
 

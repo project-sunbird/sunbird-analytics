@@ -6,8 +6,9 @@ import org.ekstep.analytics.model.LearnerProficiencySummary
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
+import org.ekstep.analytics.framework.IJob
 
-object ProficiencyUpdater extends optional.Application {
+object ProficiencyUpdater extends optional.Application with IJob {
 
     val className = "org.ekstep.analytics.job.ProficiencyUpdater"
 

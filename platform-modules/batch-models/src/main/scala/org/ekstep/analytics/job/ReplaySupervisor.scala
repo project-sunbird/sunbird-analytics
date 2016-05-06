@@ -10,6 +10,7 @@ import org.ekstep.analytics.model.LearnerProficiencySummary
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
+import org.ekstep.analytics.framework.JobFactory
 
 object ReplaySupervisor extends Application {
 
@@ -32,32 +33,8 @@ object ReplaySupervisor extends Application {
         for (date <- dateRange) {
             try {
                 val jobConfig = config.replace("__endDate__", date)
-                model.toLowerCase() match {
-                    case "ss" =>
-                        JobLogger.debug("Running LearnerSessionSummary for the date : " + date, className)
-                        LearnerSessionSummarizer.main(jobConfig)(Option(sc));
-                        JobLogger.debug("Running LearnerSessionSummaryV2 for the date : " + date, className);
-                    case "as" =>
-                        JobLogger.debug("Running AserScreenSummary for the date : " + date, className);
-                        AserScreenSummarizer.main(jobConfig)(Option(sc));
-                    case "lp" =>
-                        JobLogger.debug("Running LearnerProficiencySummary for the date : " + date, className);
-                        ProficiencyUpdater.main(jobConfig)(Option(sc));
-                    case "las" =>
-                        JobLogger.debug("Running LearnerActivitySummary for the date : " + date, className);
-                        LearnerActivitySummarizer.main(jobConfig)(Option(sc));
-                    case "ls" =>
-                        JobLogger.debug("Running LearnerSnapshot for the date : " + date, className);
-                        LearnerSnapshotUpdater.main(jobConfig)(Option(sc));
-                    case "lcas" =>
-                        JobLogger.debug("Running LearnerContentActivitySummary for the date : " + date, className);
-                        LearnerContentActivityUpdater.main(jobConfig)(Option(sc));
-                    case "lcr" =>
-                        JobLogger.debug("Running RecommendationEngine for the date : " + date, className);
-                        RecommendationEngineJob.main(jobConfig)(Option(sc));
-                    case _ =>
-                        throw new Exception("Model Code is not correct");
-                }
+                val job = JobFactory.getJob(model);
+                job.main(jobConfig)(Option(sc));
             } catch {
                 case ex: DataFetcherException => {
                     JobLogger.error("File is missing in S3 with date - " + date + " | Model - " + model, className, ex)

@@ -6,13 +6,14 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
+import org.ekstep.analytics.framework.IJob
 
 /**
  * @author Santhosh
  */
 
 @Deprecated
-object LearnerSnapshotUpdater extends optional.Application {
+object LearnerSnapshotUpdater extends optional.Application with IJob {
 
     val className = "org.ekstep.analytics.job.LearnerSnapshotUpdater"
 
