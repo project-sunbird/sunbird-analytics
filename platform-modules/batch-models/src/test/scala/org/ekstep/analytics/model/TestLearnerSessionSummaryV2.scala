@@ -2,7 +2,7 @@ package org.ekstep.analytics.model
 
 import java.io.FileWriter
 import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.TelemetryEventV2
+import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.DataFilter
@@ -20,17 +20,17 @@ import org.ekstep.analytics.framework.MeasuredEvent
  */
 class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
     
-    "LearnerSessionSummaryV2" should "generate session summary for v2 telemetry" in {
+    "LearnerSessionSummary" should "generate session summary for v2 telemetry" in {
         
-        val rdd = loadFile[TelemetryEventV2]("src/test/resources/session-summary/v2_telemetry.json");
-        val rdd2 = LearnerSessionSummaryV2.execute(rdd, Option(Map("modelId" -> "LearnerSessionSummaryV2", "apiVersion" -> "v2")));
+        val rdd = loadFile[Event]("src/test/resources/session-summary/v2_telemetry.json");
+        val rdd2 = LearnerSessionSummary.execute(rdd, Option(Map("modelId" -> "LearnerSessionSummary", "apiVersion" -> "v2")));
         val me = rdd2.collect();
         me.length should be (1);
         
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         event1.eid should be ("ME_SESSION_SUMMARY");
         event1.mid should be ("288F7A6E4E7BA48031386E84774DC61A");
-        event1.context.pdata.model should be ("LearnerSessionSummaryV2");
+        event1.context.pdata.model should be ("LearnerSessionSummary");
         event1.context.pdata.ver should be ("1.0");
         event1.context.granularity should be ("SESSION");
         event1.context.date_range should not be null;
@@ -87,7 +87,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         ssMap.get("endScreen_g4").get should be (1.71);
         ssMap.get("splash").get should be (15.16);
         
-        summary1.syncDate should be (1456314643296L)
+        summary1.syncDate should be (1459558762917L)
         event1.syncts should be (summary1.syncDate);
     }
     
@@ -95,7 +95,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         val rdd = sc.textFile("src/test/resources/session-summary/v2_telemetry.json", 1).map { line => 
             val mapper = new ObjectMapper();
             mapper.registerModule(DefaultScalaModule);
-            mapper.readValue[TelemetryEventV2](line, classOf[TelemetryEventV2]);
+            mapper.readValue[Event](line, classOf[Event]);
         }.cache();
         println("rdd.count", rdd.count)
     }

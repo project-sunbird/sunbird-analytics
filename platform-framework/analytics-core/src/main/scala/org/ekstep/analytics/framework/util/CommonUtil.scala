@@ -132,7 +132,10 @@ object CommonUtil {
     }
 
     def getEventTS(event: Event): Long = {
-        getTimestamp(event.ts);
+        if(event.ets > 0) 
+            event.ets
+        else
+            getTimestamp(event.ts);
     }
 
     def getEventSyncTS(event: Event): Long = {
