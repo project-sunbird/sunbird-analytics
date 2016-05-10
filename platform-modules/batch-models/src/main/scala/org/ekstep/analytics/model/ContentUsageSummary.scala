@@ -24,32 +24,48 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
 
-        val events = data.map { event =>
+        val events = data.distinct.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val content_id = event.dimensions.gdata.get.id
-            val partner_id = eksMap.get("partnerId").get.asInstanceOf[String]
-            val group_user = eksMap.get("groupUser").get.asInstanceOf[String]
-            ((content_id, partner_id, group_user), Buffer(event));
+            //val partner_id = eksMap.get("partnerId").get.asInstanceOf[String]
+            //val group_user = eksMap.get("groupUser").get.asInstanceOf[String]
+
+            val content_type = eksMap.get("contentType").get.asInstanceOf[String]
+            val mime_type = eksMap.get("mimeType").get.asInstanceOf[String]
+            ((content_id, content_type, mime_type), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
 
-//        val contentUsage = events.mapValues { events =>
-//
-//            val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
-//            val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
-//            val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
-//
-//            val gameVersion = firstEvent.dimensions.gdata.get.ver
-//            val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
-//            val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
-//
-//            val total_ts = events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum;
-//            val total_sessions = events.size
-//            val avg_ts_session = (total_ts / total_sessions)
-//            val total_interactions = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
-//            val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-//            (ContentUsage(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type, gameVersion), date_range)
-//        }
+        //        val contentUsage = events.mapValues { events =>
+        //
+        //            val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
+        //            val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
+        //            val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
+        //
+        //            val gameVersion = firstEvent.dimensions.gdata.get.ver
+        //            val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
+        //            val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
+        //
+        //            val total_ts = events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum;
+        //            val total_sessions = events.size
+        //            val avg_ts_session = (total_ts / total_sessions)
+        //            val total_interactions = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
+        //            val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
+        //            (ContentUsage(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type, gameVersion), date_range)
+        //        }
 
+        events.foreach { x =>
+            val d = x._1
+            val ci = d._1
+            val ct = d._2
+            val mt = d._3
+            val events = x._2
+            events.foreach { x =>
+                val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
+                val content_type = eksMap.get("contentType").get.asInstanceOf[String]
+                val mime_type = eksMap.get("mimeType").get.asInstanceOf[String]
+
+            }
+        }
         events.map { f =>
             JSONUtils.serialize(f)
         };
