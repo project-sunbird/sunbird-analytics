@@ -142,7 +142,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
         JobLogger.info("LearnerSessionSummaryV2 : execute method starting", className)
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT,OE_NAVIGATE,OE_ITEM_RESPONSE", className)
-        val v2Events = DataFilter.filter(data, Filter("ver", "EQ", Option("2.0")));
+        val v2Events = DataFilter.filter(data, Array(Filter("ver", "EQ", Option("2.0")),Filter("uid", "ISNOTEMPTY", None)));
         val filteredData = DataFilter.filter(v2Events, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
@@ -252,8 +252,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
         JobLogger.debug("'screenerSummary' joining with 'LearnerProfile' table to get group_user value for each learner", className)
         //Joining with LearnerProfile table to add group info
-        val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1))
-            .joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)) }
+        val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)) }
         val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
 
         JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)

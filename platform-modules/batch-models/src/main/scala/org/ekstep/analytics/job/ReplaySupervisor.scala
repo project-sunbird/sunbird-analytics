@@ -35,6 +35,7 @@ object ReplaySupervisor extends Application {
             try {
                 val jobConfig = config.replace("__endDate__", date)
                 val job = JobFactory.getJob(model);
+                println("### Executing replay for the date - " + date + " ###");
                 job.main(jobConfig)(Option(sc));
             } catch {
                 case ex: DataFetcherException => {
@@ -43,6 +44,10 @@ object ReplaySupervisor extends Application {
                 }
                 case ex: JobNotFoundException => {
                     JobLogger.error("Unable to execute a Model with the code: " + model, className, ex)
+                    throw ex;
+                }
+                case ex: Exception => {
+                    println("### Error executing replay for the date - " + date + " | Model - " + model + " ###");
                     throw ex;
                 }
             }
