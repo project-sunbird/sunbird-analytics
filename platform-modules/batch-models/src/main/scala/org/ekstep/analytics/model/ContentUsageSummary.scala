@@ -32,45 +32,26 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             ((content_id, partner_id, group_user), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
 
-        val contentUsage = events.mapValues { events =>
+//        val contentUsage = events.mapValues { events =>
+//
+//            val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
+//            val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
+//            val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
+//
+//            val gameVersion = firstEvent.dimensions.gdata.get.ver
+//            val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
+//            val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
+//
+//            val total_ts = events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum;
+//            val total_sessions = events.size
+//            val avg_ts_session = (total_ts / total_sessions)
+//            val total_interactions = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
+//            val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
+//            (ContentUsage(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type, gameVersion), date_range)
+//        }
 
-            val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
-            val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
-            val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
-
-            val gameVersion = firstEvent.dimensions.gdata.get.ver
-            val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
-            val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
-
-            val total_ts = events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum;
-            val total_sessions = events.size
-            val avg_ts_session = (total_ts / total_sessions)
-            val total_interactions = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
-            val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-            (ContentUsage(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type, gameVersion), date_range)
-        }
-
-        contentUsage.map { f =>
-            f
-            //            getMeasuredEvent((f._1._1,f._1._2,f._1._3,f._2._1), configMapping.value, f._2._2);
-        }.map { x => JSONUtils.serialize(x) };
+        events.map { f =>
+            JSONUtils.serialize(f)
+        };
     }
-
-    //    private def getMeasuredEvent(contentData: (String, String, String, ContentUsage), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
-    //
-    //        val contentSum = contentData._4
-    //        val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, contentData._1);
-    //        val measures = Map(
-    //            "total_ts" -> contentSum.total_ts,
-    //            "total_sessions" -> contentSum.total_sessions,
-    //            "avg_ts_session" -> contentSum.avg_ts_session,
-    //            "total_interactions" -> contentSum.total_interactions,
-    //            "avg_interactions_min" -> contentSum.avg_interactions_min,
-    //            "content_type" -> contentSum.content_type,
-    //            "mime_type" -> contentSum.mime_type);
-    //        MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
-    //            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
-    //            Dimensions(contentData._1,contentData._2),MEEdata(measures));
-    //    }
-
 }
