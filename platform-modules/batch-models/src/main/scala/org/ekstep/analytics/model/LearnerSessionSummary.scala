@@ -260,7 +260,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         //Joining with LearnerProfile table to add group info
         val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1))
             .joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
-        val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
+        val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary).distinct
 
         JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
         JobLogger.info("LearnerSessionSummary: execute method Ending", className)
