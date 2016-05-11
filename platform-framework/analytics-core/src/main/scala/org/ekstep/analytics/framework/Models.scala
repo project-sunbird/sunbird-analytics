@@ -121,3 +121,8 @@ case class DomainResponse(id: String, ver: String, ts: String, params: Params, r
 
 // Common models for all data products
 case class LearnerId(learner_id: String)
+
+object Period extends Enumeration {
+    type Period = Value
+    val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
+}
