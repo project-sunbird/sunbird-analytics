@@ -122,12 +122,12 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
                 var ts: Double = 0;
                 events.foreach { event =>
                     event.edata.eks.`type` match {
-                        case "BACKGROUND" =>
-                            prevTs = event.ets;
                         case "RESUME" =>
                             if (prevTs == 0) prevTs = event.ets;
                             ts += CommonUtil.getTimeDiff(prevTs, event.ets).get;
                             prevTs == 0
+                        case _ =>
+                            prevTs = event.ets;
 
                     }
                 }
