@@ -90,16 +90,78 @@ def mockConceptCoverage():
 
     for concept in conceptDict:
         id = concept.concept
-        node = graph.merge_one("Concept","id",id)
+        node = Node("Concept","id",id)
+        graph.merge(node,"id",id)
 
         i = random.randint(0,n-1)
         id = contentDict[i].content
-        node2 = graph.merge_one("Content","id",id)
-        graph.create(Relationship(node, "COVERED_IN_TEST", node2))
+        node2 = Node("Content","id",id)
+        graph.merge(node2,,"id",id)
+        graph.create(Relationship(node, "COVERED_IN", node2))
 
+
+# move proficiency table
+def mockMisConcepts():
+
+    # neo4j graph connector
+    authenticate("localhost:7474", "neo4j", "1sTep123")
+    graph = Graph()
+
+    
+    cypher = graph.cypher
+    # get a list of all content
+    learnerDict = cypher.execute("MATCH (x:Learner) RETURN x.id as learner")
+    conceptDict = cypher.execute("MATCH (x:Concept) RETURN x.id as concept")
+    n = len(conceptDict)
+
+    for learner in learnerDict:
+        id = learner.learner
+        node = Node("Learner","id",id)
+        graph.merge("id",id)
+
+        i = random.randint(0,n-1)
+        id = conceptDict[i].concept
+        node2 = Node("Concept","id",id)
+        graph.merge("id",id)
+        graph.create(Relationship(node, "HAS_MISCONCEPTION_IN", node2))
+
+def mockInteractions():
+
+    # neo4j graph connector
+    authenticate("localhost:7474", "neo4j", "1sTep123")
+    graph = Graph()
+
+    
+    cypher = graph.cypher
+    # get a list of all content
+    learnerDict = cypher.execute("MATCH (x:Learner) RETURN x.id as learner")
+    contentDict = cypher.execute("MATCH (x:Content) RETURN x.id as content")
+    n = len(contentDict)
+
+    for learner in learnerDict:
+        id = learner.learner
+        node = Node("Learner","id",id)
+        graph.merge(node,"id",id)
+
+        i = random.randint(0,n-1)
+        id = contentDict[i].content
+        node2 = Node("Content","id",id)
+        graph.merge(node2,"id",id)
+        graph.create(Relationship(node, "INTERACTED_WITH", node2))
 
 # learner-rel
 print('*******************')
 print(' populating mock concept-content ')
 print('*******************')
 mockConceptCoverage();
+
+print('*******************')
+print(' populating mock mis-conceptions ')
+print('*******************')
+mockMisConcepts()
+
+print('*******************')
+print(' populating mock interactions ')
+print('*******************')
+
+mockInteractions()
