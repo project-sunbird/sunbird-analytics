@@ -49,10 +49,10 @@ spark-shell -i $scriptDir/RunRE.scala --jars $modelJar,$fwJar, --conf spark.cass
 # http://localhost:7474/browser/
 
 # populate neo4j 
-python $scriptDir/populateGraphDB.python
+python $scriptDir/populateGraphDB.py
 
 # create mock Concept-Content coverage
-python $scriptDir/mockConceptCoverageGraphDB.python
+python $scriptDir/mockConceptCoverageGraphDB.py
 
 
 
