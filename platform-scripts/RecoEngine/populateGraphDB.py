@@ -21,7 +21,7 @@ from py2neo import Node, Relationship
 from py2neo import authenticate
 
 # neo4j graph connector
-authenticate("localhost:7474", "neo4j", "1sTep123")
+authenticate("localhost:7474", "neo4j", "neo4jilimi")
 graph = Graph()
 # delete entire graph
 graph.delete_all()
@@ -92,7 +92,8 @@ def moveRelevancyTableAll():
         # <concept-id>,<score> in schema
         
         uids = [ lid['learner_id'] for lid in lids]
-        node = graph.merge_one("Learner","id",uid)
+        node=Node("Learner",id=uid)
+        graph.merge(node,"Learner","id")
         
 
         print("** learner:",uid)
@@ -102,7 +103,8 @@ def moveRelevancyTableAll():
             #print("concept:",cid,"score",score)
             # create a node, if it does not exist
             # else, merge with it
-            node2 = graph.merge_one("Concept","id",cid)
+            node2=Node("Concept",id,cid)
+            graph.merge(node2,"Concept","id")
             # add a relationship with property score
             graph.create(Relationship(node2, "RELEVANT_TO", node,score=score))
 
@@ -118,14 +120,16 @@ def moveContentSummaryTable():
         # content_id text, interactions_per_min double,
         #num_of_sessions_played int,
         #time_spent double,
-        node = graph.merge_one("Learner","id",uid)
+        node=Node("Learner",id=uid)
+        graph.merge(node,"Learner","id")
 
         contentDict = session.execute("SELECT * from learnercontentsummary WHERE learner_id='" + uid + "'")[0]
         cid = contentDict['content_id']
         tsp = contentDict['time_spent']
         ipm = contentDict['interactions_per_min']
 
-        node2 = graph.merge_one("Content","id",cid)
+        node2=Node("Content",id=cid)
+        graph.merge(node2,"Content","id")
         # add a relationship with property score
         graph.create(Relationship(node, "INTERACTED_WITH", node2,timeSpent=tsp,ipm=ipm))
         print('content: ', cid, 'tsp: ',tsp, 'ipm', ipm)
@@ -146,7 +150,9 @@ def moveProficiencyTable():
         
         uid = lid['learner_id']
         # create a learner node
-        node = graph.merge_one("Learner","id",uid)
+        node=Node("Learner",id=uid)
+        graph.merge(node,"Learner","id")
+
 
         print("** learner:",uid)
 
@@ -155,7 +161,8 @@ def moveProficiencyTable():
             print("concept:",cid,"score",score)
 
             # create/find concept node
-            node2 = graph.merge_one("Concept","id",cid)
+            node2=Node("Concept",id=cid)
+            graph.merge(node2,"Concept","id")
             # add a relationship with property score
             graph.create(Relationship(node, "ASSESSED_IN", node2,score=score))
 
@@ -181,8 +188,9 @@ def moveContentModel():
         identifier = contentListDict['identifier']
 
         # create a node for this Content
-        node = graph.merge_one("Content","id",identifier)
-
+        node=Node("Content",id=identifier)
+        graph.merge(node,"Content","id")
+       
         url = baseURL + identifier
         resp = requests.get(url)
 
@@ -237,7 +245,8 @@ def moveContentModel():
     
         for concept in concepts:
             print('concept:',concept)
-            node2 = graph.merge_one("Concept","id",concept)
+            node2=Node("Concept",id=concept)
+            graph.merge(node2,"Concept","id")
             graph.create(Relationship(node2, "COVERED_IN", node))
 
 
@@ -260,7 +269,8 @@ def moveConceptMap():
 
         identifier = conceptDict['identifier']
         # create/find node
-        node = graph.merge_one("Concept","id",identifier)
+        node=Node("Concept",id=identifier)
+        graph.merge(node,"Concept","id")
 
         if(conceptDict.has_key('subject')):
             subject = conceptDict['subject']
@@ -292,8 +302,10 @@ def moveConceptMap():
         endNodeId = relationDict['endNodeId']
         relationType = relationDict['relationType']
         print('A:',startNodeId,'relationType',relationType,'B:',endNodeId)
-        node1 = graph.merge_one("Concept","id",startNodeId)
-        node2 = graph.merge_one("Concept","id",endNodeId)
+        node1=Node("Concept",id=startNodeId)
+        graph.merge(node1,"Concept","id")
+        node2=Node("Concept",id=endNodeId)
+        graph.merge(node2,"Concept","id")
         graph.create(Relationship(node1, relationType, node2))
 
 
@@ -312,7 +324,9 @@ def moveRelevancyTable(n=10):
         # <concept-id>,<rel score> in schema
         uid = lid['learner_id']
         # create a learner node
-        node = graph.merge_one("Learner","id",uid)
+        node=Node("Learner",id=uid)
+        graph.merge(node,"Learner","id")
+        
 
         print("** learner:",uid)
 
@@ -327,7 +341,8 @@ def moveRelevancyTable(n=10):
                 
                 print("concept:",cid,"score",score)
                 # create/find concept node
-                node2 = graph.merge_one("Concept","id",cid)
+                node2=Node("Concept",id=cid)
+                graph.merge(node2,"Concept","id")
                 # add a relationship with property score
                 graph.create(Relationship(node2, "RELEVENT_FOR", node,score=score))
             elif(score <= qL):
