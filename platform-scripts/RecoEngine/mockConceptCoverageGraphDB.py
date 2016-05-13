@@ -90,13 +90,13 @@ def mockConceptCoverage():
 
     for concept in conceptDict:
         id = concept.concept
-        node = Node("Concept","id",id)
-        graph.merge(node,"id",id)
+        node = Node("Concept",id=id)
+        graph.merge(node,"Concept","id")
 
         i = random.randint(0,n-1)
         id = contentDict[i].content
-        node2 = Node("Content","id",id)
-        graph.merge(node2,,"id",id)
+        node2 = Node("Content",id=id)
+        graph.merge(node2,"Content","id")
         graph.create(Relationship(node, "COVERED_IN", node2))
 
 
@@ -116,13 +116,13 @@ def mockMisConcepts():
 
     for learner in learnerDict:
         id = learner.learner
-        node = Node("Learner","id",id)
-        graph.merge("id",id)
+        node = Node("Learner",id=id)
+        graph.merge(node,"Learner","id")
 
         i = random.randint(0,n-1)
         id = conceptDict[i].concept
-        node2 = Node("Concept","id",id)
-        graph.merge("id",id)
+        node2 = Node("Concept",id=id)
+        graph.merge(node2,"Concept","id")
         graph.create(Relationship(node, "HAS_MISCONCEPTION_IN", node2))
 
 def mockInteractions():
@@ -140,13 +140,13 @@ def mockInteractions():
 
     for learner in learnerDict:
         id = learner.learner
-        node = Node("Learner","id",id)
-        graph.merge(node,"id",id)
+        node = Node("Learner",id=id)
+        graph.merge(node,"Learner","id")
 
         i = random.randint(0,n-1)
         id = contentDict[i].content
-        node2 = Node("Content","id",id)
-        graph.merge(node2,"id",id)
+        node2 = Node("Content",id=id)
+        graph.merge(node2,"Content","id")
         graph.create(Relationship(node, "INTERACTED_WITH", node2))
 
 # learner-rel
