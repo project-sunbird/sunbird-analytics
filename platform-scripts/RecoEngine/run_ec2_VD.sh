@@ -13,4 +13,4 @@ scp -i $keyDir/learning-platform.pem $scriptDir/*.* ec2-user@54.169.221.98:/home
 # add later
 
 # execute the script remotely
-ssh -i $keyDir/learning-platform.pem ec2-user@54.169.221.98 'bash -s' < scriptDir$dp_script_ec2_VD.sh
+# ssh -i $keyDir/learning-platform.pem ec2-user@54.169.221.98 'bash -s' < scriptDir$dp_script_ec2_VD.sh
