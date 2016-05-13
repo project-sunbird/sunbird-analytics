@@ -11,6 +11,9 @@ import com.datastax.spark.connector.cql.CassandraConnector
 class TestContentSummary extends SparkSpec(null) {
     
     "ContentSummary" should "generate contentsummary and pass all positive test cases" in {
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("truncate content_db.contentcumulativesummary");
+        }
         
         val cs = ContentSummary("org.ekstep.vayuthewind", DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0,"","")
         val crdd = sc.parallelize(Array(cs));
@@ -72,12 +75,5 @@ class TestContentSummary extends SparkSpec(null) {
     it should "generate contentsummary for more than 5 content, those are not Collection type" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/content-summary/test_data_4.log");
         val me = ContentActivitySummary.execute(rdd, None).collect;
-        
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.vayuthewind'");
-            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.delta'");
-            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.hindistorypart1'");
-            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.moreless.worksheet'");
-        }
     }
 }

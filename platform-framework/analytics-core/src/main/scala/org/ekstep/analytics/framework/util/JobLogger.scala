@@ -46,7 +46,7 @@ object JobLogger {
 
     private def getMeasuredEvent(level: String, msg: String, throwable: Throwable, config: Map[String, String]): MeasuredEvent = {
         val measures = Map(
-            "class" -> config.getOrElse("modelId", JobContext.jobName),
+            "class" -> config.get("modelId"),
             "level" -> level,
             "message" -> msg,
             "throwable" -> throwable);

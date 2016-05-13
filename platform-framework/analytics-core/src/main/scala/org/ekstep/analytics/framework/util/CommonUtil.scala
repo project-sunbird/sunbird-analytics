@@ -160,7 +160,7 @@ object CommonUtil {
             df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                JobLogger.warn("Invalid event time - " + event.ts, className);
+                JobLogger.debug("Invalid event time - " + event.ts, className);
                 null;
         }
     }
@@ -271,7 +271,7 @@ object CommonUtil {
             df.parseDateTime(ts).getMillis;
         } catch {
             case _: Exception =>
-                JobLogger.warn("Invalid time format - " + pattern + ts, className);
+                JobLogger.debug("Invalid time format - " + pattern + ts, className);
                 0;
         }
     }
