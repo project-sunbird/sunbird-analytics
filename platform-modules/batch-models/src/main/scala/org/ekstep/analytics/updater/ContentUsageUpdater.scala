@@ -18,8 +18,8 @@ import org.joda.time.LocalDate
 import org.ekstep.analytics.framework.util.JSONUtils
 
 case class ContentDetail(content_id: String, ts: Long, partner_id: String, group_user: Boolean, content_type: String, mime_type: String, publish_date: DateTime, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, end_date: Long)
-case class ContentUsageSummary(d_content_id: String, d_period: Int, d_partner_id: String, d_group_user: Boolean, d_content_type: String, d_mime_type: String, m_publish_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_avg_sessions_week: Double, m_avg_ts_week: Double)
-case class PeriodCode(period: Int)
+case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_partner_id: String, d_group_user: Boolean, d_content_type: String, d_mime_type: String, m_publish_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_avg_sessions_week: Double, m_avg_ts_week: Double)
+case class PeriodCode(d_content_id: String, d_period: Int)
 
 object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -40,108 +40,67 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
             val publish_date = new DateTime(startDate)
             val total_ts = eksMap.get("total_ts").get.asInstanceOf[Double]
             val total_sessions = eksMap.get("total_sessions").get.asInstanceOf[Int]
-            val avg_ts_session = eksMap.get("avg_ts_session").asInstanceOf[Double]
-            val total_interactions = eksMap.get("total_interactions").get.asInstanceOf[Long]
+            val avg_ts_session = eksMap.get("avg_ts_session").get.asInstanceOf[Double]
+            val total_interactions = eksMap.get("total_interactions").get.asInstanceOf[Int]
             val avg_interactions_min = eksMap.get("avg_interactions_min").get.asInstanceOf[Double]
             ContentDetail(content_id, ts, partner_id, group_user, content_type, mime_type, publish_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, endDate);
         }
-        updateDbWithPeriod(contentSummary, DAY)
-        updateDbWithPeriod(contentSummary, WEEK)
-        updateDbWithPeriod(contentSummary, MONTH)
-        updateDbWithPeriod(contentSummary, CUMULATIVE)
+        val period = jobParams.get.getOrElse("period", DAY).asInstanceOf[Period]
+        updateDbWithPeriod(contentSummary, period)
+
         contentSummary.map { x => JSONUtils.serialize(x) };
     }
 
     private def updateDbWithPeriod(data: RDD[ContentDetail], period: Period) {
-
         period match {
             case DAY =>
                 data.map { x =>
-                    ContentUsageSummary(x.content_id, CommonUtil.getPeriod(x.ts, DAY), x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d)
+                    ContentUsageSummaryFact(x.content_id, CommonUtil.getPeriod(x.ts, period), x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d)
                 }.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
 
-            case WEEK =>
-                val currentData = data.map { x =>
-                    val periodCode = CommonUtil.getPeriod(x.ts, WEEK)
-                    (periodCode, ContentUsageSummary(x.content_id, periodCode, x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d));
-                }
-                val prvData = data.map { x => PeriodCode(CommonUtil.getPeriod(x.ts, WEEK)) }.joinWithCassandraTable[ContentUsageSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).map(f => (f._1.period, f._2))
-                val joinedData = currentData.leftOuterJoin(prvData)
-                val updatedSummary = joinedData.map { x =>
-                    val code = x._1
-                    val prvSumm = x._2._2.getOrElse(null)
-                    val newSumm = x._2._1
-                    if (null != prvSumm) {
-                        val total_ts = newSumm.m_total_ts + prvSumm.m_total_ts
-                        val total_sessions = newSumm.m_total_sessions + prvSumm.m_total_sessions
-                        val avg_ts_session = (total_ts) / (total_sessions)
-                        val total_interactions = newSumm.m_total_interactions + prvSumm.m_total_interactions
-                        val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-                        ContentUsageSummary(prvSumm.d_content_id, code, prvSumm.d_partner_id, prvSumm.d_group_user, prvSumm.d_content_type, prvSumm.d_mime_type, prvSumm.m_publish_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, 0d, 0d);
-                    } else {
-                        newSumm;
-                    }
-                }
-                updatedSummary.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
-
-            case MONTH =>
-                val currentData = data.map { x =>
-                    val periodCode = CommonUtil.getPeriod(x.ts, MONTH)
-                    (periodCode, ContentUsageSummary(x.content_id, periodCode, x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d));
-                }
-                val prvData = data.map { x => PeriodCode(CommonUtil.getPeriod(x.ts, MONTH)) }.joinWithCassandraTable[ContentUsageSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).map(f => (f._1.period, f._2))
-                val joinedData = currentData.leftOuterJoin(prvData)
-                val updatedSummary = joinedData.map { x =>
-                    val code = x._1
-                    val prvSumm = x._2._2.getOrElse(null)
-                    val newSumm = x._2._1
-                    if (null != prvSumm) {
-                        val total_ts = newSumm.m_total_ts + prvSumm.m_total_ts
-                        val total_sessions = newSumm.m_total_sessions + prvSumm.m_total_sessions
-                        val avg_ts_session = (total_ts) / (total_sessions)
-                        val total_interactions = newSumm.m_total_interactions + prvSumm.m_total_interactions
-                        val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-                        val avg_sessions_week = (total_sessions) / 5
-                        val avg_ts_week = (total_ts) / 5
-                        ContentUsageSummary(prvSumm.d_content_id, code, prvSumm.d_partner_id, prvSumm.d_group_user, prvSumm.d_content_type, prvSumm.d_mime_type, prvSumm.m_publish_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
-                    } else {
-                        newSumm;
-                    }
-                }
-                updatedSummary.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
-
-            case CUMULATIVE =>
-                val currentData = data.map { x =>
-                    val periodCode = CommonUtil.getPeriod(x.ts, CUMULATIVE)
-                    (periodCode, (ContentUsageSummary(x.content_id, periodCode, x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d), x.end_date));
-                }
-                val prvData = data.map { x => PeriodCode(CommonUtil.getPeriod(x.ts, CUMULATIVE)) }.joinWithCassandraTable[ContentUsageSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).map(f => (f._1.period, f._2))
-                val joinedData = currentData.leftOuterJoin(prvData)
-                val updatedSummary = joinedData.map { x =>
-                    val code = x._1
-                    val prvSumm = x._2._2.getOrElse(null)
-                    val newSumm = x._2._1._1
-                    val end_date = x._2._1._2
-                    if (null != prvSumm) {
-                        val total_ts = newSumm.m_total_ts + prvSumm.m_total_ts
-                        val total_sessions = newSumm.m_total_sessions + prvSumm.m_total_sessions
-                        val avg_ts_session = (total_ts) / (total_sessions)
-                        val total_interactions = newSumm.m_total_interactions + prvSumm.m_total_interactions
-                        val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-                        val publis_date = if (newSumm.m_publish_date.isBefore(prvSumm.m_publish_date)) newSumm.m_publish_date else prvSumm.m_publish_date;
-                        val numWeeks = getWeeksBetween(publis_date.getMillis, end_date)
-                        val avg_sessions_week = (total_sessions) / numWeeks
-                        val avg_ts_week = (total_ts) / numWeeks
-                        ContentUsageSummary(prvSumm.d_content_id, code, prvSumm.d_partner_id, prvSumm.d_group_user, prvSumm.d_content_type, prvSumm.d_mime_type, prvSumm.m_publish_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
-                    } else {
-                        newSumm;
-                    }
-                }
-                updatedSummary.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
+            case WEEK | MONTH | CUMULATIVE =>
+                updateDB(data, period)
             case _ =>
-
         }
     }
+    private def updateDB(data: RDD[ContentDetail], period: Period) {
+
+        val currentData = data.map { x =>
+            val periodCode = CommonUtil.getPeriod(x.ts, period)
+            (periodCode, (ContentUsageSummaryFact(x.content_id, periodCode, x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d), x.end_date));
+        }
+        val prvData = data.map { x => PeriodCode(x.content_id, CommonUtil.getPeriod(x.ts, period)) }.joinWithCassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).map(f => (f._1.d_period, f._2))
+        val joinedData = currentData.leftOuterJoin(prvData)
+        val updatedSummary = joinedData.map { x =>
+            val code = x._1
+            val prvSumm = x._2._2.getOrElse(null)
+            val newSumm = x._2._1._1
+            if (null != prvSumm) {
+                val total_ts = newSumm.m_total_ts + prvSumm.m_total_ts
+                val total_sessions = newSumm.m_total_sessions + prvSumm.m_total_sessions
+                val avg_ts_session = (total_ts) / (total_sessions)
+                val total_interactions = newSumm.m_total_interactions + prvSumm.m_total_interactions
+                val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
+                val publis_date = if (newSumm.m_publish_date.isBefore(prvSumm.m_publish_date)) newSumm.m_publish_date else prvSumm.m_publish_date;
+                var avg_sessions_week = 0d
+                var avg_ts_week = 0d
+                if (period == MONTH) {
+                    avg_sessions_week = (total_sessions) / 5
+                    avg_ts_week = (total_ts) / 5
+                } else if (period == CUMULATIVE) {
+                    val end_date = x._2._1._2
+                    val numWeeks = getWeeksBetween(publis_date.getMillis, end_date)
+                    avg_sessions_week = (total_sessions) / numWeeks
+                    avg_ts_week = (total_ts) / numWeeks
+                }
+                ContentUsageSummaryFact(prvSumm.d_content_id, code, prvSumm.d_partner_id, prvSumm.d_group_user, prvSumm.d_content_type, prvSumm.d_mime_type, publis_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
+            } else {
+                newSumm;
+            }
+        }
+        updatedSummary.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
+    }
+
     private def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
         val from = new LocalDate(fromDate)
         val to = new LocalDate(toDate)

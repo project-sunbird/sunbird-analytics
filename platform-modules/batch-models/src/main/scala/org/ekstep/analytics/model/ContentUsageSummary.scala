@@ -38,14 +38,12 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
             val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
             val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
-
-            val gameVersion = firstEvent.dimensions.gdata.get.ver
             val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
             val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
 
             val total_ts = events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum;
             val total_sessions = events.size
-            val avg_ts_session = (total_ts / total_sessions)
+            val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
             val total_interactions = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
             val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
             (ContentUsage(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type), date_range)
