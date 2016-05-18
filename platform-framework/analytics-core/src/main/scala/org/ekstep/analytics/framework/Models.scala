@@ -121,6 +121,8 @@ case class DomainResponse(id: String, ver: String, ts: String, params: Params, r
 
 // Common models for all data products
 case class LearnerId(learner_id: String)
+case class ContentId(content_id: String)
+case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 object Period extends Enumeration {
     type Period = Value

@@ -20,8 +20,6 @@ import org.apache.spark.HashPartitioner
 
 case class ContentSummary(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type: String, mime_type: String)
-case class ContentId(content_id: String)
-case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 

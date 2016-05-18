@@ -16,6 +16,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.joda.time.LocalDate
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.ContentMetrics
 
 case class ContentDetail(content_id: String, ts: Long, partner_id: String, group_user: Boolean, content_type: String, mime_type: String, publish_date: DateTime, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, end_date: Long)
 case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_partner_id: String, d_group_user: Boolean, d_content_type: String, d_mime_type: String, m_publish_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_avg_sessions_week: Double, m_avg_ts_week: Double)
@@ -25,6 +26,9 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
 
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        val config = jobParams.getOrElse(Map[String, AnyRef]());
+        val configMapping = sc.broadcast(config);
+        
         val contentSummary = events.map { x =>
             val ts = x.syncts
             val startDate = x.context.date_range.from
@@ -47,8 +51,19 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
         }
         updateDbWithPeriod(contentSummary, DAY)
         updateDbWithPeriod(contentSummary, WEEK)
-        //updateDbWithPeriod(contentSummary, MONTH)
+        updateDbWithPeriod(contentSummary, MONTH)
         //updateDbWithPeriod(contentSummary, CUMULATIVE)
+        
+        // Top K content 
+        val summaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).filter { x => !"Collection".equals(x.d_content_type) };
+        val count = summaries.count().intValue();
+        val defaultVal = if (5 > count) count else 5;
+        val topContentByTime = summaries.sortBy(f => f.m_total_ts, false, 1).take(configMapping.value.getOrElse("topK", defaultVal).asInstanceOf[Int]);
+        val topContentBySessions = summaries.sortBy(f => f.m_total_sessions, false, 1).take(configMapping.value.getOrElse("topK", defaultVal).asInstanceOf[Int]);
+        val rdd = sc.parallelize(Array(ContentMetrics("content", topContentByTime.map { x => (x.d_content_id, x.m_total_ts) }.toMap, topContentBySessions.map { x => (x.d_content_id, x.m_total_sessions) }.toMap)), 1);
+        rdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_METRICS_TABLE);
+        //--------
+        
         contentSummary.map { x => JSONUtils.serialize(x) };
     }
     private def updateDbWithPeriod(data: RDD[ContentDetail], period: Period) {
