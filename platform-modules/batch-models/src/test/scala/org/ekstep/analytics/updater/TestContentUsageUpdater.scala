@@ -17,11 +17,10 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         sampleRDD.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
 
         val rdd = loadFile[MeasuredEvent]("src/test/resources/content_usage_updater/content_usage_updater.log");
-        ContentUsageUpdater.execute(rdd, Option(Map("period" -> DAY)));
-        ContentUsageUpdater.execute(rdd, Option(Map("period" -> WEEK)));
+        ContentUsageUpdater.execute(rdd, None);
 
         val updatedSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "org.ekstep.story.hi.vayu").where("d_period=?", 20167718).first
-        updatedSumm.m_total_ts should be(39.92d)
+        updatedSumm.m_total_ts should be(39.92)
         updatedSumm.m_avg_interactions_min should be(21.04d)
         updatedSumm.m_total_interactions should be(14)
         updatedSumm.m_total_sessions should be(4)

@@ -19,7 +19,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 
 case class ContentDetail(content_id: String, ts: Long, partner_id: String, group_user: Boolean, content_type: String, mime_type: String, publish_date: DateTime, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, end_date: Long)
 case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_partner_id: String, d_group_user: Boolean, d_content_type: String, d_mime_type: String, m_publish_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_avg_sessions_week: Double, m_avg_ts_week: Double)
-case class PeriodCode(d_content_id: String, d_period: Int)
+case class AllDimension(d_content_id: String, d_period: Int, d_partner_id: String, d_group_user: Boolean)
 
 object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
@@ -45,12 +45,12 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
             val avg_interactions_min = eksMap.get("avg_interactions_min").get.asInstanceOf[Double]
             ContentDetail(content_id, ts, partner_id, group_user, content_type, mime_type, publish_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, endDate);
         }
-        val period = jobParams.get.getOrElse("period", DAY).asInstanceOf[Period]
-        updateDbWithPeriod(contentSummary, period)
-
+        updateDbWithPeriod(contentSummary, DAY)
+        updateDbWithPeriod(contentSummary, WEEK)
+        //updateDbWithPeriod(contentSummary, MONTH)
+        //updateDbWithPeriod(contentSummary, CUMULATIVE)
         contentSummary.map { x => JSONUtils.serialize(x) };
     }
-
     private def updateDbWithPeriod(data: RDD[ContentDetail], period: Period) {
         period match {
             case DAY =>
@@ -69,7 +69,7 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
             val periodCode = CommonUtil.getPeriod(x.ts, period)
             (periodCode, (ContentUsageSummaryFact(x.content_id, periodCode, x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d), x.end_date));
         }
-        val prvData = data.map { x => PeriodCode(x.content_id, CommonUtil.getPeriod(x.ts, period)) }.joinWithCassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).map(f => (f._1.d_period, f._2))
+        val prvData = data.map { x => AllDimension(x.content_id, CommonUtil.getPeriod(x.ts, period), x.partner_id, x.group_user) }.joinWithCassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).map(f => (f._1.d_period, f._2))
         val joinedData = currentData.leftOuterJoin(prvData)
         val updatedSummary = joinedData.map { x =>
             val code = x._1
