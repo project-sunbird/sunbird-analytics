@@ -52,7 +52,7 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
         rollup(contentSummary, DAY)
         rollup(contentSummary, WEEK)
         rollup(contentSummary, MONTH)
-        //rollup(contentSummary, CUMULATIVE)
+        rollup(contentSummary, CUMULATIVE)
 
         // Top K content 
         val summaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).filter { x => !"Collection".equals(x.d_content_type) }.filter { x => x.d_period == 0 };
