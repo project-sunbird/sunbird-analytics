@@ -12,4 +12,5 @@ object Constants {
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "contentcumulativesummary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "contentcumulativemetrics";
     val LEARNER_PROFILE_TABLE = "learnerprofile";
+    val CONTENT_USAGE_SUMMARY_FACT = "contentusagesummary_fact";
 }

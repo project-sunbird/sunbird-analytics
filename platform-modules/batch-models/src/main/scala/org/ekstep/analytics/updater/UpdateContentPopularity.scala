@@ -16,7 +16,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.model.ContentSummary
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.framework.Response
-import org.ekstep.analytics.model.ContentId
+import org.ekstep.analytics.framework.ContentId
 
 /**
  * @author Santhosh

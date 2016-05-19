@@ -56,6 +56,7 @@ object BatchJobDriver {
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         JobLogger.info("BatchJobDriver: _process. Started executing the model " + model.getClass.getName, className)
         val output = model.execute(filterRdd, config.modelParams);
+        JobLogger.info("Number of events generated : "+output.count, className)
         OutputDispatcher.dispatch(config.output, output);
     }
 }

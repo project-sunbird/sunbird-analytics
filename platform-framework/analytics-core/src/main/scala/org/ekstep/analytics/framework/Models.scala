@@ -50,9 +50,9 @@ class TelemetryEventV2(val tags: List[Map[String, AnyRef]], val eid: String, val
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
-case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
+case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: Option[String], content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
 @scala.reflect.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, partner_id: Option[String] = None, group_user: Option[Boolean] = None);
 @scala.reflect.BeanInfo
 case class PData(id: String, model: String, ver: String);
 @scala.reflect.BeanInfo
@@ -121,3 +121,10 @@ case class DomainResponse(id: String, ver: String, ts: String, params: Params, r
 
 // Common models for all data products
 case class LearnerId(learner_id: String)
+case class ContentId(content_id: String)
+case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
+
+object Period extends Enumeration {
+    type Period = Value
+    val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
+}
