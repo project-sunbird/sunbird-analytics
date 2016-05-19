@@ -7,7 +7,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
   
   "DeviceUsageSummary" should "generate DeviceUsageSummary events from a sample file " in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/device-usage-summary/test_data_1.log");
-        val rdd2 = DeviceUsageSummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "DeviceUsageSummarizer")));
+        val rdd2 = DeviceUsageSummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "DeviceUsageSummarizer","granularity" -> "DAY")));
         val me = rdd2.collect()
         println(me(0))
         
@@ -28,7 +28,16 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         eks.get("avg_time").get should be(2.31)
         eks.get("avg_num_launches").get should be(0.23)
         eks.get("end_time").get should be(1461669647260L)
+       
+  }
+  
+  it should "generate 2 DeviceUsageSummary events from a sample file " in {
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/device-usage-summary/test_data_2.log");
+        val rdd2 = DeviceUsageSummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "DeviceUsageSummarizer","producerId" -> "AnalyticsDataPipeline")));
+        val me = rdd2.collect()
+        println(me(0))
         
+        me.length should be(2)
         
-    }
+  }
 }
