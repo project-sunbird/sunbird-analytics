@@ -9,6 +9,7 @@ import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.LocalDate
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.util.JSONUtils
 
 case class UsageSummary(start_time: Long, end_time: Long, num_days: Long, avg_num_launches: Double, avg_time: Double)
 
@@ -32,16 +33,19 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
           val start_time = eventsSortedByDateRange.head.context.date_range.from.asInstanceOf[Long]
           val end_time = eventsSortedByTS.last.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_stamp").get.asInstanceOf[Long]
           val num_days:Long = CommonUtil.datesBetween(new LocalDate(start_time),new LocalDate(end_time)).size
-          val avg_num_launches = (events.size/num_days).asInstanceOf[Double]
+          val avg_num_launches = if (num_days==0) events.size else CommonUtil.roundDouble((events.size/(num_days.asInstanceOf[Double])),2)
           val totalTimeSpent = events.map { x =>
                 (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
             }.sum
-          val avg_time = totalTimeSpent/num_days 
+          val avg_time = if (num_days==0) totalTimeSpent else CommonUtil.roundDouble(totalTimeSpent/num_days ,2)
           
           (UsageSummary(start_time,end_time,num_days,avg_num_launches,avg_time))
         }.cache();
         
-        null
+        deviceUsageSummary.map(f => {
+            getMeasuredEvent(f._2,f._1,configMapping.value);
+        }).map { x => JSONUtils.serialize(x) };
+        
       }
       
       private def getMeasuredEvent(usageSummary: UsageSummary, deviceID:String,  config: Map[String, AnyRef]): MeasuredEvent = {
