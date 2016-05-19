@@ -83,5 +83,36 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                 }.map(f => f._2).reduce((a,b) => a ++ b);
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
+    
+    def getGenieLaunchSessions(data: RDD[Event]): RDD[(String, Buffer[Event])] = {
+        data.filter { x => x.did != null }
+            .map(event => (event.did, Buffer(event)))
+            .partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).mapValues { events =>
+                events.sortBy { x => CommonUtil.getEventTS(x) }.groupBy { e => e.sid }.mapValues { x =>
+                    var sessions = Buffer[Buffer[Event]]();
+                    var tmpArr = Buffer[Event]();
+                    x.foreach { y =>
+                        y.eid match {
+                            case "GE_GENIE_START" =>
+                                if (tmpArr.length > 0) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[Event]();
+                                }
+                                tmpArr += y;  
+                                
+                            case "GE_GENIE_END" =>
+                                tmpArr += y;
+                                sessions += tmpArr;
+                                tmpArr = Buffer[Event]();
+                            case _ =>
+                                tmpArr += y;
+                        }
+                    }   
+                    sessions += tmpArr;
+                    sessions;
+                }.map(f => f._2).reduce((a,b) => a ++ b);
+            }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
+    }
 
 }
