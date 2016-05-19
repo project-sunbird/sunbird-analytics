@@ -327,8 +327,7 @@ object CommonUtil {
     def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
         val from = new LocalDate(fromDate)
         val to = new LocalDate(toDate)
-        val weeks = Weeks.weeksBetween(from, to).getWeeks
-        weeks;
+        Weeks.weeksBetween(from, to).getWeeks;
     }
 
 }
