@@ -37,6 +37,7 @@ import org.joda.time.DateTimeZone
 import java.security.MessageDigest
 import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.Period._
+import org.joda.time.Weeks
 
 object CommonUtil {
 
@@ -323,5 +324,11 @@ object CommonUtil {
             case _          => -1
         }
     }
-    
+    def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
+        val from = new LocalDate(fromDate)
+        val to = new LocalDate(toDate)
+        val weeks = Weeks.weeksBetween(from, to).getWeeks
+        weeks;
+    }
+
 }

@@ -61,7 +61,7 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             val totalInteractions = sortedEvents.map { x =>
                 (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int])
             }.sum + prevContentSummary.total_interactions;
-            val numWeeks = getWeeksBetween(startDate.getMillis, eventEndTimestamp)
+            val numWeeks = CommonUtil.getWeeksBetween(startDate.getMillis, eventEndTimestamp)
 
             val averageTsSession = (timeSpent / numSessions);
             val averageInteractionsMin = if (totalInteractions == 0 || timeSpent == 0) 0d else CommonUtil.roundDouble(BigDecimal(totalInteractions / (timeSpent / 60)).toDouble, 2);
@@ -105,12 +105,5 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, None, Option(new GData(contentSumm.content_id, game_version)), None, None, None, None),
             MEEdata(measures));
-    }
-
-    private def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
-        val from = new LocalDate(fromDate)
-        val to = new LocalDate(toDate)
-        val dates = CommonUtil.datesBetween(from, to)
-        dates.size / 7
     }
 }
