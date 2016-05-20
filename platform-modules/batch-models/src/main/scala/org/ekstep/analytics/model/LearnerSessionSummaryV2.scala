@@ -142,7 +142,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
         JobLogger.info("LearnerSessionSummaryV2 : execute method starting", className)
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT,OE_NAVIGATE,OE_ITEM_RESPONSE", className)
-        val v2Events = DataFilter.filter(data, Array(Filter("ver", "EQ", Option("2.0")),Filter("uid", "ISNOTEMPTY", None)));
+        val v2Events = DataFilter.filter(data, Array(Filter("ver", "EQ", Option("2.0")), Filter("uid", "ISNOTEMPTY", None)));
         val filteredData = DataFilter.filter(v2Events, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
@@ -166,11 +166,6 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
 
             val firstEvent = events(0);
             val lastEvent = events.last;
-
-            var partnerId = ""
-            if (null != firstEvent.tags) {
-                partnerId = firstEvent.tags.find(p => p.contains("partnerid")).getOrElse(Map()).getOrElse("partnerid", "").asInstanceOf[String]
-            }
 
             val gameId = firstEvent.gdata.id;
             val gameVersion = firstEvent.gdata.ver;
@@ -244,10 +239,11 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             val interruptTime = CommonUtil.roundDouble((timeDiff - timeSpent) + (if (interruptSummary.size > 0) interruptSummary.map(f => f._2).sum else 0d), 2);
 
             val did = firstEvent.did
+            val tags = firstEvent.tags
             new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, Option(startTimestamp),
                 Option(endTimestamp), Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses),
                 DtRange(startTimestamp, endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, lastEvent.ets, contentType, mimeType, did, partnerId);
+                eventSummary, lastEvent.ets, contentType, mimeType, did, tags);
         }.filter(f => (f._2.timeSpent >= 0)) // Skipping the events, if timeSpent is -ve
 
         JobLogger.debug("'screenerSummary' joining with 'LearnerProfile' table to get group_user value for each learner", className)
@@ -268,7 +264,7 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
     private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[(Boolean, Boolean)])), config: Map[String, AnyRef]): MeasuredEvent = {
 
         val game = userMap._2._1;
-        val booleanTuple = userMap._2._2.getOrElse((false,false))
+        val booleanTuple = userMap._2._2.getOrElse((false, false))
         val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap._1, "SESSION", game.dtRange, game.id);
         val measures = Map(
             "itemResponses" -> game.itemResponses,
@@ -293,11 +289,10 @@ object LearnerSessionSummaryV2 extends SessionBatchModel[TelemetryEventV2] with 
             "telemetryVersion" -> "2.0",
             "contentType" -> game.contentType,
             "mimeType" -> game.mimeType,
-            "partnerId" -> game.partnerId,
             "groupUser" -> booleanTuple._1,
             "anonymousUser" -> booleanTuple._2);
 
-        MeasuredEvent(config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
+        MeasuredEvent(Option(game.tags), config.getOrElse("eventId", "ME_SESSION_SUMMARY").asInstanceOf[String], System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));

@@ -28,7 +28,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
         val events = data.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val content_id = event.dimensions.gdata.get.id
-            val partner_id = eksMap.get("partnerId").get.asInstanceOf[String]
+            val partner_id = eksMap.get("partnerId").getOrElse("").asInstanceOf[String]
             val group_user = eksMap.get("groupUser").get.asInstanceOf[Boolean]
             ((content_id, partner_id, group_user), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
@@ -65,7 +65,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             "avg_interactions_min" -> contentUsage.avg_interactions_min,
             "content_type" -> contentUsage.content_type,
             "mime_type" -> contentUsage.mime_type);
-        MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(contentSumm._1), None,
+        MeasuredEvent(None, "ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(contentSumm._1), None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, None, None, None, None, None, None, Option(contentSumm._2), Option(contentSumm._3)),
             MEEdata(measures));

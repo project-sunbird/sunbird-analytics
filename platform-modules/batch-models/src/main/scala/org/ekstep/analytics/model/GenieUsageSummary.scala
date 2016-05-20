@@ -78,7 +78,7 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
             "time_stamp" -> summ.time_stamp,
             "content" -> summ.content,
             "contentCount" -> summ.contentCount);
-        MeasuredEvent("ME_GENIE_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
+        MeasuredEvent(None, "ME_GENIE_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, Option(gSumm._1), None, None, None, None, None, None, None),
             MEEdata(measures));
@@ -92,7 +92,7 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
             "time_stamp" -> summ.time_stamp,
             "content" -> summ.content,
             "contentCount" -> summ.contentCount);
-        MeasuredEvent("ME_GENIE_SESSION_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
+        MeasuredEvent(None, "ME_GENIE_SESSION_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, Option(gsSumm._1), None, None, None, None, None, None, Option(summ.groupUser), Option(summ.anonymousUser)),
             MEEdata(measures));

@@ -101,7 +101,7 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
             "tsPerWeek" -> contentSumm.ts_week,
             "contentType" -> contentSumm.content_type,
             "mimeType" -> contentSumm.mime_type);
-        MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
+        MeasuredEvent(None, "ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, None, Option(new GData(contentSumm.content_id, game_version)), None, None, None, None),
             MEEdata(measures));

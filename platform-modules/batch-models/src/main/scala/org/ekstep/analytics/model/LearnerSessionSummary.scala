@@ -33,7 +33,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
                      val noOfLevelTransitions: Option[Int], val comments: Option[String], val fluency: Option[Int], val loc: Option[String],
                      val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Iterable[ActivitySummary]],
                      val completionStatus: Option[Boolean], val screenSummary: Option[Iterable[ScreenSummary]], val noOfInteractEvents: Int, val eventsSummary: Iterable[EventSummary],
-                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val partnerId: String) extends Serializable {};
+                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val tags: List[Map[String, AnyRef]]) extends Serializable {};
 
 /**
  * @author Santhosh
@@ -153,7 +153,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
         JobLogger.info("LearnerSessionSummary : execute method starting", className)
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
-        val v1Events = DataFilter.filter(data, Array(Filter("ver", "EQ", Option("1.0")),Filter("uid", "ISNOTEMPTY", None)));
+        val v1Events = DataFilter.filter(data, Array(Filter("ver", "EQ", Option("1.0")), Filter("uid", "ISNOTEMPTY", None)));
         val filteredData = DataFilter.filter(v1Events, Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT"))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
@@ -180,10 +180,10 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             val gameId = CommonUtil.getGameId(firstEvent);
             val gameVersion = CommonUtil.getGameVersion(lastEvent);
 
-            var partnerId = ""
-            if (null != firstEvent.tags) {
-                partnerId = firstEvent.tags.find(p => p.contains("partnerid")).getOrElse(Map()).getOrElse("partnerid", "").asInstanceOf[String]
-            }
+            //            var partnerId = ""
+            //            if (null != firstEvent.tags) {
+            //                partnerId = firstEvent.tags.find(p => p.contains("partnerid")).getOrElse(Map()).getOrElse("partnerid", "").asInstanceOf[String]
+            //            }
 
             val content = contentTypeMapping.value.getOrElse(gameId, (Option("Game"), Option("application/vnd.android.package-archive")));
             val contentType = content._1;
@@ -249,10 +249,11 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             val activitySummary = interactionEvents.groupBy(_._1).map { case (group: String, traversable) => traversable.reduce { (a, b) => (a._1, a._2 + b._2, a._3 + b._3) } }.map(f => ActivitySummary(f._1, f._2, f._3));
             val eventSummary = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
             val did = firstEvent.did
+            val tags = firstEvent.tags
             new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff.get, startTimestamp, endTimestamp,
                 Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp.getOrElse(0l),
                     endTimestamp.getOrElse(0l)), interactEventsPerMin, Option(activitySummary), None, Option(computeScreenSummary(events)), noOfInteractEvents,
-                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, partnerId);
+                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, tags);
 
         }.filter(f => (f._2.timeSpent >= 0)) // Skipping the events, if timeSpent is -ve
 
@@ -275,7 +276,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
     private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[(Boolean, Boolean)])), config: Map[String, AnyRef]): MeasuredEvent = {
 
         val game = userMap._2._1;
-        val booleanTuple = userMap._2._2.getOrElse((false,false))
+        val booleanTuple = userMap._2._2.getOrElse((false, false))
         val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap._1, "SESSION", game.dtRange, game.id);
         val measures = Map(
             "itemResponses" -> game.itemResponses,
@@ -300,10 +301,9 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "telemetryVersion" -> "1.0",
             "contentType" -> game.contentType,
             "mimeType" -> game.mimeType,
-            "partnerId" -> game.partnerId,
             "groupUser" -> booleanTuple._1,
             "anonymousUser" -> booleanTuple._2);
-        MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
+        MeasuredEvent(Option(game.tags), "ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));
