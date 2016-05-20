@@ -48,11 +48,12 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
             val total_interactions = eksMap.get("total_interactions").get.asInstanceOf[Int]
             val avg_interactions_min = eksMap.get("avg_interactions_min").get.asInstanceOf[Double]
             ContentDetail(content_id, ts, partner_id, group_user, content_type, mime_type, publish_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, endDate);
-        }
+        }.cache();
+        
         rollup(contentSummary, DAY)
         rollup(contentSummary, WEEK)
         rollup(contentSummary, MONTH)
-        //rollup(contentSummary, CUMULATIVE)
+        rollup(contentSummary, CUMULATIVE)
 
         // Top K content 
         val summaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).filter { x => !"Collection".equals(x.d_content_type) }.filter { x => x.d_period == 0 };
@@ -66,6 +67,7 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
 
         contentSummary.map { x => JSONUtils.serialize(x) };
     }
+    
     private def rollup(data: RDD[ContentDetail], period: Period) {
         period match {
             case DAY =>
@@ -78,16 +80,18 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
             case _ =>
         }
     }
+    
     private def update(data: RDD[ContentDetail], period: Period) {
 
         val currentData = data.map { x =>
             val periodCode = CommonUtil.getPeriod(x.ts, period)
-            (periodCode, (ContentUsageSummaryFact(x.content_id, periodCode, x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d), x.end_date));
+            (ContentUsageSummaryIndex(x.content_id, CommonUtil.getPeriod(x.ts, period), x.partner_id, x.group_user), (ContentUsageSummaryFact(x.content_id, periodCode, x.partner_id, x.group_user, x.content_type, x.mime_type, x.publish_date, x.total_ts, x.total_sessions, x.avg_ts_session, x.total_interactions, x.avg_interactions_min, 0d, 0d), x.end_date));
         }
-        val prvData = data.map { x => ContentUsageSummaryIndex(x.content_id, CommonUtil.getPeriod(x.ts, period), x.partner_id, x.group_user) }.joinWithCassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).map(f => (f._1.d_period, f._2))
+        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).on(SomeColumns("d_content_id","d_period","d_partner_id","d_group_user"));
         val joinedData = currentData.leftOuterJoin(prvData)
+        joinedData.collect().foreach(println(_));
         val updatedSummary = joinedData.map { x =>
-            val code = x._1
+            val index = x._1
             val prvSumm = x._2._2.getOrElse(null)
             val newSumm = x._2._1._1
             if (null != prvSumm) {
@@ -108,7 +112,7 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
                     avg_sessions_week = (total_sessions) / numWeeks
                     avg_ts_week = (total_ts) / numWeeks
                 }
-                ContentUsageSummaryFact(prvSumm.d_content_id, code, prvSumm.d_partner_id, prvSumm.d_group_user, prvSumm.d_content_type, prvSumm.d_mime_type, publis_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
+                ContentUsageSummaryFact(prvSumm.d_content_id, newSumm.d_period, prvSumm.d_partner_id, prvSumm.d_group_user, prvSumm.d_content_type, prvSumm.d_mime_type, publis_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
             } else {
                 newSumm;
             }
