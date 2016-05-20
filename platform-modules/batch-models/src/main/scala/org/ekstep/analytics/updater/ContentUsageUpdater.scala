@@ -105,8 +105,9 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
                 } else if (period == CUMULATIVE) {
                     val end_date = x._2._1._2
                     val numWeeks = CommonUtil.getWeeksBetween(publis_date.getMillis, end_date)
-                    avg_sessions_week = (total_sessions) / numWeeks
-                    avg_ts_week = (total_ts) / numWeeks
+
+                    avg_sessions_week = if (numWeeks != 0) (total_sessions) / numWeeks else 0d
+                    avg_ts_week = if (numWeeks != 0) (total_ts) / numWeeks else 0d
                 }
                 ContentUsageSummaryFact(prvSumm.d_content_id, code, prvSumm.d_partner_id, prvSumm.d_group_user, prvSumm.d_content_type, prvSumm.d_mime_type, publis_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
             } else {
