@@ -133,7 +133,7 @@ CREATE TABLE contentusagesummary (
 	PRIMARY KEY (content_id, period, group_user, partner_id) 
 );
 
-CREATE TABLE contentusagesummary (
+CREATE TABLE contentusagesummary_fact (
     d_content_id text,
     d_period Int,
     d_partner_id text,
