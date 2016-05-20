@@ -133,3 +133,20 @@ CREATE TABLE contentusagesummary (
 	PRIMARY KEY (content_id, period, group_user, partner_id) 
 );
 
+CREATE TABLE contentusagesummary (
+    d_content_id text,
+    d_period Int,
+    d_partner_id text,
+    d_group_user boolean,
+    d_content_type text,
+    d_mime_type text,
+    m_publish_date timestamp,
+    m_total_ts double,
+    m_total_sessions bigint,
+    m_avg_ts_session double,
+    m_total_interactions bigint,
+    m_avg_interactions_min double,
+    m_avg_sessions_week double,
+    m_avg_ts_week double,
+    PRIMARY KEY (d_content_id, d_period, d_partner_id, d_group_user)
+);
