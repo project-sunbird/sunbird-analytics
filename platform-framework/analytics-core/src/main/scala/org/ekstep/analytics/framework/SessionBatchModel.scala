@@ -47,7 +47,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 
-    def getGenieLaunchSessions(data: RDD[Event]): RDD[(String, Buffer[Event])] = {
+    def getGenieLaunchSessions(data: RDD[Event], idleTime: Int): RDD[(String, Buffer[Event])] = {
         data.filter { x => x.did != null }
             .map(event => (event.did, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -72,7 +72,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                 if (!tmpArr.isEmpty) {
                                     val event = tmpArr.last
                                     val timeSpent = CommonUtil.getTimeDiff(event, y);
-                                    if (timeSpent.getOrElse(0d) < (30*60)) {
+                                    if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
                                         tmpArr += y;
                                     } else {
                                         sessions += tmpArr;
@@ -80,7 +80,6 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                         tmpArr += y;
                                     }
                                 }
-
                         }
                     }
                     sessions += tmpArr;
@@ -89,7 +88,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 
-    def getGenieSessions(data: RDD[Event]): RDD[(String, Buffer[Event])] = {
+    def getGenieSessions(data: RDD[Event], idleTime: Int): RDD[(String, Buffer[Event])] = {
         data.filter { x => x.did != null }
             .map(event => (event.did, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -114,7 +113,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                 if (!tmpArr.isEmpty) {
                                     val event = tmpArr.last
                                     val timeSpent = CommonUtil.getTimeDiff(event, y);
-                                    if (timeSpent.getOrElse(0d) < 30) {
+                                    if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
                                         tmpArr += y;
                                     } else {
                                         sessions += tmpArr;

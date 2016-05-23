@@ -25,15 +25,19 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
 
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        val genieLaunchSessions = getGenieLaunchSessions(data);
-        val genieSessions = getGenieSessions(data);
+        val config = jobParams.getOrElse(Map[String, AnyRef]())
+        val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
+        val jobConfig = sc.broadcast(config);
+
+        val genieLaunchSessions = getGenieLaunchSessions(data, idleTime);
+        val genieSessions = getGenieSessions(data, idleTime);
 
         val genieSummary = genieLaunchSessions.mapValues { x =>
             //            val geStart = x.filter { x => "GE_GENIE_START".equals(x.eid) }(0)
             //            val geEnd = x.filter { x => "GE_GENIE_END".equals(x.eid) }(0)
             val geStart = x(0)
             val geEnd = x.last
-            
+
             val dtRange = DtRange(CommonUtil.getEventTS(geStart), CommonUtil.getEventTS(geEnd));
             val timeSpent = CommonUtil.getTimeDiff(geStart, geEnd)
             val time_stamp = CommonUtil.getTimestamp(geEnd.ts)
@@ -61,11 +65,11 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
         }
 
         val gs = genieSummary.map { x =>
-            getMeasuredEventGenieSummary((x._1, x._2._1), jobParams.getOrElse(Map()), x._2._2)
+            getMeasuredEventGenieSummary((x._1, x._2._1), jobConfig.value, x._2._2)
         }.map { x => JSONUtils.serialize(x) };
 
         val gss = genieSessionSummary.map { x =>
-            getMeasuredEventGenieSessionSummary(x._1, jobParams.getOrElse(Map()), x._2)
+            getMeasuredEventGenieSessionSummary(x._1, jobConfig.value, x._2)
         }.map { x => JSONUtils.serialize(x) };
 
         gs.union(gss);
