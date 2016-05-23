@@ -88,6 +88,18 @@ CREATE TABLE devicespecification (
 	PRIMARY KEY (device_id,os,screen_size)
 );
 
+CREATE TABLE deviceusagesummary (
+	device_id text,
+	start_time bigint,
+	end_time bigint,
+	num_days bigint,
+	total_launches bigint,
+	total_timespent double,
+	avg_num_launches double,
+	avg_time double,
+	PRIMARY KEY (device_id)
+);
+
 CREATE KEYSPACE content_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
