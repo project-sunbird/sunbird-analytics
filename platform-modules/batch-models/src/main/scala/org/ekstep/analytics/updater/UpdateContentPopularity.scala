@@ -16,7 +16,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.model.ContentSummary
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.framework.Response
-import org.ekstep.analytics.model.ContentId
+import org.ekstep.analytics.framework.ContentId
 
 /**
  * @author Santhosh
@@ -26,7 +26,7 @@ object UpdateContentPopularity extends IBatchModel[MeasuredEvent] with Serializa
     val className = "org.ekstep.analytics.updater.UpdateContentPopularity"
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        val contents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_CONTENT_SUMMARY"))).map { x => ContentId(x.dimensions.gdata.get.id) }.distinct();
+        val contents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY"))).map { x => ContentId(x.dimensions.gdata.get.id) }.distinct();
         val summaries = contents.joinWithCassandraTable[ContentSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
         summaries.map { x =>  
             val url = org.ekstep.analytics.framework.util.Constants.getContentUpdateAPIUrl(x._1.content_id);

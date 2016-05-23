@@ -36,6 +36,8 @@ import org.joda.time.Hours
 import org.joda.time.DateTimeZone
 import java.security.MessageDigest
 import org.apache.log4j.Logger
+import org.ekstep.analytics.framework.Period._
+import org.joda.time.Weeks
 
 object CommonUtil {
 
@@ -46,6 +48,8 @@ object CommonUtil {
     @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
     @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
     @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
+    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
 
     def getParallelization(config: JobConfig): Int = {
 
@@ -132,7 +136,10 @@ object CommonUtil {
     }
 
     def getEventTS(event: Event): Long = {
-        getTimestamp(event.ts);
+        if(event.ets > 0) 
+            event.ets
+        else
+            getTimestamp(event.ts);
     }
 
     def getEventSyncTS(event: Event): Long = {
@@ -306,4 +313,25 @@ object CommonUtil {
         val key = Array(eventId, userId, df4.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
+
+    def getPeriod(syncts: Long, period: Period): Int = {
+        val d = new DateTime(syncts);
+        period match {
+            case DAY        => dayPeriod.print(d).toInt;
+            case WEEK       => (d.getWeekyear + "77" + d.getWeekOfWeekyear).toInt
+            case MONTH      => monthPeriod.print(d).toInt
+            case CUMULATIVE => 0
+            case LAST7      => 7
+            case LAST30     => 30
+            case LAST90     => 90
+            case _          => -1
+        }
+    }
+    def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
+        val from = new LocalDate(fromDate)
+        val to = new LocalDate(toDate)
+        val weeks = Weeks.weeksBetween(from, to).getWeeks
+        weeks;
+    }
+
 }

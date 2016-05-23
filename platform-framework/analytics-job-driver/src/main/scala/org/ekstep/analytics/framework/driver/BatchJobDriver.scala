@@ -11,7 +11,6 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.TelemetryEventV2
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
 
@@ -45,8 +44,6 @@ object BatchJobDriver {
         val rdd = DataFetcher.fetchBatchData[T](config.search);
         if (config.deviceMapping.nonEmpty && config.deviceMapping.get)
             JobContext.deviceMapping = mf.toString() match {
-                case "org.ekstep.analytics.framework.TelemetryEventV2" =>
-                    rdd.map(x => x.asInstanceOf[TelemetryEventV2]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
                 case "org.ekstep.analytics.framework.Event" =>
                     rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
                 case _ => Map()
@@ -56,6 +53,7 @@ object BatchJobDriver {
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         JobLogger.info("BatchJobDriver: _process. Started executing the model " + model.getClass.getName, className)
         val output = model.execute(filterRdd, config.modelParams);
+        JobLogger.info("Number of events generated : "+output.count, className)
         OutputDispatcher.dispatch(config.output, output);
     }
 }

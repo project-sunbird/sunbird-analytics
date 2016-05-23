@@ -10,22 +10,11 @@ class Models extends Serializable {}
 class GData(val id: String, val ver: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class Eks(val dspec: Map[String, AnyRef], val loc: String, val mc: Array[String], val mmc: Array[String],
-          val pass: String, val qid: String, val qtype: String,
-          val qlevel: String, val score: Int, val maxscore: Int,
-          val res: Array[String], val exres: Array[String], val length: AnyRef,
-          val exlength: Double, val atmpts: Int, val failedatmpts: Int,
-          val category: String, val current: String, val max: String,
-          val `type`: String, val extype: String, val id: String,
-          val gid: String) extends Serializable {}
-
-@scala.reflect.BeanInfo
-class EksV2(val dspec: Map[String, AnyRef], val loc: String, val length: Double, val `type`: String,
-            val itype: String, val stageid: String, val stageto: String, val qid: String, val pass: String,
-            val score: Int, val resvalues: Array[Map[String, AnyRef]], val params: Array[Map[String, AnyRef]], val uri: String,
-            val state: String, val category: String, val current: String, val max: String, val subtype: String,
-            val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val id: String, val tid: String,
-            val extype: String, val exlength: Double) extends Serializable {}
+class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val qid: String, val score: Int, val res: Array[String], val length: AnyRef,
+          val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String, 
+          val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]], 
+          val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]], 
+          val values: Array[AnyRef], val tid: String) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -34,25 +23,16 @@ class Ext(val stageId: String, val `type`: String) extends Serializable {}
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class EDataV2(val eks: EksV2) extends Serializable {}
-
-@scala.reflect.BeanInfo
-class Event(val tags: List[Map[String, AnyRef]], val eid: String, val ts: String, val `@timestamp`: String,
-            val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData) extends Serializable {}
-
-@scala.reflect.BeanInfo
-class TelemetryEventV2(val tags: List[Map[String, AnyRef]], val eid: String, val ets: Long, val `@timestamp`: String,
-                       val ver: String, val gdata: GData, val sid: String,
-                       val uid: String, val did: String, val edata: EDataV2) extends Serializable {}
+class Event(val tags: List[Map[String, AnyRef]], val eid: String, val ts: String, val ets: Long, val `@timestamp`: String,
+            val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: EData) extends Serializable {}
 
 // Computed Event Model
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
-case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: Option[String], gdata: Option[GData], cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
+case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: Option[String], content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata);
 @scala.reflect.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, partner_id: Option[String] = None, group_user: Option[Boolean] = None);
 @scala.reflect.BeanInfo
 case class PData(id: String, model: String, ver: String);
 @scala.reflect.BeanInfo
@@ -121,3 +101,10 @@ case class DomainResponse(id: String, ver: String, ts: String, params: Params, r
 
 // Common models for all data products
 case class LearnerId(learner_id: String)
+case class ContentId(content_id: String)
+case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
+
+object Period extends Enumeration {
+    type Period = Value
+    val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
+}
