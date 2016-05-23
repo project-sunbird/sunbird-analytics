@@ -33,13 +33,14 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
             //            val geEnd = x.filter { x => "GE_GENIE_END".equals(x.eid) }(0)
             val geStart = x(0)
             val geEnd = x.last
+            
             val dtRange = DtRange(CommonUtil.getEventTS(geStart), CommonUtil.getEventTS(geEnd));
             val timeSpent = CommonUtil.getTimeDiff(geStart, geEnd)
             val time_stamp = CommonUtil.getTimestamp(geEnd.ts)
             val content = x.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.distinct
             val contentCount = content.size
             (GenieSummary(timeSpent.getOrElse(0d), time_stamp, content, contentCount), dtRange);
-        }
+        }.filter { x => (x._2._1.timeSpent >= 0) }
 
         val gsSummary = genieSessions.mapValues { x =>
             val gsStart = x(0)
