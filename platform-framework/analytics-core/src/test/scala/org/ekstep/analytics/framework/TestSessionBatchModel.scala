@@ -13,8 +13,5 @@ class TestSessionBatchModel extends SparkSpec {
         val rdd = SampleModel.execute(events, None);
         rdd.count should be (134);
         
-        val rdd1 = loadFile[TelemetryEventV2]("src/test/resources/sample_telemetry.log");
-        val rdd2 = SampleModelV2.execute(rdd1, None);
-        rdd2.count should be (134);
     }
 }
