@@ -205,7 +205,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
     private def getMeasuredEvent(uid: String, relevance: Iterable[RelevanceScores], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
         val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", uid, "DAY", dtRange.to);
-        MeasuredEvent(None, "ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), dtRange.to, "1.0", mid, Option(uid), None, None,
+        MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), dtRange.to, "1.0", mid, Option(uid), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", dtRange),
             Dimensions(None, None, None, None, None, None),
             MEEdata(Map("relevanceScores" -> relevance)));

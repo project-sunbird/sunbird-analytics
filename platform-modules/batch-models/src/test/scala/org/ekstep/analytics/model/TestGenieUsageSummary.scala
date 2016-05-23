@@ -16,6 +16,13 @@ class TestGenieUsageSummary extends SparkSpec(null) {
         gse.size should be(36)
         gsse.size should be(46)
 
+        // check the number of events where timeSpent==0 
+        val zeroTimeSpentGE = gse.map { x => JSONUtils.deserialize[MeasuredEvent](x).edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
+        zeroTimeSpentGE.size should be(5)
+        
+        val zeroTimeSpentGS = gsse.map { x => JSONUtils.deserialize[MeasuredEvent](x).edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
+        zeroTimeSpentGS.size should be(6)
+
         val event1 = JSONUtils.deserialize[MeasuredEvent](gse.last)
         val eksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
 

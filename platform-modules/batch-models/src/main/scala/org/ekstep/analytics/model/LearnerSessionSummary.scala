@@ -378,7 +378,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             "partnerId" -> game.partnerId,
             "groupUser" -> booleanTuple._1,
             "anonymousUser" -> booleanTuple._2);
-        MeasuredEvent(None, "ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
+        MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, Option(userMap._1), None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc),
             MEEdata(measures));

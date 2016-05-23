@@ -65,7 +65,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             "avg_interactions_min" -> contentUsage.avg_interactions_min,
             "content_type" -> contentUsage.content_type,
             "mime_type" -> contentUsage.mime_type);
-        MeasuredEvent(None, "ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(contentSumm._1), None,
+        MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(contentSumm._1), None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, None, None, None, None, None, None, Option(contentSumm._2), Option(contentSumm._3)),
             MEEdata(measures));
