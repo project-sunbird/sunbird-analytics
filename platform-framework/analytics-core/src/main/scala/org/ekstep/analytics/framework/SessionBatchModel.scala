@@ -65,6 +65,14 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                 tmpArr += y;
 
                             case "GE_GENIE_END" =>
+                                if (!tmpArr.isEmpty) {
+                                    val event = tmpArr.last
+                                    val timeSpent = CommonUtil.getTimeDiff(event, y);
+                                    if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
+                                        sessions += tmpArr;
+                                        tmpArr = Buffer[Event]();
+                                    }
+                                }
                                 tmpArr += y;
                                 sessions += tmpArr;
                                 tmpArr = Buffer[Event]();
