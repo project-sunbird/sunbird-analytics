@@ -34,7 +34,7 @@
 	</pluginRepositories>
 
 	<properties>
-		<play2.version>2.2.1</play2.version>
+		<play2.version>2.3.10</play2.version>
 		<play2.scala.version>2.10</play2.scala.version>
 		<play2.plugin.version>1.0.0-beta5</play2.plugin.version>
 	</properties>
@@ -51,6 +51,7 @@
 			<artifactId>play_${play2.scala.version}</artifactId>
 			<version>${play2.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.typesafe.play</groupId>
 			<artifactId>play-test_${play2.scala.version}</artifactId>
@@ -101,7 +102,7 @@
 				<dependencies>
 					<dependency>
 						<groupId>com.google.code.play2-maven-plugin</groupId>
-						<artifactId>play2-provider-play22</artifactId>
+						<artifactId>play2-provider-play23</artifactId>
 						<version>${play2.plugin.version}</version>
 					</dependency>
 				</dependencies>

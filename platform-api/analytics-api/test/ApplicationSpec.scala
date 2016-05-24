@@ -19,11 +19,6 @@ class ApplicationSpec extends Specification {
             route(FakeRequest(GET, "/boum")) must beNone
         }
         
-        "return hello world" in new WithApplication {
-            val home = route(FakeRequest(GET, "/")).get
-            status(home) must equalTo(OK)
-        }
-
         "return the content usage metrics" in new WithApplication {
             val home = route(FakeRequest(POST, "/content/metrics/usage/test123", FakeHeaders(Seq("Content-type"->Seq("application/json"))), """ {"id": "ekstep.analytics.contentusagesummary", "ver": "1.0", "ts": "YYYY-MM-DDThh:mm:ssZ+/-nn.nn", "request": {"filter": {"partner_id": "org.ekstep.partner.pratham", "group_user": true }, "summaries": ["day","week","month","cumulative"], "trend": {"day": 7, "week": 5, "month": 12 } } } """)).get
 
