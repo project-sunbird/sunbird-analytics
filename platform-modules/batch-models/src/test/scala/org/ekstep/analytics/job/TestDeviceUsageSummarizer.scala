@@ -11,7 +11,7 @@ import org.ekstep.analytics.framework.Filter
 class TestDeviceUsageSummarizer extends SparkSpec(null) {
   
   "DeviceUsageSummarizer" should "execute the job and shouldn't throw any exception" in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/device-usage-summary/test_data_1.log"))))), None, None, "org.ekstep.analytics.model.DeviceUsageSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceUsageSummarizer"), Option(false))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/device-usage-summary/test_data_3.log"))))), None, None, "org.ekstep.analytics.model.DeviceUsageSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceUsageSummarizer"), Option(false))
         DeviceUsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
     

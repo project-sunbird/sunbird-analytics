@@ -135,6 +135,10 @@ object CommonUtil {
         dates.map { x => df4.print(x) }.toArray;
     }
 
+    def daysBetween(from: LocalDate, to: LocalDate): Int = {
+        Days.daysBetween(from, to).getDays();
+   }
+    
     def getEventTS(event: Event): Long = {
         if(event.ets > 0) 
             event.ets
