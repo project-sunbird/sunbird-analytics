@@ -5,6 +5,7 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import context.Context
 
 object Application extends Controller {
     
@@ -17,7 +18,7 @@ object Application extends Controller {
         
         try {
             val body: String = if(request.body.asText.isEmpty) Json.stringify(request.body.asJson.get) else request.body.asText.get; 
-            val response = ContentAPIService.getContentUsageMetrics(contentId, body);
+            val response = ContentAPIService.getContentUsageMetrics(contentId, body)(Context.sc);
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");    
         } catch {
             case ex: Exception =>

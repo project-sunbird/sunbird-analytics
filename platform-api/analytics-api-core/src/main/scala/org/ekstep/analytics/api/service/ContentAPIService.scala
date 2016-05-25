@@ -9,6 +9,7 @@ import org.ekstep.analytics.api.ContentSummary
 import org.ekstep.analytics.api.Trend
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
+import org.apache.spark.SparkContext
 
 /**
  * @author Santhosh
@@ -18,7 +19,7 @@ object ContentAPIService {
     
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
  
-    def getContentUsageMetrics(contentId: String, requestBody: String) : String = {
+    def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext) : String = {
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
         JSONUtils.serialize(mockResponse(reqBody));
     }
