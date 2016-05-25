@@ -2,11 +2,16 @@ package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.util.JSONUtils
+import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestDeviceUsageSummary extends SparkSpec(null) {
 
     "DeviceUsageSummary" should "generate DeviceUsageSummary events from a sample file and pass all positive test cases " in {
 
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE learner_db.deviceusagesummary;");
+        }
+        
         val rdd1 = loadFile[MeasuredEvent]("src/test/resources/device-usage-summary/test_data_1.log");
         val rdd2 = DeviceUsageSummary.execute(rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
         val me = rdd2.collect()
@@ -14,7 +19,6 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
 
         event1.eid should be("ME_DEVICE_USAGE_SUMMARY");
-        event1.mid should be("0b303d4d66d13ad0944416780e52cc3db1feba87");
         event1.context.pdata.model should be("DeviceUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
@@ -35,7 +39,6 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         val event2 = JSONUtils.deserialize[MeasuredEvent](me2(1));
   
         event2.eid should be("ME_DEVICE_USAGE_SUMMARY");
-        event2.mid should be("0b303d4d66d13ad0944416780e52cc3db1feba87");
         event2.context.pdata.model should be("DeviceUsageSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("DAY");
@@ -51,7 +54,6 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         val event3 = JSONUtils.deserialize[MeasuredEvent](me2(0));
   
         event3.eid should be("ME_DEVICE_USAGE_SUMMARY");
-        event3.mid should be("267b8c9e00572f2ec4d3d463eb03f0f67d7f3636");
         event3.context.pdata.model should be("DeviceUsageSummarizer");
         event3.context.pdata.ver should be("1.0");
         event3.context.granularity should be("DAY");

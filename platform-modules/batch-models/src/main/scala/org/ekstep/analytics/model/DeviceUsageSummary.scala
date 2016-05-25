@@ -61,7 +61,7 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
 
     private def getMeasuredEvent(usageSummary: UsageSummary, config: Map[String, AnyRef]): MeasuredEvent = {
   
-        val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, null, null);
+        val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, null, DtRange(0l,0l));
         val measures = Map(
             "start_time" -> usageSummary.start_time,
             "end_time" -> usageSummary.end_time,
