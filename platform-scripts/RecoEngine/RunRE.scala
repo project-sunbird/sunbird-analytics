@@ -2,7 +2,7 @@ import org.ekstep.analytics.framework.util._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.updater._
 import org.ekstep.analytics.model._
-
+import org.apache.spark.SparkContext
 
 //val inputFile = "/Users/soma/github/ekStep/Learning-Platform-Analytics/platform-scripts/RecoEngine/Data/inputRE.txt";
 val inputFile = "/Users/adarsa/ilimi/github/Learning-Platform-Analytics/platform-scripts/RecoEngine/Data/inputRE.txt";
@@ -11,7 +11,7 @@ println("### Setting S3 Keys ###")
 CommonUtil.setS3Conf(sc);
 implicit val sparkContext: SparkContext = sc
 println("### Fetching Data with filter ###")
-val queries = Option(Array(Query(Option("ekstep-session-summary"), Option("prod.analytics.screener-"), Option("2016-02-21"), Option("2016-02-23"))));
+val queries = Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-02-21"), Option("2016-02-23"))));
 val rdd = DataFetcher.fetchBatchData[MeasuredEvent](Fetcher("S3", None, queries));
 val sessSummaries = DataFilter.filter(rdd, Filter("eid","EQ",Option("ME_SESSION_SUMMARY")));
 val ordinalWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.ordinal.worksheet".equals(e.dimensions.gdata.get.id)).cache();
