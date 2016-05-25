@@ -43,10 +43,10 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         event2.context.date_range should not be null;
         
         val eks2 = event2.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        eks2.get("num_days").get should be(26)
-        eks2.get("start_time").get should be(1460627512768L)
-        eks2.get("avg_time").get should be(2.12)
-        eks2.get("avg_num_launches").get should be(0.15)
+        eks2.get("num_days").get should be(46)
+        eks2.get("start_time").get should be(1458886281000L)
+        eks2.get("avg_time").get should be(1.2)
+        eks2.get("avg_num_launches").get should be(0.09)
         eks2.get("end_time").get should be(1462869647260L)
         
         val event3 = JSONUtils.deserialize[MeasuredEvent](me2(0));

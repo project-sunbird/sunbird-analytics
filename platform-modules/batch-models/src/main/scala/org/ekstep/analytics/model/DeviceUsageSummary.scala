@@ -38,7 +38,7 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
       val eventsSortedByDateRange = events._1.sortBy { x => x.context.date_range.from.asInstanceOf[Long] };
       val prevUsageSummary = events._2.getOrElse(UsageSummary(events._1.head.dimensions.did.get, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0));
       val eventStartTime = eventsSortedByDateRange.head.context.date_range.from.asInstanceOf[Long]
-      val start_time = if (eventStartTime > prevUsageSummary.start_time) eventStartTime else prevUsageSummary.start_time;
+      val start_time = if(prevUsageSummary.start_time == 0) eventStartTime else if (eventStartTime > prevUsageSummary.start_time) prevUsageSummary.start_time else eventStartTime;
       val end_time = eventsSortedByTS.last.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_stamp").get.asInstanceOf[Long]
       val num_days: Long = CommonUtil.daysBetween(new LocalDate(start_time), new LocalDate(end_time))
       val num_launches = events._1.size + prevUsageSummary.total_launches
@@ -61,7 +61,7 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
 
   private def getMeasuredEvent(usageSummary: UsageSummary, config: Map[String, AnyRef]): MeasuredEvent = {
 
-    val mid = usageSummary.device_id;
+    val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, null, null);
     val measures = Map(
       "start_time" -> usageSummary.start_time,
       "end_time" -> usageSummary.end_time,
