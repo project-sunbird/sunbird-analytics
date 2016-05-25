@@ -7,7 +7,8 @@ runBatchmodel=$2
 cleanTables=$3
 
 # github base path
-basePath=/Users/soma/github/ekStep/Learning-Platform-Analytics
+#basePath=/Users/soma/github/ekStep/Learning-Platform-Analytics
+basePath=/Users/adarsa/ilimi/github//Learning-Platform-Analytics
 
 # batch model Jar file path
 modelJar=$basePath/platform-modules/batch-models/target/batch-models-1.0.jar
