@@ -6,12 +6,9 @@ import org.ekstep.analytics.framework.util.JSONUtils
 class TestContentUsageSummary extends SparkSpec(null) {
     
     it should "generate content summary events" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/content_usage_summary/*");
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/content-usage-summary/*");
         val rdd2 = ContentUsageSummary.execute(rdd, None);
         val events = rdd2.collect
-        for(e<-events){
-            println(e)
-        }
         events.length should be (29)
         val summ = JSONUtils.deserialize[MeasuredEvent](events(0))
         summ.content_id.get should be ("org.ekstep.story.ka.elephant")

@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.Dispatcher
 class TestGenieUsageSummary extends SparkSpec(null) {
 
     it should "generate content summary events" in {
-        val rdd = loadFile[Event]("src/test/resources/genie_usage_summary/test-data1.log");
+        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data1.log");
         val rdd2 = GenieUsageSummary.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(84)
@@ -41,7 +41,7 @@ class TestGenieUsageSummary extends SparkSpec(null) {
     }
 
     it should "generate the genie summary of the input data where the some events generated after idle time" in {
-        val rdd = loadFile[Event]("src/test/resources/genie_usage_summary/test-data2.log")
+        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data2.log")
         val rdd2 = GenieUsageSummary.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(4)
@@ -59,7 +59,7 @@ class TestGenieUsageSummary extends SparkSpec(null) {
     }
 
     it should "generate the genie summary for the input having no only GE_GENIE_START and GE_GENIE_END" in {
-        val rdd = loadFile[Event]("src/test/resources/genie_usage_summary/test-data3.log")
+        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data3.log")
         val rdd2 = GenieUsageSummary.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(1)

@@ -16,7 +16,7 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         val sampleRDD = sc.parallelize(Array(sampleSumm));
         sampleRDD.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
 
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/content_usage_updater/content_usage_updater.log");
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/content-usage-updater/content_usage_updater.log");
         ContentUsageUpdater.execute(rdd, None);
 
         val updatedSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "org.ekstep.story.hi.vayu").where("d_period=?", 20167718).first
