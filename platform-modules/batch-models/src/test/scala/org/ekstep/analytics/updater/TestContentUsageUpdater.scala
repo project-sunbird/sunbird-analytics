@@ -26,7 +26,7 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         updatedSumm.m_total_sessions should be(4)
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.contentusagesummary_fact where d_content_id = 'org.ekstep.story.hi.vayu'");
+            session.execute("DELETE FROM content_db.content_usage_summary_fact where d_content_id = 'org.ekstep.story.hi.vayu'");
         }
 
     }

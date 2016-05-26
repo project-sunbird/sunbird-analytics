@@ -12,7 +12,7 @@ class TestContentSummary extends SparkSpec(null) {
     
     "ContentSummary" should "generate contentsummary and pass all positive test cases" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("truncate content_db.contentcumulativesummary");
+            session.execute("truncate content_db.content_cumulative_summary");
         }
         
         val cs = ContentSummary("org.ekstep.vayuthewind", DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0,"","")
