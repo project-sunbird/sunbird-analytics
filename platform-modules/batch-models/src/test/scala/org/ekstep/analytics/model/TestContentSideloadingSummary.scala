@@ -9,8 +9,9 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_1.log");
         val rdd2 = ContentSideloadingSummary.execute(rdd, None);
         val events = rdd2.collect
-        println(events(0))
-        println(events(1))
+        
         events.length should be (2)
+        
+        
     }
 }
