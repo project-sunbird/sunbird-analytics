@@ -28,6 +28,8 @@ object ContentAPIService {
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
+    private val CONTENT_DB = "content_db";
+    private val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
 
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
@@ -36,7 +38,7 @@ object ContentAPIService {
     }
 
     private def contentUsageMetricsMock(reqBody: RequestBody): Response = {
-        val measures = ContentSummary(23.43, 134, 500.12, 2000, 134.34, None, None);
+        val measures = ContentSummary(None, 23.43, 134, 500.12, 2000, 134.34, None, None);
         val reqTrend: Trend = reqBody.request.trend.getOrElse(Trend(Option(7), Option(5), Option(12)));
         val trend = Map[String, Int]("day" -> reqTrend.day.getOrElse(0), "week" -> reqTrend.week.getOrElse(0), "month" -> reqTrend.month.getOrElse(0));
         val summaries = reqBody.request.summaries.getOrElse(Array("day", "week", "month", "cumulative"));
@@ -69,7 +71,7 @@ object ContentAPIService {
             }
         }.toMap
 
-        val contentRDD = sc.cassandraTable[ContentUsageSummary]("content_db", "contentusagesummary_fact").where("d_content_id = ?", contentId).cache();
+        val contentRDD = sc.cassandraTable[ContentUsageSummary](CONTENT_DB, CONTENT_SUMMARY_FACT_TABLE).where("d_content_id = ?", contentId).cache();
         val trends = trend.mapValues(x =>
             x._1 match {
                 case DAY   => filterTrends(contentRDD, getDayRange(x._2), reqBody.request.filter);
@@ -82,12 +84,10 @@ object ContentAPIService {
                 case DAY   => reduceTrends(trends.get("day").getOrElse(Array[ContentSummary]()));
                 case WEEK  => reduceTrends(trends.get("week").getOrElse(Array[ContentSummary]()));
                 case MONTH => reduceTrends(trends.get("month").getOrElse(Array[ContentSummary]()));
-                case CUMULATIVE => contentRDD.filter { x => x.d_period == 0 }
-                    .map { x =>
-                        ContentSummary(x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, Option(x.m_avg_sessions_week), Option(x.m_avg_ts_week))
-                    }.collect();
+                case CUMULATIVE => filterTrends(contentRDD, Range(-1, 0), reqBody.request.filter)
             }
         }
+        contentRDD.unpersist(false);
 
         val result = Map[String, AnyRef](
             "ttl" -> 0.0.asInstanceOf[AnyRef],
@@ -97,21 +97,25 @@ object ContentAPIService {
     }
 
     private def filterTrends(contentRDD: RDD[ContentUsageSummary], periodRange: Range, filter: Option[Filter]): Array[ContentSummary] = {
-        contentRDD.filter { x => x.d_period > periodRange.start && x.d_period <= periodRange.end }
+        val trends = contentRDD.filter { x => x.d_period > periodRange.start && x.d_period <= periodRange.end }
             .map { x =>
-                ContentSummary(x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, Option(x.m_avg_sessions_week), Option(x.m_avg_ts_week))
-            }.collect();
+                ContentSummary(Option(x.d_period), x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, Option(x.m_avg_sessions_week), Option(x.m_avg_ts_week))
+            }
+        val groupByPeriod = trends.groupBy { x => x.period.get }.map(f => reduceTrends(f._2.toArray).get);
+        groupByPeriod.collect();
     }
 
-    private def reduceTrends(summaries: Array[ContentSummary]): ContentSummary = {
-        summaries.reduce((a, b) => {
-            val total_ts = a.total_ts + b.total_ts;
-            val total_sessions = a.total_sessions + b.total_sessions;
-            val total_interactions = a.total_interactions + b.total_interactions;
-            val avg_ts_session = total_ts / total_sessions;
-            val avg_interactions_min = total_interactions / (total_ts / 60);
-            ContentSummary(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, None, None)
-        })
+    private def reduceTrends(summaries: Array[ContentSummary]): Option[ContentSummary] = {
+        if (summaries.size > 0)
+            Option(summaries.reduce((a, b) => {
+                val total_ts = a.total_ts + b.total_ts;
+                val total_sessions = a.total_sessions + b.total_sessions;
+                val total_interactions = a.total_interactions + b.total_interactions;
+                val avg_ts_session = total_ts / total_sessions;
+                val avg_interactions_min = total_interactions / (total_ts / 60);
+                ContentSummary(None, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, None, None)
+            }))
+        else None;
     }
 
     private def getDayRange(count: Int): Range = {
