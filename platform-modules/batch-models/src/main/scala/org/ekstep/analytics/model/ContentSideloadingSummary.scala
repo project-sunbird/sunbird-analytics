@@ -25,7 +25,6 @@ object ContentSideloadingSummary extends IBatchModel[Event] with Serializable {
         
         val reducedData = filteredEvents.map{ event => 
             val contents = event.edata.eks.contents
-            println(contents.size)
             contents.map{ f => 
                 (f.getOrElse("identifier", "").asInstanceOf[String],f.getOrElse("origin", "").asInstanceOf[String],f.getOrElse("transferCount", 0.0).asInstanceOf[Double],CommonUtil.getEventTS(event))
             }
