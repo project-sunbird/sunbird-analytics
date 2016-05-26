@@ -28,9 +28,8 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
         val events = data.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val content_id = event.dimensions.gdata.get.id
-            val partner_id = eksMap.get("partnerId").get.asInstanceOf[String]
             val group_user = eksMap.get("groupUser").get.asInstanceOf[Boolean]
-            ((content_id, partner_id, group_user), Buffer(event));
+            ((content_id, group_user), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
 
         val contentUsage = events.mapValues { events =>
@@ -41,7 +40,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
             val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
 
-            val total_ts = events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum;
+            val total_ts = CommonUtil.roundDouble(events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum,2);
             val total_sessions = events.size
             val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
             val total_interactions = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
@@ -50,12 +49,12 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
         }
 
         contentUsage.map { f =>
-            getMeasuredEvent((f._1._1, f._1._2, f._1._3, f._2._1), configMapping.value, f._2._2);
+            getMeasuredEvent((f._1._1, f._1._2, f._2._1), configMapping.value, f._2._2);
         }.map { x => JSONUtils.serialize(x) };
     }
-    private def getMeasuredEvent(contentSumm: (String, String, Boolean, ContentUsage), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
+    private def getMeasuredEvent(contentSumm: (String, Boolean, ContentUsage), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
 
-        val contentUsage = contentSumm._4
+        val contentUsage = contentSumm._3
         val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, contentSumm._1);
         val measures = Map(
             "total_ts" -> contentUsage.total_ts,
@@ -67,7 +66,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             "mime_type" -> contentUsage.mime_type);
         MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(contentSumm._1), None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
-            Dimensions(None, None, None, None, None, None, None, Option(contentSumm._2), Option(contentSumm._3)),
+            Dimensions(None, None, None, None, None, None, None, Option(contentSumm._2)),
             MEEdata(measures));
     }
 }

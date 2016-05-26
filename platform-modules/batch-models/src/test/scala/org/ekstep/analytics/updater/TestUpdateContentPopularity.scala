@@ -17,7 +17,7 @@ class TestUpdateContentPopularity extends SparkSpec(null) {
 
     "UpdateContentPopularity" should "populate total sessions count as popularity on content" in {
 
-        val testContent = ContentSummary("org.ekstep.story.hi.nature",DateTime.now,5,0d,0d,100,0d,0d,0d,"","")
+        val testContent = ContentSummary("org.ekstep.story.hi.nature",DateTime.now,5,0d,0d,100,0d,0d,0d,"Story","application/vnd.ekstep.ecml-archive")
         val testRdd = sc.parallelize(Array(testContent));
         testRdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE)
         val rdd = DataFetcher.fetchBatchData[MeasuredEvent](Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/content-popularity/test-data.json"))))));
@@ -28,5 +28,4 @@ class TestUpdateContentPopularity extends SparkSpec(null) {
             session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.story.hi.nature'");
         }
     }
-
 }
