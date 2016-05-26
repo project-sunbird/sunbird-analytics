@@ -10,39 +10,126 @@ import org.ekstep.analytics.api.Trend
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
 import org.apache.spark.SparkContext
+import com.datastax.spark.connector._
+import org.ekstep.analytics.api.ContentUsageSummary
+import org.joda.time.Weeks
+import org.joda.time.DateTime
+import org.ekstep.analytics.api.ContentUsageSummary
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.api.Filter
+import org.ekstep.analytics.api.Period._
 
 /**
  * @author Santhosh
  */
 
 object ContentAPIService {
-    
+
+    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
+    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
- 
-    def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext) : String = {
+
+    def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
-        JSONUtils.serialize(mockResponse(reqBody));
+        //JSONUtils.serialize(contentUsageMetricsMock(reqBody));
+        JSONUtils.serialize(contentUsageMetrics(contentId, reqBody));
     }
-    
-    private def mockResponse(reqBody: RequestBody) : Response = {
+
+    private def contentUsageMetricsMock(reqBody: RequestBody): Response = {
         val measures = ContentSummary(23.43, 134, 500.12, 2000, 134.34, None, None);
-        val reqTrend:Trend = reqBody.request.trend.getOrElse(Trend(Option(7), Option(5), Option(12)));
-        val trend = Map[String, Int] ("day" -> reqTrend.day.getOrElse(0), "week" -> reqTrend.week.getOrElse(0), "month" -> reqTrend.month.getOrElse(0));
-        val summaries = reqBody.request.summaries.getOrElse(Array("day","week","month","cumulative"));
+        val reqTrend: Trend = reqBody.request.trend.getOrElse(Trend(Option(7), Option(5), Option(12)));
+        val trend = Map[String, Int]("day" -> reqTrend.day.getOrElse(0), "week" -> reqTrend.week.getOrElse(0), "month" -> reqTrend.month.getOrElse(0));
+        val summaries = reqBody.request.summaries.getOrElse(Array("day", "week", "month", "cumulative"));
         val result = Map[String, AnyRef](
             "ttl" -> 24.0.asInstanceOf[AnyRef],
-            "summaries" -> summaries.map { x =>  
+            "summaries" -> summaries.map { x =>
                 (x, measures);
             }.toMap,
-            "trend" -> trend.mapValues { x =>  
-                if(x > 0) {
-                    for (i <- 1 to x) yield measures   
+            "trend" -> trend.mapValues { x =>
+                if (x > 0) {
+                    for (i <- 1 to x) yield measures
                 } else {
                     Array();
                 }
-            }
-        );
+            });
         Response("ekstep.analytics.contentusagesummary", "1.0", df.print(System.currentTimeMillis()), Params("054f3b10-309f-4552-ae11-02c66640967b", "h39r3n32-930g-3822-bx32-32u83923821t", null, "successful", null), result);
     }
-    
+
+    private def contentUsageMetrics(contentId: String, reqBody: RequestBody)(implicit sc: SparkContext): Response = {
+        // Initialize to default values if not found from the request.
+        val reqTrend: Trend = reqBody.request.trend.getOrElse(Trend(Option(7), Option(5), Option(12)));
+        val trend = Map[String, (Period, Int)]("day" -> (DAY, reqTrend.day.getOrElse(0)), "week" -> (WEEK, reqTrend.week.getOrElse(0)), "month" -> (MONTH, reqTrend.month.getOrElse(0)));
+        val reqSummaries = reqBody.request.summaries.getOrElse(Array[String]("day", "week", "month", "cumulative"));
+        val summaryMap = reqSummaries.map { x =>
+            x match {
+                case "day"        => (x, DAY)
+                case "week"       => (x, WEEK)
+                case "month"      => (x, MONTH)
+                case "cumulative" => (x, CUMULATIVE)
+            }
+        }.toMap
+
+        val contentRDD = sc.cassandraTable[ContentUsageSummary]("content_db", "contentusagesummary_fact").where("d_content_id = ?", contentId).cache();
+        val trends = trend.mapValues(x =>
+            x._1 match {
+                case DAY   => filterTrends(contentRDD, getDayRange(x._2), reqBody.request.filter);
+                case WEEK  => filterTrends(contentRDD, getWeekRange(x._2), reqBody.request.filter);
+                case MONTH => filterTrends(contentRDD, getMonthRange(x._2), reqBody.request.filter);
+            });
+
+        val summaries = summaryMap.mapValues { x =>
+            x match {
+                case DAY   => reduceTrends(trends.get("day").getOrElse(Array[ContentSummary]()));
+                case WEEK  => reduceTrends(trends.get("week").getOrElse(Array[ContentSummary]()));
+                case MONTH => reduceTrends(trends.get("month").getOrElse(Array[ContentSummary]()));
+                case CUMULATIVE => contentRDD.filter { x => x.d_period == 0 }
+                    .map { x =>
+                        ContentSummary(x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, Option(x.m_avg_sessions_week), Option(x.m_avg_ts_week))
+                    }.collect();
+            }
+        }
+
+        val result = Map[String, AnyRef](
+            "ttl" -> 0.0.asInstanceOf[AnyRef],
+            "summaries" -> summaries,
+            "trend" -> trends);
+        Response("ekstep.analytics.contentusagesummary", "1.0", df.print(System.currentTimeMillis()), Params("054f3b10-309f-4552-ae11-02c66640967b", null, null, "successful", null), result);
+    }
+
+    private def filterTrends(contentRDD: RDD[ContentUsageSummary], periodRange: Range, filter: Option[Filter]): Array[ContentSummary] = {
+        contentRDD.filter { x => x.d_period > periodRange.start && x.d_period <= periodRange.end }
+            .map { x =>
+                ContentSummary(x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, Option(x.m_avg_sessions_week), Option(x.m_avg_ts_week))
+            }.collect();
+    }
+
+    private def reduceTrends(summaries: Array[ContentSummary]): ContentSummary = {
+        summaries.reduce((a, b) => {
+            val total_ts = a.total_ts + b.total_ts;
+            val total_sessions = a.total_sessions + b.total_sessions;
+            val total_interactions = a.total_interactions + b.total_interactions;
+            val avg_ts_session = total_ts / total_sessions;
+            val avg_interactions_min = total_interactions / (total_ts / 60);
+            ContentSummary(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, None, None)
+        })
+    }
+
+    private def getDayRange(count: Int): Range = {
+        val endDate = DateTime.now();
+        val startDate = endDate.minusDays(count);
+        Range(dayPeriod.print(startDate).toInt, dayPeriod.print(endDate).toInt)
+    }
+
+    private def getMonthRange(count: Int): Range = {
+        val endDate = DateTime.now();
+        val startDate = endDate.minusDays(count * 30);
+        Range(monthPeriod.print(startDate).toInt, monthPeriod.print(endDate).toInt)
+    }
+
+    private def getWeekRange(count: Int): Range = {
+        val endDate = DateTime.now();
+        val startDate = endDate.minusDays(count * 7);
+        Range((startDate.getWeekyear + "77" + startDate.getWeekOfWeekyear).toInt, (endDate.getWeekyear + "77" + endDate.getWeekOfWeekyear).toInt)
+    }
+
 }
