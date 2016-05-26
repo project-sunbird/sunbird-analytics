@@ -55,7 +55,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
     private def getMeasuredEvent(contentSumm: (String, Boolean, ContentUsage), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
 
         val contentUsage = contentSumm._3
-        val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, contentSumm._1);
+        val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, contentSumm._1);
         val measures = Map(
             "total_ts" -> contentUsage.total_ts,
             "total_sessions" -> contentUsage.total_sessions,

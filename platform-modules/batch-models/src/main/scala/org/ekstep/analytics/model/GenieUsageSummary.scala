@@ -78,7 +78,7 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
 
     private def getMeasuredEventGenieSummary(gSumm: (String, GenieSummary), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
         val summ = gSumm._2
-        val mid = CommonUtil.getMessageId("ME_GENIE_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, gSumm._1);
+        val mid = CommonUtil.getMessageId("ME_GENIE_LAUNCH_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, gSumm._1);
         val measures = Map(
             "timeSpent" -> summ.timeSpent,
             "time_stamp" -> summ.time_stamp,
