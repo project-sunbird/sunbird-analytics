@@ -21,6 +21,14 @@ object JobFactory {
                 LearnerContentActivityUpdater;
             case "lcr" =>
                 RecommendationEngineJob;
+            case "cus" =>
+                ContentUsageSummarizer
+            case "cuu" =>
+                ContentUsageUpdaterJob
+            case "gus" =>
+                GenieUsageSummarizer
+            case "dus" =>
+                DeviceUsageSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
