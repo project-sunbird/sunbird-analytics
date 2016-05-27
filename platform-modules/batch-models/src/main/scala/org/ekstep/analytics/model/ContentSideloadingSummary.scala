@@ -13,7 +13,6 @@ import com.datastax.spark.connector._
 
 case class ContentSideloding(content_id: String, num_times_sideloaded: Double, num_devices: Long, avg_depth: Double)
 
-
 object ContentSideloadingSummary extends IBatchModel[Event] with Serializable {
   
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
@@ -53,7 +52,6 @@ object ContentSideloadingSummary extends IBatchModel[Event] with Serializable {
         contentSideloadingSummary.map { f =>
             getMeasuredEvent(f._2._1, configMapping.value, f._2._2);
         }.map { x => JSONUtils.serialize(x) };
-      
    }
     
    private def getMeasuredEvent(sideloadingSummary:ContentSideloding , config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
