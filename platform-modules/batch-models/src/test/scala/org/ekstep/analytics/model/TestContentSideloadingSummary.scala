@@ -21,16 +21,15 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         val event1 = JSONUtils.deserialize[MeasuredEvent](events(0));
         
         event1.eid should be("ME_CONTENT_SIDELOADING_SUMMARY");
-        event1.mid should be("27765380A69A30EBAF5242619C8CDC2C");
+        event1.mid should be("56C7D87F4E861BD50E97076168607FBD");
         event1.context.pdata.model should be("ContentSideloadingSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("CUMULATIVE");
         event1.context.date_range should not be null;
-        event1.content_id.get should be("org.ekstep.story.en.elephant.sensibol")
+        event1.content_id.get should be("org.ekstep.story.en.family")
 
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        eks.get("num_times_sideloaded").get should be(9.0)
-        eks.get("num_devices").get should be(2)
-        eks.get("avg_depth").get should be(4.5)
+        eks.get("num_downloads").get should be(2)
+        eks.get("num_devices").get should be(5)
     }
 }
