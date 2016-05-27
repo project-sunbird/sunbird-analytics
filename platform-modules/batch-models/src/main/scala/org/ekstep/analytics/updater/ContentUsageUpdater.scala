@@ -56,7 +56,7 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
 
         // Compute top K content 
         val summaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).filter { x => !"Collection".equals(x.d_content_type) };
-        val cumulativeSummaries = summaries.filter { x => x.d_period == 0 }.groupBy(_.d_period).map(f => f._2.reduce((a, b) => reduce(a, b, CUMULATIVE)));
+        val cumulativeSummaries = summaries.filter { x => x.d_period == 0 }.groupBy(x => (x.d_content_id, x.d_period)).map(f => f._2.reduce((a, b) => reduce(a, b, CUMULATIVE)));
         val count = cumulativeSummaries.count().intValue();
         val defaultVal = if (5 > count) count else 5;
         val topContentByTime = cumulativeSummaries.sortBy(f => f.m_total_ts, false, 1).take(configMapping.value.getOrElse("topK", defaultVal).asInstanceOf[Int]);
@@ -67,6 +67,9 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
         contentSummaries.map { x => JSONUtils.serialize(ContentUsageSummaryIndex(x.d_content_id, x.d_period, x.d_group_user)) };
     }
 
+    /**
+     * Rollup daily summaries by period. The period summaries are joined with the previous entries in the database and then reduced to produce new summaries.
+     */
     private def rollup(data: RDD[ContentUsageSummaryFact], period: Period): RDD[ContentUsageSummaryFact] = {
 
         val currentData = data.map { x =>
@@ -85,6 +88,9 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
         rollupSummaries;
     }
 
+    /**
+     * Reducer to rollup two summaries
+     */
     private def reduce(fact1: ContentUsageSummaryFact, fact2: ContentUsageSummaryFact, period: Period): ContentUsageSummaryFact = {
         val total_ts = fact2.m_total_ts + fact1.m_total_ts
         val total_sessions = fact2.m_total_sessions + fact1.m_total_sessions
