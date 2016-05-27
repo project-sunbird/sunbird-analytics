@@ -22,7 +22,7 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
   
         println("### Running the model DeviceUsageSummary ###");
-        val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_SUMMARY")));
+        val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
   

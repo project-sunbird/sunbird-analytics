@@ -16,8 +16,8 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.joda.time.LocalDate
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.ContentMetrics
 
+case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 case class ContentDetail(content_id: String, ts: Long, group_user: Boolean, content_type: String, mime_type: String, publish_date: DateTime, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, end_date: Long)
 case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_group_user: Boolean, d_content_type: String, d_mime_type: String, m_publish_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_avg_sessions_week: Double, m_avg_ts_week: Double)
 case class ContentUsageSummaryIndex(d_content_id: String, d_period: Int, d_group_user: Boolean)
@@ -60,7 +60,7 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
         val defaultVal = if (5 > count) count else 5;
         val topContentByTime = summaries.sortBy(f => f.m_total_ts, false, 1).take(configMapping.value.getOrElse("topK", defaultVal).asInstanceOf[Int]);
         val topContentBySessions = summaries.sortBy(f => f.m_total_sessions, false, 1).take(configMapping.value.getOrElse("topK", defaultVal).asInstanceOf[Int]);
-        val rdd = sc.parallelize(Array(ContentMetrics("content", topContentByTime.map { x => (x.d_content_id, x.m_total_ts) }.toMap, topContentBySessions.map { x => (x.d_content_id, x.m_total_sessions) }.toMap)), 1);
+        val rdd = sc.parallelize(Array(ContentMetrics("top_content", topContentByTime.map { x => (x.d_content_id, x.m_total_ts) }.toMap, topContentBySessions.map { x => (x.d_content_id, x.m_total_sessions) }.toMap)), 1);
         rdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_METRICS_TABLE);
         //--------
 

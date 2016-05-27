@@ -25,7 +25,7 @@ class TestUpdateContentPopularity extends SparkSpec(null) {
         var out = rdd2.collect();
         out.length should be(1);
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.contentcumulativesummary where content_id ='org.ekstep.story.hi.nature'");
+            session.execute("DELETE FROM content_db.content_cumulative_summary where content_id ='org.ekstep.story.hi.nature'");
         }
     }
 }

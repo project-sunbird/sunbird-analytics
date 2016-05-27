@@ -88,7 +88,7 @@ CREATE TABLE devicespecification (
 	PRIMARY KEY (device_id,os,screen_size)
 );
 
-CREATE TABLE deviceusagesummary (
+CREATE TABLE device_usage_summary (
 	device_id text,
 	start_time bigint,
 	end_time bigint,
@@ -105,7 +105,7 @@ CREATE KEYSPACE content_db WITH replication = {
   'replication_factor': '1'
 };
 
-CREATE TABLE contentcumulativesummary (
+CREATE TABLE content_cumulative_summary (
 	content_id text, 
 	start_date timestamp, 
 	total_ts double,
@@ -120,14 +120,14 @@ CREATE TABLE contentcumulativesummary (
 	PRIMARY KEY (content_id)
 );
 
-CREATE TABLE contentcumulativemetrics (
+CREATE TABLE content_usage_metrics (
 	id text, 
 	top_k_timespent map<text,double>,
 	top_k_sessions map<text,bigint>,
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE contentusagesummary_fact (
+CREATE TABLE content_usage_summary_fact (
     d_content_id text,
     d_period Int,
     d_group_user boolean,
