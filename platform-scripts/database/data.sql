@@ -134,6 +134,7 @@ CREATE TABLE content_usage_summary_fact (
     d_content_type text,
     d_mime_type text,
     m_publish_date timestamp,
+    m_last_sync_date timestamp,
     m_total_ts double,
     m_total_sessions bigint,
     m_avg_ts_session double,
