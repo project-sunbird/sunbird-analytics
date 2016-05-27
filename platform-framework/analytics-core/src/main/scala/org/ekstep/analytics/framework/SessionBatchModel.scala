@@ -52,47 +52,46 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
             .map(event => (event.did, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
-                events.sortBy { x => CommonUtil.getEventTS(x) }.groupBy { e => (e.sid, e.ver) }.mapValues { x =>
-                    var sessions = Buffer[Buffer[Event]]();
-                    var tmpArr = Buffer[Event]();
-                    x.foreach { y =>
-                        y.eid match {
-                            case "GE_GENIE_START" =>
-                                if (tmpArr.length > 0) {
+                val sortedEvents = events.sortBy { x => CommonUtil.getEventTS(x) }
+                var sessions = Buffer[Buffer[Event]]();
+                var tmpArr = Buffer[Event]();
+                sortedEvents.foreach { y =>
+                    y.eid match {
+                        case "GE_GENIE_START" =>
+                            if (tmpArr.length > 0) {
+                                sessions += tmpArr;
+                                tmpArr = Buffer[Event]();
+                            }
+                            tmpArr += y;
+
+                        case "GE_GENIE_END" =>
+                            if (!tmpArr.isEmpty) {
+                                val event = tmpArr.last
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
+                                if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[Event]();
                                 }
-                                tmpArr += y;
-
-                            case "GE_GENIE_END" =>
-                                if (!tmpArr.isEmpty) {
-                                    val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                    if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
-                                        sessions += tmpArr;
-                                        tmpArr = Buffer[Event]();
-                                    }
+                            }
+                            tmpArr += y;
+                            sessions += tmpArr;
+                            tmpArr = Buffer[Event]();
+                        case _ =>
+                            if (!tmpArr.isEmpty) {
+                                val event = tmpArr.last
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
+                                if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
+                                    tmpArr += y;
+                                } else {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[Event]();
+                                    tmpArr += y;
                                 }
-                                tmpArr += y;
-                                sessions += tmpArr;
-                                tmpArr = Buffer[Event]();
-                            case _ =>
-                                if (!tmpArr.isEmpty) {
-                                    val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                    if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
-                                        tmpArr += y;
-                                    } else {
-                                        sessions += tmpArr;
-                                        tmpArr = Buffer[Event]();
-                                        tmpArr += y;
-                                    }
-                                }
-                        }
+                            }
                     }
-                    sessions += tmpArr;
-                    sessions;
-                }.map(f => f._2).reduce((a, b) => a ++ b);
+                }
+                sessions += tmpArr;
+                sessions;
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 
@@ -101,47 +100,46 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
             .map(event => (event.did, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
-                events.sortBy { x => CommonUtil.getEventTS(x) }.groupBy { e => (e.sid, e.ver) }.mapValues { x =>
-                    var sessions = Buffer[Buffer[Event]]();
-                    var tmpArr = Buffer[Event]();
-                    x.foreach { y =>
-                        y.eid match {
-                            case "GE_SESSION_START" =>
-                                if (tmpArr.length > 0) {
+                val sortedEvents = events.sortBy { x => CommonUtil.getEventTS(x) }
+                var sessions = Buffer[Buffer[Event]]();
+                var tmpArr = Buffer[Event]();
+                sortedEvents.foreach { y =>
+                    y.eid match {
+                        case "GE_SESSION_START" =>
+                            if (tmpArr.length > 0) {
+                                sessions += tmpArr;
+                                tmpArr = Buffer[Event]();
+                            }
+                            tmpArr += y;
+
+                        case "GE_SESSION_END" =>
+                            if (!tmpArr.isEmpty) {
+                                val event = tmpArr.last
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
+                                if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[Event]();
                                 }
-                                tmpArr += y;
-
-                            case "GE_SESSION_END" =>
-                                if (!tmpArr.isEmpty) {
-                                    val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                    if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
-                                        sessions += tmpArr;
-                                        tmpArr = Buffer[Event]();
-                                    }
+                            }
+                            tmpArr += y;
+                            sessions += tmpArr;
+                            tmpArr = Buffer[Event]();
+                        case _ =>
+                            if (!tmpArr.isEmpty) {
+                                val event = tmpArr.last
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
+                                if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
+                                    tmpArr += y;
+                                } else {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[Event]();
+                                    tmpArr += y;
                                 }
-                                tmpArr += y;
-                                sessions += tmpArr;
-                                tmpArr = Buffer[Event]();
-                            case _ =>
-                                if (!tmpArr.isEmpty) {
-                                    val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                    if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
-                                        tmpArr += y;
-                                    } else {
-                                        sessions += tmpArr;
-                                        tmpArr = Buffer[Event]();
-                                        tmpArr += y;
-                                    }
-                                }
-                        }
+                            }
                     }
-                    sessions += tmpArr;
-                    sessions;
-                }.map(f => f._2).reduce((a, b) => a ++ b);
+                }
+                sessions += tmpArr;
+                sessions;
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 }
