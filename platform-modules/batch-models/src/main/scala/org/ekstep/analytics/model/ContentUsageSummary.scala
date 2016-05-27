@@ -15,6 +15,8 @@ import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.Filter
+import org.ekstep.analytics.framework.DataFilter
 
 case class ContentUsage(total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String)
 
@@ -25,14 +27,15 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
 
-        val events = data.map { event =>
+        val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
+        val contentSessions = filteredEvents.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val content_id = event.dimensions.gdata.get.id
             val group_user = eksMap.get("groupUser").get.asInstanceOf[Boolean]
             ((content_id, group_user), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
 
-        val contentUsage = events.mapValues { events =>
+        val contentUsage = contentSessions.mapValues { events =>
 
             val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
             val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
