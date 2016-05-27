@@ -1,6 +1,7 @@
 package controllers
 
 import org.ekstep.analytics.api.service.ContentAPIService
+import org.ekstep.analytics.api.util._
 import play.api._
 import play.api.mvc._
 import play.api.libs.json._
@@ -23,7 +24,7 @@ object Application extends Controller {
         } catch {
             case ex: Exception =>
                 ex.printStackTrace();
-            Ok("Error")
+                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
         }
         
     }
