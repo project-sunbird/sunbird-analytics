@@ -6,9 +6,9 @@ cd /mnt/data/analytics/scripts
 
 start_date=$1
 end_date=$2
-job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"__endDate__","delta":0}]},"filters":[{"name":"ver","operator":"EQ","value":"1.0"}],"model":"org.ekstep.analytics.model.GenieUsageSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"172.31.1.92:9092","topic":"sandbox.telemetry.derived"}}],"parallelization":8,"appName":"Genie Usage Summarizer","deviceMapping":true}'
-echo "Backing up the Genie Usage Summary records to s3://sandbox-data-store/backup-gus"
-./replay-backup.sh $start_date $end_date "sandbox-data-store" "gus" "backup-gus"
+job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.model.GenieUsageSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"172.31.1.92:9092","topic":"sandbox.telemetry.derived"}}],"parallelization":8,"appName":"Genie Usage Summarizer","deviceMapping":true}'
+echo "Backing up the Genie Usage Summary records to s3://sandbox-data-store/backup-gls"
+./replay-backup.sh $start_date $end_date "sandbox-data-store" "gls" "backup-gls"
 if [ $? == 0 ]
  	then
   	echo "Backup completed Successfully..."
@@ -22,10 +22,10 @@ if [ $? == 0 ]
 	then
   		echo "Genie Usage Summary Replay Executed Successfully..."
   		echo "Deleting the back-up files s3://sandbox-data-store/backup-gus"
-  		./replay-delete.sh "sandbox-data-store" "backup-gus"
+  		./replay-delete.sh "sandbox-data-store" "backup-gls"
 else
  	echo "Copy back the Genie Usage Summarizer files to source directory '/gus' from backup directory '/backup-gus'"
- 	./replay-copy-back.sh "sandbox-data-store" "gus" "backup-gus"
- 	echo "Deleting the back-up files s3://sandbox-data-store/backup-gus"
- 	./replay-delete.sh "sandbox-data-store" "backup-gus"
+ 	./replay-copy-back.sh "sandbox-data-store" "gls" "backup-gls"
+ 	echo "Deleting the back-up files s3://sandbox-data-store/backup-gls"
+ 	./replay-delete.sh "sandbox-data-store" "backup-gls"
 fi
