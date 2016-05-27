@@ -137,10 +137,10 @@ object CommonUtil {
 
     def daysBetween(from: LocalDate, to: LocalDate): Int = {
         Days.daysBetween(from, to).getDays();
-   }
-    
+    }
+
     def getEventTS(event: Event): Long = {
-        if(event.ets > 0) 
+        if (event.ets > 0)
             event.ets
         else
             getTimestamp(event.ts);
@@ -319,7 +319,7 @@ object CommonUtil {
     }
 
     def getPeriod(syncts: Long, period: Period): Int = {
-        val d = new DateTime(syncts);
+        val d = new DateTime(syncts, DateTimeZone.UTC);
         period match {
             case DAY        => dayPeriod.print(d).toInt;
             case WEEK       => (d.getWeekyear + "77" + d.getWeekOfWeekyear).toInt
@@ -331,9 +331,10 @@ object CommonUtil {
             case _          => -1
         }
     }
+
     def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
-        val from = new LocalDate(fromDate)
-        val to = new LocalDate(toDate)
+        val from = new LocalDate(fromDate, DateTimeZone.UTC)
+        val to = new LocalDate(toDate, DateTimeZone.UTC)
         Weeks.weeksBetween(from, to).getWeeks;
     }
     def main(args: Array[String]): Unit = {
