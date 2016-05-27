@@ -87,7 +87,10 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                     tmpArr = Buffer[Event]();
                                     tmpArr += y;
                                 }
+                            }else {
+                                tmpArr += y;
                             }
+                            
                     }
                 }
                 sessions += tmpArr;
@@ -135,6 +138,8 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                                     tmpArr = Buffer[Event]();
                                     tmpArr += y;
                                 }
+                            }else {
+                                tmpArr += y;
                             }
                     }
                 }

@@ -336,5 +336,10 @@ object CommonUtil {
         val to = new LocalDate(toDate)
         Weeks.weeksBetween(from, to).getWeeks;
     }
-
+    def main(args: Array[String]): Unit = {
+      val s = getTimestamp("2016-04-22T13:15:58.909+0530")
+      val e = getTimestamp("2016-04-22T13:48:22.916+0530")
+      println(getTimeDiff(s, e))
+      println(s,e)
+    }
 }
