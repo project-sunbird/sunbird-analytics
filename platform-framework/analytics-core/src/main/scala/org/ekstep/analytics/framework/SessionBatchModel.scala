@@ -67,7 +67,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                             case "GE_GENIE_END" =>
                                 if (!tmpArr.isEmpty) {
                                     val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(event, y);
+                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
                                     if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
                                         sessions += tmpArr;
                                         tmpArr = Buffer[Event]();
@@ -79,7 +79,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                             case _ =>
                                 if (!tmpArr.isEmpty) {
                                     val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(event, y);
+                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
                                     if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
                                         tmpArr += y;
                                     } else {
@@ -116,7 +116,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                             case "GE_SESSION_END" =>
                                 if (!tmpArr.isEmpty) {
                                     val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(event, y);
+                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
                                     if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
                                         sessions += tmpArr;
                                         tmpArr = Buffer[Event]();
@@ -128,7 +128,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                             case _ =>
                                 if (!tmpArr.isEmpty) {
                                     val event = tmpArr.last
-                                    val timeSpent = CommonUtil.getTimeDiff(event, y);
+                                    val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
                                     if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
                                         tmpArr += y;
                                     } else {

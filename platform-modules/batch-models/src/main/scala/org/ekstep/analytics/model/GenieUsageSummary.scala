@@ -30,7 +30,8 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
         val jobConfig = sc.broadcast(config);
 
         val genieLaunchSessions = getGenieLaunchSessions(data, idleTime);
-        val genieSessions = getGenieSessions(data, idleTime);
+        val sessionEvents = data.filter { x => (!"".equals(x.sid)) } 
+        val genieSessions = getGenieSessions(sessionEvents, idleTime);
 
         val genieSummary = genieLaunchSessions.mapValues { x =>
             //            val geStart = x.filter { x => "GE_GENIE_START".equals(x.eid) }(0)
@@ -38,9 +39,11 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
             val geStart = x(0)
             val geEnd = x.last
             
-            val dtRange = DtRange(CommonUtil.getEventTS(geStart), CommonUtil.getEventTS(geEnd));
-            val timeSpent = CommonUtil.getTimeDiff(geStart, geEnd)
-            val time_stamp = CommonUtil.getTimestamp(geEnd.ts)
+            val startTimestamp = CommonUtil.getEventTS(geStart)
+            val endTimestamp = CommonUtil.getEventTS(geEnd)
+            val dtRange = DtRange(startTimestamp, endTimestamp);
+            val time_stamp = endTimestamp
+            val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
             val content = x.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.distinct
             val contentCount = content.size
             (GenieSummary(timeSpent.getOrElse(0d), time_stamp, content, contentCount), dtRange);
@@ -50,17 +53,18 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
             val gsStart = x(0)
             val gsEnd = x.last
             val learner_id = gsStart.uid
-            val dtRange = DtRange(CommonUtil.getEventTS(gsStart), CommonUtil.getEventTS(gsEnd));
-
-            val timeSpent = CommonUtil.getTimeDiff(gsStart, gsEnd)
-            val time_stamp = CommonUtil.getTimestamp(gsEnd.ts)
+            val startTimestamp = CommonUtil.getEventTS(gsStart)
+            val endTimestamp = CommonUtil.getEventTS(gsEnd)
+            val dtRange = DtRange(startTimestamp, endTimestamp);
+            val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
+            val time_stamp = endTimestamp
             val content = x.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.distinct
             val contentCount = content.size
             (learner_id, timeSpent.getOrElse(0d), time_stamp, content, contentCount, dtRange)
         }.map { x => (x._2._1, (x._1, x._2._2, x._2._3, x._2._4, x._2._5, x._2._6)) }.filter { x => (x._2._2 >= 0) }
 
         
-        val groupInfoSummary = gsSummary.map(f => LearnerId(f._1)).joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
+        val groupInfoSummary = gsSummary.map(f => LearnerId(f._1)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
         val genieSessionSummary = gsSummary.leftOuterJoin(groupInfoSummary).map { x =>
             ((x._2._1._1, GenieSessionSummary(x._2._2.getOrElse((false, false))._1, x._2._2.getOrElse((false, false))._2, x._2._1._2, x._2._1._3, x._2._1._4, x._2._1._5)), x._2._1._6)
         }
@@ -84,7 +88,7 @@ object GenieUsageSummary extends SessionBatchModel[Event] with Serializable {
             "time_stamp" -> summ.time_stamp,
             "content" -> summ.content,
             "contentCount" -> summ.contentCount);
-        MeasuredEvent("ME_GENIE_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
+        MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, Option(gSumm._1), None, None, None, None, None, None, None),
             MEEdata(measures));

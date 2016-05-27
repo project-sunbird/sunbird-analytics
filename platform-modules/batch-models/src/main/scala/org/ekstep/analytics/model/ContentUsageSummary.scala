@@ -43,7 +43,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
             val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
 
-            val total_ts = CommonUtil.roundDouble(events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum,2);
+            val total_ts = CommonUtil.roundDouble(events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum, 2);
             val total_sessions = events.size
             val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
             val total_interactions = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
@@ -58,7 +58,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
     private def getMeasuredEvent(contentSumm: (String, Boolean, ContentUsage), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
 
         val contentUsage = contentSumm._3
-        val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, contentSumm._1);
+        val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, contentSumm._1 + contentSumm._2);
         val measures = Map(
             "total_ts" -> contentUsage.total_ts,
             "total_sessions" -> contentUsage.total_sessions,
@@ -67,7 +67,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             "avg_interactions_min" -> contentUsage.avg_interactions_min,
             "content_type" -> contentUsage.content_type,
             "mime_type" -> contentUsage.mime_type);
-        MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(contentSumm._1), None,
+        MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(contentSumm._1), None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
             Dimensions(None, None, None, None, None, None, None, Option(contentSumm._2)),
             MEEdata(measures));
