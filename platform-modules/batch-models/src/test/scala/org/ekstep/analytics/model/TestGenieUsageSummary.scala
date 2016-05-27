@@ -5,6 +5,8 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.Dispatcher
 
 class TestGenieUsageSummary extends SparkSpec(null) {
 
@@ -13,7 +15,7 @@ class TestGenieUsageSummary extends SparkSpec(null) {
         val rdd2 = GenieUsageSummary.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(84)
-        val gse = events.filter { x => x.contains("ME_GENIE_SUMMARY") }
+        val gse = events.filter { x => x.contains("ME_GENIE_LAUNCH_SUMMARY") }
         val gsse = events.filter { x => x.contains("ME_GENIE_SESSION_SUMMARY") }
         gse.size should be(36)
         gsse.size should be(48)
@@ -46,7 +48,7 @@ class TestGenieUsageSummary extends SparkSpec(null) {
         val events = rdd2.collect
         events.size should be(4)
 
-        val gse = events.filter { x => x.contains("ME_GENIE_SUMMARY") }
+        val gse = events.filter { x => x.contains("ME_GENIE_LAUNCH_SUMMARY") }
         val gsse = events.filter { x => x.contains("ME_GENIE_SESSION_SUMMARY") }
         gse.size should be(2)
         gsse.size should be(2)
@@ -58,14 +60,21 @@ class TestGenieUsageSummary extends SparkSpec(null) {
         event2.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentCount").get.asInstanceOf[Int] should be(0)
     }
 
-    it should "generate the genie summary for the input having no only GE_GENIE_START and GE_GENIE_END" in {
+    it should "generate the genie summary for the input having only GE_GENIE_START and GE_GENIE_END" in {
         val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data3.log")
         val rdd2 = GenieUsageSummary.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(1)
-        val gse = events.filter { x => x.contains("ME_GENIE_SUMMARY") }
+        val gse = events.filter { x => x.contains("ME_GENIE_LAUNCH_SUMMARY") }
         val gsse = events.filter { x => x.contains("ME_GENIE_SESSION_SUMMARY") }
         gse.size should be(1)
         gsse.size should be(0)
+    }
+    
+    it should "generate input data" in {
+        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/2016-05-25-1464187914624.json")
+        .sortBy{x=>CommonUtil.getEventTS(x)}
+        
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/genie-usage-summary/test_output.log")), rdd.map { x => JSONUtils.serialize(x) })
     }
 }
