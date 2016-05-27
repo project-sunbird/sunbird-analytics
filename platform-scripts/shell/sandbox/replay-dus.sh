@@ -6,7 +6,7 @@ cd /mnt/data/analytics/scripts
 
 start_date=$1
 end_date=$2
-job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"cus/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.model.DeviceUsageSummary","modelParams":{"alpha":1.0,"beta":1.0},"output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"172.31.1.92:9092","topic":"sandbox.telemetry.derived"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
+job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"gus/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.model.DeviceUsageSummary","modelParams":{"alpha":1.0,"beta":1.0},"output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"172.31.1.92:9092","topic":"sandbox.telemetry.derived"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
 
 echo "Backing up the device usage summary records to s3://sandbox-data-store/backup-dus"
 ./replay-backup.sh $start_date $end_date "sandbox-data-store" "dus" "backup-dus"
