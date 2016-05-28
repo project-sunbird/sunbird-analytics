@@ -85,7 +85,7 @@ object ContentAPIService {
 
     private def transform(fact: Option[ContentUsageSummaryFact]): Option[ContentSummary] = {
         if (fact.isDefined)
-            Option(ContentSummary(Option(fact.get.d_period), fact.get.m_total_ts, fact.get.m_total_sessions, fact.get.m_avg_ts_session, fact.get.m_total_interactions,
+            Option(ContentSummary(None, fact.get.m_total_ts, fact.get.m_total_sessions, fact.get.m_avg_ts_session, fact.get.m_total_interactions,
                 fact.get.m_avg_interactions_min, fact.get.m_avg_sessions_week, fact.get.m_avg_ts_week))
         else None;
     }
@@ -102,6 +102,7 @@ object ContentAPIService {
         else trends;
         filteredByDimensions.groupBy { x => x.d_period }
             .map(f => reduceTrends(f._2.toArray, period).get)
+            .sortBy(f => f.d_period, true, 10)
             .collect();
     }
 
