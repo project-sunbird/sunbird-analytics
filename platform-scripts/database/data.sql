@@ -144,3 +144,11 @@ CREATE TABLE content_usage_summary_fact (
     m_avg_ts_week double,
     PRIMARY KEY (d_content_id, d_period, d_group_user)
 );
+
+CREATE TABLE contentsideloadingsummary (
+    content_id text,
+    num_times_sideloaded double,
+    num_devices bigint,
+    avg_depth double,
+    PRIMARY KEY (content_id)
+);
