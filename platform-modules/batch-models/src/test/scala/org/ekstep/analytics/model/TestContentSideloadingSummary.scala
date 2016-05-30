@@ -30,6 +30,6 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
 
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eks.get("num_downloads").get should be(2)
-        eks.get("num_devices").get should be(5)
+        eks.get("num_sideloads").get should be(3)
     }
 }

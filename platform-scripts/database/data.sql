@@ -147,8 +147,8 @@ CREATE TABLE content_usage_summary_fact (
 
 CREATE TABLE content_sideloading_summary (
     content_id text,
-    num_times_sideloaded double,
-    num_devices bigint,
-    avg_depth double,
+    num_downloads bigint,
+    total_count bigint,
+    num_sideloads bigint,
     PRIMARY KEY (content_id)
 );
