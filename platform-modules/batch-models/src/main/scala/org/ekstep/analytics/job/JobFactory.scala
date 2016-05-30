@@ -25,8 +25,10 @@ object JobFactory {
                 ContentUsageSummarizer
             case "cuu" =>
                 ContentUsageUpdaterJob
-            case "gus" =>
-                GenieUsageSummarizer
+            case "guss" =>
+                GenieUsageSessionSummarizer
+            case "gls" =>
+                GenieLaunchSummarizer
             case "dus" =>
                 DeviceUsageSummarizer
             case _ =>

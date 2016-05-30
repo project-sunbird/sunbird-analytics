@@ -62,5 +62,5 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         
         updatedSumm.filter { x => 20167710 == x.d_period }.collect().size should be(0)
         
-    }    
+    }
 }
