@@ -99,8 +99,7 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
     }
 
     def getGenieSessions(data: RDD[Event], idleTime: Int): RDD[(String, Buffer[Event])] = {
-        data.filter { x => x.did != null }
-            .map(event => (event.did, Buffer(event)))
+        data.map(event => (event.sid, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
                 val sortedEvents = events.sortBy { x => CommonUtil.getEventTS(x) }

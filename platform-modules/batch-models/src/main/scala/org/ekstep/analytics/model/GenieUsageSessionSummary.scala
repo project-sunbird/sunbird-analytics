@@ -17,9 +17,10 @@ import org.ekstep.analytics.framework.LearnerId
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.updater.LearnerProfile
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.LearnerId
 
-case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[List[Map[String, AnyRef]]], dateRange: DtRange)
-case class Summary(device_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[List[Map[String, AnyRef]]], dateRange: DtRange)
+case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[List[Map[String, AnyRef]]], dateRange: DtRange, learner_id: String)
+case class Summary(sid: String, learner_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[List[Map[String, AnyRef]]], dateRange: DtRange)
 
 object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializable {
 
@@ -29,31 +30,28 @@ object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializab
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
 
-        val sessionEvents = data.filter { x => (!"".equals(x.sid)) }
+        val sessionEvents = data.filter { x => (!"".equals(x.sid) && x.sid!=null) }
         val genieSessions = getGenieSessions(sessionEvents, idleTime);
 
         val gsSummary = genieSessions.mapValues { x =>
             val gsStart = x(0)
             val gsEnd = x.last
-            val did = gsStart.did
-            val learner_id = gsStart.uid
-            val tags = gsStart.tags
             val syncts = CommonUtil.getEventSyncTS(gsEnd);
             val startTimestamp = CommonUtil.getEventTS(gsStart)
             val endTimestamp = CommonUtil.getEventTS(gsEnd)
             val dtRange = DtRange(startTimestamp, endTimestamp);
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
-            val time_stamp = endTimestamp
             val content = x.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.distinct
-            val contentCount = content.size
-            (learner_id, timeSpent.getOrElse(0d), time_stamp, content, contentCount, syncts, tags, dtRange)
-        }.map { x => (x._2._1, Summary(x._1, x._2._2, x._2._3, x._2._4, x._2._5, x._2._6, Option(x._2._7), x._2._8)) }.filter { x => (x._2.timeSpent >= 0) }
+            Summary(gsStart.sid, gsStart.uid, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(gsStart.tags), dtRange)
+        }.filter { x => (x._2.timeSpent >= 0) }.map { x =>
+            val summ = x._2
+            (summ.learner_id, Summary(summ.sid, summ.learner_id, summ.timeSpent, summ.time_stamp, summ.content, summ.contentCount, summ.syncts, summ.tags, summ.dateRange))
+        }
 
         val groupInfoSummary = gsSummary.map(f => LearnerId(f._1)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
-
         val genieSessionSummary = gsSummary.leftOuterJoin(groupInfoSummary).map { x =>
             val summary = x._2._1
-            (x._2._1.device_id, GenieSessionSummary(x._2._2.getOrElse((false, false))._1, x._2._2.getOrElse((false, false))._2, summary.timeSpent, summary.time_stamp, summary.content, summary.contentCount, summary.syncts, summary.tags, summary.dateRange))
+            (summary.sid, GenieSessionSummary(x._2._2.getOrElse((false, false))._1, x._2._2.getOrElse((false, false))._2, summary.timeSpent, summary.time_stamp, summary.content, summary.contentCount, summary.syncts, summary.tags, summary.dateRange, summary.learner_id))
         }
 
         genieSessionSummary.map { x =>
@@ -63,7 +61,7 @@ object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializab
 
     private def getMeasuredEventGenieSessionSummary(gsSumm: (String, GenieSessionSummary), config: Map[String, AnyRef]): MeasuredEvent = {
         val summ = gsSumm._2
-        val mid = CommonUtil.getMessageId("ME_GENIE_SESSION_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], summ.dateRange, gsSumm._1);
+        val mid = CommonUtil.getMessageId("ME_GENIE_SESSION_SUMMARY", summ.learner_id, config.getOrElse("granularity", "DAY").asInstanceOf[String], summ.dateRange, gsSumm._1);
         val measures = Map(
             "timeSpent" -> summ.timeSpent,
             "time_stamp" -> summ.time_stamp,

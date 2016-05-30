@@ -33,13 +33,9 @@ object GenieLaunchSummary extends SessionBatchModel[Event] with Serializable {
             val startTimestamp = CommonUtil.getEventTS(geStart)
             val endTimestamp = CommonUtil.getEventTS(geEnd)
             val dtRange = DtRange(startTimestamp, endTimestamp);
-            val time_stamp = endTimestamp
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
             val content = x.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.distinct
-            val contentCount = content.size
-            val tags = geStart.tags
-
-            GenieSummary(timeSpent.getOrElse(0d), time_stamp, content, contentCount, syncts, Option(tags), dtRange);
+            GenieSummary(timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(geStart.tags), dtRange);
         }.filter { x => (x._2.timeSpent >= 0) }
 
         genieSummary.map { x =>
