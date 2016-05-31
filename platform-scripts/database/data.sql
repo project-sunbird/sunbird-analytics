@@ -150,5 +150,7 @@ CREATE TABLE content_sideloading_summary (
     num_downloads bigint,
     total_count bigint,
     num_sideloads bigint,
+    origin_map map<text,double>,
+    avg_depth double,
     PRIMARY KEY (content_id)
 );
