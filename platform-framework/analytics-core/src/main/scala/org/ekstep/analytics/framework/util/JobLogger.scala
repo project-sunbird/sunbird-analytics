@@ -51,7 +51,7 @@ object JobLogger {
             "message" -> msg,
             "throwable" -> throwable);
         val mid = "";
-        MeasuredEvent("BE_JOB_LOG", System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, None, None, None,
+        MeasuredEvent("BE_JOB_LOG", System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "", None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], JobContext.jobName, config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, null, null),
             null,
             MEEdata(measures));

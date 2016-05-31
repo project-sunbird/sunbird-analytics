@@ -128,7 +128,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
         JobLogger.debug("Preparing Learner data", className)
         // Get all learners date ranges
-        val learnerDtRanges = filteredData.map(event => (event.uid.get, Buffer[MeasuredEvent](event)))
+        val learnerDtRanges = filteredData.map(event => (event.uid, Buffer[MeasuredEvent](event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
                 val e = events.map { x => x.syncts };
@@ -137,7 +137,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
         JobLogger.debug("Join learners with learner database", className)
         // Get all learners
-        val allLearners = filteredData.map(event => LearnerId(event.uid.get)).distinct;
+        val allLearners = filteredData.map(event => LearnerId(event.uid)).distinct;
 
         JobLogger.debug("Join all learners with learner content activity summary", className)
         // Join all learners with learner content activity summary 
@@ -205,7 +205,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
     private def getMeasuredEvent(uid: String, relevance: Iterable[RelevanceScores], config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
         val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", uid, "DAY", dtRange.to);
-        MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), dtRange.to, "1.0", mid, Option(uid), None, None,
+        MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), dtRange.to, "1.0", mid, uid, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", dtRange),
             Dimensions(None, None, None, None, None, None),
             MEEdata(Map("relevanceScores" -> relevance)));

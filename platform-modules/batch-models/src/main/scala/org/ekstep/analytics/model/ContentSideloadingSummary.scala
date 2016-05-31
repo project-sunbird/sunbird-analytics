@@ -72,7 +72,7 @@ object ContentSideloadingSummary extends IBatchModel[Event] with Serializable {
             "num_downloads" -> sideloadingSummary.num_downloads,
             "num_sideloads" -> sideloadingSummary.num_sideloads,
             "avg_depth" -> sideloadingSummary.avg_depth);
-        MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, None, Option(sideloadingSummary.content_id), None,
+        MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, "", Option(sideloadingSummary.content_id), None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSideloadingSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", dtRange),
             Dimensions(None, None, None, None, None, None, None, None, None),
             MEEdata(measures));
