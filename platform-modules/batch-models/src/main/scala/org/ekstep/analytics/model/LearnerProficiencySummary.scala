@@ -125,7 +125,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         }
 
         val itemConceptMapping = sc.broadcast(itemConcepts);
-        val userSessions = filteredData.map(event => (event.uid.get, Buffer(event)))
+        val userSessions = filteredData.map(event => (event.uid, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
 
@@ -137,7 +137,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
 
             val itemResponses = sortedEvents.map { x =>
                 val gameId = x.dimensions.gdata.get.id
-                val learner_id = x.uid.get
+                val learner_id = x.uid
                 x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]]
                     .map { f =>
                         val itemId = f.get("itemId").get.asInstanceOf[String];
@@ -221,7 +221,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "DAY", userProf.end_time.getMillis);
         val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2) }
         val measures = Map("proficiencySummary" -> proficiencySummary)
-        MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, Option(userProf.learner_id), None, None,
+        MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, userProf.learner_id, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
             Dimensions(None, None, None, None, None, None, None),
             MEEdata(measures));

@@ -40,7 +40,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
         JobLogger.debug("Initialized 'top k content' value from config. Default = 5", className)
 
         JobLogger.debug("Calculating all activities per learner", className)
-        val activity = filteredData.map(event => (event.uid.get, Buffer(event)))
+        val activity = filteredData.map(event => (event.uid, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { x =>
 
@@ -103,7 +103,7 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
     private def getMeasuredEvent(userMap: (String, (TimeSummary, DtRange)), config: Map[String, AnyRef]): MeasuredEvent = {
         val measures = userMap._2._1;
         val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", userMap._1, "WEEK", userMap._2._2.to);
-        MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), userMap._2._2.to, "1.0", mid, Option(userMap._1), None, None,
+        MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), userMap._2._2.to, "1.0", mid, userMap._1, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", userMap._2._2),
             Dimensions(None, null, None, None, None, None, None),
             MEEdata(measures));

@@ -73,7 +73,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("WEEK");
         event1.context.date_range should not be null;
-        event1.uid.get should be("3b322350-393f-4eed-9564-0ed2ada90dba")
+        event1.uid should be("3b322350-393f-4eed-9564-0ed2ada90dba")
         event1.mid should be ("CDFE7849A27A1C429EDFB7F8422F9DE3")
         event1.syncts should be (1459488320133L)
 

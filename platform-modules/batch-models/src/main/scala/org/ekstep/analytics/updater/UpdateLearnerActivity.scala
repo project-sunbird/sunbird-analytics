@@ -32,7 +32,7 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
         val la = filteredData.map { event =>
 
             val eks = event.edata.eks.asInstanceOf[Map[String, AnyRef]];
-            val leaner_id = event.uid.get;
+            val leaner_id = event.uid;
             val m_time_spent = eks.getOrElse("meanTimeSpent", 0d).asInstanceOf[Double];
             val m_time_btw_gp = eks.getOrElse("meanTimeBtwnGamePlays", 0d).asInstanceOf[Double];
             val m_active_time_on_pf = eks.getOrElse("meanActiveTimeOnPlatform", 0d).asInstanceOf[Double];

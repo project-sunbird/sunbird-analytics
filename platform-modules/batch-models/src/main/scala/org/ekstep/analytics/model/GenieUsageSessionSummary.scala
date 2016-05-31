@@ -67,7 +67,7 @@ object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializab
             "time_stamp" -> summ.time_stamp,
             "content" -> summ.content,
             "contentCount" -> summ.contentCount);
-        MeasuredEvent("ME_GENIE_SESSION_SUMMARY", System.currentTimeMillis(), summ.syncts, "1.0", mid, None, None, None,
+        MeasuredEvent("ME_GENIE_SESSION_SUMMARY", System.currentTimeMillis(), summ.syncts, "1.0", mid, "", None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summ.dateRange),
             Dimensions(None, Option(gsSumm._1), None, None, None, None, None, Option(summ.groupUser), Option(summ.anonymousUser)),
             MEEdata(measures), summ.tags);
