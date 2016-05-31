@@ -37,7 +37,7 @@ class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 class EDataV2(val eks: EksV2) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class Event(val eid: String, val ts: String, val `@timestamp`: String,
+class Event(val tags: List[Map[String, AnyRef]],val eid: String, val ts: String, val `@timestamp`: String,
             val ver: String, val gdata: GData, val sid: String,
             val uid: String, val did: String, val edata: EData) extends Serializable {}
 
