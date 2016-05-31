@@ -31,6 +31,8 @@ object JobFactory {
                 GenieLaunchSummarizer
             case "dus" =>
                 DeviceUsageSummarizer
+            case "css" =>
+                ContentSideloadingSummarizer    
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
