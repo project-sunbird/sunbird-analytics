@@ -13,7 +13,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestLearnerActivitySummary extends SparkSpec(null) {
 
-    "LearnerActivitySummarizer" should " generate LearnerActivitySummarizer events from a sample file " in {
+    "LearnerActivitySummarizer" should "generate LearnerActivitySummarizer events from a sample file " in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         rdd2.collect().length should be(2)
@@ -73,7 +73,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("WEEK");
         event1.context.date_range should not be null;
-        event1.uid.get should be("3b322350-393f-4eed-9564-0ed2ada90dba")
+        event1.uid should be("3b322350-393f-4eed-9564-0ed2ada90dba")
         event1.mid should be ("CDFE7849A27A1C429EDFB7F8422F9DE3")
         event1.syncts should be (1459488320133L)
 
@@ -91,59 +91,43 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS1.topKcontent.length should be(2)
     }
 
-    it should " generate events with some special case in the input data (i.e missing activitySummary field, duplicate events / meanTimeBtwnGamePlays= -ve, etc..)" in {
+    it should "generate events with some special case in the input data (i.e missing activitySummary field, duplicate events / meanTimeBtwnGamePlays= -ve, etc..)" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample1.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary", "topContent" -> Int.box(0))));
         rdd2.collect().length should be(2)
     }
-//    
-//    //Test cases for all the field in Learner Activity Summary
-//    it should " check all the fields, for timeSpent=0" in {
-//        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/time_spent_zero.log");
-//        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
-//        val me = rdd2.collect()
-//        me.length should be (2)
-//        
-//        val e1 = JSONUtils.deserialize[MeasuredEvent](me(0))
-//        val eksMap1 = e1.edata.eks.asInstanceOf[Map[String,AnyRef]];
-//        eksMap1.get("meanTimeSpent").get should be (0)
-//        eksMap1.get("meanActiveTimeOnPlatform").get should be (0)
-//        eksMap1.get("meanInterruptTime").get should be (0)
-//        eksMap1.get("totalTimeSpentOnPlatform").get should be (0)
-//        eksMap1.get("meanTimeSpentOnAnAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//        eksMap1.get("meanCountOfAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//        
-//        val e2 = JSONUtils.deserialize[MeasuredEvent](me(1))
-//        val eksMap2 = e2.edata.eks.asInstanceOf[Map[String,AnyRef]];
-//        eksMap2.get("meanTimeSpent").get should be (0)
-//        eksMap2.get("meanActiveTimeOnPlatform").get should be (0)
-//        eksMap2.get("meanInterruptTime").get should be (0)
-//        eksMap2.get("totalTimeSpentOnPlatform").get should be (0)
-//        eksMap2.get("meanTimeSpentOnAnAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//        eksMap2.get("meanCountOfAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//    }
-//    
-//    it should " check the event fields where activitySummary is empty but timeSpent is non-zero" in {
-//        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/empty_activity_summary_nonzero_timeSpent.log");
-//        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
-//        val me = rdd2.collect()
-//        me.length should be (2)
-//        
-//        val e1 = JSONUtils.deserialize[MeasuredEvent](me(0))
-//        val eksMap1 = e1.edata.eks.asInstanceOf[Map[String,AnyRef]];
-//        eksMap1.get("meanTimeSpent").get should not be (0)
-//        eksMap1.get("meanActiveTimeOnPlatform").get should not be (0)
-//        eksMap1.get("meanInterruptTime").get should be (0)
-//        eksMap1.get("totalTimeSpentOnPlatform").get should not be (0)
-//        eksMap1.get("meanTimeSpentOnAnAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//        eksMap1.get("meanCountOfAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//        
-//        val e2 = JSONUtils.deserialize[MeasuredEvent](me(1))
-//        val eksMap2 = e2.edata.eks.asInstanceOf[Map[String,AnyRef]];
-//        eksMap2.get("meanTimeSpent").get should not be (0)
-//        eksMap2.get("meanActiveTimeOnPlatform").get should not be (0)
-//        eksMap2.get("meanInterruptTime").get should be (0)
-//        eksMap2.get("meanTimeSpentOnAnAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//        eksMap2.get("meanCountOfAct").get.asInstanceOf[Map[String,Double]].size should be (0)
-//    }
+    
+    //Test cases for all the field in Learner Activity Summary
+    it should "check all the fields, for timeSpent=0" in {
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/time_spent_zero.log");
+        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val me = rdd2.collect()
+        me.length should be (1)
+        
+        val e1 = JSONUtils.deserialize[MeasuredEvent](me(0))
+        val eks1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(e1.edata.eks));
+        eks1.meanTimeSpent.get should be (0)
+        eks1.meanActiveTimeOnPlatform.get should be (0)
+        eks1.meanInterruptTime.get should be (0)
+        eks1.totalTimeSpentOnPlatform.get should be (0)
+        eks1.meanTimeSpentOnAnAct.size should be (0)
+        eks1.meanCountOfAct.size should be (1)
+    }
+    
+    it should "check the event fields where activitySummary is empty but timeSpent is non-zero" in {
+        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/empty_activity_summary_nonzero_timeSpent.log");
+        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val me = rdd2.collect()
+        me.length should be (1)
+        
+        val e1 = JSONUtils.deserialize[MeasuredEvent](me(0))
+        val eks1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(e1.edata.eks));
+        
+        eks1.meanTimeSpent.get should not be (0)
+        eks1.meanActiveTimeOnPlatform.get should not be (0)
+        eks1.meanInterruptTime.get should be (0)
+        eks1.totalTimeSpentOnPlatform.get should not be (0)
+        eks1.meanTimeSpentOnAnAct.size should be (0)
+        eks1.meanCountOfAct.size should be (1)
+    }
 }

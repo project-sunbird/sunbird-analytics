@@ -35,15 +35,21 @@ import scala.collection.mutable.Buffer
 import org.joda.time.Hours
 import org.joda.time.DateTimeZone
 import java.security.MessageDigest
+import org.apache.log4j.Logger
+import org.ekstep.analytics.framework.Period._
+import org.joda.time.Weeks
 
 object CommonUtil {
 
+    val className = "org.ekstep.analytics.framework.util.CommonUtil"
     @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
     @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();
     @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
     @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
     @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
+    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
 
     def getParallelization(config: JobConfig): Int = {
 
@@ -53,12 +59,12 @@ object CommonUtil {
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
-        Console.println("### Initializing Spark Context ###");
+        JobLogger.debug("Initializing Spark Context", className)
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
-            println("### Master not found. Setting it to local[*] ###");
+            JobLogger.info("Master not found. Setting it to local[*]", className)
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
@@ -67,17 +73,18 @@ object CommonUtil {
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
-        Console.println("### Spark Context initialized ###");
+        JobLogger.debug("Spark Context initialized", className);
         sc;
     }
 
     def setS3Conf(sc: SparkContext) = {
+        JobLogger.debug("CommonUtil: setS3Conf. Configuring S3 AccessKey& SecrateKey to SparkContext", className)
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
-        println("### Closing Spark Context ###");
+        JobLogger.info("Closing Spark Context", className)
         sc.stop();
     }
 
@@ -102,10 +109,12 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
+        JobLogger.debug("Deleting directory " + path, className)
         Files.walkFileTree(path, new Visitor());
     }
 
     def deleteFile(file: String) {
+        JobLogger.debug("Deleting file " + file, className)
         Files.delete(get(file));
     }
 
@@ -126,8 +135,15 @@ object CommonUtil {
         dates.map { x => df4.print(x) }.toArray;
     }
 
+    def daysBetween(from: LocalDate, to: LocalDate): Int = {
+        Days.daysBetween(from, to).getDays();
+    }
+
     def getEventTS(event: Event): Long = {
-        getTimestamp(event.ts);
+        if (event.ets > 0)
+            event.ets
+        else
+            getTimestamp(event.ts);
     }
 
     def getEventSyncTS(event: Event): Long = {
@@ -152,7 +168,7 @@ object CommonUtil {
             df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid event time", event.ts);
+                JobLogger.debug("Invalid event time - " + event.ts, className);
                 null;
         }
     }
@@ -200,7 +216,7 @@ object CommonUtil {
             }
         } catch {
             case e: Exception =>
-                Console.err.println("Exception", e.getMessage)
+                JobLogger.error("Error in gzip", className, e)
                 throw e
         }
         path ++ ".gz";
@@ -263,7 +279,7 @@ object CommonUtil {
             df.parseDateTime(ts).getMillis;
         } catch {
             case _: Exception =>
-                Console.err.println("Invalid time format", pattern, ts);
+                JobLogger.debug("Invalid time format - " + pattern + ts, className);
                 0;
         }
     }
@@ -302,4 +318,23 @@ object CommonUtil {
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
+    def getPeriod(syncts: Long, period: Period): Int = {
+        val d = new DateTime(syncts, DateTimeZone.UTC);
+        period match {
+            case DAY        => dayPeriod.print(d).toInt;
+            case WEEK       => (d.getWeekyear + "77" + d.getWeekOfWeekyear).toInt
+            case MONTH      => monthPeriod.print(d).toInt
+            case CUMULATIVE => 0
+            case LAST7      => 7
+            case LAST30     => 30
+            case LAST90     => 90
+            case _          => -1
+        }
+    }
+
+    def getWeeksBetween(fromDate: Long, toDate: Long): Int = {
+        val from = new LocalDate(fromDate, DateTimeZone.UTC)
+        val to = new LocalDate(toDate, DateTimeZone.UTC)
+        Weeks.weeksBetween(from, to).getWeeks;
+    }
 }

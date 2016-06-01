@@ -1,6 +1,7 @@
 package org.ekstep.analytics.framework.util
 
 import org.ekstep.analytics.framework.conf.AppConf
+import java.net.URLEncoder
 
 /**
  * @author Santhosh
@@ -26,7 +27,7 @@ object Constants {
     }
     
     def getContentItems(apiVersion: String, contentId: String): String = {
-        s"$LP_URL/taxonomy-service/$apiVersion/analytics/items/$contentId";
+        s"$LP_URL/taxonomy-service/$apiVersion/analytics/items/" + URLEncoder.encode(contentId, "UTF-8");
     }
 
     def getItemConcept(version: String, contentId: String, itemId: String): String = {
@@ -47,5 +48,9 @@ object Constants {
 
     def getItemSetAPIUrl(itemSetId: String, subject: String): String = {
         s"$LP_URL/taxonomy-service/v1/assessmentitemset/$itemSetId?taxonomyId=$subject";
+    }
+    
+    def getContentUpdateAPIUrl(contentId: String): String = {
+        s"$LP_URL/taxonomy-service/v2/content/$contentId";
     }
 }

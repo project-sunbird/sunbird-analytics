@@ -10,6 +10,7 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.Event
+import com.datastax.spark.connector.cql.CassandraConnector
 
 /**
  * @author Santhosh
@@ -44,7 +45,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.currentLevel.get.get("literacy").get should be("Can read story");
         summary1.noOfInteractEvents should be(40);
         summary1.itemResponses.get.length should be(5);
-        event1.syncts should be (summary1.syncDate);
+        event1.syncts should be(summary1.syncDate);
 
         val asList = summary1.activitySummary.get
         asList.size should be(2);
@@ -90,7 +91,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.noOfInteractEvents should be(5);
         summary1.itemResponses.get.length should be(0);
         summary1.activitySummary.get.size should be(1);
-        event1.syncts should be (summary1.syncDate);
+        event1.syncts should be(summary1.syncDate);
 
         val asList = summary1.activitySummary.get
         val asActCountMap = asList.map { x => (x.actType, x.count) }.toMap
@@ -112,7 +113,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
         val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
         event2.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
-        
+
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.noOfLevelTransitions.get should be(0);
         summary2.levels should not be (None);
@@ -126,7 +127,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary2.noOfInteractEvents should be(25);
         summary2.itemResponses.get.length should be(2);
         summary2.activitySummary.get.size should be(1);
-        event2.syncts should be (summary2.syncDate);
+        event2.syncts should be(summary2.syncDate);
 
         val asList2 = summary2.activitySummary.get
         val asActCountMap2 = asList2.map { x => (x.actType, x.count) }.toMap
@@ -172,7 +173,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.syncDate should be(1451696364329L)
         summary3.mimeType.get should be("application/vnd.android.package-archive");
         summary3.contentType.get should be("Game");
-        event3.syncts should be (summary3.syncDate);
+        event3.syncts should be(summary3.syncDate);
 
         val event4 = JSONUtils.deserialize[MeasuredEvent](me(3));
         event4.mid should be("08D37F42C718121C6140EDF9F89889B2");
@@ -197,8 +198,8 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         asActTimeSpentMap4.get("TOUCH").get should be(11);
 
         val esList4 = summary4.eventsSummary
-        val esMap4 = esList4.map { x => (x.id,x.count) }.toMap 
-        
+        val esMap4 = esList4.map { x => (x.id, x.count) }.toMap
+
         esList4.size should be(2);
         esMap4.get("OE_INTERACT").get should be(3);
         esMap4.get("OE_START").get should be(1);
@@ -206,7 +207,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary4.syncDate should be(1451715800197L)
         summary4.mimeType.get should be("application/vnd.android.package-archive");
         summary4.contentType.get should be("Game");
-        event4.syncts should be (summary4.syncDate);
+        event4.syncts should be(summary4.syncDate);
     }
 
     it should "generate 3 session summaries and validate the screen summaries" in {
@@ -215,7 +216,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(rdd, None);
         val me = rdd2.collect();
         me.length should be(3);
-        
+
         val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
@@ -261,14 +262,14 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
         val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
-        
+
         val ssList3 = summary3.screenSummary.get
-        val ssMap3 = ssList3.map { x => (x.id,x.timeSpent) }.toMap
-        
+        val ssMap3 = ssList3.map { x => (x.id, x.timeSpent) }.toMap
+
         ssList3.size should be(2);
         ssMap3.getOrElse("ordinalNumbers", 0d) should be(226.0);
         ssMap3.getOrElse("splash", 0d) should be(24.0);
-        
+
         summary3.mimeType.get should be("application/vnd.ekstep.ecml-archive");
         summary3.contentType.get should be("Worksheet");
     }
@@ -283,6 +284,17 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data6.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
+    }
+
+    it should "check group_user and partner id will be empty" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
+        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
+        val rdd2 = rdd1.collect();
+        //val learner_id = "1aca2342-3865-4f67-aff5-048027cba8b1"
+        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd2.head).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        val eventMapLast = JSONUtils.deserialize[MeasuredEvent](rdd2.last).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        JSONUtils.deserialize[MeasuredEvent](rdd2.head).dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
+        JSONUtils.deserialize[MeasuredEvent](rdd2.last).dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
     }
 
     ignore should "extract timespent from takeoff summaries" in {
@@ -302,5 +314,4 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(rdd, None);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output2.log")), rdd2);
     }
-
 }

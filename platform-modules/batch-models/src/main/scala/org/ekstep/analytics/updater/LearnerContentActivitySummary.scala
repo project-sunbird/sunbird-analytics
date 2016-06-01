@@ -12,19 +12,21 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class LearnerContentActivity(learner_id: String, content_id: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int);
 
 object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
+    val className = "org.ekstep.analytics.updater.LearnerContentActivitySummary"
     private def average[T](ts: Iterable[T])(implicit num: Numeric[T]) = {
         num.toDouble(ts.sum) / ts.size
     }
 
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-        
-        val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
-        val activity = filteredData.map(event => (event.uid.get, Buffer(event)))
+        val filteredData = DataFilter.filter(DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY"))), Filter("uid", "ISNOTEMPTY", None));
+
+        val activity = filteredData.map(event => (event.uid, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x =>
                 val learner_id = x._1;
@@ -40,6 +42,7 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
                 }
                 perContentAct;
             }.flatMap { x => x };
+        JobLogger.debug("Saving learner content summary data to DB", className)
         activity.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE);
         activity.map { x => JSONUtils.serialize(x) };
     }

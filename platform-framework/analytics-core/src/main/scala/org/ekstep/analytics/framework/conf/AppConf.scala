@@ -3,6 +3,7 @@ package org.ekstep.analytics.framework.conf
 import java.util.Properties
 import java.io.FileInputStream
 import scala.io.Source
+import org.ekstep.analytics.framework.util.JobLogger
 
 object AppConf {
 
@@ -12,7 +13,7 @@ object AppConf {
     def init() {
         if (!initialized) {
             val key = getConfigKey;
-            Console.println("### Using configuration file - " + key + " ###");
+            JobLogger.debug("Using configuration file - " + key, AppConf.getClass.getName);
             val is = getClass.getResourceAsStream(key)
             properties = new Properties();
             properties.load(is)

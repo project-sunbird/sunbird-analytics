@@ -8,14 +8,22 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
 import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework.util.JobLogger
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import org.json4s.JsonUtil
+import org.apache.logging.log4j.LogManager
 
 /**
  * @author Santhosh
  */
-object JobDriver  {
+object JobDriver {
 
-    def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf:Manifest[T], sc: SparkContext) {
-        println("### Starting " + t + " batch with config - " + config + " ###");
+    val className = "org.ekstep.analytics.framework.JobDriver"
+    def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
+        
+        JobLogger.init(model.getClass.getName.split("\\$").last);
+        JobLogger.info("Starting " + t + " job with config - " + config, className)
         AppConf.init();
         val t1 = System.currentTimeMillis;
         try {
@@ -26,18 +34,20 @@ object JobDriver  {
                 case "streaming" =>
                     StreamingJobDriver.process(jobConfig);
                 case _ =>
-                    throw new Exception("Unknown job type")
+                    val exp = new Exception("Unknown job type")
+                    JobLogger.error("Failed Job, JobDriver: main ", className, exp)
+                    throw exp
             }
         } catch {
             case e: JsonMappingException =>
-                Console.err.println("JobDriver:main() - JobConfig parse error", e.getClass.getName, e.getMessage);
+                JobLogger.error("JobDriver:main() - JobConfig parse error", className, e)
                 throw e;
             case e: Exception =>
-                Console.err.println("JobDriver:main() - Job error", e.getClass.getName, e.getMessage);
+                JobLogger.error("JobDriver:main() - Job error", className, e)
                 throw e;
         }
         val t2 = System.currentTimeMillis;
-        Console.println("## Model run complete - Time taken to compute - " + (t2 - t1) / 1000 + " ##");
+        JobLogger.debug("Model run complete - Time taken to compute - " + (t2 - t1) / 1000, className)
     }
 
 }

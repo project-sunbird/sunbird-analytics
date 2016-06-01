@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.ekstep</groupId>
+    <artifactId>platform-api</artifactId>
+    <name>platform-api</name>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>analytics-api-core</module>
+        <module>analytics-api</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <scala.version>2.10.5</scala.version>
+        <scala.dependencies.version>2.10</scala.dependencies.version>
+        <spark.version>1.5.2</spark.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-core_${scala.dependencies.version}</artifactId>
+			<version>${spark.version}</version>
+		</dependency>
+    </dependencies>
+
+</project>

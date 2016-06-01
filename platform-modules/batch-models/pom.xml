@@ -108,6 +108,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                	<argLine>-Xmx2048m -XX:MaxPermSize=512m</argLine>
+                </configuration>
             </plugin>
             <plugin>
 				<groupId>org.scoverage</groupId>

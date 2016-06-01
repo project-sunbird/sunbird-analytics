@@ -54,3 +54,103 @@ CREATE TABLE conceptsimilaritymatrix (
 	sim double,
 	PRIMARY KEY (concept1, concept2)
 );
+
+CREATE TABLE learnerprofile (
+	learner_id text,
+	did text,
+	gender text,
+	language text,
+	loc text,
+	standard int,
+	age int,
+	year_of_birth int,
+	group_user boolean,
+	anonymous_user boolean,
+	created_date timestamp,
+	updated_date timestamp,
+	PRIMARY KEY (learner_id)
+);
+
+CREATE TABLE devicespecification (
+	device_id text, 
+	device_name text, 
+	device_local_name text,
+	os text, 
+	make text, 
+	memory double,
+	internal_disk double,
+	external_disk double,
+	screen_size double,
+	primary_secondary_camera text,
+	cpu text,
+	num_sims double,
+	capabilities list<text>,
+	PRIMARY KEY (device_id,os,screen_size)
+);
+
+CREATE TABLE device_usage_summary (
+	device_id text,
+	start_time bigint,
+	end_time bigint,
+	num_days bigint,
+	total_launches bigint,
+	total_timespent double,
+	avg_num_launches double,
+	avg_time double,
+	PRIMARY KEY (device_id)
+);
+
+CREATE KEYSPACE content_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
+CREATE TABLE content_cumulative_summary (
+	content_id text, 
+	start_date timestamp, 
+	total_ts double,
+	total_num_sessions bigint, 
+	average_ts_session double, 
+	total_interactions bigint,
+	average_interactions_min double,
+	num_sessions_week double,
+	ts_week double,
+	content_type text,
+	mime_type text,
+	PRIMARY KEY (content_id)
+);
+
+CREATE TABLE content_usage_metrics (
+	id text, 
+	top_k_timespent map<text,double>,
+	top_k_sessions map<text,bigint>,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE content_usage_summary_fact (
+    d_content_id text,
+    d_period Int,
+    d_group_user boolean,
+    d_content_type text,
+    d_mime_type text,
+    m_publish_date timestamp,
+    m_last_sync_date timestamp,
+    m_total_ts double,
+    m_total_sessions bigint,
+    m_avg_ts_session double,
+    m_total_interactions bigint,
+    m_avg_interactions_min double,
+    m_avg_sessions_week double,
+    m_avg_ts_week double,
+    PRIMARY KEY (d_content_id, d_period, d_group_user)
+);
+
+CREATE TABLE content_sideloading_summary (
+    content_id text,
+    num_downloads bigint,
+    total_count bigint,
+    num_sideloads bigint,
+    origin_map map<text,double>,
+    avg_depth double,
+    PRIMARY KEY (content_id)
+);

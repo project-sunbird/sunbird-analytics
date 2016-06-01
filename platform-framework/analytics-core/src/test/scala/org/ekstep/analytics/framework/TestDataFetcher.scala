@@ -10,10 +10,10 @@ class TestDataFetcher extends SparkSpec {
     "DataFetcher" should "fetch the batch events matching query" in {
         
         val queries = Option(Array(
-            Query(Option("sandbox-ekstep-telemetry"), Option("sandbox.telemetry.unique-"), Option("2015-09-12"), Option("2015-09-24"))
+            Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-01-01"))
         ));
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
-        rdd.count should be (521)
+        rdd.count should be (1701)
         
     }
     

@@ -6,13 +6,13 @@ cd /mnt/data/analytics/scripts
 
 start_date=$1
 end_date=$2
-job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.model.RecommendationEngine","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"172.31.1.92:9092","topic":"sandbox.analytics.screener"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
+job_config='{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.model.RecommendationEngine","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"172.31.1.92:9092","topic":"sandbox.telemetry.derived"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
 
-./replay-backup $start_date $end_date "sandbox-data-store" "lcr" "backup-lcr"
+./replay-backup.sh $start_date $end_date "sandbox-data-store" "lcr" "backup-lcr"
 if [ $? == 0 ]
  	then
   	echo "Backup Done Successfully..."
-  	$SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ReplaySupervisor /mnt/data/analytics/models/batch-models-1.0.jar --model "lcr" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-lcr.log"
+  	$SPARK_HOME/bin/spark-submit --master local[*] --jars /mnt/data/analytics/models/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ReplaySupervisor /mnt/data/analytics/models/batch-models-1.0.jar --model "lcr" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-lcr-replay.log"
 else
   	echo "Unable to take backup"
 fi
@@ -21,7 +21,10 @@ if [ $? == 0 ]
 	then
   		echo "Replay Supervisor Executed Successfully..."
   		echo "Deleting the back-up files"
-  		./replay-delete "sandbox-data-store" "backup-lcr"
+  		./replay-delete.sh "sandbox-data-store" "backup-lcr"
 else
- 	echo "Unable to take backup"
+ 	echo "Copy back the Content Relevance files to source directory '/lcr' from backup directory '/backup-lcr'"
+ 	./replay-copy-back.sh "sandbox-data-store" "lcr" "backup-lcr"
+ 	echo "Deleting the back-up files"
+ 	./replay-delete.sh "sandbox-data-store" "backup-lcr"
 fi
