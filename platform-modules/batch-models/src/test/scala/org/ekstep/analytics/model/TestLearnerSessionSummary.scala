@@ -286,24 +286,15 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rs = rdd1.collect();
     }
 
-    it should "generate ME by adding partnerid as org.ekstep.partner.pratham" in {
-        
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_partnerId.log");
-        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
-        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect().last).edata.eks.asInstanceOf[Map[String, AnyRef]];
-        eventMap.get("partnerId").get should be("org.ekstep.partner.pratham")
-    }
-
     it should "check group_user and partner id will be empty" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
+        val rdd2 = rdd1.collect();
         //val learner_id = "1aca2342-3865-4f67-aff5-048027cba8b1"
-        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()(0)).edata.eks.asInstanceOf[Map[String, AnyRef]];
-        val eventMapLast = JSONUtils.deserialize[MeasuredEvent](rdd1.collect()last).edata.eks.asInstanceOf[Map[String, AnyRef]];
-        eventMap.get("groupUser").get.asInstanceOf[Boolean] should be(false)
-        eventMapLast.get("groupUser").get.asInstanceOf[Boolean] should be(false)
-        eventMap.get("partnerId").get should be("")
-        eventMapLast.get("partnerId").get should be("")
+        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd2.head).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        val eventMapLast = JSONUtils.deserialize[MeasuredEvent](rdd2.last).edata.eks.asInstanceOf[Map[String, AnyRef]];
+        JSONUtils.deserialize[MeasuredEvent](rdd2.head).dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
+        JSONUtils.deserialize[MeasuredEvent](rdd2.last).dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
     }
 
     ignore should "extract timespent from takeoff summaries" in {
