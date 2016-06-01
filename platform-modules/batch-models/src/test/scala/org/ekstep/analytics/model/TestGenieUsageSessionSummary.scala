@@ -7,10 +7,19 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.updater.LearnerProfile
+import org.ekstep.analytics.util.Constants
+import com.datastax.spark.connector._
+import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestGenieUsageSessionSummary extends SparkSpec(null) {
 
     it should "generate content summary events" in {
+        
+        
+        val sampleSumm = LearnerProfile("6eddac9b-ccdb-47aa-be06-a44b06f7fe62", "5c7567479e8515e740eaa2d21157f610bf057831", Option("male"), Option("en"), None, 2, 7, 2009, false, true, None, None)
+        val sampleRDD = sc.parallelize(Array(sampleSumm));
+        sampleRDD.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
         
         val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data1.log");
         val rdd2 = GenieUsageSessionSummary.execute(rdd, None);
@@ -29,6 +38,11 @@ class TestGenieUsageSessionSummary extends SparkSpec(null) {
         eksMap2.get("timeSpent").get.asInstanceOf[Double] should be(1)
         eksMap2.get("time_stamp").get.asInstanceOf[Long] should be(1457787921000l)
         eksMap2.get("contentCount").get.asInstanceOf[Int] should be(0)
+        
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            val query = "DELETE FROM " + Constants.KEY_SPACE_NAME + "." + Constants.LEARNER_PROFILE_TABLE + " where learner_id='6eddac9b-ccdb-47aa-be06-a44b06f7fe62'"
+            session.execute(query);
+        }
     }
 
     it should "generate the genie summary of the input data where some of the events generated after idle time" in {
