@@ -31,7 +31,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
         val contentSessions = filteredEvents.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val content_id = event.dimensions.gdata.get.id
-            val group_user = eksMap.get("groupUser").get.asInstanceOf[Boolean]
+            val group_user = event.dimensions.group_user.get
             ((content_id, group_user), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
 
@@ -55,6 +55,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             getMeasuredEvent((f._1._1, f._1._2, f._2._1), configMapping.value, f._2._2);
         }.map { x => JSONUtils.serialize(x) };
     }
+    
     private def getMeasuredEvent(contentSumm: (String, Boolean, ContentUsageMetrics), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
 
         val contentUsage = contentSumm._3
