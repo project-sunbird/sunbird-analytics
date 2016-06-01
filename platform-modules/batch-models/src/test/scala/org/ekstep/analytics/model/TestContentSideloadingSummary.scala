@@ -4,6 +4,8 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.MeasuredEvent
+import com.datastax.spark.connector._
+import org.ekstep.analytics.util.Constants
 
 class TestContentSideloadingSummary extends SparkSpec(null) {
     
@@ -78,5 +80,16 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         eks2.get("num_downloads").get should be(1)
         eks2.get("num_sideloads").get should be(5)
         eks2.get("avg_depth").get should be(4)
+        
+        val table1 = sc.cassandraTable[ContentSideloading](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY).where("content_id=?","org.ekstep.story.en.family").first
+        table1.origin_map.size should be (2)
+        
+        val rdd5 = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_4.log");
+        val rdd6 = ContentSideloadingSummary.execute(rdd5, None);
+        val events3 = rdd6.collect
+        
+        val table2 = sc.cassandraTable[ContentSideloading](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY).where("content_id=?","org.ekstep.story.en.family").first
+        table2.origin_map.size should be (3)
+         
     }
 }
