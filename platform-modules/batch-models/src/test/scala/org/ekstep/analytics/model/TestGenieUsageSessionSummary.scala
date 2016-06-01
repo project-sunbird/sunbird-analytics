@@ -16,7 +16,6 @@ class TestGenieUsageSessionSummary extends SparkSpec(null) {
 
     it should "generate content summary events" in {
         
-        
         val sampleSumm = LearnerProfile("6eddac9b-ccdb-47aa-be06-a44b06f7fe62", "5c7567479e8515e740eaa2d21157f610bf057831", Option("male"), Option("en"), None, 2, 7, 2009, false, true, None, None)
         val sampleRDD = sc.parallelize(Array(sampleSumm));
         sampleRDD.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
@@ -31,8 +30,11 @@ class TestGenieUsageSessionSummary extends SparkSpec(null) {
         val zeroTimeSpentGS = events.map { x => JSONUtils.deserialize[MeasuredEvent](x).edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
         zeroTimeSpentGS.size should be(8)
 
-        
+
         val event2 = JSONUtils.deserialize[MeasuredEvent](events(3))
+        event2.dimensions.did.get should be ("3fdf3dfc1f004ffa3762fdadded8f44208c8d06c")
+        event2.dimensions.group_user.get should be (false)
+        event2.dimensions.anonymous_user.get should be (false)
         val eksMap2 = event2.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
         eksMap2.get("timeSpent").get.asInstanceOf[Double] should be(1)
@@ -53,6 +55,10 @@ class TestGenieUsageSessionSummary extends SparkSpec(null) {
         events.size should be(5)
 
         val event2 = JSONUtils.deserialize[MeasuredEvent](events.last)
+        event2.dimensions.did.get should be ("5c7567479e8515e740eaa2d21157f610bf057831")
+        event2.dimensions.group_user.get should be (false)
+        event2.dimensions.anonymous_user.get should be (false)
+        
         event2.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentCount").get.asInstanceOf[Int] should be(0)
     }
 

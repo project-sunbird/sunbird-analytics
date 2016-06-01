@@ -1,7 +1,7 @@
-package org.ekstep.analytics.framework
+package org.ekstep.analytics.job
 
 import org.ekstep.analytics.framework.exception.JobNotFoundException
-import org.ekstep.analytics.job._
+import org.ekstep.analytics.framework._
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
