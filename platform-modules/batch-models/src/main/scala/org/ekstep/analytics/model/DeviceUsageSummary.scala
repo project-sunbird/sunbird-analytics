@@ -34,12 +34,12 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
 
         val deviceUsageSummary = deviceData.mapValues { events =>
   
-            val eventsSortedByTS = events._1.sortBy { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_stamp").get.asInstanceOf[Long] };
-            val eventsSortedByDateRange = events._1.sortBy { x => x.context.date_range.from.asInstanceOf[Long] };
+            val eventsSortedByTS = events._1.sortBy { x => x.context.date_range.to };
+            val eventsSortedByDateRange = events._1.sortBy { x => x.context.date_range.from };
             val prevUsageSummary = events._2.getOrElse(UsageSummary(events._1.head.dimensions.did.get, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0));
-            val eventStartTime = eventsSortedByDateRange.head.context.date_range.from.asInstanceOf[Long]
+            val eventStartTime = eventsSortedByDateRange.head.context.date_range.from
             val start_time = if (prevUsageSummary.start_time == 0) eventStartTime else if (eventStartTime > prevUsageSummary.start_time) prevUsageSummary.start_time else eventStartTime;
-            val end_time = eventsSortedByTS.last.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_stamp").get.asInstanceOf[Long]
+            val end_time = eventsSortedByTS.last.context.date_range.to
             val num_days: Long = CommonUtil.daysBetween(new LocalDate(start_time), new LocalDate(end_time))
             val num_launches = events._1.size + prevUsageSummary.total_launches
             val avg_num_launches = if (num_days == 0) num_launches else CommonUtil.roundDouble((num_launches / (num_days.asInstanceOf[Double])), 2)
