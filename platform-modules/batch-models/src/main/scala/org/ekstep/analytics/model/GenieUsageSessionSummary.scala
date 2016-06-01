@@ -19,8 +19,8 @@ import org.ekstep.analytics.updater.LearnerProfile
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.LearnerId
 
-case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[List[Map[String, AnyRef]]], dateRange: DtRange, learner_id: String)
-case class Summary(sid: String, learner_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[List[Map[String, AnyRef]]], dateRange: DtRange)
+case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange, learner_id: String)
+case class Summary(sid: String, learner_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
 object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializable {
 

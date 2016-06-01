@@ -51,7 +51,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         summary1.interruptTime should be (8.28);
         
         // Checking for partnerID and group_user value
-        event1.edata.eks.asInstanceOf[Map[String,AnyRef]].get("groupUser").get.asInstanceOf[Boolean] should be (false)
+        event1.dimensions.group_user.get.asInstanceOf[Boolean] should be (false)
         
         val asList = summary1.activitySummary.get 
         asList.size should be (4);
