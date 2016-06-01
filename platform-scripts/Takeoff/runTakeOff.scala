@@ -34,17 +34,17 @@ OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> (outputPath+"/SSDelta
 
 
 // write raw data to local file
-val queries = Option(Array(Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-04-27"), Option("2016-05-07"))));
+val queries = Option(Array(Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-04-27"), Option("2016-05-30"))));
 val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
 val takeOffrdd = rdd.filter(e => "org.ekstep.delta".equals(e.gdata.id))
 val rddAsString = takeOffrdd.map(JSONUtils.serialize(_));
 OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> (outputPath+"/DeltaDumpLadakh.txt"))), rddAsString);
 
  // session-summary data to local file
-val queries = Option(Array(Query(Option("sandbox-data-store"), Option("ss/"), Option("2016-04-27"), Option("2016-05-07"))));
+val queries = Option(Array(Query(Option("sandbox-data-store"), Option("ss/"), Option("2016-04-27"), Option("2016-05-30"))));
 val rdd = DataFetcher.fetchBatchData[MeasuredEvent](Fetcher("S3", None, queries));
 val sessSummaries = DataFilter.filter(rdd, Filter("eid","EQ",Option("ME_SESSION_SUMMARY")));
-val takeoffrdd = sessSummaries.filter(e => "org.ekstep.delta".equals(e.dimensions.gdata.get.id)).cache();
+val takeOffrdd = sessSummaries.filter(e => "org.ekstep.delta".equals(e.dimensions.gdata.get.id)).cache();
 // write to file
 val rddAsString = takeOffrdd.map(JSONUtils.serialize(_));
 OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> (outputPath+"/SSDeltaDumpLadakh.txt"))), rddAsString);
