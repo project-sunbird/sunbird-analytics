@@ -14,7 +14,7 @@ import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 
-case class GenieSummary(timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[List[Map[String, AnyRef]]], dateRange: DtRange)
+case class GenieSummary(timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
 object GenieLaunchSummary extends SessionBatchModel[Event] with Serializable {
 

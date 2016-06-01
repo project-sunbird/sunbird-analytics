@@ -23,14 +23,14 @@ class Ext(val stageId: String, val `type`: String) extends Serializable {}
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class Event(val tags: List[Map[String, AnyRef]], val eid: String, val ts: String, val ets: Long, val `@timestamp`: String,
-            val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: EData) extends Serializable {}
+class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, 
+        val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends Serializable {}
 
 // Computed Event Model
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
-case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[List[Map[String, AnyRef]]] = None);
+case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None);
 @scala.reflect.BeanInfo
 case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None);
 @scala.reflect.BeanInfo
