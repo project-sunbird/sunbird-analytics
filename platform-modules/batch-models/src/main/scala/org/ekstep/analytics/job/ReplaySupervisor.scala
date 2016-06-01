@@ -10,7 +10,6 @@ import org.ekstep.analytics.model.LearnerProficiencySummary
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
-import org.ekstep.analytics.framework.JobFactory
 import org.ekstep.analytics.framework.exception.JobNotFoundException
 
 object ReplaySupervisor extends Application {
