@@ -8,7 +8,7 @@ rollback() {
 	src="s3://$bucket_name/$prefix/"
 	dst="s3://$bucket_name/$backup_dir/"
 	echo "Copy back the $prefix files to source directory $src from backup directory $dst"
-	aws s3 cp $dst $src --recursive --include "*"
+	#aws s3 cp $dst $src --recursive --include "*"
 }
 
 delete() {
@@ -17,7 +17,7 @@ delete() {
 
 	path="s3://$bucket_name/$backup_dir/"
 	echo "Deleting the back-up files from $path"
-	aws s3 rm $path --recursive
+	#aws s3 rm $path --recursive
 }
 
 backup() {
@@ -34,10 +34,10 @@ backup() {
 
 
 	echo "Backing up the files from $src to $dst for the date range - ($dt_start, $dt_end)"
-	while [ $ts_start -le $ts_end ] 
-	do
-		date=`date -d @$ts_start +%F`
-	    aws s3 mv $src $dst --recursive --exclude "*" --include "$date-*"
-	    let ts_start+=86400
-	done
+	#while [ $ts_start -le $ts_end ] 
+	#do
+	#	date=`date -d @$ts_start +%F`
+	#    aws s3 mv $src $dst --recursive --exclude "*" --include "$date-*"
+	#    let ts_start+=86400
+	#done
 }

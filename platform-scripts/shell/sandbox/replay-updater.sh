@@ -3,10 +3,10 @@
 #!/usr/bin/env bash
 export SPARK_HOME=/home/ec2-user/spark-1.5.2-bin-hadoop2.3
 cd /mnt/data/analytics/scripts
-source replay-config.sh
+source model-config.sh
 source replay-utils.sh
 
-job_config=$(config '$1')
+job_config=$(config '$1' '__endDate__')
 start_date=$2
 end_date=$3
 
