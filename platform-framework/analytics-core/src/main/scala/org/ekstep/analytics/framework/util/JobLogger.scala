@@ -23,25 +23,19 @@ object JobLogger {
     }
 
     def info(msg: String, className: String) {
-        if (logger.isInfoEnabled()) {
-            logger.info(JSONUtils.serialize(getMeasuredEvent("INFO", msg, null, Map("modelId" -> className))));
-        }
+        logger.info(JSONUtils.serialize(getMeasuredEvent("INFO", msg, null, Map("modelId" -> className))));
     }
 
     def debug(msg: String, className: String) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(JSONUtils.serialize(getMeasuredEvent("DEBUG", msg, null, Map("modelId" -> className))))
-        }
+        logger.debug(JSONUtils.serialize(getMeasuredEvent("DEBUG", msg, null, Map("modelId" -> className))))
     }
 
     def error(msg: String, className: String, exp: Throwable) {
-        if (logger.isErrorEnabled())
-            logger.error(JSONUtils.serialize(getMeasuredEvent("ERROR", msg, exp, Map("modelId" -> className))));
+        logger.error(JSONUtils.serialize(getMeasuredEvent("ERROR", msg, exp, Map("modelId" -> className))));
     }
 
     def warn(msg: String, className: String) {
-        if (logger.isWarnEnabled())
-            logger.warn(JSONUtils.serialize(getMeasuredEvent("WARN", msg, null, Map("modelId" -> className))));
+        logger.warn(JSONUtils.serialize(getMeasuredEvent("WARN", msg, null, Map("modelId" -> className))));
     }
 
     private def getMeasuredEvent(level: String, msg: String, throwable: Throwable, config: Map[String, String]): MeasuredEvent = {

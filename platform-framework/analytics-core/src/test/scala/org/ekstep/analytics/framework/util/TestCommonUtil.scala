@@ -60,6 +60,8 @@ class TestCommonUtil extends BaseSpec {
         val event3 = JSONUtils.deserialize[Event](line3);
         val line4 = "{\"eid\":\"OE_START\",\"ts\":\"01-01-2016\",\"@timestamp\":\"2016-01-02T00:59:22P:ST\",\"ver\":\"1.0\",\"sid\":\"a6e4b3e2-5c40-4d5c-b2bd-44f1d5c7dd7f\",\"uid\":\"2ac2ebf4-89bb-4d5d-badd-ba402ee70182\",\"did\":\"828bd4d6c37c300473fb2c10c2d28868bb88fee6\",\"edata\":{\"eks\":{\"loc\":null,\"mc\":null,\"mmc\":null,\"pass\":null,\"qid\":null,\"qtype\":null,\"qlevel\":null,\"score\":0,\"maxscore\":0,\"res\":null,\"exres\":null,\"length\":null,\"exlength\":0.0,\"atmpts\":0,\"failedatmpts\":0,\"category\":null,\"current\":null,\"max\":null,\"type\":null,\"extype\":null,\"id\":null,\"gid\":null}}}";
         val event4 = JSONUtils.deserialize[Event](line4);
+        val line5 = "{\"eid\":\"OE_START\",\"ets\":1451630600000,\"@timestamp\":\"2016-01-02T00:59:22.924Z\",\"ver\":\"1.0\",\"gdata\":{\"id\":\"org.ekstep.aser.lite\",\"ver\":\"5.7\"},\"sid\":\"a6e4b3e2-5c40-4d5c-b2bd-44f1d5c7dd7f\",\"uid\":\"2ac2ebf4-89bb-4d5d-badd-ba402ee70182\",\"did\":\"828bd4d6c37c300473fb2c10c2d28868bb88fee6\",\"edata\":{\"eks\":{\"loc\":null,\"mc\":null,\"mmc\":null,\"pass\":null,\"qid\":null,\"qtype\":null,\"qlevel\":null,\"score\":0,\"maxscore\":0,\"res\":null,\"exres\":null,\"length\":null,\"exlength\":0.0,\"atmpts\":0,\"failedatmpts\":0,\"category\":null,\"current\":null,\"max\":null,\"type\":null,\"extype\":null,\"id\":null,\"gid\":null}}}";
+        val event5 = JSONUtils.deserialize[Event](line5);
 
         //getEventDate yyyy-MM-dd'T'HH:mm:ssZZ
         val evDate = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").parseLocalDate("2016-01-01T12:13:20+05:30").toDate;
@@ -67,6 +69,7 @@ class TestCommonUtil extends BaseSpec {
 
         //getEventTs
         CommonUtil.getEventTS(event) should be(1451630600000L)
+        CommonUtil.getEventTS(event5) should be(1451630600000L)
         CommonUtil.getEventSyncTS(event) should be(1451696362924L)
         CommonUtil.getEventSyncTS(event2) should be(0L)
         CommonUtil.getEventSyncTS(event3) should be(1451676562000L)
@@ -146,6 +149,8 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getPeriod(1451650400000L, LAST7) should be (7)
         CommonUtil.getPeriod(1451650400000L, LAST30) should be (30)
         CommonUtil.getPeriod(1451650400000L, LAST90) should be (90)
+        
+        CommonUtil.daysBetween(new DateTime(1451650400000L).toLocalDate(), new DateTime(1454650400000L).toLocalDate()) should be (35);
 
     }
 }
