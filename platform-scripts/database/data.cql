@@ -1,9 +1,9 @@
-CREATE KEYSPACE learner_db WITH replication = {
+CREATE KEYSPACE IF NOT EXISTS learner_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
 };
 
-CREATE TABLE learnersnapshot (
+CREATE TABLE IF NOT EXISTS learner_db.learnersnapshot (
 	learner_id text, 
 	m_time_spent double, 
 	m_time_btw_gp double,
@@ -23,7 +23,7 @@ CREATE TABLE learnersnapshot (
 	PRIMARY KEY (learner_id)
 );
 
-CREATE TABLE learnerproficiency(
+CREATE TABLE IF NOT EXISTS learner_db.learnerproficiency(
 	learner_id text,
 	proficiency map<text,double>,
 	start_time timestamp,
@@ -32,7 +32,7 @@ CREATE TABLE learnerproficiency(
 	PRIMARY KEY (learner_id)
 );
 
-CREATE TABLE learnercontentsummary(
+CREATE TABLE IF NOT EXISTS learner_db.learnercontentsummary(
 	learner_id text,
 	content_id text,
 	time_spent double,
@@ -41,13 +41,13 @@ CREATE TABLE learnercontentsummary(
 	PRIMARY KEY (learner_id,content_id)
 );
 
-CREATE TABLE learnerconceptrelevance(
+CREATE TABLE IF NOT EXISTS learner_db.learnerconceptrelevance(
 	learner_id text,
 	relevance map<text,double>,
 	PRIMARY KEY (learner_id)
 );
 
-CREATE TABLE conceptsimilaritymatrix (
+CREATE TABLE IF NOT EXISTS learner_db.conceptsimilaritymatrix (
 	concept1 text,
 	concept2 text,
 	relation_type text,
@@ -55,7 +55,7 @@ CREATE TABLE conceptsimilaritymatrix (
 	PRIMARY KEY (concept1, concept2)
 );
 
-CREATE TABLE learnerprofile (
+CREATE TABLE IF NOT EXISTS learner_db.learnerprofile (
 	learner_id text,
 	did text,
 	gender text,
@@ -71,7 +71,7 @@ CREATE TABLE learnerprofile (
 	PRIMARY KEY (learner_id)
 );
 
-CREATE TABLE devicespecification (
+CREATE TABLE IF NOT EXISTS learner_db.devicespecification (
 	device_id text, 
 	device_name text, 
 	device_local_name text,
@@ -88,7 +88,7 @@ CREATE TABLE devicespecification (
 	PRIMARY KEY (device_id,os,screen_size)
 );
 
-CREATE TABLE device_usage_summary (
+CREATE TABLE IF NOT EXISTS learner_db.device_usage_summary (
 	device_id text,
 	start_time bigint,
 	end_time bigint,
@@ -100,12 +100,12 @@ CREATE TABLE device_usage_summary (
 	PRIMARY KEY (device_id)
 );
 
-CREATE KEYSPACE content_db WITH replication = {
+CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
 };
 
-CREATE TABLE content_cumulative_summary (
+CREATE TABLE IF NOT EXISTS content_db.content_cumulative_summary (
 	content_id text, 
 	start_date timestamp, 
 	total_ts double,
@@ -120,14 +120,14 @@ CREATE TABLE content_cumulative_summary (
 	PRIMARY KEY (content_id)
 );
 
-CREATE TABLE content_usage_metrics (
+CREATE TABLE IF NOT EXISTS content_db.content_usage_metrics (
 	id text, 
 	top_k_timespent map<text,double>,
 	top_k_sessions map<text,bigint>,
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE content_usage_summary_fact (
+CREATE TABLE IF NOT EXISTS content_db.content_usage_summary_fact (
     d_content_id text,
     d_period Int,
     d_group_user boolean,
@@ -145,7 +145,7 @@ CREATE TABLE content_usage_summary_fact (
     PRIMARY KEY (d_content_id, d_period, d_group_user)
 );
 
-CREATE TABLE content_sideloading_summary (
+CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
     content_id text,
     num_downloads bigint,
     total_count bigint,
