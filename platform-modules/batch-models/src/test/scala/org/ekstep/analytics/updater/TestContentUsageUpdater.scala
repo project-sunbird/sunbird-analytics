@@ -64,12 +64,12 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         grpUserTrue.filter { x => x.d_period == 201602 }.count should be(0)
 
         //Record for week10(2016-03-07 to 2016-03-13) and week11(2016-03-14 to 2016-03-20) is empty
-        grpUserFalse.filter { x => x.d_period == 20167710 }.count should be(0)
-        grpUserFalse.filter { x => x.d_period == 20167711 }.count should be(0)
+        grpUserFalse.filter { x => x.d_period == 2016710 }.count should be(0)
+        grpUserFalse.filter { x => x.d_period == 2016711 }.count should be(0)
 
         //Checking a aggregate value of daily summary of a week to the weekly summary  
         val dailySumm1 = grpUserFalse.filter { x => (x.d_period > 20160103 && x.d_period < 20160111) }
-        val weekly1 = grpUserFalse.filter { x => (x.d_period == 20167701) }.first()
+        val weekly1 = grpUserFalse.filter { x => (x.d_period == 2016701) }.first()
         dailySumm1.map(f => f.m_total_sessions).sum should be(weekly1.m_total_sessions)
         dailySumm1.map(f => f.m_total_ts).sum should be(weekly1.m_total_ts)
 
@@ -78,15 +78,15 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         allmonth.collect.size should be(4)
 
         // total count of weekly summaries
-        val allweek1 = grpUserFalse.filter { x => (x.d_period >= 20167701 && x.d_period <= 20167709) }.collect
-        val allweek2 = grpUserFalse.filter { x => (x.d_period > 20167710 && x.d_period < 20167730) }.collect
+        val allweek1 = grpUserFalse.filter { x => (x.d_period >= 2016701 && x.d_period <= 2016709) }.collect
+        val allweek2 = grpUserFalse.filter { x => (x.d_period > 2016710 && x.d_period < 2016730) }.collect
         (allweek1.size + allweek2.size + 1) should be(15)
 
         //five daily summaries are missing from week53
         val dailySumm53 = grpUserFalse.filter { x => (x.d_period > 20151227 && x.d_period < 20160104 && x.d_period != 20157753) }
         dailySumm53.collect.size should be(2)
 
-        val weekly53 = grpUserFalse.filter { x => (x.d_period == 20157753) }.first()
+        val weekly53 = grpUserFalse.filter { x => (x.d_period == 2015753) }.first()
 
         dailySumm53.map(f => f.m_total_sessions).sum should be(weekly53.m_total_sessions)
         dailySumm53.map(f => f.m_total_ts).sum should be(weekly53.m_total_ts)

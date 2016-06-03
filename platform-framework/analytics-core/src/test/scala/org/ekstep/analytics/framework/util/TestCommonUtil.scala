@@ -143,7 +143,8 @@ class TestCommonUtil extends BaseSpec {
         
         CommonUtil.getWeeksBetween(1451650400000L, 1454650400000L) should be (5)
         CommonUtil.getPeriod(1451650400000L, DAY) should be (20160101)
-        CommonUtil.getPeriod(1451650400000L, WEEK) should be (20157753)
+        CommonUtil.getPeriod(1451650400000L, WEEK) should be (2015753)
+        CommonUtil.getPeriod(1452250748000L, WEEK) should be (2016701)
         CommonUtil.getPeriod(1451650400000L, MONTH) should be (201601)
         CommonUtil.getPeriod(1451650400000L, CUMULATIVE) should be (0)
         CommonUtil.getPeriod(1451650400000L, LAST7) should be (7)

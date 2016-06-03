@@ -340,9 +340,9 @@ object CommonUtil {
     private def getWeekNumber(year: Int, weekOfWeekyear: Int): Int = {
 
         if (weekOfWeekyear < 10) {
-            (year + "770" + weekOfWeekyear).toInt
+            (year + "70" + weekOfWeekyear).toInt
         } else {
-            (year + "77" + weekOfWeekyear).toInt
+            (year + "7" + weekOfWeekyear).toInt
         }
     }
 }
