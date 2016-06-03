@@ -15,11 +15,13 @@ import scala.collection.mutable.Buffer
 
 object S3Util {
 
+    val className = "org.ekstep.analytics.framework.util.S3Util"
+
     private val awsCredentials = new AWSCredentials(AppConf.getAwsKey(), AppConf.getAwsSecret());
     private val s3Service = new RestS3Service(awsCredentials);
 
     def upload(bucketName: String, filePath: String, key: String) {
-        Console.println("### Uploading file to S3. Bucket - " + bucketName + " | FilePath - " + filePath + " | Key - " + key + " ###")
+        JobLogger.debug("Uploading file to S3. Bucket", className, Option(Map("bucketName" -> bucketName, "FilePath" -> filePath)))
         val s3Object = new S3Object(new File(filePath));
         s3Object.setKey(key)
         val fileObj = s3Service.putObject(bucketName, s3Object);
@@ -55,7 +57,7 @@ object S3Util {
 
     def search(bucketName: String, prefix: String, fromDate: Option[String] = None, toDate: Option[String] = None, delta: Option[Int] = None): Buffer[String] = {
         var paths = ListBuffer[String]();
-        val from = if(delta.nonEmpty) CommonUtil.getStartDate(toDate, delta.get) else fromDate;
+        val from = if (delta.nonEmpty) CommonUtil.getStartDate(toDate, delta.get) else fromDate;
         if (from.nonEmpty) {
             val dates = CommonUtil.getDatesBetween(from.get, toDate);
             dates.foreach { x =>

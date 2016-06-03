@@ -8,6 +8,7 @@ import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
 import org.ekstep.analytics.framework.dispatcher.KafkaDispatcher
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
+import org.ekstep.analytics.framework.util.JobLogger
 
 
 /**
@@ -15,6 +16,8 @@ import org.ekstep.analytics.framework.dispatcher.FileDispatcher
  */
 object DispatcherFactory {
 
+    val className = "org.ekstep.analytics.framework.factory.DispatcherFactory"
+    
     @throws(classOf[DispatcherException])
     def getDispatcher(disp: Dispatcher): IDispatcher = {
         disp.to.toLowerCase() match {
@@ -29,7 +32,10 @@ object DispatcherFactory {
             case "file" =>
                 FileDispatcher;
             case _         =>
-                throw new DispatcherException("Unknown output dispatcher destination found");
+                val msg = "Unknown output dispatcher destination found"
+                val exp = new DispatcherException(msg)
+                JobLogger.error(msg, className, exp)
+                throw exp;
         }
     }
 }
