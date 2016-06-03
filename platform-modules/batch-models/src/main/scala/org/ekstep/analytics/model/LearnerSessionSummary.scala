@@ -104,27 +104,19 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
     def computeScreenSummary(firstEvent: Event, lastEvent: Event, navigateEvents: Buffer[Event], interruptSummary: Map[String, Double]): Iterable[ScreenSummary] = {
 
         if (navigateEvents.length > 0) {
-            var stageMap = HashMap[String, Double]();
             var prevEvent = firstEvent;
+            var stages = ListBuffer[(String, Double)]();
             navigateEvents.foreach { x =>
                 val currStage = x.edata.eks.stageid;
                 val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get;
-                if (stageMap.getOrElse(currStage, null) == null) {
-                    stageMap.put(currStage, timeDiff);
-                } else {
-                    stageMap.put(currStage, stageMap.get(currStage).get + timeDiff);
-                }
+                stages += Tuple2(currStage, timeDiff);
                 prevEvent = x;
             }
 
             val lastStage = prevEvent.edata.eks.stageto;
             val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, lastEvent.ets).get;
-            if (stageMap.getOrElse(lastStage, null) == null) {
-                stageMap.put(lastStage, timeDiff);
-            } else {
-                stageMap.put(lastStage, stageMap.get(lastStage).get + timeDiff);
-            }
-            stageMap.map(f => {
+            stages += Tuple2(lastStage, timeDiff);
+            stages.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).map(f => {
                 ScreenSummary(f._1, CommonUtil.roundDouble((f._2 - interruptSummary.getOrElse(f._1, 0d)), 2));
             });
         } else {
