@@ -27,5 +27,21 @@ cat(' Reading Json Stream ....\n')
 df <- stream_in(file("DeltaDumpLadakhMay.txt","r"))
 cat(' Done reading JSON Sream\n')
 cat(' Read',length(df$uid),' events \n')
-names()
+
+
+tag = "08664a0d8217401a02ce315a747cb2210d98d13b"
+filterTags <- function(tmp)
+{
+  flag = 0; 
+  if(length(tmp)!=0)  
+    {
+    flag = 1 #(tmp==tags)
+    }
+  return (flag)
+}
+ind = lapply(df$tags,FUN=function(tmp) {flag=FALSE; if(length(tmp)!=0) {flag = (tmp==tags)} return tmp} )
+ind = lapply(df$tags,function(tmp) ,simplify=TRUE)
+ind = which
+
+
 

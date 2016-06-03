@@ -108,4 +108,7 @@ ind = sapply(eids,function(tmp) pmatch(vids[894],tmp))
 edge_attr(g,"category",index=which(ind==1))
 
 rownames(cmapFeatures)=vertex_attr(g,"id",V(g))
-write.table(cmapFeatures,outfile,col.names=T,row.names = T,sep=',')
+df <- data.frame(node.id=vertex_attr(g,"id",V(g)))
+df2 <- as.data.frame(cmapFeatures)
+df <- cbind(df,df2)
+write.table(df,outfile,col.names=T,row.names = F,sep=',')
