@@ -328,7 +328,6 @@ object CommonUtil {
             case LAST7      => 7
             case LAST30     => 30
             case LAST90     => 90
-            case _          => -1
         }
     }
 
