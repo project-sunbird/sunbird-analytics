@@ -64,7 +64,7 @@ object CommonUtil {
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
-            JobLogger.info("Master not found. Setting it to local[*]", className)
+            JobLogger.debug("Master not found. Setting it to local[*]", className)
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
@@ -78,13 +78,13 @@ object CommonUtil {
     }
 
     def setS3Conf(sc: SparkContext) = {
-        JobLogger.debug("CommonUtil: setS3Conf. Configuring S3 AccessKey& SecrateKey to SparkContext", className)
+        JobLogger.debug("Configuring S3 AccessKey& SecrateKey to SparkContext", className)
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
-        JobLogger.info("Closing Spark Context", className)
+        JobLogger.debug("Closing Spark Context", className)
         sc.stop();
     }
 
@@ -109,12 +109,12 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
-        JobLogger.debug("Deleting directory " + path, className)
+        JobLogger.debug("Deleting directory", className, Option(path))
         Files.walkFileTree(path, new Visitor());
     }
 
     def deleteFile(file: String) {
-        JobLogger.debug("Deleting file " + file, className)
+        JobLogger.debug("Deleting file ", className, Option(file))
         Files.delete(get(file));
     }
 
@@ -168,7 +168,7 @@ object CommonUtil {
             df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                JobLogger.debug("Invalid event time - " + event.ts, className);
+                JobLogger.debug("Invalid event time", className, Option(Map("ts"-> event.ts)));
                 null;
         }
     }
@@ -279,7 +279,7 @@ object CommonUtil {
             df.parseDateTime(ts).getMillis;
         } catch {
             case _: Exception =>
-                JobLogger.debug("Invalid time format - " + pattern + ts, className);
+                JobLogger.debug("Invalid time format", className, Option(Map("pattern" -> pattern, "ts" -> ts)));
                 0;
         }
     }
@@ -322,7 +322,7 @@ object CommonUtil {
         val d = new DateTime(syncts, DateTimeZone.UTC);
         period match {
             case DAY        => dayPeriod.print(d).toInt;
-            case WEEK       => (d.getWeekyear + "77" + d.getWeekOfWeekyear).toInt
+            case WEEK       => getWeekNumber(d.getWeekyear, d.getWeekOfWeekyear)
             case MONTH      => monthPeriod.print(d).toInt
             case CUMULATIVE => 0
             case LAST7      => 7
@@ -335,5 +335,14 @@ object CommonUtil {
         val from = new LocalDate(fromDate, DateTimeZone.UTC)
         val to = new LocalDate(toDate, DateTimeZone.UTC)
         Weeks.weeksBetween(from, to).getWeeks;
+    }
+
+    private def getWeekNumber(year: Int, weekOfWeekyear: Int): Int = {
+
+        if (weekOfWeekyear < 10) {
+            (year + "70" + weekOfWeekyear).toInt
+        } else {
+            (year + "7" + weekOfWeekyear).toInt
+        }
     }
 }

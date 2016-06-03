@@ -13,13 +13,16 @@ import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class GenieSummary(timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
 object GenieLaunchSummary extends SessionBatchModel[Event] with Serializable {
 
+    val className = "org.ekstep.analytics.model.GenieLaunchSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("### Execute method started ###", className);
         val config = jobParams.getOrElse(Map[String, AnyRef]())
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
@@ -38,6 +41,7 @@ object GenieLaunchSummary extends SessionBatchModel[Event] with Serializable {
             GenieSummary(timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(geEnd.tags), dtRange);
         }.filter { x => (x._2.timeSpent >= 0) }
 
+        JobLogger.debug("### Execute method ended ###", className);
         genieSummary.map { x =>
             getMeasuredEventGenieSummary(x, jobConfig.value)
         }.map { x => JSONUtils.serialize(x) };

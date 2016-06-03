@@ -76,9 +76,6 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/emptyMC_test.log");
         val rdd2 = LearnerProficiencySummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         var out = rdd2.collect();
-        /*for (e <- out) {
-            println(e)
-        }*/
         out.length should be(2)
     }
 
@@ -95,7 +92,6 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         out.length should be(1)
 
         val event = JSONUtils.deserialize[MeasuredEvent](out(0));
-        //val profs = JSONUtils.deserialize[Buffer[ProficiencySummary]](JSONUtils.serialize(event.edata.eks));
         val profsList = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("proficiencySummary").get.asInstanceOf[List[Map[String,AnyRef]]];
         profsList.size should be(22);
         val profs = profsList.map { x => (x.get("conceptId").get.asInstanceOf[String], x.get("proficiency").get.asInstanceOf[Double]) }.toMap

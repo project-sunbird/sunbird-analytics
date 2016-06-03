@@ -8,6 +8,7 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class DeviceSpec(device_id: String, device_name: String, device_local_name: String, os: String, make: String,
                       memory: Double, internal_disk: Double, external_disk: Double, screen_size: Double,
@@ -15,8 +16,10 @@ case class DeviceSpec(device_id: String, device_name: String, device_local_name:
 
 object DeviceSpecification extends IBatchModel[Event] with Serializable {
 
+    val className = "org.ekstep.analytics.model.DeviceSpecification"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("### Execute method started ###", className);
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_GENIE_START")));
         val filteredEvents = DataFilter.filter(DataFilter.filter(events, Filter("edata", "ISNOTNULL", None)), Filter("edata.eks.dspec", "ISNOTNULL", None));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
@@ -42,6 +45,8 @@ object DeviceSpecification extends IBatchModel[Event] with Serializable {
         }.cache();
 
         deviceSummary.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE);
+        
+        JobLogger.debug("### Execute method ended ###", className);
         deviceSummary.map { x => JSONUtils.serialize(x) };
     }
 

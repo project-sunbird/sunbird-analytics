@@ -18,10 +18,10 @@ object LearnerSnapshotUpdater extends optional.Application with IJob {
     val className = "org.ekstep.analytics.job.LearnerSnapshotUpdater"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.info("Started executing LearnerSnapshotUpdater Job", className)
+        JobLogger.debug("Started executing Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run[MeasuredEvent]("batch", config, UpdateLearnerActivity);
-        JobLogger.info("LearnerSnapshotUpdater Job completed", className)
+        JobLogger.debug("Job completed.", className)
     }
 
 }

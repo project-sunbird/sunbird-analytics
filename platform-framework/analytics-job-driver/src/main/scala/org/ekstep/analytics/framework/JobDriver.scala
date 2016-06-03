@@ -23,7 +23,7 @@ object JobDriver {
     def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
         
         JobLogger.init(model.getClass.getName.split("\\$").last);
-        JobLogger.info("Starting " + t + " job with config - " + config, className)
+        JobLogger.info("Starting " + t + " job", className, Option(config))
         AppConf.init();
         val t1 = System.currentTimeMillis;
         try {
@@ -47,7 +47,8 @@ object JobDriver {
                 throw e;
         }
         val t2 = System.currentTimeMillis;
-        JobLogger.debug("Model run complete - Time taken to compute - " + (t2 - t1) / 1000, className)
+        JobLogger.info(t + " job completed", className)
+        JobLogger.info("Time taken to compute in seconds", className, Option(Double.box((t2 - t1) / 1000)))
     }
 
 }

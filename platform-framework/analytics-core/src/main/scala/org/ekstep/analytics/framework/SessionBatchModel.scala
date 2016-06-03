@@ -67,8 +67,8 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                         case "GE_GENIE_END" =>
                             if (!tmpArr.isEmpty) {
                                 val event = tmpArr.last
-                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y)).get
+                                if (timeSpent > (idleTime * 60)) {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[Event]();
                                 }
@@ -79,8 +79,8 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                         case _ =>
                             if (!tmpArr.isEmpty) {
                                 val event = tmpArr.last
-                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y)).get
+                                if (timeSpent < (idleTime * 60)) {
                                     tmpArr += y;
                                 } else {
                                     sessions += tmpArr;
@@ -108,17 +108,13 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                 sortedEvents.foreach { y =>
                     y.eid match {
                         case "GE_SESSION_START" =>
-                            if (tmpArr.length > 0) {
-                                sessions += tmpArr;
-                                tmpArr = Buffer[Event]();
-                            }
                             tmpArr += y;
 
                         case "GE_SESSION_END" =>
                             if (!tmpArr.isEmpty) {
                                 val event = tmpArr.last
-                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                if (timeSpent.getOrElse(0d) > (idleTime * 60)) {
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y)).get
+                                if (timeSpent > (idleTime * 60)) {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[Event]();
                                 }
@@ -129,8 +125,8 @@ trait SessionBatchModel[T] extends IBatchModel[T] {
                         case _ =>
                             if (!tmpArr.isEmpty) {
                                 val event = tmpArr.last
-                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y))
-                                if (timeSpent.getOrElse(0d) < (idleTime * 60)) {
+                                val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y)).get
+                                if (timeSpent < (idleTime * 60)) {
                                     tmpArr += y;
                                 } else {
                                     sessions += tmpArr;

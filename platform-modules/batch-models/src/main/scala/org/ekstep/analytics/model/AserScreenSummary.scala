@@ -40,18 +40,16 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
     val className = "org.ekstep.analytics.model.AserScreenSummary"
     def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.info("AserScreenSummary: execute method starting", className)
+        JobLogger.debug("Execute method started", className)
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         JobLogger.debug("Broadcasting job config", className)
         val configMapping = sc.broadcast(config);
         JobLogger.debug("Doing game sessionization", className)
         val gameSessions = getGameSessions(events);
 
-        JobLogger.debug("AserScreenSummary: Started calculating screener information", className)
+        JobLogger.debug("Started calculating screener information", className)
         val aserSreenSummary = gameSessions.mapValues { x =>
-            //            val startTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x(0))) } else { Option(0l) };
-            //            val endTimestamp = if (x.length > 0) { Option(CommonUtil.getEventTS(x.last)) } else { Option(0l) };
-
+          
             val startTimestamp = Option(CommonUtil.getEventTS(x(0)));
             val endTimestamp = Option(CommonUtil.getEventTS(x.last));
 
@@ -155,8 +153,8 @@ object AserScreenSummary extends SessionBatchModel[Event] with Serializable {
             (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), did, CommonUtil.getTimestamp(oeStart.`@timestamp`));
         }
 
-        JobLogger.debug("Serializing 'ME_ASER_SCREEN_SUMMARY' MeasuredEvent", className)
-        JobLogger.info("AserScreenSummary: execute method ending", className)
+        JobLogger.debug("Serializing 'ME_ASER_SCREEN_SUMMARY' MeasuredEvents", className)
+        JobLogger.debug("Execute method ended", className)
         aserSreenSummary.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };

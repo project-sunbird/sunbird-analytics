@@ -14,8 +14,8 @@ object ProficiencyUpdater extends optional.Application with IJob {
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobLogger.info("Started executing ProficiencyUpdater Job", className)
+        JobLogger.debug("Started executing Job", className)
         JobDriver.run[MeasuredEvent]("batch", config, LearnerProficiencySummary);
-        JobLogger.info("ProficiencyUpdater Job completed", className)
+        JobLogger.debug("Job completed", className)
     }
 }

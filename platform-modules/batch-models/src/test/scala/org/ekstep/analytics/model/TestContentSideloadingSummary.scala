@@ -90,6 +90,12 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         
         val table2 = sc.cassandraTable[ContentSideloading](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY).where("content_id=?","org.ekstep.story.en.family").first
         table2.origin_map.size should be (3)
-         
+        
+        val event3 = JSONUtils.deserialize[MeasuredEvent](events3(0));
+        
+        val eks3 = event3.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        eks3.get("num_downloads").get should be(1)
+        eks3.get("num_sideloads").get should be(7)
+        eks3.get("avg_depth").get should be(3)
     }
 }
