@@ -6,7 +6,7 @@ cd /mnt/data/analytics/scripts
 source model-config.sh
 source replay-utils.sh
 
-job_config=$(config '$1' '__endDate__')
+job_config=$(config $1 '__endDate__')
 start_date=$2
 end_date=$3
 
