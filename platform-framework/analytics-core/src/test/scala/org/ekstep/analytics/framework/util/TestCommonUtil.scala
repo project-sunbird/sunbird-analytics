@@ -11,6 +11,8 @@ import org.joda.time.format.DateTimeFormat
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.Period
+import org.joda.time.DateTimeZone
 
 class TestCommonUtil extends BaseSpec {
 
@@ -136,6 +138,26 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L), "org.ekstep.aser.lite") should be ("08EF6AB8668213851E407CEBCEFDF425");
         
         CommonUtil.getMessageId("ME_TEST", "123", "MONTH", 1451650400000L) should be ("95A1A252B816DAAAAE2A3E986FC91ABB");
-
+    
+        val periodM = CommonUtil.getPeriod(1464934330000l, Period.MONTH)
+        val periodW = CommonUtil.getPeriod(1464934330000l, Period.WEEK)
+        val periodD = CommonUtil.getPeriod(1464934330000l, Period.DAY)
+        val periodC = CommonUtil.getPeriod(1464934330000l, Period.CUMULATIVE)
+        val periodL7 = CommonUtil.getPeriod(1464934330000l, Period.LAST7)
+        val periodL30 = CommonUtil.getPeriod(1464934330000l, Period.LAST30)
+        val periodL90 = CommonUtil.getPeriod(1464934330000l, Period.LAST90)
+        val p = CommonUtil.getPeriod(1464934330000l, null)
+        
+        periodM should be (201606)
+        periodW should be (20167722)
+        periodD should be (20160603)
+        periodC should be (0)
+        periodL7 should be (7)
+        periodL30 should be (30)
+        periodL90 should be (90)
+        p should be (-1)
+        
+        CommonUtil.getWeeksBetween(1462268189000l,1464946589000l) should be (4)
+        CommonUtil.daysBetween(new LocalDate(1462268189000l,DateTimeZone.UTC),new LocalDate(1464946589000l,DateTimeZone.UTC) ) should be (31)
     }
 }
