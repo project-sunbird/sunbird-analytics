@@ -290,7 +290,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rdd2 = rdd1.collect();
-        //val learner_id = "1aca2342-3865-4f67-aff5-048027cba8b1"
+        
         val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd2.head).edata.eks.asInstanceOf[Map[String, AnyRef]];
         val eventMapLast = JSONUtils.deserialize[MeasuredEvent](rdd2.last).edata.eks.asInstanceOf[Map[String, AnyRef]];
         JSONUtils.deserialize[MeasuredEvent](rdd2.head).dimensions.group_user.get.asInstanceOf[Boolean] should be(false)

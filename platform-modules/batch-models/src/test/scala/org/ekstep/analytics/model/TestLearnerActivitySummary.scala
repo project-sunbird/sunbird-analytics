@@ -19,7 +19,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         rdd2.collect().length should be(2)
     }
 
-    it should "Print Learner Activity Summary events getting input from 'learner_activity_test_sample.log' and check the correctness" in {
+    it should "generate Learner Activity Summary events from 'learner_activity_test_sample.log' and check for correctness" in {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()

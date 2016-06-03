@@ -14,8 +14,10 @@ case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, simil
 object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity] with Serializable {
 
     val className = "org.ekstep.analytics.updater.ConceptSimilarityUpdater"
+    
     def execute(jsonLines: RDD[ConceptSimilarityEntity], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("Execute method started", className)
         val similarity = jsonLines.map { x =>
            x.similarity.map(f => {
                ConceptSimilarity(x.startNodeId, x.endNodeId, f.get("relationType").get.asInstanceOf[String], f.get("sim").get.asInstanceOf[Double])
@@ -24,6 +26,8 @@ object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity] wit
        
         JobLogger.debug("Saving concept & similarity value to DB ", className)
         similarity.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE);
+        
+        JobLogger.debug("Execute method ended", className)
         similarity.map { x =>
             val similarityMap = Map(
                 "concept1" -> x.concept1,

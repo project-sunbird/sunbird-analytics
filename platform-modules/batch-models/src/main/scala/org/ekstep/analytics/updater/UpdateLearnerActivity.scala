@@ -25,8 +25,10 @@ case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_
 object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateLearnerActivity"
+    
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("Execute method started", className)
         val filteredData = DataFilter.filter(DataFilter.filter(events, Filter("eid", "EQ", Option("ME_LEARNER_ACTIVITY_SUMMARY"))), Filter("uid", "ISNOTEMPTY", None));
         
         val la = filteredData.map { event =>
@@ -53,7 +55,8 @@ object UpdateLearnerActivity extends IBatchModel[MeasuredEvent] with Serializabl
         }.filter(_ != null);
         JobLogger.debug("Saving learner snapshot to DB", className)
         la.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
-        println("Count:", la.count());
+        
+        JobLogger.debug("Execute method ended", className)
         la.map { x => JSONUtils.serialize(x) };
     }
 }

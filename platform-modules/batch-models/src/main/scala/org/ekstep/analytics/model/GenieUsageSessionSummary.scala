@@ -18,14 +18,17 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.updater.LearnerProfile
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.LearnerId
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange, learner_id: String, did: String)
 case class Summary(sid: String, did: String, learner_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
 object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializable {
 
+    val className = "org.ekstep.analytics.model.GenieUsageSessionSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("### Execute method started ###", className);
         val config = jobParams.getOrElse(Map[String, AnyRef]())
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
@@ -54,6 +57,7 @@ object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializab
             (summary.sid, GenieSessionSummary(x._2._2.getOrElse((false, false))._1, x._2._2.getOrElse((false, false))._2, summary.timeSpent, summary.time_stamp, summary.content, summary.contentCount, summary.syncts, summary.tags, summary.dateRange, summary.learner_id, summary.did))
         }
 
+        JobLogger.debug("### Execute method ended ###", className);
         genieSessionSummary.map { x =>
             getMeasuredEventGenieSessionSummary(x, jobConfig.value)
         }.map { x => JSONUtils.serialize(x) };

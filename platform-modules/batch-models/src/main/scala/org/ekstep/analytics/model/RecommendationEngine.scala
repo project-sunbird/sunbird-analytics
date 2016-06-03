@@ -97,8 +97,8 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.info("execute method started", className)
-        JobLogger.debug("Filtering for ME_SESSION_SUMMARY events", className)
+        JobLogger.debug("Execute method started", className)
+        JobLogger.debug("Filtering ME_SESSION_SUMMARY events", className)
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -157,7 +157,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
             .leftOuterJoin(lcs).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._2.getOrElse(Buffer[LearnerContentActivity]()))))
             .leftOuterJoin(lcr).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._1._3, f._2._2.getOrElse(LearnerConceptRelevance(f._1.learner_id, Map())))));
 
-        JobLogger.info("Calculating Learner concept relevance", className)
+        JobLogger.debug("Calculating Learner concept relevance", className)
         val learnerConceptRelevance = learners.map(learner => {
 
             val J = jBroadcast.value;
@@ -196,7 +196,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
         }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
 
         JobLogger.debug("Creating summary events", className)
-        JobLogger.info("execute method end", className)
+        JobLogger.debug("Execute method ended", className)
         learnerConceptRelevance.map { f =>
             val relevanceScores = (f._2).map { x => RelevanceScores(x._1, x._2) }
             getMeasuredEvent(f._1, relevanceScores, configMapping.value, f._3);

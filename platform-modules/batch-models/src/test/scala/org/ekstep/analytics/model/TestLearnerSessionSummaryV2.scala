@@ -96,7 +96,6 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
             mapper.registerModule(DefaultScalaModule);
             mapper.readValue[Event](line, classOf[Event]);
         }.cache();
-        println("rdd.count", rdd.count)
     }
     
 }

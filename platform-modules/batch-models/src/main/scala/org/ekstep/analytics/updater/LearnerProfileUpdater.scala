@@ -11,6 +11,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.util.JobLogger
 
 
 /**
@@ -20,8 +21,11 @@ case class LearnerProfile(learner_id: String, did: String, gender: Option[String
 
 object LearnerProfileUpdater extends IBatchModel[ProfileEvent] with Serializable {
   
+    val className = "org.ekstep.analytics.updater.LearnerProfileUpdater"
+  
     def execute(data: RDD[ProfileEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String] = {
         
+        JobLogger.debug("Execute method started", className)
         val events = DataFilter.filter(data, Filter("eid", "IN", Option(List("GE_CREATE_USER","GE_CREATE_PROFILE","GE_UPDATE_PROFILE")))).cache();
         
         val userEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_CREATE_USER"))).map { event =>  
@@ -40,6 +44,7 @@ object LearnerProfileUpdater extends IBatchModel[ProfileEvent] with Serializable
         updProfileEvents.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "updated_date"));
         
         val result = newProfileEvents.union(updProfileEvents);
+        JobLogger.debug("Execute method ended", className)
         result.map { x => JSONUtils.serialize(x) };
     }
     

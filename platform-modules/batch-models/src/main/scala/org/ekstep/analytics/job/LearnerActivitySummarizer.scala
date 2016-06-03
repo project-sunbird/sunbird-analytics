@@ -13,9 +13,13 @@ import org.ekstep.analytics.framework.IJob
  */
 object LearnerActivitySummarizer extends optional.Application with IJob {
 
+    val className = "org.ekstep.analytics.job.LearnerActivitySummarizer"
+  
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
+        JobLogger.debug("Started executing Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run[MeasuredEvent]("batch", config, LearnerActivitySummary);
+        JobLogger.debug("Job Completed.", className)
     }
 
 }
