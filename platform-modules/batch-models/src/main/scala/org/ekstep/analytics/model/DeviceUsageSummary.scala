@@ -12,6 +12,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class UsageSummary(device_id: String, start_time: Long, end_time: Long, num_days: Long, total_launches: Long, total_timespent: Double, avg_num_launches: Double, avg_time: Double)
 
@@ -19,9 +20,10 @@ case class DeviceId(device_id: String)
 
 object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
 
+    val className = "org.ekstep.analytics.model.DeviceUsageSummary"
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
   
-        println("### Running the model DeviceUsageSummary ###");
+        JobLogger.debug("### Execute method started ###", className);
         val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -37,7 +39,6 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
             val eventsSortedByTS = events._1.sortBy { x => x.context.date_range.to };
             val eventsSortedByDateRange = events._1.sortBy { x => x.context.date_range.from };
             val prevUsageSummary = events._2.getOrElse(UsageSummary(events._1.head.dimensions.did.get, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0));
-            // checking whether the eventStartTime is before March 1st 2015
             val tsInString = configMapping.value.getOrElse("startTime", "2015-03-01").asInstanceOf[String]
             val ts = CommonUtil.getTimestamp(tsInString, CommonUtil.df4, "yyyy-MM-dd");
             val eventStartTime = if(eventsSortedByDateRange.head.context.date_range.from < ts) ts else eventsSortedByDateRange.head.context.date_range.from
@@ -56,6 +57,7 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
   
         deviceUsageSummary.map(f => f._2).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE);
   
+        JobLogger.debug("### Execute method ended ###", className);
         deviceUsageSummary.map(f => {
             getMeasuredEvent(f._2, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };

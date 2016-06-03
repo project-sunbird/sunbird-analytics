@@ -17,7 +17,7 @@ object ReplaySupervisor extends Application {
     val className = "org.ekstep.analytics.job.ReplaySupervisor"
 
     def main(model: String, fromDate: String, toDate: String, config: String) {
-        JobLogger.info("Started executing ReplaySupervisor", className)
+        JobLogger.debug("Started executing ReplaySupervisor", className)
         val con = JSONUtils.deserialize[JobConfig](config)
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
         try {
@@ -25,7 +25,7 @@ object ReplaySupervisor extends Application {
         } finally {
             CommonUtil.closeSparkContext()(sc);
         }
-        JobLogger.info("Replay Supervisor completed...", className)
+        JobLogger.debug("Replay Supervisor completed.", className)
     }
 
     def execute(model: String, fromDate: String, toDate: String, config: String)(implicit sc: SparkContext) {
@@ -34,19 +34,18 @@ object ReplaySupervisor extends Application {
             try {
                 val jobConfig = config.replace("__endDate__", date)
                 val job = JobFactory.getJob(model);
-                println("### Executing replay for the date - " + date + " ###");
+                JobLogger.debug("### Executing replay for the date - " + date + " ###", className);
                 job.main(jobConfig)(Option(sc));
             } catch {
                 case ex: DataFetcherException => {
                     JobLogger.error("File is missing in S3 with date - " + date + " | Model - " + model, className, ex)
-                    println("### File is missing in S3 with date - " + date + " | Model - " + model + " ###");
                 }
                 case ex: JobNotFoundException => {
                     JobLogger.error("Unable to execute a Model with the code: " + model, className, ex)
                     throw ex;
                 }
                 case ex: Exception => {
-                    println("### Error executing replay for the date - " + date + " | Model - " + model + " ###");
+                    JobLogger.error("### Error executing replay for the date - " + date + " | Model - " + model + " ###", className, ex);
                     throw ex;
                 }
             }

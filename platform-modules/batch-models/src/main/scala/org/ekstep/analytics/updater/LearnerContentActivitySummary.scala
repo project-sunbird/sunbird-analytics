@@ -19,11 +19,14 @@ case class LearnerContentActivity(learner_id: String, content_id: String, time_s
 object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.updater.LearnerContentActivitySummary"
+    
     private def average[T](ts: Iterable[T])(implicit num: Numeric[T]) = {
         num.toDouble(ts.sum) / ts.size
     }
 
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+        
+        JobLogger.debug("Execute method started", className)
         val filteredData = DataFilter.filter(DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY"))), Filter("uid", "ISNOTEMPTY", None));
 
         val activity = filteredData.map(event => (event.uid, Buffer(event)))
@@ -44,6 +47,8 @@ object LearnerContentActivitySummary extends IBatchModel[MeasuredEvent] with Ser
             }.flatMap { x => x };
         JobLogger.debug("Saving learner content summary data to DB", className)
         activity.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE);
+        
+        JobLogger.debug("Execute method ended", className)
         activity.map { x => JSONUtils.serialize(x) };
     }
 }

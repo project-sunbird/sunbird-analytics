@@ -210,12 +210,12 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.info("LearnerSessionSummary : execute method starting", className)
+        JobLogger.debug("Execute method started", className)
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
         val filteredData = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE")))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
-        JobLogger.debug("Fetching the Content and Item data from Learing Platform", className)
+        JobLogger.debug("Fetching the Content and Item data from Learning Platform", className)
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, "v2");
         JobLogger.debug("Broadcasting data to all worker nodes", className)
@@ -224,7 +224,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
         val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
-        JobLogger.debug("Doing Game Sessionization", className)
+        JobLogger.debug("Performing Game Sessionization", className)
         val gameSessions = getGameSessions(filteredData);
         val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
         val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
@@ -332,8 +332,8 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
         val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
 
-        JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
-        JobLogger.info("LearnerSessionSummary: execute method Ending", className)
+        JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvents", className)
+        JobLogger.debug("Execute method ended", className)
 
         sessionSummary.map(x => {
             getMeasuredEvent(x, configMapping.value);

@@ -10,14 +10,17 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double)
 case class ReducedContentDetails(content_id: String, transfer_count: Double, did: String, origin: String, ts: Long)
 
 object ContentSideloadingSummary extends IBatchModel[Event] with Serializable {
 
+    val className = "org.ekstep.analytics.model.ContentSideloadingSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("### Execute method started ###", className);
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_TRANSFER")));
         val filteredEvents = DataFilter.filter(DataFilter.filter(events, Filter("edata.eks.direction", "EQ", Option("IMPORT"))), Filter("edata.eks.datatype", "EQ", Option("CONTENT")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
@@ -53,7 +56,8 @@ object ContentSideloadingSummary extends IBatchModel[Event] with Serializable {
         }.cache();
 
         contentSideloadingSummary.map(x => x._2._1).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY)
-
+        
+        JobLogger.debug("### Execute method ended ###", className);
         contentSideloadingSummary.map { f =>
             getMeasuredEvent(f._2._1, configMapping.value, f._2._2);
         }.map { x => JSONUtils.serialize(x) };

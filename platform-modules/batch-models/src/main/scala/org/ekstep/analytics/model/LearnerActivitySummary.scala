@@ -29,10 +29,9 @@ case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Opt
 object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerActivitySummary"
-
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-        JobLogger.info("LearnerActivitySummary: execute method Starting", className)
-        JobLogger.debug("Filtering for ME_SESSION_SUMMARY events", className)
+        
+        JobLogger.debug("Execute method started", className)
         val filteredData = DataFilter.filter(events, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -56,7 +55,6 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val lastVisitTimeStamp = endTimestamp;
 
                 // Compute mean count and time spent of interact events grouped by type
-                //val interactSummaries = summaryEvents.map { x => x.getOrElse("activitySummary", Map()).asInstanceOf[Map[String, Map[String, AnyRef]]] }.filter(x => x.nonEmpty).flatMap(f => f.map { x => x }).map(f => (f._1, (f._2.get("count").get.asInstanceOf[Int], f._2.get("timeSpent").get.asInstanceOf[Double])));
                 val interactSummaries = summaryEvents.map { x => x.getOrElse("activitySummary", List()).asInstanceOf[List[Map[String, AnyRef]]] }.filter(x => x.nonEmpty).flatMap(f => f.map { x => x }).map(f => (f.get("actType").get.asInstanceOf[String], (f.get("count").get.asInstanceOf[Int], f.get("timeSpent").get.asInstanceOf[Double])));
                 val meanInteractSummaries = interactSummaries.groupBy(f => f._1).map(f => {
                     (f._1, average(f._2.map(f => f._2._1)), average(f._2.map(f => f._2._2)))
@@ -67,7 +65,6 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 val meanTimeSpent = average(summaryEvents.map { x => x.get("timeSpent").get.asInstanceOf[Double] });
                 val meanInterruptTime = average(summaryEvents.map { x => x.get("interruptTime").get.asInstanceOf[Double] });
 
-                //val totalTimeSpentOnPlatform = summaryEvents.map { x => x.getOrElse("timeSpent", 0d).asInstanceOf[Double] }.reduce((a, b) => a + b);
                 val totalTimeSpentOnPlatform = sortedEvents.map { x => CommonUtil.getTimeDiff(x.context.date_range.from, x.context.date_range.to).get }.sum;
 
                 val topKcontent = if (sortedGames.length > topK) sortedGames.take(topK).toArray else sortedGames.toArray;
@@ -87,10 +84,10 @@ object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
                 if (meanTimeBtwnGamePlays < 0) meanTimeBtwnGamePlays = 0;
 
                 (TimeSummary(Option(meanTimeSpent), Option(CommonUtil.roundDouble(meanTimeBtwnGamePlays, 2)), Option(meanActiveTimeOnPlatform), Option(meanInterruptTime), Option(totalTimeSpentOnPlatform), meanTimeSpentOnAnAct, Option(meanCountOfAct), numOfSessionsOnPlatform, lastVisitTimeStamp, mostActiveHrOfTheDay, topKcontent, startTimestamp, endTimestamp), DtRange(eventStartTimestamp, eventEndTimestamp));
-            }
+        }
 
-        JobLogger.debug("Serializing 'ME_LEARNER_ACTIVITY_SUMMARY' MeasuredEvent", className)
-        JobLogger.info("LearnerActivitySummary: execute method Ending", className)
+        JobLogger.debug("Serializing 'ME_LEARNER_ACTIVITY_SUMMARY' MeasuredEvents", className)
+        JobLogger.debug("Execute method ended", className)
         activity.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };

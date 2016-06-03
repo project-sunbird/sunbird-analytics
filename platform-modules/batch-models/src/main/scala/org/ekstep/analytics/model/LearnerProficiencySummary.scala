@@ -42,7 +42,6 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
 
     def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
         val itemId = item.get("itemId").get.asInstanceOf[String];
-        //val itemMC = item.getOrElse("mc", List()).asInstanceOf[List[String]]
         val itemMC = item.get("mc").get.asInstanceOf[List[String]]
         if (itemMC.isEmpty && itemMC.length == 0) {
             val itemConcept = itemMapping.get(itemId);
@@ -85,7 +84,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
 
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.info("LearnerProficiencySummary : execute method starting", className)
+        JobLogger.debug("Execute method started", className)
         JobLogger.debug("Filtering ME_SESSION_SUMMARY events", className)
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
 
@@ -98,7 +97,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
         val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
         val idSubMap: Map[String, String] = lpGameList.map { x => (x.identifier, x.subject) }.toMap;
 
-        JobLogger.debug("Finding the items with missing mc", className)
+        JobLogger.debug("Finding the items with missing concepts", className)
         val itemsWithMissingConcepts = filteredData.map { event =>
             val ir = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]];
             ir.filter(item => {
@@ -211,7 +210,7 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Seriali
 
         JobLogger.debug("Saving data to cassandra", className)
         lp.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
-        JobLogger.info("LearnerProficiencySummary : execute method ending", className)
+        JobLogger.debug("Execute method ended", className)
         lp.map(f => {
             getMeasuredEvent(f, configMapping.value);
         }).map { x => JSONUtils.serialize(x) };
