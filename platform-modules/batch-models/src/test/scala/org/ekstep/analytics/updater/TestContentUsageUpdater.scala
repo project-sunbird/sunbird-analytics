@@ -69,7 +69,7 @@ class TestContentUsageUpdater extends SparkSpec(null) {
 
         //Checking a aggregate value of daily summary of a week to the weekly summary  
         val dailySumm1 = grpUserFalse.filter { x => (x.d_period > 20160103 && x.d_period < 20160111) }
-        val weekly1 = grpUserFalse.filter { x => (x.d_period == 2016771) }.first()
+        val weekly1 = grpUserFalse.filter { x => (x.d_period == 20167701) }.first()
         dailySumm1.map(f => f.m_total_sessions).sum should be(weekly1.m_total_sessions)
         dailySumm1.map(f => f.m_total_ts).sum should be(weekly1.m_total_ts)
 
@@ -78,7 +78,7 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         allmonth.collect.size should be(4)
 
         // total count of weekly summaries
-        val allweek1 = grpUserFalse.filter { x => (x.d_period >= 2016771 && x.d_period <= 2016779) }.collect
+        val allweek1 = grpUserFalse.filter { x => (x.d_period >= 20167701 && x.d_period <= 20167709) }.collect
         val allweek2 = grpUserFalse.filter { x => (x.d_period > 20167710 && x.d_period < 20167730) }.collect
         (allweek1.size + allweek2.size + 1) should be(15)
 

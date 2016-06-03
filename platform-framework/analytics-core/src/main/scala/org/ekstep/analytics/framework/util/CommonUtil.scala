@@ -322,7 +322,7 @@ object CommonUtil {
         val d = new DateTime(syncts, DateTimeZone.UTC);
         period match {
             case DAY        => dayPeriod.print(d).toInt;
-            case WEEK       => (d.getWeekyear + "77" + d.getWeekOfWeekyear).toInt
+            case WEEK       => getWeekNumber(d.getWeekyear, d.getWeekOfWeekyear)
             case MONTH      => monthPeriod.print(d).toInt
             case CUMULATIVE => 0
             case LAST7      => 7
@@ -335,5 +335,14 @@ object CommonUtil {
         val from = new LocalDate(fromDate, DateTimeZone.UTC)
         val to = new LocalDate(toDate, DateTimeZone.UTC)
         Weeks.weeksBetween(from, to).getWeeks;
+    }
+
+    private def getWeekNumber(year: Int, weekOfWeekyear: Int): Int = {
+
+        if (weekOfWeekyear < 10) {
+            (year + "770" + weekOfWeekyear).toInt
+        } else {
+            (year + "77" + weekOfWeekyear).toInt
+        }
     }
 }
