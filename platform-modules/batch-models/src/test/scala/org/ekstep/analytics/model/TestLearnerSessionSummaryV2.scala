@@ -75,7 +75,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
         esMap.get("OE_END").get should be (1);
         esMap.get("OE_INTERACT").get should be (105);
         esMap.get("OE_NAVIGATE").get should be (6);
-        esMap.get("OE_INTERRUPT").get should be (2);
+        esMap.get("OE_INTERRUPT").get should be (3);
         
         val ssList = summary1.screenSummary.get
         val ssMap = ssList.map { x => (x.id,x.timeSpent) }.toMap

@@ -109,7 +109,7 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
-        JobLogger.debug("Deleting directory", className, Option(path))
+        JobLogger.debug("Deleting directory", className, Option(path.toString()))
         Files.walkFileTree(path, new Visitor());
     }
 
