@@ -38,7 +38,9 @@ object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
             val eventsSortedByDateRange = events._1.sortBy { x => x.context.date_range.from };
             val prevUsageSummary = events._2.getOrElse(UsageSummary(events._1.head.dimensions.did.get, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0));
             // checking whether the eventStartTime is before March 1st 2015
-            val eventStartTime = if(eventsSortedByDateRange.head.context.date_range.from < 1425168000000l) 1425168000000l else eventsSortedByDateRange.head.context.date_range.from
+            val tsInString = configMapping.value.getOrElse("startTime", "2015-03-01").asInstanceOf[String]
+            val ts = CommonUtil.getTimestamp(tsInString, CommonUtil.df4, "yyyy-MM-dd");
+            val eventStartTime = if(eventsSortedByDateRange.head.context.date_range.from < ts) ts else eventsSortedByDateRange.head.context.date_range.from
             val start_time = if (prevUsageSummary.start_time == 0) eventStartTime else if (eventStartTime > prevUsageSummary.start_time) prevUsageSummary.start_time else eventStartTime;
             val end_time = eventsSortedByTS.last.context.date_range.to
             val num_days: Long = CommonUtil.daysBetween(new LocalDate(start_time), new LocalDate(end_time))
