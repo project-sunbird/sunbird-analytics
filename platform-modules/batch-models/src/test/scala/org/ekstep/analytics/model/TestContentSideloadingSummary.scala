@@ -19,9 +19,9 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         val rdd2 = ContentSideloadingSummary.execute(rdd, None);
         val events = rdd2.collect
         events.length should be (2)
-        
         val event1 = JSONUtils.deserialize[MeasuredEvent](events(0));
         
+        event1.syncts should be (1459849146717l)
         event1.eid should be("ME_CONTENT_SIDELOADING_SUMMARY");
         event1.mid should be("56C7D87F4E861BD50E97076168607FBD");
         event1.context.pdata.model should be("ContentSideloadingSummary");
