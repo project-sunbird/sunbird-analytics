@@ -11,6 +11,8 @@ library(dplyr)
 #infile = "testFile.graphml"
 #infile = "funtoot_numeracy.graphml"
 infile = "funtoot_numeracy_1.2.xml"
+infile = "funtootNumeracy1.3.xml"
+infile = "usmovie.graphml"
 outfile = "funtoot_graph_metrics.csv"
 simulate.graph = FALSE
 
@@ -45,9 +47,9 @@ colnames(cmapFeatures) <- features
 # per node features
 
 # in degree
-cmapFeatures[,"indegree"] <- sna:::degree(A,"indegree")
+cmapFeatures[,"indegree"] <- sna:::degree(A,cmode="indegree",gmode="digraph")
 # out degree
-cmapFeatures[,"outdegree"] <- sna:::degree(A,"outdegree")
+cmapFeatures[,"outdegree"] <- sna:::degree(A,cmode="outdegree",gmode="digraph")
 
 # is the graph isolte w.r.t to each node (ego)
 cmapFeatures[,"is.conn"] <- sna:::is.isolate(A,1:n)
