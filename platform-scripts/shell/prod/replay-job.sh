@@ -10,22 +10,22 @@ job_config=$(config $1 '__endDate__')
 start_date=$2
 end_date=$3
 
-backup $start_date $end_date "sandbox-data-store" "$1" "backup-$1"
+backup $start_date $end_date "prod-data-store" "$1" "backup-$1" >> "logs/$end_date-$1-replay.log"
 if [ $? == 0 ]
  	then
-  	echo "Backup completed Successfully..."
-  	echo "Running the $1 job replay..."
-  	$SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ReplaySupervisor $MODELS_HOME/batch-models-1.0.jar --model "$1" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-$1-replay.log"
+  	echo "Backup completed Successfully..." >> "logs/$end_date-$1-replay.log"
+  	echo "Running the $1 job replay..." >> "logs/$end_date-$1-replay.log"
+  	$SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-0.5.jar --class org.ekstep.analytics.job.ReplaySupervisor $MODELS_HOME/batch-models-1.0.jar --model "$1" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" >> "logs/$end_date-$1-replay.log"
 else
-  	echo "Unable to take backup"
+  	echo "Unable to take backup" >> "logs/$end_date-$1-replay.log"
 fi
 
 if [ $? == 0 ]
 	then
-	echo "$1 replay executed successfully"
-	delete "sandbox-data-store" "backup-$1"
+	echo "$1 replay executed successfully" >> "logs/$end_date-$1-replay.log"
+	delete "prod-data-store" "backup-$1" >> "logs/$end_date-$1-replay.log"
 else
-	echo "$1 replay failed"
- 	rollback "sandbox-data-store" "$1" "backup-$1"
- 	delete "sandbox-data-store" "backup-$1"
+	echo "$1 replay failed" >> "logs/$end_date-$1-replay.log"
+ 	rollback "prod-data-store" "$1" "backup-$1" >> "logs/$end_date-$1-replay.log"
+ 	delete "prod-data-store" "backup-$1" >> "logs/$end_date-$1-replay.log"
 fi
