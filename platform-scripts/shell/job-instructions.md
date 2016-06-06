@@ -1,40 +1,40 @@
-## Replay Scripts ##
+## run Scripts ##
 
-**Replay Session Summarizer**
-nohup ./replay-job.sh "ss" "2016-01-01" "2016-05-31" &
+**run Session Summarizer**
+nohup ./run-job.sh "ss"
 
-**Replay Genie Launch Summarizer**
-nohup ./replay-job.sh "gls" "2016-01-01" "2016-05-31" &
+**run Genie Launch Summarizer**
+nohup ./run-job.sh "gls"
 
-**Replay Genie Session Summarizer**
-nohup ./replay-job.sh "gss" "2016-01-01" "2016-05-31" &
+**run Genie Session Summarizer**
+nohup ./run-job.sh "gss"
 
-**Replay Content Usage Summarizer**
-nohup ./replay-job.sh "cus" "2016-01-01" "2016-05-31" &
+**run Content Usage Summarizer**
+nohup ./run-job.sh "cus"
 
-**Replay Device Usage Summarizer**
-nohup ./replay-job.sh "dus" "2016-01-01" "2016-05-31" &
+**run Device Usage Summarizer**
+nohup ./run-job.sh "dus"
 
-**Replay Content Usage Updater**
-nohup ./replay-updater.sh "cuu" "2016-01-01" "2016-05-31" &
+**run Content Usage Updater**
+nohup ./run-job.sh "cus"
 
-**Replay Content Sideloading Summarizer**
-nohup ./replay-job.sh "css" "2016-01-01" "2016-05-31" &
+**run Content Sideloading Summarizer**
+nohup ./run-job.sh "css"
 
-**Replay Aser Screen Summarizer**
-nohup ./replay-job.sh "as" "2016-01-01" "2016-05-31" &
+**run Aser Screen Summarizer**
+nohup ./run-job.sh "as"
 
-**Replay Learner Activity Summarizer**
-nohup ./replay-job.sh "las" "2016-01-01" "2016-05-31" &
+**run Learner Activity Summarizer**
+nohup ./run-job.sh "las"
 
-**Replay Learner Snapshot Updater**
-nohup ./replay-updater.sh "ls" "2016-01-01" "2016-05-31" &
+**run Learner Snapshot Updater**
+nohup ./run-job.sh "ls"
 
-**Replay Learner Content Activity Updater**
-nohup ./replay-job.sh "lcas" "2016-01-01" "2016-05-31" &
+**run Learner Content Activity Updater**
+nohup ./run-job.sh "lcas"
 
-**Replay Learner Proficiency Updater**
-nohup ./replay-job.sh "lp" "2016-01-01" "2016-05-31" &
+**run Learner Proficiency Updater**
+nohup ./run-job.sh "lp"
 
-**Replay Learner Concept Relevance**
-nohup ./replay-job.sh "lcr" "2016-01-01" "2016-05-31" &
+**run Learner Concept Relevance**
+nohup ./run-job.sh "lcr"
