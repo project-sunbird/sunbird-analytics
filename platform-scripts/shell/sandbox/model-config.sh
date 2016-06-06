@@ -46,7 +46,7 @@ config() {
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceSpecification","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Device Specification Updater","deviceMapping":false}'
 		;;
 		"lpu")
-		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"__endDate__","delta":0}]},"model":"org.ekstep.analytics.updater.LearnerProfileUpdater","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Learner Profile Updater","deviceMapping":false}'
+		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.updater.LearnerProfileUpdater","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Learner Profile Updater","deviceMapping":false}'
 		;;
 		*)  
 		echo "Unknown model code" 
