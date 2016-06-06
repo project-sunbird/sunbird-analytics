@@ -10,6 +10,6 @@ today=$(date "+%Y-%m-%d")
 
 job_config=$(config $1)
 
-echo "Starting the job - $1" > "logs/$today-job-execution.log"
-nohup $SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-0.5.jar --class org.ekstep.analytics.job.JobExecutor $MODELS_HOME/batch-models-1.0.jar --model "$1" --config "$job_config" > "logs/$today-job-execution.log" 2>&1
-echo "Job execution completed - $1" > "logs/$today-job-execution.log"
+echo "Starting the job - $1" >> "logs/$today-job-execution.log"
+nohup $SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-0.5.jar --class org.ekstep.analytics.job.JobExecutor $MODELS_HOME/batch-models-1.0.jar --model "$1" --config "$job_config" >> "logs/$today-job-execution.log" 2>>&1
+echo "Job execution completed - $1" >> "logs/$today-job-execution.log"
