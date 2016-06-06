@@ -16,7 +16,7 @@ nohup ./replay-job.sh "cus" "2016-01-01" "2016-05-31" &
 nohup ./replay-job.sh "dus" "2016-01-01" "2016-05-31" &
 
 **Replay Content Usage Updater**
-nohup ./replay-updater.sh "cuu" "2016-01-01" "2016-05-31" &
+nohup ./replay-updater.sh "cuu" "2016-01-01" "2016-06-02" &
 
 **Replay Content Sideloading Summarizer**
 nohup ./replay-job.sh "css" "2016-01-01" "2016-05-31" &
