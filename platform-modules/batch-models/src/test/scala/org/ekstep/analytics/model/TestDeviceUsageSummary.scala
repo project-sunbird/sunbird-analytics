@@ -87,7 +87,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
   
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eks.get("num_days").get should be(410)
-        eks.get("start_time").get should be(1425148200000L)
+        eks.get("start_time").get should be(1425168000000L)
         eks.get("avg_time").get should be(0.07)
         eks.get("avg_num_launches").get should be(0.01)
         eks.get("end_time").get should be(1460627728979L)

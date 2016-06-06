@@ -42,14 +42,12 @@ import org.joda.time.Weeks
 object CommonUtil {
 
     val className = "org.ekstep.analytics.framework.util.CommonUtil"
-    @transient val df = new SimpleDateFormat("ssmmhhddMMyyyy");
-    @transient val df2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssXXX");
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();
     @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
     @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
-    @transient val df4: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
-    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
-    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
+    @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
+    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZoneUTC();
+    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZoneUTC();
 
     def getParallelization(config: JobConfig): Int = {
 
@@ -124,15 +122,15 @@ object CommonUtil {
     }
 
     def getStartDate(endDate: Option[String], delta: Int): Option[String] = {
-        val to = if (endDate.nonEmpty) df4.parseLocalDate(endDate.get) else LocalDate.fromDateFields(new Date);
+        val to = if (endDate.nonEmpty) dateFormat.parseLocalDate(endDate.get) else LocalDate.fromDateFields(new Date);
         Option(to.minusDays(delta).toString());
     }
 
     def getDatesBetween(fromDate: String, toDate: Option[String]): Array[String] = {
-        val to = if (toDate.nonEmpty) df4.parseLocalDate(toDate.get) else LocalDate.fromDateFields(new Date);
-        val from = df4.parseLocalDate(fromDate);
+        val to = if (toDate.nonEmpty) dateFormat.parseLocalDate(toDate.get) else LocalDate.fromDateFields(new Date);
+        val from = dateFormat.parseLocalDate(fromDate);
         val dates = datesBetween(from, to);
-        dates.map { x => df4.print(x) }.toArray;
+        dates.map { x => dateFormat.print(x) }.toArray;
     }
 
     def daysBetween(from: LocalDate, to: LocalDate): Int = {
@@ -314,7 +312,7 @@ object CommonUtil {
     }
 
     def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long): String = {
-        val key = Array(eventId, userId, df4.print(syncDate), granularity).mkString("|");
+        val key = Array(eventId, userId, dateFormat.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
