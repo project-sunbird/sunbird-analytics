@@ -6,8 +6,9 @@ import org.ekstep.analytics.framework.Event
 import org.apache.spark.SparkContext
 import optional.Application
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.IJob
 
-object DeviceSpecificationUpdater extends Application {
+object DeviceSpecificationUpdater extends Application with IJob {
   
     val className = "org.ekstep.analytics.job.DeviceSpecificationUpdater"
   

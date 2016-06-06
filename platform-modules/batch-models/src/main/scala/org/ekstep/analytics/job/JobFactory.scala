@@ -32,7 +32,11 @@ object JobFactory {
             case "dus" =>
                 DeviceUsageSummarizer
             case "css" =>
-                ContentSideloadingSummarizer    
+                ContentSideloadingSummarizer
+            case "lpu" =>
+                LearnerProfileUpdaterJob
+            case "dsu" =>
+                DeviceSpecificationUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
