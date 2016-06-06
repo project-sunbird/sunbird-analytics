@@ -8,7 +8,7 @@ import org.ekstep.analytics.framework.ProfileEvent
 import org.ekstep.analytics.updater.LearnerProfileUpdater
 import org.ekstep.analytics.framework.IJob
 
-object LearnerProfileUpdaterJob extends optional.Application {
+object LearnerProfileUpdaterJob extends optional.Application with IJob {
 
     val className = "org.ekstep.analytics.job.LearnerProfileUpdaterJob"
   
