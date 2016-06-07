@@ -47,8 +47,7 @@ object JobDriver {
                 throw e;
         }
         val t2 = System.currentTimeMillis;
-        JobLogger.info(t + " job completed", className)
-        JobLogger.info("Time taken to compute in seconds", className, Option(Double.box((t2 - t1) / 1000)))
+        JobLogger.info(t + " job completed", className, Option(Map("timeTaken" -> Double.box((t2 - t1) / 1000))))
     }
 
 }

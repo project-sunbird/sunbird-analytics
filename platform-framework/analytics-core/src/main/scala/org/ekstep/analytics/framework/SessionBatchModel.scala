@@ -4,6 +4,7 @@ import org.apache.spark.rdd.RDD
 import scala.collection.mutable.Buffer
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -11,7 +12,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 trait SessionBatchModel[T] extends IBatchModel[T] {
 
     def getGameSessions(data: RDD[Event]): RDD[(String, Buffer[Event])] = {
-        data.filter { x => x.uid != null }
+        data.filter { x => x.uid != null && x.gdata.id != null }
             .map(event => (event.uid, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>

@@ -35,7 +35,8 @@ object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializab
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
 
-        val sessionEvents = DataFilter.filter(data, Array(Filter("sessionId", "ISNOTEMPTY", None), Filter("sessionId", "ISNOTNULL", None)))
+        //val sessionEvents = data.filter { x => (!"".equals(x.sid) && x.sid!=null) }
+        val sessionEvents = DataFilter.filter(data, Array(Filter("sid", "ISNOTEMPTY"), Filter("uid", "ISNOTEMPTY")));
         val genieSessions = getGenieSessions(sessionEvents, idleTime);
 
         val gsSummary = genieSessions.mapValues { x =>
@@ -46,7 +47,7 @@ object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializab
             val endTimestamp = CommonUtil.getEventTS(gsEnd)
             val dtRange = DtRange(startTimestamp, endTimestamp);
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
-            val content = x.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.distinct
+            val content = x.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.filter { x => x != null }.distinct
             Summary(gsStart.sid, gsStart.did, gsStart.uid, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(gsStart.tags), dtRange)
         }.filter { x => (x._2.timeSpent >= 0) }.map { x =>
             val summ = x._2

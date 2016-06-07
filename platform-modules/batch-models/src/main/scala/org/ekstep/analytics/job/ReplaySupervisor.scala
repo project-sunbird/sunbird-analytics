@@ -17,7 +17,8 @@ object ReplaySupervisor extends Application {
     val className = "org.ekstep.analytics.job.ReplaySupervisor"
 
     def main(model: String, fromDate: String, toDate: String, config: String) {
-        JobLogger.debug("Started executing ReplaySupervisor", className)
+        val t1 = System.currentTimeMillis;
+        JobLogger.info("Started executing ReplaySupervisor", className)
         val con = JSONUtils.deserialize[JobConfig](config)
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
         try {
@@ -25,7 +26,8 @@ object ReplaySupervisor extends Application {
         } finally {
             CommonUtil.closeSparkContext()(sc);
         }
-        JobLogger.debug("Replay Supervisor completed.", className)
+        val t2 = System.currentTimeMillis;
+        JobLogger.info("Replay Supervisor completed.", className, Option(Map("timeTaken" -> Double.box((t2 - t1) / 1000))));
     }
 
     def execute(model: String, fromDate: String, toDate: String, config: String)(implicit sc: SparkContext) {
@@ -46,7 +48,8 @@ object ReplaySupervisor extends Application {
                 }
                 case ex: Exception => {
                     JobLogger.error("### Error executing replay for the date - " + date + " | Model - " + model + " ###", className, ex);
-                    throw ex;
+                    println("Error executing replay for the date - " + date + " | Model - " + model + " | Exception - " + ex.getMessage);
+                    ex.printStackTrace()
                 }
             }
         }
