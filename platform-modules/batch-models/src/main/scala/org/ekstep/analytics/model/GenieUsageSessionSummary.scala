@@ -19,6 +19,8 @@ import org.ekstep.analytics.updater.LearnerProfile
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.LearnerId
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.Filter
 
 case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange, learner_id: String, did: String)
 case class Summary(sid: String, did: String, learner_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
@@ -33,7 +35,7 @@ object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializab
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
 
-        val sessionEvents = data.filter { x => (!"".equals(x.sid) && x.sid!=null) }
+        val sessionEvents = DataFilter.filter(data, Array(Filter("sessionId", "ISNOTEMPTY", None), Filter("sessionId", "ISNOTNULL", None)))
         val genieSessions = getGenieSessions(sessionEvents, idleTime);
 
         val gsSummary = genieSessions.mapValues { x =>
