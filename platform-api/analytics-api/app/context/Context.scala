@@ -12,6 +12,7 @@ object Context {
         Logger.info("Starting spark context")
         val conf = new SparkConf().setAppName("AnalyticsAPIEngine");
         val master = conf.getOption("spark.master");
+        // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
             Logger.info("Master not found. Setting it to local[*]")
             conf.setMaster("local[*]");
@@ -19,6 +20,7 @@ object Context {
         if (!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", play.Play.application.configuration.getString("spark.cassandra.connection.host"))
         }
+        // $COVERAGE-ON$
         sc = new SparkContext(conf);
         Logger.info("Spark context started")
     }
