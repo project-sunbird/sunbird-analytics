@@ -76,7 +76,7 @@ class TestReplaySupervisor extends BaseSpec {
         ReplaySupervisor.main("lp", "2015-09-02", "2015-09-02", JSONUtils.serialize(config));
     }
 
-    the[Exception] thrownBy {
+    it should "throw Exception" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/__endDate__*"))))), None, None, "org.ekstep.analytics.model.LearnerActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), None, Option(false))
         ReplaySupervisor.main("lp", "2015-09-02", "2015-09-02", JSONUtils.serialize(config))
     }
