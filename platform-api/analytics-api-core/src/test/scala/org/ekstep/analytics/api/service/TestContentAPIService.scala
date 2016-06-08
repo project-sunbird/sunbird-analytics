@@ -192,26 +192,110 @@ class TestContentAPIService extends SparkSpec {
     }
     
     it should "fetch data for the past 7 days filtered by group user" in {
+        val request = """ {"id": "ekstep.analytics.contentusagesummary", "ver": "1.0", "ts": "YYYY-MM-DDThh:mm:ssZ+/-nn.nn", "request": {"filter":{"group_user":true},"trend":{"day":7},"summaries":["day"]} } """
+        val response = ContentAPIService.getContentUsageMetrics("org.ekstep.test123", request);
+        val result = JSONUtils.deserialize[Response](response).result.get;
+        val trends = result.get("trend").get.asInstanceOf[Map[String, List[Map[String, AnyRef]]]];
+        trends.get("day").get.size should be (1);
+        trends.get("week").get.size should be (0);
+        trends.get("month").get.size should be (0);
         
+        val dailyTrendMap = trends.get("day").get.map(f => (f.get("period").get.asInstanceOf[Int], f)).toMap;
+        dailyTrendMap.get(20160601) should be (None);
+        dailyTrendMap.get(20160531) should be (None);
+        
+        dailyTrendMap.get(20160602).get.get("avg_ts_session").get should be (55);
+        dailyTrendMap.get(20160602).get.get("total_sessions").get should be (2);
+        dailyTrendMap.get(20160602).get.get("avg_interactions_min").get should be (5.45);
+        dailyTrendMap.get(20160602).get.get("total_interactions").get should be (10);
+        dailyTrendMap.get(20160602).get.get("total_ts").get should be (110);
+        
+        val summaries = result.get("summaries").get.asInstanceOf[Map[String, Map[String, AnyRef]]];
+        summaries.get("week") should be (None);
+        summaries.get("month") should be (None);
+        summaries.get("cumulative") should be (None);
+        summaries.get("day").get.get("avg_ts_session").get should be (55);
+        summaries.get("day").get.get("total_sessions").get should be (2);
+        summaries.get("day").get.get("avg_interactions_min").get should be (5.45);
+        summaries.get("day").get.get("total_interactions").get should be (10);
+        summaries.get("day").get.get("total_ts").get should be (110);
     }
     
     it should "fetch data for the past 7 days filtered by individual user" in {
-        val request = """ {"id": "ekstep.analytics.contentusagesummary", "ver": "1.0", "ts": "YYYY-MM-DDThh:mm:ssZ+/-nn.nn", "request": {"filter":{"group_user":false},"trend":{"day":7}} } """
+        
+        val request = """ {"id": "ekstep.analytics.contentusagesummary", "ver": "1.0", "ts": "YYYY-MM-DDThh:mm:ssZ+/-nn.nn", "request": {"filter":{"group_user":false},"trend":{"day":7},"summaries":["cumulative"]} } """
         val response = ContentAPIService.getContentUsageMetrics("org.ekstep.test123", request);
         val result = JSONUtils.deserialize[Response](response).result.get;
-        println(JSONUtils.serialize(result));
         val trends = result.get("trend").get.asInstanceOf[Map[String, List[Map[String, AnyRef]]]];
         trends.get("day").get.size should be (3);
         trends.get("week").get.size should be (0);
         trends.get("month").get.size should be (0);
-    }
-    
-    it should "fetch data for the past 30 days and 5 months" in {
         
+        val dailyTrendMap = trends.get("day").get.map(f => (f.get("period").get.asInstanceOf[Int], f)).toMap;
+        dailyTrendMap.get(20160601) should be (None);
+        dailyTrendMap.get(20160530) should be (None);
+        
+        dailyTrendMap.get(20160531).get.get("avg_ts_session").get should be (2.4);
+        dailyTrendMap.get(20160531).get.get("total_sessions").get should be (5);
+        dailyTrendMap.get(20160531).get.get("avg_interactions_min").get should be (20);
+        dailyTrendMap.get(20160531).get.get("total_interactions").get should be (0);
+        dailyTrendMap.get(20160531).get.get("total_ts").get should be (12);
+        
+        val summaries = result.get("summaries").get.asInstanceOf[Map[String, Map[String, AnyRef]]];
+        summaries.get("day") should be (None);
+        summaries.get("month") should be (None);
+        summaries.get("week") should be (None);
+        
+        summaries.get("cumulative").get.get("avg_ts_week").get should be (2458.7619047619046);
+        summaries.get("cumulative").get.get("avg_ts_session").get should be (151.41935483870967);
+        summaries.get("cumulative").get.get("total_sessions").get should be (341);
+        summaries.get("cumulative").get.get("avg_interactions_min").get should be (21.25);
+        summaries.get("cumulative").get.get("total_interactions").get should be (18285);
+        summaries.get("cumulative").get.get("total_ts").get should be (51634);
+        summaries.get("cumulative").get.get("avg_sessions_week").get should be (16.238095238095237);
     }
+
     
     it should "return last 1 year summmaries aggregated monthly" in {
         
+        val request = """ {"id": "ekstep.analytics.contentusagesummary", "ver": "1.0", "ts": "YYYY-MM-DDThh:mm:ssZ+/-nn.nn", "request": {"trend":{"month":12},"summaries":["month","cumulative"]} } """
+        val response = ContentAPIService.getContentUsageMetrics("org.ekstep.test123", request);
+        val result = JSONUtils.deserialize[Response](response).result.get;
+        val trends = result.get("trend").get.asInstanceOf[Map[String, List[Map[String, AnyRef]]]];
+        trends.get("day").get.size should be (0);
+        trends.get("week").get.size should be (0);
+        trends.get("month").get.size should be (6);
+        
+        val monthlyTrendMap = trends.get("month").get.map(f => (f.get("period").get.asInstanceOf[Int], f)).toMap;
+        monthlyTrendMap.get(201512) should be (None);
+        
+        monthlyTrendMap.get(201605).get.get("avg_ts_week").get should be (3307.6);
+        monthlyTrendMap.get(201605).get.get("avg_ts_session").get should be (258.40625);
+        monthlyTrendMap.get(201605).get.get("total_sessions").get should be (64);
+        monthlyTrendMap.get(201605).get.get("avg_interactions_min").get should be (21.33);
+        monthlyTrendMap.get(201605).get.get("total_interactions").get should be (5879);
+        monthlyTrendMap.get(201605).get.get("total_ts").get should be (16538);
+        monthlyTrendMap.get(201605).get.get("avg_sessions_week").get should be (12.8);
+        
+        val summaries = result.get("summaries").get.asInstanceOf[Map[String, Map[String, AnyRef]]];
+        summaries.get("day") should be (None);
+        summaries.get("week") should be (None);
+        
+        summaries.get("month").get.get("avg_ts_week").get should be (2464);
+        summaries.get("month").get.get("avg_ts_session").get should be (150.41860465116278);
+        summaries.get("month").get.get("total_sessions").get should be (344);
+        summaries.get("month").get.get("avg_interactions_min").get should be (21.21);
+        summaries.get("month").get.get("total_interactions").get should be (18295);
+        summaries.get("month").get.get("total_ts").get should be (51744);
+        summaries.get("month").get.get("avg_sessions_week").get should be (16.38095238095238);
+        
+        summaries.get("cumulative").get.get("avg_ts_week").get should be (2464);
+        summaries.get("cumulative").get.get("avg_ts_session").get should be (150.41860465116278);
+        summaries.get("cumulative").get.get("total_sessions").get should be (344);
+        summaries.get("cumulative").get.get("avg_interactions_min").get should be (21.21);
+        summaries.get("cumulative").get.get("total_interactions").get should be (18295);
+        summaries.get("cumulative").get.get("total_ts").get should be (51744);
+        summaries.get("cumulative").get.get("avg_sessions_week").get should be (16.38095238095238);
     }
   
 }
