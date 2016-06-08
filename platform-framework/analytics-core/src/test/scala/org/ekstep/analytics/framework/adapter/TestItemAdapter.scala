@@ -78,7 +78,6 @@ class TestItemAdapter extends BaseSpec {
     
     it should "return item concepts and max score" in {
         val item1 = ItemAdapter.getItemConceptMaxScore("numeracy_382", "q_3_s_gujarati", "v1");
-        println("item1", item1.concepts.mkString(","));
         item1 should not be (null);
         item1.concepts should be (Array("LO50"));
         item1.maxScore should be (1);
