@@ -1,5 +1,6 @@
 import sbt._
 import sbt.Keys._
+import play.sbt.PlayImport.
 
 object ApplicationBuild extends Build {
 
