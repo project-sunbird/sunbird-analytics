@@ -15,6 +15,7 @@ object Application extends Controller {
         try {
             val body: String = Json.stringify(request.body.asJson.get); 
             val response = ContentAPIService.getContentUsageMetrics(contentId, body)(Context.sc);
+            play.Logger.info(request + " body - " + body + "\n\t => " + response)
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");    
         } catch {
             case ex: Exception =>
