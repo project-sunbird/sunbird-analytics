@@ -10,4 +10,4 @@ today=$(date "+%Y-%m-%d")
 
 job_config=$(config $1)
 
-$SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-0.5.jar --class org.ekstep.analytics.job.JobExecutor $MODELS_HOME/batch-models-1.0.jar --model "$1" --config "$job_config" > "logs/$today-job-execution.log"
+$SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-1.0.jar --class org.ekstep.analytics.job.JobExecutor $MODELS_HOME/batch-models-1.0.jar --model "$1" --config "$job_config" > "logs/$today-job-execution.log"
