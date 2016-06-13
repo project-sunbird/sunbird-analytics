@@ -1,5 +1,8 @@
 import sbt._
-import sbt.Keys._
+import Keys._
+import play.Play.autoImport._
+import PlayKeys._
+import play.sbt._
 
 object ApplicationBuild extends Build {
 
@@ -8,7 +11,7 @@ object ApplicationBuild extends Build {
             version := Pom.version(baseDirectory.value),
             libraryDependencies ++= Pom.dependencies(baseDirectory.value))
 
-    val root = play.Project("analytics-api", path = file("analytics-api"))
+    val root = Project("analytics-api", file("analytics-api"))
         .dependsOn(core)
         .settings(
             version := Pom.version(baseDirectory.value),

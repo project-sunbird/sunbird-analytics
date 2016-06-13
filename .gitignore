@@ -11,3 +11,4 @@ platform-scripts/orchestrator/node_modules
 node_modules/
 platform-viz/viz-player
 joblog.log
+platform-api/repository

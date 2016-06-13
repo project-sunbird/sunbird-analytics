@@ -9,6 +9,9 @@ nohup ./run-job.sh "gls"
 **run Genie Session Summarizer**
 nohup ./run-job.sh "gss"
 
+**run Content Sideloading Summarizer**
+nohup ./run-job.sh "css"
+
 **run Content Usage Summarizer**
 nohup ./run-job.sh "cus"
 
@@ -17,9 +20,6 @@ nohup ./run-job.sh "dus"
 
 **run Content Usage Updater**
 nohup ./run-job.sh "cus"
-
-**run Content Sideloading Summarizer**
-nohup ./run-job.sh "css"
 
 **run Aser Screen Summarizer**
 nohup ./run-job.sh "as"

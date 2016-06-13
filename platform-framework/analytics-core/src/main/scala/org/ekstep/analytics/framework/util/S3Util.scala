@@ -25,7 +25,7 @@ object S3Util {
         val s3Object = new S3Object(new File(filePath));
         s3Object.setKey(key)
         val fileObj = s3Service.putObject(bucketName, s3Object);
-        Console.println("ETag - " + fileObj.getETag);
+        JobLogger.debug("File upload successful", className, Option(Map("etag" -> fileObj.getETag)));
     }
 
     /*
@@ -35,12 +35,11 @@ object S3Util {
         val acl = new AccessControlList();
         acl.setOwner(bucketAcl.getOwner);
         acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ);
-        Console.println("### Uploading file to S3. Bucket - " + bucketName + " | FilePath - " + filePath + " | Key - " + key + " ###")
         val s3Object = new S3Object(new File(filePath));
         s3Object.setKey(key)
         s3Object.setAcl(acl);
         val fileObj = s3Service.putObject(bucketName, s3Object);
-        Console.println("ETag - " + fileObj.getETag);
+        JobLogger.debug("File upload successful", className, Option(Map("etag" -> fileObj.getETag)));
     }
 
     def getMetadata(bucketName: String, key: String) {
