@@ -55,13 +55,13 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val out = rdd01.collect();
         out.length should be(1)
         val event1 = JSONUtils.deserialize[MeasuredEvent](out(0));
-        event1.mid should be ("8A749DA5439E8AD3C96303D44D557A38");
+        event1.mid should be ("408D620EDDFE92D28BB87F88F90F1894");
         event1.syncts should be (1453207670750L);
 
         val out1 = rdd11.collect();
         out1.length should be(1)
         val event2 = JSONUtils.deserialize[MeasuredEvent](out1(0));
-        event2.mid should be ("8A749DA5439E8AD3C96303D44D557A38");
+        event2.mid should be ("408D620EDDFE92D28BB87F88F90F1894");
         event2.syncts should be (1453207670750L);
     }
 
