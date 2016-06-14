@@ -134,7 +134,7 @@
 					<scalaVersion>${scala.version}</scalaVersion>
 					<aggregate>true</aggregate>
 					<highlighting>true</highlighting>
-					<excludedFiles>.*routes_reverseRouting.*;.*routes_routing.*</excludedFiles>
+					<excludedFiles>.*RoutesPrefix.*;.*Routes.*;.*ReverseRoutes.*</excludedFiles>
 				</configuration>
 			</plugin>
 		</plugins>
