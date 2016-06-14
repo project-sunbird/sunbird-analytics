@@ -20,13 +20,13 @@
 
 Checkout analytics platform code - `https://github.com/ekstep/Learning-Platform-Analytics`
 
->1. Create keyspaces and tables in cassandra
+**1) Create keyspaces and tables in cassandra**
 
 ```sh
 $CASSANDRA_HOME/bin/cqlsh -f Learning-Platform-Analytics/platform-scripts/database/data.cql
 ```
 
->2. Build analytics framework
+**2) Build analytics framework**
 
 ```sh
 cd Learning-Platform-Analytics/platform-framework
@@ -37,7 +37,7 @@ mvn scoverage:report # Generate code coverage report
 Learning-Platform-Analytics/platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar
 ```
 
->3. Build data products
+**3) Build data products**
 
 ```sh
 cd Learning-Platform-Analytics/platform-modules
@@ -48,7 +48,6 @@ mvn scoverage:report # Generate code coverage report
 Learning-Platform-Analytics/platform-modules/batch-models/target/batch-models-1.0.jar
 ```
 
->4. Ansible scripts to set environment related variables in the shell scripts located at `Learning-Platform-Analytics/platform-scripts/shell/deploy` >TODO: This needs to be done
 
 ### Deploy ###
 
@@ -70,7 +69,7 @@ Learning-Platform-Analytics/platform-modules/batch-models/target/batch-models-1.
 
 Checkout analytics platform code - `https://github.com/ekstep/Learning-Platform-Analytics`
 
->1. Build API
+**1) Build API**
 
 ```sh
 cd Learning-Platform-Analytics/platform-api
