@@ -1,4 +1,4 @@
-## One click deployment of Data Products ##
+## Data Products - One Click Deployment ##
 
 ### Setup ###
 
@@ -8,17 +8,16 @@
 4. Setup SPARK_HOME to as `/home/ec2-user/spark-1.5.2-bin-hadoop2.3`
 5. Add `$SPARK_HOME/bin` to the `$PATH`
 6. Add the aws keys to the `/etc/environment`. Key names are `aws_key` and `aws_secret`.
-7. Mount the EBS volume to `/mnt/data`.
-8. Create directory `analytics` under `/mnt/data`
-9. Download cassandra from `http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz`
-10. Extract cassandra to `/mnt/data/analytics/apache-cassandra-2.2.6`
-11. Setup CASSANDRA_HOME to as `/mnt/data/analytics/apache-cassandra-2.2.6`
-12. Add `$CASSANDRA_HOME/bin` to the `$PATH`
-13. Start cassandra service - `$CASSANDRA_HOME/bin/cassandra &`
+7. Create directory `/mnt/data/analytics/api` - Access should be to the home user
+8. Download cassandra from `http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz`
+9. Extract cassandra to `/mnt/data/analytics/apache-cassandra-2.2.6`
+10. Setup CASSANDRA_HOME to as `/mnt/data/analytics/apache-cassandra-2.2.6`
+11. Add `$CASSANDRA_HOME/bin` to the `$PATH`
+12. Start cassandra service - `$CASSANDRA_HOME/bin/cassandra &`
 
 ### Build ###
 
-Checkout analytics platform code - `https://github.com/ekstep/Learning-Platform-Analytics`
+Checkout analytics platform code - `https://github.com/ekstep/Learning-Platform-Analytics.git`
 
 **1) Create keyspaces and tables in cassandra**
 
@@ -58,7 +57,7 @@ Learning-Platform-Analytics/platform-modules/batch-models/target/batch-models-1.
 
 ***
 
-## One click deployment of Analytics API ##
+## Analytics API - One Click Deployment ##
 
 ### Setup ###
 
@@ -67,7 +66,7 @@ Learning-Platform-Analytics/platform-modules/batch-models/target/batch-models-1.
 
 ### Build ###
 
-Checkout analytics platform code - `https://github.com/ekstep/Learning-Platform-Analytics`
+Checkout analytics platform code - `https://github.com/ekstep/Learning-Platform-Analytics.git`
 
 **1) Build API**
 
@@ -93,10 +92,47 @@ Learning-Platform-Analytics/platform-api/analytics-api/target/dist/analytics-api
 ***
 
 
-## One click deployment of Secor ##
+## Secor - One Click Deployment ##
 
-### Software Setup ###
+### Setup ###
 
-1. Install JDK 8
-2. 
+1. Install JDK 7
+2. Create directories `/mnt/secor-raw`, `/mnt/secor-me` and `/mnt/secor` - Access should be to the home user (ec2-user or ubuntu)
 
+### Build ###
+
+1. Checkout secor code - `https://github.com/canopusconsulting/secor.git`
+2. Checkout analytics platform code - `https://github.com/ekstep/Learning-Platform-Analytics.git`
+3. Copy `Learning-Platform-Analytics/platform-scripts/secor` and `secor` to a build directory
+
+**1) Build secor for raw telemetry sync**
+
+```sh
+./build-secor.sh <evnironment> raw_telemetry secor
+
+# Location of the Artifact
+secor/target/secor-0.2-SNAPSHOT-bin.tar.gz
+```
+
+**2) Build secor for derived telemetry sync**
+
+```sh
+./build-secor.sh <evnironment> analytics secor
+
+# Location of the Artifact
+secor/target/secor-0.2-SNAPSHOT-bin.tar.gz
+```
+
+### Deploy ###
+
+**1) Deploy Secor for raw telemetry sync**
+
+1. Copy `secor-0.2-SNAPSHOT-bin.tar.gz` to `/mnt/secor/deploy`
+2. Extract the tar file to `secor-raw` directory `tar -zxvf secor-0.2-SNAPSHOT-bin.tar.gz -C secor-raw`
+3. Start the secor process from `secor-raw` directory using the command - `nohup java -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.<env>.properties -Dconfig=secor.<env>.partition.properties -cp secor-raw/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &`
+
+**2) Deploy Secor for derived telemetry sync**
+
+1. Copy `secor-0.2-SNAPSHOT-bin.tar.gz` to `/mnt/secor/deploy`
+2. Extract the tar file to `secor-me` directory `tar -zxvf secor-0.2-SNAPSHOT-bin.tar.gz -C secor-me`
+3. Start the secor process from `secor-me` directory using the command - `nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.<env>.properties -Dconfig=secor.<env>.partition.properties -cp secor-me/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &`
