@@ -108,7 +108,7 @@ Learning-Platform-Analytics/platform-api/analytics-api/target/dist/analytics-api
 **1) Build secor for raw telemetry sync**
 
 ```sh
-./build-secor.sh <evnironment> raw_telemetry secor
+./build-secor.sh <environment> raw_telemetry secor
 
 # Location of the Artifact
 secor/target/secor-0.2-SNAPSHOT-bin.tar.gz
@@ -117,7 +117,7 @@ secor/target/secor-0.2-SNAPSHOT-bin.tar.gz
 **2) Build secor for derived telemetry sync**
 
 ```sh
-./build-secor.sh <evnironment> analytics secor
+./build-secor.sh <environment> analytics secor
 
 # Location of the Artifact
 secor/target/secor-0.2-SNAPSHOT-bin.tar.gz
