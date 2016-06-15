@@ -77,7 +77,7 @@ mvn scoverage:report # Generate code coverage report
 mvn play2:dist -pl analytics-api # To generate artifact
 
 # Location of the Artifact
-Learning-Platform-Analytics/platform-api/analytics-api/target/dist/analytics-api-1.0-dist.zip
+Learning-Platform-Analytics/platform-api/analytics-api/target/analytics-api-1.0-dist.zip
 ```
 
 ### Deploy ###
