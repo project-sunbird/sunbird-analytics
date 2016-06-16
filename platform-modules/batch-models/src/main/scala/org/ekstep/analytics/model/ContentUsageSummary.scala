@@ -17,13 +17,16 @@ import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentUsageMetrics(total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String)
 
 object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
 
+    val className = "org.ekstep.analytics.model.ContentUsageSummary"
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("### Execute method started ###", className);
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
 
@@ -31,7 +34,7 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
         val contentSessions = filteredEvents.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val content_id = event.dimensions.gdata.get.id
-            val group_user = eksMap.get("groupUser").get.asInstanceOf[Boolean]
+            val group_user = event.dimensions.group_user.get
             ((content_id, group_user), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
 
@@ -51,10 +54,12 @@ object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable 
             (ContentUsageMetrics(total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type), date_range)
         }
 
+        JobLogger.debug("### Execute method ended ###", className);
         contentUsage.map { f =>
             getMeasuredEvent((f._1._1, f._1._2, f._2._1), configMapping.value, f._2._2);
         }.map { x => JSONUtils.serialize(x) };
     }
+    
     private def getMeasuredEvent(contentSumm: (String, Boolean, ContentUsageMetrics), config: Map[String, AnyRef], dtRange: DtRange): MeasuredEvent = {
 
         val contentUsage = contentSumm._3

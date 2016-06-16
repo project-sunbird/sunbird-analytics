@@ -55,13 +55,13 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val out = rdd01.collect();
         out.length should be(1)
         val event1 = JSONUtils.deserialize[MeasuredEvent](out(0));
-        event1.mid should be ("8A749DA5439E8AD3C96303D44D557A38");
+        event1.mid should be ("408D620EDDFE92D28BB87F88F90F1894");
         event1.syncts should be (1453207670750L);
 
         val out1 = rdd11.collect();
         out1.length should be(1)
         val event2 = JSONUtils.deserialize[MeasuredEvent](out1(0));
-        event2.mid should be ("8A749DA5439E8AD3C96303D44D557A38");
+        event2.mid should be ("408D620EDDFE92D28BB87F88F90F1894");
         event2.syncts should be (1453207670750L);
     }
 
@@ -76,9 +76,6 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/emptyMC_test.log");
         val rdd2 = LearnerProficiencySummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         var out = rdd2.collect();
-        /*for (e <- out) {
-            println(e)
-        }*/
         out.length should be(2)
     }
 
@@ -95,7 +92,6 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         out.length should be(1)
 
         val event = JSONUtils.deserialize[MeasuredEvent](out(0));
-        //val profs = JSONUtils.deserialize[Buffer[ProficiencySummary]](JSONUtils.serialize(event.edata.eks));
         val profsList = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("proficiencySummary").get.asInstanceOf[List[Map[String,AnyRef]]];
         profsList.size should be(22);
         val profs = profsList.map { x => (x.get("conceptId").get.asInstanceOf[String], x.get("proficiency").get.asInstanceOf[Double]) }.toMap

@@ -10,16 +10,12 @@ import context.Context
 
 object Application extends Controller {
     
-    def index = Action {
-        println("###### Index invoked ####");
-        Ok("Hello World!")
-    }
-
     def contentUsageMetrics(contentId: String) = Action { implicit request =>
         
         try {
-            val body: String = if(request.body.asText.isEmpty) Json.stringify(request.body.asJson.get) else request.body.asText.get; 
+            val body: String = Json.stringify(request.body.asJson.get); 
             val response = ContentAPIService.getContentUsageMetrics(contentId, body)(Context.sc);
+            play.Logger.info(request + " body - " + body + "\n\t => " + response)
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");    
         } catch {
             case ex: Exception =>

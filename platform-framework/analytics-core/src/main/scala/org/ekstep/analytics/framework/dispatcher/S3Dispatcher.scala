@@ -5,11 +5,14 @@ import org.ekstep.analytics.framework.util.S3Util
 import java.io.FileWriter
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.JobLogger
 
 /**
  * @author Santhosh
  */
 object S3Dispatcher extends IDispatcher {
+    
+    val className = "org.ekstep.analytics.framework.dispatcher.S3Dispatcher"
     
     @throws(classOf[DispatcherException])
     def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String] = {
@@ -20,7 +23,10 @@ object S3Dispatcher extends IDispatcher {
         val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
         
         if (null == bucket || null == key) {
-            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to S3");
+            val msg = "'bucket' & 'key' parameters are required to send output to S3"
+            val exp = new DispatcherException(msg)
+            JobLogger.error(msg, className, exp)
+            throw exp;
         }
         var deleteFile = false;
         if (null == filePath) {

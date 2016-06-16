@@ -16,10 +16,9 @@ class TestLearnerSessionSummarizer extends SparkSpec(null) {
         LearnerSessionSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
     
-    ignore should "execute LearnerSessionSummary job fetching data from local file" in {
+    ignore should "execute LearnerSessionSummary job fetching data from s3 prof file" in {
 
-        val config = JobConfig(
-                Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("/Users/Santhosh/ekStep/telemetry_dump/219bdc84-d8a2-41df-b769-016ead916846.log"))))), None, null, "org.ekstep.analytics.model.LearnerSessionSummary", Option(Map("apiVersion" -> "v2")), Option(Array(Dispatcher("file", Map("file" -> "output.log")))), Option(10), Option("TestLearnerSessionSummarizer"), Option(true))
+        val config = JobConfig(Fetcher("S3", None, Option(Array(Query(Option("prod-data-store"), Option("raw/"), None, Option("2016-05-10"), Option(0), None, None, None, None, None)))), None, null, "org.ekstep.analytics.model.LearnerSessionSummary", Option(Map("apiVersion" -> "v2")), Option(Array(Dispatcher("file", Map("file" -> "output.log")))), Option(10), Option("TestLearnerSessionSummarizer"), Option(true))
         LearnerSessionSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
 }

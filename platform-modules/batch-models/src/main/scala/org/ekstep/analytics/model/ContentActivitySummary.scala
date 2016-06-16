@@ -17,15 +17,17 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.apache.spark.HashPartitioner
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentSummary(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type: String, mime_type: String)
 
 object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
 
+    val className = "org.ekstep.analytics.model.ContentActivitySummary"
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        println("### Running the model ContentSummary ###");
+        JobLogger.debug("### Execute method started ###", className);
         val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -83,6 +85,8 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializab
 
         val rdd = sc.parallelize(Array(ContentMetrics("content", topContentByTime.map { x => (x.content_id, x.total_ts) }.toMap, topContentBySessions.map { x => (x.content_id, x.total_num_sessions) }.toMap)), 1);
         rdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_METRICS_TABLE);
+        
+        JobLogger.debug("### Execute method ended ###", className);
         contentSummary.map(f => {
             getMeasuredEvent(f._2._1, configMapping.value, f._2._2, f._2._3);
         }).map { x => JSONUtils.serialize(x) };

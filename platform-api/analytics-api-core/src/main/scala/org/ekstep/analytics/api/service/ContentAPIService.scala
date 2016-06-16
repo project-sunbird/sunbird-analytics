@@ -7,6 +7,7 @@ import org.ekstep.analytics.api.Response
 import org.ekstep.analytics.api.Params
 import org.ekstep.analytics.api.ContentSummary
 import org.ekstep.analytics.api.Trend
+import org.ekstep.analytics.api.Range
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
 import org.apache.spark.SparkContext
@@ -21,15 +22,13 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.ContentSummary
 import java.util.UUID
+import org.ekstep.analytics.api.Constants
 
 /**
  * @author Santhosh
  */
 
 object ContentAPIService {
-
-    private val CONTENT_DB = "content_db";
-    private val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
 
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
@@ -53,7 +52,7 @@ object ContentAPIService {
             }
         }.toMap
 
-        val contentRDD = sc.cassandraTable[ContentUsageSummaryFact](CONTENT_DB, CONTENT_SUMMARY_FACT_TABLE).where("d_content_id = ?", contentId).cache();
+        val contentRDD = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_DB, Constants.CONTENT_SUMMARY_FACT_TABLE).where("d_content_id = ?", contentId).cache();
         val trends = trend.mapValues(x =>
             x._1 match {
                 case DAY   => filterTrends(contentRDD, CommonUtil.getDayRange(x._2), DAY, reqBody.request.filter);
@@ -63,9 +62,9 @@ object ContentAPIService {
 
         val summaries = summaryMap.mapValues[Option[ContentUsageSummaryFact]] { x =>
             x match {
-                case DAY        => reduceTrends(trends.get("day").getOrElse(Array[ContentUsageSummaryFact]()), DAY);
-                case WEEK       => reduceTrends(trends.get("week").getOrElse(Array[ContentUsageSummaryFact]()), WEEK);
-                case MONTH      => reduceTrends(trends.get("month").getOrElse(Array[ContentUsageSummaryFact]()), MONTH);
+                case DAY        => reduceTrends(trends.get("day").get, DAY);
+                case WEEK       => reduceTrends(trends.get("week").get, WEEK);
+                case MONTH      => reduceTrends(trends.get("month").get, MONTH);
                 case CUMULATIVE => reduceTrends(filterTrends(contentRDD, Range(-1, 0), CUMULATIVE, reqBody.request.filter), CUMULATIVE)
             }
         }
@@ -108,7 +107,7 @@ object ContentAPIService {
 
     private def reduceTrends(summaries: Array[ContentUsageSummaryFact], period: Period): Option[ContentUsageSummaryFact] = {
         if (summaries.size > 0)
-            Option(summaries.reduce((a, b) => reduce(a, b, period)))
+            Option(summaries.reduceRight((a, b) => reduce(a, b, period)))
         else None;
     }
 
@@ -126,13 +125,11 @@ object ContentAPIService {
         val sync_date = if (fact2.m_last_sync_date.isAfter(fact1.m_last_sync_date)) fact2.m_last_sync_date else fact1.m_last_sync_date;
         val numWeeks = CommonUtil.getWeeksBetween(publish_date.getMillis, sync_date.getMillis)
         val avg_sessions_week = period match {
-            case MONTH      => Option(total_sessions.toDouble / 5)
-            case CUMULATIVE => Option(if (numWeeks != 0) (total_sessions.toDouble) / numWeeks else total_sessions)
+            case MONTH | CUMULATIVE => Option(if (numWeeks != 0) (total_sessions.toDouble) / numWeeks else total_sessions)
             case _          => None
         }
         val avg_ts_week = period match {
-            case MONTH      => Option(total_ts / 5)
-            case CUMULATIVE => Option(if (numWeeks != 0) (total_ts) / numWeeks else total_ts)
+            case MONTH | CUMULATIVE => Option(if (numWeeks != 0) (total_ts) / numWeeks else total_ts)
             case _          => None
         }
         ContentUsageSummaryFact(fact1.d_content_id, fact1.d_period, fact1.d_group_user, fact1.d_content_type, fact1.d_mime_type, publish_date, sync_date,

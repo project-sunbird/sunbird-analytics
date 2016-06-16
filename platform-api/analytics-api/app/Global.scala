@@ -17,8 +17,4 @@ object Global extends WithFilters(RequestInterceptor) {
         Logger.info("Application shutdown...")
     }
 
-    override def onBadRequest(request: RequestHeader, error: String) = {
-        Future.successful(BadRequest("Bad Request: " + error))
-    }
-
 }

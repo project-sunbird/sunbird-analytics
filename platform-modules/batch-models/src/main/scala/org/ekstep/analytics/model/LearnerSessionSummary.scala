@@ -33,7 +33,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
                      val noOfLevelTransitions: Option[Int], val comments: Option[String], val fluency: Option[Int], val loc: Option[String],
                      val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Iterable[ActivitySummary]],
                      val completionStatus: Option[Boolean], val screenSummary: Option[Iterable[ScreenSummary]], val noOfInteractEvents: Int, val eventsSummary: Iterable[EventSummary],
-                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String) extends Serializable {};
+                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val tags: AnyRef) extends Serializable {};
 
 /**
  * @author Santhosh
@@ -104,27 +104,19 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
     def computeScreenSummary(firstEvent: Event, lastEvent: Event, navigateEvents: Buffer[Event], interruptSummary: Map[String, Double]): Iterable[ScreenSummary] = {
 
         if (navigateEvents.length > 0) {
-            var stageMap = HashMap[String, Double]();
             var prevEvent = firstEvent;
+            var stages = ListBuffer[(String, Double)]();
             navigateEvents.foreach { x =>
                 val currStage = x.edata.eks.stageid;
                 val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get;
-                if (stageMap.getOrElse(currStage, null) == null) {
-                    stageMap.put(currStage, timeDiff);
-                } else {
-                    stageMap.put(currStage, stageMap.get(currStage).get + timeDiff);
-                }
+                stages += Tuple2(currStage, timeDiff);
                 prevEvent = x;
             }
 
             val lastStage = prevEvent.edata.eks.stageto;
             val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, lastEvent.ets).get;
-            if (stageMap.getOrElse(lastStage, null) == null) {
-                stageMap.put(lastStage, timeDiff);
-            } else {
-                stageMap.put(lastStage, stageMap.get(lastStage).get + timeDiff);
-            }
-            stageMap.map(f => {
+            stages += Tuple2(lastStage, timeDiff);
+            stages.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).map(f => {
                 ScreenSummary(f._1, CommonUtil.roundDouble((f._2 - interruptSummary.getOrElse(f._1, 0d)), 2));
             });
         } else {
@@ -210,12 +202,12 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.info("LearnerSessionSummary : execute method starting", className)
+        JobLogger.debug("Execute method started", className)
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
         val filteredData = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE")))));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val gameList = data.map { x => x.gdata.id }.distinct().collect();
-        JobLogger.debug("Fetching the Content and Item data from Learing Platform", className)
+        JobLogger.debug("Fetching the Content and Item data from Learning Platform", className)
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, "v2");
         JobLogger.debug("Broadcasting data to all worker nodes", className)
@@ -224,7 +216,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
 
         val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
-        JobLogger.debug("Doing Game Sessionization", className)
+        JobLogger.debug("Performing Game Sessionization", className)
         val gameSessions = getGameSessions(filteredData);
         val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
         val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
@@ -323,17 +315,17 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
             new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp,
                 Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp,
                     endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did);
+                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, firstEvent.tags);
 
-        }.filter(f => (f._2.timeSpent >= 0)).cache(); // Skipping the events, if timeSpent is -ve
+        }.filter(f => (f._2.timeSpent >= 1)).cache(); // Skipping the events, if timeSpent is -ve
 
         JobLogger.debug("'screenerSummary' joining with LearnerProfile table to get group_user value for each learner", className)
         //Joining with LearnerProfile table to add group info
         val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
         val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
 
-        JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvent", className)
-        JobLogger.info("LearnerSessionSummary: execute method Ending", className)
+        JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvents", className)
+        JobLogger.debug("Execute method ended", className)
 
         sessionSummary.map(x => {
             getMeasuredEvent(x, configMapping.value);
@@ -374,7 +366,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable 
         MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, userMap._1, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
             Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc, Option(booleanTuple._1), Option(booleanTuple._2)),
-            MEEdata(measures));
+            MEEdata(measures), Option(game.tags));
     }
 
 }

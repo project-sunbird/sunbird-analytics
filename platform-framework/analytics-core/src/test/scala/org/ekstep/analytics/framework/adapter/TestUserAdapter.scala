@@ -10,7 +10,6 @@ class TestUserAdapter extends BaseSpec {
     "UserAdapter" should "return users demographics" in {
         val userMapping = UserAdapter.getUserProfileMapping();
         userMapping.size should be > 50;
-        println(userMapping.last);
     }
     
     it should "return language mappings" in {

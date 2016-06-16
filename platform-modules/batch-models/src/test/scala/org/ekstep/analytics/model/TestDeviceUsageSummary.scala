@@ -66,4 +66,30 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         eks3.get("avg_num_launches").get should be(5.0)
         eks3.get("end_time").get should be(1460627674628L)
     }
+    
+    it should "generate DeviceUsageSummary event with start_time = March 1st 2015 " in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE learner_db.device_usage_summary;");
+        }
+        
+        val rdd1 = loadFile[MeasuredEvent]("src/test/resources/device-usage-summary/test_data_4.log");
+        val rdd2 = DeviceUsageSummary.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val me = rdd2.collect()
+        me.length should be(1)
+        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        
+        event1.eid should be("ME_DEVICE_USAGE_SUMMARY");
+        event1.context.pdata.model should be("DeviceUsageSummarizer");
+        event1.context.pdata.ver should be("1.0");
+        event1.context.granularity should be("DAY");
+        event1.context.date_range should not be null;
+  
+        val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        eks.get("num_days").get should be(410)
+        eks.get("start_time").get should be(1425168000000L)
+        eks.get("avg_time").get should be(0.07)
+        eks.get("avg_num_launches").get should be(0.01)
+        eks.get("end_time").get should be(1460627728979L)
+    }
 }

@@ -11,11 +11,12 @@ import org.joda.time.format.DateTimeFormat
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.Period._
 
 class TestCommonUtil extends BaseSpec {
 
     it should "pass test case of all methods in CommonUtil" in {
-
+        try {
         //datesBetween
         val from = new LocalDate("2016-01-01");
         val to = new LocalDate("2016-01-04");
@@ -59,6 +60,8 @@ class TestCommonUtil extends BaseSpec {
         val event3 = JSONUtils.deserialize[Event](line3);
         val line4 = "{\"eid\":\"OE_START\",\"ts\":\"01-01-2016\",\"@timestamp\":\"2016-01-02T00:59:22P:ST\",\"ver\":\"1.0\",\"sid\":\"a6e4b3e2-5c40-4d5c-b2bd-44f1d5c7dd7f\",\"uid\":\"2ac2ebf4-89bb-4d5d-badd-ba402ee70182\",\"did\":\"828bd4d6c37c300473fb2c10c2d28868bb88fee6\",\"edata\":{\"eks\":{\"loc\":null,\"mc\":null,\"mmc\":null,\"pass\":null,\"qid\":null,\"qtype\":null,\"qlevel\":null,\"score\":0,\"maxscore\":0,\"res\":null,\"exres\":null,\"length\":null,\"exlength\":0.0,\"atmpts\":0,\"failedatmpts\":0,\"category\":null,\"current\":null,\"max\":null,\"type\":null,\"extype\":null,\"id\":null,\"gid\":null}}}";
         val event4 = JSONUtils.deserialize[Event](line4);
+        val line5 = "{\"eid\":\"OE_START\",\"ets\":1451630600000,\"@timestamp\":\"2016-01-02T00:59:22.924Z\",\"ver\":\"1.0\",\"gdata\":{\"id\":\"org.ekstep.aser.lite\",\"ver\":\"5.7\"},\"sid\":\"a6e4b3e2-5c40-4d5c-b2bd-44f1d5c7dd7f\",\"uid\":\"2ac2ebf4-89bb-4d5d-badd-ba402ee70182\",\"did\":\"828bd4d6c37c300473fb2c10c2d28868bb88fee6\",\"edata\":{\"eks\":{\"loc\":null,\"mc\":null,\"mmc\":null,\"pass\":null,\"qid\":null,\"qtype\":null,\"qlevel\":null,\"score\":0,\"maxscore\":0,\"res\":null,\"exres\":null,\"length\":null,\"exlength\":0.0,\"atmpts\":0,\"failedatmpts\":0,\"category\":null,\"current\":null,\"max\":null,\"type\":null,\"extype\":null,\"id\":null,\"gid\":null}}}";
+        val event5 = JSONUtils.deserialize[Event](line5);
 
         //getEventDate yyyy-MM-dd'T'HH:mm:ssZZ
         val evDate = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").parseLocalDate("2016-01-01T12:13:20+05:30").toDate;
@@ -66,6 +69,7 @@ class TestCommonUtil extends BaseSpec {
 
         //getEventTs
         CommonUtil.getEventTS(event) should be(1451630600000L)
+        CommonUtil.getEventTS(event5) should be(1451630600000L)
         CommonUtil.getEventSyncTS(event) should be(1451696362924L)
         CommonUtil.getEventSyncTS(event2) should be(0L)
         CommonUtil.getEventSyncTS(event3) should be(1451676562000L)
@@ -136,6 +140,21 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L), "org.ekstep.aser.lite") should be ("08EF6AB8668213851E407CEBCEFDF425");
         
         CommonUtil.getMessageId("ME_TEST", "123", "MONTH", 1451650400000L) should be ("95A1A252B816DAAAAE2A3E986FC91ABB");
+        
+        CommonUtil.getWeeksBetween(1451650400000L, 1454650400000L) should be (5)
+        CommonUtil.getPeriod(1451650400000L, DAY) should be (20160101)
+        CommonUtil.getPeriod(1451650400000L, WEEK) should be (2015753)
+        CommonUtil.getPeriod(1452250748000L, WEEK) should be (2016701)
+        CommonUtil.getPeriod(1451650400000L, MONTH) should be (201601)
+        CommonUtil.getPeriod(1451650400000L, CUMULATIVE) should be (0)
+        CommonUtil.getPeriod(1451650400000L, LAST7) should be (7)
+        CommonUtil.getPeriod(1451650400000L, LAST30) should be (30)
+        CommonUtil.getPeriod(1451650400000L, LAST90) should be (90)
+        
+        CommonUtil.daysBetween(new DateTime(1451650400000L).toLocalDate(), new DateTime(1454650400000L).toLocalDate()) should be (35);
+        } catch {
+            case ex: Exception => ex.printStackTrace();
+        }
 
     }
 }

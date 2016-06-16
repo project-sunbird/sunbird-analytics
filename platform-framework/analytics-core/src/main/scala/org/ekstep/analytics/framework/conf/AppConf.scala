@@ -13,7 +13,7 @@ object AppConf {
     def init() {
         if (!initialized) {
             val key = getConfigKey;
-            JobLogger.debug("Using configuration file - " + key, AppConf.getClass.getName);
+            JobLogger.debug("Config file used", AppConf.getClass.getName, Option(Map("file"->key)));
             val is = getClass.getResourceAsStream(key)
             properties = new Properties();
             properties.load(is)

@@ -1,7 +1,7 @@
-package org.ekstep.analytics.framework
+package org.ekstep.analytics.job
 
 import org.ekstep.analytics.framework.exception.JobNotFoundException
-import org.ekstep.analytics.job._
+import org.ekstep.analytics.framework._
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -32,7 +32,11 @@ object JobFactory {
             case "dus" =>
                 DeviceUsageSummarizer
             case "css" =>
-                ContentSideloadingSummarizer    
+                ContentSideloadingSummarizer
+            case "lpu" =>
+                LearnerProfileUpdaterJob
+            case "dsu" =>
+                DeviceSpecificationUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

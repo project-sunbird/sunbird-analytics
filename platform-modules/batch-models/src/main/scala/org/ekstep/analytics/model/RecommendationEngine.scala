@@ -26,11 +26,14 @@ import org.joda.time.DateTime
 import breeze.linalg._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double])
 case class RelevanceScores(conceptId: String, relevance: Double)
 
 object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable {
+    
+    val className = "org.ekstep.analytics.model.RecommendationEngine"
 
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
@@ -228,6 +231,9 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
 
     def executeRetired(sc: SparkContext, data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]]): RDD[String] = {
 
+        JobLogger.debug("Execute method started", className)
+        JobLogger.debug("Filtering ME_SESSION_SUMMARY events", className)
+        
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
@@ -280,6 +286,7 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
             .leftOuterJoin(lcs).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._2.getOrElse(Buffer[LearnerContentActivity]()))))
             .leftOuterJoin(lcr).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._1._3, f._2._2.getOrElse(LearnerConceptRelevance(f._1.learner_id, Map())))));
 
+        JobLogger.debug("Calculating Learner concept relevance", className)
         val learnerConceptRelevance = learners.map(learner => {
 
             val J = jBroadcast.value;
@@ -304,8 +311,8 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
                 r(i, 0) = lcr.getOrElse(conceptsData.value(i), random.nextDouble())
 
             var Rt = r :/ sum(r);
-            for (1 <- 0 until iterations) {
-                Rt = Eij * Rt;
+            for (i <- 0 until iterations) {
+                Rt = Rt * Eij;
             }
 
             val newConceptRelevance = Array.tabulate(N) { i => (C(i), Rt.valueAt(i)) }.toMap;
@@ -317,7 +324,8 @@ object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable
             LearnerConceptRelevance(f._1, f._2)
         }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
 
-        println("### Creating summary events ###");
+        JobLogger.debug("Creating summary events", className)
+        JobLogger.debug("Execute method ended", className)
         learnerConceptRelevance.map { f =>
             val relevanceScores = (f._2).map { x => RelevanceScores(x._1, x._2) }
             getMeasuredEvent(f._1, relevanceScores, configMapping.value, f._3);

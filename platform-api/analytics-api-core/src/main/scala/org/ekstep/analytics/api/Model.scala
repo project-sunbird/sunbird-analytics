@@ -29,3 +29,8 @@ object Period extends Enumeration {
     type Period = Value
     val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
 }
+
+object Constants {
+    val CONTENT_DB = "content_db";
+    val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
+}

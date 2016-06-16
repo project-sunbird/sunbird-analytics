@@ -23,11 +23,11 @@ object JobDriver {
     def run[T](t: String, config: String, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
         
         JobLogger.init(model.getClass.getName.split("\\$").last);
-        JobLogger.info("Starting " + t + " job with config - " + config, className)
         AppConf.init();
         val t1 = System.currentTimeMillis;
         try {
             val jobConfig = JSONUtils.deserialize[JobConfig](config);
+            JobLogger.info("Starting " + t + " job with config", className, Option(jobConfig))
             t match {
                 case "batch" =>
                     BatchJobDriver.process[T](jobConfig, model);
@@ -47,7 +47,7 @@ object JobDriver {
                 throw e;
         }
         val t2 = System.currentTimeMillis;
-        JobLogger.debug("Model run complete - Time taken to compute - " + (t2 - t1) / 1000, className)
+        JobLogger.info(t + " job completed", className, Option(Map("timeTaken" -> Double.box((t2 - t1) / 1000))))
     }
 
 }

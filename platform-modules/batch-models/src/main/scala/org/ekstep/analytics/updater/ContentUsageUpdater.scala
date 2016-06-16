@@ -16,6 +16,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.joda.time.LocalDate
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_group_user: Boolean, d_content_type: String, d_mime_type: String, m_publish_date: DateTime,
@@ -25,8 +26,11 @@ case class ContentUsageSummaryIndex(d_content_id: String, d_period: Int, d_group
 
 object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable {
 
+    val className = "org.ekstep.analytics.updater.ContentUsageUpdater"
+  
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
+        JobLogger.debug("Execute method started", className)
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
 
@@ -63,7 +67,8 @@ object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable 
         val topContentBySessions = cumulativeSummaries.sortBy(f => f.m_total_sessions, false, 1).take(configMapping.value.getOrElse("topK", defaultVal).asInstanceOf[Int]);
         val topKContent = sc.parallelize(Array(ContentMetrics("top_content", topContentByTime.map { x => (x.d_content_id, x.m_total_ts) }.toMap, topContentBySessions.map { x => (x.d_content_id, x.m_total_sessions) }.toMap)), 1);
         topKContent.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_METRICS_TABLE);
-        //--------
+        
+        JobLogger.debug("Execute method ended", className)
         contentSummaries.map { x => JSONUtils.serialize(ContentUsageSummaryIndex(x.d_content_id, x.d_period, x.d_group_user)) };
     }
 

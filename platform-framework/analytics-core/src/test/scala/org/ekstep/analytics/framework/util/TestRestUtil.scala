@@ -43,11 +43,12 @@ class TestRestUtil extends BaseSpec {
     }
     
     it should "patch data to learning platform API and parse body to Response Object" in {
-        val url = Constants.getContentUpdateAPIUrl("numeracy_906");
-        val request = Map("request" -> Map("content" -> Map("popularity" -> 400)));
+        val url = Constants.getContentUpdateAPIUrl("numeracy_374");
+        val request = Map("request" -> Map("content" -> Map("popularity" -> 1)));
         val response = RestUtil.patch[Response](url, JSONUtils.serialize(request));
         response should not be null;
         response.responseCode should be("OK")
+        
     }
     
     it should "throw JsonParseException" in {

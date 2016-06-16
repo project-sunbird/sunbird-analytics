@@ -16,10 +16,9 @@ object AserScreenSummarizer extends optional.Application with IJob {
     val className = "org.ekstep.analytics.job.AserScreenSummarizer"
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.info("Started executing AserScreenSummarizer Job", className)
+        JobLogger.debug("Started executing Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run[Event]("batch", config, AserScreenSummary);
-        JobLogger.info("AserScreenSummarizer Job Completed....", className)
+        JobLogger.debug("Job Completed.", className)
     }
-
 }

@@ -14,6 +14,8 @@ import org.apache.http.client.methods.HttpPatch
  */
 object RestUtil {
 
+    val className = "org.ekstep.analytics.framework.util.RestUtil"
+    
     def get[T](apiURL: String)(implicit mf: Manifest[T]) = {
         val httpClient = HttpClients.createDefault();
         val request = new HttpGet(apiURL);
@@ -27,7 +29,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: Exception =>
-                println("### Error parsing response returned by url - " + apiURL + " ###");
+                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL)));
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
@@ -50,7 +52,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                println("### Error parsing response returned by url - " + apiURL + " | body - " + body + " ###");
+                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL, "body" -> body)));
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
@@ -73,7 +75,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                println("### Error parsing response returned by url - " + apiURL + " | body - " + body + " ###");
+                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL, "body" -> body)));
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
