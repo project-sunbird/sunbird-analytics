@@ -43,6 +43,7 @@ case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, gran
 @scala.reflect.BeanInfo
 case class MEEdata(eks: AnyRef);
 
+@scala.reflect.BeanInfo
 class MEEvent(val eid: String,val context: Context,val dimensions: Dimensions,val edata: MEEdata,val tags: Option[AnyRef] = None) extends Serializable {}
 
 // User profile event models

@@ -14,12 +14,12 @@ import scala.collection.mutable.Buffer
 case class ContentSumm(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type: String, mime_type: String)
 
-object CAS extends IBatchModelTemplate[MeasuredEvent,(String, (Buffer[MeasuredEvent], Option[ContentSumm])),(String, (ContentSumm, DtRange, String)),MEEvent] with Serializable {
+object CAS extends IBatchModelTemplate[MEEvent,(String, (Buffer[MEEvent], Option[ContentSumm])),(String, (ContentSumm, DtRange, String)),MEEvent] with Serializable {
   
     @Override
-    def preProcess(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[(String, (Buffer[MeasuredEvent], Option[ContentSumm]))] = {
+    def preProcess(data: RDD[MEEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[(String, (Buffer[MEEvent], Option[ContentSumm]))] = {
         
-        val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
+        val filteredData = DataFilter.filter(data, Filter("eventId", "EQ", Option("ME_SESSION_SUMMARY")));
         val newEvents = filteredData.map(event => (event.dimensions.gdata.get.id, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
@@ -28,14 +28,14 @@ object CAS extends IBatchModelTemplate[MeasuredEvent,(String, (Buffer[MeasuredEv
     }
     
     @Override
-    def algorithm(data: RDD[(String, (Buffer[MeasuredEvent], Option[ContentSumm]))], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[(String, (ContentSumm, DtRange, String))] = {
+    def algorithm(data: RDD[(String, (Buffer[MEEvent], Option[ContentSumm]))], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[(String, (ContentSumm, DtRange, String))] = {
         
         val contentSummary = data.mapValues { events =>
 
-            val sortedEvents = events._1.sortBy { x => x.syncts };
+            val sortedEvents = events._1.sortBy { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("syncDate").get.asInstanceOf[Long] };
             val firstEvent = sortedEvents.head;
             val lastEvent = sortedEvents.last;
-            val eventSyncts = lastEvent.syncts;
+            val eventSyncts = lastEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("syncDate").get.asInstanceOf[Long];
             val gameId = firstEvent.dimensions.gdata.get.id;
             val gameVersion = firstEvent.dimensions.gdata.get.ver;
 
@@ -44,7 +44,7 @@ object CAS extends IBatchModelTemplate[MeasuredEvent,(String, (Buffer[MeasuredEv
             val eventStartTimestamp = firstGE.context.date_range.from;
             val eventEndTimestamp = lastGE.context.date_range.to;
             val eventStartDate = new DateTime(eventStartTimestamp);
-            val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
+            val date_range = DtRange(firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("syncDate").get.asInstanceOf[Long], eventSyncts);
 
             val prevContentSummary = events._2.getOrElse(ContentSumm(gameId, DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0, "", ""));
             val startDate = if (eventStartDate.isBefore(prevContentSummary.start_date)) eventStartDate else prevContentSummary.start_date;
