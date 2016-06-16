@@ -3,6 +3,7 @@ package org.ekstep.analytics.framework
 import java.io.Serializable
 import java.util.Date
 import scala.beans.BeanProperty
+import org.apache.spark.rdd.RDD
 
 class Models extends Serializable {}
 
@@ -41,6 +42,8 @@ case class DtRange(from: Long, to: Long);
 case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange);
 @scala.reflect.BeanInfo
 case class MEEdata(eks: AnyRef);
+
+class MEEvent(val eid: String,val context: Context,val dimensions: Dimensions,val edata: MEEdata,val tags: Option[AnyRef] = None) extends Serializable {}
 
 // User profile event models
 

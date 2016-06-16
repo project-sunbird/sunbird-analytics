@@ -18,6 +18,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.conf.AppConf
@@ -342,5 +343,12 @@ object CommonUtil {
         } else {
             (year + "7" + weekOfWeekyear).toInt
         }
+    }
+    
+    def getMeasuredEvent(meevent: MEEvent): MeasuredEvent = {
+
+        val mid = CommonUtil.getMessageId(meevent.eid, meevent.dimensions.uid.getOrElse(null), meevent.context.granularity, meevent.context.date_range, meevent.dimensions.gdata.get.id);
+        MeasuredEvent(meevent.eid, System.currentTimeMillis(), meevent.context.date_range.to, "1.0", mid, meevent.dimensions.uid.getOrElse(""), None, 
+            meevent.dimensions.cdata, meevent.context,meevent.dimensions,meevent.edata,meevent.tags);
     }
 }
