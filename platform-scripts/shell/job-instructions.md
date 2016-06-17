@@ -1,7 +1,7 @@
 ## run Scripts ##
 
 **run Session Summarizer**
-nohup ./run-job.sh "ss"
+nohup ./run-job.sh "ss" &
 
 **run Genie Launch Summarizer**
 nohup ./run-job.sh "gls"

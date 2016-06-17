@@ -31,7 +31,7 @@ nohup ./replay-job.sh "las" "2016-01-01" "2016-05-31" &
 nohup ./replay-updater.sh "ls" "2016-01-01" "2016-05-31" &
 
 **Replay Learner Content Activity Updater**
-nohup ./replay-job.sh "lcas" "2016-01-01" "2016-05-31" &
+nohup ./replay-updater.sh "lcas" "2016-01-01" "2016-05-31" &
 
 **Replay Learner Proficiency Updater**
 nohup ./replay-job.sh "lp" "2016-01-01" "2016-05-31" &

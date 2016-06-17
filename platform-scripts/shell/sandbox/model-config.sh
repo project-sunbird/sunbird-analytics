@@ -40,10 +40,10 @@ config() {
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":6}]},"model":"org.ekstep.analytics.updater.LearnerContentActivitySummary","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Learner Content Activity Summary","deviceMapping":false}'
 		;;
 		"lp") 
-		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ProficiencyUpdater","modelParams":{"alpha":1.0,"beta":1.0},"output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"LearnerProfUpdater","deviceMapping":false}'
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ProficiencyUpdater","modelParams":{"alpha":1.0,"beta":1.0,"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"LearnerProfUpdater","deviceMapping":false}'
 		;;
 		"lcr") 
-		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.RecommendationEngine","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"RecommendationEngine","deviceMapping":false}'
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.RecommendationEngine","modelParams":{"profWeight":0.0,"conSimWeight":0.0,"timeSpentWeight":0.0,"BoostTimeSpentWeight":1.0,"iterations":20},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"RecommendationEngine","deviceMapping":false}'
 		;;
 		"dsu")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceSpecification","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Device Specification Updater","deviceMapping":false}'
