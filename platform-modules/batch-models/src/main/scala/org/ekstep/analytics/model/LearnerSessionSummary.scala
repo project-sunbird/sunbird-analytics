@@ -42,7 +42,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
 /**
  * Generic Screener Summary Model
  */
-object LearnerSessionSummary extends SessionBatchModel[Event] with Serializable {
+object LearnerSessionSummary extends SessionBatchModel[Event,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerSessionSummary"
 

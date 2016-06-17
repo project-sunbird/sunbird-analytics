@@ -18,7 +18,7 @@ case class UsageSummary(device_id: String, start_time: Long, end_time: Long, num
 
 case class DeviceId(device_id: String)
 
-object DeviceUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
+object DeviceUsageSummary extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceUsageSummary"
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

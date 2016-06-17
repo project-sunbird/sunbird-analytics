@@ -1,7 +1,7 @@
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.CommonUtil
@@ -24,7 +24,7 @@ case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_group_
                                    m_avg_interactions_min: Double, m_avg_sessions_week: Option[Double], m_avg_ts_week: Option[Double])
 case class ContentUsageSummaryIndex(d_content_id: String, d_period: Int, d_group_user: Boolean)
 
-object ContentUsageUpdater extends IBatchModel[MeasuredEvent] with Serializable {
+object ContentUsageUpdater extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.updater.ContentUsageUpdater"
   

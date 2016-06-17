@@ -13,12 +13,12 @@ import scala.collection.mutable.Buffer
 
 case class ContentSumm(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type: String, mime_type: String)
-
-object CAS extends IBatchModelTemplate[MEEvent,(String, (Buffer[MEEvent], Option[ContentSumm])),(String, (ContentSumm, DtRange, String)),MEEvent] with Serializable {
+                                                   
+object CAS extends IBatchModel[MEEvent,Any,Any,MEEvent] with Serializable {
   
     @Override
     def preProcess(data: RDD[MEEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[(String, (Buffer[MEEvent], Option[ContentSumm]))] = {
-        
+        println("in pre process......")
         val filteredData = DataFilter.filter(data, Filter("eventId", "EQ", Option("ME_SESSION_SUMMARY")));
         val newEvents = filteredData.map(event => (event.dimensions.gdata.get.id, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -29,7 +29,7 @@ object CAS extends IBatchModelTemplate[MEEvent,(String, (Buffer[MEEvent], Option
     
     @Override
     def algorithm(data: RDD[(String, (Buffer[MEEvent], Option[ContentSumm]))], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[(String, (ContentSumm, DtRange, String))] = {
-        
+        println("in algo......")
         val contentSummary = data.mapValues { events =>
 
             val sortedEvents = events._1.sortBy { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("syncDate").get.asInstanceOf[Long] };
@@ -71,7 +71,7 @@ object CAS extends IBatchModelTemplate[MEEvent,(String, (Buffer[MEEvent], Option
      
     @Override
     def postProcess(data: RDD[(String, (ContentSumm, DtRange, String))], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[MEEvent] = {
-        
+        println("in post process......")
         val config = jobParams.getOrElse(Map[String, AnyRef]())
         data.map(f => f._2._1).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
 

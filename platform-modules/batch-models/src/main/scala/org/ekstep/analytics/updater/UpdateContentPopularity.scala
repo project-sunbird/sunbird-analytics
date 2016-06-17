@@ -1,7 +1,7 @@
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.Filter
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.ContentId
 /**
  * @author Santhosh
  */
-object UpdateContentPopularity extends IBatchModel[MeasuredEvent] with Serializable {
+object UpdateContentPopularity extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateContentPopularity"
     

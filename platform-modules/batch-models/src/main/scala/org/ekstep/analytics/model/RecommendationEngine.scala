@@ -2,7 +2,7 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.Filter
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.adapter.ContentAdapter
@@ -32,7 +32,7 @@ import org.apache.log4j.Logger
 case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double])
 case class RelevanceScores(conceptId: String, relevance: Double)
 
-object RecommendationEngine extends IBatchModel[MeasuredEvent] with Serializable {
+object RecommendationEngine extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.RecommendationEngine"
     /**

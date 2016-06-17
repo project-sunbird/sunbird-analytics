@@ -1,7 +1,7 @@
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.ProfileEvent
+import org.ekstep.analytics.framework._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.DataFilter
@@ -19,7 +19,7 @@ import org.ekstep.analytics.framework.util.JobLogger
  */
 case class LearnerProfile(learner_id: String, did: String, gender: Option[String], language: Option[String], loc: Option[String], standard: Int, age: Int, year_of_birth: Int, group_user: Boolean, anonymous_user: Boolean, created_date: Option[DateTime], updated_date: Option[DateTime]);
 
-object LearnerProfileUpdater extends IBatchModel[ProfileEvent] with Serializable {
+object LearnerProfileUpdater extends IBatchModel[ProfileEvent,Any,Any,MEEvent] with Serializable {
   
     val className = "org.ekstep.analytics.updater.LearnerProfileUpdater"
   

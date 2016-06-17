@@ -49,7 +49,7 @@ object CommonUtil {
     @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZoneUTC();
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZoneUTC();
-
+    
     def getParallelization(config: JobConfig): Int = {
 
         val defParallelization = AppConf.getConfig("default.parallelization").toInt;
@@ -347,7 +347,7 @@ object CommonUtil {
     
     def getMeasuredEvent(meevent: MEEvent): MeasuredEvent = {
 
-        val mid = CommonUtil.getMessageId(meevent.eid, meevent.dimensions.uid.getOrElse(null), meevent.context.granularity, meevent.context.date_range, meevent.dimensions.gdata.get.id);
+        val mid = getMessageId(meevent.eid, meevent.dimensions.uid.getOrElse(null), meevent.context.granularity, meevent.context.date_range, meevent.dimensions.gdata.get.id);
         MeasuredEvent(meevent.eid, System.currentTimeMillis(), meevent.context.date_range.to, "1.0", mid, meevent.dimensions.uid.getOrElse(""), None, 
             meevent.dimensions.cdata, meevent.context,meevent.dimensions,meevent.edata,meevent.tags);
     }

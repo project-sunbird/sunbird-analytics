@@ -12,7 +12,7 @@ import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.JobContext
-import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.util.CommonUtil
@@ -26,7 +26,7 @@ import org.apache.log4j.Logger
  */
 case class TimeSummary(meanTimeSpent: Option[Double], meanTimeBtwnGamePlays: Option[Double], meanActiveTimeOnPlatform: Option[Double], meanInterruptTime: Option[Double], totalTimeSpentOnPlatform: Option[Double], meanTimeSpentOnAnAct: Map[String, Double], meanCountOfAct: Option[Map[String, Double]], numOfSessionsOnPlatform: Long, last_visit_ts: Long, mostActiveHrOfTheDay: Option[Int], topKcontent: Array[String], start_ts: Long, end_ts: Long);
 
-object LearnerActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
+object LearnerActivitySummary extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerActivitySummary"
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

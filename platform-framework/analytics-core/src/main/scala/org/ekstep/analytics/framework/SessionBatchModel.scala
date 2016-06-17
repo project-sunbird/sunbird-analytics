@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 /**
  * @author Santhosh
  */
-trait SessionBatchModel[T] extends IBatchModel[T] {
+trait SessionBatchModel[T,A,B,MEEvent] extends IBatchModel[T,A,B,MEEvent] {
 
     def getGameSessions(data: RDD[Event]): RDD[(String, Buffer[Event])] = {
         data.filter { x => x.uid != null && x.gdata.id != null }

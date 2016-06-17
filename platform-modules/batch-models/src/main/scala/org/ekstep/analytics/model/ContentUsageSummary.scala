@@ -1,7 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import scala.collection.mutable.Buffer
@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentUsageMetrics(total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String)
 
-object ContentUsageSummary extends IBatchModel[MeasuredEvent] with Serializable {
+object ContentUsageSummary extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentUsageSummary"
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

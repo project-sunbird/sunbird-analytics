@@ -1,7 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.Filter
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -36,7 +36,7 @@ case class LearnerProficiency(learner_id: String, proficiency: Map[String, Doubl
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class ProficiencySummary(conceptId: String, proficiency: Double)
 
-object LearnerProficiencySummary extends IBatchModel[MeasuredEvent] with Serializable {
+object LearnerProficiencySummary extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerProficiencySummary"
 

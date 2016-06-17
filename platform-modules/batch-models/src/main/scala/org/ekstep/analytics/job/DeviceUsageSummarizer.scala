@@ -14,7 +14,7 @@ object DeviceUsageSummarizer extends optional.Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.debug("Started executing Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run[MeasuredEvent]("batch", config, DeviceUsageSummary);
+        //JobDriver.run[MeasuredEvent]("batch", config, DeviceUsageSummary);
         JobLogger.debug("Job Completed", className)
     }
 }

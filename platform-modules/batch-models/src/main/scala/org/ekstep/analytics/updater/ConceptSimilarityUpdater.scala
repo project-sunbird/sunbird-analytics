@@ -4,6 +4,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JobLogger
@@ -11,7 +12,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class ConceptSimilarity(concept1: String, concept2: String, relation_type: String, sim: Double)
 case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, similarity: List[Map[String, AnyRef]])
 
-object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity] with Serializable {
+object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.updater.ConceptSimilarityUpdater"
     

@@ -22,7 +22,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class ContentSummary(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type: String, mime_type: String)
 
-object ContentActivitySummary extends IBatchModel[MeasuredEvent] with Serializable {
+object ContentActivitySummary extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentActivitySummary"
     def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

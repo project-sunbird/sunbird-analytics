@@ -14,7 +14,7 @@ case class DeviceSpec(device_id: String, device_name: String, device_local_name:
                       memory: Double, internal_disk: Double, external_disk: Double, screen_size: Double,
                       primary_secondary_camera: String, cpu: String, num_sims: Double, capabilities: List[String])
 
-object DeviceSpecification extends IBatchModel[Event] with Serializable {
+object DeviceSpecification extends IBatchModel[Event,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceSpecification"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

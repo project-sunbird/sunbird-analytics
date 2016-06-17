@@ -2,7 +2,7 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.SessionBatchModel
 import org.ekstep.analytics.framework.util.CommonUtil
 import scala.collection.mutable.Buffer
@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 case class GenieSummary(timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
-object GenieLaunchSummary extends SessionBatchModel[Event] with Serializable {
+object GenieLaunchSummary extends SessionBatchModel[Event,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.GenieLaunchSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

@@ -2,7 +2,7 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.SessionBatchModel
 import org.ekstep.analytics.framework.util.CommonUtil
 import scala.collection.mutable.Buffer
@@ -25,7 +25,7 @@ import org.ekstep.analytics.framework.Filter
 case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange, learner_id: String, did: String)
 case class Summary(sid: String, did: String, learner_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
-object GenieUsageSessionSummary extends SessionBatchModel[Event] with Serializable {
+object GenieUsageSessionSummary extends SessionBatchModel[Event,Any,Any,MEEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.GenieUsageSessionSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

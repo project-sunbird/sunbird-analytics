@@ -17,11 +17,13 @@ import org.ekstep.analytics.framework.util.JSONUtils
 class SparkSpec(val file: String =  "src/test/resources/sample_telemetry.log") extends BaseSpec with BeforeAndAfterAll {
     
     var events: RDD[Event] = null;
+    var meEvent: RDD[MEEvent] = null;
     implicit var sc: SparkContext = null;
     
     override def beforeAll() {
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
         events = loadFile[Event](file)
+        meEvent = loadFile[MEEvent](file)
     }
     
     override def afterAll() {

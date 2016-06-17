@@ -7,10 +7,10 @@ import org.ekstep.analytics.framework.util.JSONUtils
 /**
  * @author Santhosh
  */
-class TestModel extends IBatchModel[Event] with Serializable {
+class TestModel {//extends IBatchModel[Event,Any,Any,MEEvent] with Serializable {
     
-    def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-        events.map { x => JSONUtils.serialize(x) };
-    }
+//    def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+//        events.map { x => JSONUtils.serialize(x) };
+//    }
   
 }

@@ -14,7 +14,7 @@ object ConceptSimilarityUpdaterJob extends optional.Application {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobLogger.debug("Started executing Job", className)
-        JobDriver.run[ConceptSimilarityEntity]("batch", config, ConceptSimilarityUpdater);
+        //JobDriver.run[ConceptSimilarityEntity]("batch", config, ConceptSimilarityUpdater);
         JobLogger.debug("Job completed.", className)
     }
 }
