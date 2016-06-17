@@ -14,7 +14,7 @@ basePath=/Users/adarsa/ilimi/github//Learning-Platform-Analytics
 modelJar=$basePath/platform-modules/batch-models/target/batch-models-1.0.jar
 
 # framework Jar file path
-fwJar=$basePath/platform-framework/analytics-job-driver/target/analytics-framework-0.5.jar
+fwJar=$basePath/platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar
 
 # recommendation engine sprak-scala scripts path
 scriptDir=$basePath/platform-scripts/RecoEngine

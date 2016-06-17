@@ -1,4 +1,7 @@
 # Authors: Soma S Dhavala
+# Module Dependencies:
+#   Cassandra - pip install cassandra-driver
+#   Neo4j - pip install py2neo
 # functions to populate GraphDB (Neo4j)
 
 import csv
@@ -21,7 +24,7 @@ from py2neo import Node, Relationship
 from py2neo import authenticate
 
 # neo4j graph connector
-authenticate("localhost:7474", "neo4j", "neo4jilimi")
+authenticate("localhost:7474", "neo4j", "ekstep123")
 graph = Graph()
 # delete entire graph
 graph.delete_all()

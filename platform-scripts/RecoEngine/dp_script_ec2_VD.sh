@@ -13,7 +13,7 @@ basePath=/home/ec2-user
 modelJar=/mnt/data/analytics/models/batch-models-1.0.jar
 
 # framework Jar file
-fwJar=/mnt/data/analytics/models/analytics-framework-0.5.jar
+fwJar=/mnt/data/analytics/models/analytics-framework-1.0.jar
 
 # recommendation engine sprak-scala scripts path
 scriptDir=$basePath/scripts/RecoEngine
