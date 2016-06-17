@@ -23,8 +23,11 @@ object DataFetcher {
     def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext): RDD[T] = {
 
         if (search.queries.isEmpty) {
-            throw new DataFetcherException("Data fetch configuration not found");
+            val exp = new DataFetcherException("Data fetch configuration not found")
+            JobLogger.error("Data fetch configuration not found", className, exp, None, Option("FAILED"))
+            throw exp;
         }
+        val date = search.queries.get.last.endDate
         val keys: Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
                 JobLogger.debug("Fetching the batch data from S3", className)
@@ -34,12 +37,12 @@ object DataFetcher {
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
             case _ =>
                 val exp = new DataFetcherException("Unknown fetcher type found");
-                JobLogger.error("Unable to fetch data", className, exp)
+                JobLogger.error("Unable to fetch data", className, exp, Option(Map("date"->date)), Option("FAILED"))
                 throw exp;
         }
         if (null == keys || keys.length == 0) {
             val exp = new DataFetcherException("No S3/Local Objects found for the qiven queries");
-            JobLogger.error("File is missing", className, exp)
+            JobLogger.error("File is missing", className, exp, Option(Map("date"->date)), Option("FAILED"))
             throw exp
         }
         JobLogger.debug("Deserializing Input Data", className)
@@ -49,7 +52,7 @@ object DataFetcher {
                     JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
-                        JobLogger.error("Unable to deserialize", className, ex)
+                        JobLogger.error("Unable to deserialize", className, ex, Option(Map("date"->date)), Option("FAILED"))
                         null.asInstanceOf[T]
                 }
             }

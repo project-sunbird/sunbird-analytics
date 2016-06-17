@@ -23,7 +23,7 @@ object BatchJobDriver {
     def process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
 
         JobContext.parallelization = CommonUtil.getParallelization(config);
-        JobLogger.debug("Setting number of parallelization", className, Option(Map("parallelization"->JobContext.parallelization)))
+        JobLogger.debug("Setting number of parallelization", className, Option(Map("parallelization" -> JobContext.parallelization)))
         if (null == sc) {
             implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
             JobLogger.debug("SparkContext initialized", className)
@@ -39,6 +39,7 @@ object BatchJobDriver {
     }
 
     private def _process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
+        val t1 = System.currentTimeMillis;
         JobLogger.debug("Fetching data", className, Option(Map("query" -> config.search)))
         val rdd = DataFetcher.fetchBatchData[T](config.search);
         if (config.deviceMapping.nonEmpty && config.deviceMapping.get)
@@ -50,10 +51,11 @@ object BatchJobDriver {
         JobLogger.debug("Filtering input data", className, Option(Map("query" -> config.filters)))
         JobLogger.debug("Sorting input data", className, Option(Map("query" -> config.sort)))
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
-        JobLogger.info("Started Executing The Model", className, Option(model.getClass.getName))
+        JobLogger.info("Started Executing The Model", className, None, Option("PROCESSING"))
         val output = model.execute(filterRdd, config.modelParams);
-        JobLogger.info("The Model Execution Completed", className, Option(model.getClass.getName))
-        JobLogger.info("Number of events generated", className,Option(Map("events" -> output.count)))
         OutputDispatcher.dispatch(config.output, output);
+        val t2 = System.currentTimeMillis;
+        val date = config.search.queries.get.last.endDate
+        JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date"->date,"events" -> output.count, "timeTaken" -> Double.box((t2 - t1) / 1000))), Option("COMPLETED"))
     }
 }

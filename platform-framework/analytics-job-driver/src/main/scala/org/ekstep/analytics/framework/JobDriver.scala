@@ -27,7 +27,7 @@ object JobDriver {
         val t1 = System.currentTimeMillis;
         try {
             val jobConfig = JSONUtils.deserialize[JobConfig](config);
-            JobLogger.info("Starting " + t + " job with config", className, Option(jobConfig))
+            JobLogger.info("Starting " + t + " job with config", className, Option(jobConfig), Option("START"))
             t match {
                 case "batch" =>
                     BatchJobDriver.process[T](jobConfig, model);
@@ -35,15 +35,15 @@ object JobDriver {
                     StreamingJobDriver.process(jobConfig);
                 case _ =>
                     val exp = new Exception("Unknown job type")
-                    JobLogger.error("Failed Job, JobDriver: main ", className, exp)
+                    JobLogger.error("Failed Job, JobDriver: main ", className, exp, None, Option("FAILED"))
                     throw exp
             }
         } catch {
             case e: JsonMappingException =>
-                JobLogger.error("JobDriver:main() - JobConfig parse error", className, e)
+                JobLogger.error("JobDriver:main() - JobConfig parse error", className, e, None, Option("FAILED"))
                 throw e;
             case e: Exception =>
-                JobLogger.error("JobDriver:main() - Job error", className, e)
+                JobLogger.error("JobDriver:main() - Job error", className, e, None, Option("FAILED"))
                 throw e;
         }
         val t2 = System.currentTimeMillis;
