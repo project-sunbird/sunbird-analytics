@@ -19,8 +19,8 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.util.JobLogger
 
-case class ContentUsageMetrics(content_id: String, is_group_user: Boolean, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String, dt_range: DtRange);
-case class ContentUsageSummaryInput(contentId: String, isGroupUser: Boolean, data: Buffer[DerivedEvent]);
+case class ContentUsageMetrics(content_id: String, is_group_user: Boolean, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String, dt_range: DtRange) extends AlgoOutput;
+case class ContentUsageSummaryInput(contentId: String, isGroupUser: Boolean, data: Buffer[DerivedEvent]) extends AlgoInput;
 
 object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsageSummaryInput, ContentUsageMetrics, MeasuredEvent] with Serializable {
 

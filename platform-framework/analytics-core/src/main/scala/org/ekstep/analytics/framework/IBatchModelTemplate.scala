@@ -3,10 +3,19 @@ package org.ekstep.analytics.framework
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 
-trait IBatchModelTemplate[T, A, B, R] extends IBatchModel[T, R] {
+trait Input extends Serializable
+trait AlgoInput extends Serializable
+trait AlgoOutput extends Serializable
+trait Output extends Serializable
+
+trait IBatchModelTemplate[T<:Input, A<:AlgoInput, B<:AlgoOutput, R<:Output] extends IBatchModel[T, R] {
 
     /**
-     * 
+     * Override and implement the data product execute method. 
+     * This invokes all the three stages defined for a data product in the following order
+     * 1. preProcess
+     * 2. algorithm
+     * 3. postProcess 
      */
     override def execute(events: RDD[T], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[R] = {
         val config = jobParams.getOrElse(Map[String, AnyRef]());
@@ -14,17 +23,23 @@ trait IBatchModelTemplate[T, A, B, R] extends IBatchModel[T, R] {
     }
 
     /**
-     * 
+     * Pre processing steps before running the algorithm. Few pre-process steps are
+     * 1. Transforming input - Filter/Map etc.
+     * 2. Join/fetch data from LP
+     * 3. Join/Fetch data from Cassandra
      */
     def preProcess(events: RDD[T], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[A]
 
     /**
-     * 
+     * Method which runs the actual algorithm
      */
     def algorithm(events: RDD[A], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[B]
 
     /**
-     * 
+     * Post processing on the algorithm output. Some of the post processing steps are
+     * 1. Saving data to Cassandra
+     * 2. Converting to "MeasuredEvent" to be able to dispatch to Kafka or any output dispatcher
+     * 3. Transform into a structure that can be input to another data product
      */
     def postProcess(events: RDD[B], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[R]
 }
