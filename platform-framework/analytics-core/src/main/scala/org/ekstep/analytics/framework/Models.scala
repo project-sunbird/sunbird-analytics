@@ -24,12 +24,14 @@ class Ext(val stageId: String, val `type`: String) extends Serializable {}
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, 
-        val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends Serializable {}
+class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
+            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends Serializable {}
 
 // Computed Event Model
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
+@scala.reflect.BeanInfo
+case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None);
 @scala.reflect.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None);
 @scala.reflect.BeanInfo
@@ -42,9 +44,6 @@ case class DtRange(from: Long, to: Long);
 case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange);
 @scala.reflect.BeanInfo
 case class MEEdata(eks: AnyRef);
-
-@scala.reflect.BeanInfo
-class MEEvent(val eid: String,val context: Context,val dimensions: Dimensions,val edata: MEEdata,val tags: Option[AnyRef] = None) extends Serializable {}
 
 // User profile event models
 

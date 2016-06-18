@@ -18,7 +18,7 @@ object LearnerSessionSummarizer extends optional.Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobLogger.debug("Started executing Job", className)
-        //JobDriver.run[Event]("batch", config, LearnerSessionSummary);
+        JobDriver.run("batch", config, LearnerSessionSummary);
         JobLogger.debug("Job completed.", className)
     }
 

@@ -15,7 +15,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double)
 case class ReducedContentDetails(content_id: String, transfer_count: Double, did: String, origin: String, ts: Long, syncts: Long)
 
-object ContentSideloadingSummary extends IBatchModel[Event,Any,Any,MEEvent] with Serializable {
+object ContentSideloadingSummary extends IBatchModel[Event, String] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentSideloadingSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

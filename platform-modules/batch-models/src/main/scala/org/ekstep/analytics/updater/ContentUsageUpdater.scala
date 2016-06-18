@@ -24,7 +24,7 @@ case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_group_
                                    m_avg_interactions_min: Double, m_avg_sessions_week: Option[Double], m_avg_ts_week: Option[Double])
 case class ContentUsageSummaryIndex(d_content_id: String, d_period: Int, d_group_user: Boolean)
 
-object ContentUsageUpdater extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
+object ContentUsageUpdater extends IBatchModel[MeasuredEvent, String] with Serializable {
 
     val className = "org.ekstep.analytics.updater.ContentUsageUpdater"
   

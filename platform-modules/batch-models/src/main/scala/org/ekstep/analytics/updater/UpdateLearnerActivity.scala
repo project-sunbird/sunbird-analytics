@@ -22,7 +22,7 @@ case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_
 /**
  * @author Santhosh
  */
-object UpdateLearnerActivity extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
+object UpdateLearnerActivity extends IBatchModel[MeasuredEvent, String] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateLearnerActivity"
     

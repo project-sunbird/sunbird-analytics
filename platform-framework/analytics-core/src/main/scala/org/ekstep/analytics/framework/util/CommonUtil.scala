@@ -345,10 +345,4 @@ object CommonUtil {
         }
     }
     
-    def getMeasuredEvent(meevent: MEEvent): MeasuredEvent = {
-
-        val mid = getMessageId(meevent.eid, meevent.dimensions.uid.getOrElse(null), meevent.context.granularity, meevent.context.date_range, meevent.dimensions.gdata.get.id);
-        MeasuredEvent(meevent.eid, System.currentTimeMillis(), meevent.context.date_range.to, "1.0", mid, meevent.dimensions.uid.getOrElse(""), None, 
-            meevent.dimensions.cdata, meevent.context,meevent.dimensions,meevent.edata,meevent.tags);
-    }
 }

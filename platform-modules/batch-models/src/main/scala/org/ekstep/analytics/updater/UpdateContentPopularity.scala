@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.ContentId
 /**
  * @author Santhosh
  */
-object UpdateContentPopularity extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
+object UpdateContentPopularity extends IBatchModel[MeasuredEvent, String] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateContentPopularity"
     

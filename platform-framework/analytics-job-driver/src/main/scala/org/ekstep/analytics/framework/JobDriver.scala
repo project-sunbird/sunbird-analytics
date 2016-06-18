@@ -20,8 +20,7 @@ import org.apache.logging.log4j.LogManager
 object JobDriver {
 
     val className = "org.ekstep.analytics.framework.JobDriver"
-    def run[T](t: String, config: String, model: IBatchModel[T,Any,Any,MEEvent])(implicit mf: Manifest[T], sc: SparkContext) {
-        println("in job driver")
+    def run[T, R](t: String, config: String, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         JobLogger.init(model.getClass.getName.split("\\$").last);
         AppConf.init();
         val t1 = System.currentTimeMillis;
@@ -30,7 +29,7 @@ object JobDriver {
             JobLogger.info("Starting " + t + " job with config", className, Option(jobConfig))
             t match {
                 case "batch" =>
-                    BatchJobDriver.process[T](jobConfig, model);
+                    BatchJobDriver.process[T, R](jobConfig, model);
                 case "streaming" =>
                     StreamingJobDriver.process(jobConfig);
                 case _ =>

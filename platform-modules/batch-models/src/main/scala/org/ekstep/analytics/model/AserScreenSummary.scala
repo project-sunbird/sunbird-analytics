@@ -4,7 +4,6 @@ import org.ekstep.analytics.framework.IBatchModel
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Event
-import org.ekstep.analytics.framework.MEEvent
 import org.ekstep.analytics.framework.util.CommonUtil
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.JobContext
@@ -36,7 +35,7 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
 /**
  * Aser Screen Summary Model
  */
-object AserScreenSummary extends SessionBatchModel[Event,Any,Any,MEEvent] with Serializable {
+object AserScreenSummary extends SessionBatchModel[Event, String] with Serializable {
 
     val className = "org.ekstep.analytics.model.AserScreenSummary"
     def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

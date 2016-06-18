@@ -32,7 +32,7 @@ import org.apache.log4j.Logger
 case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double])
 case class RelevanceScores(conceptId: String, relevance: Double)
 
-object RecommendationEngine extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
+object RecommendationEngine extends IBatchModel[MeasuredEvent, String] with Serializable {
 
     val className = "org.ekstep.analytics.model.RecommendationEngine"
     /**

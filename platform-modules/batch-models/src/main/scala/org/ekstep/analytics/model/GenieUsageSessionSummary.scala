@@ -25,7 +25,7 @@ import org.ekstep.analytics.framework.Filter
 case class GenieSessionSummary(groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange, learner_id: String, did: String)
 case class Summary(sid: String, did: String, learner_id: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
-object GenieUsageSessionSummary extends SessionBatchModel[Event,Any,Any,MEEvent] with Serializable {
+object GenieUsageSessionSummary extends SessionBatchModel[Event, String] with Serializable {
 
     val className = "org.ekstep.analytics.model.GenieUsageSessionSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

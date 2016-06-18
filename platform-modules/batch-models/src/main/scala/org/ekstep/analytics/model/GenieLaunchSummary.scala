@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 case class GenieSummary(timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange)
 
-object GenieLaunchSummary extends SessionBatchModel[Event,Any,Any,MEEvent] with Serializable {
+object GenieLaunchSummary extends SessionBatchModel[Event, String] with Serializable {
 
     val className = "org.ekstep.analytics.model.GenieLaunchSummary"
     def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {

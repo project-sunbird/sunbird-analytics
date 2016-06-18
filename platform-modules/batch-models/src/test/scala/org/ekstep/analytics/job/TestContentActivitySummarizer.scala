@@ -11,7 +11,6 @@ import org.ekstep.analytics.framework.Filter
 class TestContentActivitySummarizer extends SparkSpec(null) {
   
   "it" should "execute the job and shouldn't throw any exception" in {
-        println("in test CAS")
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/CAS/test_data_1.log"))))), None, None, "org.ekstep.analytics.model.CAS", None, Option(Array(Dispatcher("console", Map("printEvent" -> true.asInstanceOf[AnyRef])))), Option(10), Option("TestContentActivitySummarizer"), Option(false))
         ContentActivitySummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }

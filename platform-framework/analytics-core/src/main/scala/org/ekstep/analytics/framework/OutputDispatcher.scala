@@ -18,12 +18,11 @@ object OutputDispatcher {
 
     val className = "org.ekstep.analytics.framework.OutputDispatcher"
     @throws(classOf[DispatcherException])
-    def dispatch(outputs: Option[Array[Dispatcher]], events: RDD[MEEvent]) = {
-        println("in output dispatcher dispatch()....")
+    def dispatch[T](outputs: Option[Array[Dispatcher]], events: RDD[T]) = {
         if (outputs.isEmpty) {
             throw new DispatcherException("No output configurations found");
         }
-        val eventArr = getStringifiedMeasuredEvent(events).collect();
+        val eventArr = stringify(events).collect();
         if (eventArr.length != 0) {
             outputs.get.foreach { dispatcher =>
                 JobLogger.debug("Dispatching output", className, Option(dispatcher.to));
@@ -37,11 +36,11 @@ object OutputDispatcher {
     }
 
     @throws(classOf[DispatcherException])
-    def dispatch(dispatcher: Dispatcher, events: RDD[MEEvent]) = {
+    def dispatch[T](dispatcher: Dispatcher, events: RDD[T]) = {
         if (null == dispatcher) {
             throw new DispatcherException("No output configurations found");
         }
-        val eventArr = getStringifiedMeasuredEvent(events).collect();
+        val eventArr = stringify(events).collect();
         if (eventArr.length != 0) {
             JobLogger.debug("Dispatching output", className, Option(dispatcher.to));
             DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
@@ -50,11 +49,13 @@ object OutputDispatcher {
             null;
         }
     }
-    
-    def getStringifiedMeasuredEvent(events: RDD[MEEvent]):RDD[String] ={
-        println("in getdtringifiedME()...")
-        events.map{x => 
-            JSONUtils.serialize(CommonUtil.getMeasuredEvent(x))   
+
+    def stringify[T](events: RDD[T]): RDD[String] = {
+        events.map { x =>
+            if (x.isInstanceOf[String])
+                x.asInstanceOf[String]
+            else
+                JSONUtils.serialize(x.asInstanceOf[AnyRef])
         }
     }
 }

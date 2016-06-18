@@ -36,7 +36,7 @@ case class LearnerProficiency(learner_id: String, proficiency: Map[String, Doubl
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class ProficiencySummary(conceptId: String, proficiency: Double)
 
-object LearnerProficiencySummary extends IBatchModel[MeasuredEvent,Any,Any,MEEvent] with Serializable {
+object LearnerProficiencySummary extends IBatchModel[MeasuredEvent, String] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerProficiencySummary"
 

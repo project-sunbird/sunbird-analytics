@@ -8,7 +8,6 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.Event
-import org.ekstep.analytics.framework.MEEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.IBatchModel
 import org.apache.spark.SparkContext
@@ -21,8 +20,7 @@ import org.apache.log4j.Logger
 object BatchJobDriver {
 
     val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
-    def process[T](config: JobConfig, model: IBatchModel[T,Any,Any,MEEvent])(implicit mf: Manifest[T], sc: SparkContext) {
-        println("in batch job driver process()...")
+    def process[T,R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         JobContext.parallelization = CommonUtil.getParallelization(config);
         JobLogger.debug("Setting number of parallelization", className, Option(Map("parallelization"->JobContext.parallelization)))
         if (null == sc) {
@@ -39,8 +37,7 @@ object BatchJobDriver {
         }
     }
 
-    private def _process[T](config: JobConfig, model: IBatchModel[T,Any,Any,MEEvent])(implicit mf: Manifest[T], sc: SparkContext) {
-        println("in batch job driver _process()...")
+    private def _process[T,R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         JobLogger.debug("Fetching data", className, Option(Map("query" -> config.search)))
         val rdd = DataFetcher.fetchBatchData[T](config.search);
         if (config.deviceMapping.nonEmpty && config.deviceMapping.get)

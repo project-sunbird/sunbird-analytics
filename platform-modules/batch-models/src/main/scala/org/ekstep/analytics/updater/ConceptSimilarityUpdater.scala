@@ -12,7 +12,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class ConceptSimilarity(concept1: String, concept2: String, relation_type: String, sim: Double)
 case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, similarity: List[Map[String, AnyRef]])
 
-object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity,Any,Any,MEEvent] with Serializable {
+object ConceptSimilarityUpdater extends IBatchModel[ConceptSimilarityEntity, String] with Serializable {
 
     val className = "org.ekstep.analytics.updater.ConceptSimilarityUpdater"
     

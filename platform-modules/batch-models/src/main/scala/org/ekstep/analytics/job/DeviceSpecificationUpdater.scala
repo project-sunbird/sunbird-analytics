@@ -15,7 +15,7 @@ object DeviceSpecificationUpdater extends Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.debug("Started executin Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        //JobDriver.run[Event]("batch", config, DeviceSpecification);
+        JobDriver.run("batch", config, DeviceSpecification);
         JobLogger.debug("Job Completed.", className)
     }
 }
