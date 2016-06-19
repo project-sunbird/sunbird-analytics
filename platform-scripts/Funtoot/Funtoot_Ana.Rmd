@@ -1,0 +1,12 @@
+---
+title: Funtoot Concept Map Analysis
+author: "Aditya Arora, Soma Dhavala, Srikanth Chunduri"
+date: "May 08, 2016"
+output: html_document
+---
+
+
+```{r,warning=FALSE}
+setwd('/Users/soma/github/ekStep/Learning-Platform-Analytics/platform-scripts/Funtoot')
+source('/Users/soma/github/ekStep/Learning-Platform-Analytics/platform-scripts/Funtoot/AnaCmap.R')
+```

@@ -11,28 +11,43 @@ library(dplyr)
 #infile = "testFile.graphml"
 #infile = "funtoot_numeracy.graphml"
 infile = "funtoot_numeracy_1.2.xml"
-infile = "funtootNumeracy1.3.xml"
-infile = "usmovie.graphml"
-outfile = "funtoot_graph_metrics.csv"
+infile = "funtootNumeracy1.4.xml"
+#infile = "usmovie.graphml"
+
 simulate.graph = FALSE
+undirected = TRUE
+if(undirected){
+  outfile = "funtoot_graph_metrics_undirected.csv"  
+} else {
+  outfile = "funtoot_graph_metrics_directed.csv"  
+}
+  
+  
+
 
 # whether to compute global features
 global.features = FALSE
 
 if(simulate.graph){
-  
   # create a random graph
   n = 10
   A <- matrix(round(runif(n*n)),n,n)
-  g <- graph.adjacency(A,mode="directed",weight=T)
   write.graph(g, infile, "graphml")
-  } else {
-  # read the graph
-  # read edge list file
-  g = read.graph(infile, "graphml")
-  A = as.matrix(as_adjacency_matrix(g))
-  n = ncol(A)
 }
+# read the graph
+# read edge list file
+g = read.graph(infile, "graphml")
+A = as.matrix(as_adjacency_matrix(g))
+# if(undirected)
+# {
+#   A = (A+t(A));
+#   A[A>1]=1
+#   g <- graph.adjacency(A,mode="undirected",weight=T) 
+#   
+# } else {
+#   g <- graph.adjacency(A,mode="undirected",weight=T) 
+# }
+n = ncol(A)
 
 # generate the following features
 features <- c("indegree","outdegree","centrality","closeness",
@@ -103,14 +118,35 @@ if (global.features){
 }
 
 # verify the edges and properties
-set_vertex_attr(g,"label", value = LETTERS[1:n])
-vids <- as_ids(V(g))
-eids <- as_ids(E(g))
-ind = sapply(eids,function(tmp) pmatch(vids[894],tmp))  
-edge_attr(g,"category",index=which(ind==1))
+#set_vertex_attr(g,"label", value = LETTERS[1:n])
 
-rownames(cmapFeatures)=vertex_attr(g,"id",V(g))
-df <- data.frame(node.id=vertex_attr(g,"id",V(g)))
+#vids <- as_ids(V(g))
+#eids <- as_ids(E(g))
+#ind = sapply(eids,function(tmp) pmatch(vids[894],tmp))  
+#edge_attr(g,"category",index=which(ind==1))
+
+uid = vertex_attr(g,"uid",V(g))
+name = vertex_attr(g,"name",V(g))
+objectType = vertex_attr(g,"objectType",V(g))
+desc = vertex_attr(g,"description",V(g))
+id = vertex_attr(g,"id",V(g))
+tags = vertex_attr(g,"tags",V(g))
+children = vertex_attr(g,"childrenIdentifiers",V(g))
+parent = vertex_attr(g,"parentIdentifier",V(g))
+
+df <- data.frame(id=id,name=name,objectType=objectType,description=desc,
+                 parent=parent,children=children)
+#rownames(cmapFeatures)=vertex_attr(g,"id",V(g))
+#df <- data.frame(node.id=vertex_attr(g,"id",V(g)))
 df2 <- as.data.frame(cmapFeatures)
 df <- cbind(df,df2)
 write.table(df,outfile,col.names=T,row.names = F,sep=',')
+
+
+
+
+
+
+
+
+

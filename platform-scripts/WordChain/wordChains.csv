@@ -1,0 +1,512 @@
+Word,PoS,Theme,Category
+a,article,,Grammatical Word
+about,preposition,,Grammatical Word
+about,,,Grammatical Word
+after,preposition,,Grammatical Word
+after,adverb,,Grammatical Word
+again,,,Grammatical Word
+air,noun,Nature,Thing
+all,adjective,,Grammatical Word
+always,,,Grammatical Word
+an,article,,Grammatical Word
+and,conjunction,,Grammatical Word
+Angry,noun,Feelings,Quality
+Ant,noun,Insect/Fish,Thing
+any,,,Grammatical Word
+Apple,noun,Fruits,Thing
+are,verb,,Grammatical Word
+around,adjective,,Grammatical Word
+article,pronoun,,Grammatical Word
+ask,,,Grammatical Word
+at,preposition,,Grammatical Word
+ate,,,Action/Event
+away,adjective,,Quality
+baby,noun,Relations,Person
+back,adjective,Direction,Place
+Banana,noun,Fruits,Thing
+bathe,verb,,Action/Event
+be,verb,,Grammatical Word
+Beans,noun,Vegetables,Thing
+bear ,noun,Animals,Thing
+because,,,Grammatical Word
+bed,noun,Household Items,Thing
+bedroom,noun,Household Items,Thing
+been,,,Grammatical Word
+before,preposition,,Grammatical Word
+belt,noun,Clothes,Thing
+bench,noun,School Things,Thing
+bend,verb,,Action/Event
+best,,,Quality
+better,,,Quality
+big,adjective,,Quality
+bird,noun,Birds,Thing
+Black,noun,Color,Quality
+blackboard,noun,Stationery,Thing
+Blouse,noun,Clothes,Thing
+Blue,noun,Color,Quality
+boat,noun,Vehicles,Thing
+bolt,noun,Household Items,Thing
+Book,noun,Stationery,Thing
+both,,,Grammatical Word
+bowl,noun,Household Items,Thing
+box,noun,Household Items,Thing
+Boy,noun,,Person
+branch,noun,Plants and Trees,Thing
+bread,noun,Food,Thing
+bring,,,Grammatical Word
+Brinjal,noun,Vegetables,Thing
+brother,noun,Relations,Person
+brown,noun,Color,Quality
+bucket ,noun,Household Items,Thing
+bug,noun,Insect/Fish,Thing
+bulb,noun,Household Items,Thing
+bus,noun,Vehicles,Thing
+but,conjunction,,Grammatical Word
+buy,,,Action/Event
+by,preposition,,Grammatical Word
+cabbage,noun,Vegetables,Thing
+cake,noun,Food,Thing
+call,verb,,Action/Event
+came,verb,,Action/Event
+can,verb,,Grammatical Word
+can't,adverb,,Grammatical Word
+cap ,noun,Clothes,Thing
+car,noun,Vehicles,Thing
+Carrot,noun,Vegetables,Thing
+carry,verb,,Action/Event
+Cat,noun,Animals,Thing
+cauliflower,noun,Vegetables,Thing
+chair,noun,School Things,Thing
+chalk,noun,Stationery,Thing
+chapatti,noun,Food,Thing
+children,noun,Relations,Concept
+church,noun,Common Places,Place
+clap,verb,,Action/Event
+clean,,,Quality
+climb,verb,,Action/Event
+Clouds,noun,Nature,Thing
+coat,noun,Clothes,Thing
+cockroach,noun,Insect/Fish,Thing
+Cold,adjective,Weather,Quality
+cold,adjective,,Quality
+come,verb,,Action/Event
+could,,,Grammatical Word
+cow,noun,Animals,Thing
+crow,noun,Birds,Thing
+cup,noun,Household Items,Thing
+cupboard,noun,Household Items,Thing
+curd,noun,Food,Thing
+curry,noun,Food,Thing
+curtain,noun,Household Items,Thing
+cut,,,Action/Event
+dad,noun,Relations,Person
+dal,noun,Food,Thing
+day,noun,,Numeral/Time
+deer,noun,Animals,Thing
+desk,noun,School Things,Thing
+did,verb,,Grammatical Word
+didn't,,,Grammatical Word
+do,verb,,Grammatical Word
+does,,,Grammatical Word
+Dog,noun,Animals,Thing
+doll,noun,,Thing
+don't,,,Grammatical Word
+done,,,Grammatical Word
+donkey,noun,Animals,Thing
+door,noun,Household Items,Thing
+down,adverb,Direction,Place
+draw,,,Action/Event
+Dress,noun,Clothes,Thing
+drink,verb,,Action/Event
+drink,,,Action/Event
+Dry,adjective,,Quality
+duck,noun,Birds,Thing
+dustbin,noun,Household Items,Thing
+eagle,noun,Birds,Thing
+Ear,noun,Body Parts,Thing
+earring,noun,Clothes,Thing
+eat,verb,,Action/Event
+eat,verb,,Action/Event
+eight,noun,Numbers,Numeral/Time
+eight,,,Numeral/Time
+Elephant,noun,Animals,Thing
+Eraser,noun,Stationery,Thing
+every,,,Grammatical Word
+excited,noun,Feelings,Quality
+Eye,noun,Body Parts,Thing
+Face,noun,Body Parts,Thing
+fall,,,Action/Event
+fan,noun,Household Items,Thing
+far,,,Quality
+farm,noun,,Place
+fast,adverb,,Quality
+father,noun,Relations,Person
+field,noun,Common Places,Place
+find,,,Grammatical Word
+Fingers,noun,Body Parts,Thing
+first,,,Grammatical Word
+fish,noun,Insect/Fish,Thing
+Five,noun,Numbers,Numeral/Time
+five,,,Numeral/Time
+floor,noun,Household Items,Thing
+flower,noun,Plants and Trees,Thing
+fly,noun,Insect/Fish,Thing
+fly,verb,,Action/Event
+Food,noun,Food,Thing
+for,preposition,,Grammatical Word
+forest,noun,Nature,Thing
+found,,,Grammatical Word
+Four,noun,Numbers,Numeral/Time
+four,,,Numeral/Time
+fox,noun,Animals,Thing
+frock,noun,Clothes,Thing
+from,preposition,,Grammatical Word
+front,adjective,Direction,Place
+Fruit,noun,Plants and Trees,Thing
+full,,,Quality
+funny,adjective,,Quality
+garden,noun,Common Places,Place
+garland,noun,Clothes,Thing
+garlic,noun,Vegetables,Thing
+gave,verb,,Action/Event
+get,verb,,Action/Event
+ginger,noun,Vegetables,Thing
+Girl ,noun,,Person
+give,verb,,Action/Event
+glass,noun,Household Items,Thing
+glasses,noun,Clothes,Thing
+go,verb,,Action/Event
+goes,,,Grammatical Word
+going,verb,,Action/Event
+gone,verb,,Action/Event
+good,adjective,,Quality
+Good afternoon,noun,Greeting,Action/Event
+Good morning,noun,Greeting,Action/Event
+good night,noun,Greeting,Action/Event
+got,,,Grammatical Word
+grandmother,noun,Relations,Person
+granfather,noun,Relations,Person
+grapes,noun,Fruits,Thing
+grass,noun,Common Places,Thing
+Green,noun,Color,Quality
+green vegetables,noun,Vegetables,Thing
+grow,,,Action/Event
+guava,noun,Fruits,Thing
+had,verb,,Grammatical Word
+Hair,noun,Body Parts,Thing
+Hands ,noun,Body Parts,Thing
+Happy,noun,Feelings,Quality
+has,,,Grammatical Word
+hat,noun,Clothes,Thing
+have,verb,,Grammatical Word
+he,pronoun,,Person
+he,pronoun,,Grammatical Word
+Head,noun,Body Parts,Thing
+heavy,adjective,Weight,Quality
+hello,noun,Greeting,Action/Event
+help,verb,,Action/Event
+hen,noun,Birds,Thing
+here,adverb,,Grammatical Word
+hill,noun,Common Places,Place
+him,pronoun,,Grammatical Word
+hold,,,Action/Event
+home,noun,Common Places,Place
+Horse,noun,Animals,Thing
+hospital,noun,Common Places,Place
+Hot,adjective,Weather,Quality
+hot,,,Quality
+house,noun,Common Places,Place
+how,pronoun,interrogative,Grammatical Word
+how,,,Grammatical Word
+hungry,noun,Feelings,Quality
+hurt,,,Action/Event
+I,pronoun,,Grammatical Word
+if,conjunction,,Grammatical Word
+in,preposition,,Grammatical Word
+in,adjective,,Grammatical Word
+India,noun,Country,Place
+into,preposition,,Grammatical Word
+is,verb,,Grammatical Word
+it,pronoun,,Thing
+it,pronoun,,Grammatical Word
+its,pronoun,,Grammatical Word
+Joy,noun,Feelings,Quality
+jump,verb,,Action/Event
+jump,verb,,Action/Event
+jungle,noun,Nature,Thing
+just,,,Grammatical Word
+keep,,,Action/Event
+key,noun,Household Items,Thing
+kind,,,Quality
+kitchen,noun,Household Items,Thing
+knew,verb,,Action/Event
+know,,,Grammatical Word
+lady,noun,,Concept
+lady's finger,noun,Vegetables,Thing
+leaf,noun,Plants and Trees,Thing
+left,adjective,Direction,Place
+Legs ,noun,Body Parts,Thing
+lemon,noun,Vegetables,Thing
+let,,,Grammatical Word
+light,noun,Household Items,Thing
+light,adjective,Weight,Quality
+light,,,Quality
+like,adjective,,Action/Event
+lion ,noun,Animals,Thing
+little,adjective,,Quality
+live,verb,,Action/Event
+lock,noun,Household Items,Thing
+long,,,Grammatical Word
+look,verb,,Action/Event
+made,,,Grammatical Word
+make,verb,,Action/Event
+man,noun,,Person
+Mango,noun,Fruits,Thing
+many,,,Grammatical Word
+market,noun,Common Places,Place
+may,verb,,Grammatical Word
+me,pronoun,,Person
+me,pronoun,,Person
+meal,noun,Food,Thing
+meat,noun,Food,Thing
+milk,noun,Food,Thing
+mirror,noun,Household Items,Thing
+mom,noun,Relations,Person
+Moon,noun,Nature,Thing
+mosque,noun,Common Places,Place
+mosquito,noun,Insect/Fish,Thing
+mother,noun,Relations,Person
+Mouth ,noun,Body Parts,Thing
+much,,,Grammatical Word
+mug,noun,Household Items,Thing
+must,,,Grammatical Word
+my,pronoun,,Grammatical Word
+my,pronoun,,Grammatical Word
+myself,,,Person
+Nails,noun,Body Parts,Thing
+name,noun, ,Concept
+necklace,noun,Clothes,Thing
+never,,,Grammatical Word
+new,,,Quality
+night,noun,,Concept
+nine,noun,Numbers,Numeral/Time
+no,noun,,Grammatical Word
+Nose,noun,Body Parts,Thing
+not,adjective,,Grammatical Word
+notebook,noun,Stationery,Thing
+now,,,Numeral/Time
+of,preposition,,Grammatical Word
+off,,,Grammatical Word
+old,adjective,,Quality
+on,preposition,,Grammatical Word
+on,preposition,,Grammatical Word
+once,,,Grammatical Word
+One,noun,Numbers,Numeral/Time
+Onion,noun,Vegetables,Thing
+only,,,Grammatical Word
+open,,,Action/Event
+or,,,Grammatical Word
+orange,noun,Fruits,Thing
+our,,,Grammatical Word
+out,adjective,,Grammatical Word
+over,adverb,,Grammatical Word
+own,,,Quality
+Pant,noun,Clothes,Thing
+papaya,noun,Fruits,Thing
+parrot,noun,Birds,Thing
+peacock,noun,Birds,Thing
+Peas,noun,Vegetables,Thing
+pen,noun,Stationery,Thing
+Pencil,noun,Stationery,Thing
+pick,,,Action/Event
+picture,noun,,Thing
+pig,noun,Animals,Thing
+pigeon ,noun,Birds,Thing
+pineapple,noun,Fruits,Thing
+pink,noun,Color,Quality
+plant,noun,Plants and Trees,Thing
+plate,noun,Household Items,Thing
+play,verb,,Action/Event
+playground,noun,School Things,Thing
+please,,,Grammatical Word
+police station,noun,Common Places,Place
+pomegranate,noun,Fruits,Thing
+post office,noun,Common Places,Place
+Potato,noun,Vegetables,Thing
+pretty,,,Quality
+pull,,,Grammatical Word
+Pumpkin,noun,Vegetables,Thing
+put,,,Action/Event
+rabbit,noun,Animals,Thing
+radish,noun,Vegetables,Thing
+rain,noun,Nature,Thing
+Rainy,adjective,Weather,Quality
+ran,verb,,Action/Event
+Rat,noun,Animals,Thing
+read,,,Action/Event
+Red,noun,Color,Quality
+ribbon,noun,Clothes,Thing
+rice,noun,Food,Thing
+ride,verb,,Action/Event
+right,adjective,Direction,Place
+right,,,Place
+roof,noun,Household Items,Thing
+room,noun,Household Items,Thing
+root,noun,Plants and Trees,Thing
+round,adjective,,Quality
+ruler,noun,Stationery,Thing
+run,verb,,Action/Event
+run,verb,,Action/Event
+Sad,noun,Feelings,Quality
+said,verb,,Action/Event
+Sari,noun,Clothes,Thing
+sat,verb,,Action/Event
+saw,verb,,Action/Event
+say,,,Grammatical Word
+scarf,noun,Clothes,Thing
+school,noun,School Things,Place
+schoolbag,noun,School Things,Thing
+see,verb,,Action/Event
+seed,noun,Plants and Trees,Thing
+seven,,,Numeral/Time
+seven ,noun,Numbers,Numeral/Time
+shake hands,verb,,Action/Event
+shall,,,Grammatical Word
+Sharpener,noun,Stationery,Thing
+she,pronoun,,Person
+sheep,noun,Animals,Thing
+shelf,noun,Household Items,Thing
+Shirt,noun,Clothes,Thing
+shoe,noun,Clothes,Thing
+shop,noun,Common Places,Place
+short,adjective,,Quality
+shorts,noun,Clothes,Thing
+show,,,Grammatical Word
+sing,,,Action/Event
+sister,noun,Relations,Person
+sit,,,Action/Event
+sit ,verb,,Action/Event
+six,noun,Numbers,Numeral/Time
+six,,,Numeral/Time
+Skirt,noun,Clothes,Thing
+Sky,noun,Nature,Thing
+slate,noun,Stationery,Thing
+sleep,verb,,Action/Event
+sleep,,,Action/Event
+slipper,noun,Clothes,Thing
+small,,,Quality
+smell,verb,,Action/Event
+so,conjunction,,Grammatical Word
+soap,noun,Household Items,Thing
+socks,noun,Clothes,Thing
+some,adjective,,Grammatical Word
+soon,adverb,,Grammatical Word
+sparrow,noun,Birds,Thing
+spider,noun,Insect/Fish,Thing
+spoon,noun,Household Items,Thing
+squirrel,noun,Animals,Thing
+staircase,noun,Household Items,Thing
+stand,verb,,Action/Event
+start,,,Action/Event
+Stomach,noun,Body Parts,Thing
+stop,verb,,Action/Event
+street,noun,Common Places,Thing
+student,noun,School Things,Person
+Sun,noun,Nature,Thing
+Sunny,adjective,Weather,Quality
+surprise,noun,Feelings,Quality
+switch,noun,Household Items,Thing
+Table ,noun,School Things,Thing
+take,,,Action/Event
+talk,verb,,Action/Event
+tall,adjective,Height,Quality
+tap,noun,Household Items,Thing
+teacher,noun,School Things,Thing
+Teeth,noun,Body Parts,Thing
+tell,,,Action/Event
+temple,noun,Common Places,Place
+ten,noun,Numbers,Numeral/Time
+terrace,noun,Household Items,Thing
+textbook,noun,Stationery,Thing
+thank,,,Action/Event
+that,,,Grammatical Word
+the,article,,Grammatical Word
+their,,,Grammatical Word
+then,,,Grammatical Word
+there,,,Grammatical Word
+these,,,Grammatical Word
+they,pronoun,,Person
+they,,,Grammatical Word
+thick,adjective,,Quality
+thin,adjective,,Quality
+think,verb,,Action/Event
+think,,,Action/Event
+this,pronoun,,Grammatical Word
+those,,,Grammatical Word
+Three,noun,Numbers,Numeral/Time
+tiger,noun,Animals,Thing
+to ,adverb,,Grammatical Word
+today,,,Numeral/Time
+Toes,noun,Body Parts,Thing
+together,,,Grammatical Word
+Tomato,noun,Fruits,Thing
+Tongue,noun,Body Parts,Thing
+too,adverb,,Grammatical Word
+touch,verb,,Action/Event
+Tree,noun,Plants and Trees,Thing
+truck,noun,Vehicles,Thing
+try,,,Action/Event
+turban,noun,Clothes,Thing
+turnip,noun,Vegetables,Thing
+turtle,noun,Animals,Thing
+Two,noun,Numbers,Numeral/Time
+under,preposition,,Grammatical Word
+uniform,noun,School Things,Thing
+up,adjective,Direction,Place
+up,adverb,,Grammatical Word
+upon,,,Grammatical Word
+us,,,Grammatical Word
+use,,,Action/Event
+utensil,noun,Household Items,Thing
+very,,,Grammatical Word
+walk,verb,,Action/Event
+walk,verb,,Action/Event
+want,,,Grammatical Word
+warm,,,Quality
+was,verb,,Action/Event
+wash,verb,,Action/Event
+wash,,,Action/Event
+Water,noun,Food,Thing
+watermelon,noun,Fruits,Thing
+we,pronoun,,Grammatical Word
+well,,,Quality
+went,,,Grammatical Word
+were,,,Grammatical Word
+Wet,adjective,,Quality
+what,pronoun,interrogative,Grammatical Word
+when,pronoun,interrogative,Grammatical Word
+when,,,Grammatical Word
+where,pronoun,interrogative,Grammatical Word
+where,,,Place
+which,pronoun,interrogative,Grammatical Word
+which,,,Grammatical Word
+White,noun,Color,Quality
+white,,,Quality
+who,pronoun,interrogative,Grammatical Word
+why,,,Grammatical Word
+will,verb,,Grammatical Word
+window,noun,Household Items,Thing
+wish,,,Grammatical Word
+with,,,Grammatical Word
+wolf,noun,Animals,Thing
+Woman,noun,,Person
+Women,noun,,Person
+work,,,Grammatical Word
+worry,noun,Feelings,Quality
+would,,,Grammatical Word
+write,,,Action/Event
+Yellow,noun,Color,Quality
+yes,noun,,Grammatical Word
+you,pronoun,,Grammatical Word
+you ,pronoun,,Person
+your,pronoun,,Grammatical Word
