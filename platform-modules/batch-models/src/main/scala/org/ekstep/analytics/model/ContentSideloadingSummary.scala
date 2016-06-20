@@ -14,17 +14,17 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double)
 case class ReducedContentDetails(content_id: String, transfer_count: Double, did: String, origin: String, ts: Long, syncts: Long)
+case class ContentSideloadingInput(contentId: String, currentDetails: Iterable[ReducedContentDetails], previousDetails: Option[ContentSideloading]) extends AlgoInput
+case class ContentSideloadingOutput(summary: ContentSideloading, dtRange: DtRange, synts: Long) extends AlgoOutput
 
-object ContentSideloadingSummary extends IBatchModel[Event, String] with Serializable {
+object ContentSideloadingSummary extends IBatchModelTemplate[Event, ContentSideloadingInput, ContentSideloadingOutput, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentSideloadingSummary"
-    def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.debug("### Execute method started ###", className);
+    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSideloadingInput] = {
+        val configMapping = sc.broadcast(config);
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_TRANSFER")));
         val filteredEvents = DataFilter.filter(DataFilter.filter(events, Filter("edata.eks.direction", "EQ", Option("IMPORT"))), Filter("edata.eks.datatype", "EQ", Option("CONTENT")));
-        val config = jobParams.getOrElse(Map[String, AnyRef]());
-        val configMapping = sc.broadcast(config);
 
         val reducedData = filteredEvents.map { event =>
             val contents = event.edata.eks.contents
@@ -35,12 +35,15 @@ object ContentSideloadingSummary extends IBatchModel[Event, String] with Seriali
         val contentMap = reducedData.groupBy { x => x.content_id }.partitionBy(new HashPartitioner(JobContext.parallelization))
         val prevSideloadingSummary = contentMap.map(f => ContentId(f._1)).joinWithCassandraTable[ContentSideloading](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY).map(f => (f._1.content_id, f._2))
         val joinedContentData = contentMap.leftOuterJoin(prevSideloadingSummary)
+        joinedContentData.map { x => ContentSideloadingInput(x._1, x._2._1, x._2._2) }
+    }
 
-        val contentSideloadingSummary = joinedContentData.mapValues { x =>
+    override def algorithm(data: RDD[ContentSideloadingInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSideloadingOutput] = {
 
-            val newContentMap = x._1
+        data.map { x =>
+            val newContentMap = x.currentDetails
             val contentID = newContentMap.map(y => y.content_id).head
-            val prevContentSummary = x._2.getOrElse(ContentSideloading(contentID, 0, 0, 0, Map[String, Double](), 0.0))
+            val prevContentSummary = x.previousDetails.getOrElse(ContentSideloading(contentID, 0, 0, 0, Map[String, Double](), 0.0))
             val sortedTsList = newContentMap.map(y => y.ts).toList.sortBy { x => x }
             val syncts = newContentMap.last.syncts
             val dtRange = DtRange(sortedTsList.head, sortedTsList.last)
@@ -48,32 +51,28 @@ object ContentSideloadingSummary extends IBatchModel[Event, String] with Seriali
             val total_count = newContentMap.map { y => y.did }.toList.size + prevContentSummary.total_count
             val num_sideloads = total_count - num_downloads
             //creating Map(origin,max(transfer_count))
-            val currentOriginMap = x._1.groupBy { y => y.origin }.mapValues { z => z.map { x => x.transfer_count }.max }.map(f => (f._1, if(f._2 > prevContentSummary.origin_map.getOrElse(f._1, 0.0)) f._2 else prevContentSummary.origin_map.getOrElse(f._1, 0.0)) )
+            val currentOriginMap = x.currentDetails.groupBy { y => y.origin }.mapValues { z => z.map { x => x.transfer_count }.max }.map(f => (f._1, if (f._2 > prevContentSummary.origin_map.getOrElse(f._1, 0.0)) f._2 else prevContentSummary.origin_map.getOrElse(f._1, 0.0)))
             //Creating new origin map comparing current and previous maps
             val newOriginMap = prevContentSummary.origin_map ++ currentOriginMap
             val avgDepth = CommonUtil.roundDouble((newOriginMap.map { x => x._2 }.sum / newOriginMap.size), 2)
 
-            (ContentSideloading(contentID, num_downloads, total_count, num_sideloads, newOriginMap, avgDepth), dtRange, syncts)
+            ContentSideloadingOutput(ContentSideloading(contentID, num_downloads, total_count, num_sideloads, newOriginMap, avgDepth), dtRange, syncts)
         }.cache();
-
-        contentSideloadingSummary.map(x => x._2._1).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY)
-        
-        JobLogger.debug("### Execute method ended ###", className);
-        contentSideloadingSummary.map { f =>
-            getMeasuredEvent(f._2._1, configMapping.value, f._2._2, f._2._3);
-        }.map { x => JSONUtils.serialize(x) };
     }
 
-    private def getMeasuredEvent(sideloadingSummary: ContentSideloading, config: Map[String, AnyRef], dtRange: DtRange, syncts: Long): MeasuredEvent = {
+    override def postProcess(data: RDD[ContentSideloadingOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        data.map(x => x.summary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY)
 
-        val mid = CommonUtil.getMessageId("ME_CONTENT_SIDELOADING_SUMMARY", sideloadingSummary.content_id, null, DtRange(0l, 0l));
-        val measures = Map(
-            "num_downloads" -> sideloadingSummary.num_downloads,
-            "num_sideloads" -> sideloadingSummary.num_sideloads,
-            "avg_depth" -> sideloadingSummary.avg_depth);
-        MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), syncts, "1.0", mid, "", Option(sideloadingSummary.content_id), None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSideloadingSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", dtRange),
-            Dimensions(None, None, None, None, None, None, None, None, None),
-            MEEdata(measures));
+        data.map { csSummary =>
+            val mid = CommonUtil.getMessageId("ME_CONTENT_SIDELOADING_SUMMARY", csSummary.summary.content_id, null, DtRange(0l, 0l));
+            val measures = Map(
+                "num_downloads" -> csSummary.summary.num_downloads,
+                "num_sideloads" -> csSummary.summary.num_sideloads,
+                "avg_depth" -> csSummary.summary.avg_depth);
+            MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), csSummary.synts, "1.0", mid, "", Option(csSummary.summary.content_id), None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSideloadingSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", csSummary.dtRange),
+                Dimensions(None, None, None, None, None, None, None, None, None),
+                MEEdata(measures));
+        }
     }
 }
