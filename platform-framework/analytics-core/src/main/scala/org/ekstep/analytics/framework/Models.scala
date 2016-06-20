@@ -25,7 +25,7 @@ class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends Serializable {}
+            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends Input {}
 
 // Computed Event Model
 @scala.reflect.BeanInfo

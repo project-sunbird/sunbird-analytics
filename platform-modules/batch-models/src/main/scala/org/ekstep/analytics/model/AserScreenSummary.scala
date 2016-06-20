@@ -1,6 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Event
@@ -31,29 +32,32 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
                         var assessLanguage: Option[Double] = Option(0d), var languageLevel: Option[Double] = Option(0d), var selectNumeracyQ1: Option[Double] = Option(0d),
                         var assessNumeracyQ1: Option[Double] = Option(0d), var selectNumeracyQ2: Option[Double] = Option(0d),
                         var assessNumeracyQ2: Option[Double] = Option(0d), var assessNumeracyQ3: Option[Double] = Option(0d),
-                        var scorecard: Option[Double] = Option(0d), var summary: Option[Double] = Option(0d))
+                        var scorecard: Option[Double] = Option(0d), var summary: Option[Double] = Option(0d),
+                        var userId: String = "", var dtRange: DtRange = DtRange(0l,0l), var gameId: String = "" , 
+                        var gameVersion: String = "" ,var did: String = "", var timeStamp: Long = 0l) extends AlgoOutput
+
+case class AserScreenerInput(userId: String, gameSessions: Buffer[Event]) extends AlgoInput
+                        
 /**
  * Aser Screen Summary Model
  */
-object AserScreenSummary extends SessionBatchModel[Event, String] with Serializable {
+object AserScreenSummary extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event,AserScreenerInput,AserScreener,MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.AserScreenSummary"
-    def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-
-        JobLogger.debug("Execute method started", className)
-        val config = jobParams.getOrElse(Map[String, AnyRef]());
-        JobLogger.debug("Broadcasting job config", className)
+    
+    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AserScreenerInput] = {
         val configMapping = sc.broadcast(config);
-        JobLogger.debug("Doing game sessionization", className)
-        val gameSessions = getGameSessions(events);
-
-        JobLogger.debug("Started calculating screener information", className)
-        val aserSreenSummary = gameSessions.mapValues { x =>
+        val gameSessions = getGameSessions(data);
+        gameSessions.map{x => AserScreenerInput(x._1,x._2)}
+    }
+    
+    override def algorithm(data: RDD[AserScreenerInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AserScreener] = {
+        val aserSreenSummary = data.map { x =>
           
-            val startTimestamp = Option(CommonUtil.getEventTS(x(0)));
-            val endTimestamp = Option(CommonUtil.getEventTS(x.last));
+            val startTimestamp = Option(CommonUtil.getEventTS(x.gameSessions(0)));
+            val endTimestamp = Option(CommonUtil.getEventTS(x.gameSessions.last));
 
-            val oeStart: Event = x(0);
+            val oeStart: Event = x.gameSessions(0);
             val did = oeStart.did
             var storyReading: Event = null;
             var q1Select: Event = null;
@@ -63,10 +67,10 @@ object AserScreenSummary extends SessionBatchModel[Event, String] with Serializa
             var exit: Event = null;
 
             var oeInteractStartButton: Event = null;
-            val oeInteractNextButton = x.filter(e => "OE_INTERACT".equals(e.eid)).filter { e => "Next button pressed".equals(e.edata.eks.id) };
-            val oeAssess = x.filter(e => "OE_ASSESS".equals(e.eid));
+            val oeInteractNextButton = x.gameSessions.filter(e => "OE_INTERACT".equals(e.eid)).filter { e => "Next button pressed".equals(e.edata.eks.id) };
+            val oeAssess = x.gameSessions.filter(e => "OE_ASSESS".equals(e.eid));
 
-            x.filter(e => "OE_INTERACT".equals(e.eid)).foreach { e =>
+            x.gameSessions.filter(e => "OE_INTERACT".equals(e.eid)).foreach { e =>
                 e.edata.eks.id.toLowerCase() match {
                     case "start button pressed"                    => oeInteractStartButton = e;
                     case "can read story radio button selected"    => storyReading = e;
@@ -150,25 +154,40 @@ object AserScreenSummary extends SessionBatchModel[Event, String] with Serializa
                 as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
             if (endTest != null && exit != null)
                 as.summary = CommonUtil.getTimeDiff(endTest, exit);
-            (as, DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l)), CommonUtil.getGameId(x(0)), CommonUtil.getGameVersion(x(0)), did, CommonUtil.getTimestamp(oeStart.`@timestamp`));
+            
+            as.userId = x.userId;
+            as.dtRange = DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l))
+            as.gameId = CommonUtil.getGameId(x.gameSessions(0))
+            as.gameVersion = CommonUtil.getGameVersion(x.gameSessions(0))
+            as.did = did;
+            as.timeStamp = CommonUtil.getTimestamp(oeStart.`@timestamp`)
+            as
         }
-
-        JobLogger.debug("Serializing 'ME_ASER_SCREEN_SUMMARY' MeasuredEvents", className)
-        JobLogger.debug("Execute method ended", className)
-        aserSreenSummary.map(f => {
-            getMeasuredEvent(f, configMapping.value);
-        }).map { x => JSONUtils.serialize(x) };
+        aserSreenSummary
     }
-
-    /**
-     * Get the measured event from the UserMap
-     */
-    private def getMeasuredEvent(userMap: (String, (AserScreener, DtRange, String, String, String, Long)), config: Map[String, AnyRef]): MeasuredEvent = {
-        val measures = userMap._2._1;
-        val mid = CommonUtil.getMessageId("ME_ASER_SCREEN_SUMMARY", userMap._1, "SESSION", userMap._2._2, userMap._2._3);
-        MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), userMap._2._6, mid, "1.0", userMap._1, None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", userMap._2._2),
-            Dimensions(None, Option(userMap._2._5), Option(new GData(userMap._2._3, userMap._2._4)), None, None, None, None),
-            MEEdata(measures));
+    
+    override def postProcess(data: RDD[AserScreener], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        data.map{ aserScreener => 
+            val measures = Map(
+                "activationKeyPage" -> aserScreener.activationKeyPage.get,
+                "surveyCodePage" -> aserScreener.surveyCodePage.get,
+                "childReg1" -> aserScreener.childReg1.get,
+                "childReg2" -> aserScreener.childReg2.get,
+                "childReg3" -> aserScreener.childReg3.get,
+                "assessLanguage" -> aserScreener.assessLanguage.get,
+                "languageLevel" -> aserScreener.languageLevel.get,
+                "selectNumeracyQ1" -> aserScreener.selectNumeracyQ1.get,
+                "assessNumeracyQ1" -> aserScreener.assessNumeracyQ1.get,
+                "selectNumeracyQ2" -> aserScreener.selectNumeracyQ2.get,
+                "assessNumeracyQ2" -> aserScreener.assessNumeracyQ2.get,
+                "assessNumeracyQ3" -> aserScreener.assessNumeracyQ3.get,
+                "scorecard" -> aserScreener.scorecard.get,
+                "summary" -> aserScreener.summary.get);
+            val mid = CommonUtil.getMessageId("ME_ASER_SCREEN_SUMMARY", aserScreener.userId, "SESSION", aserScreener.dtRange,aserScreener.gameId);
+            MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), aserScreener.timeStamp, mid, "1.0", aserScreener.userId, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", aserScreener.dtRange),
+                Dimensions(None, Option(aserScreener.did), Option(new GData(aserScreener.gameId, aserScreener.gameVersion)), None, None, None, None),
+                MEEdata(measures));
+        }
     }
 }
