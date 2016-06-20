@@ -52,7 +52,8 @@ object AserScreenSummary extends SessionBatchModel[Event, MeasuredEvent] with IB
     }
     
     override def algorithm(data: RDD[AserScreenerInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AserScreener] = {
-        val aserSreenSummary = data.map { x =>
+      
+        data.map { x =>
           
             val startTimestamp = Option(CommonUtil.getEventTS(x.gameSessions(0)));
             val endTimestamp = Option(CommonUtil.getEventTS(x.gameSessions.last));
@@ -163,7 +164,6 @@ object AserScreenSummary extends SessionBatchModel[Event, MeasuredEvent] with IB
             as.timeStamp = CommonUtil.getTimestamp(oeStart.`@timestamp`)
             as
         }
-        aserSreenSummary
     }
     
     override def postProcess(data: RDD[AserScreener], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
