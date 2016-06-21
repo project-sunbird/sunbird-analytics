@@ -17,17 +17,17 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
         events.size should be(73)
 
         // check the number of events where timeSpent==0 
-        val zeroTimeSpentGE = events.map { x => JSONUtils.deserialize[MeasuredEvent](x).edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
+        val zeroTimeSpentGE = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
         zeroTimeSpentGE.size should be(10)
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](events.last)
+        val event1 = events.last
         val tags = event1.tags.get
         //tags.size should be (0)
-        
-        val event0 = JSONUtils.deserialize[MeasuredEvent](events(0))
-        
+
+        val event0 = events(0)
+
         val tags0 = event0.tags.get
-        
+
         val eksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap1.get("timeSpent").get.asInstanceOf[Double] should be(493.0)
         eksMap1.get("time_stamp").get.asInstanceOf[Long] should be(1461567474000l)
@@ -40,7 +40,7 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
         val events = rdd2.collect
         events.size should be(7)
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](events.last)
+        val event1 = events.last
         event1.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentCount").get.asInstanceOf[Int] should be(0)
     }
 
@@ -51,7 +51,7 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
         val events = rdd2.collect
         events.size should be(1)
 
-        val event = JSONUtils.deserialize[MeasuredEvent](events.last)
+        val event = events.last
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap.get("timeSpent").get.asInstanceOf[Double] should not be (0)
     }
@@ -63,11 +63,11 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
         val events = rdd2.collect
         events.size should be(2)
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](events(0))
+        val event1 = events(0)
         val eksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap1.get("timeSpent").get.asInstanceOf[Double] should be(0)
 
-        val event2 = JSONUtils.deserialize[MeasuredEvent](events.last)
+        val event2 = events.last
         val eksMap2 = event2.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap2.get("timeSpent").get.asInstanceOf[Double] should be(0)
     }
@@ -78,11 +78,11 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
 
         val events = rdd2.collect
         events.size should be(2)
-        
-        val gseEvent1 = JSONUtils.deserialize[MeasuredEvent](events(0))
+
+        val gseEvent1 = events(0)
         val gseEksMap1 = gseEvent1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap1.get("timeSpent").get.asInstanceOf[Double] should not be (0)
-        
+
         val tags = gseEvent1.tags.get
         /*
         tags.size should be (3)
@@ -95,7 +95,7 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
         tagMap.size should be (1)
         tagMap.get("partnerid").get should be ("org.ekstep.partner.pratham")
         */
-        val gseEvent2 = JSONUtils.deserialize[MeasuredEvent](events.last)
+        val gseEvent2 = events.last
         val gseEksMap2 = gseEvent2.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap2.get("timeSpent").get.asInstanceOf[Double] should be(0)
     }
@@ -106,12 +106,12 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
 
         val events = rdd2.collect
         events.size should be(2)
-        
-        val gseEvent1 = JSONUtils.deserialize[MeasuredEvent](events(0))
+
+        val gseEvent1 = events(0)
         val gseEksMap1 = gseEvent1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap1.get("timeSpent").get.asInstanceOf[Double] should be > (0d)
 
-        val gseEvent2 = JSONUtils.deserialize[MeasuredEvent](events.last)
+        val gseEvent2 = events.last
         val gseEksMap2 = gseEvent2.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap2.get("timeSpent").get.asInstanceOf[Double] should be > (0d)
     }
@@ -123,8 +123,8 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
 
         val events = rdd2.collect
         events.size should be(1)
-        
-        val gseEvent1 = JSONUtils.deserialize[MeasuredEvent](events.last)
+
+        val gseEvent1 = events.last
         val gseEksMap1 = gseEvent1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap1.get("timeSpent").get.asInstanceOf[Double] should be > (0d)
         gseEksMap1.get("contentCount").get.asInstanceOf[Int] should be > (0)
@@ -137,8 +137,8 @@ class TestGenieLaunchSummary extends SparkSpec(null) {
 
         val events = rdd2.collect
         events.size should be(2)
-        
-        val gseEvent1 = JSONUtils.deserialize[MeasuredEvent](events(0))
+
+        val gseEvent1 = events(0)
         val gseEksMap1 = gseEvent1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap1.get("timeSpent").get.asInstanceOf[Double] should be > (0d)
         gseEksMap1.get("contentCount").get.asInstanceOf[Int] should be > (0)
