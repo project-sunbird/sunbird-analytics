@@ -1,0 +1,30 @@
+---
+# tasks file for java
+
+#- name: add apt repository 
+ # become: yes
+ # apt_repository: repo=ppa:webupd7team/java state=present 
+  #tags:
+   #    - java
+
+- name: install & update
+  become: yes
+  apt: name=oracle-java7-installer state=present update_cache=yes
+
+- name: Update bashrc for JAVA_HOME
+  become: yes
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='JAVA_HOME=/usr/lib/jvm/java-8-oracle' owner=ubuntu state=present insertafter=EOF create=True
+
+
+- name: Export JAVA_HOME
+  become: yes
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile  line='export JAVA_HOME' owner=ubuntu state=present insertafter=EOF create=True
+
+- name: Add JAVA_HOME to the PATH
+  become: yes  
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$JAVA_HOME/bin' owner=ubuntu state=present insertafter=EOF create=True
+
+- name: ADD oracle-java7-set-default
+  become: yes
+  apt: name=oracle-java7-set-default state=present
+

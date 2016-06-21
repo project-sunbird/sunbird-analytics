@@ -1,0 +1,26 @@
+---
+# tasks file for cassandra
+
+- name: Download cassandra
+  become: yes
+  command: wget "http://mirror.fibergrid.in/apache/cassandra/{{ es_version }}/apache-cassandra-{{ es_version }}-bin.tar.gz" 
+ 
+- name: unzip the tar
+  become: yes
+  command: tar -zxvf apache-cassandra-{{ es_version }}-bin.tar.gz -C /mnt/data/analytics/
+ 
+- name: Update bash_profile for CASSANDRA_HOME
+  become: yes
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6' owner=ubuntu state=present insertafter=EOF create=True
+ 
+- name: Export CASSANDRA_HOME
+  become: yes
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile  line='export CASSANDRA_HOME' owner=ubuntu state=present insertafter=EOF create=True
+ 
+- name: Add CASSANDRA_HOME to the PATH
+  become: yes
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' owner=ubuntu state=present insertafter=EOF create=True
+ 
+- name: start cassandra
+  become: yes 
+  shell: chdir=/mnt/data/analytics/apache-cassandra-{{ es_version }}/bin ./cassandra &
