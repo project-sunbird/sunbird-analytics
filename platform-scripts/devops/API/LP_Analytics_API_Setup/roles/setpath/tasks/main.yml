@@ -1,0 +1,11 @@
+---
+# tasks file for aws-setup
+- name: Create Directory
+  become: yes
+  file: path=/mnt/data/analytics/api state=directory  
+
+- name: Set permissions
+  become: yes
+  file: path=/mnt owner=ubuntu group=ubuntu mode=777 recurse=yes
+
+

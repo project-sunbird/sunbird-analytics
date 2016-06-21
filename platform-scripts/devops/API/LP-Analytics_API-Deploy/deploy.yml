@@ -1,0 +1,49 @@
+---
+# tasks file for galaxy
+
+- name: Copy the artifact
+  become: yes
+  copy: src=analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api
+  tags:
+       - dev
+       - prod
+
+
+- name: extact file
+  become: yes
+  unarchive: src=/mnt/data/analytics/api/analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api/analytics-api-1.0
+  tags:
+       - dev
+       - prod
+
+- name: permission
+  become: yes
+  file: path=/mnt/data/analytics/api/analytics-api-1.0/start mode=777 
+  tags:
+       - dev
+       - prod
+
+- name: normal changes
+  become: yes
+  lineinfile: dest=/mnt/data/analytics/api/analytics-api-1.0/start
+                regexp='play.core.server.NettyServer'
+                line='play.core.server.ProdServerStart'
+                state=present
+  tags:
+       - dev
+
+- name: normal changes
+  become: yes
+  lineinfile: dest=/mnt/data/analytics/api/analytics-api-1.0/start
+                regexp='execjava$*-cp"$classpath"play.core.server.ProdServerStart$scriptdir'
+                line='java$*-cp"$classpath"-Dconfig.resource=prod.confplay.core.server.ProdServerStart$scriptdir'
+                state=present
+   tags:
+       - prod
+
+- name: start 
+  become: yes
+  command: nohup /mnt/data/analytics/api/analytics-api-1.0/start &
+  tags:
+       - dev
+       - prod

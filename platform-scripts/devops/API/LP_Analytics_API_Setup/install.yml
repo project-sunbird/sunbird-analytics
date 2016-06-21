@@ -1,0 +1,12 @@
+- hosts: Sandbox
+  become: yes
+  become_method: sudo
+  roles:
+        - java
+        - setpath
+- hosts: Prod-spark
+  become: yes
+  become_method: sudo
+  roles:
+        - java
+        - setpath
