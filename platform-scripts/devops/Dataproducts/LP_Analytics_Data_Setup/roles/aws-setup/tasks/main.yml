@@ -1,8 +1,5 @@
 ---
 # tasks file for aws-setup
-- name: Update /etc/environment to set aws_key
-  become: yes 
-  lineinfile: dest
 
 - name: Update /etc/environment to set aws_secret
   become: yes
