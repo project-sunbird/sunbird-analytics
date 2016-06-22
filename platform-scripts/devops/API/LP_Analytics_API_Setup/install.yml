@@ -1,10 +1,4 @@
-- hosts: Sandbox
-  become: yes
-  become_method: sudo
-  roles:
-        - java
-        - setpath
-- hosts: Prod-spark
+- hosts: all
   become: yes
   become_method: sudo
   roles:
