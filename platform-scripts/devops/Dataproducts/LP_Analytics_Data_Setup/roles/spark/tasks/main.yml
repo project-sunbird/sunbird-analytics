@@ -6,10 +6,11 @@
 
 - name: Download Apache Spark 
   become: yes
-  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-{{ es_version }}/spark-{{ es_version }}-bin-hadoop2.3.tgz dest=/home/ubuntu/spark-1.5.2-bin-hadoop2.3.tgz
+  command: wget http://mirror.fibergrid.in/apache/spark/spark-1.5.2/spark-1.5.2-bin-hadoop2.3.tgz 
+
 - name: Extract Spark
   become: yes
-  command: tar zxvf spark-{{ es_version }}-bin-hadoop2.3.tgz 
+  command: tar zxvf spark-1.5.2-bin-hadoop2.3.tgz 
 
 - name: Update bashrc for SPARK_HOME
   become: yes
