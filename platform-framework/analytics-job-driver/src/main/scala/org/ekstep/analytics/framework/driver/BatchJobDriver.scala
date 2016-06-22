@@ -54,5 +54,6 @@ object BatchJobDriver {
         JobLogger.info("The Model Execution Completed", className, Option(model.getClass.getName))
         JobLogger.info("Number of events generated", className,Option(Map("events" -> output.count)))
         OutputDispatcher.dispatch(config.output, output);
+        JobContext.cleanUpRDDs();
     }
 }

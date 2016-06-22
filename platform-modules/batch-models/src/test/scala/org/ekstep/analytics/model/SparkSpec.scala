@@ -13,6 +13,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.logging.log4j.Logger
+import org.ekstep.analytics.framework.JobContext
 
 /**
  * @author Santhosh
@@ -29,6 +30,7 @@ class SparkSpec(val file: String =  "src/test/resources/sample_telemetry.log") e
     }
     
     override def afterAll() {
+        JobContext.cleanUpRDDs();
         CommonUtil.closeSparkContext();
     }
     

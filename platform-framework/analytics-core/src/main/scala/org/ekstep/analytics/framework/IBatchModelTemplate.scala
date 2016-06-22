@@ -3,23 +3,30 @@ package org.ekstep.analytics.framework
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 
-trait Input extends Serializable
-trait AlgoInput extends Serializable
-trait AlgoOutput extends Serializable
-trait Output extends Serializable
+trait Input extends AnyRef with Serializable
+trait AlgoInput extends Any with Serializable
+trait AlgoOutput extends AnyRef with Serializable
+trait Output extends AnyRef with Serializable
 
-trait IBatchModelTemplate[T<:Input, A<:AlgoInput, B<:AlgoOutput, R<:Output] extends IBatchModel[T, R] {
+trait IBatchModelTemplate[T <: Input, A <: AlgoInput, B <: AlgoOutput, R <: Output] extends IBatchModel[T, R] {
 
     /**
-     * Override and implement the data product execute method. 
-     * This invokes all the three stages defined for a data product in the following order
+     * Override and implement the data product execute method. In addition to controlling the execution this base class records all generated RDD's,
+     * so that they can be cleaned up from memory when necessary. This invokes all the three stages defined for a data product in the following order
      * 1. preProcess
      * 2. algorithm
-     * 3. postProcess 
+     * 3. postProcess
      */
     override def execute(events: RDD[T], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[R] = {
+        
         val config = jobParams.getOrElse(Map[String, AnyRef]());
-        postProcess(algorithm(preProcess(events, config), config), config)
+        val inputRDD = preProcess(events, config);
+        JobContext.recordRDD(inputRDD);
+        val outputRDD = algorithm(inputRDD, config);
+        JobContext.recordRDD(outputRDD);
+        val resultRDD = postProcess(outputRDD, config);
+        JobContext.recordRDD(resultRDD);
+        resultRDD
     }
 
     /**
