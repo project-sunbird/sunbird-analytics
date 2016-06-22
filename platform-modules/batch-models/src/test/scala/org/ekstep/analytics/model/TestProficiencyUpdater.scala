@@ -1,6 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.DerivedEvent
 import com.datastax.spark.connector._
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.JSONUtils
@@ -17,7 +18,7 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val rdd = sc.parallelize(Array(learnerProf));
         rdd.saveToCassandra("learner_db", "learnerproficiency");
 
-        val rdd0 = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test1.log");
+        val rdd0 = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test1.log");
         val rdd01 = LearnerProficiencySummary.execute(rdd0, Option(Map("apiVersion" -> "v2")));
         val proficiency1 = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").where("learner_id = ?", "8b4f3775-6f65-4abf-9afa-b15b8f82a24b").first();
 
@@ -30,7 +31,7 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         proficiency1.proficiency.contains("Num:C3:SC1:MC12") should be(true);
         proficiency1.proficiency.get("Num:C3:SC1:MC12").get should be(0.67);
 
-        val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test2.log");
+        val rdd1 = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test2.log");
         val rdd11 = LearnerProficiencySummary.execute(rdd1, Option(Map("apiVersion" -> "v2")));
 
         // Check Proficiency and Model parameter values - Iteration 2
@@ -54,26 +55,26 @@ class TestProficiencyUpdater extends SparkSpec(null) {
 
         val out = rdd01.collect();
         out.length should be(1)
-        val event1 = JSONUtils.deserialize[MeasuredEvent](out(0));
-        event1.mid should be ("408D620EDDFE92D28BB87F88F90F1894");
-        event1.syncts should be (1453207670750L);
+        val event1 = out(0);
+        event1.mid should be("408D620EDDFE92D28BB87F88F90F1894");
+        event1.syncts should be(1453207670750L);
 
         val out1 = rdd11.collect();
         out1.length should be(1)
-        val event2 = JSONUtils.deserialize[MeasuredEvent](out1(0));
-        event2.mid should be ("408D620EDDFE92D28BB87F88F90F1894");
-        event2.syncts should be (1453207670750L);
+        val event2 = out1(0);
+        event2.mid should be("408D620EDDFE92D28BB87F88F90F1894");
+        event2.syncts should be(1453207670750L);
     }
 
     it should "print the item data for testing" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/test.log");
         val rdd2 = LearnerProficiencySummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         var out = rdd2.collect();
         out.length should be(44)
     }
 
     it should "check the zero Proficiency Updater event is coming" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/emptyMC_test.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/emptyMC_test.log");
         val rdd2 = LearnerProficiencySummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         var out = rdd2.collect();
         out.length should be(2)
@@ -86,16 +87,16 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         val rdd = sc.parallelize(Array(learnerProf));
         rdd.saveToCassandra("learner_db", "learnerproficiency");
 
-        val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test_datav2.log");
+        val rdd1 = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/test_datav2.log");
         val rdd2 = LearnerProficiencySummary.execute(rdd1, Option(Map("apiVersion" -> "v2")));
         var out = rdd2.collect();
         out.length should be(1)
 
-        val event = JSONUtils.deserialize[MeasuredEvent](out(0));
-        val profsList = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("proficiencySummary").get.asInstanceOf[List[Map[String,AnyRef]]];
+        val event = out(0);
+        val profsList = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("proficiencySummary").get.asInstanceOf[List[ProficiencySummary]];
         profsList.size should be(22);
-        val profs = profsList.map { x => (x.get("conceptId").get.asInstanceOf[String], x.get("proficiency").get.asInstanceOf[Double]) }.toMap
-        
+        val profs = profsList.map { x => (x.conceptId, x.proficiency) }.toMap
+
         profs.get("Num:C3:SC3:MC4").get should be(0.6);
         profs.get("Num:C4:SC1:MC6").get should be(0.6);
         profs.get("Num:C3:SC7:MC8").get should be(0.6);
@@ -126,7 +127,7 @@ class TestProficiencyUpdater extends SparkSpec(null) {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("DELETE FROM learner_db.learnerproficiency where learner_id = '" + learner_id + "'");
         }
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-proficiency/test1.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/test1.log");
         val rdd2 = LearnerProficiencySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));
         var out = rdd2.collect();
         out.length should be(1)
