@@ -21,40 +21,43 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentSummary(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type: String, mime_type: String)
+case class ContentSummaryInput(contentId: String, events: Buffer[DerivedEvent], prevSummary: Option[ContentSummary]) extends AlgoInput
+case class ContentSummaryOutput(contentId: String, cs: ContentSummary, dtRange: DtRange, gameVersion: String) extends AlgoOutput
 
-object ContentActivitySummary extends IBatchModel[MeasuredEvent, String] with Serializable {
+object ContentActivitySummary extends IBatchModelTemplate[DerivedEvent, ContentSummaryInput, ContentSummaryOutput, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentActivitySummary"
-    def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.debug("### Execute method started ###", className);
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSummaryInput] = {
         val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
-        val config = jobParams.getOrElse(Map[String, AnyRef]());
-        val configMapping = sc.broadcast(config);
 
         val newEvents = filteredEvents.map(event => (event.dimensions.gdata.get.id, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
         val prevContentState = newEvents.map(f => ContentId(f._1)).joinWithCassandraTable[ContentSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE).map(f => (f._1.content_id, f._2))
         val contentData = newEvents.leftOuterJoin(prevContentState);
+        contentData.map { x => ContentSummaryInput(x._1, x._2._1, x._2._2) }
+    }
 
-        val contentSummary = contentData.mapValues { events =>
+    override def algorithm(data: RDD[ContentSummaryInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSummaryOutput] = {
+        data.map { f =>
 
-            val sortedEvents = events._1.sortBy { x => x.syncts };
+            val events = f.events
+            val sortedEvents = events.sortBy { x => x.syncts };
             val firstEvent = sortedEvents.head;
             val lastEvent = sortedEvents.last;
             val eventSyncts = lastEvent.syncts;
             val gameId = firstEvent.dimensions.gdata.get.id;
             val gameVersion = firstEvent.dimensions.gdata.get.ver;
 
-            val firstGE = events._1.sortBy { x => x.context.date_range.from }.head;
-            val lastGE = events._1.sortBy { x => x.context.date_range.to }.last;
+            val firstGE = events.sortBy { x => x.context.date_range.from }.head;
+            val lastGE = events.sortBy { x => x.context.date_range.to }.last;
             val eventStartTimestamp = firstGE.context.date_range.from;
             val eventEndTimestamp = lastGE.context.date_range.to;
             val eventStartDate = new DateTime(eventStartTimestamp);
             val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
 
-            val prevContentSummary = events._2.getOrElse(ContentSummary(gameId, DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0, "", ""));
+            val prevContentSummary = f.prevSummary.getOrElse(ContentSummary(gameId, DateTime.now(), 0L, 0.0, 0.0, 0L, 0.0, 0L, 0.0, "", ""));
             val startDate = if (eventStartDate.isBefore(prevContentSummary.start_date)) eventStartDate else prevContentSummary.start_date;
             val numSessions = sortedEvents.size + prevContentSummary.total_num_sessions;
             val timeSpent = sortedEvents.map { x =>
@@ -72,10 +75,12 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent, String] with Se
             val contentType = if (prevContentSummary.content_type.isEmpty()) firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("contentType", "").asInstanceOf[String] else prevContentSummary.content_type
             val mimeType = if (prevContentSummary.mime_type.isEmpty()) firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("mimeType", "").asInstanceOf[String] else prevContentSummary.mime_type
 
-            (ContentSummary(gameId, startDate, numSessions, CommonUtil.roundDouble(timeSpent / 3600, 2), CommonUtil.roundDouble(averageTsSession, 2), totalInteractions, CommonUtil.roundDouble(averageInteractionsMin, 2), numSessionsWeek, tsWeek, contentType, mimeType), date_range, gameVersion)
+            ContentSummaryOutput(f.contentId, ContentSummary(gameId, startDate, numSessions, CommonUtil.roundDouble(timeSpent / 3600, 2), CommonUtil.roundDouble(averageTsSession, 2), totalInteractions, CommonUtil.roundDouble(averageInteractionsMin, 2), numSessionsWeek, tsWeek, contentType, mimeType), date_range, gameVersion)
         }.cache();
+    }
 
-        contentSummary.map(f => f._2._1).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
+    override def postProcess(data: RDD[ContentSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        data.map(f => f.cs).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
 
         val summaries = sc.cassandraTable[ContentSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE).filter { x => !"Collection".equals(x.content_type) };
         val count = summaries.count().intValue();
@@ -85,29 +90,24 @@ object ContentActivitySummary extends IBatchModel[MeasuredEvent, String] with Se
 
         val rdd = sc.parallelize(Array(ContentMetrics("content", topContentByTime.map { x => (x.content_id, x.total_ts) }.toMap, topContentBySessions.map { x => (x.content_id, x.total_num_sessions) }.toMap)), 1);
         rdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_METRICS_TABLE);
-        
-        JobLogger.debug("### Execute method ended ###", className);
-        contentSummary.map(f => {
-            getMeasuredEvent(f._2._1, configMapping.value, f._2._2, f._2._3);
-        }).map { x => JSONUtils.serialize(x) };
-    }
+        data.map { input =>
+            val contentSumm = input.cs
+            val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], input.dtRange, contentSumm.content_id);
+            val measures = Map(
+                "timeSpent" -> contentSumm.total_ts,
+                "totalSessions" -> contentSumm.total_num_sessions,
+                "averageTimeSpent" -> contentSumm.average_ts_session,
+                "totalInteractionEvents" -> contentSumm.total_interactions,
+                "averageInteractionsPerMin" -> contentSumm.average_interactions_min,
+                "sessionsPerWeek" -> contentSumm.num_sessions_week,
+                "tsPerWeek" -> contentSumm.ts_week,
+                "contentType" -> contentSumm.content_type,
+                "mimeType" -> contentSumm.mime_type);
+            MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), input.dtRange.to, "1.0", mid, "", None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], input.dtRange),
+                Dimensions(None, None, Option(new GData(contentSumm.content_id, input.gameVersion)), None, None, None, None),
+                MEEdata(measures));
+        }
 
-    private def getMeasuredEvent(contentSumm: ContentSummary, config: Map[String, AnyRef], dtRange: DtRange, game_version: String): MeasuredEvent = {
-
-        val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange, contentSumm.content_id);
-        val measures = Map(
-            "timeSpent" -> contentSumm.total_ts,
-            "totalSessions" -> contentSumm.total_num_sessions,
-            "averageTimeSpent" -> contentSumm.average_ts_session,
-            "totalInteractionEvents" -> contentSumm.total_interactions,
-            "averageInteractionsPerMin" -> contentSumm.average_interactions_min,
-            "sessionsPerWeek" -> contentSumm.num_sessions_week,
-            "tsPerWeek" -> contentSumm.ts_week,
-            "contentType" -> contentSumm.content_type,
-            "mimeType" -> contentSumm.mime_type);
-        MeasuredEvent("ME_CONTENT_SUMMARY", System.currentTimeMillis(), dtRange.to, "1.0", mid, "", None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], dtRange),
-            Dimensions(None, None, Option(new GData(contentSumm.content_id, game_version)), None, None, None, None),
-            MEEdata(measures));
     }
 }

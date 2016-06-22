@@ -24,6 +24,8 @@ case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[An
 case class ActivitySummary(actType: String, count: Int, timeSpent: Double)
 case class ScreenSummary(id: String, timeSpent: Double)
 case class EventSummary(id: String, count: Int)
+case class SessionSummaryInput(userId: String, filteredEvents: Buffer[Event]) extends AlgoInput
+case class SessionSummaryOutput(gameId: String, ss: SessionSummary, groupInfo: Option[(Boolean, Boolean)]) extends AlgoOutput
 
 /**
  * Case class to hold the screener summary
@@ -42,7 +44,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
 /**
  * Generic Screener Summary Model
  */
-object LearnerSessionSummary extends SessionBatchModel[Event, String] with Serializable {
+object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, SessionSummaryInput, SessionSummaryOutput, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerSessionSummary"
 
@@ -200,13 +202,17 @@ object LearnerSessionSummary extends SessionBatchModel[Event, String] with Seria
         stageMap.map { x => ScreenSummary(x._1, x._2) };
     }
 
-    def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-
-        JobLogger.debug("Execute method started", className)
+    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
         JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
         val filteredData = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE")))));
-        val config = jobParams.getOrElse(Map[String, AnyRef]());
-        val gameList = data.map { x => x.gdata.id }.distinct().collect();
+        val gameSessions = getGameSessions(filteredData);
+        gameSessions.map { x => SessionSummaryInput(x._1, x._2) }
+    }
+
+    override def algorithm(data: RDD[SessionSummaryInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryOutput] = {
+
+        val events = data.map { x => x.filteredEvents }.flatMap { x => x }
+        val gameList = events.map { x => x.gdata.id }.distinct().collect();
         JobLogger.debug("Fetching the Content and Item data from Learning Platform", className)
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, "v2");
@@ -217,14 +223,14 @@ object LearnerSessionSummary extends SessionBatchModel[Event, String] with Seria
         val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
         JobLogger.debug("Performing Game Sessionization", className)
-        val gameSessions = getGameSessions(filteredData);
         val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
         val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
         JobLogger.debug("Calculating Screen Summary", className)
-        val screenerSummary = gameSessions.mapValues { events =>
+        val screenerSummary = data.map { x =>
 
+            val events = x.filteredEvents
             val firstEvent = events.head;
             val lastEvent = events.last;
             val telemetryVer = firstEvent.ver;
@@ -312,10 +318,10 @@ object LearnerSessionSummary extends SessionBatchModel[Event, String] with Seria
             val interruptTime = CommonUtil.roundDouble((timeDiff - timeSpent) + (if (interruptSummary.size > 0) interruptSummary.map(f => f._2).sum else 0d), 2);
 
             val did = firstEvent.did
-            new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp,
+            (x.userId, new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp,
                 Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp,
                     endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, firstEvent.tags);
+                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, firstEvent.tags));
 
         }.filter(f => (f._2.timeSpent >= 1)).cache(); // Skipping the events, if timeSpent is -ve
 
@@ -323,50 +329,41 @@ object LearnerSessionSummary extends SessionBatchModel[Event, String] with Seria
         //Joining with LearnerProfile table to add group info
         val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
         val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)
-
-        JobLogger.debug("Serializing 'ME_SESSION_SUMMARY' MeasuredEvents", className)
-        JobLogger.debug("Execute method ended", className)
-
-        sessionSummary.map(x => {
-            getMeasuredEvent(x, configMapping.value);
-        }).map { x => JSONUtils.serialize(x) };
+        sessionSummary.map { x => SessionSummaryOutput(x._1, x._2._1, x._2._2) }
     }
 
-    /**
-     * Get the measured event from the UserMap
-     */
-    private def getMeasuredEvent(userMap: (String, (SessionSummary, Option[(Boolean, Boolean)])), config: Map[String, AnyRef]): MeasuredEvent = {
-
-        val game = userMap._2._1;
-        val booleanTuple = userMap._2._2.getOrElse((false, false))
-        val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap._1, "SESSION", game.dtRange, game.id);
-        val measures = Map(
-            "itemResponses" -> game.itemResponses,
-            "start_time" -> game.start_time,
-            "end_time" -> game.end_time,
-            "syncDate" -> game.syncDate,
-            "timeDiff" -> game.timeDiff,
-            "timeSpent" -> game.timeSpent,
-            "interruptTime" -> game.interruptTime,
-            "comments" -> game.comments,
-            "fluency" -> game.fluency,
-            "levels" -> game.levels,
-            "noOfAttempts" -> game.noOfAttempts,
-            "currentLevel" -> game.currentLevel,
-            "noOfInteractEvents" -> game.noOfInteractEvents,
-            "interactEventsPerMin" -> game.interactEventsPerMin,
-            "activitySummary" -> game.activitySummary,
-            "completionStatus" -> game.completionStatus,
-            "screenSummary" -> game.screenSummary,
-            "eventsSummary" -> game.eventsSummary,
-            "noOfLevelTransitions" -> game.noOfLevelTransitions,
-            "telemetryVersion" -> "1.0",
-            "contentType" -> game.contentType,
-            "mimeType" -> game.mimeType);
-        MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, userMap._1, None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
-            Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc, Option(booleanTuple._1), Option(booleanTuple._2)),
-            MEEdata(measures), Option(game.tags));
+    override def postProcess(data: RDD[SessionSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        data.map { userMap =>
+            val game = userMap.ss;
+            val booleanTuple = userMap.groupInfo.getOrElse((false, false))
+            val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap.gameId, "SESSION", game.dtRange, game.id);
+            val measures = Map(
+                "itemResponses" -> game.itemResponses,
+                "start_time" -> game.start_time,
+                "end_time" -> game.end_time,
+                "syncDate" -> game.syncDate,
+                "timeDiff" -> game.timeDiff,
+                "timeSpent" -> game.timeSpent,
+                "interruptTime" -> game.interruptTime,
+                "comments" -> game.comments,
+                "fluency" -> game.fluency,
+                "levels" -> game.levels,
+                "noOfAttempts" -> game.noOfAttempts,
+                "currentLevel" -> game.currentLevel,
+                "noOfInteractEvents" -> game.noOfInteractEvents,
+                "interactEventsPerMin" -> game.interactEventsPerMin,
+                "activitySummary" -> game.activitySummary,
+                "completionStatus" -> game.completionStatus,
+                "screenSummary" -> game.screenSummary,
+                "eventsSummary" -> game.eventsSummary,
+                "noOfLevelTransitions" -> game.noOfLevelTransitions,
+                "telemetryVersion" -> "1.0",
+                "contentType" -> game.contentType,
+                "mimeType" -> game.mimeType);
+            MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, userMap.gameId, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
+                Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc, Option(booleanTuple._1), Option(booleanTuple._2)),
+                MEEdata(measures), Option(game.tags));
+        }
     }
-
 }

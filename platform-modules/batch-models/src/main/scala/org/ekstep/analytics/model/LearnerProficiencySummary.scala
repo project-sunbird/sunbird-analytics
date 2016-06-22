@@ -32,11 +32,13 @@ import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.util.JobLogger
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
-case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime, model_params: Map[String, String])
+case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime,
+                              model_params: Map[String, String]) extends AlgoOutput
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class ProficiencySummary(conceptId: String, proficiency: Double)
+case class LearnerProficiencyInput(learnerId: String, newEvidences: Iterable[(String, Evidence, Long, Long)], prevLearnerState: Option[LearnerProficiency]) extends AlgoInput
 
-object LearnerProficiencySummary extends IBatchModel[MeasuredEvent, String] with Serializable {
+object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, LearnerProficiencyInput, LearnerProficiency, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerProficiencySummary"
 
@@ -82,13 +84,10 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent, String] with
         }
     }
 
-    def execute(data: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-
-        JobLogger.debug("Execute method started", className)
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerProficiencyInput] = {
         JobLogger.debug("Filtering ME_SESSION_SUMMARY events", className)
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
 
-        val config = jobParams.getOrElse(Map[String, AnyRef]());
         val configMapping = sc.broadcast(config);
         JobLogger.debug("Getting game list from ContentAdapter", className)
         val lpGameList = ContentAdapter.getGameList();
@@ -161,12 +160,18 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent, String] with
 
         JobLogger.debug("Calculating Learner Proficiency", className)
         val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState);
-        val lp = joinedRDD.mapValues(f => {
+        joinedRDD.map { x => LearnerProficiencyInput(x._1, x._2._1, x._2._2) }
+    }
+
+    override def algorithm(data: RDD[LearnerProficiencyInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerProficiency] = {
+
+        val configMapping = sc.broadcast(config);
+        data.map(f => {
 
             val defaultAlpha = configMapping.value.getOrElse("alpha", 0.5d).asInstanceOf[Double];
             val defaultBeta = configMapping.value.getOrElse("beta", 1d).asInstanceOf[Double];
-            val evidences = f._1
-            val prevLearnerState = f._2.getOrElse(null);
+            val evidences = f.newEvidences
+            val prevLearnerState = f.prevLearnerState.getOrElse(null);
             val prvProficiencyMap = if (null != prevLearnerState) prevLearnerState.proficiency else Map[String, Double]();
             val prvModelParams = if (null != prevLearnerState) prevLearnerState.model_params else Map[String, String]();
             val prvConceptModelParams = if (null != prevLearnerState && null != prevLearnerState.model_params) {
@@ -203,26 +208,23 @@ object LearnerProficiencySummary extends IBatchModel[MeasuredEvent, String] with
             val newProfs = prvProficiencyMap ++ conceptProfs.map(f => (f._1, f._4)).toMap;
             val newModelParams = prvModelParams ++ conceptProfs.map(f => (f._1, JSONUtils.serialize(Map("alpha" -> f._2, "beta" -> f._3)))).toMap;
 
-            (newProfs, startTime, endTime, newModelParams);
+            (f.learnerId, newProfs, startTime, endTime, newModelParams);
         }).map(f => {
-            LearnerProficiency(f._1, f._2._1, f._2._2, f._2._3, f._2._4);
+            LearnerProficiency(f._1, f._2, f._3, f._4, f._5);
         }).cache();
-
-        JobLogger.debug("Saving data to cassandra", className)
-        lp.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
-        JobLogger.debug("Execute method ended", className)
-        lp.map(f => {
-            getMeasuredEvent(f, configMapping.value);
-        }).map { x => JSONUtils.serialize(x) };
     }
 
-    private def getMeasuredEvent(userProf: LearnerProficiency, config: Map[String, AnyRef]): MeasuredEvent = {
-        val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "CUMULATIVE", DtRange(0L,0L));
-        val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2) }
-        val measures = Map("proficiencySummary" -> proficiencySummary)
-        MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, userProf.learner_id, None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
-            Dimensions(None, None, None, None, None, None, None),
-            MEEdata(measures));
+    override def postProcess(data: RDD[LearnerProficiency], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        JobLogger.debug("Saving data to cassandra", className)
+        data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
+        data.map { userProf =>
+            val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "CUMULATIVE", DtRange(0L, 0L));
+            val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2) }
+            val measures = Map("proficiencySummary" -> proficiencySummary)
+            MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, userProf.learner_id, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
+                Dimensions(None, None, None, None, None, None, None),
+                MEEdata(measures));
+        }
     }
 }
