@@ -24,7 +24,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(1);
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        val event1 = me(0);
         event1.eid should be("ME_SESSION_SUMMARY");
         event1.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
         event1.context.pdata.model should be("GenericSessionSummaryV2");
@@ -69,7 +69,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(3);
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        val event1 = me(0);
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
         event1.mid should be("A78764A945C237B2A1F837130212A5C7");
@@ -111,7 +111,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.mimeType.get should be("application/vnd.android.package-archive");
         summary1.contentType.get should be("Game");
 
-        val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
+        val event2 = me(1);
         event2.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
 
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
@@ -148,7 +148,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary2.mimeType.get should be("application/vnd.android.package-archive");
         summary2.contentType.get should be("Game");
 
-        val event3 = JSONUtils.deserialize[MeasuredEvent](me(2));
+        val event3 = me(2);
         event3.mid should be("08D37F42C718121C6140EDF9F89889B2");
 
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
@@ -173,7 +173,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary3.syncDate should be(1451715800197L)
         summary3.mimeType.get should be("application/vnd.android.package-archive");
         summary3.contentType.get should be("Game");
-        event3.syncts should be(summary3.syncDate);        
+        event3.syncts should be(summary3.syncDate);
     }
 
     it should "generate 3 session summaries and validate the screen summaries" in {
@@ -183,7 +183,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(2);
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        val event1 = me(0);
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
         event1.mid should be("27B3CF85556974581D97739493A3FCC8");
@@ -220,7 +220,7 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         summary1.mimeType.get should be("application/vnd.ekstep.ecml-archive");
         summary1.contentType.get should be("Story");
 
-        val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
+        val event2 = me(1);
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.screenSummary.get.size should be(2);
         summary2.mimeType.get should be("application/vnd.ekstep.ecml-archive");
@@ -243,11 +243,11 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
         val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rdd2 = rdd1.collect();
-        
-        val eventMap = JSONUtils.deserialize[MeasuredEvent](rdd2.head).edata.eks.asInstanceOf[Map[String, AnyRef]];
-        val eventMapLast = JSONUtils.deserialize[MeasuredEvent](rdd2.last).edata.eks.asInstanceOf[Map[String, AnyRef]];
-        JSONUtils.deserialize[MeasuredEvent](rdd2.head).dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
-        JSONUtils.deserialize[MeasuredEvent](rdd2.last).dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
+
+        val eventMap = rdd2.head.edata.eks.asInstanceOf[Map[String, AnyRef]];
+        val eventMapLast = rdd2.last.edata.eks.asInstanceOf[Map[String, AnyRef]];
+        rdd2.head.dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
+        rdd2.last.dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
     }
 
     ignore should "extract timespent from takeoff summaries" in {
