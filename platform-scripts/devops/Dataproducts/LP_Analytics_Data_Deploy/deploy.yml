@@ -2,9 +2,13 @@
   become: yes
   become_method: sudo
   tasks:
+        - name: create models
+          become: yes
+          file: name=/mnt/data/analytics/models state=directory
+          
         - name: Copy
           become: yes
-          copy: src=batch-models-1.0.jar dest=/mnt/data/analytics/models/
+          copy: src=batch-models-1.0.jar dest=/mnt/data/analytics/models
 
         - name: Run the command
           become: yes
