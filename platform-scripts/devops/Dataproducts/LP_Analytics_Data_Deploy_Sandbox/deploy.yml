@@ -10,9 +10,13 @@
           become: yes
           copy: src=/home/jenkins/workspace/LP_Analytics_Dataproducts_Deploy_QA/batch-models-1.0.jar dest=/mnt/data/analytics/models
 
+        - name: Copy
+          become: yes
+          copy: src=/home/jenkins/workspace/LP_Analytics_Dataproducts_Deploy_QA/platform-scripts/database/data.cql dest=/home/ubuntu
+       
         - name: Run the command
           become: yes
-          command: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh -f platform-scripts/database/data.cql 
+          command: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh -f /home/ubuntu/data.cql 
           
         - name: cron1
           cron: name=test1 minute=20 hour=6  job="/mnt/data/analytics/scripts/run-job.sh lpu "
