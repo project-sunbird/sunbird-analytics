@@ -11,7 +11,7 @@
 
         - name: extact file
           become: yes
-          unarchive: src=/mnt/data/analytics/api/analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api/analytics-api-1.0
+          unarchive: src=/mnt/data/analytics/api/analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api
           tags:
                - dev
                - prod
