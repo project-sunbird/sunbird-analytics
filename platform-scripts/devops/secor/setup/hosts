@@ -1,0 +1,11 @@
+[dev]
+52.77.250.23 ansible_user=ubuntu
+
+[qa]
+
+[sandbox]
+
+[all:children]
+dev
+qa
+sandbox

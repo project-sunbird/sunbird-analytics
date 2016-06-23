@@ -1,0 +1,13 @@
+---
+# tasks file for createpath
+- name: secor-raw
+  become: yes
+  file: path=/mnt/secor-raw state=directory owner=ubuntu mode=777
+
+- name: secor-me
+  become: yes
+  file: path=/mnt/secor-me state=directory owner=ubuntu mode=777
+
+- name: secor
+  become: yes
+  file: path=/mnt/secor state=directory owner=ubuntu mode=777

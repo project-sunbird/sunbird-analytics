@@ -1,0 +1,68 @@
+- hosts: all
+  become_method: yes
+  become: yes
+- tasks:  
+        - name: copy configuration for the dev analytics
+          become: yes
+          command: mv analytics/platform-scripts/secor/dev/analytics/{{ item }} src/main/config/
+  	  with_items:
+                 - log4j.dev.properties
+                 - secor.dev.partition.properties
+                 - secor.common.properties
+                 - secor.dev.properties
+          tags:
+               - dev-analytics
+
+        - name: copy configuration for the dev raw_telemetry
+          become: yes
+          command: mv analytics/platform-scripts/secor/dev/raw_telemetry/{{ item }} src/main/config/
+  	   with_items:
+                  - log4j.dev.properties
+                  - secor.dev.partition.properties
+                  - secor.common.properties
+                  - secor.dev.properties
+          tags:
+               - dev-raw_telementry
+
+        - name: copy configuration for the sandbox analytics
+          become: yes
+          command: mv analytics/platform-scripts/secor/sandbox/analytics/{{ item }} src/main/config/
+  	   with_items:
+                  - log4j.sandbox.properties
+                  - secor.sandbox.partition.properties
+                  - secor.common.properties
+                  - secor.sandbox.properties
+          tags:
+               - sandbox-analytics
+
+        - name: copy configuration for the sandbox raw_telemetry
+          become: yes
+          command: mv analytics/platform-scripts/secor/sandbox/raw_telemetry/{{ item }} src/main/config/
+  	   with_items:
+                  - log4j.sandbox.properties
+                  - secor.sandbox.partition.properties
+                  - secor.common.properties
+                  - secor.sandbox.properties
+          tags:
+               - sandbox-raw_telementry
+
+        - name: copy configuration for the prod analytics
+          command: mv analytics/platform-scripts/secor/prod/analytics/{{ item }} src/main/config/
+  	   with_items:
+                  - log4j.prod.properties
+                  - secor.prod.partition.properties
+                  - secor.common.properties
+                  - secor.prod.properties
+          tags:
+               - prod-analytics
+
+        - name: copy configuration for the prod raw_telemetry
+          command: mv analytics/platform-scripts/secor/prod/raw_telemetry/{{ item }} src/main/config/ 
+  	   with_items:
+                  - log4j.prod.properties
+                  - secor.prod.partition.properties
+                  - secor.common.properties
+                  - secor.prod.properties
+          tags:
+               - prod-raw_telemetry
+
