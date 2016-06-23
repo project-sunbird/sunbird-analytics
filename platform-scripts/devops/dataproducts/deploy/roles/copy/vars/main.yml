@@ -1,2 +1,5 @@
 ---
 # vars file for copy
+cs.version: 2.2.6
+data.version: 1.0
+framework.version :1.0

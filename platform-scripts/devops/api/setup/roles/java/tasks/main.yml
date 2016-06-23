@@ -13,15 +13,15 @@
 
 - name: Accept Java 8 License
   sudo: yes
-  debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+  debconf: name='oracle-java{{ java.version }}-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
 
 - name: Install Oracle Java 8
   sudo: yes
   apt: name={{item}} state=latest
   with_items:
-    - oracle-java8-installer
+    - oracle-java{{ java.version }}-installer
     - ca-certificates
-    - oracle-java8-set-default
+    - oracle-java{{ java.version }}-set-default
 
 - name: Update bashrc for JAVA_HOME
   become: yes
@@ -38,5 +38,5 @@
 
 - name: ADD oracle-java8-set-default
   become: yes
-  apt: name=oracle-java8-set-default state=present
+  apt: name=oracle-java{{ java.version }}-set-default state=present
 

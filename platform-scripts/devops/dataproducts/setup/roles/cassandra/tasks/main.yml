@@ -3,11 +3,11 @@
 
 - name: Download cassandra
   become: yes
-  command: wget "http://mirror.fibergrid.in/apache/cassandra/{{ cs_version }}/apache-cassandra-{{ cs_version }}-bin.tar.gz" 
+  command: wget "http://mirror.fibergrid.in/apache/cassandra/{{ cs.version }}/apache-cassandra-{{ cs.version }}-bin.tar.gz" 
  
 - name: unzip the tar
   become: yes
-  command: tar -zxvf apache-cassandra-{{ cs_version }}-bin.tar.gz -C /mnt/data/analytics/
+  command: tar -zxvf apache-cassandra-{{ cs.version }}-bin.tar.gz -C /mnt/data/analytics/
  
 - name: Update bash_profile for CASSANDRA_HOME
   become: yes
@@ -23,4 +23,4 @@
  
 - name: start cassandra
   become: yes 
-  shell: chdir=/mnt/data/analytics/apache-cassandra-{{ cs_version }}/bin ./cassandra &
+  shell: chdir=/mnt/data/analytics/apache-cassandra-{{ cs.version }}/bin ./cassandra &

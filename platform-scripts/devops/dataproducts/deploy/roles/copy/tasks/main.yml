@@ -2,11 +2,11 @@
 # tasks file for copy
 - name: Copy
   become: yes
-  copy: src=platform-modules/batch-models/target/batch-models-1.0.jar dest=/mnt/data/analytics/models
+  copy: src=platform-modules/batch-models/target/batch-models-{{ data.version }}.jar dest=/mnt/data/analytics/models
 
 - name: Copy
   become: yes
-  copy: src=platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar dest=/mnt/data/analytics/models/
+  copy: src=platform-framework/analytics-job-driver/target/analytics-framework-{{ framework.version }}.jar dest=/mnt/data/analytics/models/
 
 
 - name: Copy data.cql
@@ -17,4 +17,4 @@
 
 - name: Run the command
   become: yes
-  command: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh -f /home/ubuntu/data.cql 
+  command: /mnt/data/analytics/apache-cassandra-{{ cs.version }}/bin/cqlsh -f /home/ubuntu/data.cql 
