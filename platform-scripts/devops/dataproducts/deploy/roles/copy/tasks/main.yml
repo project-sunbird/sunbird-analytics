@@ -10,9 +10,11 @@
 
 
 - name: Copy data.cql
+  become: yes
   copy: src=platform-scripts/database/data.cql dest=/home/ubuntu
 
-- name: Copy the platform-scripts 
+- name: Copy the platform-scripts
+  become: yes 
   copy: src=platform-scripts/shell/cron-instructions.md dest=/mnt/data/analytics/scripts
 
 - name: Run the command
