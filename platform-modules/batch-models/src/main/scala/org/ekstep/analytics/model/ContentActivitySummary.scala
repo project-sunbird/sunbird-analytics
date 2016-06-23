@@ -22,7 +22,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class ContentSummary(content_id: String, start_date: DateTime, total_num_sessions: Long, total_ts: Double, average_ts_session: Double,
                           total_interactions: Long, average_interactions_min: Double, num_sessions_week: Double, ts_week: Double, content_type: String, mime_type: String)
 case class ContentSummaryInput(contentId: String, events: Buffer[DerivedEvent], prevSummary: Option[ContentSummary]) extends AlgoInput
-case class ContentSummaryOutput(contentId: String, cs: ContentSummary, dtRange: DtRange, gameVersion: String) extends AlgoOutput
+case class ContentSummaryOutput(contentId: String, contentSummary: ContentSummary, dtRange: DtRange, gameVersion: String) extends AlgoOutput
 
 object ContentActivitySummary extends IBatchModelTemplate[DerivedEvent, ContentSummaryInput, ContentSummaryOutput, MeasuredEvent] with Serializable {
 
@@ -80,7 +80,7 @@ object ContentActivitySummary extends IBatchModelTemplate[DerivedEvent, ContentS
     }
 
     override def postProcess(data: RDD[ContentSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        data.map(f => f.cs).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
+        data.map(f => f.contentSummary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE);
 
         val summaries = sc.cassandraTable[ContentSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_SUMMARY_TABLE).filter { x => !"Collection".equals(x.content_type) };
         val count = summaries.count().intValue();
@@ -91,7 +91,7 @@ object ContentActivitySummary extends IBatchModelTemplate[DerivedEvent, ContentS
         val rdd = sc.parallelize(Array(ContentMetrics("content", topContentByTime.map { x => (x.content_id, x.total_ts) }.toMap, topContentBySessions.map { x => (x.content_id, x.total_num_sessions) }.toMap)), 1);
         rdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_CUMULATIVE_METRICS_TABLE);
         data.map { input =>
-            val contentSumm = input.cs
+            val contentSumm = input.contentSummary
             val mid = CommonUtil.getMessageId("ME_CONTENT_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], input.dtRange, contentSumm.content_id);
             val measures = Map(
                 "timeSpent" -> contentSumm.total_ts,
