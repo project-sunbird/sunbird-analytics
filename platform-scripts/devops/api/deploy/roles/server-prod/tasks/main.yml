@@ -3,8 +3,8 @@
 - name: normal changes
         become: yes
         lineinfile: dest=/mnt/data/analytics/api/analytics-api-{{ api.version }}/start
-                    regexp='execjava$*-cp"$classpath"play.core.server.ProdServerStart$scriptdir'
-                    line='java$*-cp"$classpath"-Dconfig.resource=prod.confplay.core.server.ProdServerStart$scriptdir'
+                    regexp='exec java $* -cp "$classpath" play.core.server.ProdServerStart $scriptdir'
+                    line='exec java $* -cp "$classpath" -Dconfig.resource=prod.conf play.core.server.ProdServerStart $scriptdir'
                     state=present
  - name: start 
    become: yes

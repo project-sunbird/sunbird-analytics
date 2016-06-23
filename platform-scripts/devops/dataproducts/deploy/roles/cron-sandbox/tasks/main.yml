@@ -9,7 +9,7 @@
 
 - name: cron1
   become: yes
-  cron: name=test1 minute=20 hour=6  job="/mnt/data/analytics/scripts/run-job.sh lpu "
+  cron: name="lpu job" minute=20 hour=6  job="/mnt/data/analytics/scripts/run-job.sh lpu "
 
 - name: cron2
   become: yes

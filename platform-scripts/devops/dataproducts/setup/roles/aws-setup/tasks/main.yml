@@ -18,5 +18,3 @@
 - name: Set permissions
   become: yes
   file: path=/mnt owner=ubuntu group=ubuntu mode=777 recurse=yes
-
-

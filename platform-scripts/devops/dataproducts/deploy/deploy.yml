@@ -5,11 +5,12 @@
        bucket: sandbox-data-store 
        brokerlist: 172.31.1.92:9092 
        topic: sandbox.telemetry.derived 
+       cassandra-ip: 52.77.223.20
   roles: 
         - copy
+        - run-cql
         - scripts
         - cron-sandbox
-
   tags: 
        - sandbox
 
@@ -19,11 +20,12 @@
   vars:
        bucket: prod-data-store 
        brokerlist: 10.10.1.207:9092 
-       topic: production.telemetry.derived 
+       topic: production.telemetry.derived
+       cassandra-ip: 54.169.179.102
   roles: 
         - copy
+        - run-cql
         - scripts
         - cron-prod
-
   tags: 
        - prod
