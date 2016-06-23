@@ -20,12 +20,12 @@
        - prod-spark
 
 
-- hosts: prod-cassandra
-  become: yes
-  become_method: sudo
-  roles:
-        - java
-        - aws-setup
-        #- prod-cassandra 
-  tags:
-       - prod-cassandra
+#- hosts: prod-cassandra
+#  become: yes
+#  become_method: sudo
+#  roles:
+#        - java
+#        - aws-setup
+#        - prod-cassandra 
+#  tags:
+#      - prod-cassandra
