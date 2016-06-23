@@ -1,1 +1,0 @@
-ansible-playbook -i hosts deploy.yml --tags "dev or prod"

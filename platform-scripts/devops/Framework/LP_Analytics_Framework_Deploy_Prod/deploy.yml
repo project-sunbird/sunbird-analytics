@@ -1,19 +1,14 @@
-- hosts: Sandox
+- hosts: Prod
   become: yes
   become_method: sudo
   tasks:
-        - name: create models
-          become: yes
-          file: name=/mnt/data/analytics/models state=directory
-          
         - name: Copy
           become: yes
-          copy: src=batch-models-1.0.jar dest=/mnt/data/analytics/models
-
+          copy: src=platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar dest=/mnt/data/analytics/models/
+ 
         - name: Run the command
           become: yes
           command: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh -f platform-scripts/database/data.cql 
-        
         - name: cron1
           cron: name=test1 minute=20 hour=6  job="/mnt/data/analytics/scripts/run-job.sh lpu "
 

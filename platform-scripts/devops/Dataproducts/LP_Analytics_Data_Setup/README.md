@@ -1,1 +1,0 @@
-ansible-playbook -i hosts install.yml --tags "Sanbox,Prod-spark,Prod-cassandra"
