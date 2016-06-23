@@ -12,20 +12,20 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 case class DeviceSpec(device_id: String, device_name: String, device_local_name: String, os: String, make: String,
                       memory: Double, internal_disk: Double, external_disk: Double, screen_size: Double,
-                      primary_secondary_camera: String, cpu: String, num_sims: Double, capabilities: List[String])
+                      primary_secondary_camera: String, cpu: String, num_sims: Double, capabilities: List[String]) extends AlgoOutput with Output
 
-object DeviceSpecification extends IBatchModel[Event, String] with Serializable {
+object DeviceSpecification extends IBatchModelTemplate[Event,Event,DeviceSpec,DeviceSpec] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceSpecification"
-    def execute(data: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-
-        JobLogger.debug("### Execute method started ###", className);
+    
+    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Event] = {
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_GENIE_START")));
-        val filteredEvents = DataFilter.filter(DataFilter.filter(events, Filter("edata", "ISNOTNULL", None)), Filter("edata.eks.dspec", "ISNOTNULL", None));
-        val config = jobParams.getOrElse(Map[String, AnyRef]());
-        val configMapping = sc.broadcast(config);
-
-        val deviceSummary = filteredEvents.map { event =>
+        DataFilter.filter(DataFilter.filter(events, Filter("edata", "ISNOTNULL", None)), Filter("edata.eks.dspec", "ISNOTNULL", None));
+    }
+    
+    override def algorithm(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceSpec] = {
+        
+        data.map { event =>
             val deviceSpec = event.edata.eks.dspec.asInstanceOf[Map[String, AnyRef]]
             val deviceId = event.did
             val deviceName = deviceSpec.getOrElse("dname", "").asInstanceOf[String]
@@ -43,11 +43,10 @@ object DeviceSpecification extends IBatchModel[Event, String] with Serializable 
 
             DeviceSpec(deviceId, deviceName, deviceLocalName, os, make, memory, internalDisk, externalDisk, screenSize, primarySecondaryCamera, cpu, numSims, capabilities)
         }.cache();
-
-        deviceSummary.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE);
-        
-        JobLogger.debug("### Execute method ended ###", className);
-        deviceSummary.map { x => JSONUtils.serialize(x) };
     }
-
+    
+    override def postProcess(data: RDD[DeviceSpec], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceSpec] = {
+        data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE);
+        data
+    }
 }

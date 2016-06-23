@@ -25,13 +25,13 @@ class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends Input {}
+            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends AlgoInput with Input {}
 
 // Computed Event Model
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
-case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Input;
+case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Input with AlgoInput;
 @scala.reflect.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
 @scala.reflect.BeanInfo
