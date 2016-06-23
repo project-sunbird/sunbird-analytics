@@ -1,0 +1,9 @@
+---
+# tasks file for copy
+- name: create deploy dirextory
+  file: path=/mnt/secor/deploy state=directory mode=0777 owner=ubuntu
+
+- name: Copy the artifacts
+  copy: src=target/secor-{{ secor.version }}-SNAPSHOT-bin.tar.gz dest=/mnt/secor/deploy
+
+

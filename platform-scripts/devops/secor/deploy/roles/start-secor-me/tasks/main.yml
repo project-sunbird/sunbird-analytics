@@ -1,0 +1,8 @@
+---
+# tasks file for start-secor-me
+- name: Extract the file
+  command: tar -zxvf /mnt/secor/deploy/secor-{{secor.version}}-SNAPSHOT-bin.tar.gz -C /mnt/secor-me
+
+
+- name: start the process
+  command: chdir=/mnt/secor-me nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.<env>.properties -Dconfig=secor.<env>.partition.properties - cp secor-me/secor-{{ secor.version }}-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &

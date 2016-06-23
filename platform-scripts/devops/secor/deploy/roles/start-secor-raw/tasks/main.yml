@@ -1,0 +1,7 @@
+---
+# tasks file for start
+- name: Extract the file
+  command: tar -zxvf secor-{{ secor.version }}-SNAPSHOT-bin.tar.gz -C /mnt/secor-raw
+
+- name: Start the process
+  comand: chdir=/mnt/secor-raw nohup java -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.<env>.properties -Dconfig=secor.<env>.partition.properties -cp secor-raw/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
