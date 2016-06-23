@@ -1,0 +1,17 @@
+- hosts: sandbox
+  become: yes
+  become_method: sudo
+  roles:
+        - copy
+        - start-secor-raw
+  tags: 
+       - sandbox
+
+- hosts: prod
+  become: yes
+  become_method: sudo
+  roles:
+        - copy
+        - start-secor-me
+  tags: 
+       - prod
