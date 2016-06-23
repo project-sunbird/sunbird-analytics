@@ -52,7 +52,7 @@ class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err
 @scala.reflect.BeanInfo
 class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.reflect.BeanInfo
-class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Serializable {}
+class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
