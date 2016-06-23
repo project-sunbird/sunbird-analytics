@@ -1,0 +1,29 @@
+- hosts: sanbox
+  become: yes
+  become_method: sudo
+  roles: 
+        - copy
+        - cron-sandbox
+
+  tags: 
+       - sandbox
+
+- hosts: dev
+  become: yes
+  become_method: sudo
+  roles: 
+        - copy
+        - cron-dev
+
+  tags: 
+       - dev
+
+- hosts: prod
+  become: yes
+  become_method: sudo
+  roles: 
+        - copy
+        - cron-prod
+
+  tags: 
+       - prod

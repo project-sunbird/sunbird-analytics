@@ -1,0 +1,18 @@
+- hosts: sandbox
+  become: yes
+  become_method: sudo
+  roles:
+        - copy 
+        - server 
+  tags: 
+       - sandbox 
+
+- hosts: prod
+  become: yes
+  become_method: sudo
+  roles:
+        - copy 
+        - server-prod 
+  tags: 
+       - prod 
+

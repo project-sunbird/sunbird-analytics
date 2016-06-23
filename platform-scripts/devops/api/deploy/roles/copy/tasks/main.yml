@@ -1,0 +1,14 @@
+---
+# tasks file for copy
+
+- name: copy the artifact
+  become: yes
+  copy: src=/home/jenkins/workspace/LP_Analytics_API_Deploy_Sandbox/analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api
+
+- name: extact file
+  become: yes
+  command: unzip /mnt/data/analytics/api/analytics-api-1.0-dist.zip -d /mnt/data/analytics/api
+
+- name: permission
+  become: yes
+  file: path=/mnt/data/analytics/api/analytics-api-1.0/start mode=755
