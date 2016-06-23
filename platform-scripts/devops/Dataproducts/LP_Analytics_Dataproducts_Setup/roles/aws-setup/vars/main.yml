@@ -1,0 +1,5 @@
+---
+# vars file for aws-setup
+aws_key: pass the key
+
+aws_secret: paas the secret key

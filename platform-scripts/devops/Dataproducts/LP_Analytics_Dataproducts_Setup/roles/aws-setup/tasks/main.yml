@@ -1,0 +1,15 @@
+---
+# tasks file for aws-setup
+
+- name: Update /etc/environment to set aws_secret
+  become: yes
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='aws_secret={{ aws_secret }}' owner=ubuntu state=present insertafter=EOF create=True
+
+- name: Create Directory
+  become: yes
+  file: path=/mnt/data/analytics/api state=directory  
+
+
+- name: Set permissions
+  become: yes
+  file: path=/mnt owner=ubuntu group=ubuntu mode=777 recurse=yes
