@@ -1,8 +1,8 @@
 ---
 # tasks file for server
 - name: normal changes
-   become: yes
-   lineinfile: dest=/mnt/data/analytics/api/analytics-api-{{ api.version }}/start
+  become: yes
+  lineinfile: dest=/mnt/data/analytics/api/analytics-api-{{ api.version }}/start
                regexp='play.core.server.NettyServer'
                line='play.core.server.ProdServerStart'
                state=present
