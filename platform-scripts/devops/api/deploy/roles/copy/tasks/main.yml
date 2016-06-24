@@ -6,6 +6,7 @@
   copy: src=/home/jenkins/workspace/LP_Analytics_API_Deploy_Sandbox/analytics-api-{{ api.version }}-dist.zip dest=/mnt/data/analytics/api
 
 - name: Stop the api
+  become: yes
   script: stop.sh
 
 - name: extact file
