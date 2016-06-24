@@ -24,27 +24,27 @@
           tags:
                - dev-raw_telementry
 
-        - name: copy configuration for the sandbox analytics
+        - name: copy configuration for the qa analytics
           become: yes
-          command: mv analytics/platform-scripts/secor/sandbox/analytics/{{ item }} src/main/config/
-  	   with_items:
-                  - log4j.sandbox.properties
-                  - secor.sandbox.partition.properties
-                  - secor.common.properties
-                  - secor.sandbox.properties
+          command: mv resources/qa/analytics/{{ item }} src/main/config/
+  	      with_items:
+                  - log4j.qa.properties
+                  - secor.qa.partition.properties
+                  - secor.qa.properties
+                  - secor.qa.properties
           tags:
-               - sandbox-analytics
+               - qa-analytics
 
-        - name: copy configuration for the sandbox raw_telemetry
+        - name: copy configuration for the qa raw_telemetry
           become: yes
-          command: mv analytics/platform-scripts/secor/sandbox/raw_telemetry/{{ item }} src/main/config/
+          command: mv analytics/platform-scripts/secor/qa/raw_telemetry/{{ item }} src/main/config/
   	   with_items:
-                  - log4j.sandbox.properties
-                  - secor.sandbox.partition.properties
-                  - secor.common.properties
-                  - secor.sandbox.properties
+                  - log4j.qa.properties
+                  - secor.qa.partition.properties
+                  - secor.qa.properties
+                  - secor.qa.properties
           tags:
-               - sandbox-raw_telementry
+               - qa-raw_telementry
 
         - name: copy configuration for the prod analytics
           command: mv analytics/platform-scripts/secor/prod/analytics/{{ item }} src/main/config/

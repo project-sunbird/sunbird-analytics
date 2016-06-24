@@ -1,0 +1,13 @@
+[dev]
+54.179.138.122 ansible_user=ubuntu
+
+[qa]
+54.179.138.122 ansible_user=ubuntu
+
+[prod]
+52.77.212.151 ansible_user=ubuntu
+
+[all:children]
+dev
+qa
+prod

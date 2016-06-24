@@ -1,18 +1,34 @@
-- hosts: sandbox
+- hosts: dev
   become: yes
   become_method: sudo
   vars: 
-       env: sandbox
+       env: dev
   roles:
         - copy
         - start-secor-raw
         - start-secor-me
   tags: 
-       - sandbox
+       - dev
+
+- hosts: qa
+  become: yes
+  become_method: sudo
+  vars: 
+       env: prod
+  roles:
+        - copy
+        - start-secor-raw
+        - start-secor-me
+  vars: 
+       env: qa
+  tags: 
+       - qa
 
 - hosts: prod
   become: yes
   become_method: sudo
+  vars: 
+       env: prod
   roles:
         - copy
         - start-secor-raw
