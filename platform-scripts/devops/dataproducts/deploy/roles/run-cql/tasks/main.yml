@@ -1,8 +1,10 @@
 ---
 #tasks file for run-cql
 - name: copy cql
+  become: yes
   copy: src=platform-scripts/database/data.cql dest=/home/ubuntu
 
 - name: run cql
+  become: yes
   command: $CASSANDRA_HOME/bin/cqlsh -f /home/ubuntu/data.cql
  

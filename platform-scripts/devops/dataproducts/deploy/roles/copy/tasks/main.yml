@@ -9,11 +9,3 @@
   become: yes
   copy: src=platform-framework/analytics-job-driver/target/analytics-framework-{{ framework.version }}.jar dest=/mnt/data/analytics/models/
 
-
-- name: Copy cassandra data file
-  become: yes
-  copy: src=platform-scripts/database/data.cql dest=/home/ubuntu
-
-- name: Run the command
-  become: yes
-  command: cqlsh -f /home/ubuntu/data.cql 

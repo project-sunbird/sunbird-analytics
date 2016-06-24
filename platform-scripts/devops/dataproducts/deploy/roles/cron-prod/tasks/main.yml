@@ -3,7 +3,7 @@
 
 - name: copy the scripts
   become: yes
-  copy: src=platform-scripts/shell/prod/* dest={{ {{ cron.path }}/ }}
+  copy: src=platform-scripts/shell/prod/* dest={{ cron.path }}
 
 - name: lpu job
   become: yes
