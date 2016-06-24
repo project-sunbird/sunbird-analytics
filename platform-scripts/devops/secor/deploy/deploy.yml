@@ -1,9 +1,12 @@
 - hosts: sandbox
   become: yes
   become_method: sudo
+  vars: 
+       env: sandbox
   roles:
         - copy
         - start-secor-raw
+        - start-secor-me
   tags: 
        - sandbox
 
@@ -12,6 +15,9 @@
   become_method: sudo
   roles:
         - copy
+        - start-secor-raw
         - start-secor-me
+  vars: 
+       env: prod
   tags: 
        - prod

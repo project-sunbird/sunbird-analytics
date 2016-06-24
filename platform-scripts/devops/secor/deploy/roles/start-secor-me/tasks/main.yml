@@ -7,4 +7,4 @@
 
 - name: start the process
   become: yes
-  command: chdir=/mnt/secor-me nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.<env>.properties -Dconfig=secor.<env>.partition.properties - cp secor-me/secor-{{ secor.version }}-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
+  command: chdir=/mnt/secor-me nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.{{ env }}.properties -Dconfig=secor.{{ env }}.partition.properties - cp secor-me/secor-{{ secor.version }}-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
