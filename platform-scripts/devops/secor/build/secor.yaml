@@ -4,23 +4,23 @@
 - tasks:  
         - name: copy configuration for the dev analytics
           become: yes
-          command: mv analytics/platform-scripts/secor/dev/analytics/{{ item }} src/main/config/
-  	  with_items:
-                 - log4j.dev.properties
-                 - secor.dev.partition.properties
-                 - secor.common.properties
-                 - secor.dev.properties
+          command: mv resources/dev/analytics/{{ item }} src/main/config/
+  	      with_items:
+                     - log4j.dev.properties
+                     - secor.dev.partition.properties
+                     - secor.common.properties
+                     - secor.dev.properties
           tags:
                - dev-analytics
 
         - name: copy configuration for the dev raw_telemetry
           become: yes
-          command: mv analytics/platform-scripts/secor/dev/raw_telemetry/{{ item }} src/main/config/
-  	   with_items:
-                  - log4j.dev.properties
-                  - secor.dev.partition.properties
-                  - secor.common.properties
-                  - secor.dev.properties
+          command: mv resources/dev/raw_telemetry/{{ item }} src/main/config/
+  	      with_items:
+                     - log4j.dev.properties
+                     - secor.dev.partition.properties
+                     - secor.common.properties
+                     - secor.dev.properties
           tags:
                - dev-raw_telementry
 
@@ -28,41 +28,41 @@
           become: yes
           command: mv resources/qa/analytics/{{ item }} src/main/config/
   	      with_items:
-                  - log4j.qa.properties
-                  - secor.qa.partition.properties
-                  - secor.qa.properties
-                  - secor.qa.properties
+                     - log4j.qa.properties
+                     - secor.qa.partition.properties
+                     - secor.qa.properties
+                     - secor.qa.properties
           tags:
                - qa-analytics
 
         - name: copy configuration for the qa raw_telemetry
           become: yes
-          command: mv analytics/platform-scripts/secor/qa/raw_telemetry/{{ item }} src/main/config/
-  	   with_items:
-                  - log4j.qa.properties
-                  - secor.qa.partition.properties
-                  - secor.qa.properties
-                  - secor.qa.properties
+          command: mv resources/qa/raw_telemetry/{{ item }} src/main/config/
+  	      with_items:
+                     - log4j.qa.properties
+                     - secor.qa.partition.properties
+                     - secor.qa.properties
+                     - secor.qa.properties
           tags:
                - qa-raw_telementry
 
         - name: copy configuration for the prod analytics
-          command: mv analytics/platform-scripts/secor/prod/analytics/{{ item }} src/main/config/
-  	   with_items:
-                  - log4j.prod.properties
-                  - secor.prod.partition.properties
-                  - secor.common.properties
-                  - secor.prod.properties
+          command: mv resources/prod/analytics/{{ item }} src/main/config/
+  	      with_items:
+                     - log4j.prod.properties
+                     - secor.prod.partition.properties
+                     - secor.common.properties
+                     - secor.prod.properties
           tags:
                - prod-analytics
 
         - name: copy configuration for the prod raw_telemetry
-          command: mv analytics/platform-scripts/secor/prod/raw_telemetry/{{ item }} src/main/config/ 
-  	   with_items:
-                  - log4j.prod.properties
-                  - secor.prod.partition.properties
-                  - secor.common.properties
-                  - secor.prod.properties
+          command: mv resources/prod/raw_telemetry/{{ item }} src/main/config/ 
+  	      with_items:
+                     - log4j.prod.properties
+                     - secor.prod.partition.properties
+                     - secor.common.properties
+                     - secor.prod.properties
           tags:
                - prod-raw_telemetry
 

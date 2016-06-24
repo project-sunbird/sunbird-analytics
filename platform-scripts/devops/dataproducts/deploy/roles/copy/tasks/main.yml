@@ -1,5 +1,6 @@
 ---
 # tasks file for copy
+
 - name: Copy Data Products
   become: yes
   copy: src=platform-modules/batch-models/target/batch-models-{{ data.version }}.jar dest=/mnt/data/analytics/models
