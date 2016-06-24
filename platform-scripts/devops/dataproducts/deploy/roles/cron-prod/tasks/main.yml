@@ -1,63 +1,62 @@
 ---
-# tasks file for cron-prod
----
 # tasks file for cron-dev
 
 - name: copy the scripts
   become: yes
-  copy: src=platform-scripts/shell/prod/* dest=/mnt/data/analytics/scripts/
+  copy: src=platform-scripts/shell/prod/* dest={{ {{ cron.path }}/ }}
 
-- name: cron1
+- name: lpu job
   become: yes
-  cron: name=test1 minute=20 hour=6  job="/mnt/data/analytics/scripts/run-job.sh lpu "
+  cron: name=lpu minute=20 hour=6  job="{{ cron.path }}/run-job.sh lpu "
 
-- name: cron2
+- name: gls job
   become: yes
-  cron: name=test2 minute=22 hour=6  job="/mnt/data/analytics/scripts/run-job.sh gls "
+  cron: name=gls minute=22 hour=6  job="{{ cron.path }}/run-job.sh gls "
 
-- name: cron3
+- name: gss job
   become: yes
-  cron: name=test3 minute=24 hour=6  job="/mnt/data/analytics/scripts/run-job.sh gss"
+  cron: name=gss minute=24 hour=6  job="{{ cron.path }}/run-job.sh gss"
 
 
-- name: cron4
+- name: ss job
   become: yes
-  cron: name=test4 minute=26 hour=6  job="/mnt/data/analytics/scripts/run-job.sh ss "
+  cron: name=ss minute=26 hour=6  job="{{ cron.path }}/run-job.sh ss "
 
-- name: cron5
+- name: css job
   become: yes
-  cron: name=test5 minute=28 hour=6  job="/mnt/data/analytics/scripts/run-job.sh css "
+  cron: name=css minute=28 hour=6  job="{{ cron.path }}/run-job.sh css "
 
 
-- name: cron6
+- name: dus job
   become: yes
-  cron: name=test6 minute=45 hour=6  job="/mnt/data/analytics/scripts/run-job.sh dus "
+  cron: name=dus minute=45 hour=6  job="{{ cron.path }}/run-job.sh dus "
 
 
-- name: cron7
+- name: cus job
   become: yes
-  cron: name=test7 minute=47 hour=6  job="/mnt/data/analytics/scripts/run-job.sh cus "
+  cron: name=cus minute=47 hour=6  job="{{ cron.path }}/run-job.sh cus "
 
 
-- name: cron8
+- name: lp job
   become: yes
-  cron: name=test8 minute=49 hour=6  job="/mnt/data/analytics/scripts/run-job.sh lp "
+  cron: name=lp minute=49 hour=6  job="{{ cron.path }}/run-job.sh lp "
 
   
-- name: cron9
+- name: as job
   become: yes
-  cron: name=test9 minute=51 hour=6  job="/mnt/data/analytics/scripts/run-job.sh as "
+  cron: name=as minute=51 hour=6  job="{{ cron.path }}/run-job.sh as "
 
 
-- name: cron10
+- name: las job
   become: yes
-  cron: name=test10 minute=53 hour=6  job="/mnt/data/analytics/scripts/run-job.sh las "
+  cron: name=las minute=53 hour=6  job="{{ cron.path }}/run-job.sh las "
 
 
-- name: cron11
+- name: dsu job
   become: yes
-  cron: name=test11 minute=55 hour=6  job="/mnt/data/analytics/scripts/run-job.sh dsu "
+  cron: name=dsu minute=55 hour=6  job="{{ cron.path }}/run-job.sh dsu "
 
  
-- name: cron12
-  cron: name=test12 minute=57 hour=6  job="/mnt/data/analytics/scripts/run-job.sh lcas "
+- name: lcas job
+  become: yes
+  cron: name=lcas minute=57 hour=6  job="{{ cron.path }}/run-job.sh lcas "
