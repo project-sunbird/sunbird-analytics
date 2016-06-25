@@ -10,9 +10,15 @@
   become: yes
   command: unzip /mnt/data/analytics/api/analytics-api-1.0-dist.zip -d /mnt/data/analytics/api
 
+- stat: path=/mnt/data/analytics/api/analytics-api-1.0/RUNNING_PID
+  become: yes
+  register: check_file
+
 - name: Stop the api
   become: yes
   script: stop.sh
+  when: check_file.stat.exists == True
+
 
 
 - name: permission
