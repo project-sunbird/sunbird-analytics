@@ -5,7 +5,7 @@
      access: "{{ lookup('file', '/home/jenkins/aws_access') }}"
      secret: "{{ lookup('file', '/home/jenkins/aws_secret') }}"
   roles:
-        - java
+        #- java
         - spark
         - aws-setup
         - cassandra
@@ -19,7 +19,7 @@
      access: "{{ lookup('file', '/home/jenkins/aws_access') }}"
      secret: "{{ lookup('file', '/home/jenkins/aws_secret') }}"
   roles:
-        - java
+        #- java
         - spark
         - aws-setup
   tags:

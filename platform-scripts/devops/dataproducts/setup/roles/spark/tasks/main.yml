@@ -14,13 +14,13 @@
 
 - name: Update bashrc for SPARK_HOME
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='SPARK_HOME=$HOME/spark-1.5.2-bin-hadoop2.3' owner=ubuntu state=present insertafter=EOF create=True
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='SPARK_HOME=$HOME/spark-1.5.2-bin-hadoop2.3' owner=ec2-user state=present insertafter=EOF create=True
 
 - name: Export SPARK_HOME
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile  line='export SPARK_HOME' owner=ubuntu state=present insertafter=EOF create=True
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile  line='export SPARK_HOME' owner=ec2-user state=present insertafter=EOF create=True
 
 - name: Add SPARK_HOME to the PATH
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$SPARK_HOME/bin' owner=ubuntu state=present insertafter=EOF create=True
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$SPARK_HOME/bin' owner=ec2-user state=present insertafter=EOF create=True
   
