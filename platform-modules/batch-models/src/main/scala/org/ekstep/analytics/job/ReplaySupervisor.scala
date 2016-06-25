@@ -27,7 +27,7 @@ object ReplaySupervisor extends Application {
             CommonUtil.closeSparkContext()(sc);
         }
         val t2 = System.currentTimeMillis;
-        JobLogger.info("Replay Supervisor completed.", className, Option(Map("timeTaken" -> Double.box((t2 - t1) / 1000))));
+        JobLogger.info("Replay Supervisor completed.", className, Option(Map("start_date" -> fromDate, "end_date" -> toDate, "timeTaken" -> Double.box((t2 - t1) / 1000))));
     }
 
     def execute(model: String, fromDate: String, toDate: String, config: String)(implicit sc: SparkContext) {
@@ -40,15 +40,14 @@ object ReplaySupervisor extends Application {
                 job.main(jobConfig)(Option(sc));
             } catch {
                 case ex: DataFetcherException => {
-                    JobLogger.error("File is missing in S3 with date - " + date + " | Model - " + model, className, ex)
+                    JobLogger.error("File is missing in S3", className, ex, Option(Map("model_code" -> model, "date" -> date)))
                 }
                 case ex: JobNotFoundException => {
-                    JobLogger.error("Unable to execute a Model with the code: " + model, className, ex)
+                    JobLogger.error("Unable to execute the model", className, ex, Option(Map("model_code" -> model)))
                     throw ex;
                 }
                 case ex: Exception => {
-                    JobLogger.error("### Error executing replay for the date - " + date + " | Model - " + model + " ###", className, ex);
-                    println("Error executing replay for the date - " + date + " | Model - " + model + " | Exception - " + ex.getMessage);
+                    JobLogger.error("Error executing replay supervisor", className, ex, Option(Map("model_code" -> model, "date" -> date)));
                     ex.printStackTrace()
                 }
             }
