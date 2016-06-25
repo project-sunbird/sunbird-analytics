@@ -1,6 +1,9 @@
 - hosts: sandbox
   become: yes
   become_method: sudo
+  vars:
+     access: "{{ lookup('file', '/home/jenkins/aws_access') }}"
+     secret: "{{ lookup('file', '/home/jenkins/aws_secret') }}"
   roles:
         - java
         - spark
@@ -12,6 +15,9 @@
 - hosts: prod-spark
   become: yes
   become_method: sudo
+  vars:
+     access: "{{ lookup('file', '/home/jenkins/aws_access') }}"
+     secret: "{{ lookup('file', '/home/jenkins/aws_secret') }}"
   roles:
         - java
         - spark
