@@ -1,9 +1,5 @@
 ---
-# tasks file for cron-dev
-
-- name: copy the scripts
-  become: yes
-  copy: src=platform-scripts/shell/prod/* dest={{ cron.path }}
+# tasks file for cron-prod
 
 - name: lpu job
   become: yes

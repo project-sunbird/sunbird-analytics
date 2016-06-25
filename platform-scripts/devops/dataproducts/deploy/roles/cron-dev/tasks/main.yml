@@ -1,11 +1,5 @@
 ---
-# tasks file for cron-sandbox
----
 # tasks file for cron-dev
-
-- name: copy the scripts
-  become: yes
-  copy: src=platform-scripts/shell/sandbox/* dest={{ cron.path }}/
 
 - name: lpu job
   become: yes
