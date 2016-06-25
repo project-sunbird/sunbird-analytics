@@ -8,6 +8,6 @@
   become: yes
   command: tar -zxvf /mnt/secor/deploy/secor-0.2-SNAPSHOT-bin.tar.gz -C /mnt/secor-raw
 
-- name: Stop the Secor service
+- name: Start the Secor service
   become: yes
   script: secor-script.sh start

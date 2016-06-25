@@ -14,7 +14,21 @@
         - cron-dev
   tags: 
        - dev
-
+- hosts: qa
+  become: yes
+  become_method: sudo
+  vars:
+       bucket: qa-data-store 
+       brokerlist: 172.31.1.92:9092 
+       topic: qa.telemetry.derived 
+      # cassandra-ip: 52.77.223.20
+  roles: 
+        - copy
+        - run-cql
+        - scripts
+        - cron-qa
+  tags: 
+       - qa
 - hosts: prod
   become: yes
   become_method: sudo
