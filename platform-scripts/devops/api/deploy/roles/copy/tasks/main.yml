@@ -3,12 +3,12 @@
 
 - name: copy the artifact
   become: yes
-  copy: src=/home/jenkins/workspace/LP_Analytics_API_Deploy_Sandbox/analytics-api-{{ api.version }}-dist.zip dest=/mnt/data/analytics/api
+  copy: src=analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api
 
 
 - name: extact file
   become: yes
-  command: unzip /mnt/data/analytics/api/analytics-api-{{ api.version }}-dist.zip -d /mnt/data/analytics/api
+  command: unzip /mnt/data/analytics/api/analytics-api-1.0-dist.zip -d /mnt/data/analytics/api
 
 - name: Stop the api
   become: yes
@@ -17,4 +17,4 @@
 
 - name: permission
   become: yes
-  file: path=/mnt/data/analytics/api/analytics-api-{{ api.version }}/start mode=755
+  file: path=/mnt/data/analytics/api/analytics-api-1.0/start mode=755
