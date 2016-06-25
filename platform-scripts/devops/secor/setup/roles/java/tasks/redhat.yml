@@ -36,9 +36,9 @@
   become: yes  
   lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$JAVA_HOME/bin' owner=ubuntu state=present insertafter=EOF create=True
 
-- name: ADD oracle-java{{ java.version }}-set-default
+- name: ADD oracle-java8-set-default
   become: yes
-  yum: name=oracle-java{{ java.version }}-set-default state=present
+  yum: name=oracle-java8-set-default state=present
 
 
 

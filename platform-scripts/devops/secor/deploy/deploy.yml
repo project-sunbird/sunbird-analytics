@@ -14,7 +14,7 @@
   become: yes
   become_method: sudo
   vars: 
-       env: prod
+       env: qa
   roles:
         - copy
         - start-secor-raw
