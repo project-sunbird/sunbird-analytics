@@ -6,6 +6,6 @@
 
 - name: Copy the artifacts
   become: yes
-  copy: src=secor-{{ secor.version }}-SNAPSHOT-bin.tar.gz dest=/mnt/secor/deploy
+  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/secor/deploy
 
 
