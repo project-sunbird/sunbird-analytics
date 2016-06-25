@@ -1,4 +1,5 @@
-- hosts: sandbox
+---
+- hosts: dev
   become: yes
   become_method: sudo
   vars:
@@ -10,9 +11,9 @@
         - copy
         - run-cql
         - scripts
-        - cron-sandbox
+        - cron-dev
   tags: 
-       - sandbox
+       - dev
 
 - hosts: prod
   become: yes
@@ -25,7 +26,7 @@
   roles: 
         - copy
         - run-cql
-        - scripts
+        - scripts 
         - cron-prod
   tags: 
        - prod
