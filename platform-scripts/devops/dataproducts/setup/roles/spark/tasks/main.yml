@@ -1,8 +1,5 @@
 ---
 # tasks file for Spark
-- name: Update
-  become: yes
-  apt: update_cache=yes
 
 - name: Download Apache Spark 
   become: yes
