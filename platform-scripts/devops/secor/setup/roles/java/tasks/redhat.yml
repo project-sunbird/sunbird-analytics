@@ -1,9 +1,9 @@
 ---
 # tasks file for java
 
-- name: Install add-apt-repostory
-  become: yes
-  yum: name=software-properties-common state=latest
+#- name: Install add-apt-repostory
+#  become: yes
+#  yum: name=software-properties-common state=latest
 
 
 #- name: Add Oracle Java Repository
