@@ -1,0 +1,14 @@
+---
+# tasks file for start-secor-me
+- name: Stop the Secor service
+  become: yes
+  script: secor-script.sh stop
+
+- name: Extract the file
+  become: yes
+  command: tar -zxvf /mnt/secor/deploy/secor-0.2-SNAPSHOT-bin.tar.gz -C /mnt/secor-me
+
+
+- name: Stop the Secor service
+  become: yes
+  script: secor-script.sh start

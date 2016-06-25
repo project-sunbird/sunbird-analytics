@@ -1,0 +1,22 @@
+---
+# tasks file for scripts
+- name: copy the scripts
+  become: yes
+  template: src=model-config.j2 dest=/mnt/data/analytics/scripts/model-config.sh
+
+- name: copy the scripts
+  become: yes
+  template: src=replay-job.j2 dest=/mnt/data/analytics/scripts/replay-job.sh
+
+- name: copy the scripts
+  become: yes
+  template: src=replay-updater.j2 dest=/mnt/data/analytics/scripts/replay-updater.sh
+
+- name: copy the scripts
+  become: yes
+  template: src=replay-utils.j2 dest=/mnt/data/analytics/scripts/replay-utils.sh
+
+
+- name: copy the scripts
+  become: yes
+  template: src=run-job.j2 dest=/mnt/data/analytics/scripts/run-job.sh

@@ -1,0 +1,11 @@
+---
+# tasks file for copy
+
+- name: Copy Data Products
+  become: yes
+  copy: src=platform-modules/batch-models/target/batch-models-1.0.jar dest=/mnt/data/analytics/models
+
+- name: Copy Framework
+  become: yes
+  copy: src=platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar dest=/mnt/data/analytics/models
+

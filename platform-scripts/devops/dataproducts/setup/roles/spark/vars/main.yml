@@ -1,0 +1,3 @@
+---
+# vars file for Spark
+spark.version: 1.5.2
