@@ -25,16 +25,16 @@
 
 - name: Update bashrc for JAVA_HOME
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='JAVA_HOME=/usr/lib/jvm/java-8-oracle' owner=ubuntu state=present insertafter=EOF create=True
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='JAVA_HOME=/usr/lib/jvm/java-8-oracle' owner=ec2-user state=present insertafter=EOF create=True
 
 
 - name: Export JAVA_HOME
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile  line='export JAVA_HOME' owner=ubuntu state=present insertafter=EOF create=True
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile  line='export JAVA_HOME' owner=ec2-user state=present insertafter=EOF create=True
 
 - name: Add JAVA_HOME to the PATH
   become: yes  
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$JAVA_HOME/bin' owner=ubuntu state=present insertafter=EOF create=True
+  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$JAVA_HOME/bin' owner=ec2-user state=present insertafter=EOF create=True
 
 - name: ADD oracle-java8-set-default
   become: yes
