@@ -8,7 +8,7 @@
 
 - name: extact file
   become: yes
-  command: unzip /mnt/data/analytics/api/analytics-api-1.0-dist.zip -d /mnt/data/analytics/api
+  shell: unzip /mnt/data/analytics/api/analytics-api-1.0-dist.zip -d /mnt/data/analytics/api/
 
 - stat: path=/mnt/data/analytics/api/analytics-api-1.0/RUNNING_PID
   become: yes
