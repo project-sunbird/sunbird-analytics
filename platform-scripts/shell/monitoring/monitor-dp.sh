@@ -12,11 +12,11 @@ succ_num=`grep "logType\":\"COMPLETED" $log_file | wc -l | bc`
 total_events=0
 total_time=0
 
-file_content="MODEL,JOB_STATUS,EVENTS_GENERATED,TIME_TAKEN(in Seconds),EVENT_DATE,MESSAGE\n"
+file_content="Model,Job Status,Events Count,Time Taken(in Seconds),Date,Message\n"
 
 while read -r line
 do	
-    model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line"`
+    model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g"`
 	job_status="COMPLETED"
 	message=`sed 's/.*message":"\(.*\)","class.*/\1/' <<< "$line"`
 	
@@ -36,7 +36,7 @@ time_taken=0
 
 while read -r line
 do
-	model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line"`
+	model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g"`
 	if [ "$model" != "$model_prv" ]; then
 		model_prv=$model
 		job_status="FAILED"
@@ -55,5 +55,5 @@ echo "Number of failed Jobs: $failed_num"
 echo "Total time taken: $total_time"
 echo "Total events generated: $total_events"
 
-data='{"channel": "#analytics_monitoring", "username": "dp-monitor", "text":"*-:Job Run Status Report:-*\nNumber of Completed Jobs: `'$succ_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```", "icon_emoji": ":ghost:"}'
+data='{"channel": "#analytics_monitoring", "username": "dp-monitor", "text":"*Job Run Status Report for '$today'*\nNumber of Completed Jobs: `'$succ_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```", "icon_emoji": ":ghost:"}'
 curl -X POST -H 'Content-Type: application/json' --data "$data" https://hooks.slack.com/services/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
