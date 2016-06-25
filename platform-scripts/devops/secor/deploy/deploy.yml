@@ -6,9 +6,19 @@
   roles:
         - copy
         - start-secor-raw
+  tags: 
+       - dev-raw
+
+- hosts: dev
+  become: yes
+  become_method: sudo
+  vars: 
+       env: dev
+  roles:
+        - copy
         - start-secor-me
   tags: 
-       - dev
+       - dev-me
 
 - hosts: qa
   become: yes
@@ -18,11 +28,24 @@
   roles:
         - copy
         - start-secor-raw
+  vars: 
+       env: qa
+  tags: 
+       - qa-raw
+
+- hosts: qa
+  become: yes
+  become_method: sudo
+  vars: 
+       env: qa
+  roles:
+        - copy
         - start-secor-me
   vars: 
        env: qa
   tags: 
-       - qa
+       - qa-me
+
 
 - hosts: prod
   become: yes
@@ -32,8 +55,20 @@
   roles:
         - copy
         - start-secor-raw
+  vars: 
+       env: prod
+  tags: 
+       - prod-raw
+
+- hosts: prod
+  become: yes
+  become_method: sudo
+  vars: 
+       env: prod
+  roles:
+        - copy
         - start-secor-me
   vars: 
        env: prod
   tags: 
-       - prod
+       - prod-me

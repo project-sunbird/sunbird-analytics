@@ -18,14 +18,6 @@
      stop)  
        kill `cat /var/run/secor-script.pid` 
        ;;
-     
-     check)
-       if [ -f /var/run/secor-script.pid ] then;
-          echo "SECOR PROCESS IS RUNNING"
-        else
-          echo "SECOR PROCESS IS NOT RUNNING"
-        fi
-        ;;
      *)  
        echo "usage: secor-script {start|stop}" 
        ;;

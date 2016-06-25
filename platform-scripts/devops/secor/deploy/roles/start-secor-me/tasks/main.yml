@@ -6,7 +6,7 @@
 
 - name: Extract the file
   become: yes
-  command: tar -zxvf /mnt/secor/deploy/secor-{{secor.version}}-SNAPSHOT-bin.tar.gz -C /mnt/secor-me
+  command: tar -zxvf /mnt/secor/deploy/secor-0.2-SNAPSHOT-bin.tar.gz -C /mnt/secor-me
 
 
 - name: Stop the Secor service
