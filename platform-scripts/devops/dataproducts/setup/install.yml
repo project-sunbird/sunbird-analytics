@@ -1,0 +1,37 @@
+- hosts: sandbox
+  become: yes
+  become_method: sudo
+  vars:
+     access: "{{ lookup('file', '/home/jenkins/aws_access') }}"
+     secret: "{{ lookup('file', '/home/jenkins/aws_secret') }}"
+  roles:
+        #- java
+        - spark
+        - aws-setup
+        - cassandra
+  tags:
+       - sandbox
+
+- hosts: prod-spark
+  become: yes
+  become_method: sudo
+  vars:
+     access: "{{ lookup('file', '/home/jenkins/aws_access') }}"
+     secret: "{{ lookup('file', '/home/jenkins/aws_secret') }}"
+  roles:
+        #- java
+        - spark
+        - aws-setup
+  tags:
+       - prod-spark
+
+
+#- hosts: prod-cassandra
+#  become: yes
+#  become_method: sudo
+#  roles:
+#        - java
+#        - aws-setup
+#        - prod-cassandra 
+#  tags:
+#      - prod-cassandra

@@ -1,0 +1,58 @@
+---
+# tasks file for cron-prod
+
+- name: lpu job
+  become: yes
+  cron: name=lpu minute=20 hour=6  job="{{ cron.path }}/run-job.sh lpu "
+
+- name: gls job
+  become: yes
+  cron: name=gls minute=22 hour=6  job="{{ cron.path }}/run-job.sh gls "
+
+- name: gss job
+  become: yes
+  cron: name=gss minute=24 hour=6  job="{{ cron.path }}/run-job.sh gss"
+
+
+- name: ss job
+  become: yes
+  cron: name=ss minute=26 hour=6  job="{{ cron.path }}/run-job.sh ss "
+
+- name: css job
+  become: yes
+  cron: name=css minute=28 hour=6  job="{{ cron.path }}/run-job.sh css "
+
+
+- name: dus job
+  become: yes
+  cron: name=dus minute=45 hour=6  job="{{ cron.path }}/run-job.sh dus "
+
+
+- name: cus job
+  become: yes
+  cron: name=cus minute=47 hour=6  job="{{ cron.path }}/run-job.sh cus "
+
+
+- name: lp job
+  become: yes
+  cron: name=lp minute=49 hour=6  job="{{ cron.path }}/run-job.sh lp "
+
+  
+- name: as job
+  become: yes
+  cron: name=as minute=51 hour=6  job="{{ cron.path }}/run-job.sh as "
+
+
+- name: las job
+  become: yes
+  cron: name=las minute=53 hour=6  job="{{ cron.path }}/run-job.sh las "
+
+
+- name: dsu job
+  become: yes
+  cron: name=dsu minute=55 hour=6  job="{{ cron.path }}/run-job.sh dsu "
+
+ 
+- name: lcas job
+  become: yes
+  cron: name=lcas minute=57 hour=6  job="{{ cron.path }}/run-job.sh lcas "
