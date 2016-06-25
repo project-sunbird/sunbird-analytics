@@ -1,7 +1,7 @@
 - hosts: all
   become_method: yes
   become: yes
-- tasks:  
+  tasks:  
         - name: copy configuration for the dev analytics
           become: yes
           command: mv resources/dev/analytics/{{ item }} src/main/config/
