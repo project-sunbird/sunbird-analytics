@@ -3,24 +3,24 @@
 - name: Copy Scripts - Model Config
   become: yes
   become: ec2-user
-  template: src=model-config.j2 dest=/mnt/data/analytics/scripts/model-config.sh
+  template: src=model-config.j2 dest=/mnt/data/analytics/scripts/model-config.sh mode=755 owner=ec2-user group=ec2-user
 
 - name: Copy Scripts - Replay Job
   become: yes
   become: ec2-user
-  template: src=replay-job.j2 dest=/mnt/data/analytics/scripts/replay-job.sh
+  template: src=replay-job.j2 dest=/mnt/data/analytics/scripts/replay-job.sh mode=755 owner=ec2-user group=ec2-user
 
 - name: Copy Scripts - Replay Updater
   become: yes
   become: ec2-user
-  template: src=replay-updater.j2 dest=/mnt/data/analytics/scripts/replay-updater.sh
+  template: src=replay-updater.j2 dest=/mnt/data/analytics/scripts/replay-updater.sh mode=755 owner=ec2-user group=ec2-user
 
 - name: Copy Scripts - Replay Utils
   become: yes
   become: ec2-user
-  template: src=replay-utils.j2 dest=/mnt/data/analytics/scripts/replay-utils.sh
+  template: src=replay-utils.j2 dest=/mnt/data/analytics/scripts/replay-utils.sh mode=755 owner=ec2-user group=ec2-user
 
 - name: Copy Scripts - Run Job
   become: yes
   become: ec2-user
-  template: src=run-job.j2 dest=/mnt/data/analytics/scripts/run-job.sh
+  template: src=run-job.j2 dest=/mnt/data/analytics/scripts/run-job.sh mode=755 owner=ec2-user group=ec2-user
