@@ -1,13 +1,15 @@
 ---
 # tasks file for Spark
 
-- name: Download Apache Spark 
+- name: Download Apache Spark
   become: yes
-  command: wget http://mirror.fibergrid.in/apache/spark/spark-1.5.2/spark-1.5.2-bin-hadoop2.3.tgz 
+  become_user: ec2-user
+  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-1.5.2/spark-1.5.2-bin-hadoop2.3.tgz dest=/home/ec2-user/spark-1.5.2-bin-hadoop2.3.tgz timeout=1000 force=no owner=ec2-user
 
-- name: Extract Spark
+- name: Unarchive Spark
   become: yes
-  command: tar zxvf spark-1.5.2-bin-hadoop2.3.tgz 
+  become_user: ec2-user
+  unarchive: src=/home/ec2-user/spark-1.5.2-bin-hadoop2.3.tgz dest=/home/ec2-user/ copy=no group=ec2-user owner=ec2-user creates=/home/ec2-user/spark-1.5.2-bin-hadoop2.3
 
 - name: Update bashrc for SPARK_HOME
   become: yes

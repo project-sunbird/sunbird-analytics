@@ -4,12 +4,12 @@
 - name: Download cassandra
   become: yes
   become_user: ec2-user
-  command: wget "http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz" 
+  get_url: url=http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz dest=/home/ec2-user/apache-cassandra-2.2.6-bin.tar.gz timeout=1000 force=no owner=ec2-user
 
-- name: unzip the tar
+- name: Unarchive cassandra
   become: yes
   become_user: ec2-user
-  command: tar -zxvf apache-cassandra-2.2.6-bin.tar.gz -C /mnt/data/analytics/
+  unarchive: src=/home/ec2-user/apache-cassandra-2.2.6-bin.tar.gz dest=/mnt/data/analytics/ copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/apache-cassandra-2.2.6
 
 - name: Update bash_profile for CASSANDRA_HOME
   become: yes
@@ -27,6 +27,8 @@
   lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=present insertafter=EOF create=yes
  
 - name: start cassandra
-  become: yes 
+  become: yes
   become_user: ec2-user
-  shell: cassandra &
+  shell: nohup /mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra &
+  async: 60
+  poll: 60
