@@ -3,48 +3,48 @@
 
 - name: lpu job
   become: yes
-  cron: name=lpu minute=20 hour=1  job="{{ cron-path }}/run-job.sh lpu"
+  cron: name=lpu minute=20 hour=1  job="{{ cronpath }}/run-job.sh lpu"
 
 - name: gls job
   become: yes
-  cron: name=gls minute=22 hour=1  job="{{ cron-path }}/run-job.sh gls"
+  cron: name=gls minute=22 hour=1  job="{{ cronpath }}/run-job.sh gls"
 
 - name: gss job
   become: yes
-  cron: name=gss minute=24 hour=1  job="{{ cron-path }}/run-job.sh gss"
+  cron: name=gss minute=24 hour=1  job="{{ cronpath }}/run-job.sh gss"
 
 - name: ss job
   become: yes
-  cron: name=ss minute=26 hour=1 job="{{ cron-path }}/run-job.sh ss"
+  cron: name=ss minute=26 hour=1 job="{{ cronpath }}/run-job.sh ss"
 
 - name: css job
   become: yes
-  cron: name=css minute=28 hour=1  job="{{ cron-path }}/run-job.sh css"
+  cron: name=css minute=28 hour=1  job="{{ cronpath }}/run-job.sh css"
 
 - name: dus job
   become: yes
-  cron: name=dus minute=45 hour=1  job="{{ cron-path }}/run-job.sh dus"
+  cron: name=dus minute=45 hour=1  job="{{ cronpath }}/run-job.sh dus"
 
 - name: cus job
   become: yes
-  cron: name=cus minute=47 hour=1  job="{{ cron-path }}/run-job.sh cus"
+  cron: name=cus minute=47 hour=1  job="{{ cronpath }}/run-job.sh cus"
 
 - name: lp job
   become: yes
-  cron: name=lp minute=49 hour=1  job="{{ cron-path }}/run-job.sh lp"
+  cron: name=lp minute=49 hour=1  job="{{ cronpath }}/run-job.sh lp"
   
 - name: as job
   become: yes
-  cron: name=as minute=51 hour=1  job="{{ cron-path }}/run-job.sh as"
+  cron: name=as minute=51 hour=1  job="{{ cronpath }}/run-job.sh as"
 
 - name: las job
   become: yes
-  cron: name=las minute=53 hour=1  job="{{ cron-path }}/run-job.sh las"
+  cron: name=las minute=53 hour=1  job="{{ cronpath }}/run-job.sh las"
 
 - name: dsu job
   become: yes
-  cron: name=dsu minute=55 hour=1  job="{{ cron-path }}/run-job.sh dsu"
+  cron: name=dsu minute=55 hour=1  job="{{ cronpath }}/run-job.sh dsu"
  
 - name: lcas job
   become: yes
-  cron: name=lcas minute=57 hour=1  job="{{ cron-path }}/run-job.sh lcas"
+  cron: name=lcas minute=57 hour=1  job="{{ cronpath }}/run-job.sh lcas"
