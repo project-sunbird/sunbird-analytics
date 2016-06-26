@@ -1,6 +1,6 @@
 ---
 # tasks file for start
-- name: Copy Scripts - Model Config
+- name: Copy Scripts - run-secor.sh
   become: yes
   template: src=run-secor.j2 dest=/home/ec2-user/secor-raw/run-secor.sh mode=755 owner=ec2-user group=ec2-user
 
@@ -13,7 +13,7 @@
   async: 10
   poll: 5
 
-- name: Unarchive api artifact
+- name: Unarchive secor artifact
   become: yes
   become_user: ec2-user
   unarchive: src=/mnt/secor/secor-0.2-SNAPSHOT-bin.tar.gz dest=/home/ec2-user/secor-raw copy=no group=ec2-user owner=ec2-user
