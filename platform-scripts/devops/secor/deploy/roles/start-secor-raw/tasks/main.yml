@@ -4,9 +4,10 @@
   become: yes
   script: secor-script.sh stop
 
-- name: Extract the file
+- name: Unarchive api artifact
   become: yes
-  command: tar -zxvf /mnt/secor/deploy/secor-0.2-SNAPSHOT-bin.tar.gz -C /mnt/secor-raw
+  become_user: ec2-user
+  unarchive: src=/mnt/secor/secor-0.2-SNAPSHOT-bin.tar.gz dest=/home/ec2-user/secor-raw copy=no group=ec2-user owner=ec2-user
 
 - name: Start the Secor service
   become: yes

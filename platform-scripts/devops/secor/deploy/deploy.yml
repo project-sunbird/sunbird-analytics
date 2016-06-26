@@ -46,7 +46,6 @@
   tags: 
        - qa-me
 
-
 - hosts: prod
   become: yes
   become_method: sudo
