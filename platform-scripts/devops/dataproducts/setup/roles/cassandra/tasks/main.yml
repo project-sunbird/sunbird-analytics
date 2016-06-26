@@ -18,16 +18,13 @@
 
 - name: Export CASSANDRA_HOME
   become: yes
-  lineinfile: dest=.bash_profile  line='export CASSANDRA_HOME' owner=ec2-user state=present insertafter=EOF create=yes
+  become_user: ec2-user
+  lineinfile: dest=.bash_profile  line='export CASSANDRA_HOME' state=present insertafter=EOF create=yes
 
 - name: Add CASSANDRA_HOME to the PATH
   become: yes
-  lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' owner=ec2-user state=present insertafter=EOF create=yes
-
-- name: Load Profile
-  become: yes 
   become_user: ec2-user
-  shell: . .bash_profile
+  lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=present insertafter=EOF create=yes
  
 - name: start cassandra
   become: yes 
