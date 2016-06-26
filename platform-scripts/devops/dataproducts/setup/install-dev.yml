@@ -1,0 +1,13 @@
+---
+- hosts: dev
+  become: yes
+  become_method: sudo
+  vars:
+     access: "{{ lookup('file', '/home/jenkins/aws_access') }}"
+     secret: "{{ lookup('file', '/home/jenkins/aws_secret') }}"
+  roles:
+        - spark
+        - aws-setup
+        - cassandra
+  tags:
+       - dev

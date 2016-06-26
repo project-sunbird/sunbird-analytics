@@ -25,6 +25,14 @@
   become: yes
   become_user: ec2-user
   lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=present insertafter=EOF create=yes
+
+- name: Check if cassandra is running
+  become: yes
+  become_user: ec2-user
+  shell: ps -ef | grep cassandra | grep -v grep
+  register: cassandra_process
+  changed_when: false
+  ignore_errors: true
  
 - name: start cassandra
   become: yes
@@ -32,3 +40,4 @@
   shell: nohup /mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra &
   async: 60
   poll: 60
+  when: "cassandra_process.stdout.find('cassandra') == -1"
