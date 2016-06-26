@@ -28,8 +28,6 @@
   roles:
         - copy
         - start-secor-raw
-  vars: 
-       env: qa
   tags: 
        - qa-raw
 
@@ -41,8 +39,6 @@
   roles:
         - copy
         - start-secor-me
-  vars: 
-       env: qa
   tags: 
        - qa-me
 
@@ -54,8 +50,6 @@
   roles:
         - copy
         - start-secor-raw
-  vars: 
-       env: prod
   tags: 
        - prod-raw
 
@@ -67,7 +61,5 @@
   roles:
         - copy
         - start-secor-me
-  vars: 
-       env: prod
   tags: 
        - prod-me
