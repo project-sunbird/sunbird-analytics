@@ -13,7 +13,7 @@
 
 - name: Create Directory
   become: yes
-  file: path=/mnt/data/analytics/scripts state=directory  
+  file: path=/mnt/data/analytics/scripts/logs state=directory  
 
 - name: Set permissions
   become: yes
