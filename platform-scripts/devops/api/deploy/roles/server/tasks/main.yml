@@ -1,12 +1,20 @@
 ---
 # tasks file for server
-- name: normal changes
+- name: Update Start Script - Remove NettyServer
   become: yes
-  lineinfile: dest=/mnt/data/analytics/api/analytics-api-1.0/start
-               regexp='exec java $* -cp "$classpath" play.core.server.NettyServer $scriptdir'
-               line='exec java $* -cp "$classpath" play.core.server.ProdServerStart $scriptdir'
-               state=present
+  become_user: ec2-user
+  lineinfile: dest=/mnt/data/analytics/api/analytics-api-1.0/start line='exec java $* -cp "$classpath" play.core.server.NettyServer $scriptdir' state=absent
 
-- name: start 
+- name: Update Start Script - Add ProdServerStart
   become: yes
-  command: nohup /mnt/data/analytics/api/analytics-api-1.0/start &
+  become_user: ec2-user
+  lineinfile: dest=/mnt/data/analytics/api/analytics-api-1.0/start line='exec java $* -cp "$classpath" play.core.server.ProdServerStart $scriptdir' state=present
+
+- name: start
+  become: yes
+  become_user: ec2-user
+  shell: nohup ./start &
+  args:
+    chdir: /mnt/data/analytics/api/analytics-api-1.0
+  async: 20
+  poll: 10

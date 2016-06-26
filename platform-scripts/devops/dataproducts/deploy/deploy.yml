@@ -6,7 +6,6 @@
        bucket: sandbox-data-store 
        brokerlist: 172.31.1.92:9092 
        topic: sandbox.telemetry.derived 
-      # cassandra-ip: 52.77.223.20
   roles: 
         - copy
         - run-cql
@@ -21,7 +20,6 @@
        bucket: qa-data-store 
        brokerlist: 172.31.1.92:9092 
        topic: qa.telemetry.derived 
-      # cassandra-ip: 52.77.223.20
   roles: 
         - copy
         - run-cql

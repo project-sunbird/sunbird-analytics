@@ -1,13 +1,28 @@
 ---
-# tasks file for start-secor-me
+# tasks file for start
+- name: Copy Scripts - run-secor.sh
+  become: yes
+  template: src=run-secor.j2 dest=/home/ec2-user/secor-me/run-secor.sh mode=755 owner=ec2-user group=ec2-user
+
 - name: Stop the Secor service
   become: yes
-  script: secor-script.sh stop
+  become_user: ec2-user
+  shell: ./run-secor.sh stop
+  args:
+    chdir: /home/ec2-user/secor-me
+  async: 10
+  poll: 5
 
-- name: Extract the file
+- name: Unarchive secor artifact
   become: yes
-  command: tar -zxvf /mnt/secor/deploy/secor-0.2-SNAPSHOT-bin.tar.gz -C /mnt/secor-me
+  become_user: ec2-user
+  unarchive: src=/mnt/secor/secor-0.2-SNAPSHOT-bin.tar.gz dest=/home/ec2-user/secor-me copy=no group=ec2-user owner=ec2-user
 
 - name: Start the Secor service
   become: yes
-  script: secor-script.sh start
+  become_user: ec2-user
+  shell: ./run-secor.sh start
+  args:
+    chdir: /home/ec2-user/secor-me
+  async: 20
+  poll: 5  

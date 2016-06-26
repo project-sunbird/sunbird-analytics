@@ -2,9 +2,10 @@
 #tasks file for run-cql
 - name: copy cql
   become: yes
-  copy: src=platform-scripts/database/data.cql dest=/home/ubuntu
+  become_user: ec2-user
+  copy: src=data.cql dest=/home/ec2-user
 
 - name: run cql
   become: yes
-  command: $CASSANDRA_HOME/bin/cqlsh -f /home/ubuntu/data.cql
- 
+  become_user: ec2-user
+  command: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh -f /home/ec2-user/data.cql
