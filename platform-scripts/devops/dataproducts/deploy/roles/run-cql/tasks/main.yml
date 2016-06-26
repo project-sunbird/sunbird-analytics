@@ -8,7 +8,7 @@
 - name: run cql
   become: yes
   become_user: ec2-user
-  command: $CASSANDRA_HOME/bin/cqlsh -f /home/ec2-user/data.cql
+  command: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh -f /home/ec2-user/data.cql
   register: result
 
 - debug: var=result
