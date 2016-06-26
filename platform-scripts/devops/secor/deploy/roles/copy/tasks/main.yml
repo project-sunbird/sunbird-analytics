@@ -3,5 +3,5 @@
 
 - name: Copy the secor artifact
   become: yes
-  become_user: ece-user
+  become_user: ec2-user
   copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/secor owner=ec2-user group=ec2-user
