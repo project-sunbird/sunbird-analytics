@@ -1,7 +1,5 @@
 ---
 # tasks file for cron-sandbox
----
-# tasks file for cron-dev
 
 - name: lpu job
   become: yes
