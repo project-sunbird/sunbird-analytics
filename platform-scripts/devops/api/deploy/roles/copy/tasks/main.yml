@@ -15,11 +15,9 @@
   become_user: ec2-user
   register: check_file
 
-- debug: var=check_file
-
 - name: Stop the api
   become: yes
   shell: kill `cat /mnt/data/analytics/api/analytics-api-1.0/RUNNING_PID`
-  async: 60
+  async: 20
   poll: 10
-  when: check_file.stat.exists == True
+  when: check_file.stat.exists == true
