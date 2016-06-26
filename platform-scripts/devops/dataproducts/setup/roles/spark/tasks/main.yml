@@ -7,7 +7,6 @@
 
 - name: Extract Spark
   become: yes
-  become_user: ec2-user
   command: tar zxvf spark-1.5.2-bin-hadoop2.3.tgz 
 
 - name: Update bashrc for SPARK_HOME
@@ -24,4 +23,3 @@
   become: yes
   become_user: ec2-user
   lineinfile: dest=$HOME/.bash_profile line='PATH=$PATH:$SPARK_HOME/bin' state=present insertafter=EOF create=yes
-  
