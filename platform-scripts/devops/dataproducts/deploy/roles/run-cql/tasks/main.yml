@@ -9,6 +9,3 @@
   become: yes
   become_user: ec2-user
   command: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh -f /home/ec2-user/data.cql
-  register: result
-
-- debug: var=result
