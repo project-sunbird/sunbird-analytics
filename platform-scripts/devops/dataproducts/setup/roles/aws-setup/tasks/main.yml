@@ -1,11 +1,11 @@
 ---
 - name: update /etc/environment
   become: yes
-  lineinfile: dest=/etc/environment line='aws_key={{ access }}'  state=present insertafter=EOF create=True
+  lineinfile: dest=/etc/environment line='aws_key={{ access }}'  state=present insertafter=EOF create=yes
 
 - name: update /etc/environment
   become: yes
-  lineinfile: dest=/etc/environment line='aws_secret={{ secret }}' state=present insertafter=EOF create=True
+  lineinfile: dest=/etc/environment line='aws_secret={{ secret }}' state=present insertafter=EOF create=yes
 
 
 
@@ -21,4 +21,4 @@
 
 - name: Set permissions
   become: yes
-  file: path=/mnt/data/analytics owner=ec2-user recurse=yes
+  file: path=/mnt/data/analytics owner=ec2-user group=ec2-user recurse=yes

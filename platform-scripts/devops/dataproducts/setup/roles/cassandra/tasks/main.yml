@@ -3,23 +3,31 @@
 
 - name: Download cassandra
   become: yes
+  become_user: ec2-user
   command: wget "http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz" 
 
 - name: unzip the tar
   become: yes
+  become_user: ec2-user
   command: tar -zxvf apache-cassandra-2.2.6-bin.tar.gz -C /mnt/data/analytics/
 
 - name: Update bash_profile for CASSANDRA_HOME
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6' owner=ec2-user state=present insertafter=EOF create=True
+  become_user: ec2-user
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6' state=present insertafter=EOF create=yes
 
 - name: Export CASSANDRA_HOME
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile  line='export CASSANDRA_HOME' owner=ec2-user state=present insertafter=EOF create=True
+  lineinfile: dest=.bash_profile  line='export CASSANDRA_HOME' owner=ec2-user state=present insertafter=EOF create=yes
 
 - name: Add CASSANDRA_HOME to the PATH
   become: yes
-  lineinfile: dest={{ ansible_env.HOME }}/.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' owner=ec2-user state=present insertafter=EOF create=True
+  lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' owner=ec2-user state=present insertafter=EOF create=yes
+
+- name: Load Profile
+  become: yes 
+  become_user: ec2-user
+  shell: . .bash_profile
  
 - name: start cassandra
   become: yes 
