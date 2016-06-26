@@ -2,5 +2,5 @@
   become: yes
   become_method: sudo
   roles:
-        #- java
+        - java
         - setpath
