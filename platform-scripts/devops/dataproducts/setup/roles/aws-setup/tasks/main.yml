@@ -21,4 +21,4 @@
 
 - name: Set permissions
   become: yes
-  file: path=/mnt owner=ec2-user  mode=777 recurse=yes
+  file: path=/mnt/data/analytics owner=ec2-user recurse=yes

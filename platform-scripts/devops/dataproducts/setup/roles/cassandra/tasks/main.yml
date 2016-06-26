@@ -23,4 +23,5 @@
  
 - name: start cassandra
   become: yes 
-  shell: chdir=/mnt/data/analytics/apache-cassandra-2.2.6/bin ./cassandra &
+  become_user: ec2-user
+  shell: cassandra &

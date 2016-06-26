@@ -1,4 +1,4 @@
-- hosts: sandbox
+- hosts: dev
   become: yes
   become_method: sudo
   vars:
@@ -10,7 +10,7 @@
         - aws-setup
         - cassandra
   tags:
-       - sandbox
+       - dev
 
 - hosts: prod-spark
   become: yes
