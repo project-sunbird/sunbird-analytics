@@ -1,26 +1,30 @@
 ---
 # tasks file for copy
 
-- name: copy the artifact
+- name: copy the api artifact
   become: yes
-  copy: src=analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api
+  become_user: ec2-user
+  copy: src=analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api owner=ec2-user group=ec2-user
 
-
-- name: extact file
+- name: Unarchive api artifact
   become: yes
-  shell: unzip /mnt/data/analytics/api/analytics-api-1.0-dist.zip -d /mnt/data/analytics/api/
+  become_user: ec2-user
+  unarchive: src=/mnt/data/analytics/api/analytics-api-1.0-dist.zip dest=/mnt/data/analytics/api copy=no group=ec2-user owner=ec2-user
 
 - stat: path=/mnt/data/analytics/api/analytics-api-1.0/RUNNING_PID
   become: yes
+  become_user: ec2-user
   register: check_file
+
+- debug: var=check_file
 
 - name: Stop the api
   become: yes
-  script: stop.sh
+  shell: kill `cat /mnt/data/analytics/api/analytics-api-1.0/RUNNING_PID`
+  async: 60
+  poll: 10
   when: check_file.stat.exists == True
 
-
-
-- name: permission
+- name: Change start script permission
   become: yes
   file: path=/mnt/data/analytics/api/analytics-api-1.0/start mode=755

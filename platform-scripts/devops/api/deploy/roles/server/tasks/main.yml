@@ -1,6 +1,6 @@
 ---
 # tasks file for server
-- name: normal changes
+- name: Update start script
   become: yes
   lineinfile: dest=/mnt/data/analytics/api/analytics-api-1.0/start
                regexp='exec java $* -cp "$classpath" play.core.server.NettyServer $scriptdir'
@@ -10,3 +10,5 @@
 - name: start 
   become: yes
   command: nohup /mnt/data/analytics/api/analytics-api-1.0/start &
+  async: 60
+  poll: 10
