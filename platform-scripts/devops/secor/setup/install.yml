@@ -1,5 +1,32 @@
-- hosts: all
+- hosts: dev
   become: yes
   become_method: sudo
+  vars:
+    env: dev
   roles:
     - createpath
+    - createservice
+  tags: 
+    - dev
+
+- hosts: qa
+  become: yes
+  become_method: sudo
+  vars:
+    env: qa
+  roles:
+    - createpath
+    - createservice
+  tags: 
+    - qa
+
+- hosts: prod
+  become: yes
+  become_method: sudo
+  vars:
+    env: prod
+  roles:
+    - createpath
+    - createservice
+  tags: 
+    - prod    

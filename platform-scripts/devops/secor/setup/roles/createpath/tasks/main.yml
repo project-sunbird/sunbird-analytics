@@ -1,21 +1,25 @@
 ---
 # tasks file for createpath
-- name: secor-raw
+- name: Create /mnt/secor-raw directory
   become: yes
   file: path=/mnt/secor-raw state=directory owner=ec2-user group=ec2-user mode=755
 
-- name: secor-me
+- name: Create /mnt/secor-me directory
   become: yes
   file: path=/mnt/secor-me state=directory owner=ec2-user group=ec2-user mode=755
 
-- name: secor
+- name: Create /mnt/secor/reports directory
   become: yes
-  file: path=/mnt/secor state=directory owner=ec2-user group=ec2-user mode=755
+  file: path=/mnt/secor/reports state=directory owner=ec2-user group=ec2-user mode=755
 
-- name: secor
+- name: Create /home/ec2-user/secor-raw directory
   become: yes
   file: path=/home/ec2-user/secor-raw state=directory owner=ec2-user group=ec2-user mode=755
 
-- name: secor
+- name: Create /home/ec2-user/secor-me directory
   become: yes
   file: path=/home/ec2-user/secor-me state=directory owner=ec2-user group=ec2-user mode=755
+
+- name: Create /home/ec2-user/sbin directory
+  become: yes
+  file: path=/home/ec2-user/sbin state=directory owner=ec2-user group=ec2-user mode=755  
