@@ -17,11 +17,11 @@ warn=`grep " WARN " $log_file`
 errors=`grep " ERROR " $log_file`
 upload=`grep " INFO  uploading file " $log_file`
 
-warn_count=`echo "$warn" | wc -l | bc`
-upload_count=`echo "$upload" | wc -l | bc`
+warn_count=`grep " WARN " $log_file | wc -l | bc`
+upload_count=`grep " INFO  uploading file " $log_file | wc -l | bc`
 errors_count=0
 if [ "$errors" != "" ]; then
-	errors_count=`echo "$errors" | wc -l | bc`
+	errors_count=`grep " ERROR " $log_file | wc -l | bc`
 fi
 
 echo "Warn Count: $warn_count"
@@ -57,6 +57,6 @@ echo "## warnings logged "
 
 echo -e $file_content > $output_fname
 
-data='{"channel": "#analytics_monitoring", "username": "secor-monitor", "text":"*'$title'*\nFiles Uploaded: `'$upload_count'` \n Warnings: `'$warn_count'` \n Errors: `'$errors_count'` \n\nUploaded Files:\n\n```'$file_names'```", "icon_emoji": ":ghost:"}'
+data='{"channel": "#analytics_monitoring", "username": "secor-monitor", "text":"*'$title'*\nFiles Uploaded: `'$upload_count'` \n Warnings: `'$warn_count'` \n Errors: `'$errors_count'` \n", "icon_emoji": ":ghost:"}'
 #echo $data
 curl -X POST -H 'Content-Type: application/json' --data "$data" https://hooks.slack.com/services/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
