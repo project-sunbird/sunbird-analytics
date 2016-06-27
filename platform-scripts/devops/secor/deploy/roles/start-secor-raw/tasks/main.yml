@@ -1,15 +1,9 @@
 ---
 # tasks file for start
-- name: Copy Scripts - run-secor.sh
-  become: yes
-  template: src=run-secor.j2 dest=/home/ec2-user/secor-raw/run-secor.sh mode=755 owner=ec2-user group=ec2-user
-
 - name: Stop the Secor service
   become: yes
   become_user: ec2-user
-  shell: ./run-secor.sh stop
-  args:
-    chdir: /home/ec2-user/secor-raw
+  command: /home/ec2-user/sbin/secor-raw stop
   async: 10
   poll: 5
 
@@ -21,8 +15,6 @@
 - name: Start the Secor service
   become: yes
   become_user: ec2-user
-  shell: ./run-secor.sh start
-  args:
-    chdir: /home/ec2-user/secor-raw
+  command: /home/ec2-user/sbin/secor-raw start
   async: 20
   poll: 5
