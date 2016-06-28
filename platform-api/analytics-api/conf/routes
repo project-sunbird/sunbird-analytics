@@ -3,3 +3,5 @@
 # ~~~~
 
 POST   /content/metrics/usage/:contentId   controllers.Application.contentUsageMetrics(contentId: String)
+
+GET   /health   controllers.Application.checkAPIhealth
