@@ -14,7 +14,7 @@ case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[S
 object HealthCheckAPIService {
 
     def getHealthStatus()(implicit sc: SparkContext): String = {
-        
+
         val checks = getChecks()
         val healthy = if (checks.last.healthy == true) true else false;
         val result = Map[String, AnyRef](
@@ -30,8 +30,14 @@ object HealthCheckAPIService {
             val rdd = sc.parallelize(nums)
             rdd.sortBy(f => f).collect
             val sparkReport = ServiceHealthReport("Spark Cluster", true);
-            sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_DB, Constants.CONTENT_SUMMARY_FACT_TABLE).where("d_content_id = ?", "org.ekstep.delta").count
-            val cassReport = ServiceHealthReport("Cassandra Database", true);
+            var cassReport: ServiceHealthReport = null
+            try {
+                sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_DB, Constants.CONTENT_SUMMARY_FACT_TABLE).where("d_content_id = ?", "org.ekstep.delta").count
+                cassReport = ServiceHealthReport("Cassandra Database", true);
+            } catch {
+                case ex: Exception =>
+                    cassReport = ServiceHealthReport("Cassandra Database", false, Option(ex.getMessage));
+            }
             Array(sparkReport, cassReport);
         } catch {
             case ex: Exception =>
