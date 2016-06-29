@@ -16,7 +16,7 @@ object HealthCheckAPIService {
     def getHealthStatus()(implicit sc: SparkContext): String = {
 
         val checks = getChecks()
-        val healthy = nums.forall { x => x.healthy == true }
+        val healthy = checks.forall { x => x.healthy == true }
         val result = Map[String, AnyRef](
             "name" -> "analytics-platform-api",
             "healthy" -> Boolean.box(healthy),
