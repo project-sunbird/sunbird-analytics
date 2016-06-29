@@ -1,0 +1,11 @@
+---
+
+- name: copy cql
+  copy: src=data.cql dest=/home/{{ cassandra_user }}
+  tags:
+    - always
+
+- name: run cql
+  command: "{{ cql_path }} -f /home/{{ cassandra_user }}/data.cql"
+  tags:
+    - always

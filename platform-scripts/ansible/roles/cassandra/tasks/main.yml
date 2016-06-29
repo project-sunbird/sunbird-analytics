@@ -1,0 +1,41 @@
+---
+# tasks file for cassandra
+
+- name: Download cassandra
+  get_url: url=http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz dest=/home/ec2-user/apache-cassandra-2.2.6-bin.tar.gz timeout=1000 force=no owner=ec2-user
+  tags:
+    - analytics
+
+- name: Unarchive cassandra
+  unarchive: src=/home/ec2-user/apache-cassandra-2.2.6-bin.tar.gz dest=/mnt/data/analytics/ copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/apache-cassandra-2.2.6
+  tags:
+    - analytics
+
+- name: Update bash_profile for CASSANDRA_HOME
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6' state=present insertafter=EOF create=yes
+  tags:
+    - analytics
+
+- name: Export CASSANDRA_HOME
+  lineinfile: dest=.bash_profile  line='export CASSANDRA_HOME' state=present insertafter=EOF create=yes
+  tags:
+    - analytics
+
+- name: Add CASSANDRA_HOME to the PATH
+  lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=present insertafter=EOF create=yes
+  tags:
+    - analytics
+
+- name: Status of the cassandra service
+  command: "{{ sbin_path }}/cassandra-service status"
+  register: cassandra_status
+  tags:
+    - analytics
+
+- name: Start the cassandra service
+  command: "{{ sbin_path }}/cassandra-service start"
+  when: "cassandra_status.stdout.find('RUNNING') == -1"
+  async: 20
+  poll: 5
+  tags:
+    - analytics

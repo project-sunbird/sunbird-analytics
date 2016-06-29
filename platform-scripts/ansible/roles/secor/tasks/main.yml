@@ -1,0 +1,57 @@
+---
+# tasks file for copy
+
+- name: Copy the secor artifact
+  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/secor owner=ec2-user group=ec2-user
+
+- name: Status of the secor-me service
+  command: "{{ sbin_path }}/secor-me status"
+  register: secor_status
+  tags:
+    - secor-me
+
+- name: Stop the secor-me service
+  command: "{{ sbin_path }}/secor-me stop"
+  when: "secor_status.stdout.find('RUNNING') != -1"
+  async: 10
+  poll: 5
+  tags:
+    - secor-me
+
+- name: Unarchive secor-me artifact
+  unarchive: src=/mnt/secor/secor-0.2-SNAPSHOT-bin.tar.gz dest={{ secor_me_home }} copy=no group=ec2-user owner=ec2-user
+  tags:
+    - secor-me
+
+- name: Start the secor-me service
+  command: "{{ sbin_path }}/secor-me start"
+  async: 20
+  poll: 5
+  tags:
+    - secor-me
+
+- name: Status of the secor-raw service
+  command: "{{ sbin_path }}/secor-raw status"
+  register: secor_status
+  tags:
+    - secor-raw
+
+- name: Stop the secor-raw service
+  command: "{{ sbin_path }}/secor-raw stop"
+  when: "secor_status.stdout.find('RUNNING') != -1"
+  async: 10
+  poll: 5
+  tags:
+    - secor-raw
+
+- name: Unarchive secor-raw artifact
+  unarchive: src=/mnt/secor/secor-0.2-SNAPSHOT-bin.tar.gz dest={{ secor_raw_home }} copy=no group=ec2-user owner=ec2-user
+  tags:
+    - secor-raw
+
+- name: Start the secor-raw service
+  command: "{{ sbin_path }}/secor-raw start"
+  async: 20
+  poll: 5
+  tags:
+    - secor-raw

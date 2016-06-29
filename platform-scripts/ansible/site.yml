@@ -1,0 +1,4 @@
+---
+# file: site.yml
+- include: setup.yml
+- include: deploy.yml

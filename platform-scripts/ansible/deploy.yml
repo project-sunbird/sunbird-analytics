@@ -1,0 +1,19 @@
+---
+
+- hosts: secor-raw
+  roles:
+    - secor
+
+- hosts: secor-me
+  roles:
+    - secor    
+
+- hosts: analytics
+  roles:
+    - data-products
+    - cassandra-db-update
+
+- hosts: api
+  roles:
+    - api
+    - cassandra-db-update

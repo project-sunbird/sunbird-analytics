@@ -1,0 +1,47 @@
+env: qa
+cassandra_user: ec2-user
+sbin_path: /home/ec2-user/sbin
+analytics_home: /mnt/data/analytics
+cassandra_home: /mnt/data/analytics/apache-cassandra-2.2.6
+cql_path: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh
+api_home: /mnt/data/analytics/api/analytics-api-1.0
+secor_raw_home: /home/ec2-user/secor-raw
+secor_me_home: /home/ec2-user/secor-me
+api_args: 
+jobs:
+  lpu:
+    hour: 1
+    minute: 20
+  gls:
+    hour: 1
+    minute: 22
+  gss:
+    hour: 1
+    minute: 24
+  ss:
+    hour: 1
+    minute: 26
+  css:
+    hour: 1
+    minute: 28
+  dus:
+    hour: 1
+    minute: 45
+  cus:
+    hour: 1
+    minute: 47
+  lp:
+    hour: 1
+    minute: 49
+  as:
+    hour: 1
+    minute: 51
+  las:
+    hour: 1
+    minute: 53
+  dsu:
+    hour: 1
+    minute: 55
+  lcas:
+    hour: 1
+    minute: 57

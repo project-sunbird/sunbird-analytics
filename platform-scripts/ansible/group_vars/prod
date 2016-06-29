@@ -1,0 +1,47 @@
+env: prod
+cassandra_user: ubunut
+sbin_path: /home/ec2-user/sbin
+analytics_home: /mnt/data/analytics
+cassandra_home: /mnt/data/analytics/apache-cassandra-2.2.6
+cql_path: cqlsh
+api_home: /mnt/data/analytics/api/analytics-api-1.0
+secor_raw_home: /home/ec2-user/secor-raw
+secor_me_home: /home/ec2-user/secor-me
+api_args: 
+jobs:
+  lpu:
+    hour: 6
+    minute: 20
+  gls:
+    hour: 6
+    minute: 22
+  gss:
+    hour: 6
+    minute: 24
+  ss:
+    hour: 6
+    minute: 26
+  css:
+    hour: 6
+    minute: 28
+  dus:
+    hour: 6
+    minute: 45
+  cus:
+    hour: 6
+    minute: 47
+  lp:
+    hour: 6
+    minute: 49
+  as:
+    hour: 6
+    minute: 51
+  las:
+    hour: 6
+    minute: 53
+  dsu:
+    hour: 6
+    minute: 55
+  lcas:
+    hour: 6
+    minute: 57
