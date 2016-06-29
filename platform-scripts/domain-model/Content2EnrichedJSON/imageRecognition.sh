@@ -5,4 +5,5 @@ sudo pip install --upgrade $TF_BINARY_URL
 #Run this to classify an image
 #Add a for loop to loop over all image files in a directory
 cd tensorflow/models/image/imagenet
-python classify_image.py --image_file "$filename">"$filename.txt" 
+python classify_image.py --image_file "$filename">"$filename.txt"
+
