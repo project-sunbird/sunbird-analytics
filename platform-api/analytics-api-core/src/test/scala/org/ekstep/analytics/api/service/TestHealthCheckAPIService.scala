@@ -23,11 +23,11 @@ class TestHealthCheckAPIService extends SparkSpec {
         val response = HealthCheckAPIService.getHealthStatus
         val resp = JSONUtils.deserialize[Response](response)
         
-        resp.id should be ("ekstep.ecosystem-api.health");
+        resp.id should be ("ekstep.analytics-api.health");
         resp.params.status should be ("successful");
         
         val result = resp.result.get;
-        result.get("name").get should be ("ecosystem-platform-api")
+        result.get("name").get should be ("analytics-platform-api")
         result.get("checks").get.asInstanceOf[List[AnyRef]].length should be (2)
     }
 }

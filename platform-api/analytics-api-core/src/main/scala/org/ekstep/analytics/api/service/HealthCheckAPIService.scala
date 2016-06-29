@@ -16,12 +16,12 @@ object HealthCheckAPIService {
     def getHealthStatus()(implicit sc: SparkContext): String = {
 
         val checks = getChecks()
-        val healthy = if (checks.last.healthy == true) true else false;
+        val healthy = nums.forall { x => x.healthy == true }
         val result = Map[String, AnyRef](
-            "name" -> "ecosystem-platform-api",
+            "name" -> "analytics-platform-api",
             "healthy" -> Boolean.box(healthy),
             "checks" -> checks);
-        val response = CommonUtil.OK("ekstep.ecosystem-api.health", result)
+        val response = CommonUtil.OK("ekstep.analytics-api.health", result)
         JSONUtils.serialize(response);
     }
     private def getChecks()(implicit sc: SparkContext): Array[ServiceHealthReport] = {
