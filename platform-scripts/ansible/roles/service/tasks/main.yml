@@ -42,8 +42,8 @@
     script_name: api-service
     script_dir: "{{ sbin_path }}"
     grep_key: play.core.server.ProdServerStart
-    process: exec java
-    process_args: -cp {{ api_home }}/lib/* {{ api_args }} play.core.server.ProdServerStart {{ api_home }}
+    process: java
+    process_args: -cp '{{ api_home }}/lib/*' {{ api_args }} play.core.server.ProdServerStart {{ api_home }}
   template: src=servicify-process.j2 dest={{ sbin_path }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
   tags:
     - api    
