@@ -37,6 +37,23 @@ object BatchJobDriver {
         }
     }
 
+    def process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+        JobContext.parallelization = CommonUtil.getParallelization(config);
+        JobLogger.debug("Setting number of parallelization", className, Option(Map("parallelization" -> JobContext.parallelization)))
+        if (null == sc) {
+            implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
+            JobLogger.debug("SparkContext initialized", className)
+            try {
+                _process(config, models);
+            } finally {
+                CommonUtil.closeSparkContext();
+            }
+        } else {
+            JobLogger.debug("SparkContext is not null and starting the job", className)
+            _process(config, models);
+        }
+    }
+
     private def _process[T, R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         val t1 = System.currentTimeMillis;
         JobLogger.debug("Fetching data", className, Option(Map("query" -> config.search)))
@@ -56,5 +73,28 @@ object BatchJobDriver {
         val t2 = System.currentTimeMillis;
         val date = config.search.queries.get.last.endDate
         JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> date, "events" -> output.count, "timeTaken" -> Double.box((t2 - t2) / 1000))), Option("COMPLETED"))
+    }
+
+    private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+        val t1 = System.currentTimeMillis;
+        JobLogger.debug("Fetching data", className, Option(Map("query" -> config.search)))
+        val rdd = DataFetcher.fetchBatchData[T](config.search);
+        if (config.deviceMapping.nonEmpty && config.deviceMapping.get)
+            JobContext.deviceMapping = mf.toString() match {
+                case "org.ekstep.analytics.framework.Event" =>
+                    rdd.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
+                case _ => Map()
+            }
+        JobLogger.debug("Filtering input data", className, Option(Map("query" -> config.filters)))
+        JobLogger.debug("Sorting input data", className, Option(Map("query" -> config.sort)))
+        val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
+        models.foreach { model =>
+            JobLogger.info("Started Executing The Model", className, None, Option("PROCESSING"))
+            val output = model.execute(filterRdd, config.modelParams);
+            OutputDispatcher.dispatch(config.output, output);
+            val t2 = System.currentTimeMillis;
+            val date = config.search.queries.get.last.endDate
+            JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> date, "events" -> output.count, "timeTaken" -> Double.box((t2 - t2) / 1000))), Option("COMPLETED"))
+        }
     }
 }
