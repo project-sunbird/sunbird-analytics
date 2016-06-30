@@ -70,6 +70,7 @@ object BatchJobDriver {
         JobLogger.info("Started Executing The Model", className, None, Option("PROCESSING"))
         val output = model.execute(filterRdd, config.modelParams);
         OutputDispatcher.dispatch(config.output, output);
+        JobContext.cleanUpRDDs();
         val t2 = System.currentTimeMillis;
         val date = config.search.queries.get.last.endDate
         JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> date, "events" -> output.count, "timeTaken" -> Double.box((t2 - t2) / 1000))), Option("COMPLETED"))
