@@ -48,5 +48,34 @@ object JobDriver {
         val t2 = System.currentTimeMillis;
         JobLogger.info(t + " job completed", className, Option(Map("timeTaken" -> Double.box((t2 - t1) / 1000))))
     }
+    
+    def run[T, R](t: String, config: String, models: List[IBatchModel[T, R]], jobName: String)(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+        JobLogger.init(jobName);
+        AppConf.init();
+        val t1 = System.currentTimeMillis;
+        try {
+            val jobConfig = JSONUtils.deserialize[JobConfig](config);
+            JobLogger.info("Starting " + t + " jobs with config", className, Option(jobConfig))
+            t match {
+                case "batch" =>
+                    BatchJobDriver.process[T, R](jobConfig, models);
+                case "streaming" =>
+                    StreamingJobDriver.process(jobConfig);
+                case _ =>
+                    val exp = new Exception("Unknown job type")
+                    JobLogger.error("Failed Job, JobDriver: main ", className, exp)
+                    throw exp
+            }
+        } catch {
+            case e: JsonMappingException =>
+                JobLogger.error("JobDriver:main() - JobConfig parse error", className, e)
+                throw e;
+            case e: Exception =>
+                JobLogger.error("JobDriver:main() - Job error", className, e)
+                throw e;
+        }
+        val t2 = System.currentTimeMillis;
+        JobLogger.info(t + " job completed", className, Option(Map("timeTaken" -> Double.box((t2 - t1) / 1000))))
+    }
 
 }

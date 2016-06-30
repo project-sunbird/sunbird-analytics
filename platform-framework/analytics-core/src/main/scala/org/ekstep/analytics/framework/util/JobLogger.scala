@@ -21,7 +21,7 @@ object JobLogger {
     }
 
     private def logger(): Logger = {
-        LogManager.getLogger(JobContext.jobName);
+        LogManager.getLogger("org.ekstep.analytics.logger");
     }
 
     def info(msg: String, className: String, data: Option[AnyRef] = None, logType: Option[String] = None) {
