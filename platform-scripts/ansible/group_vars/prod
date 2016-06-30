@@ -8,7 +8,10 @@ api_root: /mnt/data/analytics/api
 api_home: /mnt/data/analytics/api/analytics-api-1.0
 secor_raw_home: /home/ec2-user/secor-raw
 secor_me_home: /home/ec2-user/secor-me
-api_args: 
+api_args: -Dconfig.resource=prod.conf
+bucket: prod-data-store
+brokerlist: 10.10.1.207:9092
+topic: production.telemetry.derived
 jobs:
   lpu:
     hour: 6
