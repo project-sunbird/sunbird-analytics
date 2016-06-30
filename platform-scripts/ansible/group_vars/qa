@@ -4,6 +4,7 @@ sbin_path: /home/ec2-user/sbin
 analytics_home: /mnt/data/analytics
 cassandra_home: /mnt/data/analytics/apache-cassandra-2.2.6
 cql_path: /mnt/data/analytics/apache-cassandra-2.2.6/bin/cqlsh
+api_root: /mnt/data/analytics/api
 api_home: /mnt/data/analytics/api/analytics-api-1.0
 secor_raw_home: /home/ec2-user/secor-raw
 secor_me_home: /home/ec2-user/secor-me
