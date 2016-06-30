@@ -38,5 +38,9 @@ class ApplicationSpec extends Specification {
             contentAsString(home) must contain(""""err":"SERVER_ERROR","status":"failed","errmsg":"Request cannot be blank"""")
         }
 
+       "return api health status report - successful response" in new WithApplication {
+           val home = route(FakeRequest(GET, "/health")).get
+            status(home) must equalTo(OK)
+       }
     }
 }
