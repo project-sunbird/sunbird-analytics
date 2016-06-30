@@ -42,7 +42,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         event2.eid should be("ME_DEVICE_USAGE_SUMMARY");
         event2.context.pdata.model should be("DeviceUsageSummarizer");
         event2.context.pdata.ver should be("1.0");
-        event2.context.granularity should be("DAY");
+        event2.context.granularity should be("CUMULATIVE");
         event2.context.date_range should not be null;
 
         val eks2 = event2.edata.eks.asInstanceOf[Map[String, AnyRef]]
@@ -57,7 +57,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         event3.eid should be("ME_DEVICE_USAGE_SUMMARY");
         event3.context.pdata.model should be("DeviceUsageSummarizer");
         event3.context.pdata.ver should be("1.0");
-        event3.context.granularity should be("DAY");
+        event3.context.granularity should be("CUMULATIVE");
         event3.context.date_range should not be null;
 
         val eks3 = event3.edata.eks.asInstanceOf[Map[String, AnyRef]]
