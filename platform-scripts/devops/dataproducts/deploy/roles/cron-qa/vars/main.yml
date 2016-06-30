@@ -1,3 +1,0 @@
----
-# vars file for cron-sandbox
-cron.path: /mnt/data/analytics/scripts

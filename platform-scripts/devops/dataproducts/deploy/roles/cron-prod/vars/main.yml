@@ -1,3 +1,0 @@
----
-# vars file for cron-prod
-cron.path: /mnt/data/analytics/scripts
