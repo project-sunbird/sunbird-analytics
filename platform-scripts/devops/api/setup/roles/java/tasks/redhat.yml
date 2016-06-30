@@ -1,7 +1,0 @@
----
-- name: Install Java8
-  yum: name=java-1.8.0 state=latest
-  register: result1
-
-- name: Remove Java7
-  yum: name=java-1.7.0-openjdk state=absent

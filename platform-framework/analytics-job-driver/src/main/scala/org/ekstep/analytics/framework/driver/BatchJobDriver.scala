@@ -67,12 +67,13 @@ object BatchJobDriver {
         JobLogger.debug("Filtering input data", className, Option(Map("query" -> config.filters)))
         JobLogger.debug("Sorting input data", className, Option(Map("query" -> config.sort)))
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
-        JobLogger.info("Started Executing The Model", className, None, Option("PROCESSING"))
+        //JobLogger.info("Started Executing The Model", className, None, Option("PROCESSING"))
         val output = model.execute(filterRdd, config.modelParams);
         OutputDispatcher.dispatch(config.output, output);
+        JobContext.cleanUpRDDs();
         val t2 = System.currentTimeMillis;
         val date = config.search.queries.get.last.endDate
-        JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> date, "events" -> output.count, "timeTaken" -> Double.box((t2 - t2) / 1000))), Option("COMPLETED"))
+        //JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> date, "events" -> output.count, "timeTaken" -> Double.box((t2 - t2) / 1000))), Option("COMPLETED"))
     }
 
     private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
@@ -89,12 +90,12 @@ object BatchJobDriver {
         JobLogger.debug("Sorting input data", className, Option(Map("query" -> config.sort)))
         val filterRdd = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         models.foreach { model =>
-            JobLogger.info("Started Executing The Model", className, None, Option("PROCESSING"))
+            //JobLogger.info("Started Executing The Model", className, None, Option("PROCESSING"))
             val output = model.execute(filterRdd, config.modelParams);
             OutputDispatcher.dispatch(config.output, output);
             val t2 = System.currentTimeMillis;
             val date = config.search.queries.get.last.endDate
-            JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> date, "events" -> output.count, "timeTaken" -> Double.box((t2 - t2) / 1000))), Option("COMPLETED"))
+            //JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> date, "events" -> output.count, "timeTaken" -> Double.box((t2 - t2) / 1000))), Option("COMPLETED"))
         }
     }
 }

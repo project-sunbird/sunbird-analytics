@@ -24,7 +24,7 @@ object DataFetcher {
 
         if (search.queries.isEmpty) {
             val exp = new DataFetcherException("Data fetch configuration not found")
-            JobLogger.error("Data fetch configuration not found", className, exp, None, Option("FAILED"))
+            JobLogger.error("Data fetch configuration not found", className, exp, None, "BE_JOB_LOG_PROCESS", Option("FAILED"))
             throw exp;
         }
         val date = search.queries.get.last.endDate
@@ -37,12 +37,12 @@ object DataFetcher {
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
             case _ =>
                 val exp = new DataFetcherException("Unknown fetcher type found");
-                JobLogger.error("Unable to fetch data", className, exp, Option(Map("date"->date)), Option("FAILED"))
+                JobLogger.error("Unable to fetch data", className, exp, Option(Map("date"->date)), "BE_JOB_LOG_PROCESS", Option("FAILED"))
                 throw exp;
         }
         if (null == keys || keys.length == 0) {
             val exp = new DataFetcherException("No S3/Local Objects found for the qiven queries");
-            JobLogger.error("File is missing", className, exp, Option(Map("date"->date)), Option("FAILED"))
+            JobLogger.error("File is missing", className, exp, Option(Map("date"->date)), "BE_JOB_LOG_PROCESS", Option("FAILED"))
             throw exp
         }
         JobLogger.debug("Deserializing Input Data", className)
@@ -52,7 +52,7 @@ object DataFetcher {
                     JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
-                        JobLogger.error("Unable to deserialize", className, ex, Option(Map("date"->date)), Option("FAILED"))
+                        JobLogger.error("Unable to deserialize", className, ex, Option(Map("date"->date)), "BE_JOB_LOG_PROCESS", Option("FAILED"))
                         null.asInstanceOf[T]
                 }
             }

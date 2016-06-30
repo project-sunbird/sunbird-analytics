@@ -18,13 +18,13 @@ object KafkaDispatcher extends IDispatcher {
         if (null == brokerList) {
             val msg = "brokerList parameter is required to send output to kafka"
             val exp = new DispatcherException(msg)
-            JobLogger.error(msg, className, exp)
+            JobLogger.error(msg, className, exp, None, "BE_JOB_LOG_PROCESS")
             throw exp;
         }
         if (null == topic) {
             val msg = "topic parameter is required to send output to kafka"
             val exp = new DispatcherException(msg)
-            JobLogger.error(msg, className, exp)
+            JobLogger.error(msg, className, exp, None, "BE_JOB_LOG_PROCESS")
             throw exp;
         }
         KafkaEventProducer.sendEvents(events, topic, brokerList);

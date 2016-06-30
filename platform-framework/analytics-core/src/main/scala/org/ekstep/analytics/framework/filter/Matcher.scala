@@ -24,7 +24,7 @@ object Matcher {
             case _ =>
                 val msg = "Unknown filter operation found"
                 val exp = new DataFilterException(msg);
-                JobLogger.error(msg, className, exp)
+                JobLogger.error(msg, className, exp, None, "BE_JOB_LOG_PROCESS")
                 throw exp;
         }
     }
