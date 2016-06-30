@@ -18,7 +18,7 @@ object ReplaySupervisor extends Application {
 
     def main(model: String, fromDate: String, toDate: String, config: String) {
         val t1 = System.currentTimeMillis;
-        JobLogger.info("Started executing ReplaySupervisor", className)
+        JobLogger.info("Started executing ReplaySupervisor", className, None, "BE_JOB_LOG_PROCESS")
         val con = JSONUtils.deserialize[JobConfig](config)
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
         try {
@@ -27,7 +27,7 @@ object ReplaySupervisor extends Application {
             CommonUtil.closeSparkContext()(sc);
         }
         val t2 = System.currentTimeMillis;
-        JobLogger.info("Replay Supervisor completed.", className, Option(Map("start_date" -> fromDate, "end_date" -> toDate, "timeTaken" -> Double.box((t2 - t1) / 1000))));
+        JobLogger.info("Replay Supervisor completed.", className, Option(Map("start_date" -> fromDate, "end_date" -> toDate, "timeTaken" -> Double.box((t2 - t1) / 1000))), "BE_JOB_LOG_PROCESS");
     }
 
     def execute(model: String, fromDate: String, toDate: String, config: String)(implicit sc: SparkContext) {
@@ -36,18 +36,18 @@ object ReplaySupervisor extends Application {
             try {
                 val jobConfig = config.replace("__endDate__", date)
                 val job = JobFactory.getJob(model);
-                JobLogger.info("### Executing replay for the date - " + date + " ###", className);
+                JobLogger.info("### Executing replay for the date - " + date + " ###", className, None, "BE_JOB_LOG_PROCESS");
                 job.main(jobConfig)(Option(sc));
             } catch {
                 case ex: DataFetcherException => {
-                    JobLogger.error("File is missing in S3", className, ex, Option(Map("model_code" -> model, "date" -> date)))
+                    JobLogger.error("File is missing in S3", className, ex, Option(Map("model_code" -> model, "date" -> date)), "BE_JOB_LOG_PROCESS")
                 }
                 case ex: JobNotFoundException => {
-                    JobLogger.error("Unable to execute the model", className, ex, Option(Map("model_code" -> model)))
+                    JobLogger.error("Unable to execute the model", className, ex, Option(Map("model_code" -> model)), "BE_JOB_LOG_PROCESS")
                     throw ex;
                 }
                 case ex: Exception => {
-                    JobLogger.error("Error executing replay supervisor", className, ex, Option(Map("model_code" -> model, "date" -> date)));
+                    JobLogger.error("Error executing replay supervisor", className, ex, Option(Map("model_code" -> model, "date" -> date)), "BE_JOB_LOG_PROCESS");
                     ex.printStackTrace()
                 }
             }

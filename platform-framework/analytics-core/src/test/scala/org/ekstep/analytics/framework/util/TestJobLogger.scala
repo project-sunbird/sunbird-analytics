@@ -11,10 +11,10 @@ class TestJobLogger extends BaseSpec {
         val jobName = "org.ekstep.analytics.framework.util.TestJobLogger"
         JobLogger.init(jobName);
 
-        JobLogger.info("testing info method", jobName);
+        JobLogger.info("testing info method", jobName, None, "BE_JOB_LOG_TEST");
         JobLogger.debug("testing debug method", jobName);
         JobLogger.warn("testing warn method", jobName);
-        JobLogger.error("testing error method", jobName, new Exception);
+        JobLogger.error("testing error method", jobName, new Exception, None, "BE_JOB_LOG_TEST");
         
     }
     
@@ -27,17 +27,17 @@ class TestJobLogger extends BaseSpec {
         loggerConfig.setLevel(Level.ALL);
         ctx.updateLoggers();
 
-        JobLogger.info("testing info method", jobName);
+        JobLogger.info("testing info method", jobName, None, "BE_JOB_LOG_TEST");
         JobLogger.debug("testing debug method", jobName);
         JobLogger.warn("testing warn method", jobName);
-        JobLogger.error("testing error method", jobName, new Exception);
+        JobLogger.error("testing error method", jobName, new Exception, None, "BE_JOB_LOG_TEST");
         
         loggerConfig.setLevel(Level.OFF);
         ctx.updateLoggers();
-        JobLogger.info("testing info method", jobName);
+        JobLogger.info("testing info method", jobName, None, "BE_JOB_LOG_TEST");
         JobLogger.debug("testing debug method", jobName);
         JobLogger.warn("testing warn method", jobName);
-        JobLogger.error("testing error method", jobName, new Exception);
+        JobLogger.error("testing error method", jobName, new Exception, None, "BE_JOB_LOG_TEST");
         
     }
 

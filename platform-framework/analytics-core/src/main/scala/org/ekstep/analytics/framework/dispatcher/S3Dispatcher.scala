@@ -25,7 +25,7 @@ object S3Dispatcher extends IDispatcher {
         if (null == bucket || null == key) {
             val msg = "'bucket' & 'key' parameters are required to send output to S3"
             val exp = new DispatcherException(msg)
-            JobLogger.error(msg, className, exp)
+            JobLogger.error(msg, className, exp, None, "BE_JOB_LOG_PROCESS")
             throw exp;
         }
         var deleteFile = false;

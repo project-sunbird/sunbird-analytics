@@ -29,7 +29,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: Exception =>
-                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL)));
+                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL)), "BE_JOB_LOG_PROCESS");
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
@@ -52,7 +52,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL, "body" -> body)));
+                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL, "body" -> body)), "BE_JOB_LOG_PROCESS");
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
@@ -75,7 +75,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL, "body" -> body)));
+                JobLogger.error("Error parsing response returned by url", className, ex, Option(Map("url" -> apiURL, "body" -> body)), "BE_JOB_LOG_PROCESS");
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()

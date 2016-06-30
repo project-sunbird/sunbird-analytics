@@ -215,7 +215,7 @@ object CommonUtil {
             }
         } catch {
             case e: Exception =>
-                JobLogger.error("Error in gzip", className, e)
+                JobLogger.error("Error in gzip", className, e, None, "BE_JOB_LOG_PROCESS")
                 throw e
         }
         path ++ ".gz";
