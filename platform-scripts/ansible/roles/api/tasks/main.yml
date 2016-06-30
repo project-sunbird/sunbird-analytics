@@ -2,7 +2,7 @@
 
 - name: Status of the api service
   command: "{{ sbin_path }}/api-service status"
-  register: api
+  register: api_status
   tags:
     - api
 
