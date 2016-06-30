@@ -67,7 +67,7 @@ object DeviceUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceUsageI
                 "avg_num_launches" -> usageSummary.avg_num_launches,
                 "avg_time" -> usageSummary.avg_time);
             MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), usageSummary.end_time, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], DtRange(usageSummary.start_time, usageSummary.end_time)),
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "CUMULATIVE").asInstanceOf[String], DtRange(usageSummary.start_time, usageSummary.end_time)),
                 Dimensions(None, Option(usageSummary.device_id), None, None, None, None, None),
                 MEEdata(measures));
         }

@@ -55,11 +55,12 @@ object KafkaEventProducer {
         val producer = init(brokerList);
         val firstEvent = events.head;
         val otherEvents = events.takeRight(events.length - 1);
-        println(events.size, otherEvents.size);
+        
         val message = new ProducerRecord[String, String](topic, firstEvent);
         val callback = new Callback {
             def onCompletion(metadata: RecordMetadata, exception: Exception) {
                 if (exception != null) {
+                    close(producer);
                     throw new DispatcherException("Unable to send messages to Kafka", exception)
                 } else {
                     otherEvents.foreach { event =>
@@ -68,11 +69,11 @@ object KafkaEventProducer {
                             producer.send(message);
                         }
                     }
+                    close(producer);
                 }
             }
         }
         producer.send(message, callback);
-        close(producer);
     }
 
     def publishEvents(events: Buffer[String], topic: String, brokerList: String) = {
