@@ -1,5 +1,5 @@
 env: prod
-cassandra_user: ubunut
+cassandra_user: ubuntu
 sbin_path: /home/ec2-user/sbin
 analytics_home: /mnt/data/analytics
 cassandra_home: /mnt/data/analytics/apache-cassandra-2.2.6
