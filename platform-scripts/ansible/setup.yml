@@ -11,3 +11,8 @@
     - service
     - cassandra
     - spark
+
+- hosts: api
+  roles:
+    - common
+    - service
