@@ -3,6 +3,7 @@ package org.ekstep.analytics.framework
 import java.io.Serializable
 import java.util.Date
 import scala.beans.BeanProperty
+import org.apache.spark.rdd.RDD
 
 class Models extends Serializable {}
 
@@ -23,14 +24,16 @@ class Ext(val stageId: String, val `type`: String) extends Serializable {}
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.reflect.BeanInfo
-class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, 
-        val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends Serializable {}
+class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
+            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends AlgoInput with Input {}
 
 // Computed Event Model
 @scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.reflect.BeanInfo
-case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None);
+case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Input with AlgoInput;
+@scala.reflect.BeanInfo
+case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
 @scala.reflect.BeanInfo
 case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None);
 @scala.reflect.BeanInfo
@@ -49,7 +52,7 @@ class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err
 @scala.reflect.BeanInfo
 class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.reflect.BeanInfo
-class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Serializable {}
+class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);

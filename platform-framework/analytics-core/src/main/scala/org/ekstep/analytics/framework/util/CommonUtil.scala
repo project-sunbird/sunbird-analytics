@@ -18,6 +18,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.conf.AppConf
@@ -48,7 +49,7 @@ object CommonUtil {
     @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZoneUTC();
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZoneUTC();
-
+    
     def getParallelization(config: JobConfig): Int = {
 
         val defParallelization = AppConf.getConfig("default.parallelization").toInt;
@@ -343,4 +344,5 @@ object CommonUtil {
             (year + "7" + weekOfWeekyear).toInt
         }
     }
+    
 }

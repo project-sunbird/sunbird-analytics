@@ -15,7 +15,7 @@ object ContentUsageSummarizer extends Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.debug("Started executing Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run[MeasuredEvent]("batch", config, ContentUsageSummary);
+        JobDriver.run("batch", config, ContentUsageSummary);
         JobLogger.debug("Job Completed.", className)
     }
 }

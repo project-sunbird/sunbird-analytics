@@ -20,14 +20,13 @@ import org.apache.log4j.Logger
 object BatchJobDriver {
 
     val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
-    def process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
-
+    def process[T,R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         JobContext.parallelization = CommonUtil.getParallelization(config);
         JobLogger.debug("Setting number of parallelization", className, Option(Map("parallelization" -> JobContext.parallelization)))
         if (null == sc) {
             implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model));
             JobLogger.debug("SparkContext initialized", className)
-            try {
+            try { 
                 _process(config, model);
             } finally {
                 CommonUtil.closeSparkContext();
@@ -38,8 +37,7 @@ object BatchJobDriver {
         }
     }
 
-    private def _process[T](config: JobConfig, model: IBatchModel[T])(implicit mf: Manifest[T], sc: SparkContext) {
-        val t1 = System.currentTimeMillis;
+    private def _process[T,R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         JobLogger.debug("Fetching data", className, Option(Map("query" -> config.search)))
         val rdd = DataFetcher.fetchBatchData[T](config.search);
         if (config.deviceMapping.nonEmpty && config.deviceMapping.get)

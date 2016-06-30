@@ -2,6 +2,7 @@ package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.DerivedEvent
 import com.datastax.spark.connector._
 import java.util.UUID
 import org.ekstep.analytics.framework.LearnerId
@@ -14,7 +15,7 @@ class TestLearnerContentActivitySummary extends SparkSpec(null) {
         val rdd = sc.parallelize(Array(learnerContentAct));
         rdd.saveToCassandra("learner_db", "learnercontentsummary");
 
-        val rdd1 = loadFile[MeasuredEvent]("src/test/resources/learner-content-summary/learner_content_test_sample.log");
+        val rdd1 = loadFile[DerivedEvent]("src/test/resources/learner-content-summary/learner_content_test_sample.log");
         LearnerContentActivitySummary.execute(rdd1, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerContentActivitySummary")));
         val rowRDD = sc.cassandraTable[LearnerContentActivity]("learner_db", "learnercontentsummary");
         val learnerContent = rowRDD.map { x => ((x.learner_id), (x.content_id, x.interactions_per_min, x.num_of_sessions_played, x.time_spent)) }.collect.toMap;

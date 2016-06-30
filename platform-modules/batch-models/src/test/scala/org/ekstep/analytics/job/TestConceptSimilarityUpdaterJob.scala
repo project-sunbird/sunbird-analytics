@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.Dispatcher
 
 class TestConceptSimilarityUpdaterJob extends SparkSpec(null) {
 
-    "LearnerContentActivityUpdater" should "execute the job and shouldn't throw any exception" in {
+    "ConceptSimilarityUpdater" should "execute the job and shouldn't throw any exception" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/concept-similarity/ConceptSimilarity.json"))))), None, None, "org.ekstep.analytics.updater.ConceptSimilarityUpdater", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestConceptSimilarityUpdaterJob"), Option(false))
         ConceptSimilarityUpdaterJob.main(JSONUtils.serialize(config))(Option(sc));
     }

@@ -3,6 +3,7 @@ package org.ekstep.analytics.updater
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.DerivedEvent
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
@@ -28,7 +29,7 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         val sampleRDD = sc.parallelize(Array(sampleSumm));
         sampleRDD.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
         
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/content-usage-updater/content_usage_updater.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/content_usage_updater.log");
         val rdd2 = ContentUsageUpdater.execute(rdd, None);
         val updatedSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "org.ekstep.story.hi.vayu").where("d_period=?", 0).first
         updatedSumm.m_total_ts should be(39.92)
@@ -43,7 +44,7 @@ class TestContentUsageUpdater extends SparkSpec(null) {
             val query = "DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME + "." + Constants.CONTENT_USAGE_SUMMARY_FACT + " where d_content_id='org.ekstep.delta'"
             session.execute(query);
         }
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/content-usage-updater/content_usage.log").cache;
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/content_usage.log").cache;
 
         val sortedEvents = rdd.map { x => x.syncts }.collect
         for (e <- sortedEvents) {

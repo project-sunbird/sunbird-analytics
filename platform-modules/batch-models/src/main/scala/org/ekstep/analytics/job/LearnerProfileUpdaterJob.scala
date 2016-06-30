@@ -15,7 +15,7 @@ object LearnerProfileUpdaterJob extends optional.Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.debug("Started executing Job", className)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run[ProfileEvent]("batch", config, LearnerProfileUpdater);
+        JobDriver.run("batch", config, LearnerProfileUpdater);
         JobLogger.debug("Job Completed.", className)
     }
 }

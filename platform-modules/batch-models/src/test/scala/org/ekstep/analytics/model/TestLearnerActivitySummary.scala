@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.DataFetcher
 import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.Fetcher
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.MeasuredEvent
@@ -14,18 +15,18 @@ import org.ekstep.analytics.framework.util.CommonUtil
 class TestLearnerActivitySummary extends SparkSpec(null) {
 
     "LearnerActivitySummarizer" should "generate LearnerActivitySummarizer events from a sample file " in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         rdd2.collect().length should be(2)
     }
 
     it should "generate Learner Activity Summary events from 'learner_activity_test_sample.log' and check for correctness" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be(2)
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        val event1 = me(0);
         val laSS1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(event1.edata.eks));
 
         laSS1.meanTimeSpent.get should be(81.15)
@@ -40,10 +41,10 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS1.mostActiveHrOfTheDay.get should be(16)
         laSS1.numOfSessionsOnPlatform should be(13)
         laSS1.topKcontent.length should be(5)
-        event1.mid should be ("E5CD001C35F87ABACE5E431476E9622C")
-        event1.syncts should be (1456762355237L)
+        event1.mid should be("E5CD001C35F87ABACE5E431476E9622C")
+        event1.syncts should be(1456762355237L)
 
-        val event2 = JSONUtils.deserialize[MeasuredEvent](me(1));
+        val event2 = me(1);
         val laSS2 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(event2.edata.eks));
         laSS2.meanTimeSpent.get should be(83.13)
         laSS2.meanTimeBtwnGamePlays.get should be(1762.03)
@@ -57,25 +58,25 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
         laSS2.mostActiveHrOfTheDay.get should be(7)
         laSS2.numOfSessionsOnPlatform should be(40)
         laSS2.topKcontent.length should be(5)
-        event2.mid should be ("8C3609B9F4B7EA660DA9F35743BD1350")
-        event2.syncts should be (1456762355179L)
+        event2.mid should be("8C3609B9F4B7EA660DA9F35743BD1350")
+        event2.syncts should be(1456762355179L)
     }
 
     it should "check the correctness of the learner activity summary" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_summary_sample1.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_summary_sample1.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be(2)
 
-        val event1 = JSONUtils.deserialize[MeasuredEvent](me(0));
+        val event1 = me(0);
         event1.eid should be("ME_LEARNER_ACTIVITY_SUMMARY");
         event1.context.pdata.model should be("LearnerActivitySummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("WEEK");
         event1.context.date_range should not be null;
         event1.uid should be("3b322350-393f-4eed-9564-0ed2ada90dba")
-        event1.mid should be ("CDFE7849A27A1C429EDFB7F8422F9DE3")
-        event1.syncts should be (1459488320133L)
+        event1.mid should be("CDFE7849A27A1C429EDFB7F8422F9DE3")
+        event1.syncts should be(1459488320133L)
 
         val laSS1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(event1.edata.eks));
 
@@ -92,42 +93,42 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
     }
 
     it should "generate events with some special case in the input data (i.e missing activitySummary field, duplicate events / meanTimeBtwnGamePlays= -ve, etc..)" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample1.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample1.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary", "topContent" -> Int.box(0))));
         rdd2.collect().length should be(2)
     }
-    
+
     //Test cases for all the field in Learner Activity Summary
     it should "check all the fields, for timeSpent=0" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/time_spent_zero.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/time_spent_zero.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
-        me.length should be (1)
-        
-        val e1 = JSONUtils.deserialize[MeasuredEvent](me(0))
+        me.length should be(1)
+
+        val e1 = me(0)
         val eks1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(e1.edata.eks));
-        eks1.meanTimeSpent.get should be (0)
-        eks1.meanActiveTimeOnPlatform.get should be (0)
-        eks1.meanInterruptTime.get should be (0)
-        eks1.totalTimeSpentOnPlatform.get should be (0)
-        eks1.meanTimeSpentOnAnAct.size should be (0)
-        eks1.meanCountOfAct.size should be (1)
+        eks1.meanTimeSpent.get should be(0)
+        eks1.meanActiveTimeOnPlatform.get should be(0)
+        eks1.meanInterruptTime.get should be(0)
+        eks1.totalTimeSpentOnPlatform.get should be(0)
+        eks1.meanTimeSpentOnAnAct.size should be(0)
+        eks1.meanCountOfAct.size should be(1)
     }
-    
+
     it should "check the event fields where activitySummary is empty but timeSpent is non-zero" in {
-        val rdd = loadFile[MeasuredEvent]("src/test/resources/learner-activity-summary/empty_activity_summary_nonzero_timeSpent.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/empty_activity_summary_nonzero_timeSpent.log");
         val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
-        me.length should be (1)
-        
-        val e1 = JSONUtils.deserialize[MeasuredEvent](me(0))
+        me.length should be(1)
+
+        val e1 = me(0)
         val eks1 = JSONUtils.deserialize[TimeSummary](JSONUtils.serialize(e1.edata.eks));
-        
+
         eks1.meanTimeSpent.get should not be (0)
         eks1.meanActiveTimeOnPlatform.get should not be (0)
-        eks1.meanInterruptTime.get should be (0)
+        eks1.meanInterruptTime.get should be(0)
         eks1.totalTimeSpentOnPlatform.get should not be (0)
-        eks1.meanTimeSpentOnAnAct.size should be (0)
-        eks1.meanCountOfAct.size should be (1)
+        eks1.meanTimeSpentOnAnAct.size should be(0)
+        eks1.meanCountOfAct.size should be(1)
     }
 }

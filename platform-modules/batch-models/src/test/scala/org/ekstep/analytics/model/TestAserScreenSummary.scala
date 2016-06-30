@@ -21,8 +21,8 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(2)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val sec = me(1).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("assessNumeracyQ3") should be(Option(0d))
         sec.get("assessNumeracyQ1") should be(Option(0d))
         sec.get("assessNumeracyQ2") should be(Option(0d))
@@ -38,8 +38,8 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(2)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val sec = me(1).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("assessNumeracyQ3") should be(Option(0d))
         sec.get("assessNumeracyQ3") should be(Option(0d))
     }
@@ -67,8 +67,8 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(2)
 
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val sec = me(1).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("assessNumeracyQ3") should be(Option(0d))
 
         sec.get("selectNumeracyQ2") should be(Option(0d))
@@ -85,9 +85,9 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(4)
 
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        val fourth = JSONUtils.deserialize[MeasuredEvent](me(3)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val sec = me(1).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val fourth = me(3).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
 
         first.get("assessNumeracyQ3") should be(Option(0d))
         sec.get("assessNumeracyQ3") should be(Option(0d))
@@ -113,8 +113,8 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(2)
 
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val sec = me(1).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("activationKeyPage") should not be (Option(0d))
         first.get("surveyCodePage") should not be (Option(0d))
         first.get("childReg1") should not be (Option(0d))
@@ -152,7 +152,7 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(1)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("activationKeyPage") should be(Option(0d))
         first.get("surveyCodePage") should be(Option(0d))
         first.get("childReg1") should be(Option(0d))
@@ -166,7 +166,7 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(1)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("activationKeyPage") should not be (Option(0d))
         first.get("surveyCodePage") should not be (Option(0d))
         first.get("childReg1") should not be (Option(0d))
@@ -180,7 +180,7 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(1)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("activationKeyPage") should be(Option(0d))
         first.get("surveyCodePage") should be(Option(0d))
         first.get("childReg1") should be(Option(0d))
@@ -204,7 +204,7 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(1)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("activationKeyPage") should not be (Option(0d))
         first.get("surveyCodePage") should not be (Option(0d))
         first.get("childReg1") should not be (Option(0d))
@@ -227,7 +227,7 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(1)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("activationKeyPage") should not be (Option(0d))
         first.get("surveyCodePage") should not be (Option(0d))
         first.get("childReg1") should not be (Option(0d))
@@ -250,8 +250,8 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(2)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
-        val sec = JSONUtils.deserialize[MeasuredEvent](me(1)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val sec = me(1).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
 
         first.get("activationKeyPage") should be(Option(0d))
         first.get("surveyCodePage") should be(Option(0d))
@@ -290,7 +290,7 @@ class TestAserScreenSummary extends SparkSpec(null) {
         val rdd2 = AserScreenSummary.execute(rdd, Option(Map("modelVersion" -> "1.1", "modelId" -> "AserScreenerSummary")));
         val me = rdd2.collect();
         me.length should be(1)
-        val first = JSONUtils.deserialize[MeasuredEvent](me(0)).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
+        val first = me(0).edata.eks.asInstanceOf[HashTrieMap[String, Double]];
         first.get("activationKeyPage") should not be (Option(0d))
         first.get("surveyCodePage") should not be (Option(0d))
         first.get("childReg1") should not be (Option(0d))

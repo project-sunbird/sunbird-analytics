@@ -5,6 +5,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import java.io.File
 import org.ekstep.analytics.framework.util.CommonUtil
 import java.io.IOException
+import org.apache.kafka.common.errors.TimeoutException
 
 
 /**
@@ -17,12 +18,13 @@ class TestOutputDispatcher extends SparkSpec {
         val outputs = Option(Array(
             Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef]))        
         ))
+        val eventsInString = events.map{x => JSONUtils.serialize(x)}
         noException should be thrownBy {
-            OutputDispatcher.dispatch(outputs, events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(outputs, eventsInString);
         }
         
         noException should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("console", Map()), sc.parallelize(events.map { x => JSONUtils.serialize(x) }.take(1)));
+            OutputDispatcher.dispatch(Dispatcher("console", Map()), sc.parallelize(events.take(1)));
         }
     }
     
@@ -30,8 +32,8 @@ class TestOutputDispatcher extends SparkSpec {
         val output1 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
         val output2 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "lpdev-ekstep", "key" -> "output/test-log2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         noException should be thrownBy {
-            OutputDispatcher.dispatch(output1, events.map { x => JSONUtils.serialize(x) });
-            OutputDispatcher.dispatch(output2, events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(output1, events);
+            OutputDispatcher.dispatch(output2, events);
         }
     }
     
@@ -39,57 +41,59 @@ class TestOutputDispatcher extends SparkSpec {
         
         // Unknown Dispatcher
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("xyz", Map[String, AnyRef]()), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("xyz", Map[String, AnyRef]()), events);
         }
         
         // Invoke kafka dispatcher with no parameters
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("kafka", Map[String, AnyRef]()), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("kafka", Map[String, AnyRef]()), events);
         }
         
         // Invoke kafka dispatcher with missing topic
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092")), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092")), events);
         }
         
         // Invoke kafka dispatcher without starting kafka
-        OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), sc.parallelize(Array("test")));
+        the[DispatcherException] thrownBy {
+            OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), events);
+        } should have message "Unable to send messages to Kafka"
         
         // Invoke script dispatcher without required fields ('script')     
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("script", Map[String, AnyRef]()), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("script", Map[String, AnyRef]()), events);
         }
         
         // Invoke File dispatcher without required fields ('file')
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("file", Map[String, AnyRef]()), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("file", Map[String, AnyRef]()), events);
         }
         
         // Invoke script dispatcher with invalid script
         a[IOException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript3.sh")), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript3.sh")), events);
         }
         
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript2.sh")), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript2.sh")), events);
         }
         
         // Invoke S3 dispatcher without required fields ('bucket','key')
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("s3", Map[String, AnyRef]("zip" -> true.asInstanceOf[AnyRef])), events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(Dispatcher("s3", Map[String, AnyRef]("zip" -> true.asInstanceOf[AnyRef])), events);
         }
         
         // Invoke dispatch with null dispatcher
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(null.asInstanceOf[Dispatcher], events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(null.asInstanceOf[Dispatcher], events);
         }
         
         // Invoke dispatch with None dispatchers
         a[DispatcherException] should be thrownBy {
-            OutputDispatcher.dispatch(None, events.map { x => JSONUtils.serialize(x) });
+            OutputDispatcher.dispatch(None, events);
         }
         
-        val noEvents = sc.parallelize(Array[String]());
+        val noEvents = sc.parallelize(Array[Event]());
         
         // Invoke dispatch with Empty events
         //a[DispatcherException] should be thrownBy {
@@ -104,7 +108,7 @@ class TestOutputDispatcher extends SparkSpec {
     
     it should "execute test cases related to script dispatcher" in {
         
-        val result = OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript.sh")), events.map { x => JSONUtils.serialize(x) });
+        val result = OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript.sh")), events);
         result(0) should endWith ("analytics-core");
         result(1) should include ("7436");
     }
@@ -112,7 +116,7 @@ class TestOutputDispatcher extends SparkSpec {
     
     it should "dispatch output to a file" in {
         
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/test_output.log")), events.map { x => JSONUtils.serialize(x) });
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/test_output.log")), events);
         val f = new File("src/test/resources/test_output.log");
         f.exists() should be (true)
         CommonUtil.deleteFile("src/test/resources/test_output.log");
