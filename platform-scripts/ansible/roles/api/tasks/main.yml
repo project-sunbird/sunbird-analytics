@@ -1,7 +1,7 @@
 ---
 
 - name: Copy API artifact
-  copy: src=analytics-api-1.0-dist.zip dest={{ api_home }}
+  copy: src=analytics-api-1.0-dist.zip dest={{ api_root }}
   tags:
     - api
 
