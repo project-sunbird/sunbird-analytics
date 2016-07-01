@@ -3,62 +3,62 @@
 log_file=$1
 #webhook_url="https://hooks.slack.com/services/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"
 
-failed_rows=`grep "logType\":\"FAILED" $log_file`
-complete_rows=`grep "logType\":\"COMPLETED" $log_file`
+
+total_jobs=`grep "BE_JOB_END" $log_file`
+comp_jobs=`grep "status\":\"COMPLETED" <<< "$total_jobs"`
+failed_jobs=`grep "status\":\"FAILED" <<< "$total_jobs"`
+
+comp_num=`echo "$comp_jobs" | wc -l | bc`
+failed_num=`echo "$failed_jobs" | wc -l | bc`
 
 today=$(date "+%Y-%m-%d")
-failed_num=0
-succ_num=`grep "logType\":\"COMPLETED" $log_file | wc -l | bc`
+
 total_events=0
 total_time=0
 
 file_content="Model,Job Status,Events Count,Time Taken(in Seconds),Date,Message\n"
+job_status="COMPLETED"
 
-if [ "$complete_rows" != "" ]; then
+if [ "$comp_jobs" != "" ]; then
 	while read -r line
 	do	
 	    model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g" | sed -e "s/org.ekstep.analytics.updater.//g"`
-		job_status="COMPLETED"
 		message=`sed 's/.*message":"\(.*\)","class.*/\1/' <<< "$line"`
 		
 		events=`sed 's/.*","events":\(.*\),"timeTaken".*/\1/' <<< "$line"`
+		
 		total_events=$((total_events + events))
 		
-		time_taken=`sed 's/.*,"timeTaken":\(.*\)},"message":.*/\1/' <<< "$line"`
-		total_time=`echo $total_time + $time_taken | bc`
-
-		
+		time_taken=`sed 's/.*,"timeTaken":\(.*\)},".*/\1/' <<< "$line"`
+		total_time=`echo $total_time + $time_taken | bc`		
 		event_date=`sed 's/.*{"date":"\(.*\)","events":.*/\1/' <<< "$line"`
 		file_content+="$model,$job_status,$events,$time_taken,$event_date,$message\n"
-	done <<< "$complete_rows"
+	done <<< "$comp_jobs"
 fi
 
-events=0
-time_taken=0
+events="0"
+time_taken="0"
+job_status="FAILED"
+event_date=""
 
-if [ "$failed_rows" != "" ]; then
+if [ "$failed_jobs" != "" ]; then
 	while read -r line
 	do
 		model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g" | sed -e "s/org.ekstep.analytics.updater.//g"`
-		if [ "$model" != "$model_prv" ]; then
-			model_prv=$model
-			job_status="FAILED"
-			message=`grep -Po '(?<="localizedMessage":")[^"]*' <<< "$line"`
-			event_date=`sed 's/.*"data":{"date":"\(.*\)"},"message":.*/\1/' <<< "$line"`
-			file_content+="$model,$job_status,$events,$time_taken,$event_date,$message\n"
-			failed_num=$((failed_num + 1))
-		fi
-	done <<< "$failed_rows"
+		message=`grep -Po '(?<="localizedMessage":")[^"]*' <<< "$line"`
+		#event_date=`sed 's/.*"data":{"date":"\(.*\)"},"message":.*/\1/' <<< "$line"`
+		file_content+="$model,$job_status,$events,$time_taken,$event_date,$message\n"
+	done <<< "$failed_jobs"
 fi
 
-echo -e $file_content > dp-monitor-$today.csv
+#echo -e $file_content > dp-monitor-$today.csv
 
 echo "-------- Status Report --------"
-echo "Number of Completed Jobs: $succ_num"
+echo "Number of Completed Jobs: $comp_num"
 echo "Number of failed Jobs: $failed_num"
 echo "Total time taken: $total_time"
 echo "Total events generated: $total_events"
 
-data='{"channel": "#test_webhooks", "username": "dp-monitor", "text":"*Jobs | Monitoring Report | '$today'*\nNumber of Completed Jobs: `'$succ_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```", "icon_emoji": ":ghost:"}'
+data='{"channel": "#test_webhooks", "username": "dp-monitor", "text":"*Jobs | Monitoring Report | '$today'*\nNumber of Completed Jobs: `'$comp_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```", "icon_emoji": ":ghost:"}'
 
 curl -X POST -H 'Content-Type: application/json' --data "$data" https://hooks.slack.com/services/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

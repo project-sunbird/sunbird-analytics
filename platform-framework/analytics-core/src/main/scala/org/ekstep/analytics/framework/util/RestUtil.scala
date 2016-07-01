@@ -8,6 +8,7 @@ import org.apache.http.impl.client.HttpClients
 import org.ekstep.analytics.framework.Response
 import com.fasterxml.jackson.core.JsonParseException
 import org.apache.http.client.methods.HttpPatch
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
@@ -29,7 +30,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: Exception =>
-                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL)), Option("FAILED"), "ERROR")
+                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL)), Option("FAILED"), ERROR)
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
@@ -52,7 +53,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL, "body" -> body)), Option("FAILED"), "ERROR")
+                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL, "body" -> body)), Option("FAILED"), ERROR)
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
@@ -75,7 +76,7 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL, "body" -> body)), Option("FAILED"), "ERROR")
+                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL, "body" -> body)), Option("FAILED"), ERROR)
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()

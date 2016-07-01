@@ -3,6 +3,7 @@ package org.ekstep.analytics.framework.dispatcher
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.streaming.KafkaEventProducer
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
@@ -18,13 +19,13 @@ object KafkaDispatcher extends IDispatcher {
         if (null == brokerList) {
             val msg = "brokerList parameter is required to send output to kafka"
             val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
+            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
             throw exp;
         }
         if (null == topic) {
             val msg = "topic parameter is required to send output to kafka"
             val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
+            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
             throw exp;
         }
         KafkaEventProducer.sendEvents(events, topic, brokerList);

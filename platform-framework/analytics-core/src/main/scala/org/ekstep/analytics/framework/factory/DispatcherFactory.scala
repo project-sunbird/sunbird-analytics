@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.dispatcher.KafkaDispatcher
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 import org.ekstep.analytics.framework.util.JobLogger
-
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
@@ -34,7 +34,7 @@ object DispatcherFactory {
             case _         =>
                 val msg = "Unknown output dispatcher destination found"
                 val exp = new DispatcherException(msg)
-                JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
+                JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
                 throw exp;
         }
     }

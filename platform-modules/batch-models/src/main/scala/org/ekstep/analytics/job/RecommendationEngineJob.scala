@@ -13,9 +13,9 @@ object RecommendationEngineJob extends optional.Application with IJob {
     val className = "org.ekstep.analytics.job.RecommendationEngineJob"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.log("Started executing Job", className, None, None, None, "DEBUG")
+        JobLogger.log("Started executing Job", className, None, None, None)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, RecommendationEngine);
-        JobLogger.log("Job Completed.", className, None, None, None, "DEBUG")
+        JobLogger.log("Job Completed.", className, None, None, None)
     }
 }

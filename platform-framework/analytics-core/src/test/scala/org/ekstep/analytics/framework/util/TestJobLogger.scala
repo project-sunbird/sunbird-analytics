@@ -4,6 +4,7 @@ import org.ekstep.analytics.framework.BaseSpec
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.Level
+import org.ekstep.analytics.framework.Level._
 
 class TestJobLogger extends BaseSpec {
 
@@ -12,12 +13,12 @@ class TestJobLogger extends BaseSpec {
         JobLogger.init(jobName);
 
         JobLogger.start("testing start method", jobName, None, Option("START"))
-        JobLogger.log("testing info method", jobName, None, None, None, "INFO")
-        JobLogger.log("testing debug method", jobName, None, None, None, "DEBUG")
-        JobLogger.log("testing warn method", jobName, None, None, None, "WARN")
-        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR")
-        JobLogger.end("testing end method", jobName, None, None, Option("COMPLETED"), "INFO")
-        JobLogger.end("testing end method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR")
+        JobLogger.log("testing info method", jobName, None, None, None, INFO)
+        JobLogger.log("testing debug method", jobName, None, None, None)
+        JobLogger.log("testing warn method", jobName, None, None, None, WARN)
+        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), ERROR)
+        JobLogger.end("testing end method", jobName, None, None, Option("COMPLETED"), INFO)
+        JobLogger.end("testing end method", jobName, Option(new Exception), None, Option("FAILED"), ERROR)
         
     }
     
@@ -30,17 +31,17 @@ class TestJobLogger extends BaseSpec {
         loggerConfig.setLevel(Level.ALL);
         ctx.updateLoggers();
 
-        JobLogger.log("testing info method", jobName, None, None, None,"INFO");
-        JobLogger.log("testing debug method", jobName,None, None, None, "DEBUG");
-        JobLogger.log("testing warn method", jobName, None, None, None, "WARN");
-        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR");
+        JobLogger.log("testing info method", jobName, None, None, None,INFO);
+        JobLogger.log("testing debug method", jobName,None, None, None, DEBUG);
+        JobLogger.log("testing warn method", jobName, None, None, None, WARN);
+        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), ERROR);
         
         loggerConfig.setLevel(Level.OFF);
         ctx.updateLoggers();
-        JobLogger.log("testing info method", jobName, None, None, None,"INFO");
-        JobLogger.log("testing debug method", jobName,None, None, None, "DEBUG");
-        JobLogger.log("testing warn method", jobName, None, None, None, "WARN");
-        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR");
+        JobLogger.log("testing info method", jobName, None, None, None,INFO);
+        JobLogger.log("testing debug method", jobName,None, None, None, DEBUG);
+        JobLogger.log("testing warn method", jobName, None, None, None, WARN);
+        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), ERROR);
         
     }
 

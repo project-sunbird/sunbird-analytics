@@ -29,7 +29,7 @@ object ConceptSimilarityUpdater extends IBatchModelTemplate[ConceptSimilarityEnt
     }
 
     override def postProcess(data: RDD[ConceptSimilarity], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ConceptSimilarity] = {
-        JobLogger.log("Saving concept & similarity value to DB", className, None, None, None, "DEBUG")
+        JobLogger.log("Saving concept & similarity value to DB", className, None, None, None)
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE);
         data
     }

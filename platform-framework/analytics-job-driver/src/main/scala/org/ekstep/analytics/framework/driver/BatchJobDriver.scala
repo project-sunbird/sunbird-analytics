@@ -14,6 +14,7 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.Level.INFO
 
 /**
  * @author Santhosh
@@ -60,7 +61,7 @@ object BatchJobDriver {
     }
 
     private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
-        JobLogger.log("BatchJobDriver:process() - Started processing of " + model.name, className, None, None, None, "DEBUG");
+        JobLogger.log("BatchJobDriver:process() - Started processing of " + model.name, className, None, None, None);
         val result = CommonUtil.time({
             JobContext.jobName = model.name;
             val output = model.execute(data, config.modelParams);
@@ -68,6 +69,6 @@ object BatchJobDriver {
             JobContext.cleanUpRDDs();
             count;
         })
-        JobLogger.end("The model execution completed and generated the output events", className, None, Option(Map("date" -> config.search.queries.get.last.endDate, "events" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))), Option("COMPLETED"), "INFO")
+        JobLogger.end("The model execution completed and generated the output events", className, None, Option(Map("date" -> config.search.queries.get.last.endDate, "events" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))), Option("COMPLETED"), INFO)
     }
 }

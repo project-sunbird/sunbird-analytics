@@ -5,6 +5,7 @@ import scala.io.Source
 import java.io.PrintWriter
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
@@ -19,7 +20,7 @@ object ScriptDispatcher extends IDispatcher {
         if (null == script) {
             val msg = "'script' parameter is required to send output to file"
             val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
+            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
             throw exp;
         }
         val envParams = config.map(f => f._1 + "=" + f._2.asInstanceOf[String]).toArray;
@@ -43,7 +44,7 @@ object ScriptDispatcher extends IDispatcher {
         if (exitStatus != 0) {
             val msg = "Script exited with non zero status"
             val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
+            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
             throw exp;
         }
         outputLines.toArray;

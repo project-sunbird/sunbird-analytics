@@ -10,9 +10,9 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
-import org.apache.log4j.Level
 import org.json4s.JsonUtil
 import org.apache.logging.log4j.LogManager
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
@@ -33,15 +33,15 @@ object JobDriver {
                     StreamingJobDriver.process(jobConfig);
                 case _ =>
                     val exp = new Exception("Unknown job type")
-                    JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), "ERROR")
+                    JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), ERROR)
                     throw exp
             }
         } catch {
             case e: JsonMappingException =>
-                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), ERROR)
                 throw e;
             case e: Exception =>
-                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), ERROR)
                 throw e;
         }
     }
@@ -59,15 +59,15 @@ object JobDriver {
                     StreamingJobDriver.process(jobConfig);
                 case _ =>
                     val exp = new Exception("Unknown job type")
-                    JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), "ERROR")
+                    JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), ERROR)
                     throw exp
             }
         } catch {
             case e: JsonMappingException =>
-                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), ERROR)
                 throw e;
             case e: Exception =>
-                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), ERROR)
                 throw e;
         }
     }

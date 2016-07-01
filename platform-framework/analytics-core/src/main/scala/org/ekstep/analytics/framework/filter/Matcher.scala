@@ -3,6 +3,7 @@ package org.ekstep.analytics.framework.filter
 import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
@@ -24,7 +25,7 @@ object Matcher {
             case _ =>
                 val msg = "Unknown filter operation found"
                 val exp = new DataFilterException(msg);
-                JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
+                JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
                 throw exp;
         }
     }

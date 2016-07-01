@@ -6,6 +6,7 @@ import java.io.FileWriter
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
@@ -25,7 +26,7 @@ object S3Dispatcher extends IDispatcher {
         if (null == bucket || null == key) {
             val msg = "'bucket' & 'key' parameters are required to send output to S3"
             val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
+            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
             throw exp;
         }
         var deleteFile = false;

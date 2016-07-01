@@ -111,3 +111,8 @@ object Period extends Enumeration {
     type Period = Value
     val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
 }
+
+object Level extends Enumeration {
+    type Level = Value
+    val INFO, DEBUG, WARN, ERROR = Value
+}

@@ -27,6 +27,7 @@ import breeze.linalg._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 import org.apache.log4j.Logger
 import org.ekstep.analytics.updater.LearnerContentActivitySummary
 import org.apache.spark.broadcast.Broadcast
@@ -53,24 +54,24 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
      */
     def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerState] = {
 
-        JobLogger.log("Filtering ME_SESSION_SUMMARY events", className, None, None, None, "DEBUG")
+        JobLogger.log("Filtering ME_SESSION_SUMMARY events", className, None, None, None)
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
         val configMapping = sc.broadcast(config);
 
-        JobLogger.log("Initializing lamda value for Pij, Sij, Tj", className, None, None, None, "DEBUG")
+        JobLogger.log("Initializing lamda value for Pij, Sij, Tj", className, None, None, None)
         
-        JobLogger.log("Fetching Content List and Domain Map", className, None, None, None, "DEBUG")
+        JobLogger.log("Fetching Content List and Domain Map", className, None, None, None)
         val contents = ContentAdapter.getAllContent();
         val concepts = DomainAdapter.getDomainMap().concepts.map { x => x.id };
         val conceptToContent = contents.filterNot(x => (null == x.concepts || x.concepts.isEmpty)).map { x => (x.id, x.concepts) }.flatMap(f => f._2.map { x => (f._1, x) });
 
-        JobLogger.log("Content Coverage: " + conceptToContent.length, className, None, None, None, "DEBUG")
-        JobLogger.log("Concept Count:" + concepts.length, className, None, None, None, "DEBUG")
+        JobLogger.log("Content Coverage: " + conceptToContent.length, className, None, None, None)
+        JobLogger.log("Concept Count:" + concepts.length, className, None, None, None)
         
         this.conceptsB = sc.broadcast(concepts);
         this.conceptToContentB = sc.broadcast(conceptToContent);
 
-        JobLogger.log("Preparing Learner data", className, None, None, None, "DEBUG")
+        JobLogger.log("Preparing Learner data", className, None, None, None)
         // Get all learners date ranges
         val learnerDtRanges = filteredData.map(event => (event.uid, Buffer[DerivedEvent](event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -79,23 +80,23 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
                 DtRange(e.min, e.max);
             }.map { f => (LearnerId(f._1), f._2) };
 
-        JobLogger.log("Join learners with learner database", className, None, None, None, "DEBUG")
+        JobLogger.log("Join learners with learner database", className, None, None, None)
         // Get all learners
         val allLearners = filteredData.map(event => LearnerId(event.uid)).distinct;
 
-        JobLogger.log("Join all learners with learner content activity summary", className, None, None, None, "DEBUG")
+        JobLogger.log("Join all learners with learner content activity summary", className, None, None, None)
         // Join all learners with learner content activity summary 
         val lcs = allLearners.joinWithCassandraTable[LearnerContentActivity](Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE).groupBy(f => f._1).mapValues(f => f.map(x => x._2));
-        JobLogger.log("LearnerContentActivity table may be empty", className, None, None, None, "WARN")
+        JobLogger.log("LearnerContentActivity table may be empty", className, None, None, None, WARN)
         
-        JobLogger.log("Join all learners with learner proficiency summaries", className, None, None, None, "DEBUG")
+        JobLogger.log("Join all learners with learner proficiency summaries", className, None, None, None)
         // Join all learners with learner proficiency summaries
         val lp = allLearners.joinWithCassandraTable[LearnerProficiency](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
-        JobLogger.log("LearnerProficiency table may be empty", className, None, None, None, "WARN")
+        JobLogger.log("LearnerProficiency table may be empty", className, None, None, None, WARN)
         // Join all learners with learner concept relevances
-        JobLogger.log("Join all learners with previous learner concept relevances", className, None, None, None, "DEBUG")
+        JobLogger.log("Join all learners with previous learner concept relevances", className, None, None, None)
         val lcr = allLearners.joinWithCassandraTable[LearnerConceptRelevance](Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
-        JobLogger.log("There May be no concept relevance w.r.t some learner", className, None, None, None, "WARN")
+        JobLogger.log("There May be no concept relevance w.r.t some learner", className, None, None, None, WARN)
         val learners = learnerDtRanges.leftOuterJoin(lp).map(f => (f._1, (f._2._1, f._2._2.getOrElse(LearnerProficiency(f._1.learner_id, Map(), DateTime.now(), DateTime.now(), Map())))))
             .leftOuterJoin(lcs).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._2.getOrElse(Buffer[LearnerContentActivity]()))))
             .leftOuterJoin(lcr).map(f => (f._1, (f._2._1._1, f._2._1._2, f._2._1._3, f._2._2.getOrElse(LearnerConceptRelevance(f._1.learner_id, Map())))));
@@ -182,7 +183,7 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
      * @param weigth - Lambda constant
      */
     private def normalizeMatrix(matrix: DenseMatrix[Double], constMatrix: DenseMatrix[Double], weight: Double): DenseMatrix[Double] = {
-        JobLogger.log("Normalizing matrices", className, None, None, None, "DEBUG")
+        JobLogger.log("Normalizing matrices", className, None, None, None)
         val x = matrix * constMatrix; // Row sums
         // val y = constMatrix :/ x; // Create inverse of row sums
         weight * (matrix :/ (x * constMatrix.t)) // Normalization
@@ -198,7 +199,7 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
      */
     private def conceptSimMatrix(concepts: Array[String], constMatrix: DenseMatrix[Double], conceptSimWeight: Double, noOfConcepts: Int)(implicit sc: SparkContext): DenseMatrix[Double] = {
 
-        JobLogger.log("Computing the concept similarity matrix", className, None, None, None, "DEBUG")
+        JobLogger.log("Computing the concept similarity matrix", className, None, None, None)
         val conceptSimilarityMatrix = sc.cassandraTable[ConceptSimilarity](Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE).map { x => (x.concept1, x.concept2, (x.sim)) }.map { x => (x._1 + "__" + x._2, x._3) }.collect.toMap;
         val conceptSimMatrix = DenseMatrix.zeros[Double](noOfConcepts, noOfConcepts);
         for (i <- 0 until conceptSimMatrix.rows)
@@ -220,7 +221,7 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
      */
     private def timeSpentMatrix(contentSummaries: Iterable[LearnerContentActivity], conceptToContent: Array[(String, String)], concepts: Array[String], constMatrix: DenseMatrix[Double], tsWeight: Double, noOfConcepts: Int): DenseMatrix[Double] = {
 
-        JobLogger.log("Computing the concept to time spent matrix", className, None, None, None, "DEBUG")
+        JobLogger.log("Computing the concept to time spent matrix", className, None, None, None)
        val default = 1d / noOfConcepts;
         val contentTS = contentSummaries.map { x => (x.content_id, x.time_spent) }.toMap;
         val learnerConceptTS = conceptToContent.map(f => (f._2, contentTS.getOrElse(f._1, 0d))).groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum);
@@ -230,7 +231,7 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
         val totalTime = conceptTS.map(f => f._2).sum;
 
         // 3. Compute the Concept Tj Matrix
-        JobLogger.log("Computing and normalizing Concept TimeSpent matrix (Tj)", className, None, None, None, "DEBUG")
+        JobLogger.log("Computing and normalizing Concept TimeSpent matrix (Tj)", className, None, None, None)
         val conceptTsMatrix = DenseMatrix.zeros[Double](1, noOfConcepts);
         for (i <- 0 until conceptTsMatrix.cols)
             conceptTsMatrix(0, i) = (conceptTS.get(concepts(i)).get) / totalTime
@@ -248,7 +249,7 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
      * @param noOfConcepts - Total number of constants
      */
     private def proficiencyMatrix(learnerProficiency: LearnerProficiency, constMatrix: DenseMatrix[Double], concepts: Array[String], profWeight: Double, noOfConcepts: Int): DenseMatrix[Double] = {
-        JobLogger.log("Computing the concept to proficiency matrix", className, None, None, None, "DEBUG")
+        JobLogger.log("Computing the concept to proficiency matrix", className, None, None, None)
         val proficiencyMap = learnerProficiency.proficiency;
         val conceptProfMatrix = DenseMatrix.tabulate(noOfConcepts, 1) { case (i, j) => proficiencyMap.getOrElse(concepts(i), 0d) };
         val cpj = conceptProfMatrix * constMatrix.t;

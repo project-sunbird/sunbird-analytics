@@ -13,9 +13,9 @@ object DeviceSpecificationUpdater extends Application with IJob {
     val className = "org.ekstep.analytics.job.DeviceSpecificationUpdater"
   
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.log("Started executing Job", className, None, None, None, "DEBUG")
+        JobLogger.log("Started executing Job", className, None, None, None)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, DeviceSpecification);
-        JobLogger.log("Job Completed.", className, None, None, None, "DEBUG")
+        JobLogger.log("Job Completed.", className, None, None, None)
     }
 }

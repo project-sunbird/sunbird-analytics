@@ -21,11 +21,11 @@ object S3Util {
     private val s3Service = new RestS3Service(awsCredentials);
 
     def upload(bucketName: String, filePath: String, key: String) {
-        JobLogger.log("Uploading file to S3. Bucket", className, None, Option(Map("bucketName" -> bucketName, "FilePath" -> filePath)), None, "DEBUG")
+        JobLogger.log("Uploading file to S3. Bucket", className, None, Option(Map("bucketName" -> bucketName, "FilePath" -> filePath)), None)
         val s3Object = new S3Object(new File(filePath));
         s3Object.setKey(key)
         val fileObj = s3Service.putObject(bucketName, s3Object);
-        JobLogger.log("File upload successful", className, None, Option(Map("etag" -> fileObj.getETag)), None, "DEBUG")
+        JobLogger.log("File upload successful", className, None, Option(Map("etag" -> fileObj.getETag)), None)
     }
 
     /*

@@ -48,7 +48,7 @@ object LearnerContentActivitySummary extends IBatchModelTemplate[DerivedEvent, D
     }
 
     override def postProcess(data: RDD[LearnerContentActivity], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerContentActivity] = {
-        JobLogger.log("Saving learner content summary data to DB", className, None, None, None, "DEBUG")
+        JobLogger.log("Saving learner content summary data to DB", className, None, None, None)
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE);
         data
     }
