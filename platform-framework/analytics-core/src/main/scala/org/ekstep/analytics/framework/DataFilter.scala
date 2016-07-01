@@ -22,14 +22,14 @@ object DataFilter {
     val className = "org.ekstep.analytics.framework.DataFilter"
     @throws(classOf[DataFilterException])
     def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[T] = {
-        JobLogger.debug("Running the filter and sort process", className, Option(Map("filter" -> filters, "sort" -> sort)))
+        JobLogger.log("Running the filter and sort process", className, None, Option(Map("filter" -> filters, "sort" -> sort)), None, "DEBUG")
         val filteredEvents = if (filters.nonEmpty) { filter(events, filters.get) } else events;
         if (sort.nonEmpty) { sortBy(filteredEvents, sort.get) } else filteredEvents;
     }
 
     @throws(classOf[DataFilterException])
     def filter[T](events: RDD[T], filters: Array[Filter]): RDD[T] = {
-        JobLogger.debug("Running the filter process", className)
+        JobLogger.log("Running the filter process", className, None, None, None, "DEBUG")
         if (null != filters && filters.nonEmpty) {
             events.filter { event =>
                 var valid = true;

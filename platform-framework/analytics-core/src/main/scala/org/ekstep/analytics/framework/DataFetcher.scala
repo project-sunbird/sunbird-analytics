@@ -22,7 +22,7 @@ object DataFetcher {
     @throws(classOf[DataFetcherException])
     def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext): RDD[T] = {
 
-        JobLogger.debug("Fetching data", className, Option(Map("query" -> search)))
+        JobLogger.log("Fetching data", className, None, Option(Map("query" -> search)), None, "DEBUG")
         if (search.queries.isEmpty) {
             val exp = new DataFetcherException("Data fetch configuration not found")
             JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), "ERROR")

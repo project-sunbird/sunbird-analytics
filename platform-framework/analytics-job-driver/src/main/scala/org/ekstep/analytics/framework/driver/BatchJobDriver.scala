@@ -60,7 +60,7 @@ object BatchJobDriver {
     }
 
     private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
-        JobLogger.debug("BatchJobDriver:process() - Started processing of " + model.name, className);
+        JobLogger.log("BatchJobDriver:process() - Started processing of " + model.name, className, None, None, None, "DEBUG");
         val result = CommonUtil.time({
             JobContext.jobName = model.name;
             val output = model.execute(data, config.modelParams);
@@ -68,6 +68,6 @@ object BatchJobDriver {
             JobContext.cleanUpRDDs();
             count;
         })
-        JobLogger.info("The model execution completed and generated the output events", className, Option(Map("date" -> config.search.queries.get.last.endDate, "events" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))), "BE_JOB_END", Option("COMPLETED"))
+        JobLogger.end("The model execution completed and generated the output events", className, None, Option(Map("date" -> config.search.queries.get.last.endDate, "events" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))), Option("COMPLETED"), "INFO")
     }
 }

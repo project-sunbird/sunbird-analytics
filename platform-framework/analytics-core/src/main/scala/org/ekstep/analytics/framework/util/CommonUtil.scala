@@ -58,12 +58,12 @@ object CommonUtil {
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
-        JobLogger.debug("Initializing Spark Context", className)
+        JobLogger.log("Initializing Spark Context", className, None, None, None, "DEBUG")
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
-            JobLogger.debug("Master not found. Setting it to local[*]", className)
+            JobLogger.log("Master not found. Setting it to local[*]", className, None, None, None, "DEBUG")
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
@@ -72,18 +72,18 @@ object CommonUtil {
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
-        JobLogger.debug("Spark Context initialized", className);
+        JobLogger.log("Spark Context initialized", className, None, None, None, "DEBUG");
         sc;
     }
 
     def setS3Conf(sc: SparkContext) = {
-        JobLogger.debug("Configuring S3 AccessKey& SecrateKey to SparkContext", className)
+        JobLogger.log("Configuring S3 AccessKey& SecrateKey to SparkContext", className, None, None, None, "DEBUG")
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
-        JobLogger.debug("Closing Spark Context", className)
+        JobLogger.log("Closing Spark Context", className, None, None, None, "DEBUG")
         sc.stop();
     }
 
@@ -108,12 +108,12 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
-        JobLogger.debug("Deleting directory", className, Option(path.toString()))
+        JobLogger.log("Deleting directory", className, None, Option(path.toString()), None, "DEBUG")
         Files.walkFileTree(path, new Visitor());
     }
 
     def deleteFile(file: String) {
-        JobLogger.debug("Deleting file ", className, Option(file))
+        JobLogger.log("Deleting file ", className, None, Option(file), None, "DEBUG")
         Files.delete(get(file));
     }
 
@@ -167,7 +167,7 @@ object CommonUtil {
             df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                JobLogger.debug("Invalid event time", className, Option(Map("ts" -> event.ts)));
+                JobLogger.log("Invalid event time", className, None, Option(Map("ts" -> event.ts)), None, "DEBUG");
                 null;
         }
     }
@@ -215,7 +215,7 @@ object CommonUtil {
             }
         } catch {
             case e: Exception =>
-                JobLogger.error("Error in gzip", className, e, None, "BE_JOB_LOG_PROCESS")
+                JobLogger.log(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
                 throw e
         }
         path ++ ".gz";
@@ -278,7 +278,7 @@ object CommonUtil {
             df.parseDateTime(ts).getMillis;
         } catch {
             case _: Exception =>
-                JobLogger.debug("Invalid time format", className, Option(Map("pattern" -> pattern, "ts" -> ts)));
+                JobLogger.log("Invalid time format", className, None, Option(Map("pattern" -> pattern, "ts" -> ts)), None, "DEBUG");
                 0;
         }
     }

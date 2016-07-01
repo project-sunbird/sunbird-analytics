@@ -25,11 +25,11 @@ object OutputDispatcher {
         val eventArr = stringify(events).collect();
         if (eventArr.length != 0) {
             outputs.get.foreach { dispatcher =>
-                JobLogger.debug("Dispatching output", className, Option(dispatcher.to));
+                JobLogger.log("Dispatching output", className, None, Option(dispatcher.to), None, "DEBUG");
                 DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
             }
         } else {
-            JobLogger.debug("No events produced for dispatch", className);
+            JobLogger.log("No events produced for dispatch", className, None, None, None, "DEBUG");
         }
         eventArr.length;
 
@@ -42,10 +42,10 @@ object OutputDispatcher {
         }
         val eventArr = stringify(events).collect();
         if (eventArr.length != 0) {
-            JobLogger.debug("Dispatching output", className, Option(dispatcher.to));
+            JobLogger.log("Dispatching output", className, None, Option(dispatcher.to), None, "DEBUG");
             DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
         } else {
-            JobLogger.debug("No events produced", className);
+            JobLogger.log("No events produced", className, None, None, None, "DEBUG");
             null;
         }
     }
