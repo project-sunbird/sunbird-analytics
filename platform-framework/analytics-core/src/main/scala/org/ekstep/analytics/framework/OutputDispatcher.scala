@@ -16,20 +16,22 @@ import org.ekstep.analytics.framework.util.CommonUtil
  */
 object OutputDispatcher {
 
-    val className = "org.ekstep.analytics.framework.OutputDispatcher"
+    implicit val className = "org.ekstep.analytics.framework.OutputDispatcher";
+
     @throws(classOf[DispatcherException])
-    def dispatch[T](outputs: Option[Array[Dispatcher]], events: RDD[T]) : Long = {
+    def dispatch[T](outputs: Option[Array[Dispatcher]], events: RDD[T]): Long = {
+
         if (outputs.isEmpty) {
             throw new DispatcherException("No output configurations found");
         }
         val eventArr = stringify(events).collect();
         if (eventArr.length != 0) {
             outputs.get.foreach { dispatcher =>
-                JobLogger.log("Dispatching output", className, None, Option(dispatcher.to), None);
+                JobLogger.log("Dispatching output", Option(dispatcher.to));
                 DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
             }
         } else {
-            JobLogger.log("No events produced for dispatch", className, None, None, None);
+            JobLogger.log("No events produced for dispatch");
         }
         eventArr.length;
 
@@ -37,15 +39,16 @@ object OutputDispatcher {
 
     @throws(classOf[DispatcherException])
     def dispatch[T](dispatcher: Dispatcher, events: RDD[T]) = {
+
         if (null == dispatcher) {
             throw new DispatcherException("No output configurations found");
         }
         val eventArr = stringify(events).collect();
         if (eventArr.length != 0) {
-            JobLogger.log("Dispatching output", className, None, Option(dispatcher.to), None);
+            JobLogger.log("Dispatching output", Option(dispatcher.to));
             DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
         } else {
-            JobLogger.log("No events produced", className, None, None, None);
+            JobLogger.log("No events produced");
             null;
         }
     }

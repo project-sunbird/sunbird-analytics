@@ -14,7 +14,7 @@ case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, simil
 
 object ConceptSimilarityUpdater extends IBatchModelTemplate[ConceptSimilarityEntity, ConceptSimilarityEntity, ConceptSimilarity, ConceptSimilarity] with Serializable {
 
-    val className = "org.ekstep.analytics.updater.ConceptSimilarityUpdater"
+    implicit val className = "org.ekstep.analytics.updater.ConceptSimilarityUpdater"
 
     override def preProcess(data: RDD[ConceptSimilarityEntity], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ConceptSimilarityEntity] = {
         data
@@ -29,7 +29,7 @@ object ConceptSimilarityUpdater extends IBatchModelTemplate[ConceptSimilarityEnt
     }
 
     override def postProcess(data: RDD[ConceptSimilarity], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ConceptSimilarity] = {
-        JobLogger.log("Saving concept & similarity value to DB", className, None, None, None)
+        JobLogger.log("Saving concept & similarity value to DB")
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.CONCEPT_SIMILARITY_TABLE);
         data
     }

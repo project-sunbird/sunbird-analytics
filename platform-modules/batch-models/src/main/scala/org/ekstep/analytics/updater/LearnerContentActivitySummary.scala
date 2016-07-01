@@ -18,7 +18,7 @@ case class LearnerContentActivity(learner_id: String, content_id: String, time_s
 
 object LearnerContentActivitySummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, LearnerContentActivity, LearnerContentActivity] with Serializable {
 
-    val className = "org.ekstep.analytics.updater.LearnerContentActivitySummary"
+    implicit val className = "org.ekstep.analytics.updater.LearnerContentActivitySummary"
 
     private def average[T](ts: Iterable[T])(implicit num: Numeric[T]) = {
         num.toDouble(ts.sum) / ts.size
@@ -48,7 +48,7 @@ object LearnerContentActivitySummary extends IBatchModelTemplate[DerivedEvent, D
     }
 
     override def postProcess(data: RDD[LearnerContentActivity], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerContentActivity] = {
-        JobLogger.log("Saving learner content summary data to DB", className, None, None, None)
+        JobLogger.log("Saving learner content summary data to DB")
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONTENT_SUMMARY_TABLE);
         data
     }

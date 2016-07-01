@@ -15,20 +15,26 @@ import org.ekstep.analytics.framework.Level._
 
 object ReplaySupervisor extends Application {
 
-    val className = "org.ekstep.analytics.job.ReplaySupervisor"
+    implicit val className = "org.ekstep.analytics.job.ReplaySupervisor"
 
     def main(model: String, fromDate: String, toDate: String, config: String) {
-        val t1 = System.currentTimeMillis;
-        JobLogger.log("Started executing ReplaySupervisor", className, None, None, None, INFO)
+
+        JobLogger.start("Started executing ReplaySupervisor", Option(Map("config" -> config, "model" -> model, "fromDate" -> fromDate, "toDate" -> toDate)))
         val con = JSONUtils.deserialize[JobConfig](config)
         val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
         try {
-            execute(model, fromDate, toDate, config)(sc);
+            val result = CommonUtil.time({
+                execute(model, fromDate, toDate, config)(sc);
+            })
+            JobLogger.end("Replay Supervisor completed", "SUCCESS", Option(Map("timeTaken" -> result._1)));
+        } catch {
+            case ex: Exception =>
+                JobLogger.log(ex.getMessage, None, ERROR);
+                JobLogger.end("Replay Supervisor failed", "FAILED")
+                throw ex
         } finally {
             CommonUtil.closeSparkContext()(sc);
         }
-        val t2 = System.currentTimeMillis;
-        JobLogger.log("Replay Supervisor completed.", className, None, Option(Map("start_date" -> fromDate, "end_date" -> toDate, "timeTaken" -> Double.box((t2 - t1) / 1000))), None, INFO)
     }
 
     def execute(model: String, fromDate: String, toDate: String, config: String)(implicit sc: SparkContext) {
@@ -37,18 +43,18 @@ object ReplaySupervisor extends Application {
             try {
                 val jobConfig = config.replace("__endDate__", date)
                 val job = JobFactory.getJob(model);
-                JobLogger.log("### Executing replay for the date - " + date + " ###", className, None, None, None, INFO)
+                JobLogger.log("### Executing replay for the date - " + date + " ###")
                 job.main(jobConfig)(Option(sc));
             } catch {
                 case ex: DataFetcherException => {
-                    JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("model_code" -> model, "date" -> date)), Option("FAILED"), ERROR)
+                    JobLogger.log(ex.getMessage, Option(Map("model_code" -> model, "date" -> date)), ERROR)
                 }
                 case ex: JobNotFoundException => {
-                    JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("model_code" -> model, "date" -> date)), Option("FAILED"), ERROR)
+                    JobLogger.log(ex.getMessage, Option(Map("model_code" -> model, "date" -> date)), ERROR)
                     throw ex;
                 }
                 case ex: Exception => {
-                    JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("model_code" -> model, "date" -> date)), Option("FAILED"), ERROR)
+                    JobLogger.log(ex.getMessage, Option(Map("model_code" -> model, "date" -> date)), ERROR)
                     ex.printStackTrace()
                 }
             }

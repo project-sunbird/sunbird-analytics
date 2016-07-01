@@ -23,55 +23,53 @@ object JobLogger {
         LogManager.getLogger("org.ekstep.analytics.logger");
     }
 
-    private def info(msg: String, className: String, data: Option[AnyRef] = None, eid: String, logType: Option[String] = None) {
-        logger.info(JSONUtils.serialize(getMeasuredEvent(eid, "INFO", msg, null, Map("modelId" -> className), data, logType)));
+    private def info(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
+        logger.info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "INFO", msg, data)));
     }
 
-    private def debug(msg: String, className: String, data: Option[AnyRef] = None) {
-        logger.debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "DEBUG", msg, null, Map("modelId" -> className), data)))
+    private def debug(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
+        logger.debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "DEBUG", msg, data)))
     }
 
-    private def error(msg: String, className: String, exp: Option[Throwable], data: Option[AnyRef] = None, eid: String, logType: Option[String] = None) {
-        logger.error(JSONUtils.serialize(getMeasuredEvent(eid, "ERROR", msg, exp.get, Map("modelId" -> className), data, logType)));
+    private def error(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
+        logger.error(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "ERROR", msg, data)));
     }
 
-    private def warn(msg: String, className: String, data: Option[AnyRef] = None) {
-        logger.warn(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "WARN", msg, null, Map("modelId" -> className), data)));
+    private def warn(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
+        logger.debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "WARN", msg, data)))
     }
 
-    def start(msg: String, className: String, data: Option[AnyRef] = None, logType: Option[String] = None) = {
-        info(msg, className, data, "BE_JOB_START", logType)
+    def start(msg: String, data: Option[AnyRef] = None)(implicit className: String) = {
+        logger.info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_START", "INFO", msg, data)));
     }
 
-    def end(msg: String, className: String, exp: Option[Throwable] = None, data: Option[AnyRef] = None, logType: Option[String] = None, logLevel: Level) = {
-        if (INFO.equals(logLevel)) info(msg, className, data, "BE_JOB_END", logType)
-        else error(msg, className, exp, data, "BE_JOB_END", logType)
+    def end(msg: String, status: String, data: Option[AnyRef] = None)(implicit className: String) = {
+        logger.info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_END", "INFO", msg, data, Option(status))));
     }
 
-    def log(msg: String, className: String, exp: Option[Throwable] = None, data: Option[AnyRef] = None, logType: Option[String] = None, logLevel: Level = DEBUG) = {
+    def log(msg: String, data: Option[AnyRef] = None, logLevel: Level = DEBUG)(implicit className: String) = {
         logLevel match {
             case INFO =>
-                info(msg, className, data, "BE_JOB_LOG", logType)
+                info(msg, data)
             case DEBUG =>
-                debug(msg, className, data)
+                debug(msg, data)
             case WARN =>
-                warn(msg, className, data)
+                warn(msg, data)
             case ERROR =>
-                error(msg, className, exp, data, "BE_JOB_LOG", logType)
+                error(msg, data)
         }
     }
 
-    private def getMeasuredEvent(eid: String, level: String, msg: String, throwable: Throwable, config: Map[String, String], data: Option[AnyRef], logType: Option[String] = None): MeasuredEvent = {
+    private def getMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): MeasuredEvent = {
         val measures = Map(
-            "class" -> config.get("modelId"),
+            "class" -> className,
             "level" -> level,
             "message" -> msg,
-            "throwable" -> throwable,
-            "status" -> logType,
+            "status" -> status,
             "data" -> data);
         val mid = "";
         MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "", None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], JobContext.jobName, config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, null, null),
+            Context(PData("AnalyticsDataPipeline", JobContext.jobName, "1.0"), None, "EVENT", null),
             null,
             MEEdata(measures));
     }

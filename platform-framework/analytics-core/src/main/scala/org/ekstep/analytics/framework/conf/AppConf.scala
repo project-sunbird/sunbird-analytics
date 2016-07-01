@@ -7,13 +7,15 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 object AppConf {
 
+    implicit val className = "org.ekstep.analytics.framework.conf.AppConf";
+
     var initialized = false;
     var properties: Properties = null;
 
     def init() {
         if (!initialized) {
             val key = getConfigKey;
-            JobLogger.log("Config file used", AppConf.getClass.getName, None, Option(Map("file"->key)), None)
+            JobLogger.log("Config file used", Option(Map("file" -> key)));
             val is = getClass.getResourceAsStream(key)
             properties = new Properties();
             properties.load(is)
@@ -41,9 +43,9 @@ object AppConf {
     def getAwsSecret(): String = {
         getConfig("aws_secret");
     }
-    
+
     def getConfigKey(): String = {
-        val env = sys.props.getOrElse("env", "DEV");    
+        val env = sys.props.getOrElse("env", "DEV");
         "/" + env.toLowerCase() + ".config.properties";
     }
 

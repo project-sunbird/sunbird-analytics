@@ -9,12 +9,12 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 object ContentSideloadingSummarizer extends optional.Application with IJob {
   
-    val className = "org.ekstep.analytics.job.ContentSideloadingSummarizer"
+    implicit val className = "org.ekstep.analytics.job.ContentSideloadingSummarizer"
   
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.log("Started executing Job", className, None, None, None)
+        JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, ContentSideloadingSummary);
-        JobLogger.log("Job Completed", className, None, None, None)
+        JobLogger.log("Job Completed")
     }
 }

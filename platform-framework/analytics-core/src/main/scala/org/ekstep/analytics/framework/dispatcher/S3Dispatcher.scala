@@ -12,22 +12,19 @@ import org.ekstep.analytics.framework.Level._
  * @author Santhosh
  */
 object S3Dispatcher extends IDispatcher {
-    
-    val className = "org.ekstep.analytics.framework.dispatcher.S3Dispatcher"
-    
+
+    implicit val className = "org.ekstep.analytics.framework.dispatcher.S3Dispatcher"
+
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String] = {
+    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
         var filePath = config.getOrElse("filePath", null).asInstanceOf[String];
         val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
         val key = config.getOrElse("key", null).asInstanceOf[String];
         val zip = config.getOrElse("zip", false).asInstanceOf[Boolean];
         val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
-        
+
         if (null == bucket || null == key) {
-            val msg = "'bucket' & 'key' parameters are required to send output to S3"
-            val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
-            throw exp;
+            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to S3")
         }
         var deleteFile = false;
         if (null == filePath) {
@@ -36,10 +33,10 @@ object S3Dispatcher extends IDispatcher {
             events.foreach { x => { fw.write(x + "\n"); } };
             fw.close();
             deleteFile = true;
-        } 
+        }
         val finalPath = if (zip) CommonUtil.gzip(filePath) else filePath;
         S3Util.upload(bucket, finalPath, key);
-        if(deleteFile) CommonUtil.deleteFile(filePath);
+        if (deleteFile) CommonUtil.deleteFile(filePath);
         if (zip) CommonUtil.deleteFile(finalPath);
         events;
     }

@@ -15,8 +15,8 @@ import org.ekstep.analytics.framework.Level._
  */
 object RestUtil {
 
-    val className = "org.ekstep.analytics.framework.util.RestUtil"
-    
+    implicit val className = "org.ekstep.analytics.framework.util.RestUtil"
+
     def get[T](apiURL: String)(implicit mf: Manifest[T]) = {
         val httpClient = HttpClients.createDefault();
         val request = new HttpGet(apiURL);
@@ -30,7 +30,8 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: Exception =>
-                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL)), Option("FAILED"), ERROR)
+                JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL)), ERROR)
+                ex.printStackTrace();
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
@@ -38,7 +39,7 @@ object RestUtil {
     }
 
     def post[T](apiURL: String, body: String)(implicit mf: Manifest[T]) = {
-        
+
         val httpClient = HttpClients.createDefault();
         val request = new HttpPost(apiURL);
         request.addHeader("user-id", "analytics");
@@ -53,15 +54,16 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL, "body" -> body)), Option("FAILED"), ERROR)
+                JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
+                ex.printStackTrace();
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
         }
     }
-    
+
     def patch[T](apiURL: String, body: String)(implicit mf: Manifest[T]) = {
-        
+
         val httpClient = HttpClients.createDefault();
         val request = new HttpPatch(apiURL);
         request.addHeader("user-id", "analytics");
@@ -76,11 +78,12 @@ object RestUtil {
             JSONUtils.deserialize[T](content);
         } catch {
             case ex: JsonParseException =>
-                JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("url" -> apiURL, "body" -> body)), Option("FAILED"), ERROR)
+                JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
+                ex.printStackTrace();
                 null.asInstanceOf[T];
         } finally {
             httpClient.close()
         }
     }
-    
+
 }

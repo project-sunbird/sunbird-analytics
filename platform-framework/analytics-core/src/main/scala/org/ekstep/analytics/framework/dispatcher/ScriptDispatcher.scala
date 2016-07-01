@@ -11,17 +11,14 @@ import org.ekstep.analytics.framework.Level._
  * @author Santhosh
  */
 object ScriptDispatcher extends IDispatcher {
-    
+
     val className = "org.ekstep.analytics.framework.dispatcher.ScriptDispatcher"
-    
+
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String] = {
+    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
         val script = config.getOrElse("script", null).asInstanceOf[String];
         if (null == script) {
-            val msg = "'script' parameter is required to send output to file"
-            val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
-            throw exp;
+            throw new DispatcherException("'script' parameter is required to send output to file")
         }
         val envParams = config.map(f => f._1 + "=" + f._2.asInstanceOf[String]).toArray;
         val proc = Runtime.getRuntime.exec(script, envParams);
@@ -42,10 +39,7 @@ object ScriptDispatcher extends IDispatcher {
         val outputLines = Source.fromInputStream(proc.getInputStream).getLines;
         val exitStatus = proc.waitFor();
         if (exitStatus != 0) {
-            val msg = "Script exited with non zero status"
-            val exp = new DispatcherException(msg)
-            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
-            throw exp;
+            throw new DispatcherException("Script exited with non zero status")
         }
         outputLines.toArray;
     }

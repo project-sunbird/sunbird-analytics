@@ -66,6 +66,7 @@ class TestReplaySupervisor extends BaseSpec {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/__endDate__*"))))), None, None, "org.ekstep.analytics.updater.LearnerContentActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), None, Option(false))
         ReplaySupervisor.main("lcas", "2016-02-21", "2016-02-22", JSONUtils.serialize(config))
     }
+    
     the[JobNotFoundException] thrownBy {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/__endDate__*"))))), None, None, "org.ekstep.analytics.model.LearnerActivitySummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), None, Option(false))
         ReplaySupervisor.main("abc", "2016-02-21", "2016-02-22", JSONUtils.serialize(config))

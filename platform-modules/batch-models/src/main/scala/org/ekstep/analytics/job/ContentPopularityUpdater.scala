@@ -10,12 +10,12 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 object ContentPopularityUpdater extends optional.Application {
 
-    val className = "org.ekstep.analytics.job.ContentPopularityUpdater"
+    implicit val className = "org.ekstep.analytics.job.ContentPopularityUpdater"
   
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.log("Started executing Job", className, None, None, None)
+        JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, UpdateContentPopularity);
-        JobLogger.log("Job Completed.", className, None, None, None)
+        JobLogger.log("Job Completed.")
     }
 }

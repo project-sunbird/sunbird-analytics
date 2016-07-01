@@ -24,7 +24,7 @@ case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_
  */
 object UpdateLearnerActivity extends IBatchModelTemplate[DerivedEvent, DerivedEvent, LearnerSnapshot, LearnerSnapshot] with Serializable {
 
-    val className = "org.ekstep.analytics.updater.UpdateLearnerActivity"
+    implicit val className = "org.ekstep.analytics.updater.UpdateLearnerActivity"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         DataFilter.filter(DataFilter.filter(data, Filter("eid", "EQ", Option("ME_LEARNER_ACTIVITY_SUMMARY"))), Filter("uid", "ISNOTEMPTY", None))
@@ -56,7 +56,7 @@ object UpdateLearnerActivity extends IBatchModelTemplate[DerivedEvent, DerivedEv
     }
 
     override def postProcess(data: RDD[LearnerSnapshot], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerSnapshot] = {
-        JobLogger.log("Saving learner snapshot to DB", className, None, None, None)
+        JobLogger.log("Saving learner snapshot to DB")
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
         data
     }

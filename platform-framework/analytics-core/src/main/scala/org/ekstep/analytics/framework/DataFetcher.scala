@@ -19,42 +19,37 @@ import org.ekstep.analytics.framework.Level._
  */
 object DataFetcher {
 
-    val className = "org.ekstep.analytics.framework.DataFetcher"
+    implicit val className = "org.ekstep.analytics.framework.DataFetcher"
     @throws(classOf[DataFetcherException])
     def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext): RDD[T] = {
 
-        JobLogger.log("Fetching data", className, None, Option(Map("query" -> search)), None)
+        JobLogger.log("Fetching data", Option(Map("query" -> search)))
         if (search.queries.isEmpty) {
-            val exp = new DataFetcherException("Data fetch configuration not found")
-            JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), ERROR)
-            throw exp;
+            throw new DataFetcherException("Data fetch configuration not found")
         }
         val date = search.queries.get.last.endDate
         val keys: Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
-                JobLogger.log("Fetching the batch data from S3", className, None, None, None)
+                JobLogger.log("Fetching the batch data from S3")
                 S3DataFetcher.getObjectKeys(search.queries.get).toArray;
             case "local" =>
-                JobLogger.log("Fetching the batch data from Local file", className, None, None, None)
+                JobLogger.log("Fetching the batch data from Local file")
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
             case _ =>
-                val exp = new DataFetcherException("Unknown fetcher type found");
-                JobLogger.log(exp.getMessage, className, Option(exp), Option(Map("date"->date)), Option("FAILED"), ERROR)
-                throw exp;
+                throw new DataFetcherException("Unknown fetcher type found");
         }
         if (null == keys || keys.length == 0) {
-            val exp = new DataFetcherException("No S3/Local Objects found for the qiven queries");
-            JobLogger.log(exp.getMessage, className, Option(exp), Option(Map("date"->date)), Option("FAILED"), ERROR)
-            throw exp
+            throw new DataFetcherException("No S3/Local Objects found for the qiven queries");
         }
-        JobLogger.log("Deserializing Input Data", className, None, None, None)
+
+        JobLogger.log("Deserializing Input Data");
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
                 try {
                     JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
-                        JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("date"->date)), Option("FAILED"), ERROR)
+                        JobLogger.log(ex.getMessage, Option(Map("date" -> date)));
                         null.asInstanceOf[T]
                 }
             }

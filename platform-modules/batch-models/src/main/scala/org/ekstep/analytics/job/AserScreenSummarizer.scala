@@ -13,12 +13,12 @@ import org.ekstep.analytics.framework.IJob
  */
 object AserScreenSummarizer extends optional.Application with IJob {
 
-    val className = "org.ekstep.analytics.job.AserScreenSummarizer"
+    implicit val className = "org.ekstep.analytics.job.AserScreenSummarizer"
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.log("Started executing Job", className, None, None, None)
+        JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, AserScreenSummary);
-        JobLogger.log("Job Completed.", className, None, None, None)
+        JobLogger.log("Job Completed.")
     }
 }

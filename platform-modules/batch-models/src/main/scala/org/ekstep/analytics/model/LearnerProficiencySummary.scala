@@ -41,7 +41,7 @@ case class LearnerProficiencyInput(learnerId: String, newEvidences: Iterable[(St
 
 object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, LearnerProficiencyInput, LearnerProficiency, MeasuredEvent] with Serializable {
 
-    val className = "org.ekstep.analytics.model.LearnerProficiencySummary"
+    implicit val className = "org.ekstep.analytics.model.LearnerProficiencySummary"
 
     def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
         val itemId = item.get("itemId").get.asInstanceOf[String];
@@ -86,18 +86,18 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerProficiencyInput] = {
-        JobLogger.log("Filtering ME_SESSION_SUMMARY events", className, None, None, None)
+        JobLogger.log("Filtering ME_SESSION_SUMMARY events")
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
 
         val configMapping = sc.broadcast(config);
-        JobLogger.log("Getting game list from ContentAdapter", className, None, None, None)
+        JobLogger.log("Getting game list from ContentAdapter")
         val lpGameList = ContentAdapter.getGameList();
         val gameIds = lpGameList.map { x => x.identifier };
-        JobLogger.log("Preparing Code-Id Map & Id-Subject Map", className, None, None, None)
+        JobLogger.log("Preparing Code-Id Map & Id-Subject Map")
         val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
         val idSubMap: Map[String, String] = lpGameList.map { x => (x.identifier, x.subject) }.toMap;
 
-        JobLogger.log("Finding the items with missing concepts", className, None, None, None)
+        JobLogger.log("Finding the items with missing concepts")
         val itemsWithMissingConcepts = filteredData.map { event =>
             val ir = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemResponses").get.asInstanceOf[List[Map[String, AnyRef]]];
             ir.filter(item => {
@@ -110,7 +110,7 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
         if (itemsWithMissingConcepts.count() > 0) {
 
             val items = itemsWithMissingConcepts.flatMap(f => f.map(x => x)).collect().toMap;
-            JobLogger.log("Items with missing concepts - " + items.size, className, None, None, None)
+            JobLogger.log("Items with missing concepts - " + items.size)
             itemConcepts = items.map { x =>
                 var contentId = "";
                 if (gameIds.contains(x._2)) {
@@ -120,7 +120,7 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
                 }
                 (x._1, ItemAdapter.getItemConceptMaxScore(x._2, x._1, config.getOrElse("apiVersion", "v1").asInstanceOf[String]));
             }.toMap;
-            JobLogger.log("MC fetched from Item Model and broadcasting the data", className, None, None, None)
+            JobLogger.log("MC fetched from Item Model and broadcasting the data")
         }
 
         val itemConceptMapping = sc.broadcast(itemConcepts);
@@ -128,7 +128,7 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
 
-        JobLogger.log("Calculating new Evidences per learner", className, None, None, None)
+        JobLogger.log("Calculating new Evidences per learner")
         val newEvidences = userSessions.mapValues { x =>
             val sortedEvents = x.sortBy { x => x.ets };
             val eventStartTimestamp = sortedEvents(0).syncts;
@@ -155,11 +155,11 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
             itemResponses;
         }.map(x => x._2).flatMap(f => f).map(f => (f._1, Evidence(f._1, f._2, f._3, f._4, f._5), f._6, f._7)).groupBy(f => f._1);
 
-        JobLogger.log("Joining new Evidences with previous learner state", className, None, None, None)
+        JobLogger.log("Joining new Evidences with previous learner state")
         val prevLearnerState = newEvidences.map { x => LearnerId(x._1) }.joinWithCassandraTable[LearnerProficiency](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE).map(f => (f._1.learner_id, f._2))
-        JobLogger.log("Previous learner state may be empty for the learners in new Evidences", className, None, None, None, WARN)
+        JobLogger.log("Previous learner state may be empty for the learners in new Evidences", None, WARN)
         
-        JobLogger.log("Calculating Learner Proficiency", className, None, None, None)
+        JobLogger.log("Calculating Learner Proficiency")
         val joinedRDD = newEvidences.leftOuterJoin(prevLearnerState);
         joinedRDD.map { x => LearnerProficiencyInput(x._1, x._2._1, x._2._2) }
     }
@@ -216,7 +216,7 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
     }
 
     override def postProcess(data: RDD[LearnerProficiency], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        JobLogger.log("Saving data to cassandra", className, None, None, None)
+        JobLogger.log("Saving data to cassandra")
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
         data.map { userProf =>
             val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "CUMULATIVE", DtRange(0L, 0L));

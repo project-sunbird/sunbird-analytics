@@ -9,12 +9,12 @@ import org.ekstep.analytics.framework.util.JobLogger
 
 object ConceptSimilarityUpdaterJob extends optional.Application {
 
-    val className = "org.ekstep.analytics.job.ConceptSimilarityUpdaterJob"
+    implicit val className = "org.ekstep.analytics.job.ConceptSimilarityUpdaterJob"
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobLogger.log("Started executing Job", className, None, None, None)
+        JobLogger.log("Started executing Job")
         JobDriver.run("batch", config, ConceptSimilarityUpdater);
-        JobLogger.log("Job completed.", className, None, None, None)
+        JobLogger.log("Job completed.")
     }
 }

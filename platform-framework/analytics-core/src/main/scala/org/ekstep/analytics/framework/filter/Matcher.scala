@@ -10,7 +10,6 @@ import org.ekstep.analytics.framework.Level._
  */
 object Matcher {
 
-    val className = "org.ekstep.analytics.framework.filter.Matcher"
     @throws(classOf[DataFilterException])
     def getMatcher(op: String): IMatcher = {
         op match {
@@ -23,10 +22,7 @@ object Matcher {
             case "ISNOTEMPTY" => NotEmptyMatcher;
             case "EQ"         => EqualsMatcher;
             case _ =>
-                val msg = "Unknown filter operation found"
-                val exp = new DataFilterException(msg);
-                JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), ERROR)
-                throw exp;
+                throw new DataFilterException("Unknown filter operation found");
         }
     }
 

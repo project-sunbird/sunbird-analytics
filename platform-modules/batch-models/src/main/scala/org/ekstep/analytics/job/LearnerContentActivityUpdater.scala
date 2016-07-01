@@ -10,12 +10,12 @@ import org.ekstep.analytics.framework.IJob
 
 object LearnerContentActivityUpdater extends optional.Application with IJob{
 
-    val className = "org.ekstep.analytics.job.LearnerContentActivityUpdater"
+    implicit val className = "org.ekstep.analytics.job.LearnerContentActivityUpdater"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.log("Started executing Job", className, None, None, None)
+        JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, LearnerContentActivitySummary);
-        JobLogger.log("Job Completed.", className, None, None, None)
+        JobLogger.log("Job Completed.")
     }
 }

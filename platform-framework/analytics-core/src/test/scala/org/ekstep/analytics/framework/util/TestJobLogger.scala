@@ -8,41 +8,42 @@ import org.ekstep.analytics.framework.Level._
 
 class TestJobLogger extends BaseSpec {
 
-    "JobLogger" should "pass test cases for all the methods in JobLogger" in {
-        val jobName = "org.ekstep.analytics.framework.util.TestJobLogger"
-        JobLogger.init(jobName);
+    implicit val className = "org.ekstep.analytics.framework.util.TestJobLogger"
 
-        JobLogger.start("testing start method", jobName, None, Option("START"))
-        JobLogger.log("testing info method", jobName, None, None, None, INFO)
-        JobLogger.log("testing debug method", jobName, None, None, None)
-        JobLogger.log("testing warn method", jobName, None, None, None, WARN)
-        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), ERROR)
-        JobLogger.end("testing end method", jobName, None, None, Option("COMPLETED"), INFO)
-        JobLogger.end("testing end method", jobName, Option(new Exception), None, Option("FAILED"), ERROR)
-        
+    "JobLogger" should "pass test cases for all the methods in JobLogger" in {
+
+        JobLogger.init(className);
+
+        JobLogger.start("testing start method", Option("START"))
+        JobLogger.log("testing info method", None, INFO)
+        JobLogger.log("testing debug method", None, DEBUG)
+        JobLogger.log("testing warn method", None, WARN)
+        JobLogger.log("testing error method", None, ERROR)
+        JobLogger.end("testing end method", "SUCCESS")
+        JobLogger.end("testing end method", "FAILED")
+
     }
-    
+
     it should "cover all cases" in {
-        val jobName = "org.ekstep.analytics.framework.util.TestJobLogger"
-        
+
         val ctx = LogManager.getContext(false).asInstanceOf[LoggerContext];
         val config = ctx.getConfiguration();
         val loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
         loggerConfig.setLevel(Level.ALL);
         ctx.updateLoggers();
 
-        JobLogger.log("testing info method", jobName, None, None, None,INFO);
-        JobLogger.log("testing debug method", jobName,None, None, None, DEBUG);
-        JobLogger.log("testing warn method", jobName, None, None, None, WARN);
-        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), ERROR);
-        
+        JobLogger.log("testing info method", None, INFO);
+        JobLogger.log("testing debug method", None, DEBUG);
+        JobLogger.log("testing warn method", None, WARN);
+        JobLogger.log("testing error method", None, ERROR);
+
         loggerConfig.setLevel(Level.OFF);
         ctx.updateLoggers();
-        JobLogger.log("testing info method", jobName, None, None, None,INFO);
-        JobLogger.log("testing debug method", jobName,None, None, None, DEBUG);
-        JobLogger.log("testing warn method", jobName, None, None, None, WARN);
-        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), ERROR);
-        
+        JobLogger.log("testing info method", None, INFO);
+        JobLogger.log("testing debug method", None, DEBUG);
+        JobLogger.log("testing warn method", None, WARN);
+        JobLogger.log("testing error method", None, ERROR);
+
     }
 
 }

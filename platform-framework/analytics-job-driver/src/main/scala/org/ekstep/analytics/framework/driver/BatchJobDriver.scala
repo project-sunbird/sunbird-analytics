@@ -14,14 +14,14 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.Level.INFO
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author Santhosh
  */
 object BatchJobDriver {
 
-    val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
+    implicit val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
     def process[T, R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         process(config, List(model));
     }
@@ -46,7 +46,16 @@ object BatchJobDriver {
         _setDeviceMapping(config, rdd);
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         models.foreach { model =>
-            _processModel(config, data, model);
+            JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config)));
+            try {
+                val result = _processModel(config, data, model);
+                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("date" -> config.search.queries.get.last.endDate, "events" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
+            } catch {
+                case ex: Exception =>
+                    JobLogger.log(ex.getMessage, None, ERROR);
+                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("date" -> config.search.queries.get.last.endDate)));
+                    ex.printStackTrace();
+            }
         }
     }
 
@@ -60,15 +69,15 @@ object BatchJobDriver {
         }
     }
 
-    private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
-        JobLogger.log("BatchJobDriver:process() - Started processing of " + model.name, className, None, None, None);
-        val result = CommonUtil.time({
+    private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext): (Long, Long) = {
+
+        CommonUtil.time({
             JobContext.jobName = model.name;
             val output = model.execute(data, config.modelParams);
             val count = OutputDispatcher.dispatch(config.output, output);
             JobContext.cleanUpRDDs();
             count;
         })
-        JobLogger.end("The model execution completed and generated the output events", className, None, Option(Map("date" -> config.search.queries.get.last.endDate, "events" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))), Option("COMPLETED"), INFO)
+
     }
 }

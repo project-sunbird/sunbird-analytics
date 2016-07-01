@@ -15,17 +15,17 @@ import scala.collection.mutable.Buffer
 
 object S3Util {
 
-    val className = "org.ekstep.analytics.framework.util.S3Util"
+    implicit val className = "org.ekstep.analytics.framework.util.S3Util"
 
     private val awsCredentials = new AWSCredentials(AppConf.getAwsKey(), AppConf.getAwsSecret());
     private val s3Service = new RestS3Service(awsCredentials);
 
     def upload(bucketName: String, filePath: String, key: String) {
-        JobLogger.log("Uploading file to S3. Bucket", className, None, Option(Map("bucketName" -> bucketName, "FilePath" -> filePath)), None)
+        JobLogger.log("Uploading file to S3. Bucket", Option(Map("bucketName" -> bucketName, "FilePath" -> filePath)))
         val s3Object = new S3Object(new File(filePath));
         s3Object.setKey(key)
         val fileObj = s3Service.putObject(bucketName, s3Object);
-        JobLogger.log("File upload successful", className, None, Option(Map("etag" -> fileObj.getETag)), None)
+        JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
 
     /*
