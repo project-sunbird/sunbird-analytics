@@ -12,3 +12,4 @@ node_modules/
 platform-viz/viz-player
 joblog.log
 platform-api/repository
+platform-modules/batch-models/logs
