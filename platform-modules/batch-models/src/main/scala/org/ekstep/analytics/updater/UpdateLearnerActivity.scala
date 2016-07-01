@@ -56,7 +56,7 @@ object UpdateLearnerActivity extends IBatchModelTemplate[DerivedEvent, DerivedEv
     }
 
     override def postProcess(data: RDD[LearnerSnapshot], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerSnapshot] = {
-        JobLogger.debug("Saving learner snapshot to DB", className)
+        JobLogger.log("Saving learner snapshot to DB", className, None, None, None, "DEBUG")
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_SNAPSHOT_TABLE);
         data
     }

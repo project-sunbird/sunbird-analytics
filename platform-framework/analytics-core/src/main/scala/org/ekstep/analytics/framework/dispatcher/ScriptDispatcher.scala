@@ -19,7 +19,7 @@ object ScriptDispatcher extends IDispatcher {
         if (null == script) {
             val msg = "'script' parameter is required to send output to file"
             val exp = new DispatcherException(msg)
-            JobLogger.error(msg, className, exp, None, "BE_JOB_LOG_PROCESS")
+            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
             throw exp;
         }
         val envParams = config.map(f => f._1 + "=" + f._2.asInstanceOf[String]).toArray;
@@ -43,7 +43,7 @@ object ScriptDispatcher extends IDispatcher {
         if (exitStatus != 0) {
             val msg = "Script exited with non zero status"
             val exp = new DispatcherException(msg)
-            JobLogger.error(msg, className, exp, None, "BE_JOB_LOG_PROCESS")
+            JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
             throw exp;
         }
         outputLines.toArray;

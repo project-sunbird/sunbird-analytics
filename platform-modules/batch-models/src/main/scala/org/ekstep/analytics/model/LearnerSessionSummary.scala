@@ -205,7 +205,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] wit
     }
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
-        JobLogger.debug("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className)
+        JobLogger.log("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT", className, None, None, None, "DEBUG")
         val filteredData = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE")))));
         val gameSessions = getGameSessions(filteredData);
         gameSessions.map { x => SessionSummaryInput(x._1, x._2) }
@@ -215,21 +215,21 @@ object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] wit
 
         val events = data.map { x => x.filteredEvents }.flatMap { x => x }
         val gameList = events.map { x => x.gdata.id }.distinct().collect();
-        JobLogger.debug("Fetching the Content and Item data from Learning Platform", className)
+        JobLogger.log("Fetching the Content and Item data from Learning Platform", className, None, None, None, "DEBUG")
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, "v2");
-        JobLogger.debug("Broadcasting data to all worker nodes", className)
+        JobLogger.log("Broadcasting data to all worker nodes", className, None, None, None, "DEBUG")
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
 
         val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
-        JobLogger.debug("Performing Game Sessionization", className)
+        JobLogger.log("Performing Game Sessionization", className, None, None, None, "DEBUG")
         val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
         val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
-        JobLogger.debug("Calculating Screen Summary", className)
+        JobLogger.log("Calculating Screen Summary", className, None, None, None, "DEBUG")
         val screenerSummary = data.map { x =>
 
             val events = x.filteredEvents
@@ -327,7 +327,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] wit
 
         }.filter(f => (f._2.timeSpent >= 1)).cache(); // Skipping the events, if timeSpent is -ve
 
-        JobLogger.debug("'screenerSummary' joining with LearnerProfile table to get group_user value for each learner", className)
+        JobLogger.log("'screenerSummary' joining with LearnerProfile table to get group_user value for each learner", className, None, None, None, "DEBUG")
         //Joining with LearnerProfile table to add group info
         val groupInfoSummary = screenerSummary.map(f => LearnerId(f._1)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
         val sessionSummary = screenerSummary.leftOuterJoin(groupInfoSummary)

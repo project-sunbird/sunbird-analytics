@@ -25,35 +25,35 @@ object DataFetcher {
         JobLogger.debug("Fetching data", className, Option(Map("query" -> search)))
         if (search.queries.isEmpty) {
             val exp = new DataFetcherException("Data fetch configuration not found")
-            JobLogger.error("Data fetch configuration not found", className, exp, None, "BE_JOB_LOG_PROCESS", Option("FAILED"))
+            JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), "ERROR")
             throw exp;
         }
         val date = search.queries.get.last.endDate
         val keys: Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
-                JobLogger.debug("Fetching the batch data from S3", className)
+                JobLogger.log("Fetching the batch data from S3", className, None, None, None, "DEBUG")
                 S3DataFetcher.getObjectKeys(search.queries.get).toArray;
             case "local" =>
-                JobLogger.debug("Fetching the batch data from Local file", className)
+                JobLogger.log("Fetching the batch data from Local file", className, None, None, None, "DEBUG")
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
             case _ =>
                 val exp = new DataFetcherException("Unknown fetcher type found");
-                JobLogger.error("Unable to fetch data", className, exp, Option(Map("date"->date)), "BE_JOB_LOG_PROCESS", Option("FAILED"))
+                JobLogger.log(exp.getMessage, className, Option(exp), Option(Map("date"->date)), Option("FAILED"), "ERROR")
                 throw exp;
         }
         if (null == keys || keys.length == 0) {
             val exp = new DataFetcherException("No S3/Local Objects found for the qiven queries");
-            JobLogger.error("File is missing", className, exp, Option(Map("date"->date)), "BE_JOB_LOG_PROCESS", Option("FAILED"))
+            JobLogger.log(exp.getMessage, className, Option(exp), Option(Map("date"->date)), Option("FAILED"), "ERROR")
             throw exp
         }
-        JobLogger.debug("Deserializing Input Data", className)
+        JobLogger.log("Deserializing Input Data", className, None, None, None, "DEBUG")
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
                 try {
                     JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
-                        JobLogger.error("Unable to deserialize", className, ex, Option(Map("date"->date)), "BE_JOB_LOG_PROCESS", Option("FAILED"))
+                        JobLogger.log(ex.getMessage, className, Option(ex), Option(Map("date"->date)), Option("FAILED"), "ERROR")
                         null.asInstanceOf[T]
                 }
             }

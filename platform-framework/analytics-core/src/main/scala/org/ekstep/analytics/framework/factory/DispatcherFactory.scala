@@ -34,7 +34,7 @@ object DispatcherFactory {
             case _         =>
                 val msg = "Unknown output dispatcher destination found"
                 val exp = new DispatcherException(msg)
-                JobLogger.error(msg, className, exp, None, "BE_JOB_LOG_PROCESS")
+                JobLogger.log(msg, className, Option(exp), None, Option("FAILED"), "ERROR")
                 throw exp;
         }
     }

@@ -25,7 +25,7 @@ object JobDriver {
         AppConf.init();
         try {
             val jobConfig = JSONUtils.deserialize[JobConfig](config);
-            JobLogger.info("Starting " + t + " job with config", className, Option(jobConfig), "BE_JOB_START", Option("START"))
+            JobLogger.start("Starting " + t + " job with config", className, Option(jobConfig), Option("START"))
             t match {
                 case "batch" =>
                     BatchJobDriver.process[T, R](jobConfig, model);
@@ -33,15 +33,15 @@ object JobDriver {
                     StreamingJobDriver.process(jobConfig);
                 case _ =>
                     val exp = new Exception("Unknown job type")
-                    JobLogger.error(exp.getMessage, className, exp, None, "BE_JOB_LOG")
+                    JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), "ERROR")
                     throw exp
             }
         } catch {
             case e: JsonMappingException =>
-                JobLogger.error(e.getMessage, className, e, None, "BE_JOB_END", Option("FAILED"))
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
                 throw e;
             case e: Exception =>
-                JobLogger.error(e.getMessage, className, e, None, "BE_JOB_END", Option("FAILED"))
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
                 throw e;
         }
     }
@@ -51,7 +51,7 @@ object JobDriver {
         AppConf.init();
         try {
             val jobConfig = JSONUtils.deserialize[JobConfig](config);
-            JobLogger.info("Starting " + t + " jobs with config", className, Option(jobConfig), "BE_JOB_START")
+            JobLogger.start("Starting " + t + " job with config", className, Option(jobConfig), Option("START"))
             t match {
                 case "batch" =>
                     BatchJobDriver.process[T, R](jobConfig, models);
@@ -59,15 +59,15 @@ object JobDriver {
                     StreamingJobDriver.process(jobConfig);
                 case _ =>
                     val exp = new Exception("Unknown job type")
-                    JobLogger.error("Failed Job, JobDriver: main ", className, exp, None, "BE_JOB_LOG")
+                    JobLogger.log(exp.getMessage, className, Option(exp), None, Option("FAILED"), "ERROR")
                     throw exp
             }
         } catch {
             case e: JsonMappingException =>
-                JobLogger.error(e.getMessage, className, e, None, "BE_JOB_END", Option("FAILED"))
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
                 throw e;
             case e: Exception =>
-                JobLogger.error(e.getMessage, className, e, None, "BE_JOB_END", Option("FAILED"))
+                JobLogger.end(e.getMessage, className, Option(e), None, Option("FAILED"), "ERROR")
                 throw e;
         }
     }

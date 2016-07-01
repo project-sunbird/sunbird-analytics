@@ -11,10 +11,13 @@ class TestJobLogger extends BaseSpec {
         val jobName = "org.ekstep.analytics.framework.util.TestJobLogger"
         JobLogger.init(jobName);
 
-        JobLogger.info("testing info method", jobName, None, "BE_JOB_LOG_TEST");
-        JobLogger.debug("testing debug method", jobName);
-        JobLogger.warn("testing warn method", jobName);
-        JobLogger.error("testing error method", jobName, new Exception, None, "BE_JOB_LOG_TEST");
+        JobLogger.start("testing start method", jobName, None, Option("START"))
+        JobLogger.log("testing info method", jobName, None, None, None, "INFO")
+        JobLogger.log("testing debug method", jobName, None, None, None, "DEBUG")
+        JobLogger.log("testing warn method", jobName, None, None, None, "WARN")
+        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR")
+        JobLogger.end("testing end method", jobName, None, None, Option("COMPLETED"), "INFO")
+        JobLogger.end("testing end method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR")
         
     }
     
@@ -27,17 +30,17 @@ class TestJobLogger extends BaseSpec {
         loggerConfig.setLevel(Level.ALL);
         ctx.updateLoggers();
 
-        JobLogger.info("testing info method", jobName, None, "BE_JOB_LOG_TEST");
-        JobLogger.debug("testing debug method", jobName);
-        JobLogger.warn("testing warn method", jobName);
-        JobLogger.error("testing error method", jobName, new Exception, None, "BE_JOB_LOG_TEST");
+        JobLogger.log("testing info method", jobName, None, None, None,"INFO");
+        JobLogger.log("testing debug method", jobName,None, None, None, "DEBUG");
+        JobLogger.log("testing warn method", jobName, None, None, None, "WARN");
+        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR");
         
         loggerConfig.setLevel(Level.OFF);
         ctx.updateLoggers();
-        JobLogger.info("testing info method", jobName, None, "BE_JOB_LOG_TEST");
-        JobLogger.debug("testing debug method", jobName);
-        JobLogger.warn("testing warn method", jobName);
-        JobLogger.error("testing error method", jobName, new Exception, None, "BE_JOB_LOG_TEST");
+        JobLogger.log("testing info method", jobName, None, None, None,"INFO");
+        JobLogger.log("testing debug method", jobName,None, None, None, "DEBUG");
+        JobLogger.log("testing warn method", jobName, None, None, None, "WARN");
+        JobLogger.log("testing error method", jobName, Option(new Exception), None, Option("FAILED"), "ERROR");
         
     }
 
