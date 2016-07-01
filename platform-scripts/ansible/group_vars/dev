@@ -49,3 +49,6 @@ jobs:
   lcas:
     hour: 1
     minute: 57
+  cuu:
+    hour: 2
+    minute: 10
