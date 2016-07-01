@@ -29,7 +29,7 @@
     - always
 
 - name: Add aws keys to user profile
-  lineinfile: dest=.bash_profile line='aws_key={{ lookup('env','lpa_aws_key') }}'  state=present insertafter=EOF create=yes
+  lineinfile: dest=.bash_profile line='aws_secret={{ lookup('env','lpa_aws_secret') }}'  state=present insertafter=EOF create=yes
   tags:
     - always  
 
