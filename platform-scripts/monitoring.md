@@ -1,9 +1,14 @@
 ## Instances ##
 
-### Sandbox ###
+### Dev ###
 
 1. Secor - 54.179.138.122
-2. Spark - 52.77.223.20
+2. Spark - 54.169.228.223
+
+### QA ###
+
+1. Secor - 54.169.51.61
+2. Spark - 54.254.152.135
 
 ### Prod ###
 
@@ -15,105 +20,109 @@
 
 ## Services ##
 
-### Sandbox ###
+All the processes are servicified and follow a common calling mechanism
 
-**1) Secor raw telemetry sync process**
+```sh 
+# Check if the service is running
+<service> status
 
-Process running on - 54.179.138.122
+# Returns
+# Checking <service> ...                            [ RUNNING ]
+# Checking <service> ...                            [ STOPPED ]
+# Checking <service> ...   Process dead but pidfile exists
+
+# Stop service
+<service> stop
+
+# Returns
+# Shutting down  <service> ...                       [ OK ]
+# Shutting down  <service> ...                       [ FAIL ]
+# Shutting down  <service> ...                       [ NOT RUNNING ]
+
+# Start service
+<service> start
+
+# Returns
+# Starting <service> ...                            [ OK ]
+# Starting <service> ...                            [ FAIL ]
+# Process dead but pidfile exists
+# <service> is already running!
+
+# Restart service
+<service> start
+
+# Returns
+# Shutting down  <service> ...                      [ OK | FAIL | NOT RUNNING ]
+# Starting <service> ...                            [ OK | FAIL ]
+```
+
+### Secor ###
+
+**1) Secor raw telemetry sync**
 
 ```sh 
 # Check if the process is running
-ps -ef | grep secor-raw | grep -v grep
+/home/ec2-user/sbin/secor-raw status
 
-# Command to kill
-kill pid
+# Stop Process
+/home/ec2-user/sbin/secor-raw stop
 
-# Command to start the process
-nohup java -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.sandbox.properties -Dconfig=secor.sandbox.partition.properties -cp secor-raw/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
+# Start Process
+/home/ec2-user/sbin/secor-raw start
+
+# ReStart Process
+/home/ec2-user/sbin/secor-raw restart
 ```
 
 **2) Secor derived telemetry sync process**
 
-Process running on - 54.179.138.122
-
 ```sh 
 # Check if the process is running
-ps -ef | grep secor-me | grep -v grep
+/home/ec2-user/sbin/secor-me status
 
-# Command to kill
-kill pid
+# Stop Process
+/home/ec2-user/sbin/secor-me stop
 
-# Command to start the process
-nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.sandbox.properties -Dconfig=secor.sandbox.partition.properties -cp secor-me/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
+# Start Process
+/home/ec2-user/sbin/secor-me start
+
+# ReStart Process
+/home/ec2-user/sbin/secor-me restart
 ```
 
-**3) Cassandra Process**
-
-Process running on - 52.77.223.20
+**3) Cassandra Process - Dev/QA**
 
 ```sh 
 # Check if the process is running
-ps -ef | grep cassandra | grep -v grep
+/home/ec2-user/sbin/cassandra-service status
 
-# Command to kill
-kill pid
+# Stop Process
+/home/ec2-user/sbin/cassandra-service stop
 
-# Command to start the process
-$CASSANDRA_HOME/bin/cassandra &
+# Start Process
+/home/ec2-user/sbin/cassandra-service start
+
+# ReStart Process
+/home/ec2-user/sbin/cassandra-service restart
 ```
 
 **4) Analytics API**
 
-Process running on - 52.77.223.20
-
-```sh 
-# Get the process id
-pid=`cat /mnt/data/analytics/api/analytics-api-1.0/RUNNING_PID`
-
-# Check if the process is running
-ps pid
-
-# Command to kill
-kill pid
-
-# Command to start the process
-cd /mnt/data/analytics/api/analytics-api-1.0 
-nohup ./start &
-```
-
-### Prod ###
-
-**1) Secor raw telemetry sync process**
-
-Process running on - 52.77.212.151
-
 ```sh 
 # Check if the process is running
-ps -ef | grep secor-raw | grep -v grep
+/home/ec2-user/sbin/api-service status
 
-# Command to kill
-kill pid
+# Stop Process
+/home/ec2-user/sbin/api-service stop
 
-# Command to start the process
-nohup java -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.sandbox.properties -Dconfig=secor.sandbox.partition.properties -cp secor-raw/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
+# Start Process
+/home/ec2-user/sbin/api-service start
+
+# ReStart Process
+/home/ec2-user/sbin/api-service restart
 ```
 
-**2) Secor derived telemetry sync process**
-
-Process running on - 52.77.212.151
-
-```sh 
-# Check if the process is running
-ps -ef | grep secor-me | grep -v grep
-
-# Command to kill
-kill pid
-
-# Command to start the process
-nohup java -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.sandbox.properties -Dconfig=secor.sandbox.partition.properties -cp secor-me/secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain &
-```
-
-**3) Cassandra Process**
+**5) Cassandra Process - Prod**
 
 Process running on - 54.169.179.102
 
@@ -126,23 +135,4 @@ sudo service cassandra stop
 
 # Command to start the process
 sudo service cassandra start
-```
-
-**4) Analytics API**
-
-Process running on - 54.169.146.32
-
-```sh 
-# Get the process id
-pid=`cat /mnt/data/analytics/api/analytics-api-1.0/RUNNING_PID`
-
-# Check if the process is running
-ps pid
-
-# Command to kill
-kill pid
-
-# Command to start the process
-cd /mnt/data/analytics/api/analytics-api-1.0 
-nohup ./start &
 ```
