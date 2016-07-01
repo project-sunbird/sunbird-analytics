@@ -24,7 +24,8 @@ readJsonLineStreams <- function(filename)
 }
 setwd("/Users/soma/github/ekStep/Learning-Platform-Analytics/platform-scripts/Takeoff")
 cat(' Reading Json Stream ....\n')
-df <- stream_in(file("DeltaDumpLadakhMay.txt","r"))
+#df <- stream_in(file("DeltaDumpLadakhMay.txt","r"))
+df <- stream_in(file("DeltaDump2016tillApril.txt","r"))
 cat(' Done reading JSON Sream\n')
 cat(' Read',length(df$uid),' events \n')
 
@@ -39,9 +40,7 @@ filterTags <- function(tmp)
     }
   return (flag)
 }
-ind = lapply(df$tags,FUN=function(tmp) {flag=FALSE; if(length(tmp)!=0) {flag = (tmp==tags)} return tmp} )
-ind = lapply(df$tags,function(tmp) ,simplify=TRUE)
-ind = which
 
+length(unique(df$uid))
 
 
