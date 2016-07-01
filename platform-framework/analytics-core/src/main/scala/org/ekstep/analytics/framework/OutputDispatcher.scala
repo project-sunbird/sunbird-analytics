@@ -18,7 +18,7 @@ object OutputDispatcher {
 
     val className = "org.ekstep.analytics.framework.OutputDispatcher"
     @throws(classOf[DispatcherException])
-    def dispatch[T](outputs: Option[Array[Dispatcher]], events: RDD[T]) = {
+    def dispatch[T](outputs: Option[Array[Dispatcher]], events: RDD[T]) : Long = {
         if (outputs.isEmpty) {
             throw new DispatcherException("No output configurations found");
         }
@@ -30,8 +30,8 @@ object OutputDispatcher {
             }
         } else {
             JobLogger.debug("No events produced for dispatch", className);
-            null;
         }
+        eventArr.length;
 
     }
 

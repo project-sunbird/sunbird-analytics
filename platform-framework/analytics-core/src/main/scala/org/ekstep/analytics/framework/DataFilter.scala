@@ -22,7 +22,7 @@ object DataFilter {
     val className = "org.ekstep.analytics.framework.DataFilter"
     @throws(classOf[DataFilterException])
     def filterAndSort[T](events: RDD[T], filters: Option[Array[Filter]], sort: Option[Sort]): RDD[T] = {
-        JobLogger.debug("Running the filter and sort process", className)
+        JobLogger.debug("Running the filter and sort process", className, Option(Map("filter" -> filters, "sort" -> sort)))
         val filteredEvents = if (filters.nonEmpty) { filter(events, filters.get) } else events;
         if (sort.nonEmpty) { sortBy(filteredEvents, sort.get) } else filteredEvents;
     }

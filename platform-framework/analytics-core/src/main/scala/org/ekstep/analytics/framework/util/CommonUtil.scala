@@ -49,7 +49,7 @@ object CommonUtil {
     @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZoneUTC();
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZoneUTC();
-    
+
     def getParallelization(config: JobConfig): Int = {
 
         val defParallelization = AppConf.getConfig("default.parallelization").toInt;
@@ -167,7 +167,7 @@ object CommonUtil {
             df3.parseLocalDate(event.ts).toDate;
         } catch {
             case _: Exception =>
-                JobLogger.debug("Invalid event time", className, Option(Map("ts"-> event.ts)));
+                JobLogger.debug("Invalid event time", className, Option(Map("ts" -> event.ts)));
                 null;
         }
     }
@@ -344,5 +344,12 @@ object CommonUtil {
             (year + "7" + weekOfWeekyear).toInt
         }
     }
-    
+
+    def time[R](block: => R): (Long, R) = {
+        val t0 = System.currentTimeMillis()
+        val result = block // call-by-name
+        val t1 = System.currentTimeMillis()
+        ((t1 - t0), result)
+    }
+
 }

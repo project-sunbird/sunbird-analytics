@@ -47,6 +47,8 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
 object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, SessionSummaryInput, SessionSummaryOutput, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.LearnerSessionSummary"
+    
+    override def name() : String = "LearnerSessionSummarizer";
 
     /**
      * Get item from broadcast item mapping variable
