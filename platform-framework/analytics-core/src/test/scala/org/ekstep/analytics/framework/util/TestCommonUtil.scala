@@ -45,7 +45,7 @@ class TestCommonUtil extends BaseSpec {
         //getAge
         val dateformat = new SimpleDateFormat("dd/MM/yyyy");
         val dob = dateformat.parse("04/07/1990");
-        CommonUtil.getAge(dob) should be(25)
+        CommonUtil.getAge(dob) should be > (25)
 
         //getDatesBetween
         CommonUtil.getDatesBetween("2016-01-01", Option("2016-01-04")) should be(Array("2016-01-01", "2016-01-02", "2016-01-03", "2016-01-04"))
@@ -141,15 +141,20 @@ class TestCommonUtil extends BaseSpec {
         
         CommonUtil.getMessageId("ME_TEST", "123", "MONTH", 1451650400000L) should be ("95A1A252B816DAAAAE2A3E986FC91ABB");
         
-        CommonUtil.getWeeksBetween(1451650400000L, 1454650400000L) should be (5)
-        CommonUtil.getPeriod(1451650400000L, DAY) should be (20160101)
-        CommonUtil.getPeriod(1451650400000L, WEEK) should be (2015753)
-        CommonUtil.getPeriod(1452250748000L, WEEK) should be (2016701)
-        CommonUtil.getPeriod(1451650400000L, MONTH) should be (201601)
-        CommonUtil.getPeriod(1451650400000L, CUMULATIVE) should be (0)
-        CommonUtil.getPeriod(1451650400000L, LAST7) should be (7)
-        CommonUtil.getPeriod(1451650400000L, LAST30) should be (30)
-        CommonUtil.getPeriod(1451650400000L, LAST90) should be (90)
+        val res = CommonUtil.time({
+            
+            CommonUtil.getWeeksBetween(1451650400000L, 1454650400000L) should be (5)
+            CommonUtil.getPeriod(1451650400000L, DAY) should be (20160101)
+            CommonUtil.getPeriod(1451650400000L, WEEK) should be (2015753)
+            CommonUtil.getPeriod(1452250748000L, WEEK) should be (2016701)
+            CommonUtil.getPeriod(1451650400000L, MONTH) should be (201601)
+            CommonUtil.getPeriod(1451650400000L, CUMULATIVE) should be (0)
+            CommonUtil.getPeriod(1451650400000L, LAST7) should be (7)
+            CommonUtil.getPeriod(1451650400000L, LAST30) should be (30)
+            CommonUtil.getPeriod(1451650400000L, LAST90) should be (90)
+        
+        })
+        res._1 should be > (0L)
         
         CommonUtil.daysBetween(new DateTime(1451650400000L).toLocalDate(), new DateTime(1454650400000L).toLocalDate()) should be (35);
         } catch {

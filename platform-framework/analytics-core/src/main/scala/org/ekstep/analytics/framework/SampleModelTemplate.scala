@@ -24,5 +24,7 @@ object SampleModelTemplate extends IBatchModelTemplate[Event, Event, SampleAlgoO
     override def postProcess(data: RDD[SampleAlgoOut], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SampleAlgoOut] = {
         data
     }
+    
+    override def name() : String = "SampleModelTemplate"
 
 }
