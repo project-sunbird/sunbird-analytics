@@ -12,6 +12,12 @@ api_args:
 bucket: sandbox-data-store
 brokerlist: 172.31.1.92:9092
 topic: sandbox.telemetry.derived
+spark:
+  home: /home/ec2-user/spark-1.5.2-bin-hadoop2.3
+  driver_memory: 3g
+  executor_extraJavaOptions: -Denv=dev
+  driver_extraJavaOptions: -Denv=dev
+  executor_memory: 2g
 jobs:
   lpu:
     hour: 1

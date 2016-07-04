@@ -12,6 +12,12 @@ api_args:
 bucket: qa-data-store
 brokerlist: 172.31.1.92:9092
 topic: new-qa.telemetry.derived
+spark:
+  home: /home/ec2-user/spark-1.5.2-bin-hadoop2.3
+  driver_memory: 3g
+  executor_extraJavaOptions: -Denv=qa
+  driver_extraJavaOptions: -Denv=qa
+  executor_memory: 2g
 jobs:
   lpu:
     hour: 1
