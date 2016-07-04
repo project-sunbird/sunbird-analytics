@@ -5,7 +5,7 @@
     description: Secor raw telemetry sync service
     script_name: secor-raw
     script_dir: "{{ sbin_path }}"
-    grep_key: secor-raw
+    grep_key: /home/ec2-user/secor-raw/secor-0.2-SNAPSHOT.jar
     process: java
     process_args: -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.{{ env }}.properties -Dconfig=secor.{{ env }}.partition.properties -cp {{ secor_raw_home }}/secor-0.2-SNAPSHOT.jar:{{ secor_raw_home }}/lib/* com.pinterest.secor.main.ConsumerMain
   template: src=servicify-process.j2 dest={{ script_dir }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
@@ -17,7 +17,7 @@
     description: Secor derived telemetry sync service
     script_name: secor-me
     script_dir: "{{ sbin_path }}"
-    grep_key: secor-me
+    grep_key: /home/ec2-user/secor-me/secor-0.2-SNAPSHOT.jar
     process: java
     process_args: -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.{{ env }}.properties -Dconfig=secor.{{ env }}.partition.properties -cp {{ secor_me_home }}/secor-0.2-SNAPSHOT.jar:{{ secor_me_home }}/lib/* com.pinterest.secor.main.ConsumerMain
   template: src=servicify-process.j2 dest={{ script_dir }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
@@ -29,7 +29,7 @@
     description: Cassandra service
     script_name: cassandra-service
     script_dir: "{{ sbin_path }}"
-    grep_key: cassandra
+    grep_key: org.apache.cassandra.service.CassandraDaemon
     process: "{{ cassandra_home }}/bin/cassandra"
     process_args: 
   template: src=servicify-process.j2 dest={{ sbin_path }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
