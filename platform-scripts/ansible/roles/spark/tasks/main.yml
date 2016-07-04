@@ -1,11 +1,11 @@
 ---
 - name: Download Apache Spark
-  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-1.5.2/spark-1.5.2-bin-hadoop2.3.tgz dest=/home/ec2-user/spark-1.5.2-bin-hadoop2.3.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
+  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-1.5.2/spark-1.5.2-bin-hadoop2.3.tgz dest={{ user_home }}/spark-1.5.2-bin-hadoop2.3.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
   tags:
     - analytics
 
 - name: Unarchive Spark
-  unarchive: src=/home/ec2-user/spark-1.5.2-bin-hadoop2.3.tgz dest=/home/ec2-user/ copy=no group=ec2-user owner=ec2-user creates=/home/ec2-user/spark-1.5.2-bin-hadoop2.3
+  unarchive: src={{ user_home }}/spark-1.5.2-bin-hadoop2.3.tgz dest={{ user_home }}/ copy=no group=ec2-user owner=ec2-user creates={{ user_home }}/spark-1.5.2-bin-hadoop2.3
   tags:
     - analytics
 

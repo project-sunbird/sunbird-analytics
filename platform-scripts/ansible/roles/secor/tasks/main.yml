@@ -2,7 +2,7 @@
 # tasks file for copy
 
 - name: Copy the secor artifact
-  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/secor owner=ec2-user group=ec2-user
+  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ secor.artifact_dir }} owner=ec2-user group=ec2-user
   tags:
     - always
 
@@ -21,7 +21,7 @@
     - secor-me
 
 - name: Unarchive secor-me artifact
-  unarchive: src=/mnt/secor/secor-0.2-SNAPSHOT-bin.tar.gz dest={{ secor_me_home }} copy=no group=ec2-user owner=ec2-user
+  unarchive: src={{ secor.artifact_dir }}/secor-0.2-SNAPSHOT-bin.tar.gz dest={{ secor.me_home }} copy=no group=ec2-user owner=ec2-user
   tags:
     - secor-me
 
@@ -47,7 +47,7 @@
     - secor-raw
 
 - name: Unarchive secor-raw artifact
-  unarchive: src=/mnt/secor/secor-0.2-SNAPSHOT-bin.tar.gz dest={{ secor_raw_home }} copy=no group=ec2-user owner=ec2-user
+  unarchive: src={{ secor.artifact_dir }}/secor-0.2-SNAPSHOT-bin.tar.gz dest={{ secor.raw_home }} copy=no group=ec2-user owner=ec2-user
   tags:
     - secor-raw
 

@@ -1,13 +1,20 @@
 env: prod
 cassandra_user: ubuntu
-sbin_path: /home/ec2-user/sbin
-analytics_home: /mnt/data/analytics
-cassandra_home: /mnt/data/analytics/apache-cassandra-2.2.6
-cql_path: cqlsh
-api_root: /mnt/data/analytics/api
-api_home: /mnt/data/analytics/api/analytics-api-1.0
-secor_raw_home: /home/ec2-user/secor-raw
-secor_me_home: /home/ec2-user/secor-me
+user_home: /home/ec2-user
+sbin_path: {{ user_home }}/sbin
+analytics:
+  home: /mnt/data/analytics
+  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports']
+  scripts: ['model-config.j2', 'replay-job.j2', 'replay-updater.j2', 'replay-utils.j2', 'run-job.j2']
+cassandra_home: {{ analytics.home }}/apache-cassandra-2.2.6
+cql_path: {{ analytics.home }}/apache-cassandra-2.2.6/bin/cqlsh
+api_root: {{ analytics.home }}/api
+api_home: {{ analytics.home }}/api/analytics-api-1.0
+secor:
+  artifact_dir: /mnt/secor
+  raw_home: {{ user_home }}/secor-raw
+  me_home: {{ user_home }}/secor-me
+  paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor-raw', '/mnt/secor-me', '/home/ec2-user/secor-raw', '/home/ec2-user/secor-me']
 api_args: -Dconfig.resource=prod.conf
 bucket: prod-data-store
 brokerlist: 10.10.1.207:9092

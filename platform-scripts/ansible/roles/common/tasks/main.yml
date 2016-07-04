@@ -34,67 +34,21 @@
     - always  
 
 - name: Create sbin directory to store services
-  file: path=/home/ec2-user/sbin owner=ec2-user group=ec2-user state=directory
+  file: path={{ sbin_path }} owner=ec2-user group=ec2-user state=directory
   tags:
     - always
 
-- name: Create directory for analytics
+- name: Create directories for analytics
   become: yes
-  file: path=/mnt/data/analytics owner=ec2-user group=ec2-user state=directory
+  file: path={{ item }} owner=ec2-user group=ec2-user state=directory
+  with_items: "{{ analytics.paths }}"
   tags:
     - api
     - analytics
 
-- name: Create api directory
-  file: path=/mnt/data/analytics/api state=directory
-  tags:
-    - api
-
-- name: Create models directory
-  file: path=/mnt/data/analytics/models state=directory
-  tags:
-    - analytics
-
-- name: Create scripts directory
-  file: path=/mnt/data/analytics/scripts/logs state=directory
-  tags:
-    - analytics
-
-- name: Create reports directory
-  file: path=/mnt/data/analytics/reports state=directory
-  tags:
-    - analytics
-    - api
-
-- name: Create secor directory
+- name: Create secor directories
   become: yes
-  file: path=/mnt/secor owner=ec2-user group=ec2-user state=directory
-  tags:
-    - secor
-
-- name: Create secor reports directory
-  file: path=/mnt/secor/reports owner=ec2-user group=ec2-user state=directory
-  tags:
-    - secor    
-
-- name: Create secor-raw data directory
-  become: yes
-  file: path=/mnt/secor-raw owner=ec2-user group=ec2-user state=directory
-  tags:
-    - secor
-
-- name: Create secor-me data directory
-  become: yes
-  file: path=/mnt/secor-me owner=ec2-user group=ec2-user state=directory
-  tags:
-    - secor
-
-- name: Create secor-raw directory
-  file: path=/home/ec2-user/secor-raw owner=ec2-user group=ec2-user state=directory
-  tags:
-    - secor
-
-- name: Create secor-me directory
-  file: path=/home/ec2-user/secor-me owner=ec2-user group=ec2-user state=directory
+  file: path={{ item }} owner=ec2-user group=ec2-user state=directory
+  with_items: "{{ secor.paths }}"
   tags:
     - secor
