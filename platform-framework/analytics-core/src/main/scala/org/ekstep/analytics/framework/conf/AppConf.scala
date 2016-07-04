@@ -45,7 +45,7 @@ object AppConf {
     }
 
     def getConfigKey(): String = {
-        val env = sys.props.getOrElse("env", "DEV");
+        val env = sys.props.getOrElse("env", "LOCAL");
         "/" + env.toLowerCase() + ".config.properties";
     }
 

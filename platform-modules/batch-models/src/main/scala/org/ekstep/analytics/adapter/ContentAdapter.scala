@@ -1,10 +1,11 @@
-package org.ekstep.analytics.framework.adapter
+package org.ekstep.analytics.adapter
 
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.RestUtil
-import org.ekstep.analytics.framework.util.Constants
 import org.ekstep.analytics.framework.exception.DataAdapterException
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.exception.DataAdapterException
+import org.ekstep.analytics.util.Constants
 
 /**
  * @author Santhosh
@@ -13,17 +14,6 @@ object ContentAdapter extends BaseAdapter {
     
     val relations = Array("concepts", "tags");
 
-    @throws(classOf[DataAdapterException])
-    def getGameList(): Array[Game] = {
-        val cr = RestUtil.post[Response](Constants.getGameList, "{\"request\": {}}");
-        checkResponse(cr);
-        val games = cr.result.games.get;
-        games.map(f => {
-            Game(f.get("identifier").get.asInstanceOf[String], f.get("code").get.asInstanceOf[String],
-                f.get("subject").get.asInstanceOf[String], f.get("objectType").get.asInstanceOf[String])
-        });
-    }
-    
     def getAllContent(): Array[Content] = {
         val cr = RestUtil.get[Response](Constants.getContentList);
         checkResponse(cr);
@@ -38,7 +28,7 @@ object ContentAdapter extends BaseAdapter {
         Content(content.get("identifier").get.asInstanceOf[String], content.filterNot(p => relations.contains(p._1)), CommonUtil.getTags(content), mc);
     }
     
-    def getContentItems(contentId: String, apiVersion: String = "v1") : Array[Item] = {
+    def getContentItems(contentId: String, apiVersion: String = "v2") : Array[Item] = {
         val cr = RestUtil.get[Response](Constants.getContentItems(apiVersion, contentId));
         checkResponse(cr);
         val items = cr.result.items.getOrElse(null);

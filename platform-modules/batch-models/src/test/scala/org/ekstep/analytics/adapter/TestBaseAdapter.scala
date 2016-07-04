@@ -1,6 +1,6 @@
-package org.ekstep.analytics.framework.adapter
+package org.ekstep.analytics.adapter
 
-import org.ekstep.analytics.framework.BaseSpec
+import org.ekstep.analytics.model.BaseSpec
 import org.ekstep.analytics.framework.Response
 import org.ekstep.analytics.framework.exception.DataAdapterException
 import org.ekstep.analytics.framework.DomainResponse

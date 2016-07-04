@@ -8,7 +8,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.adapter._
+import org.ekstep.analytics.adapter._
 import org.ekstep.analytics.framework.util._
 import java.security.MessageDigest
 import org.apache.log4j.Logger

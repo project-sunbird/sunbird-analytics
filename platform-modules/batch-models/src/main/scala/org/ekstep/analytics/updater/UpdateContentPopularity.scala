@@ -36,7 +36,7 @@ object UpdateContentPopularity extends IBatchModelTemplate[DerivedEvent, Popular
 
     override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutut] = {
         data.map { x =>
-            val url = org.ekstep.analytics.framework.util.Constants.getContentUpdateAPIUrl(x.contentId);
+            val url = Constants.getContentUpdateAPIUrl(x.contentId);
             val request = Map("request" -> Map("content" -> Map("popularity" -> x.contentSummary.total_num_sessions)));
             val r = RestUtil.patch[Response](url, JSONUtils.serialize(request));
             PopularityUpdaterOutut(x.contentId, x.contentSummary.total_num_sessions, r.responseCode, r.params.errmsg)

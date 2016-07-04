@@ -5,7 +5,7 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.Filter
 import com.datastax.spark.connector._
-import org.ekstep.analytics.framework.adapter.ContentAdapter
+import org.ekstep.analytics.adapter.ContentAdapter
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.JobContext
 import org.apache.spark.HashPartitioner
@@ -14,7 +14,7 @@ import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.updater.LearnerContentActivity
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.updater.ConceptSimilarity
-import org.ekstep.analytics.framework.adapter.DomainAdapter
+import org.ekstep.analytics.adapter.DomainAdapter
 import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.Dimensions

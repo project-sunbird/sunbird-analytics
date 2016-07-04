@@ -1,13 +1,12 @@
-package org.ekstep.analytics.framework.adapter
+package org.ekstep.analytics.adapter
 
 import org.ekstep.analytics.framework.DomainMap
 import org.ekstep.analytics.framework.util.RestUtil
-import org.ekstep.analytics.framework.util.Constants
-import org.ekstep.analytics.framework.exception.DataAdapterException
 import org.ekstep.analytics.framework.DomainResponse
 import org.ekstep.analytics.framework.DomainMap
 import org.ekstep.analytics.framework.Concept
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.util.Constants
 
 /**
  * @author Santhosh

@@ -18,8 +18,8 @@ import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.adapter.ContentAdapter
-import org.ekstep.analytics.framework.adapter.ItemAdapter
+import org.ekstep.analytics.adapter.ContentAdapter
+import org.ekstep.analytics.adapter.ItemAdapter
 import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.CommonUtil
@@ -91,11 +91,6 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
 
         val configMapping = sc.broadcast(config);
         JobLogger.log("Getting game list from ContentAdapter")
-        val lpGameList = ContentAdapter.getGameList();
-        val gameIds = lpGameList.map { x => x.identifier };
-        JobLogger.log("Preparing Code-Id Map & Id-Subject Map")
-        val codeIdMap: Map[String, String] = lpGameList.map { x => (x.code, x.identifier) }.toMap;
-        val idSubMap: Map[String, String] = lpGameList.map { x => (x.identifier, x.subject) }.toMap;
 
         JobLogger.log("Finding the items with missing concepts")
         val itemsWithMissingConcepts = filteredData.map { event =>
@@ -112,13 +107,7 @@ object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, Learn
             val items = itemsWithMissingConcepts.flatMap(f => f.map(x => x)).collect().toMap;
             JobLogger.log("Items with missing concepts - " + items.size)
             itemConcepts = items.map { x =>
-                var contentId = "";
-                if (gameIds.contains(x._2)) {
-                    contentId = x._2;
-                } else if (codeIdMap.contains(x._2)) {
-                    contentId = codeIdMap.get(x._2).get;
-                }
-                (x._1, ItemAdapter.getItemConceptMaxScore(x._2, x._1, config.getOrElse("apiVersion", "v1").asInstanceOf[String]));
+                (x._1, ItemAdapter.getItemConceptMaxScore(x._2, x._1, config.getOrElse("apiVersion", "v2").asInstanceOf[String]));
             }.toMap;
             JobLogger.log("MC fetched from Item Model and broadcasting the data")
         }
