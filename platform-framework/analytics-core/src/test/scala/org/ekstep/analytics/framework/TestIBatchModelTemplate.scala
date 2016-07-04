@@ -6,6 +6,7 @@ class TestIBatchModelTemplate extends SparkSpec {
 
         val rdd = SampleModelTemplate.execute(events, None);
         rdd.count should be(7);
+        SampleModelTemplate.name() should be ("SampleModelTemplate")
 
     }
 }

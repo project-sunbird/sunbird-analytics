@@ -12,6 +12,7 @@ class TestSessionBatchModel extends SparkSpec {
         
         val rdd = SampleModel.execute(events, None);
         rdd.count should be (134);
+        SampleModel.name() should be ("BatchModel")
         
     }
     it should "group data by device Id for GenieLaunchSummary" in {
