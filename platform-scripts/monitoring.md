@@ -2,19 +2,19 @@
 
 ### Dev ###
 
-1. Secor - 54.179.138.122
-2. Spark - 54.169.228.223
+1. Secor - 54.179.138.122 - (secor-raw & secor-me)
+2. Spark - 54.169.228.223 - (cassandra-service & api-service)
 
 ### QA ###
 
-1. Secor - 54.169.51.61
-2. Spark - 54.254.152.135
+1. Secor - 54.169.51.61 - (secor-raw & secor-me)
+2. Spark - 54.254.152.135 - (cassandra-service & api-service)
 
 ### Prod ###
 
-1. Secor - 52.77.212.151
-2. Spark - 54.169.146.32
-3. Cassandra - 54.169.179.102
+1. Secor - 52.77.212.151 - (secor-raw & secor-me)
+2. Spark - 54.169.146.32 - (api-service)
+3. Cassandra - 54.169.179.102 - (cassandra-service)
 
 ***
 
