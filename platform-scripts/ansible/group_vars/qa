@@ -1,26 +1,26 @@
 env: qa
 cassandra_user: ec2-user
 user_home: /home/ec2-user
-sbin_path: {{ user_home }}/sbin
+sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
   paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports']
   scripts: ['model-config.j2', 'replay-job.j2', 'replay-updater.j2', 'replay-utils.j2', 'run-job.j2']
-cassandra_home: {{ analytics.home }}/apache-cassandra-2.2.6
-cql_path: {{ analytics.home }}/apache-cassandra-2.2.6/bin/cqlsh
-api_root: {{ analytics.home }}/api
-api_home: {{ analytics.home }}/api/analytics-api-1.0
+cassandra_home: "{{ analytics.home }}/apache-cassandra-2.2.6"
+cql_path: "{{ analytics.home }}/apache-cassandra-2.2.6/bin/cqlsh"
+api_root: "{{ analytics.home }}/api"
+api_home: "{{ analytics.home }}/api/analytics-api-1.0"
 secor:
   artifact_dir: /mnt/secor
-  raw_home: {{ user_home }}/secor-raw
-  me_home: {{ user_home }}/secor-me
+  raw_home: "{{ user_home }}/secor-raw"
+  me_home: "{{ user_home }}/secor-me"
   paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor-raw', '/mnt/secor-me', '/home/ec2-user/secor-raw', '/home/ec2-user/secor-me']
 api_args: 
 bucket: qa-data-store
 brokerlist: 172.31.1.92:9092
 topic: new-qa.telemetry.derived
 spark:
-  home: /home/ec2-user/spark-1.5.2-bin-hadoop2.3
+  home: "{{ user_home }}/spark-1.5.2-bin-hadoop2.3"
   driver_memory: 3g
   executor_extraJavaOptions: -Denv=qa
   driver_extraJavaOptions: -Denv=qa
