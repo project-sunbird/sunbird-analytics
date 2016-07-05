@@ -156,6 +156,15 @@ class TestCommonUtil extends BaseSpec {
         })
         res._1 should be > (0L)
         
+        //getTags
+        val metaData1 = Map("tags" -> List("test", "QA"), "activation_keys" -> "ptm007")
+        val tags1 = CommonUtil.getTags(metaData1).get
+        tags1.length should be (2)
+        
+        val metaData2 = Map("activation_keys" -> "ptm007")
+        val tags2 = CommonUtil.getTags(metaData2).get
+        tags2.length should be (0)
+        
         CommonUtil.daysBetween(new DateTime(1451650400000L).toLocalDate(), new DateTime(1454650400000L).toLocalDate()) should be (35);
         } catch {
             case ex: Exception => ex.printStackTrace();
