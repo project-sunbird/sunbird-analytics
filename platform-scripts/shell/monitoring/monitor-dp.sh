@@ -5,14 +5,13 @@ log_file=$1
 
 
 total_jobs=`grep "BE_JOB_END" $log_file`
-comp_jobs=`grep "status\":\"COMPLETED" <<< "$total_jobs"`
+comp_jobs=`grep "status\":\"SUCCESS" <<< "$total_jobs"`
 failed_jobs=`grep "status\":\"FAILED" <<< "$total_jobs"`
-
-comp_num=`echo "$comp_jobs" | wc -l | bc`
-failed_num=`echo "$failed_jobs" | wc -l | bc`
 
 today=$(date "+%Y-%m-%d")
 
+comp_num=0
+failed_num=0
 total_events=0
 total_time=0
 
@@ -20,6 +19,7 @@ file_content="Model,Job Status,Events Count,Time Taken(in Seconds),Date,Message\
 job_status="COMPLETED"
 
 if [ "$comp_jobs" != "" ]; then
+	comp_num=`echo "$comp_jobs" | wc -l | bc`
 	while read -r line
 	do	
 	    model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g" | sed -e "s/org.ekstep.analytics.updater.//g"`
@@ -42,6 +42,7 @@ job_status="FAILED"
 event_date=""
 
 if [ "$failed_jobs" != "" ]; then
+	failed_num=`echo "$failed_jobs" | wc -l | bc`
 	while read -r line
 	do
 		model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g" | sed -e "s/org.ekstep.analytics.updater.//g"`
