@@ -32,7 +32,8 @@ case class GenieSessions(sid: String, events: Buffer[Event]) extends AlgoInput
 object GenieUsageSessionSummary extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, GenieSessions, GenieSessionSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.GenieUsageSessionSummary"
-
+    override def name: String = "GenieUsageSessionSummarizer"
+    
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GenieSessions] = {
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);

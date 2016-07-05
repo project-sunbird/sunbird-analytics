@@ -40,7 +40,8 @@ case class RelevanceScore(conceptId: String, relevance: Double);
 object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerState, RelevanceScores, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.RecommendationEngine"
-
+    override def name: String = "RecommendationEngine"
+    
     var conceptsB: Broadcast[Array[String]] = null;
     var conceptToContentB: Broadcast[Array[(String, String)]] = null;
 

@@ -46,6 +46,7 @@ object BatchJobDriver {
         _setDeviceMapping(config, rdd);
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         models.foreach { model =>
+            JobContext.jobName = model.name
             JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config)));
             try {
                 val result = _processModel(config, data, model);
@@ -72,7 +73,6 @@ object BatchJobDriver {
     private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext): (Long, Long) = {
 
         CommonUtil.time({
-            JobContext.jobName = model.name;
             val output = model.execute(data, config.modelParams);
             val count = OutputDispatcher.dispatch(config.output, output);
             JobContext.cleanUpRDDs();

@@ -21,7 +21,8 @@ case class LearnerProfile(learner_id: String, did: String, gender: Option[String
 object LearnerProfileUpdater extends IBatchModelTemplate[ProfileEvent, ProfileEvent, LearnerProfile, LearnerProfile] with Serializable {
 
     val className = "org.ekstep.analytics.updater.LearnerProfileUpdater"
-
+    override def name: String = "LearnerProfileUpdater"
+    
     override def preProcess(data: RDD[ProfileEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ProfileEvent] = {
         DataFilter.filter(data, Filter("eid", "IN", Option(List("GE_CREATE_USER", "GE_CREATE_PROFILE", "GE_UPDATE_PROFILE")))).cache();
     }

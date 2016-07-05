@@ -25,7 +25,8 @@ case class ContentUsageSummaryInput(contentId: String, isGroupUser: Boolean, dat
 object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsageSummaryInput, ContentUsageMetrics, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentUsageSummary"
-
+    override def name: String = "ContentUsageSummarizer"
+    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentUsageSummaryInput] = {
         val configMapping = sc.broadcast(config);
 
