@@ -33,7 +33,8 @@ case class LearnerActivityInput(uid: String, events: Buffer[DerivedEvent]) exten
 object LearnerActivitySummary extends IBatchModelTemplate[DerivedEvent, LearnerActivityInput, TimeSummary, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.LearnerActivitySummary"
-
+    override def name: String = "LearnerActivitySummarizer"
+    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerActivityInput] = {
         val filteredData = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
 

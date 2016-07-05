@@ -15,7 +15,8 @@ case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, simil
 object ConceptSimilarityUpdater extends IBatchModelTemplate[ConceptSimilarityEntity, ConceptSimilarityEntity, ConceptSimilarity, ConceptSimilarity] with Serializable {
 
     implicit val className = "org.ekstep.analytics.updater.ConceptSimilarityUpdater"
-
+    override def name: String = "ConceptSimilarityUpdater"
+    
     override def preProcess(data: RDD[ConceptSimilarityEntity], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ConceptSimilarityEntity] = {
         data
     }

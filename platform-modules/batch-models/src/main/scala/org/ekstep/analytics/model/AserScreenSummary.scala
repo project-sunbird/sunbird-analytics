@@ -44,6 +44,7 @@ case class AserScreenerInput(userId: String, gameSessions: Buffer[Event]) extend
 object AserScreenSummary extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event,AserScreenerInput,AserScreener,MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.AserScreenSummary"
+    override def name() : String = "AserScreenSummarizer"
     
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AserScreenerInput] = {
         val configMapping = sc.broadcast(config);

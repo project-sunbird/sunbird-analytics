@@ -19,7 +19,8 @@ case class LearnerContentActivity(learner_id: String, content_id: String, time_s
 object LearnerContentActivitySummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, LearnerContentActivity, LearnerContentActivity] with Serializable {
 
     implicit val className = "org.ekstep.analytics.updater.LearnerContentActivitySummary"
-
+    override def name: String = "LearnerContentActivityUpdater"
+    
     private def average[T](ts: Iterable[T])(implicit num: Numeric[T]) = {
         num.toDouble(ts.sum) / ts.size
     }

@@ -42,7 +42,8 @@ case class LearnerProficiencyInput(learnerId: String, newEvidences: Iterable[(St
 object LearnerProficiencySummary extends IBatchModelTemplate[DerivedEvent, LearnerProficiencyInput, LearnerProficiency, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.LearnerProficiencySummary"
-
+    override def name: String = "ProficiencyUpdater"
+    
     def getItemConcept(item: Map[String, AnyRef], itemMapping: Map[String, ItemConcept]): Array[String] = {
         val itemId = item.get("itemId").get.asInstanceOf[String];
         val itemMC = item.get("mc").get.asInstanceOf[List[String]]

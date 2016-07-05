@@ -27,7 +27,8 @@ case class ContentUsageSummaryIndex(d_content_id: String, d_period: Int, d_group
 object ContentUsageUpdater extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentUsageSummaryFact, ContentUsageSummaryIndex] with Serializable {
 
     val className = "org.ekstep.analytics.updater.ContentUsageUpdater"
-
+    override def name: String = "ContentUsageUpdater"
+    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         DataFilter.filter(data, Filter("eid", "EQ", Option("ME_CONTENT_USAGE_SUMMARY")));
     }

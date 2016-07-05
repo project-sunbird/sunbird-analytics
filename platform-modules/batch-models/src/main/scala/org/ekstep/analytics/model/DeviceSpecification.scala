@@ -17,6 +17,7 @@ case class DeviceSpec(device_id: String, device_name: String, device_local_name:
 object DeviceSpecification extends IBatchModelTemplate[Event,Event,DeviceSpec,DeviceSpec] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceSpecification"
+    override def name: String = "DeviceSpecificationUpdater"
     
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Event] = {
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_GENIE_START")));

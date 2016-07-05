@@ -20,7 +20,7 @@ case class ContentSideloadingOutput(summary: ContentSideloading, dtRange: DtRang
 object ContentSideloadingSummary extends IBatchModelTemplate[Event, ContentSideloadingInput, ContentSideloadingOutput, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentSideloadingSummary"
-
+    override def name: String = "ContentSideloadingSummarizer"
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSideloadingInput] = {
         val configMapping = sc.broadcast(config);
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_TRANSFER")));
