@@ -16,7 +16,7 @@ var LEARNER_CONTENT_SUMMARY = "SELECT * FROM learnercontentsummary where learner
 uniqueRecord = function(query, learnerId, cb) {
 	client.execute(query.replace(':learnerId', learnerId), [], function (err, result) {
 		if(err || null == result.first()) {
-			cb('unable to fetch data. Err - ' + err);
+			cb(null, {});
 		} else {
 			cb(null, result.first());
 		}
@@ -26,7 +26,7 @@ uniqueRecord = function(query, learnerId, cb) {
 multipleRecords = function(query, learnerId, cb) {
 	client.execute(query.replace(':learnerId', learnerId), [], function (err, result) {
 		if(err || null == result.rows) {
-			cb('unable to fetch data. Err - ' + err);
+			cb(null, []);
 		} else {
 			cb(null, result.rows);
 		}
