@@ -115,19 +115,50 @@ class TestJobDriver extends FlatSpec with Matchers {
             CommonUtil.closeSparkContext();
         }
     }
-
-    it should "not able to run the all models" in {
-        val jobConfig = JobConfig(
-            Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))),
-            None, None,
-            "org.ekstep.analytics.framework.TestBatchJobDriver",
-            Option(Map()),
-            Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))),
-            Option(8),
-            None,
-            None);
-        implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
-        val models = List(TestModel3, TestModel2);
-        JobDriver.run("batch", JSONUtils.serialize(jobConfig), models, "TestBatchJobDriver")
-    }
+        
+        // test cases for merging multiple jobs into single job
+        it should "run the batch job driver on multiple models" in {
+            
+            val jobConfig = JobConfig(
+                Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))),
+                Option(Array[Filter](Filter("eventId", "EQ", Option("OE_START")))),
+                None,
+                "org.ekstep.analytics.framework.TestModel2",
+                Option(Map()),
+                Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))),
+                Option(8),
+                None,
+                None)
+    
+            noException should be thrownBy {
+                implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
+                val models = List(TestModel2)
+                JobDriver.run[MeasuredEvent, String]("batch", JSONUtils.serialize(jobConfig), models, "TestMergeJobs");
+                CommonUtil.closeSparkContext();
+            }
+        }
+        
+        it should "run the stream job driver on multiple models" in {
+            val jobConfig = JobConfig(Fetcher("stream", None, None), None, None, "", None, None, None, None)
+            implicit val sc: SparkContext = null;
+            val models = List(TestModel2)
+            JobDriver.run("streaming", JSONUtils.serialize(jobConfig), models, "TestMergeJobs");
+        }
+        
+        it should "thrown an exception if unknown job type is found when running multile jobs" in {
+            val jobConfig = JobConfig(Fetcher("stream", None, None), None, None, "", None, None, None, None)
+            a[Exception] should be thrownBy {
+                implicit val sc: SparkContext = null;
+                val models = List(TestModel2, TestModel3)
+                JobDriver.run("xyz", JSONUtils.serialize(jobConfig), models, "TestMergeJobs");
+            }
+        }
+        
+        it should "thrown an exception if unable to parse the config file when running multiple jobs" in {
+            a[Exception] should be thrownBy {
+                implicit val sc: SparkContext = null;
+                val models = List(TestModel2, TestModel3)
+                JobDriver.run("streaming", JSONUtils.serialize(""), models, "TestMergeJobs");
+            }
+        }
 }
