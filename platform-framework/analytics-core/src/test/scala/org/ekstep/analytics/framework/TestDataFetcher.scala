@@ -25,6 +25,7 @@ class TestDataFetcher extends SparkSpec {
     }
     
     it should "fetch the events from local file" in {
+        
         val search = Fetcher("local", None, Option(Array(
             Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
         )));
@@ -33,32 +34,27 @@ class TestDataFetcher extends SparkSpec {
         
     }
     
+    it should "fetch no file from S3 and return an empty RDD" in {
+        val queries = Option(Array(
+            Query(Option("sandbox-data-store"), Option("abc/"), Option("2012-01-01"), Option("2012-02-01"))
+        ));
+        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
+        rdd.isEmpty() should be (true)
+    }
+    
     it should "throw DataFetcherException" in {
         
-        val search = Fetcher("s3", None, Option(Array(
-            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"))
-        )));
-        
-        a[DataFetcherException] should be thrownBy {
-            DataFetcher.fetchBatchData[Event](search);
-        }
-        
-        a[DataFetcherException] should be thrownBy {
-            DataFetcher.fetchBatchData[Event](Fetcher("s3", None, None));
-        }
-        
         // Throw unknown fetcher type found
+        the[DataFetcherException] thrownBy {
+            DataFetcher.fetchBatchData[Event](Fetcher("s3", None, None));    
+        }
+        
         the[DataFetcherException] thrownBy {
             val fileFetcher = Fetcher("file", None, Option(Array(
                 Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
             )));
             DataFetcher.fetchBatchData[Event](fileFetcher);
         } should have message "Unknown fetcher type found"
-        
-        val search2 = Fetcher("xyz", None, Option(Array(
-            Query(Option("ekstep-telemetry"), Option("telemetry.raw-"), Option("2015-06-17"), Option("2015-06-18"))
-        )));
-        
     }
   
 }
