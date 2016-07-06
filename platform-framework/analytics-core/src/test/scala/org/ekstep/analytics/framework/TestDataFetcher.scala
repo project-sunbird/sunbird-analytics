@@ -1,6 +1,7 @@
 package org.ekstep.analytics.framework
 
 import org.ekstep.analytics.framework.exception.DataFetcherException
+import org.ekstep.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -32,6 +33,11 @@ class TestDataFetcher extends SparkSpec {
         val rdd = DataFetcher.fetchBatchData[Event](search);
         rdd.count should be (7437)
         
+        val search1 = Fetcher("local", None, Option(Array(
+            Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
+        )));
+        val rdd1 = DataFetcher.fetchBatchData[TestDataFetcher](search1);
+        rdd1.count should be (0)
     }
     
     it should "fetch no file from S3 and return an empty RDD" in {
