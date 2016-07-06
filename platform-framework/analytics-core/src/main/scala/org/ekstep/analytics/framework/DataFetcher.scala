@@ -39,7 +39,7 @@ object DataFetcher {
                 throw new DataFetcherException("Unknown fetcher type found");
         }
         if (null == keys || keys.length == 0) {
-            throw new DataFetcherException("No S3/Local Objects found for the qiven queries");
+            return sc.parallelize(Seq[T](), JobContext.parallelization);
         }
 
         JobLogger.log("Deserializing Input Data");
@@ -53,7 +53,7 @@ object DataFetcher {
                         null.asInstanceOf[T]
                 }
             }
-        }.filter { x => x != null }.cache();
+        }.filter { x => x != null };
     }
 
     /**

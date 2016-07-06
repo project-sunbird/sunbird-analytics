@@ -42,19 +42,20 @@ object BatchJobDriver {
 
     private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
 
-        val rdd = DataFetcher.fetchBatchData[T](config.search);
+        val rdd = DataFetcher.fetchBatchData[T](config.search).cache();
+        val count = rdd.count;
         _setDeviceMapping(config, rdd);
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         models.foreach { model =>
             JobContext.jobName = model.name
             JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config)));
             try {
-                val result = _processModel(config, data, model);
-                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("date" -> config.search.queries.get.last.endDate, "events" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
+                val result = if (count > 0) _processModel(config, data, model) else (0L, 0L);
+                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
             } catch {
                 case ex: Exception =>
                     JobLogger.log(ex.getMessage, None, ERROR);
-                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("date" -> config.search.queries.get.last.endDate)));
+                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("date" -> config.search.queries.get.last.endDate, "inputEvents" -> count)));
                     ex.printStackTrace();
             }
         }
