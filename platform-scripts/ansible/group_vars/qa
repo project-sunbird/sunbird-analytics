@@ -64,4 +64,20 @@ jobs:
     minute: 57
   cuu:
     hour: 2
-    minute: 10    
+    minute: 10   
+monit_jobs:
+  joblog.log:
+    hour: 23
+    minute: 58  
+
+secor_raw_job:
+  secor_raw:
+    hour: 23
+    minute: 56   
+
+
+secor_me_job:
+  secor_me:
+    hour: 23
+    minute: 57   
+ 
