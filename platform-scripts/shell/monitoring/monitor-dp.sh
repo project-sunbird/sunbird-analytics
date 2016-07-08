@@ -61,6 +61,6 @@ echo "Number of failed Jobs: $failed_num"
 echo "Total time taken: $total_time"
 echo "Total events generated: $total_events"
 
-data='{"channel": "#test_webhooks", "username": "dp-monitor", "text":"*Jobs | Monitoring Report | '$today'*\nNumber of Completed Jobs: `'$comp_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```", "icon_emoji": ":ghost:"}'
+data='{"channel": "#analytics_monitoring", "username": "dp-monitor", "text":"*Jobs | Monitoring Report | '$today'*\nNumber of Completed Jobs: `'$comp_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```", "icon_emoji": ":ghost:"}'
 echo "$data"
 curl -X POST -H 'Content-Type: application/json' --data "$data" https://hooks.slack.com/services/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
