@@ -1,3 +1,5 @@
+username: lp-monitor-dev
+secor-username: secor-monitor-dev
 env: dev
 cassandra_user: ec2-user
 user_home: /home/ec2-user
