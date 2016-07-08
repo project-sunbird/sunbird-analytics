@@ -64,20 +64,20 @@
   tags:
     - secor-raw
 
-- name: Copy Scripts
-  template: src=monitor-secor.j2 dest={{ user_home }}/monitor-secor.j2 mode=755 owner=ec2-user group=ec2-user
-  tags:
-    - secor-raw
-    - secor-me
+#- name: Copy Scripts
+ # template: src=monitor-secor.j2 dest={{ user_home }}/monitor-secor.j2 mode=755 owner=ec2-user group=ec2-user
+ # tags:
+ #   - secor-raw
+ #   - secor-me
 
-- name: Create cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh ./secor-raw/logs/secor-raw.log raw"
-  with_dict: "{{ secor_raw_job }}"
-  tags:
-    - secor-raw
+#- name: Create cron jobs
+#  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh ./secor-raw/logs/secor-raw.log raw"
+#  with_dict: "{{ secor_raw_job }}"
+#  tags:
+#    - secor-raw
 
-- name: Create cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh ./secor-me/logs/secor-me.log me"
-  with_dict: "{{ secor_me_job }}"
-  tags:
-    - secor-me
+#- name: Create cron jobs
+#  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh ./secor-me/logs/secor-me.log me"
+#  with_dict: "{{ secor_me_job }}"
+#  tags:
+#    - secor-me
