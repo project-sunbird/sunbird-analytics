@@ -17,7 +17,18 @@
     - analytics
 
 - name: Create cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh {{ item.key }}"
+  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh ../logs/{{ item.key }}"
   with_dict: "{{ jobs }}"
+  tags:
+    - analytics
+
+- name: Copy Scripts
+  template: src=monitor-dp.j2 dest={{ analytics.home }}/scripts/monitor-dp.sh mode=755 owner=ec2-user group=ec2-user
+  tags:
+    - analytics
+
+- name: Create cron jobs
+  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/monitor-dp.sh ./logs/joblog.log"
+  with_dict: "{{ monit_jobs }}"
   tags:
     - analytics
