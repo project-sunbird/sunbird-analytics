@@ -72,12 +72,12 @@
 
 - name: Create cron jobs
   cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh ./secor-raw/logs/secor-raw.log raw"
-  with_dict: "{{ secor-raw-job }}"
+  with_dict: "{{ secor_raw_job }}"
   tags:
     - secor-raw
 
 - name: Create cron jobs
   cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh ./secor-me/logs/secor-me.log me"
-  with_dict: "{{ secor-me-job }}"
+  with_dict: "{{ secor_me_job }}"
   tags:
     - secor-me

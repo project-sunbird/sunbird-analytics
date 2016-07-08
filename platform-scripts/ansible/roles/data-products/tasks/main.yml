@@ -29,6 +29,6 @@
 
 - name: Create cron jobs
   cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/monitor-dp.sh ./logs/{{ item.key }}"
-  with_dict: "{{ monit-jobs }}"
+  with_dict: "{{ monit_jobs }}"
   tags:
     - analytics
