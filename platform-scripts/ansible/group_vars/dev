@@ -65,3 +65,19 @@ jobs:
   cuu:
     hour: 2
     minute: 10
+
+monit-jobs:
+  joblog.log:
+    hour: 23
+    minute: 58  
+
+secor-raw-job:
+  secor-raw:
+    hour: 23
+    minute: 56   
+
+
+secor-me-job:
+  secor-me:
+    hour: 23
+    minute: 57   
