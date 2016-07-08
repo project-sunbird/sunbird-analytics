@@ -16,6 +16,7 @@ class TestItemAdapter extends BaseSpec {
         item2.maxScore should be (1);
         
         ItemAdapter.getItemWrapper(Map[String, AnyRef]("identifier" -> "i123"));
+        ItemAdapter.getItemWrapper(Map[String, AnyRef]("identifier" -> "ek.n.q935 - QA", "concepts" -> List(Map("identifier" -> "Num:C1:SC1", "objectType" -> "Concept"))));
     }
     
 }
