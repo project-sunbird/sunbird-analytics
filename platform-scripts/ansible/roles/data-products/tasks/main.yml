@@ -17,7 +17,7 @@
     - analytics
 
 - name: Create cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh ../logs/{{ item.key }}"
+  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh {{ item.key }}"
   with_dict: "{{ jobs }}"
   tags:
     - analytics
