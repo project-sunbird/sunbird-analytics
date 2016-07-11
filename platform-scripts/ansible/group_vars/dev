@@ -1,3 +1,5 @@
+secor_channel: #secor_monitoring_dev
+dp_channel: #dp_monitoring_dev
 dp_username: dp-monitor-dev
 secor_username: secor-monitor-dev
 env: dev

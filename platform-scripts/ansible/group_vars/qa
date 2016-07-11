@@ -1,3 +1,5 @@
+secor_channel: #secor_monitoring_qa
+dp_channel: #dp_monitoring_qa
 dp_username: dp-monitor-qa
 secor_username: secor-monitor-qa
 env: qa
