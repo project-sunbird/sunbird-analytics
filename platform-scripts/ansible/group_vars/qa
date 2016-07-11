@@ -1,5 +1,5 @@
-username: lp-monitor-qa
-secor-username: secor-monitor-qa
+username: dp-monitor-qa
+secor_username: secor-monitor-qa
 env: qa
 cassandra_user: ec2-user
 user_home: /home/ec2-user
