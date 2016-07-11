@@ -25,13 +25,22 @@ if [ "$comp_jobs" != "" ]; then
 	    model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g" | sed -e "s/org.ekstep.analytics.updater.//g"`
 		#message=`sed 's/.*message":"\(.*\)","class.*/\1/' <<< "$line"`
 
-		eventsIn=`sed 's/.*","inputEvents":\(.*\),"outputEvents":.*/\1/' <<< "$line"`		
+		eventsIn=`sed 's/.*","inputEvents":\(.*\),"outputEvents":.*/\1/' <<< "$line"`
+		sub="BE_JOB_END"
+		if [ "${eventsIn/$sub}" != "$eventsIn" ] ; then
+  			eventsIn=0
+  		fi
 		events=`sed 's/.*"outputEvents":\(.*\),"timeTaken".*/\1/' <<< "$line"`
+		if [ "${events/$sub}" != "$events" ] ; then
+  			events=0
+  		fi
 		total_events=$((total_events + events))
-		
-		time_taken=`sed 's/.*,"timeTaken":\(.*\)},".*/\1/' <<< "$line"`
+		time_taken=`sed 's/.*"timeTaken":\(.*\)},".*/\1/' <<< "$line"`
 		total_time=`echo $total_time + $time_taken | bc`		
 		event_date=`sed 's/.*{"date":"\(.*\)","inputEvents":.*/\1/' <<< "$line"`
+		if [ "${event_date/$sub}" != "$event_date" ] ; then
+  			event_date=""
+  		fi
 		file_content+="$model,$job_status,$eventsIn,$events,$time_taken,$event_date\n"
 	done <<< "$comp_jobs"
 fi
@@ -47,8 +56,16 @@ if [ "$failed_jobs" != "" ]; then
 	do
 		model=`sed 's/.*model":"\(.*\)","ver.*/\1/' <<< "$line" | sed -e "s/org.ekstep.analytics.model.//g" | sed -e "s/org.ekstep.analytics.updater.//g"`
 		#message=`grep -Po '(?<="localizedMessage":")[^"]*' <<< "$line"`
+		sub="BE_JOB_END"
 		eventsIn=`sed 's/.*","inputEvents":\(.*\)},".*/\1/' <<< "$line"`
+		if [ "${eventsIn/$sub}" != "$eventsIn" ] ; then
+  			eventsIn=0
+  		fi
 		event_date=`sed 's/.*"data":{"date":"\(.*\)","inputEvents".*/\1/' <<< "$line"`
+		if [ "${event_date/$sub}" != "$event_date" ] ; then
+  			event_date=""
+  		fi
+  		echo "$event_date"
 		file_content+="$model,$job_status,$eventsIn,$events,$time_taken,$event_date\n"
 	done <<< "$failed_jobs"
 fi
