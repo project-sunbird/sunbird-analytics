@@ -1,5 +1,5 @@
-username: lp-monitor-dev
-secor-username: secor-monitor-dev
+dp_username: dp-monitor-dev
+secor_username: secor-monitor-dev
 env: dev
 cassandra_user: ec2-user
 user_home: /home/ec2-user
@@ -67,19 +67,15 @@ jobs:
   cuu:
     hour: 2
     minute: 10
-
 monit_jobs:
   joblog.log:
-    hour: 23
-    minute: 58  
-
+    hour: 2
+    minute: 15
 secor_raw_job:
   secor_raw:
     hour: 23
     minute: 56   
-
-
 secor_me_job:
   secor_me:
     hour: 23
-    minute: 57   
+    minute: 58   
