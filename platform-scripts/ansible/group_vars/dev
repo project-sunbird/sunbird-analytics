@@ -1,7 +1,7 @@
-secor_channel: #secor_monitoring_dev
-dp_channel: #dp_monitoring_dev
-dp_username: dp-monitor-dev
-secor_username: secor-monitor-dev
+secor_channel: "#secor_monitoring_dev"
+dp_channel: "#dp_monitoring_dev"
+dp_username: dp-monitor
+secor_username: secor-monitor
 env: dev
 cassandra_user: ec2-user
 user_home: /home/ec2-user

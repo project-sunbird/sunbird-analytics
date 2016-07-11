@@ -1,7 +1,7 @@
-secor_channel: #secor_monitoring_prod
-dp_channel: #dp_monitoring_prod
-dp_username: dp-monitor-prod
-secor_username: secor-monitor-prod
+secor_channel: "#secor_monitoring_prod"
+dp_channel: "#dp_monitoring_prod"
+dp_username: dp-monitor
+secor_username: secor-monitor
 env: prod
 cassandra_user: ubuntu
 user_home: /home/ec2-user
