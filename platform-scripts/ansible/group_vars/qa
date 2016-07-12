@@ -31,54 +31,53 @@ spark:
   executor_memory: 2g
 jobs:
   lpu:
-    hour: 1
-    minute: 20
+    hour: 19
+    minute: 50
   gls:
-    hour: 1
-    minute: 22
+    hour: 19
+    minute: 52
   gss:
-    hour: 1
-    minute: 24
+    hour: 19
+    minute: 54
   ss:
-    hour: 1
-    minute: 26
+    hour: 19
+    minute: 56
   css:
-    hour: 1
-    minute: 28
+    hour: 19
+    minute: 58
   dus:
-    hour: 1
-    minute: 45
+    hour: 20
+    minute: 15
   cus:
-    hour: 1
-    minute: 47
+    hour: 20
+    minute: 17
   lp:
-    hour: 1
-    minute: 49
+    hour: 20
+    minute: 19
   as:
-    hour: 1
-    minute: 51
+    hour: 20
+    minute: 21
   las:
-    hour: 1
-    minute: 53
+    hour: 20
+    minute: 23
   dsu:
-    hour: 1
-    minute: 55
+    hour: 20
+    minute: 24
   lcas:
-    hour: 1
-    minute: 57
+    hour: 20
+    minute: 26
   cuu:
-    hour: 2
-    minute: 10   
+    hour: 20
+    minute: 40
 monit_jobs:
   joblog.log:
-    hour: 2
-    minute: 15
+    hour: 20
+    minute: 45
 secor_raw_job:
   secor_raw:
-    hour: 23
-    minute: 56   
+    hour: 18
+    minute: 25   
 secor_me_job:
   secor_me:
-    hour: 23
-    minute: 58
- 
+    hour: 18
+    minute: 27

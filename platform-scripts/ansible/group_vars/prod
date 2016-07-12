@@ -31,53 +31,53 @@ spark:
   executor_memory: 3g
 jobs:
   lpu:
-    hour: 6
-    minute: 20
+    hour: 0
+    minute: 50
   gls:
-    hour: 6
-    minute: 22
+    hour: 0
+    minute: 52
   gss:
-    hour: 6
-    minute: 24
-  ss:
-    hour: 6
-    minute: 26
-  css:
-    hour: 6
-    minute: 28
-  dus:
-    hour: 6
-    minute: 45
-  cus:
-    hour: 6
-    minute: 47
-  lp:
-    hour: 6
-    minute: 49
-  as:
-    hour: 6
-    minute: 51
-  las:
-    hour: 6
+    hour: 0
     minute: 53
+  ss:
+    hour: 0
+    minute: 54
+  css:
+    hour: 0
+    minute: 56
+  dus:
+    hour: 1
+    minute: 15
+  cus:
+    hour: 1
+    minute: 17
+  lp:
+    hour: 1
+    minute: 19
+  as:
+    hour: 1
+    minute: 21
+  las:
+    hour: 1
+    minute: 23
   dsu:
-    hour: 6
-    minute: 55
+    hour: 1
+    minute: 25
   lcas:
-    hour: 6
-    minute: 57
+    hour: 1
+    minute: 27
   cuu:
-    hour: 7
-    minute: 10
+    hour: 1
+    minute: 40
 monit_jobs:
   joblog.log:
-    hour: 7
-    minute: 15
+    hour: 1
+    minute: 45
 secor_raw_job:
   secor_raw:
-    hour: 23
-    minute: 56   
+    hour: 18
+    minute: 25   
 secor_me_job:
   secor_me:
-    hour: 23
-    minute: 58
+    hour: 18
+    minute: 27
