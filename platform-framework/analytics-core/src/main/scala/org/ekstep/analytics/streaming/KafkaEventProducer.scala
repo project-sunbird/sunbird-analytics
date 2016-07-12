@@ -13,8 +13,12 @@ import org.apache.kafka.clients.producer.Callback
 import org.apache.kafka.clients.producer.RecordMetadata
 import java.lang.Long
 import org.ekstep.analytics.framework.exception.DispatcherException
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 object KafkaEventProducer {
+    
+    implicit val className: String = "KafkaEventProducer";
 
     def init(brokerList: String): KafkaProducer[String, String] = {
 
@@ -60,9 +64,11 @@ object KafkaEventProducer {
         val callback = new Callback {
             def onCompletion(metadata: RecordMetadata, exception: Exception) {
                 if (exception != null) {
+                    JobLogger.log("Exception sending events to kafka", Option(Map("message" -> exception.getLocalizedMessage)), ERROR);
                     close(producer);
                     throw new DispatcherException("Unable to send messages to Kafka", exception)
                 } else {
+                    JobLogger.log("Sending events to kafka", None, INFO);
                     otherEvents.foreach { event =>
                         {
                             val message = new ProducerRecord[String, String](topic, event);
