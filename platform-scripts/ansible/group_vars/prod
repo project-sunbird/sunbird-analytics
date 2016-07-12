@@ -1,5 +1,4 @@
-secor_channel: "#secor_monitoring_prod"
-dp_channel: "#dp_monitoring_prod"
+channel: "#monitor_prod"
 dp_username: dp-monitor
 secor_username: secor-monitor
 env: prod
