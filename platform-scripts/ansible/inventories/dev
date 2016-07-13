@@ -26,7 +26,6 @@ secor-raw
 secor-me
 
 [analytics:children]
-cassandra
 spark
 data-products
 
