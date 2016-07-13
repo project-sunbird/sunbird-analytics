@@ -5,32 +5,38 @@
   get_url: url=http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz dest={{ user_home }}/apache-cassandra-2.2.6-bin.tar.gz timeout=1000 force=no owner=ec2-user
   tags:
     - analytics
+    - cassandra
 
 - name: Unarchive cassandra
   unarchive: src={{ user_home }}/apache-cassandra-2.2.6-bin.tar.gz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-cassandra-2.2.6
   tags:
     - analytics
+    - cassandra
 
 - name: Update bash_profile for CASSANDRA_HOME
   lineinfile: dest=.bash_profile line='CASSANDRA_HOME={{ analytics.home }}/apache-cassandra-2.2.6' state=present insertafter=EOF create=yes
   tags:
     - analytics
+    - cassandra
 
 - name: Export CASSANDRA_HOME
   lineinfile: dest=.bash_profile  line='export CASSANDRA_HOME' state=present insertafter=EOF create=yes
   tags:
     - analytics
+    - cassandra
 
 - name: Add CASSANDRA_HOME to the PATH
   lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=present insertafter=EOF create=yes
   tags:
     - analytics
+    - cassandra
 
 - name: Status of the cassandra service
   command: "{{ sbin_path }}/cassandra-service status"
   register: cassandra_status
   tags:
     - analytics
+    - cassandra
 
 - name: Start the cassandra service
   command: "{{ sbin_path }}/cassandra-service start"
@@ -39,3 +45,4 @@
   poll: 5
   tags:
     - analytics
+    - cassandra
