@@ -6,10 +6,10 @@ output_dir="/mnt/secor/reports"
 #output_dir="/tmp"
 
 if [ "$mType" == "me" ]; then
-	title="Secor | Monitoring Report | '$today' | Derived Telemetry"
+	title="Secor | Monitoring Report | $today | Derived Telemetry"
 	output_fname="$output_dir/secor-me-monitor-$today.csv"
 else
-	title="Secor | Monitoring Report | '$today' | Raw Telemetry"
+	title="Secor | Monitoring Report | $today | Raw Telemetry"
 	output_fname="$output_dir/secor-raw-monitor-$today.csv"
 fi
 
@@ -17,16 +17,12 @@ warn=`grep " WARN " $log_file`
 errors=`grep " ERROR " $log_file`
 upload=`grep " INFO  uploading file " $log_file`
 
-warn_count=`grep " WARN " $log_file | wc -l | bc`
+#warn_count=`grep " WARN " $log_file | wc -l | bc`
 upload_count=`grep " INFO  uploading file " $log_file | wc -l | bc`
 errors_count=0
 if [ "$errors" != "" ]; then
 	errors_count=`grep " ERROR " $log_file | wc -l | bc`
 fi
-
-echo "Warn Count: $warn_count"
-echo "Upload Count: $upload_count"
-echo "Errors Count: $errors_count"
 
 ## Upload Info
 file_names=""
@@ -48,12 +44,21 @@ echo "## errors logged "
 
 echo "## Logging warning "
 ##Warnings
+warn_count=0
+subStr="com.pinterest.secor.common.FileRegistry:156) WARN  No writer found for path /mnt/secor-"
 while read -r line
 do
-	msg=`sed 's/.*WARN \(.*\).*/\1/' <<< "$line"`
-	file_content+="WARN,$msg\n"
+	if [ "${line/$subStr}" = "$line" ] ; then
+  		msg=`sed 's/.*WARN \(.*\).*/\1/' <<< "$line"`
+		file_content+="WARN,$msg\n"
+		warn_count=$((warn_count+1))
+  	fi
 done <<< "$warn"
 echo "## warnings logged "
+
+echo "Warn Count: $warn_count"
+echo "Upload Count: $upload_count"
+echo "Errors Count: $errors_count"
 
 echo -e $file_content > $output_fname
 

@@ -75,7 +75,7 @@ monit_jobs:
 secor_raw_job:
   secor_raw:
     hour: 23
-    minute: 58
+    minute: 57
 secor_me_job:
   secor_me:
     hour: 23

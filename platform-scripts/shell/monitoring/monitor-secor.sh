@@ -6,10 +6,10 @@ output_dir="/mnt/secor/reports"
 #output_dir="/tmp"
 
 if [ "$mType" == "me" ]; then
-	title="Secor | Monitoring Report | '$today' | Derived Telemetry"
+	title="Secor | Monitoring Report | $today | Derived Telemetry"
 	output_fname="$output_dir/secor-me-monitor-$today.csv"
 else
-	title="Secor | Monitoring Report | '$today' | Raw Telemetry"
+	title="Secor | Monitoring Report | $today | Raw Telemetry"
 	output_fname="$output_dir/secor-raw-monitor-$today.csv"
 fi
 
