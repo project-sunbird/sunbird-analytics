@@ -27,7 +27,7 @@
     - secor-me
 
 - name: Start the secor-me service
-  command: "{{ sbin_path }}/secor-me start"
+  command: "{{ sbin_path }}/secor-me restart"
   async: 20
   poll: 5
   tags:
@@ -58,7 +58,7 @@
     - secor-raw
 
 - name: Start the secor-raw service
-  command: "{{ sbin_path }}/secor-raw start"
+  command: "{{ sbin_path }}/secor-raw restart"
   async: 20
   poll: 5
   tags:

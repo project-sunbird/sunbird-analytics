@@ -11,7 +11,7 @@ import org.apache.kafka.common.errors.TimeoutException
 /**
  * @author Santhosh
  */
-class TestOutputDispatcher extends SparkSpec {
+class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetry_2.log") {
   
     "OutputDispatcher" should "dispatch output to console" in {
         
@@ -55,9 +55,7 @@ class TestOutputDispatcher extends SparkSpec {
         }
         
         // Invoke kafka dispatcher without starting kafka
-        the[DispatcherException] thrownBy {
-            OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), events);
-        } should have message "Unable to send messages to Kafka"
+        OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), events);
         
         // Invoke script dispatcher without required fields ('script')     
         a[DispatcherException] should be thrownBy {
