@@ -6,14 +6,16 @@
 
 - hosts: secor-me
   roles:
-    - secor    
+    - secor
+
+- hosts: cassandra
+  roles:
+    - cassandra-db-update
 
 - hosts: analytics
   roles:
     - data-products
-    - cassandra-db-update
 
 - hosts: api
   roles:
     - api
-    - cassandra-db-update
