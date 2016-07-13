@@ -13,7 +13,7 @@
 [analytics-api]
 54.169.146.32 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
-[cassandra]
+[cassandra-service]
 54.169.179.102 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [prod:children]
@@ -33,4 +33,4 @@ data-products
 analytics-api
 
 [cassandra:children]
-cassandra
+cassandra-service
