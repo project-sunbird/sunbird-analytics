@@ -25,7 +25,7 @@
     - api
 
 - name: Delete slf4j-log4j jar file
-  file: src={{ api_root }}/analytics-api-1.0/lib/org.slf4j.slf4j-log4j12-1.7.10.jar state=absent
+  file: path={{ api_root }}/analytics-api-1.0/lib/org.slf4j.slf4j-log4j12-1.7.10.jar state=absent
   tags:
     - api
 
