@@ -19,6 +19,7 @@ fwJar=$basePath/analytics-framework-1.0.jar
 # recommendation engine sprak-scala scripts path
 scriptDir=/mnt/data/analytics/VidyavaniCnQ
 
+CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6
 # build mvn projects (in a subshell without changing directories)
 #if [ "$runFramework" = true ]; then
 #	echo "###### Building Analytics Frame Work ######"
@@ -39,7 +40,7 @@ scriptDir=/mnt/data/analytics/VidyavaniCnQ
 if [ "$cleanTables" = true ]; then
 	echo "#### Clearing All Required Tables in 'learner_db' ####"
 	#cd /Users/soma/apache-cassandra-2.2.5/bin
-	cqlsh -f $scriptDir/queries.txt -k learner_db
+	$CASSANDRA_HOME/bin/cqlsh -f $scriptDir/queries.txt -k learner_db
 fi
 
 
