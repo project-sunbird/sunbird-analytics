@@ -1,2 +1,26 @@
 ---
 # tasks file for run-vidyavani
+- name: copy files
+  become: yes
+  file: name=/mnt/data/analytics/VidyavaniCnQ state=directory mode=755 owner=ec2-user group=ec2-user
+
+- name: copy
+  become: yes
+  copy: src=platofrom-scripts/VidyaVani/VidyavaniCnQ/{{ item }} dest=/mnt/data/analytics/VidyavaniCnQ/
+  with_items:
+             - queries.txt
+             - VidyavaniCnQ_dp_script.sh
+             - VidyavaniCnQPopulateGragph.py
+             - RunLP.scala
+
+- name: copy files
+  become: yes
+  file: name=/mnt/data/analytics/VidyavaniCnQ  mode=755 owner=ec2-user group=ec2-user recurse=yes
+
+- name: run script
+  command: sh /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQ_dp_script.sh true
+
+- name: run script
+  shell: python /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQPopulateGragph.py 
+
+

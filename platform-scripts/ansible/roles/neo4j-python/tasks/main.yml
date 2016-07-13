@@ -6,6 +6,9 @@
 - name: Unarchive neo4j
   unarchive: src=/home/ec2-user/neo4j-community-2.3.3-unix.tar.gz dest=/home/ec2-user copy=no group=ec2-user owner=ec2-user creates=/home/ec2-user/neo4j-community-2.3.3
 
+- name: Run neo4j
+  shell: chdir=/home/ec2-user/home/ec2-user/neo4j-community-2.3.3/bin ./neo4j start
+
 - name: install julia
   get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/home/ec2-user/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
 
