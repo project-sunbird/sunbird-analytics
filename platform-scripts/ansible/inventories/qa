@@ -20,6 +20,7 @@
 secor
 analytics
 api
+cassandra
 
 [secor:children]
 secor-raw
