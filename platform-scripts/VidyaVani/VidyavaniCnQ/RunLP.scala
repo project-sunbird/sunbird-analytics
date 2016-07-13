@@ -12,7 +12,7 @@ CommonUtil.setS3Conf(sc);
 implicit val sparkContext: SparkContext = sc
 println("### Fetching Data with filter ###")
 val queries = Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-02-01"), Option("2016-07-05"))));
-val rdd = DataFetcher.fetchBatchData[MeasuredEvent](Fetcher("S3", None, queries));
+val rdd = DataFetcher.fetchBatchData[DerivedEvent](Fetcher("S3", None, queries));
 val rddAll = DataFilter.filter(rdd, Filter("eid","EQ",Option("ME_SESSION_SUMMARY")));
 //val ordinalWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.ordinal.worksheet".equals(e.dimensions.gdata.get.id)).cache();
 //val moneyWorkSheetRDD = sessSummaries.filter(e => "org.ekstep.money.worksheet".equals(e.dimensions.gdata.get.id)).cache();
