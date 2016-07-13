@@ -10,7 +10,7 @@ analytics:
   paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports']
   scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-2.2.6"
-cql_path: "{{ analytics.home }}/apache-cassandra-2.2.6/bin/cqlsh"
+cql_path: cqlsh
 api_root: "{{ analytics.home }}/api"
 api_home: "{{ analytics.home }}/api/analytics-api-1.0"
 secor:
