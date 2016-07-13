@@ -31,3 +31,6 @@ data-products
 
 [api:children]
 analytics-api
+
+[cassandra:children]
+cassandra
