@@ -6,7 +6,7 @@
 
 - name: copy
   become: yes
-  copy: src=/home/jenkins/workspace/Datascience_Createtables/platofrom-scripts/VidyaVani/VidyavaniCnQ/{{ item }} dest=/mnt/data/analytics/VidyavaniCnQ/
+  copy: src=/home/jenkins/workspace/Datascience_Createtables/platform-scripts/VidyaVani/VidyavaniCnQ/{{ item }} dest=/mnt/data/analytics/VidyavaniCnQ/
   with_items:
              - queries.txt
              - VidyavaniCnQ_dp_script.sh
