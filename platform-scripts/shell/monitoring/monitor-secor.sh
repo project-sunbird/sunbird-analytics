@@ -17,16 +17,12 @@ warn=`grep " WARN " $log_file`
 errors=`grep " ERROR " $log_file`
 upload=`grep " INFO  uploading file " $log_file`
 
-warn_count=`grep " WARN " $log_file | wc -l | bc`
+#warn_count=`grep " WARN " $log_file | wc -l | bc`
 upload_count=`grep " INFO  uploading file " $log_file | wc -l | bc`
 errors_count=0
 if [ "$errors" != "" ]; then
 	errors_count=`grep " ERROR " $log_file | wc -l | bc`
 fi
-
-echo "Warn Count: $warn_count"
-echo "Upload Count: $upload_count"
-echo "Errors Count: $errors_count"
 
 ## Upload Info
 file_names=""
@@ -48,15 +44,24 @@ echo "## errors logged "
 
 echo "## Logging warning "
 ##Warnings
+warn_count=0
+subStr="com.pinterest.secor.common.FileRegistry:156) WARN  No writer found for path /mnt/secor-"
 while read -r line
 do
-	msg=`sed 's/.*WARN \(.*\).*/\1/' <<< "$line"`
-	file_content+="WARN,$msg\n"
+	if [ "${line/$subStr}" = "$line" ] ; then
+  		msg=`sed 's/.*WARN \(.*\).*/\1/' <<< "$line"`
+		file_content+="WARN,$msg\n"
+		warn_count=$((warn_count+1))
+  	fi
 done <<< "$warn"
 echo "## warnings logged "
+
+echo "Warn Count: $warn_count"
+echo "Upload Count: $upload_count"
+echo "Errors Count: $errors_count"
 
 echo -e $file_content > $output_fname
 
 data='{"channel": "#analytics_monitoring", "username": "secor-monitor", "text":"*'$title'*\nFiles Uploaded: `'$upload_count'` \n Warnings: `'$warn_count'` \n Errors: `'$errors_count'` \n", "icon_emoji": ":ghost:"}'
-#echo $data
+echo $data
 curl -X POST -H 'Content-Type: application/json' --data "$data" https://hooks.slack.com/services/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
