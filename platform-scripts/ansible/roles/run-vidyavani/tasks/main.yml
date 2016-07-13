@@ -18,9 +18,9 @@
   file: name=/mnt/data/analytics/VidyavaniCnQ  mode=755 owner=ec2-user group=ec2-user recurse=yes
 
 - name: run script
-  shell: sh /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQ_dp_script.sh true
+  command: sh /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQ_dp_script.sh true
 
 - name: run script
-  shell: python /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQPopulateGragph.py 
+  command: python /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQPopulateGragph.py 
 
 
