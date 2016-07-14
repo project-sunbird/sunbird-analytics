@@ -1,0 +1,172 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Teaching 9 alphabets and 2 matras ", 
+    "developer": "EkStep", 
+    "identifier": "domain_14426", 
+    "imageTags": [
+        "", 
+        "greenbox", 
+        "cartoon animals crawling flying insect", 
+        "cow", 
+        "story image", 
+        "cartoon girl best friends", 
+        "bird populations under the sunset vector material", 
+        "p u kg q rg b jf u j jc details", 
+        "icon next", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "indian woman", 
+        "cartoon of red shoes royalty free vector clipart", 
+        "background", 
+        "icon home", 
+        "icon reload", 
+        "icon submit", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 6, 
+        "mp3": 6, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 56.72391836734694, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14426/assets/1454011999588story%201": {
+            "alternative": [
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "Mera Naam Doon par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "Mera Naam Doon par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi karti ho"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14426/assets/Recording%20%281%29_1459401173309": {
+            "alternative": [
+                {
+                    "transcript": "Ashish Hi Rang Mein subah subah uthkar Anokhi Pooja Kali Mandir kangalukkul RC Reddy"
+                }, 
+                {
+                    "transcript": "Ashish hi rahi hai subah subah uthkar Anokhi Pooja Kali Mandir kangalukkul RC Reddy"
+                }, 
+                {
+                    "transcript": "Ishq Hai Rab Ne subah subah uthkar Anokhi Pooja Kali Mandir tahuko ladki ring"
+                }, 
+                {
+                    "transcript": "Ishq Hai Rab Ne subah subah uthkar Anokhi Puja Kali Mandir tahuko ladki ring"
+                }, 
+                {
+                    "transcript": "Aashiq hai rahi hai subah subah uthkar Anokhi Pooja Kali Mandir kangalukkul RC Reddy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14426/assets/Recording%20%282%29_1459401213272": {
+            "alternative": [
+                {
+                    "transcript": "film sali bhai behan ki manane ke liye Jigar Jane Aur Pyar Ho Gaya"
+                }, 
+                {
+                    "transcript": "film sali bhai behan ki manane ke liye Jigar Jaane Aur Pyar Ho Gaya"
+                }, 
+                {
+                    "transcript": "film sali bhai behan ki manane ke liye khajane Aur Pyar Ho Gaya"
+                }, 
+                {
+                    "transcript": "film sali bhai behan ki manane ke liye khajane Aur Pyaar Ho Gaya"
+                }, 
+                {
+                    "transcript": "film Saleem bhai behan ki manane ke liye Jigar Jane Aur Pyar Ho Gaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14426/assets/Recording%20%283%29_1459401249378": {
+            "alternative": [
+                {
+                    "transcript": "Rasiya Aaj bahut khush Milne Ki Tamanna Hai Uska jeethalal Ranka"
+                }, 
+                {
+                    "transcript": "Rasiya Aaj bahut khush Milne Ki Tamanna Hai Uska joothalal Ranka"
+                }, 
+                {
+                    "transcript": "Rasiya Aaj bahut khush Milne Ki Tamanna Hai Uska joothalal raha hai"
+                }, 
+                {
+                    "transcript": "Rasiya Aaj bahut khush Milne Ki Tamanna Hai Uska Jethalal Ranka"
+                }, 
+                {
+                    "transcript": "Razia Aaj bahut khush Milne Ki Tamanna Hai Uska jeethalal Ranka"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14426/assets/Recording%20%284%29_1459401280764": {
+            "alternative": [
+                {
+                    "transcript": "military jackets men Satpura region Bharat ka khel Milan Ki Raat"
+                }, 
+                {
+                    "transcript": "military jackets men Satpura region Bharat ka khel Mila Mila Ke Sath"
+                }, 
+                {
+                    "transcript": "military jackets men Satpura region Bharat ka khel Mila Mila"
+                }, 
+                {
+                    "transcript": "military jackets men Satpura region Bharat ka khel Mila Mila kar liya"
+                }, 
+                {
+                    "transcript": "military jackets men Shahpura Bhilwara ka khel Milan Ki Raat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14426/assets/Recording%20%285%29_1459401314075": {
+            "alternative": [
+                {
+                    "transcript": "Sandesh Shyam Tum Mele Mein Dil Hai Sab Ne bahut maja Kiya"
+                }, 
+                {
+                    "transcript": "Sandesh Shyam Tum Mele Mein Dil Hai Sab Ne bahut maza Kiya"
+                }, 
+                {
+                    "transcript": "Sandesh Samsung Mele Mein Dil Hai Sab Ne bahut maja Kiya"
+                }, 
+                {
+                    "transcript": "Sandesh shantam Mele Mein Dil Hai Sab Ne bahut maja Kiya"
+                }, 
+                {
+                    "transcript": "Sandesh Samsung Mele Mein Dil Hai Sab Ne bahut maza Kiya"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Eid"
+    ]
+}

@@ -1,0 +1,403 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/data/story_data.json\": {\n", 
+        "        \"scene10_body,model,root\": [\n", 
+        "            \"She led the King\\u2019s roly- poly elephant to the river.\"\n", 
+        "        ], \n", 
+        "        \"scene11_body,model,root\": [\n", 
+        "            \"And got the chubby- happy little elephant into a boat.\"\n", 
+        "        ], \n", 
+        "        \"scene12_body,model,root\": [\n", 
+        "            \"The boat sank and sank and sank. When it sank no more, Lilavati made a mark on the boat.\"\n", 
+        "        ], \n", 
+        "        \"scene13_body,model,root\": [\n", 
+        "            \"Then she got the elephant out of the boat. And the boat was filled up with stones. When the boat sank up to the mark, Lilavati said, \\u201cStop!\\u201d\"\n", 
+        "        ], \n", 
+        "        \"scene14_body,model,root\": [\n", 
+        "            \"Now weigh the stones. And subtract my weight. \\u201cAnd that, O King, is the weight of your elephant!\\u201d\"\n", 
+        "        ], \n", 
+        "        \"scene3_body,model,root\": [\n", 
+        "            \"\"\n", 
+        "        ], \n", 
+        "        \"scene4_body,model,root\": [\n", 
+        "            \"So the fruit sellers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene5_body,model,root\": [\n", 
+        "            \"The rope makers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene6_body,model,root\": [\n", 
+        "            \"The jewellers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene7_body,model,root\": [\n", 
+        "            \"The royal ministers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene8_body,model,root\": [\n", 
+        "            \"Even the court scientists tried. At last one of them said, \\u201cMy little daughter Lilavati can help us.\\u201d\"\n", 
+        "        ], \n", 
+        "        \"scene9_body,model,root\": [\n", 
+        "            \"So the King called Lilavati. Lilavati thought. And thought. And thought. At last she had an idea!\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.hi.joy", 
+    "imageTags": [
+        "speech bubble", 
+        "no", 
+        "start", 
+        "cc", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "ccby", 
+        "icon hint", 
+        "question block", 
+        "level band", 
+        "icon reload", 
+        "icon next", 
+        "original d af a", 
+        "pb storyweaver logo", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/items/assessment.json\": {\n", 
+        "        \"answer,options,set_1,items,root\": [\n", 
+        "            \"0\", \n", 
+        "            \"2\"\n", 
+        "        ], \n", 
+        "        \"asset,title_audio,model,root\": [\n", 
+        "            \"wife_img\", \n", 
+        "            \"The tailor is surrounded by clothers to stitch.\", \n", 
+        "            \"t-inner\", \n", 
+        "            \"w-outer\", \n", 
+        "            \"learning11_sound\", \n", 
+        "            \"tailor_img\", \n", 
+        "            \"Carpenter has a hammer and nail.\", \n", 
+        "            \"learning10_sound\", \n", 
+        "            \"Barber has Scissors to Cut hair.\", \n", 
+        "            \"carpenter_img\", \n", 
+        "            \"knife\", \n", 
+        "            \"b-inner\", \n", 
+        "            \"learning13_sound\", \n", 
+        "            \"scissors\", \n", 
+        "            \"razor\", \n", 
+        "            \"learning12_sound\", \n", 
+        "            \"b-outer\", \n", 
+        "            \"barber_img\", \n", 
+        "            \"saw\", \n", 
+        "            \"t-outer\", \n", 
+        "            \"w-inner\"\n", 
+        "        ], \n", 
+        "        \"identifier,root\": [\n", 
+        "            \"haircut_story_1\", \n", 
+        "            \"hs1_set_1_2\", \n", 
+        "            \"hs1_set_1_3\", \n", 
+        "            \"hs1_set_1_1\", \n", 
+        "            \"hs1_set_1_4\"\n", 
+        "        ], \n", 
+        "        \"max_score,root\": [\n", 
+        "            \"3\", \n", 
+        "            \"9\", \n", 
+        "            \"1\"\n", 
+        "        ], \n", 
+        "        \"partial_scoring,set_1,items,root\": [\n", 
+        "            \"False\", \n", 
+        "            \"True\"\n", 
+        "        ], \n", 
+        "        \"qlevel,set_1,items,root\": [\n", 
+        "            \"MEDIUM\"\n", 
+        "        ], \n", 
+        "        \"scene10_body,model,root\": [\n", 
+        "            \"She led the King\\u2019s roly- poly elephant to the river.\"\n", 
+        "        ], \n", 
+        "        \"scene11_body,model,root\": [\n", 
+        "            \"And got the chubby- happy little elephant into a boat.\"\n", 
+        "        ], \n", 
+        "        \"scene12_body,model,root\": [\n", 
+        "            \"The boat sank and sank and sank. When it sank no more, Lilavati made a mark on the boat.\"\n", 
+        "        ], \n", 
+        "        \"scene13_body,model,root\": [\n", 
+        "            \"Then she got the elephant out of the boat. And the boat was filled up with stones. When the boat sank up to the mark, Lilavati said, \\u201cStop!\\u201d\"\n", 
+        "        ], \n", 
+        "        \"scene14_body,model,root\": [\n", 
+        "            \"Now weigh the stones. And subtract my weight. \\u201cAnd that, O King, is the weight of your elephant!\\u201d\"\n", 
+        "        ], \n", 
+        "        \"scene3_body,model,root\": [\n", 
+        "            \"\"\n", 
+        "        ], \n", 
+        "        \"scene4_body,model,root\": [\n", 
+        "            \"So the fruit sellers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene5_body,model,root\": [\n", 
+        "            \"The rope makers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene6_body,model,root\": [\n", 
+        "            \"The jewellers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene7_body,model,root\": [\n", 
+        "            \"The royal ministers tried.\"\n", 
+        "        ], \n", 
+        "        \"scene8_body,model,root\": [\n", 
+        "            \"Even the court scientists tried. At last one of them said, \\u201cMy little daughter Lilavati can help us.\\u201d\"\n", 
+        "        ], \n", 
+        "        \"scene9_body,model,root\": [\n", 
+        "            \"So the King called Lilavati. Lilavati thought. And thought. And thought. At last she had an idea!\"\n", 
+        "        ], \n", 
+        "        \"subject,root\": [\n", 
+        "            \"LIT\"\n", 
+        "        ], \n", 
+        "        \"template,set_1,items,root\": [\n", 
+        "            \"mtf_template_2\", \n", 
+        "            \"mtf_template_1\", \n", 
+        "            \"mcq_template_1\"\n", 
+        "        ], \n", 
+        "        \"title,root\": [\n", 
+        "            \"Find the Barber.\", \n", 
+        "            \"Haircut Story Assessment\", \n", 
+        "            \"Match the tools to the people.\", \n", 
+        "            \"Take me home. Take each person to their home.\", \n", 
+        "            \"Find the Carpenter.\"\n", 
+        "        ], \n", 
+        "        \"total_items,root\": [\n", 
+        "            \"4\"\n", 
+        "        ], \n", 
+        "        \"type,set_1,items,root\": [\n", 
+        "            \"text\", \n", 
+        "            \"mtf\", \n", 
+        "            \"image\", \n", 
+        "            \"mcq\", \n", 
+        "            \"audio\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 26, 
+        "mp3": 24, 
+        "ogg": 0, 
+        "png": 34
+    }, 
+    "mp3Length": 143.9603333333333, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene1": {
+            "alternative": [
+                {
+                    "confidence": 0.58515072, 
+                    "transcript": "Khushi"
+                }, 
+                {
+                    "transcript": "Kushi"
+                }, 
+                {
+                    "transcript": "khushii"
+                }, 
+                {
+                    "transcript": "Sushi"
+                }, 
+                {
+                    "transcript": "pusi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene10": {
+            "alternative": [
+                {
+                    "transcript": "Chhota khargosh hone laga uski Maa boli kyu Rote Ho Ho Hame"
+                }, 
+                {
+                    "transcript": "Chhota khargosh hone laga uski Maa boli Kyun Rote Ho Ho Hame"
+                }, 
+                {
+                    "transcript": "Chhota khargosh hone laga uski Maa boli Kyun Rota Ho Ho Hame"
+                }, 
+                {
+                    "transcript": "Chhota khargosh hone laga uski Maa boli Kyun Rota Ho Dekho Hum Hain"
+                }, 
+                {
+                    "transcript": "Chhota khargosh hone laga uski Maa boli kyu Rota Ho Ho Hame"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene11": {
+            "alternative": [
+                {
+                    "transcript": "uski Maa boli kyu Rote Ho Ho Hame Vatan Ka Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli Kyun Rote Ho Ho Hame Watan Ka Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli Kyun Rote Ho Ho Hame Vatan Ka Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli Q Rote Ho Ho Hame Watan Ka Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli Q Rote Ho Ho Hame Vatan Ka Kya bana Deti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene12": {
+            "alternative": [
+                {
+                    "transcript": "maa ne pati patni ki Randiya Bana Di Apni Ghar Ke darwaze ko Saja diya hai kuch ho gaya"
+                }, 
+                {
+                    "transcript": "maa ne pati patni ki Randiya bana de o Apna Ghar Ke darwaze ko Saja diya hai kuch ho gaya"
+                }, 
+                {
+                    "transcript": "Mane party Basanti chandia bana de o Apna Ghar Ke darwaze ko Saja diya hai kuch ho gaya"
+                }, 
+                {
+                    "transcript": "maa ne pati patni ki Chandiya bana de o Apna Ghar Ke darwaze ko Saja diya hai kuch ho gaya"
+                }, 
+                {
+                    "transcript": "Mane party Basanti Chandiya bana de o Apna Ghar Ke darwaze ko Saja diya hai kuch ho gaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene2": {
+            "alternative": [
+                {
+                    "transcript": "Muniya O Raju buttonwood Aa Rahi Hai Teri Patang Ko Chali gayi Patang yeh to pay"
+                }, 
+                {
+                    "transcript": "maharaju buttonwood Aa Rahi Hai Teri Patang Patang yeh to pay"
+                }, 
+                {
+                    "transcript": "maharaju buttonwood Aa Rahi Hain Teri Patang Patang yeh to pay"
+                }, 
+                {
+                    "transcript": "Maharaja buttonwood Aa Rahi Hai Teri Patang Patang yeh to pay"
+                }, 
+                {
+                    "transcript": "maharaju buttonwood Aa Rahi Hai Teri Patang Ko Chali Re Patang yeh to pay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene3": {
+            "alternative": [
+                {
+                    "transcript": "maniyani suits had kardiya Patang choot ke bare mein uski"
+                }, 
+                {
+                    "transcript": "maniyani suits Had Kar Diya Patang choot ke bare mein uski"
+                }, 
+                {
+                    "transcript": "maniyani choot se chat kar diya Patang choot ke bare mein uski"
+                }, 
+                {
+                    "transcript": "maniyani should see chat kar diya Patang choot ke bare mein uski"
+                }, 
+                {
+                    "transcript": "maniyani chut se chat kar diya Patang choot ke bare mein uski"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene4": {
+            "alternative": [
+                {
+                    "transcript": "Raju Ek Bass Leke Aaya uchak uchak Kar Paisa Patang udane ki koshish ki lekin was Mahatma Jayegi"
+                }, 
+                {
+                    "transcript": "Raju it was Leke Aaya uchak uchak Kar Paisa Patang utarne ki koshish ki lekin was Mahatma Jayegi"
+                }, 
+                {
+                    "transcript": "Raju Ek Bass Leke Aaya uchak uchak Kar Paisa Patang udane ki koshish ki lekin was Mahatma chahiye"
+                }, 
+                {
+                    "transcript": "Raju it was Leke Aaya uchak uchak Kar Paisa Patang utarne ki koshish ki lekin was Mahatma chahiye"
+                }, 
+                {
+                    "transcript": "Raju ek baat Leke Aaya uchak uchak Kar Paisa Patang udane ki koshish ki lekin was Mahatma Jayegi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene5": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene6": {
+            "alternative": [
+                {
+                    "transcript": "Chidiya Apne chote bache ko nahi kar rahi hai bache Ko Nahi Milta Lag Raha Hai Na Jaane Kahan kamlo"
+                }, 
+                {
+                    "transcript": "Chidiya Apne chote bache ko nahi kar rahi hai Bacho Ko Nahi Milta Lag Raha Hai Na Jaane Kahan kamlo"
+                }, 
+                {
+                    "transcript": "Chidiya Apne chote bache ko nahi kar rahi hai bache Ko Nahi Milta Lag Raha Hai Na Jaane Kahan Ho"
+                }, 
+                {
+                    "transcript": "Chidiya Apne chote bache ko nahi kar rahi hai Bacho Ko Nahi Milta Lag Raha Hai Na Jaane Kahan Ho"
+                }, 
+                {
+                    "transcript": "Chidiya Apne chote baccho ko nahi kar rahi hai bache Ko Nahi Milta Lag Raha Hai Na Jaane Kahan kamlo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene7": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene8": {
+            "alternative": [
+                {
+                    "transcript": "udati Patang Dheere Dheere Neeche Aa Gayi khargosh Ke Bache Ne Tumko Dekha"
+                }, 
+                {
+                    "transcript": "Kurti pattern Dheere Dheere Neeche Aa Gayi khargosh Ke Bache Ne Tumko Dekha"
+                }, 
+                {
+                    "transcript": "udati Patang Dheere Dheere Neeche Aa Gayi khargosh Ke Bache nangi Tumko Dekha"
+                }, 
+                {
+                    "transcript": "udati Patang Dheere Dheere Neeche Aa Gayi khargosh Ke Bache Ne nangi Tumko Dekha"
+                }, 
+                {
+                    "transcript": "Kurti pattern Dheere Dheere Neeche Aa Gayi khargosh Ke Bache nangi Tumko Dekha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.joy/assets/scene9": {
+            "alternative": [
+                {
+                    "transcript": "LinkingSky teacher nokomis a button"
+                }, 
+                {
+                    "transcript": "LinkingSky teacher naco no se but I'm"
+                }, 
+                {
+                    "transcript": "LinkingSky teacher na Kono se button"
+                }, 
+                {
+                    "transcript": "LinkingSky teacher na Kono se baat Aa Gayi"
+                }, 
+                {
+                    "transcript": "LinkingSky teacher na Kono se baaten"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_stories"
+    ]
+}

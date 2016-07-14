@@ -1,0 +1,4197 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "FSTEST4", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_64323", 
+    "imageTags": [
+        "kite", 
+        "queen", 
+        "yellow", 
+        "background with animals", 
+        "cup", 
+        "rose", 
+        "window", 
+        "under", 
+        "orange", 
+        "reading activity", 
+        "hat", 
+        "plate", 
+        "teacherpopupbg", 
+        "watch", 
+        "vase", 
+        "fan", 
+        "alphabets cover", 
+        "playbutton", 
+        "literacy", 
+        "bat", 
+        "washing", 
+        "d", 
+        "sofa", 
+        "l", 
+        "soap", 
+        "joker", 
+        "p", 
+        "goodjobbg", 
+        "t", 
+        "h", 
+        "x", 
+        "house", 
+        "fish", 
+        "lion", 
+        "zebra", 
+        "girl", 
+        "n", 
+        "ring", 
+        "quill", 
+        "scale", 
+        "leaf", 
+        "record", 
+        "sun", 
+        "fox", 
+        "ice", 
+        "uniform", 
+        "xray", 
+        "pen", 
+        "assessment cover", 
+        "net", 
+        "bg", 
+        "umbrella", 
+        "grapes", 
+        "tub", 
+        "hand", 
+        "icon sound", 
+        "icon previous", 
+        "box", 
+        "c", 
+        "g", 
+        "jeep", 
+        "k", 
+        "quiet", 
+        "o", 
+        "queue", 
+        "s", 
+        "w", 
+        "lo", 
+        "road", 
+        "key", 
+        "owl", 
+        "apple", 
+        "wall", 
+        "placeholder bg", 
+        "one", 
+        "blacktint", 
+        "duck", 
+        "table", 
+        "lesson", 
+        "horse", 
+        "van", 
+        "monkey", 
+        "zip", 
+        "vegetables", 
+        "question", 
+        "frog", 
+        "start", 
+        "yak", 
+        "rhyme image", 
+        "hen", 
+        "engine", 
+        "pencil", 
+        "door", 
+        "jug", 
+        "icon home", 
+        "writing cover", 
+        "retrybg", 
+        "train", 
+        "injection", 
+        "ear", 
+        "king", 
+        "b", 
+        "frock", 
+        "reading cover", 
+        "f", 
+        "car", 
+        "j", 
+        "up", 
+        "bed", 
+        "cat", 
+        "i", 
+        "r", 
+        "v", 
+        "icon play", 
+        "z", 
+        "endscreen", 
+        "tap", 
+        "pin", 
+        "lock", 
+        "ink", 
+        "india", 
+        "bus", 
+        "pig", 
+        "ant", 
+        "juice", 
+        "rat", 
+        "numbers", 
+        "writing activity", 
+        "violin", 
+        "well", 
+        "q", 
+        "grammar cover", 
+        "yoga", 
+        "zero", 
+        "mic", 
+        "zoo", 
+        "lamp", 
+        "alphabets text", 
+        "elephant", 
+        "gate", 
+        "goat", 
+        "ball", 
+        "mat", 
+        "stop", 
+        "nest", 
+        "ox", 
+        "rhyme cover", 
+        "yawn", 
+        "icon next", 
+        "phonetics cover", 
+        "kid", 
+        "a", 
+        "e", 
+        "neck", 
+        "mobile", 
+        "xmas tree", 
+        "m", 
+        "dog", 
+        "pagesel bg", 
+        "apbhabets", 
+        "jacket", 
+        "teacher icon", 
+        "mango", 
+        "u", 
+        "axe", 
+        "y", 
+        "egg"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 199, 
+        "ogg": 0, 
+        "png": 192
+    }, 
+    "mp3Length": 362.3473922902497, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347637983net": {
+            "alternative": [
+                {
+                    "confidence": 0.65143895, 
+                    "transcript": "net"
+                }, 
+                {
+                    "transcript": "necked"
+                }, 
+                {
+                    "transcript": "neck"
+                }, 
+                {
+                    "transcript": "next"
+                }, 
+                {
+                    "transcript": "nekked"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347638172cat_starts_with_c": {
+            "alternative": [
+                {
+                    "confidence": 0.88996506, 
+                    "transcript": "cat starts with"
+                }, 
+                {
+                    "transcript": "Kat starts with"
+                }, 
+                {
+                    "transcript": "cat starts with A"
+                }, 
+                {
+                    "transcript": "Khat starts with"
+                }, 
+                {
+                    "transcript": "scat starts with"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347638401pig": {
+            "alternative": [
+                {
+                    "transcript": "big"
+                }, 
+                {
+                    "transcript": "pig"
+                }, 
+                {
+                    "transcript": "Bigg"
+                }, 
+                {
+                    "transcript": "pic"
+                }, 
+                {
+                    "transcript": "beeg"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347639055k": {
+            "alternative": [
+                {
+                    "confidence": 0.23774655, 
+                    "transcript": "key"
+                }, 
+                {
+                    "transcript": "k"
+                }, 
+                {
+                    "transcript": "CII"
+                }, 
+                {
+                    "transcript": "ki"
+                }, 
+                {
+                    "transcript": "CCI"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347639488y_says_y": {
+            "alternative": [
+                {
+                    "confidence": 0.33315811, 
+                    "transcript": "why said"
+                }, 
+                {
+                    "transcript": "vices"
+                }, 
+                {
+                    "transcript": "why said he"
+                }, 
+                {
+                    "transcript": "Y said"
+                }, 
+                {
+                    "transcript": "why I said"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347639652mat": {
+            "alternative": [
+                {
+                    "confidence": 0.28166288, 
+                    "transcript": "map"
+                }, 
+                {
+                    "transcript": "mat"
+                }, 
+                {
+                    "transcript": "math"
+                }, 
+                {
+                    "transcript": "Mac"
+                }, 
+                {
+                    "transcript": "Matt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347640053frog": {
+            "alternative": [
+                {
+                    "confidence": 0.80140024, 
+                    "transcript": "frog"
+                }, 
+                {
+                    "transcript": "from"
+                }, 
+                {
+                    "transcript": "frock"
+                }, 
+                {
+                    "transcript": "strong"
+                }, 
+                {
+                    "transcript": "drug"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347640238lion": {
+            "alternative": [
+                {
+                    "transcript": "9"
+                }, 
+                {
+                    "transcript": "line"
+                }, 
+                {
+                    "transcript": "lion"
+                }, 
+                {
+                    "transcript": "Nayan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347640427monkey": {
+            "alternative": [
+                {
+                    "confidence": 0.86909688, 
+                    "transcript": "monkey"
+                }, 
+                {
+                    "transcript": "monky"
+                }, 
+                {
+                    "transcript": "funky"
+                }, 
+                {
+                    "transcript": "mung ki"
+                }, 
+                {
+                    "transcript": "Manki"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347640574ring": {
+            "alternative": [
+                {
+                    "confidence": 0.69941074, 
+                    "transcript": "ring"
+                }, 
+                {
+                    "transcript": "link"
+                }, 
+                {
+                    "transcript": "ling"
+                }, 
+                {
+                    "transcript": "linked"
+                }, 
+                {
+                    "transcript": "wring"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347640788k_says_k": {
+            "alternative": [
+                {
+                    "confidence": 0.52782965, 
+                    "transcript": "kisses"
+                }, 
+                {
+                    "transcript": "cases"
+                }, 
+                {
+                    "transcript": "Kesar"
+                }, 
+                {
+                    "transcript": "kises"
+                }, 
+                {
+                    "transcript": "thesis"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347640950yoga": {
+            "alternative": [
+                {
+                    "confidence": 0.84727508, 
+                    "transcript": "yoga"
+                }, 
+                {
+                    "transcript": "Yuga"
+                }, 
+                {
+                    "transcript": "Ryuga"
+                }, 
+                {
+                    "transcript": "sugar"
+                }, 
+                {
+                    "transcript": "yo ga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347641333s": {
+            "alternative": [
+                {
+                    "confidence": 0.53892171, 
+                    "transcript": "s"
+                }, 
+                {
+                    "transcript": "yes"
+                }, 
+                {
+                    "transcript": "f"
+                }, 
+                {
+                    "transcript": "ESS"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347641482well": {
+            "alternative": [
+                {
+                    "confidence": 0.42219827, 
+                    "transcript": "well"
+                }, 
+                {
+                    "transcript": "weld"
+                }, 
+                {
+                    "transcript": "world"
+                }, 
+                {
+                    "transcript": "wealth"
+                }, 
+                {
+                    "transcript": "wild"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347641604gate_starts_with_g": {
+            "alternative": [
+                {
+                    "transcript": "gift starts with"
+                }, 
+                {
+                    "transcript": "Gate starts with"
+                }, 
+                {
+                    "transcript": "geet starts with"
+                }, 
+                {
+                    "transcript": "game starts with"
+                }, 
+                {
+                    "transcript": "gift starts with A"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347641799introduction": {
+            "alternative": [
+                {
+                    "confidence": 0.90659249, 
+                    "transcript": "hello everyone welcome to easy English today's lesson is alphabets"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easyenglish today's lesson is alphabets"
+                }, 
+                {
+                    "transcript": "hello everyone welcome 2 easy English today's lesson is alphabets"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English today's lesson is alphabet"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English today is lesson is alphabets"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347642170t": {
+            "alternative": [
+                {
+                    "confidence": 0.45091921, 
+                    "transcript": "t"
+                }, 
+                {
+                    "transcript": "tea"
+                }, 
+                {
+                    "transcript": "p"
+                }, 
+                {
+                    "transcript": "ti"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347642649u_says_u": {
+            "alternative": [
+                {
+                    "transcript": "you self"
+                }, 
+                {
+                    "transcript": "yourself"
+                }, 
+                {
+                    "transcript": "you sense"
+                }, 
+                {
+                    "transcript": "uses"
+                }, 
+                {
+                    "transcript": "Who sells"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347642895violin": {
+            "alternative": [
+                {
+                    "confidence": 0.9230442, 
+                    "transcript": "violin"
+                }, 
+                {
+                    "transcript": "Phailin"
+                }, 
+                {
+                    "transcript": "mylan"
+                }, 
+                {
+                    "transcript": "violent"
+                }, 
+                {
+                    "transcript": "while and"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347643568owl": {
+            "alternative": [
+                {
+                    "confidence": 0.7522096, 
+                    "transcript": "owl"
+                }, 
+                {
+                    "transcript": "house"
+                }, 
+                {
+                    "transcript": "all"
+                }, 
+                {
+                    "transcript": "Audi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347643958king": {
+            "alternative": [
+                {
+                    "confidence": 0.89500767, 
+                    "transcript": "king"
+                }, 
+                {
+                    "transcript": "Kings"
+                }, 
+                {
+                    "transcript": "k***"
+                }, 
+                {
+                    "transcript": "kingh"
+                }, 
+                {
+                    "transcript": "Kim"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347644107orange_starts_with_o": {
+            "alternative": [
+                {
+                    "confidence": 0.76217896, 
+                    "transcript": "Orange starts with A"
+                }, 
+                {
+                    "transcript": "Orange starts with o"
+                }, 
+                {
+                    "transcript": "Orange starts with R"
+                }, 
+                {
+                    "transcript": "Orange starts with I"
+                }, 
+                {
+                    "transcript": "change starts with A"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347645002car": {
+            "alternative": [
+                {
+                    "confidence": 0.75989819, 
+                    "transcript": "cars"
+                }, 
+                {
+                    "transcript": "Kaash"
+                }, 
+                {
+                    "transcript": "Akash"
+                }, 
+                {
+                    "transcript": "cash"
+                }, 
+                {
+                    "transcript": "kaaz"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347645216m": {
+            "alternative": [
+                {
+                    "confidence": 0.58434469, 
+                    "transcript": "m"
+                }, 
+                {
+                    "transcript": "n"
+                }, 
+                {
+                    "transcript": "em"
+                }, 
+                {
+                    "transcript": "I'm"
+                }, 
+                {
+                    "transcript": "and"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347645397ice": {
+            "alternative": [
+                {
+                    "transcript": "ice"
+                }, 
+                {
+                    "transcript": "IES"
+                }, 
+                {
+                    "transcript": "Eyes"
+                }, 
+                {
+                    "transcript": "ise"
+                }, 
+                {
+                    "transcript": "IX"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347645577i_says_i": {
+            "alternative": [
+                {
+                    "transcript": "I cells"
+                }, 
+                {
+                    "transcript": "I self"
+                }, 
+                {
+                    "transcript": "I sense"
+                }, 
+                {
+                    "transcript": "I sales"
+                }, 
+                {
+                    "transcript": "I sell"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347645727girl": {
+            "alternative": [
+                {
+                    "confidence": 0.88692814, 
+                    "transcript": "girl"
+                }, 
+                {
+                    "transcript": "girls"
+                }, 
+                {
+                    "transcript": "gurl"
+                }, 
+                {
+                    "transcript": "gerl"
+                }, 
+                {
+                    "transcript": "girll"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347646149bus_starts_with_b": {
+            "alternative": [
+                {
+                    "confidence": 0.68006611, 
+                    "transcript": "bus starts with boy"
+                }, 
+                {
+                    "transcript": "bus starts with"
+                }, 
+                {
+                    "transcript": "bus starts with bar"
+                }, 
+                {
+                    "transcript": "bus stops with boy"
+                }, 
+                {
+                    "transcript": "bus starts with b"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347646351kid": {
+            "alternative": [
+                {
+                    "confidence": 0.74734759, 
+                    "transcript": "kid"
+                }, 
+                {
+                    "transcript": "kids"
+                }, 
+                {
+                    "transcript": "keep"
+                }, 
+                {
+                    "transcript": "kidd"
+                }, 
+                {
+                    "transcript": "kit"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347646507t_says_t": {
+            "alternative": [
+                {
+                    "confidence": 0.91077644, 
+                    "transcript": "pieces"
+                }, 
+                {
+                    "transcript": "thesis"
+                }, 
+                {
+                    "transcript": "PCS"
+                }, 
+                {
+                    "transcript": "spieces"
+                }, 
+                {
+                    "transcript": "species"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347646650scale": {
+            "alternative": [
+                {
+                    "confidence": 0.53474331, 
+                    "transcript": "skill"
+                }, 
+                {
+                    "transcript": "scale"
+                }, 
+                {
+                    "transcript": "sakil"
+                }, 
+                {
+                    "transcript": "skil"
+                }, 
+                {
+                    "transcript": "Skull"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347647165capital-q-small-q": {
+            "alternative": [
+                {
+                    "confidence": 0.70292479, 
+                    "transcript": "capital to small cute"
+                }, 
+                {
+                    "transcript": "capital Q small cute"
+                }, 
+                {
+                    "transcript": "capital to small q"
+                }, 
+                {
+                    "transcript": "capital to small queue"
+                }, 
+                {
+                    "transcript": "capital kill small cute"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347647647y": {
+            "alternative": [
+                {
+                    "confidence": 0.57793349, 
+                    "transcript": "why"
+                }, 
+                {
+                    "transcript": "y"
+                }, 
+                {
+                    "transcript": "vi"
+                }, 
+                {
+                    "transcript": "wi"
+                }, 
+                {
+                    "transcript": "wy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347647836frock": {
+            "alternative": [
+                {
+                    "confidence": 0.77961504, 
+                    "transcript": "frock"
+                }, 
+                {
+                    "transcript": "Brock"
+                }, 
+                {
+                    "transcript": "rock"
+                }, 
+                {
+                    "transcript": "proc"
+                }, 
+                {
+                    "transcript": "froch"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347648002vegetables": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "vegetables"
+                }, 
+                {
+                    "transcript": "vegetable"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347648192drag-and-drop-the-letters-in-the-correct-order-": {
+            "alternative": [
+                {
+                    "transcript": "Dragon drop the letters in the correct order"
+                }, 
+                {
+                    "transcript": "drag and drop the letters in the correct order"
+                }, 
+                {
+                    "transcript": "Dragon drop 2 letters in the correct order"
+                }, 
+                {
+                    "transcript": "Dragon dropped a letters in the correct order"
+                }, 
+                {
+                    "transcript": "Dragon drop dead letters in the correct order"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347648488o": {
+            "alternative": [
+                {
+                    "transcript": "oh"
+                }, 
+                {
+                    "transcript": "o"
+                }, 
+                {
+                    "transcript": "who"
+                }, 
+                {
+                    "transcript": "oo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347649146hen": {
+            "alternative": [
+                {
+                    "confidence": 0.68596619, 
+                    "transcript": "hen"
+                }, 
+                {
+                    "transcript": "n"
+                }, 
+                {
+                    "transcript": "hand"
+                }, 
+                {
+                    "transcript": "hell"
+                }, 
+                {
+                    "transcript": "hey"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347650299v": {
+            "alternative": [
+                {
+                    "confidence": 0.35837451, 
+                    "transcript": "we"
+                }, 
+                {
+                    "transcript": "v"
+                }, 
+                {
+                    "transcript": "vi"
+                }, 
+                {
+                    "transcript": "Wii"
+                }, 
+                {
+                    "transcript": "wee"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347651794dog_starts_with_d": {
+            "alternative": [
+                {
+                    "confidence": 0.71646267, 
+                    "transcript": "job starts with"
+                }, 
+                {
+                    "transcript": "dog starts with"
+                }, 
+                {
+                    "transcript": "dog starts with J"
+                }, 
+                {
+                    "transcript": "dog starts with d"
+                }, 
+                {
+                    "transcript": "job starts with J"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347652248g": {
+            "alternative": [
+                {
+                    "confidence": 0.69959962, 
+                    "transcript": "g"
+                }, 
+                {
+                    "transcript": "jee"
+                }, 
+                {
+                    "transcript": "ji"
+                }, 
+                {
+                    "transcript": "Z"
+                }, 
+                {
+                    "transcript": "XE"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347652569zebra": {
+            "alternative": [
+                {
+                    "transcript": "Zimbra"
+                }, 
+                {
+                    "transcript": "Libra"
+                }, 
+                {
+                    "transcript": "zebra"
+                }, 
+                {
+                    "transcript": "zibra"
+                }, 
+                {
+                    "transcript": "libre"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347653770numbers_starts_with_n": {
+            "alternative": [
+                {
+                    "transcript": "numbers starts with"
+                }, 
+                {
+                    "transcript": "numbers starts with n"
+                }, 
+                {
+                    "transcript": "numbers starts with A"
+                }, 
+                {
+                    "transcript": "numbers starts with no"
+                }, 
+                {
+                    "transcript": "numbers starts with I"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347654663c_says_c": {
+            "alternative": [
+                {
+                    "confidence": 0.29126218, 
+                    "transcript": "ceases"
+                }, 
+                {
+                    "transcript": "CCS"
+                }, 
+                {
+                    "transcript": "thesis"
+                }, 
+                {
+                    "transcript": "pieces"
+                }, 
+                {
+                    "transcript": "she said"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347654960capital-t-small-t": {
+            "alternative": [
+                {
+                    "transcript": "capital to small tea"
+                }, 
+                {
+                    "transcript": "capital T smalltits"
+                }, 
+                {
+                    "transcript": "capital to small t"
+                }, 
+                {
+                    "transcript": "capital T smalltit"
+                }, 
+                {
+                    "transcript": "capital T small tea"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347655129x_says_x": {
+            "alternative": [
+                {
+                    "transcript": "axis"
+                }, 
+                {
+                    "transcript": "excise"
+                }, 
+                {
+                    "transcript": "Excel"
+                }, 
+                {
+                    "transcript": "excess"
+                }, 
+                {
+                    "transcript": "xes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347655338capital-s-small-s": {
+            "alternative": [
+                {
+                    "confidence": 0.89818794, 
+                    "transcript": "capital as small as"
+                }, 
+                {
+                    "transcript": "capital as small a**"
+                }, 
+                {
+                    "transcript": "capital s small a**"
+                }, 
+                {
+                    "transcript": "capital as small s"
+                }, 
+                {
+                    "transcript": "capital of small a**"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347655484e": {
+            "alternative": [
+                {
+                    "transcript": "e"
+                }, 
+                {
+                    "transcript": "I"
+                }, 
+                {
+                    "transcript": "a"
+                }, 
+                {
+                    "transcript": "ee"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347655755r": {
+            "alternative": [
+                {
+                    "confidence": 0.21289532, 
+                    "transcript": "Aaj"
+                }, 
+                {
+                    "transcript": "are"
+                }, 
+                {
+                    "transcript": "r"
+                }, 
+                {
+                    "transcript": "I"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347656463m_says_m": {
+            "alternative": [
+                {
+                    "transcript": "M cells"
+                }, 
+                {
+                    "transcript": "I'm self"
+                }, 
+                {
+                    "transcript": "M sales"
+                }, 
+                {
+                    "transcript": "incense"
+                }, 
+                {
+                    "transcript": "M cell"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347657222drag-and-drop-the-small-letter-to-the-capital-letter": {
+            "alternative": [
+                {
+                    "confidence": 0.92814255, 
+                    "transcript": "drag and drop the small letter to the capital letter"
+                }, 
+                {
+                    "transcript": "drag and drop this small letter to the capital letter"
+                }, 
+                {
+                    "transcript": "drag and drop test small letter to the capital letter"
+                }, 
+                {
+                    "transcript": "drag and drop the small letter to the capital latter"
+                }, 
+                {
+                    "transcript": "drag and drop does small letter to the capital letter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347658105lion_starts_with_l": {
+            "alternative": [
+                {
+                    "confidence": 0.60746092, 
+                    "transcript": "lion starts with o"
+                }, 
+                {
+                    "transcript": "lion starts with A"
+                }, 
+                {
+                    "transcript": "lions starts with o"
+                }, 
+                {
+                    "transcript": "lions start with o"
+                }, 
+                {
+                    "transcript": "lions starts with A"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347658275s_says_s": {
+            "alternative": [
+                {
+                    "transcript": "Aircel"
+                }, 
+                {
+                    "transcript": "self"
+                }, 
+                {
+                    "transcript": "is self"
+                }, 
+                {
+                    "transcript": "if else"
+                }, 
+                {
+                    "transcript": "SL"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347658614jug": {
+            "alternative": [
+                {
+                    "confidence": 0.19617362, 
+                    "transcript": "jug"
+                }, 
+                {
+                    "transcript": "Jag"
+                }, 
+                {
+                    "transcript": "Jog"
+                }, 
+                {
+                    "transcript": "Jung"
+                }, 
+                {
+                    "transcript": "Jang"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347658786capital-w-small-w": {
+            "alternative": [
+                {
+                    "confidence": 0.81903887, 
+                    "transcript": "capital w small w"
+                }, 
+                {
+                    "transcript": "capital w smaller w"
+                }, 
+                {
+                    "transcript": "capital w w"
+                }, 
+                {
+                    "transcript": "capital w smoll w"
+                }, 
+                {
+                    "transcript": "capital w smol w"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347658933yak": {
+            "alternative": [
+                {
+                    "transcript": "young"
+                }, 
+                {
+                    "transcript": "yes"
+                }, 
+                {
+                    "transcript": "yeah"
+                }, 
+                {
+                    "transcript": "yg"
+                }, 
+                {
+                    "transcript": "yk"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347659300uniform": {
+            "alternative": [
+                {
+                    "confidence": 0.93727565, 
+                    "transcript": "uniform"
+                }, 
+                {
+                    "transcript": "uniforms"
+                }, 
+                {
+                    "transcript": "Uni form"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347659708bat": {
+            "alternative": [
+                {
+                    "confidence": 0.42943919, 
+                    "transcript": "back"
+                }, 
+                {
+                    "transcript": "bat"
+                }, 
+                {
+                    "transcript": "bad"
+                }, 
+                {
+                    "transcript": "that"
+                }, 
+                {
+                    "transcript": "but"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347660556listen-drag-and-drop": {
+            "alternative": [
+                {
+                    "confidence": 0.48784947, 
+                    "transcript": "listen drag and drop"
+                }, 
+                {
+                    "transcript": "listen drag-and-drop"
+                }, 
+                {
+                    "transcript": "Lisan drag and drop"
+                }, 
+                {
+                    "transcript": "listened drag and drop"
+                }, 
+                {
+                    "transcript": "leason drag and drop"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347660721l": {
+            "alternative": [
+                {
+                    "confidence": 0.36011317, 
+                    "transcript": "l"
+                }, 
+                {
+                    "transcript": "I'll"
+                }, 
+                {
+                    "transcript": "well"
+                }, 
+                {
+                    "transcript": "hell"
+                }, 
+                {
+                    "transcript": "n"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347660887capital-x-small-x": {
+            "alternative": [
+                {
+                    "confidence": 0.89201534, 
+                    "transcript": "capital X small x"
+                }, 
+                {
+                    "transcript": "capital X small eggs"
+                }, 
+                {
+                    "transcript": "capital X small sex"
+                }, 
+                {
+                    "transcript": "Capitol X small x"
+                }, 
+                {
+                    "transcript": "capital X small EX"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347661043zip_starts_with_z": {
+            "alternative": [
+                {
+                    "confidence": 0.73955727, 
+                    "transcript": "which starts with"
+                }, 
+                {
+                    "transcript": "it starts with"
+                }, 
+                {
+                    "transcript": "is it starts with"
+                }, 
+                {
+                    "transcript": "which starts wit"
+                }, 
+                {
+                    "transcript": "which starts with S"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347661199capital-b-small-b": {
+            "alternative": [
+                {
+                    "transcript": "capital b small B"
+                }, 
+                {
+                    "transcript": "capital b small boy"
+                }, 
+                {
+                    "transcript": "capital b small be"
+                }, 
+                {
+                    "transcript": "capital b small bee"
+                }, 
+                {
+                    "transcript": "capital be small boy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347661370pin": {
+            "alternative": [
+                {
+                    "confidence": 0.8157438, 
+                    "transcript": "pin"
+                }, 
+                {
+                    "transcript": "spin"
+                }, 
+                {
+                    "transcript": "open"
+                }, 
+                {
+                    "transcript": "pen"
+                }, 
+                {
+                    "transcript": "Penn"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347661529yawn": {
+            "alternative": [
+                {
+                    "confidence": 0.2433148, 
+                    "transcript": "Eon"
+                }, 
+                {
+                    "transcript": "John"
+                }, 
+                {
+                    "transcript": "yawn"
+                }, 
+                {
+                    "transcript": "p***"
+                }, 
+                {
+                    "transcript": "you orn"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347661687j": {
+            "alternative": [
+                {
+                    "confidence": 0.55343074, 
+                    "transcript": "g"
+                }, 
+                {
+                    "transcript": "jee"
+                }, 
+                {
+                    "transcript": "J"
+                }, 
+                {
+                    "transcript": "Z"
+                }, 
+                {
+                    "transcript": "ji"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347662862x": {
+            "alternative": [
+                {
+                    "confidence": 0.76388794, 
+                    "transcript": "x"
+                }, 
+                {
+                    "transcript": "sex"
+                }, 
+                {
+                    "transcript": "EX"
+                }, 
+                {
+                    "transcript": "XXN"
+                }, 
+                {
+                    "transcript": "ECHS"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347663038v_says_v": {
+            "alternative": [
+                {
+                    "confidence": 0.44692832, 
+                    "transcript": "we sell"
+                }, 
+                {
+                    "transcript": "we said"
+                }, 
+                {
+                    "transcript": "B cells"
+                }, 
+                {
+                    "transcript": "V cell"
+                }, 
+                {
+                    "transcript": "B cell"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347663927sun": {
+            "alternative": [
+                {
+                    "confidence": 0.51805884, 
+                    "transcript": "sun"
+                }, 
+                {
+                    "transcript": "son"
+                }, 
+                {
+                    "transcript": "Sunn"
+                }, 
+                {
+                    "transcript": "Sunny"
+                }, 
+                {
+                    "transcript": "cen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347664083o_says_o": {
+            "alternative": [
+                {
+                    "confidence": 0.61402726, 
+                    "transcript": "Who sells"
+                }, 
+                {
+                    "transcript": "who says"
+                }, 
+                {
+                    "transcript": "who said"
+                }, 
+                {
+                    "transcript": "who self"
+                }, 
+                {
+                    "transcript": "who sales"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347664543aeiou_are_called_vowels": {
+            "alternative": [
+                {
+                    "transcript": "a e i o u are called vowels"
+                }, 
+                {
+                    "transcript": "a e i o u are called-- vowels"
+                }, 
+                {
+                    "transcript": "a e i o u are called goggles"
+                }, 
+                {
+                    "transcript": "a e i o u are called bubbles"
+                }, 
+                {
+                    "transcript": "i e i o u are called vowels"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347665180nest": {
+            "alternative": [
+                {
+                    "confidence": 0.47826317, 
+                    "transcript": "nest"
+                }, 
+                {
+                    "transcript": "next"
+                }, 
+                {
+                    "transcript": "best"
+                }, 
+                {
+                    "transcript": "messed"
+                }, 
+                {
+                    "transcript": "Messi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347665670u": {
+            "alternative": [
+                {
+                    "confidence": 0.70111644, 
+                    "transcript": "you"
+                }, 
+                {
+                    "transcript": "u"
+                }, 
+                {
+                    "transcript": "you're"
+                }, 
+                {
+                    "transcript": "Yu"
+                }, 
+                {
+                    "transcript": "EU"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347665833vase": {
+            "alternative": [
+                {
+                    "confidence": 0.25207332, 
+                    "transcript": "bars"
+                }, 
+                {
+                    "transcript": "was"
+                }, 
+                {
+                    "transcript": "Where's"
+                }, 
+                {
+                    "transcript": "waz"
+                }, 
+                {
+                    "transcript": "baal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347665994umbrella": {
+            "alternative": [
+                {
+                    "confidence": 0.87040764, 
+                    "transcript": "umbrella"
+                }, 
+                {
+                    "transcript": "umbrela"
+                }, 
+                {
+                    "transcript": "impeller"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347666149watch_starts_with_w": {
+            "alternative": [
+                {
+                    "confidence": 0.9118309, 
+                    "transcript": "what starts with"
+                }, 
+                {
+                    "transcript": "what starts wit"
+                }, 
+                {
+                    "transcript": "watch starts wit"
+                }, 
+                {
+                    "transcript": "what starts with A"
+                }, 
+                {
+                    "transcript": "what starts with v"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347666360q": {
+            "alternative": [
+                {
+                    "confidence": 0.50771445, 
+                    "transcript": "q"
+                }, 
+                {
+                    "transcript": "Que"
+                }, 
+                {
+                    "transcript": "Kyun"
+                }, 
+                {
+                    "transcript": "kyu"
+                }, 
+                {
+                    "transcript": "kyo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347666597z": {
+            "alternative": [
+                {
+                    "confidence": 0.5728327, 
+                    "transcript": "Z"
+                }, 
+                {
+                    "transcript": "zedd"
+                }, 
+                {
+                    "transcript": "Zed"
+                }, 
+                {
+                    "transcript": "Zaid"
+                }, 
+                {
+                    "transcript": "Zedge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347667159quiet": {
+            "alternative": [
+                {
+                    "confidence": 0.6908046, 
+                    "transcript": "quiet"
+                }, 
+                {
+                    "transcript": "cuiet"
+                }, 
+                {
+                    "transcript": "quite"
+                }, 
+                {
+                    "transcript": "Fiat"
+                }, 
+                {
+                    "transcript": "quit"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347667532zoo": {
+            "alternative": [
+                {
+                    "confidence": 0.59718192, 
+                    "transcript": "you"
+                }, 
+                {
+                    "transcript": "u"
+                }, 
+                {
+                    "transcript": "zoo"
+                }, 
+                {
+                    "transcript": "yo"
+                }, 
+                {
+                    "transcript": "Jew"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347667709capital-n-small-n": {
+            "alternative": [
+                {
+                    "transcript": "capital and small end"
+                }, 
+                {
+                    "transcript": "capital and small and"
+                }, 
+                {
+                    "transcript": "capital and small n"
+                }, 
+                {
+                    "transcript": "capital and small"
+                }, 
+                {
+                    "transcript": "capital and small in"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347668221joker": {
+            "alternative": [
+                {
+                    "confidence": 0.78548843, 
+                    "transcript": "Joker"
+                }, 
+                {
+                    "transcript": "Joka"
+                }, 
+                {
+                    "transcript": "yoga"
+                }, 
+                {
+                    "transcript": "jokes"
+                }, 
+                {
+                    "transcript": "Dhoka"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347668791j_says_j": {
+            "alternative": [
+                {
+                    "transcript": "Jesus"
+                }, 
+                {
+                    "transcript": "G cell"
+                }, 
+                {
+                    "transcript": "zexal"
+                }, 
+                {
+                    "transcript": "jeetle"
+                }, 
+                {
+                    "transcript": "Gmail"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347668942f_says_f": {
+            "alternative": [
+                {
+                    "confidence": 0.18178858, 
+                    "transcript": "essays"
+                }, 
+                {
+                    "transcript": "aces"
+                }, 
+                {
+                    "transcript": "sales"
+                }, 
+                {
+                    "transcript": "Aircel"
+                }, 
+                {
+                    "transcript": "SS"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347669437capital-f-small-f": {
+            "alternative": [
+                {
+                    "confidence": 0.8395313, 
+                    "transcript": "capital as small as"
+                }, 
+                {
+                    "transcript": "capital as small a**"
+                }, 
+                {
+                    "transcript": "capital s small a**"
+                }, 
+                {
+                    "transcript": "capital of small a**"
+                }, 
+                {
+                    "transcript": "capital as small s"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347670328washing": {
+            "alternative": [
+                {
+                    "confidence": 0.90661496, 
+                    "transcript": "washing"
+                }, 
+                {
+                    "transcript": "watching"
+                }, 
+                {
+                    "transcript": "moshing"
+                }, 
+                {
+                    "transcript": "wapking"
+                }, 
+                {
+                    "transcript": "Washim"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347670515drag-and-drop-the-correct-letter": {
+            "alternative": [
+                {
+                    "transcript": "drag and drop the correct letter"
+                }, 
+                {
+                    "transcript": "Dragon drop the correct letter"
+                }, 
+                {
+                    "transcript": "drag and drop to correct letter"
+                }, 
+                {
+                    "transcript": "Dragan drop the correct letter"
+                }, 
+                {
+                    "transcript": "Dragon drop to correct letter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347670677capital-d-small-d": {
+            "alternative": [
+                {
+                    "confidence": 0.6635251, 
+                    "transcript": "capital De small D"
+                }, 
+                {
+                    "transcript": "capital De small De"
+                }, 
+                {
+                    "transcript": "capital d small boy"
+                }, 
+                {
+                    "transcript": "capital De small Di"
+                }, 
+                {
+                    "transcript": "capital b small boy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347671138rose_starts_with_r": {
+            "alternative": [
+                {
+                    "confidence": 0.75388545, 
+                    "transcript": "rules starts with"
+                }, 
+                {
+                    "transcript": "Rose starts with"
+                }, 
+                {
+                    "transcript": "rules starts wit"
+                }, 
+                {
+                    "transcript": "roux starts with"
+                }, 
+                {
+                    "transcript": "Rose starts wit"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347671605pen_starts_with_p": {
+            "alternative": [
+                {
+                    "confidence": 0.56879365, 
+                    "transcript": "when starts with"
+                }, 
+                {
+                    "transcript": "pen starts with"
+                }, 
+                {
+                    "transcript": "Kenstar Swift"
+                }, 
+                {
+                    "transcript": "pin starts with"
+                }, 
+                {
+                    "transcript": "Ben starts with"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347671761capital-h-small-h": {
+            "alternative": [
+                {
+                    "transcript": "Capitol Heights small Hitch"
+                }, 
+                {
+                    "transcript": "capitalheight small hits"
+                }, 
+                {
+                    "transcript": "Capitol Heights small hits"
+                }, 
+                {
+                    "transcript": "Capitol Heights small sheet"
+                }, 
+                {
+                    "transcript": "capitalheight small sheet"
+                }, 
+                {
+                    "transcript": "capitalheight tips"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347672535q_says_q": {
+            "alternative": [
+                {
+                    "transcript": "q-cells"
+                }, 
+                {
+                    "transcript": "Q cells"
+                }, 
+                {
+                    "transcript": "cucet"
+                }, 
+                {
+                    "transcript": "Q self"
+                }, 
+                {
+                    "transcript": "cute self"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347672940xmas": {
+            "alternative": [
+                {
+                    "confidence": 0.90582573, 
+                    "transcript": "Xmas"
+                }, 
+                {
+                    "transcript": "axis"
+                }, 
+                {
+                    "transcript": "Nexus"
+                }, 
+                {
+                    "transcript": "X Men"
+                }, 
+                {
+                    "transcript": "text mess"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347674073mango_starts_with_m": {
+            "alternative": [
+                {
+                    "confidence": 0.8031047, 
+                    "transcript": "mangoes starts with"
+                }, 
+                {
+                    "transcript": "mangos starts with"
+                }, 
+                {
+                    "transcript": "mangoes starts with me"
+                }, 
+                {
+                    "transcript": "mangos starts with me"
+                }, 
+                {
+                    "transcript": "mangoes starts with A"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347674225a_says_a": {
+            "alternative": [
+                {
+                    "confidence": 0.26991555, 
+                    "transcript": "aces"
+                }, 
+                {
+                    "transcript": "Aircel"
+                }, 
+                {
+                    "transcript": "uses"
+                }, 
+                {
+                    "transcript": "eSeva"
+                }, 
+                {
+                    "transcript": "is is"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347674360writing_activity": {
+            "alternative": [
+                {
+                    "confidence": 0.92044777, 
+                    "transcript": "write a to z capital letters and A to Z small letters in your notebooks"
+                }, 
+                {
+                    "transcript": "right A to Z capital letters and A to Z small letters in your notebooks"
+                }, 
+                {
+                    "transcript": "write a to z capital letters and A to Z small letters in your notebook"
+                }, 
+                {
+                    "transcript": "write a to z capital letters and A to Z small letters in your note books"
+                }, 
+                {
+                    "transcript": "Wright A to Z capital letters and A to Z small letters in your notebooks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347674568inkpot_starts_with_i": {
+            "alternative": [
+                {
+                    "confidence": 0.80740249, 
+                    "transcript": "inkpot starts with A"
+                }, 
+                {
+                    "transcript": "inkpot starts with E"
+                }, 
+                {
+                    "transcript": "inkpot starts with I"
+                }, 
+                {
+                    "transcript": "ink pot starts with A"
+                }, 
+                {
+                    "transcript": "inkpot starts with P"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347674731key_starts_with_k": {
+            "alternative": [
+                {
+                    "transcript": "keys starts with"
+                }, 
+                {
+                    "transcript": "keys starts with A"
+                }, 
+                {
+                    "transcript": "he starts with"
+                }, 
+                {
+                    "transcript": "keez starts with"
+                }, 
+                {
+                    "transcript": "he starts with A"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347674870apple_starts_with_a": {
+            "alternative": [
+                {
+                    "transcript": "starts with ap"
+                }, 
+                {
+                    "transcript": "Apple starts with ap"
+                }, 
+                {
+                    "transcript": "Apple starts with app"
+                }, 
+                {
+                    "transcript": "starts with app"
+                }, 
+                {
+                    "transcript": "after starts with app"
+                }, 
+                {
+                    "transcript": "Apple stopwatch app"
+                }, 
+                {
+                    "transcript": "Apple start app"
+                }, 
+                {
+                    "transcript": "Apple store whats app"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347675042mobile": {
+            "alternative": [
+                {
+                    "confidence": 0.95694983, 
+                    "transcript": "mobile"
+                }, 
+                {
+                    "transcript": "mobaile"
+                }, 
+                {
+                    "transcript": "mobiles"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347675580door": {
+            "alternative": [
+                {
+                    "confidence": 0.22800569, 
+                    "transcript": "do it"
+                }, 
+                {
+                    "transcript": "dude"
+                }, 
+                {
+                    "transcript": "duet"
+                }, 
+                {
+                    "transcript": "doit"
+                }, 
+                {
+                    "transcript": "do"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347675757capital-l-small-l": {
+            "alternative": [
+                {
+                    "transcript": "capital and small l"
+                }, 
+                {
+                    "transcript": "capital as small as"
+                }, 
+                {
+                    "transcript": "capital and small Al"
+                }, 
+                {
+                    "transcript": "capital and small I'll"
+                }, 
+                {
+                    "transcript": "capital and small El"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347675901hat_starts_with_h": {
+            "alternative": [
+                {
+                    "confidence": 0.80861026, 
+                    "transcript": "heart starts with her"
+                }, 
+                {
+                    "transcript": "Hath starts with her"
+                }, 
+                {
+                    "transcript": "hat starts with her"
+                }, 
+                {
+                    "transcript": "hacked starts with her"
+                }, 
+                {
+                    "transcript": "that starts with her"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347676065zero": {
+            "alternative": [
+                {
+                    "confidence": 0.54635799, 
+                    "transcript": "0"
+                }, 
+                {
+                    "transcript": "zero"
+                }, 
+                {
+                    "transcript": "Hero"
+                }, 
+                {
+                    "transcript": "Nero"
+                }, 
+                {
+                    "transcript": "Z RO"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347676235pencil": {
+            "alternative": [
+                {
+                    "confidence": 0.67550409, 
+                    "transcript": "pencil"
+                }, 
+                {
+                    "transcript": "pensive"
+                }, 
+                {
+                    "transcript": "Spencer"
+                }, 
+                {
+                    "transcript": "Spencers"
+                }, 
+                {
+                    "transcript": "cancel"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347676571a": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347676729capital-k-small-k": {
+            "alternative": [
+                {
+                    "confidence": 0.88927305, 
+                    "transcript": "capital K small k"
+                }, 
+                {
+                    "transcript": "capital K small ke"
+                }, 
+                {
+                    "transcript": "capital K small gay"
+                }, 
+                {
+                    "transcript": "capital K small Kay"
+                }, 
+                {
+                    "transcript": "capital K small key"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347676872capital-j-small-j": {
+            "alternative": [
+                {
+                    "confidence": 0.70974815, 
+                    "transcript": "capital g small g"
+                }, 
+                {
+                    "transcript": "capital J small g"
+                }, 
+                {
+                    "transcript": "capital g small J"
+                }, 
+                {
+                    "transcript": "capital J small J"
+                }, 
+                {
+                    "transcript": "capital g small gay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347677423neck": {
+            "alternative": [
+                {
+                    "confidence": 0.49241948, 
+                    "transcript": "neck"
+                }, 
+                {
+                    "transcript": "necc"
+                }, 
+                {
+                    "transcript": "net"
+                }, 
+                {
+                    "transcript": "Nek"
+                }, 
+                {
+                    "transcript": "Mac"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347677663h": {
+            "alternative": [
+                {
+                    "confidence": 0.60302997, 
+                    "transcript": "heat"
+                }, 
+                {
+                    "transcript": "Heath"
+                }, 
+                {
+                    "transcript": "feet"
+                }, 
+                {
+                    "transcript": "heap"
+                }, 
+                {
+                    "transcript": "hits"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347677798pen": {
+            "alternative": [
+                {
+                    "confidence": 0.26907775, 
+                    "transcript": "pen"
+                }, 
+                {
+                    "transcript": "10"
+                }, 
+                {
+                    "transcript": "Penn"
+                }, 
+                {
+                    "transcript": "open"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347679101n": {
+            "alternative": [
+                {
+                    "confidence": 0.31953728, 
+                    "transcript": "n"
+                }, 
+                {
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "m"
+                }, 
+                {
+                    "transcript": "end"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347679293lock": {
+            "alternative": [
+                {
+                    "confidence": 0.17267464, 
+                    "transcript": "lock"
+                }, 
+                {
+                    "transcript": "Lok"
+                }, 
+                {
+                    "transcript": "LOC"
+                }, 
+                {
+                    "transcript": "Locke"
+                }, 
+                {
+                    "transcript": "lough"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347679469quill": {
+            "alternative": [
+                {
+                    "confidence": 0.43743917, 
+                    "transcript": "quiz"
+                }, 
+                {
+                    "transcript": "queen"
+                }, 
+                {
+                    "transcript": "cool"
+                }, 
+                {
+                    "transcript": "Quill"
+                }, 
+                {
+                    "transcript": "kuile"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347679823under": {
+            "alternative": [
+                {
+                    "confidence": 0.51215529, 
+                    "transcript": "under"
+                }, 
+                {
+                    "transcript": "AMD"
+                }, 
+                {
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "undo"
+                }, 
+                {
+                    "transcript": "anda"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347680121b": {
+            "alternative": [
+                {
+                    "confidence": 0.53266335, 
+                    "transcript": "b"
+                }, 
+                {
+                    "transcript": "be"
+                }, 
+                {
+                    "transcript": "d"
+                }, 
+                {
+                    "transcript": "bee"
+                }, 
+                {
+                    "transcript": "bi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347680294road": {
+            "alternative": [
+                {
+                    "confidence": 0.42548612, 
+                    "transcript": "rude"
+                }, 
+                {
+                    "transcript": "Road"
+                }, 
+                {
+                    "transcript": "route"
+                }, 
+                {
+                    "transcript": "root"
+                }, 
+                {
+                    "transcript": "Rode"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347680910plate": {
+            "alternative": [
+                {
+                    "confidence": 0.52980483, 
+                    "transcript": "sleep"
+                }, 
+                {
+                    "transcript": "slip"
+                }, 
+                {
+                    "transcript": "delete"
+                }, 
+                {
+                    "transcript": "sleet"
+                }, 
+                {
+                    "transcript": "please"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347681233h_says_h": {
+            "alternative": [
+                {
+                    "transcript": "Shiv sales"
+                }, 
+                {
+                    "transcript": "she sells her"
+                }, 
+                {
+                    "transcript": "he is sales"
+                }, 
+                {
+                    "transcript": "cheap sales"
+                }, 
+                {
+                    "transcript": "he sells"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347681569duck": {
+            "alternative": [
+                {
+                    "confidence": 0.4205797, 
+                    "transcript": "duck"
+                }, 
+                {
+                    "transcript": "Dhak"
+                }, 
+                {
+                    "transcript": "Dukh"
+                }, 
+                {
+                    "transcript": "dog"
+                }, 
+                {
+                    "transcript": "doc"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347681923r_says_r": {
+            "alternative": [
+                {
+                    "transcript": "Aircel"
+                }, 
+                {
+                    "transcript": "our self"
+                }, 
+                {
+                    "transcript": "ourselves"
+                }, 
+                {
+                    "transcript": "mast cells"
+                }, 
+                {
+                    "transcript": "as sales"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347682266jeep_starts_with_j": {
+            "alternative": [
+                {
+                    "transcript": "Jeep starts with J"
+                }, 
+                {
+                    "transcript": "Jeet starts with J"
+                }, 
+                {
+                    "transcript": "Jit starts with J"
+                }, 
+                {
+                    "transcript": "Jeet starts with g"
+                }, 
+                {
+                    "transcript": "J starts with J"
+                }, 
+                {
+                    "transcript": "that starts with J"
+                }, 
+                {
+                    "transcript": "city starts with J"
+                }, 
+                {
+                    "transcript": "hate starts with J"
+                }, 
+                {
+                    "transcript": "Jeet starts with"
+                }, 
+                {
+                    "transcript": "Jeet starting with J"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347682406p_says_p": {
+            "alternative": [
+                {
+                    "confidence": 0.79266429, 
+                    "transcript": "pieces"
+                }, 
+                {
+                    "transcript": "thesis"
+                }, 
+                {
+                    "transcript": "t cells"
+                }, 
+                {
+                    "transcript": "peace sells"
+                }, 
+                {
+                    "transcript": "P cells"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347683159capital-g-small-g": {
+            "alternative": [
+                {
+                    "confidence": 0.88481277, 
+                    "transcript": "capital g small g"
+                }, 
+                {
+                    "transcript": "capital g small ji"
+                }, 
+                {
+                    "transcript": "capital ji small g"
+                }, 
+                {
+                    "transcript": "capital Jee small g"
+                }, 
+                {
+                    "transcript": "capital J small g"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347683468soap_starts_with_s": {
+            "alternative": [
+                {
+                    "confidence": 0.69137043, 
+                    "transcript": "show starts with"
+                }, 
+                {
+                    "transcript": "suit starts with"
+                }, 
+                {
+                    "transcript": "Sut starts with"
+                }, 
+                {
+                    "transcript": "chut starts with"
+                }, 
+                {
+                    "transcript": "choot starts with"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347683611yellow_starts_with_y": {
+            "alternative": [
+                {
+                    "transcript": "yellow starts with t"
+                }, 
+                {
+                    "transcript": "yellow starts with A"
+                }, 
+                {
+                    "transcript": "yellow starts with g"
+                }, 
+                {
+                    "transcript": "yellow starts with"
+                }, 
+                {
+                    "transcript": "yellow starts with I"
+                }, 
+                {
+                    "transcript": "Yello starts with"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347684752e_says_e": {
+            "alternative": [
+                {
+                    "transcript": "aces"
+                }, 
+                {
+                    "transcript": "if else"
+                }, 
+                {
+                    "transcript": "esis"
+                }, 
+                {
+                    "transcript": "esense"
+                }, 
+                {
+                    "transcript": "esales"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347685347capital-v-small-v": {
+            "alternative": [
+                {
+                    "transcript": "capital we small we"
+                }, 
+                {
+                    "transcript": "capital we small Re"
+                }, 
+                {
+                    "transcript": "capital Re small v"
+                }, 
+                {
+                    "transcript": "capital Re small Re"
+                }, 
+                {
+                    "transcript": "capital we small v"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347685525drag-and-drop-vowels-in-the-box-from-the-letters-given-below": {
+            "alternative": [
+                {
+                    "transcript": "drag and drop Bubbles in the box from the letters given below"
+                }, 
+                {
+                    "transcript": "drag and drop waffles in the box from the letters given below"
+                }, 
+                {
+                    "transcript": "drag and drop vowels in the box from the letters given below"
+                }, 
+                {
+                    "transcript": "drag and drop goggles in the box from the letters given below"
+                }, 
+                {
+                    "transcript": "drag and drop wire wheels in the box from the letters given below"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347686304queen_starts_with_q": {
+            "alternative": [
+                {
+                    "transcript": "cream starts with"
+                }, 
+                {
+                    "transcript": "screen starts with"
+                }, 
+                {
+                    "transcript": "Queen starts with"
+                }, 
+                {
+                    "transcript": "green starts with"
+                }, 
+                {
+                    "transcript": "scream starts with"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347686782one": {
+            "alternative": [
+                {
+                    "transcript": "one"
+                }, 
+                {
+                    "transcript": "1"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347687484capital-e-small-e": {
+            "alternative": [
+                {
+                    "transcript": "capital A small"
+                }, 
+                {
+                    "transcript": "capital small"
+                }, 
+                {
+                    "transcript": "capital e small"
+                }, 
+                {
+                    "transcript": "capital or small"
+                }, 
+                {
+                    "transcript": "capital small e"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347687711ball": {
+            "alternative": [
+                {
+                    "transcript": "ball"
+                }, 
+                {
+                    "transcript": "bol"
+                }, 
+                {
+                    "transcript": "Paul"
+                }, 
+                {
+                    "transcript": "doll"
+                }, 
+                {
+                    "transcript": "call"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347687959ear": {
+            "alternative": [
+                {
+                    "confidence": 0.52081728, 
+                    "transcript": "yeah"
+                }, 
+                {
+                    "transcript": "yea"
+                }, 
+                {
+                    "transcript": "Yeh"
+                }, 
+                {
+                    "transcript": "yo"
+                }, 
+                {
+                    "transcript": "yes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347688281c": {
+            "alternative": [
+                {
+                    "confidence": 0.29136485, 
+                    "transcript": "c"
+                }, 
+                {
+                    "transcript": "see"
+                }, 
+                {
+                    "transcript": "sea"
+                }, 
+                {
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "Si"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347688431i": {
+            "alternative": [
+                {
+                    "transcript": "I"
+                }, 
+                {
+                    "transcript": "hi"
+                }, 
+                {
+                    "transcript": "I I"
+                }, 
+                {
+                    "transcript": "aye aye"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347688570d": {
+            "alternative": [
+                {
+                    "confidence": 0.58998924, 
+                    "transcript": "d"
+                }, 
+                {
+                    "transcript": "the"
+                }, 
+                {
+                    "transcript": "De"
+                }, 
+                {
+                    "transcript": "Di"
+                }, 
+                {
+                    "transcript": "b"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347688737egg_starts_with_e": {
+            "alternative": [
+                {
+                    "transcript": "it starts with A"
+                }, 
+                {
+                    "transcript": "egg starts with"
+                }, 
+                {
+                    "transcript": "egg starts with A"
+                }, 
+                {
+                    "transcript": "it starts with"
+                }, 
+                {
+                    "transcript": "and starts with A"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347688885l_says_l": {
+            "alternative": [
+                {
+                    "transcript": "Elsa lion starts with LA"
+                }, 
+                {
+                    "transcript": "El celler lion starts with LA"
+                }, 
+                {
+                    "transcript": "else as lion starts with LA"
+                }, 
+                {
+                    "transcript": "l cell line starts with LA"
+                }, 
+                {
+                    "transcript": "elss as lion starts with LA"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347689839grapes": {
+            "alternative": [
+                {
+                    "confidence": 0.72098374, 
+                    "transcript": "grapes"
+                }, 
+                {
+                    "transcript": "grips"
+                }, 
+                {
+                    "transcript": "groups"
+                }, 
+                {
+                    "transcript": "drapes"
+                }, 
+                {
+                    "transcript": "creeps"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347690966box": {
+            "alternative": [
+                {
+                    "confidence": 0.84573239, 
+                    "transcript": "box"
+                }, 
+                {
+                    "transcript": "bux"
+                }, 
+                {
+                    "transcript": "vox"
+                }, 
+                {
+                    "transcript": "bugs"
+                }, 
+                {
+                    "transcript": "pocks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347694251queen": {
+            "alternative": [
+                {
+                    "confidence": 0.75176734, 
+                    "transcript": "queen"
+                }, 
+                {
+                    "transcript": "green"
+                }, 
+                {
+                    "transcript": "screen"
+                }, 
+                {
+                    "transcript": "Queens"
+                }, 
+                {
+                    "transcript": "cream"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347694621juice": {
+            "alternative": [
+                {
+                    "confidence": 0.62960058, 
+                    "transcript": "juice"
+                }, 
+                {
+                    "transcript": "used"
+                }, 
+                {
+                    "transcript": "Jews"
+                }, 
+                {
+                    "transcript": "use"
+                }, 
+                {
+                    "transcript": "shoes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347695069van_starts_with_v": {
+            "alternative": [
+                {
+                    "confidence": 0.93710542, 
+                    "transcript": "when starts with"
+                }, 
+                {
+                    "transcript": "when starts wit"
+                }, 
+                {
+                    "transcript": "when starts with A"
+                }, 
+                {
+                    "transcript": "when starts with R"
+                }, 
+                {
+                    "transcript": "when starts with I"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347695223kite": {
+            "alternative": [
+                {
+                    "confidence": 0.23097977, 
+                    "transcript": "kite"
+                }, 
+                {
+                    "transcript": "Skype"
+                }, 
+                {
+                    "transcript": "tight"
+                }, 
+                {
+                    "transcript": "Sky"
+                }, 
+                {
+                    "transcript": "diet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347695439engine": {
+            "alternative": [
+                {
+                    "confidence": 0.29134759, 
+                    "transcript": "engine"
+                }, 
+                {
+                    "transcript": "Angel"
+                }, 
+                {
+                    "transcript": "Anjan"
+                }, 
+                {
+                    "transcript": "engin"
+                }, 
+                {
+                    "transcript": "Anjali"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347695623queue": {
+            "alternative": [
+                {
+                    "confidence": 0.50771445, 
+                    "transcript": "q"
+                }, 
+                {
+                    "transcript": "Que"
+                }, 
+                {
+                    "transcript": "Kyun"
+                }, 
+                {
+                    "transcript": "kyu"
+                }, 
+                {
+                    "transcript": "kyo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347695808bed": {
+            "alternative": [
+                {
+                    "confidence": 0.80050141, 
+                    "transcript": "bed"
+                }, 
+                {
+                    "transcript": "dead"
+                }, 
+                {
+                    "transcript": "bad"
+                }, 
+                {
+                    "transcript": "ded"
+                }, 
+                {
+                    "transcript": "wed"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347696364capital-i-small-i": {
+            "alternative": [
+                {
+                    "confidence": 0.6945532, 
+                    "transcript": "capital small I"
+                }, 
+                {
+                    "transcript": "capital small"
+                }, 
+                {
+                    "transcript": "capital small eye"
+                }, 
+                {
+                    "transcript": "capital small eyes"
+                }, 
+                {
+                    "transcript": "capital small ICAI"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347697099rat": {
+            "alternative": [
+                {
+                    "confidence": 0.80003601, 
+                    "transcript": "rat"
+                }, 
+                {
+                    "transcript": "rap"
+                }, 
+                {
+                    "transcript": "that"
+                }, 
+                {
+                    "transcript": "VAT"
+                }, 
+                {
+                    "transcript": "XAT"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347697819ant": {
+            "alternative": [
+                {
+                    "confidence": 0.29728147, 
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "ENT"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347699080tub": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347699266d_says_d": {
+            "alternative": [
+                {
+                    "confidence": 0.11120713, 
+                    "transcript": "the cell"
+                }, 
+                {
+                    "transcript": "decent"
+                }, 
+                {
+                    "transcript": "desis"
+                }, 
+                {
+                    "transcript": "thesis"
+                }, 
+                {
+                    "transcript": "this as"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347699605capital-o-small-o": {
+            "alternative": [
+                {
+                    "confidence": 0.87540823, 
+                    "transcript": "capital or small"
+                }, 
+                {
+                    "transcript": "Capital mall"
+                }, 
+                {
+                    "transcript": "capital or small o"
+                }, 
+                {
+                    "transcript": "Capitol Mall"
+                }, 
+                {
+                    "transcript": "capital or small oh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347699776table": {
+            "alternative": [
+                {
+                    "confidence": 0.44593483, 
+                    "transcript": "cable"
+                }, 
+                {
+                    "transcript": "table"
+                }, 
+                {
+                    "transcript": "cables"
+                }, 
+                {
+                    "transcript": "CIBIL"
+                }, 
+                {
+                    "transcript": "siebel"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347700094match-the-letters-to-the-objects": {
+            "alternative": [
+                {
+                    "confidence": 0.82250875, 
+                    "transcript": "match the letters to the objects"
+                }, 
+                {
+                    "transcript": "match the letters to the object"
+                }, 
+                {
+                    "transcript": "Mr letters to the objects"
+                }, 
+                {
+                    "transcript": "metal letters to the objects"
+                }, 
+                {
+                    "transcript": "master letters to the objects"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347700433n_says_n": {
+            "alternative": [
+                {
+                    "confidence": 0.60845268, 
+                    "transcript": "i*****"
+                }, 
+                {
+                    "transcript": "incense"
+                }, 
+                {
+                    "transcript": "n cell"
+                }, 
+                {
+                    "transcript": "NZ"
+                }, 
+                {
+                    "transcript": "NCS"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347701315jacket": {
+            "alternative": [
+                {
+                    "confidence": 0.90761018, 
+                    "transcript": "jacket"
+                }, 
+                {
+                    "transcript": "Jack it"
+                }, 
+                {
+                    "transcript": "Dacait"
+                }, 
+                {
+                    "transcript": "racket"
+                }, 
+                {
+                    "transcript": "check it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347701482horse": {
+            "alternative": [
+                {
+                    "confidence": 0.58233297, 
+                    "transcript": "Harsh"
+                }, 
+                {
+                    "transcript": "horse"
+                }, 
+                {
+                    "transcript": "Har"
+                }, 
+                {
+                    "transcript": "hot"
+                }, 
+                {
+                    "transcript": "hoarse"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347701875goat": {
+            "alternative": [
+                {
+                    "confidence": 0.44622999, 
+                    "transcript": "goat"
+                }, 
+                {
+                    "transcript": "good"
+                }, 
+                {
+                    "transcript": "got"
+                }, 
+                {
+                    "transcript": "Bhoot"
+                }, 
+                {
+                    "transcript": "goot"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347702017capital-p-small-p": {
+            "alternative": [
+                {
+                    "transcript": "capital P small p"
+                }, 
+                {
+                    "transcript": "Capitol P small p"
+                }, 
+                {
+                    "transcript": "capital P small pee"
+                }, 
+                {
+                    "transcript": "Capitol P small pee"
+                }, 
+                {
+                    "transcript": "Capitol p smoll p"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347702195window": {
+            "alternative": [
+                {
+                    "confidence": 0.86929643, 
+                    "transcript": "window"
+                }, 
+                {
+                    "transcript": "Windows"
+                }, 
+                {
+                    "transcript": "vindu"
+                }, 
+                {
+                    "transcript": "Bindu"
+                }, 
+                {
+                    "transcript": "winda"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347702536fox": {
+            "alternative": [
+                {
+                    "confidence": 0.14712086, 
+                    "transcript": "fux"
+                }, 
+                {
+                    "transcript": "socks"
+                }, 
+                {
+                    "transcript": "sucks"
+                }, 
+                {
+                    "transcript": "f****"
+                }, 
+                {
+                    "transcript": "Sox"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347703366capital-u-small-u": {
+            "alternative": [
+                {
+                    "confidence": 0.82087833, 
+                    "transcript": "capital give small you"
+                }, 
+                {
+                    "transcript": "capital give small u"
+                }, 
+                {
+                    "transcript": "Capitol give small you"
+                }, 
+                {
+                    "transcript": "capital give small yo"
+                }, 
+                {
+                    "transcript": "capital give smaller you"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347703560w": {
+            "alternative": [
+                {
+                    "confidence": 0.95867085, 
+                    "transcript": "w"
+                }, 
+                {
+                    "transcript": "w o"
+                }, 
+                {
+                    "transcript": "w."
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347703726question": {
+            "alternative": [
+                {
+                    "confidence": 0.78596151, 
+                    "transcript": "question"
+                }, 
+                {
+                    "transcript": "Christian"
+                }, 
+                {
+                    "transcript": "questions"
+                }, 
+                {
+                    "transcript": "Kristen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347704084sofa": {
+            "alternative": [
+                {
+                    "transcript": "sofa"
+                }, 
+                {
+                    "transcript": "so far"
+                }, 
+                {
+                    "transcript": "chauffeur"
+                }, 
+                {
+                    "transcript": "so fa"
+                }, 
+                {
+                    "transcript": "super"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347704237axe": {
+            "alternative": [
+                {
+                    "confidence": 0.24636403, 
+                    "transcript": "axe"
+                }, 
+                {
+                    "transcript": "ACS"
+                }, 
+                {
+                    "transcript": "x"
+                }, 
+                {
+                    "transcript": "axxx"
+                }, 
+                {
+                    "transcript": "apps"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347704442xray": {
+            "alternative": [
+                {
+                    "confidence": 0.61648858, 
+                    "transcript": "X Ray"
+                }, 
+                {
+                    "transcript": "x-ray"
+                }, 
+                {
+                    "transcript": "xray"
+                }, 
+                {
+                    "transcript": "text Re"
+                }, 
+                {
+                    "transcript": "text 3"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347704596hand": {
+            "alternative": [
+                {
+                    "confidence": 0.90757269, 
+                    "transcript": "hand"
+                }, 
+                {
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "hinde"
+                }, 
+                {
+                    "transcript": "hende"
+                }, 
+                {
+                    "transcript": "send"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347704892f": {
+            "alternative": [
+                {
+                    "confidence": 0.40677878, 
+                    "transcript": "s"
+                }, 
+                {
+                    "transcript": "yes"
+                }, 
+                {
+                    "transcript": "f"
+                }, 
+                {
+                    "transcript": "a**"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347705259z_says_z": {
+            "alternative": [
+                {
+                    "confidence": 0.2916584, 
+                    "transcript": "web search"
+                }, 
+                {
+                    "transcript": "ZZ"
+                }, 
+                {
+                    "transcript": "z z"
+                }, 
+                {
+                    "transcript": "Z Cell"
+                }, 
+                {
+                    "transcript": "wet cell"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347705443drag-and-drop-the-missing-letters": {
+            "alternative": [
+                {
+                    "confidence": 0.95359534, 
+                    "transcript": "drag and drop the missing letters"
+                }, 
+                {
+                    "transcript": "drag and drop the missing letter"
+                }, 
+                {
+                    "transcript": "Dragon drop the missing letters"
+                }, 
+                {
+                    "transcript": "drag and drop the missing letters are"
+                }, 
+                {
+                    "transcript": "Bride and drop the missing letters"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347705916train_starts_with_t": {
+            "alternative": [
+                {
+                    "confidence": 0.93389559, 
+                    "transcript": "train starts with"
+                }, 
+                {
+                    "transcript": "train starts wit"
+                }, 
+                {
+                    "transcript": "train starts with A"
+                }, 
+                {
+                    "transcript": "train starts with I"
+                }, 
+                {
+                    "transcript": "train starts with J"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347706105lamp": {
+            "alternative": [
+                {
+                    "confidence": 0.91454995, 
+                    "transcript": "lamp"
+                }, 
+                {
+                    "transcript": "lamps"
+                }, 
+                {
+                    "transcript": "clamp"
+                }, 
+                {
+                    "transcript": "lump"
+                }, 
+                {
+                    "transcript": "lamb"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347706723capital-c-small-c": {
+            "alternative": [
+                {
+                    "confidence": 0.71566904, 
+                    "transcript": "capital c small c"
+                }, 
+                {
+                    "transcript": "capital c small see"
+                }, 
+                {
+                    "transcript": "capital c small scene"
+                }, 
+                {
+                    "transcript": "capital c small sea"
+                }, 
+                {
+                    "transcript": "capital see small c"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347707046w_says_w": {
+            "alternative": [
+                {
+                    "confidence": 0.62568426, 
+                    "transcript": "w sales"
+                }, 
+                {
+                    "transcript": "w cells"
+                }, 
+                {
+                    "transcript": "w self"
+                }, 
+                {
+                    "transcript": "w sells"
+                }, 
+                {
+                    "transcript": "w shelf"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347707276elephant": {
+            "alternative": [
+                {
+                    "confidence": 0.66134989, 
+                    "transcript": "elephant"
+                }, 
+                {
+                    "transcript": "innocent"
+                }, 
+                {
+                    "transcript": "aricent"
+                }, 
+                {
+                    "transcript": "anicent"
+                }, 
+                {
+                    "transcript": "innacent"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347708537reading_activity": {
+            "alternative": [
+                {
+                    "transcript": "RIT letters allowed A to Z in the form of an alphabet chart"
+                }, 
+                {
+                    "transcript": "read letters allowed A to Z in the form of an alphabet chart"
+                }, 
+                {
+                    "transcript": "reit letters allowed A to Z in the form of an alphabet chart"
+                }, 
+                {
+                    "transcript": "Reet letters allowed A to Z in the form of an alphabet chart"
+                }, 
+                {
+                    "transcript": "Jeet letters allowed A to Z in the form of an alphabet chart"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347708772fish": {
+            "alternative": [
+                {
+                    "confidence": 0.91409171, 
+                    "transcript": "fish"
+                }, 
+                {
+                    "transcript": "dish"
+                }, 
+                {
+                    "transcript": "phish"
+                }, 
+                {
+                    "transcript": "Krrish"
+                }, 
+                {
+                    "transcript": "wish"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347708993up": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347709147ox": {
+            "alternative": [
+                {
+                    "confidence": 0.52708006, 
+                    "transcript": "Ox"
+                }, 
+                {
+                    "transcript": "aux"
+                }, 
+                {
+                    "transcript": "ocs"
+                }, 
+                {
+                    "transcript": "orcs"
+                }, 
+                {
+                    "transcript": "oxx"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347709399tap": {
+            "alternative": [
+                {
+                    "confidence": 0.32451496, 
+                    "transcript": "cap"
+                }, 
+                {
+                    "transcript": "cab"
+                }, 
+                {
+                    "transcript": "camp"
+                }, 
+                {
+                    "transcript": "cat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347709893umbrella_starts_with_u": {
+            "alternative": [
+                {
+                    "confidence": 0.67752779, 
+                    "transcript": "umbrella starts with A"
+                }, 
+                {
+                    "transcript": "umbrellas starts with A"
+                }, 
+                {
+                    "transcript": "umbrella starts with"
+                }, 
+                {
+                    "transcript": "umbrellas starts with"
+                }, 
+                {
+                    "transcript": "ambrella starts with A"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347710389capital-r-small-r": {
+            "alternative": [
+                {
+                    "confidence": 0.58408791, 
+                    "transcript": "capital or small hours"
+                }, 
+                {
+                    "transcript": "capital or small are"
+                }, 
+                {
+                    "transcript": "capital or small a**"
+                }, 
+                {
+                    "transcript": "capital or small or"
+                }, 
+                {
+                    "transcript": "capital as small as"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347710583cup": {
+            "alternative": [
+                {
+                    "confidence": 0.47306183, 
+                    "transcript": "cup"
+                }, 
+                {
+                    "transcript": "KAP"
+                }, 
+                {
+                    "transcript": "cuhp"
+                }, 
+                {
+                    "transcript": "sup"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347711046injection": {
+            "alternative": [
+                {
+                    "confidence": 0.87643749, 
+                    "transcript": "injection"
+                }, 
+                {
+                    "transcript": "injaction"
+                }, 
+                {
+                    "transcript": "injuction"
+                }, 
+                {
+                    "transcript": "induction"
+                }, 
+                {
+                    "transcript": "injunction"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347711626capital-a-small-a": {
+            "alternative": [
+                {
+                    "transcript": "capital A small a"
+                }, 
+                {
+                    "transcript": "capital A small"
+                }, 
+                {
+                    "transcript": "capital or small"
+                }, 
+                {
+                    "transcript": "capital small"
+                }, 
+                {
+                    "transcript": "capital small a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347711991india": {
+            "alternative": [
+                {
+                    "confidence": 0.93471336, 
+                    "transcript": "India"
+                }, 
+                {
+                    "transcript": "indea"
+                }, 
+                {
+                    "transcript": "xxxindia"
+                }, 
+                {
+                    "transcript": "india'"
+                }, 
+                {
+                    "transcript": "indiya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347713226capital-y-small-y": {
+            "alternative": [
+                {
+                    "confidence": 0.81421638, 
+                    "transcript": "capital by small boy"
+                }, 
+                {
+                    "transcript": "capital why small boy"
+                }, 
+                {
+                    "transcript": "capital buy small boy"
+                }, 
+                {
+                    "transcript": "capital by small y"
+                }, 
+                {
+                    "transcript": "capital why small y"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347713395capital-m-small-m": {
+            "alternative": [
+                {
+                    "confidence": 0.84571099, 
+                    "transcript": "capital and small m"
+                }, 
+                {
+                    "transcript": "capital and small and"
+                }, 
+                {
+                    "transcript": "capital and small in"
+                }, 
+                {
+                    "transcript": "capital and small amp"
+                }, 
+                {
+                    "transcript": "capital and small um"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347713832wall": {
+            "alternative": [
+                {
+                    "confidence": 0.3612406, 
+                    "transcript": "world"
+                }, 
+                {
+                    "transcript": "warld"
+                }, 
+                {
+                    "transcript": "wald"
+                }, 
+                {
+                    "transcript": "vault"
+                }, 
+                {
+                    "transcript": "valve"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347714016g_says_g": {
+            "alternative": [
+                {
+                    "confidence": 0.8742348, 
+                    "transcript": "Jesus"
+                }, 
+                {
+                    "transcript": "G cell"
+                }, 
+                {
+                    "transcript": "recess"
+                }, 
+                {
+                    "transcript": "G says"
+                }, 
+                {
+                    "transcript": "G said"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347714186leaf": {
+            "alternative": [
+                {
+                    "confidence": 0.34356439, 
+                    "transcript": "leave"
+                }, 
+                {
+                    "transcript": "leaf"
+                }, 
+                {
+                    "transcript": "lease"
+                }, 
+                {
+                    "transcript": "live"
+                }, 
+                {
+                    "transcript": "please"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347714349b_says_b": {
+            "alternative": [
+                {
+                    "confidence": 0.61370742, 
+                    "transcript": "B cells"
+                }, 
+                {
+                    "transcript": "B cell"
+                }, 
+                {
+                    "transcript": "pieces"
+                }, 
+                {
+                    "transcript": "basis"
+                }, 
+                {
+                    "transcript": "bset"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347714527house": {
+            "alternative": [
+                {
+                    "confidence": 0.52064383, 
+                    "transcript": "house"
+                }, 
+                {
+                    "transcript": "how's"
+                }, 
+                {
+                    "transcript": "hows"
+                }, 
+                {
+                    "transcript": "houzz"
+                }, 
+                {
+                    "transcript": "Haus"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347714884p": {
+            "alternative": [
+                {
+                    "confidence": 0.66468817, 
+                    "transcript": "p"
+                }, 
+                {
+                    "transcript": "SPI"
+                }, 
+                {
+                    "transcript": "t"
+                }, 
+                {
+                    "transcript": "b"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64323/assets/1465347715478capital-z-small-z": {
+            "alternative": [
+                {
+                    "confidence": 0.91043633, 
+                    "transcript": "capital z small Z"
+                }, 
+                {
+                    "transcript": "capital z smol z"
+                }, 
+                {
+                    "transcript": "capital z small Zed"
+                }, 
+                {
+                    "transcript": "capital z small zedd"
+                }, 
+                {
+                    "transcript": "Capitol Z small Z"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "128"
+}

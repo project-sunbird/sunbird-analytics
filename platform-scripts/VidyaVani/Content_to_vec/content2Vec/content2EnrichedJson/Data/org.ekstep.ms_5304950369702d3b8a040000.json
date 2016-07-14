@@ -1,0 +1,88 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Meet the children in the book.They are just like you! Published by MangoSense.", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "org.ekstep.ms_5304950369702d3b8a040000", 
+    "imageTags": [
+        "", 
+        "ad abc fea", 
+        "btn next", 
+        "btn ok highlights", 
+        "cd c e", 
+        "btn back", 
+        "df a d", 
+        "ae faf", 
+        "icon reload", 
+        "popuptint", 
+        "icon home", 
+        "e b", 
+        "icon hint", 
+        "retrybg", 
+        "background", 
+        "a", 
+        "c", 
+        "icon submit", 
+        "adb cfde", 
+        "a b cd bab", 
+        "goodjobbg", 
+        "f b f", 
+        "b ecfb"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "keywords": [
+        "Look", 
+        "At", 
+        "Me", 
+        "English", 
+        "Action and Adventure", 
+        "Bedtime Stories", 
+        "Family and Friends", 
+        "Morals and Values", 
+        "School Time", 
+        "Fun", 
+        "Friends", 
+        "Family", 
+        "School", 
+        "Courage", 
+        "Friendship", 
+        "Pratham Books", 
+        "Pankaj Chaturvedi"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 12, 
+        "mp3": 14, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 314.3134959183673, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_5304950369702d3b8a040000/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_5304950369702d3b8a040000/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Bedtime stories", 
+        "Morals and values", 
+        "Family and friends", 
+        "Action and adventure", 
+        "School time", 
+        "MangoSense", 
+        "Friendship", 
+        "Pratham Books", 
+        "School"
+    ]
+}

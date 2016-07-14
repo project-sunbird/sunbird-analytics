@@ -1,0 +1,327 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u0906\u091c \u092e\u0947\u0930\u0947 \u0918\u0930 \u092e\u0947\u0902 \u0938\u092c \u0909\u0932\u091f \u092a\u0941\u0932\u091f \u0939\u0948| \u092a\u0924\u093e \u0928\u0939\u0940\u0902 \u0915\u094d\u092f\u094b\u0902! ", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "org.ekstep.ms_53aab12a69702d0da4050000", 
+    "imageTags": [
+        "", 
+        "ac a b", 
+        "btn next", 
+        "btn ok highlights", 
+        "btn back", 
+        "bf e e", 
+        "icon reload", 
+        "popuptint", 
+        "d c", 
+        "icon home", 
+        "icon hint", 
+        "retrybg", 
+        "f d", 
+        "background", 
+        "b abde", 
+        "a abb", 
+        "icon submit", 
+        "c cead", 
+        "c bf ee", 
+        "goodjobbg", 
+        "f ceb", 
+        "f c d", 
+        "dc f b a"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "keywords": [
+        "\u0909\u0932\u091f-\u092a\u0932\u091f", 
+        "Hindi", 
+        "Family and Friends", 
+        "Picture Books", 
+        "Children", 
+        "Fun", 
+        "Friends", 
+        "Life", 
+        "Pratham Books", 
+        "Pratham Books", 
+        "Noni"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 12, 
+        "mp3": 14, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 104.87024943310657, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/1461647945817176fd07adf": {
+            "alternative": [
+                {
+                    "transcript": "Hamari choti Kamre Mein Kaisa Hayabusa ladki Mare Mera Hua Bura Haal"
+                }, 
+                {
+                    "transcript": "Hamari Chhote Kamre Mein Kaisa Hayabusa ladki Mare Mera Hua Bura Haal"
+                }, 
+                {
+                    "transcript": "Hamari chote Kamre Mein Kaisa Hayabusa ladki Mare Mera Hua Bura Haal"
+                }, 
+                {
+                    "transcript": "Hamari choti Kamre Mein Kaisa hayaboosa ladki Mare Mera Hua Bura Haal"
+                }, 
+                {
+                    "transcript": "Hamari choti Kamre Mein Kaisa Hayabusa ladki Maare Mera Hua Bura Haal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/14616479465049b4ed417ec": {
+            "alternative": [
+                {
+                    "transcript": "Aplam Chaplam Chin Chin Chu Khesari Hui orange"
+                }, 
+                {
+                    "transcript": "Aplam Chaplam Chin Chin Chu Khesari Hui aur Unki"
+                }, 
+                {
+                    "transcript": "Aplam Chaplam Chin Chin Chu kar sari Hui orange"
+                }, 
+                {
+                    "transcript": "Aplam Chaplam Chin Chin Chu presario Ranju"
+                }, 
+                {
+                    "transcript": "Aplam Chaplam Chin Chin Chu Khesari Holi orange"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/14616479472662ea25cfcc3": {
+            "alternative": [
+                {
+                    "transcript": "Hindi Ko Aaya ek Jadugar bola sorry say he karta hoon Gadbad"
+                }, 
+                {
+                    "transcript": "Hindi Ko Aaya ek Jadugar bola sorry kahi karta hoon Gadbad"
+                }, 
+                {
+                    "transcript": "Hindi Ko Aaya ek Jadu Kar bola sorry say he karta hoon Gadbad"
+                }, 
+                {
+                    "transcript": "Hindi Ko Aaya ek Jadugar bola sorry se hi karta hoon Gadbad"
+                }, 
+                {
+                    "transcript": "Hindi Ko Aaya ek Jadu Kar bola sorry se he karta hoon Gadbad"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/146164794816744244941eb": {
+            "alternative": [
+                {
+                    "confidence": 0.72893423, 
+                    "transcript": "hi Hi Meri Hai Saari Karamat Mana Hai Ki Nahi Ki Baat"
+                }, 
+                {
+                    "transcript": "Har Hi Meri Hai Saari Karamat Mana Hai Ki Nahi Ki Baat"
+                }, 
+                {
+                    "transcript": "han Hi Meri Hai Saari Karamat Mana Hai Ki Nahi Ki Baat"
+                }, 
+                {
+                    "transcript": "hi Hi Meri Hai Saari Qayamat Mana Hai Ki Nahi Ki Baat"
+                }, 
+                {
+                    "transcript": "Har Hi Meri Hai Saari Qayamat Mana Hai Ki Nahi Ki Baat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/1461647950950c705da7b37": {
+            "alternative": [
+                {
+                    "transcript": "Kuch Bhi Nahi Jaye Saroj Hota Koi Bhula Aaj Tak ulta pulta"
+                }, 
+                {
+                    "transcript": "Kuch Bhi Nahi Jaye Saroj Hai Hota Koi Bhula Aaj Tak ulta pulta"
+                }, 
+                {
+                    "transcript": "Kuch Bhi Nahi jaise roj Hai Hota Koi Bhoola Aaj Tak ulta pulta"
+                }, 
+                {
+                    "transcript": "Kuch Bhi Nahi Jaye Saroj Hai Hota Koi Bhoola Aaj Tak ulta pulta"
+                }, 
+                {
+                    "transcript": "Kuch Bhi Nahi Jaye Saroj Hota Koi Bhoola Aaj Tak ulta pulta"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/146164795164515ec8f93de": {
+            "alternative": [
+                {
+                    "transcript": "Papa Ki Khushi Mein Hamari Billi Vera G TV par kab Re Ab To Hasina Thi"
+                }, 
+                {
+                    "transcript": "Papa Ki Khushi Payal Hamari Billi Vera G TV par kab Re Ab To Hasina Thi"
+                }, 
+                {
+                    "transcript": "Papa Ki Khushi Mein Hamari Billi Vera G TV par kab Re Ab To Haseena thi"
+                }, 
+                {
+                    "transcript": "Papa Ki Khushi Payal Hamari Billi Vera G TV par kab Re Ab To Haseena thi"
+                }, 
+                {
+                    "transcript": "Papa Ki Khushi Mein Hamari Billi Vera G TV par kab Re ab toh Hasina Thi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/1461647952996f838bd4e65": {
+            "alternative": [
+                {
+                    "transcript": "Anjani nikale at Dus Haath Gudiya ka emergency Dal Bhat"
+                }, 
+                {
+                    "transcript": "Anjani nikale art does heart Gudiya ka emergency Dal Bhat"
+                }, 
+                {
+                    "transcript": "Anjani nikale at Dus Haath Gudiya ka emergency Dal Bhaat"
+                }, 
+                {
+                    "transcript": "Anjani nikale art does heart Gudiya ka emergency Dal Bhaat"
+                }, 
+                {
+                    "transcript": "Anjani nikale at does heart Gudiya ka emergency Dal Bhat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/146164795935864ee27498e": {
+            "alternative": [
+                {
+                    "confidence": 0.8907125, 
+                    "transcript": "bullet bullet"
+                }, 
+                {
+                    "transcript": "OLX bullet"
+                }, 
+                {
+                    "transcript": "bullet"
+                }, 
+                {
+                    "transcript": "bulat"
+                }, 
+                {
+                    "transcript": "Elite pool at"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/14616479600350af1d398ac": {
+            "alternative": [
+                {
+                    "transcript": "pata nahi Kyun Aaj Mein Hota Bade jaldi kya Kisi Ne Aaj Subha Bareilly"
+                }, 
+                {
+                    "transcript": "pata nahi Kyun Aaj Mein Hota Bade jaldi kya Kisi Ne Aaj Subha Bareli"
+                }, 
+                {
+                    "transcript": "pata nahi Kyun Aaj Mein Hota Bade jaldi kya Kisi Ne Aaj Subah Bareilly"
+                }, 
+                {
+                    "transcript": "pata nahi Kyun Aaj Mein Hota Bade jaldi kya Kisi Ne AJ soda batali"
+                }, 
+                {
+                    "transcript": "pata nahi Kyun Aaj Mein Hota Bade jaldi kya Kisi Ne Aaj Sada Bareilly"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/1461647962115a47944c9ec": {
+            "alternative": [
+                {
+                    "transcript": "Tata chatarji nibandh women gol gol Meri laleli topi Ne machaya Bada Shor"
+                }, 
+                {
+                    "transcript": "Chadta chatarji nibandh women gol gol Meri laleli topi Ne machaya Bada Shor"
+                }, 
+                {
+                    "transcript": "chacha chatar ji nibandh women gol gol Meri laleli topi Ne machaya Bada Shor"
+                }, 
+                {
+                    "transcript": "Tata chatarji nibandh woman gol gol Meri laleli topi Ne machaya Bada Shor"
+                }, 
+                {
+                    "transcript": "Chadta chatarji nibandh woman gol gol Meri laleli topi Ne machaya Bada Shor"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/1461647962801b6a4b5bfec": {
+            "alternative": [
+                {
+                    "transcript": "Chaar Pani Ki diware Pata Hai Meri Nanhi Ghadi ne apni lambi baat hai"
+                }, 
+                {
+                    "transcript": "Chaar Pani Ki diware Pata Hai Meri Nanhi Ghadi ne apne Lambe Baal"
+                }, 
+                {
+                    "transcript": "Chaar Pani Ki diware Pata Hai Meri nayi gaadi ne apni lambi baat hai"
+                }, 
+                {
+                    "transcript": "Char Pani Ki diware Pata Hai Meri nayi gaadi ne apni lambi baat hai"
+                }, 
+                {
+                    "transcript": "Chaar Pani Ki diware Pata Hai Meri nayi gaadi ne apne Lambe Baal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/1461647963424ce9ef20706": {
+            "alternative": [
+                {
+                    "transcript": "Shishi Mahuva massage feet number Chennai I'm a hurry Kaise Ho Chain Ho"
+                }, 
+                {
+                    "transcript": "Shishi Mahuva massage seat number Chennai I'm a hurry Kaise Ho Chain Ho"
+                }, 
+                {
+                    "transcript": "Sheeshe me huwa massage feat number Chennai I'm a hurry Kaise Ho Chain Ho"
+                }, 
+                {
+                    "transcript": "Sheeshe me huwa massage feet number Chennai I'm a hurry Kaise Ho Chain Ho"
+                }, 
+                {
+                    "transcript": "Shishi me huwa massage feat number Chennai I'm a hurry Kaise Ho Chain Ho"
+                }, 
+                {
+                    "transcript": "Sheeshe me huwa massage feat number Chennai naukri Kaise Ho Chain Ho"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_53aab12a69702d0da4050000/assets/retry_1460636610607": []
+    }, 
+    "owner": "Noni", 
+    "tags": [
+        "pulat", 
+        "ulat pulat", 
+        "ulat", 
+        "Life", 
+        "Friends", 
+        "Fun", 
+        "Children", 
+        "MangoSense", 
+        "Pratham Books"
+    ]
+}

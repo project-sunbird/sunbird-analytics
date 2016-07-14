@@ -1,0 +1,350 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "mainkaunhoon_test", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20092360", 
+    "imageTags": [
+        "endscreen", 
+        "diya", 
+        "hair", 
+        "yes", 
+        "milk", 
+        "samosa", 
+        "retry", 
+        "no", 
+        "startpage", 
+        "teacherpopup", 
+        "icon home", 
+        "water", 
+        "icon next", 
+        "teacher", 
+        "icon previous", 
+        "retrybg", 
+        "tiger", 
+        "thread", 
+        "confirmbg", 
+        "tree", 
+        "pagesel bg", 
+        "bluebox", 
+        "mango", 
+        "goodjobbg", 
+        "necklace", 
+        "playaudio"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 14, 
+        "ogg": 0, 
+        "png": 27
+    }, 
+    "mp3Length": 22.909387755102042, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104263407doodh": {
+            "alternative": [
+                {
+                    "confidence": 0.68248981, 
+                    "transcript": "dude"
+                }, 
+                {
+                    "transcript": "dudh"
+                }, 
+                {
+                    "transcript": "Dood"
+                }, 
+                {
+                    "transcript": "doud"
+                }, 
+                {
+                    "transcript": "doodh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104263540aam": {
+            "alternative": [
+                {
+                    "transcript": "I'm"
+                }, 
+                {
+                    "transcript": "mmm"
+                }, 
+                {
+                    "transcript": "Aam"
+                }, 
+                {
+                    "transcript": "um"
+                }, 
+                {
+                    "transcript": "mm"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104264087mein-kaun-hoo": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104265284sher": {
+            "alternative": [
+                {
+                    "confidence": 0.12880799, 
+                    "transcript": "share"
+                }, 
+                {
+                    "transcript": "Sher"
+                }, 
+                {
+                    "transcript": "Shir"
+                }, 
+                {
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "shit"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104266201jal": {
+            "alternative": [
+                {
+                    "confidence": 0.5192343, 
+                    "transcript": "Jal"
+                }, 
+                {
+                    "transcript": "Jain"
+                }, 
+                {
+                    "transcript": "Jaan"
+                }, 
+                {
+                    "transcript": "Jan"
+                }, 
+                {
+                    "transcript": "Jaal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104267657goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.17316464, 
+                    "transcript": "Krishan Janam"
+                }, 
+                {
+                    "transcript": "Jabong"
+                }, 
+                {
+                    "transcript": "Krishi jawab"
+                }, 
+                {
+                    "transcript": "Rishi Jabong"
+                }, 
+                {
+                    "transcript": "Khushi jawab"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104267932maalaa": {
+            "alternative": [
+                {
+                    "confidence": 0.59433591, 
+                    "transcript": "Mala"
+                }, 
+                {
+                    "transcript": "Mana"
+                }, 
+                {
+                    "transcript": "Malar"
+                }, 
+                {
+                    "transcript": "Mallu"
+                }, 
+                {
+                    "transcript": "ma la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104268108letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.57028389, 
+                    "transcript": "o** Tujhse"
+                }, 
+                {
+                    "transcript": "Tujhse"
+                }, 
+                {
+                    "transcript": "oh ho Tujhse"
+                }, 
+                {
+                    "transcript": "o** Tujhe"
+                }, 
+                {
+                    "transcript": "OTG"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104268394dhaaga": {
+            "alternative": [
+                {
+                    "confidence": 0.51800138, 
+                    "transcript": "Doga"
+                }, 
+                {
+                    "transcript": "Daga"
+                }, 
+                {
+                    "transcript": "Gaga"
+                }, 
+                {
+                    "transcript": "Dhaka"
+                }, 
+                {
+                    "transcript": "da ga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104268518samosa": {
+            "alternative": [
+                {
+                    "confidence": 0.89161927, 
+                    "transcript": "samosa"
+                }, 
+                {
+                    "transcript": "samoosa"
+                }, 
+                {
+                    "transcript": "Samudra"
+                }, 
+                {
+                    "transcript": "Sumona"
+                }, 
+                {
+                    "transcript": "samosha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104268643ped": {
+            "alternative": [
+                {
+                    "confidence": 0.8061443, 
+                    "transcript": "speed"
+                }, 
+                {
+                    "transcript": "paid"
+                }, 
+                {
+                    "transcript": "peed"
+                }, 
+                {
+                    "transcript": "PID"
+                }, 
+                {
+                    "transcript": "spead"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104268786baal": {
+            "alternative": [
+                {
+                    "transcript": "Bal"
+                }, 
+                {
+                    "transcript": "baal"
+                }, 
+                {
+                    "transcript": "bars"
+                }, 
+                {
+                    "transcript": "bald"
+                }, 
+                {
+                    "transcript": "bol"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104269103end": {
+            "alternative": [
+                {
+                    "confidence": 0.1332365, 
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "amt"
+                }, 
+                {
+                    "transcript": "Anth"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092360/assets/1467104269257diya": {
+            "alternative": [
+                {
+                    "confidence": 0.53046364, 
+                    "transcript": "Diya"
+                }, 
+                {
+                    "transcript": "Dr"
+                }, 
+                {
+                    "transcript": "Dia"
+                }, 
+                {
+                    "transcript": "Jiya"
+                }, 
+                {
+                    "transcript": "dr."
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "Debasis Singh"
+}

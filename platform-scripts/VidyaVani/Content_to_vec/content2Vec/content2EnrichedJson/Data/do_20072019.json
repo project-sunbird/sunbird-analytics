@@ -1,0 +1,1536 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_dukandukan", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20072019", 
+    "imageTags": [
+        "endscreen", 
+        "ruralshops", 
+        "home icon", 
+        "icon next", 
+        "retrybg", 
+        "teacher icon", 
+        "areyousure", 
+        "que", 
+        "teacherpopupbg", 
+        "goodjobbg", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 71, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 152.31312925170062, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146435426chattis": {
+            "alternative": [
+                {
+                    "confidence": 0.22270451, 
+                    "transcript": "champy's"
+                }, 
+                {
+                    "transcript": "chateze"
+                }, 
+                {
+                    "transcript": "chutneys"
+                }, 
+                {
+                    "transcript": "Satish"
+                }, 
+                {
+                    "transcript": "chanies"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146435552pachas": {
+            "alternative": [
+                {
+                    "confidence": 0.51347762, 
+                    "transcript": "Panchal"
+                }, 
+                {
+                    "transcript": "pachar"
+                }, 
+                {
+                    "transcript": "panchayat"
+                }, 
+                {
+                    "transcript": "Achar"
+                }, 
+                {
+                    "transcript": "Panchang"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146435768nau": {
+            "alternative": [
+                {
+                    "confidence": 0.88144088, 
+                    "transcript": "no"
+                }, 
+                {
+                    "transcript": "know"
+                }, 
+                {
+                    "transcript": "Nau"
+                }, 
+                {
+                    "transcript": "now"
+                }, 
+                {
+                    "transcript": "no."
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146436056q15": {
+            "alternative": [
+                {
+                    "transcript": "do mateo punch Matka Urdu gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do betiyon Paanch Matka Urdu gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do mateo punch Matka or do gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do mateo Paanch Matka Urdu gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do mateo Paanch Matka or do gandu Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146436223attarah": {
+            "alternative": [
+                {
+                    "confidence": 0.49524271, 
+                    "transcript": "atarra"
+                }, 
+                {
+                    "transcript": "adhara"
+                }, 
+                {
+                    "transcript": "attra"
+                }, 
+                {
+                    "transcript": "adora"
+                }, 
+                {
+                    "transcript": "Antara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146436521kitaab": {
+            "alternative": [
+                {
+                    "confidence": 0.62572122, 
+                    "transcript": "Kitab"
+                }, 
+                {
+                    "transcript": "Kitaab"
+                }, 
+                {
+                    "transcript": "gitams"
+                }, 
+                {
+                    "transcript": "kitabu"
+                }, 
+                {
+                    "transcript": "guitar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146436640eksauchayasi": {
+            "alternative": [
+                {
+                    "confidence": 0.87829626, 
+                    "transcript": "Xperia C"
+                }, 
+                {
+                    "transcript": "xvicha see"
+                }, 
+                {
+                    "transcript": "Ek Sachi RC"
+                }, 
+                {
+                    "transcript": "Ek Sachi ICSI"
+                }, 
+                {
+                    "transcript": "Xperia see"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146436908ath": {
+            "alternative": [
+                {
+                    "confidence": 0.77031964, 
+                    "transcript": "art"
+                }, 
+                {
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "heart"
+                }, 
+                {
+                    "transcript": "aren't"
+                }, 
+                {
+                    "transcript": "Earth"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146437067unnis": {
+            "alternative": [
+                {
+                    "confidence": 0.52992266, 
+                    "transcript": "Unni"
+                }, 
+                {
+                    "transcript": "Anish"
+                }, 
+                {
+                    "transcript": "Anas"
+                }, 
+                {
+                    "transcript": "only"
+                }, 
+                {
+                    "transcript": "Anees"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146437214gaajar": {
+            "alternative": [
+                {
+                    "confidence": 0.75453699, 
+                    "transcript": "gajar"
+                }, 
+                {
+                    "transcript": "Gaza"
+                }, 
+                {
+                    "transcript": "Georgia"
+                }, 
+                {
+                    "transcript": "gorgeous"
+                }, 
+                {
+                    "transcript": "Ganja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146437656mithai": {
+            "alternative": [
+                {
+                    "confidence": 0.17841865, 
+                    "transcript": "MIT"
+                }, 
+                {
+                    "transcript": "methyl"
+                }, 
+                {
+                    "transcript": "mithai"
+                }, 
+                {
+                    "transcript": "mitai"
+                }, 
+                {
+                    "transcript": "Mitali"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146437798char": {
+            "alternative": [
+                {
+                    "confidence": 0.42622823, 
+                    "transcript": "chaar"
+                }, 
+                {
+                    "transcript": "char"
+                }, 
+                {
+                    "transcript": "chart"
+                }, 
+                {
+                    "transcript": "jar"
+                }, 
+                {
+                    "transcript": "chat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146437934eksaubaais": {
+            "alternative": [
+                {
+                    "confidence": 0.35686526, 
+                    "transcript": "IGNOU by"
+                }, 
+                {
+                    "transcript": "IGNOU B"
+                }, 
+                {
+                    "transcript": "Exo by"
+                }, 
+                {
+                    "transcript": "IGNOU buy"
+                }, 
+                {
+                    "transcript": "its by"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146438082q1": {
+            "alternative": [
+                {
+                    "confidence": 0.86713648, 
+                    "transcript": "Ek gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "IIT gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "EC gajar Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146438357balla": {
+            "alternative": [
+                {
+                    "confidence": 0.24279588, 
+                    "transcript": "Bhalla"
+                }, 
+                {
+                    "transcript": "Malla"
+                }, 
+                {
+                    "transcript": "Bala"
+                }, 
+                {
+                    "transcript": "Bella"
+                }, 
+                {
+                    "transcript": "Billa"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146438493dosaupachpan": {
+            "alternative": [
+                {
+                    "transcript": "dusu patch panel"
+                }, 
+                {
+                    "transcript": "dusu Bachpan"
+                }, 
+                {
+                    "transcript": "Dushu patch panel"
+                }, 
+                {
+                    "transcript": "doosu patch panel"
+                }, 
+                {
+                    "transcript": "Dhoom 2 patch panel"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146438631dosaupachchis": {
+            "alternative": [
+                {
+                    "transcript": "do super cheap"
+                }, 
+                {
+                    "transcript": "do super cheese"
+                }, 
+                {
+                    "transcript": "do supercheats"
+                }, 
+                {
+                    "transcript": "dude super cheese"
+                }, 
+                {
+                    "transcript": "dude super cheap"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146438910q5": {
+            "alternative": [
+                {
+                    "confidence": 0.70451045, 
+                    "transcript": "desktop and Studio Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop punch Julia Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop Panch Julia Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop Paanch Julia Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop Panch judeo Urdu gajar Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146439080q8": {
+            "alternative": [
+                {
+                    "transcript": "punch below 18 kangi Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch below 18 MG Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch below 18 can see Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch below 18 kangi Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch below eighteen kangi Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146439247chiyanve": {
+            "alternative": [
+                {
+                    "confidence": 0.75389111, 
+                    "transcript": "Saiyaan Ve"
+                }, 
+                {
+                    "transcript": "fiance"
+                }, 
+                {
+                    "transcript": "PNB"
+                }, 
+                {
+                    "transcript": "Haryanvi"
+                }, 
+                {
+                    "transcript": "c and b"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146439532pandrah": {
+            "alternative": [
+                {
+                    "confidence": 0.43335727, 
+                    "transcript": "pandra"
+                }, 
+                {
+                    "transcript": "Bandra"
+                }, 
+                {
+                    "transcript": "Tundra"
+                }, 
+                {
+                    "transcript": "Chandra"
+                }, 
+                {
+                    "transcript": "pandhra"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146439670basta": {
+            "alternative": [
+                {
+                    "confidence": 0.68691385, 
+                    "transcript": "bus stop"
+                }, 
+                {
+                    "transcript": "bus star"
+                }, 
+                {
+                    "transcript": "bus staff"
+                }, 
+                {
+                    "transcript": "bas star"
+                }, 
+                {
+                    "transcript": "busta"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146439853patang": {
+            "alternative": [
+                {
+                    "confidence": 0.36401233, 
+                    "transcript": "Patang"
+                }, 
+                {
+                    "transcript": "pattern"
+                }, 
+                {
+                    "transcript": "Pattam"
+                }, 
+                {
+                    "transcript": "button"
+                }, 
+                {
+                    "transcript": "Patna"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146440029q6": {
+            "alternative": [
+                {
+                    "confidence": 0.84450769, 
+                    "transcript": "Ek Pathan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik Pathan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ek Bachan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ek patton Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ek Bachpan Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146440505choodi": {
+            "alternative": [
+                {
+                    "confidence": 0.58716637, 
+                    "transcript": "chudai"
+                }, 
+                {
+                    "transcript": "Chudi"
+                }, 
+                {
+                    "transcript": "Choodi"
+                }, 
+                {
+                    "transcript": "Judy"
+                }, 
+                {
+                    "transcript": "Jodi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146440635glass": {
+            "alternative": [
+                {
+                    "confidence": 0.89090157, 
+                    "transcript": "glass"
+                }, 
+                {
+                    "transcript": "class"
+                }, 
+                {
+                    "transcript": "blas"
+                }, 
+                {
+                    "transcript": "Bilas"
+                }, 
+                {
+                    "transcript": "glasses"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146440779barah": {
+            "alternative": [
+                {
+                    "confidence": 0.72078794, 
+                    "transcript": "Bara"
+                }, 
+                {
+                    "transcript": "Bahra"
+                }, 
+                {
+                    "transcript": "Barra"
+                }, 
+                {
+                    "transcript": "Bora"
+                }, 
+                {
+                    "transcript": "Dara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146440899sathh": {
+            "alternative": [
+                {
+                    "confidence": 0.14915051, 
+                    "transcript": "search"
+                }, 
+                {
+                    "transcript": "sad"
+                }, 
+                {
+                    "transcript": "sat"
+                }, 
+                {
+                    "transcript": "saath"
+                }, 
+                {
+                    "transcript": "chart"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146441016q12": {
+            "alternative": [
+                {
+                    "confidence": 0.91230422, 
+                    "transcript": "Do betiyon Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both Lun Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both loan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both Loon Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both alone Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146441155dosaupachas": {
+            "alternative": [
+                {
+                    "confidence": 0.26895782, 
+                    "transcript": "do so pachas"
+                }, 
+                {
+                    "transcript": "don't overcharge"
+                }, 
+                {
+                    "transcript": "Dosto Pehchaan"
+                }, 
+                {
+                    "transcript": "do so much as"
+                }, 
+                {
+                    "transcript": "door stopper char"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146441288q3": {
+            "alternative": [
+                {
+                    "confidence": 0.77229357, 
+                    "transcript": "Do Pyar Urdu Cup Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do Pyar Urdu kab Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do Pyaar Urdu Cup Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do Pyase Urdu Cup Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do Pyaar Urdu kab Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146441466gaind": {
+            "alternative": [
+                {
+                    "confidence": 0.60631818, 
+                    "transcript": "games"
+                }, 
+                {
+                    "transcript": "Jind"
+                }, 
+                {
+                    "transcript": "game"
+                }, 
+                {
+                    "transcript": "gained"
+                }, 
+                {
+                    "transcript": "deemed"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146441604matka": {
+            "alternative": [
+                {
+                    "confidence": 0.88367283, 
+                    "transcript": "Matka"
+                }, 
+                {
+                    "transcript": "mat kar"
+                }, 
+                {
+                    "transcript": "Mattka"
+                }, 
+                {
+                    "transcript": "mataka"
+                }, 
+                {
+                    "transcript": "smart car"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146441722teen": {
+            "alternative": [
+                {
+                    "confidence": 0.52575046, 
+                    "transcript": "teen"
+                }, 
+                {
+                    "transcript": "tin"
+                }, 
+                {
+                    "transcript": "team"
+                }, 
+                {
+                    "transcript": "theme"
+                }, 
+                {
+                    "transcript": "theen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146441865paanch": {
+            "alternative": [
+                {
+                    "confidence": 0.36877695, 
+                    "transcript": "Paanch"
+                }, 
+                {
+                    "transcript": "Panch"
+                }, 
+                {
+                    "transcript": "punch"
+                }, 
+                {
+                    "transcript": "bunch"
+                }, 
+                {
+                    "transcript": "pant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146442114q7": {
+            "alternative": [
+                {
+                    "transcript": "Dupatta dukan ki urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta MDU Khanki Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta do Khanki Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta do kangi Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta MDU kangi Urdu pencil Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146442283cup": {
+            "alternative": [
+                {
+                    "confidence": 0.61777037, 
+                    "transcript": "cup"
+                }, 
+                {
+                    "transcript": "KAP"
+                }, 
+                {
+                    "transcript": "cub"
+                }, 
+                {
+                    "transcript": "cuhp"
+                }, 
+                {
+                    "transcript": "rcub"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146442432saath": {
+            "alternative": [
+                {
+                    "confidence": 0.2222627, 
+                    "transcript": "saath"
+                }, 
+                {
+                    "transcript": "saat"
+                }, 
+                {
+                    "transcript": "sath"
+                }, 
+                {
+                    "transcript": "start"
+                }, 
+                {
+                    "transcript": "chart"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146442753pencil": {
+            "alternative": [
+                {
+                    "confidence": 0.91534042, 
+                    "transcript": "pencil"
+                }, 
+                {
+                    "transcript": "pencils"
+                }, 
+                {
+                    "transcript": "pension"
+                }, 
+                {
+                    "transcript": "tenses"
+                }, 
+                {
+                    "transcript": "cancel"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146442878do": {
+            "alternative": [
+                {
+                    "confidence": 0.69017798, 
+                    "transcript": "Dhoom"
+                }, 
+                {
+                    "transcript": "do"
+                }, 
+                {
+                    "transcript": "Doom"
+                }, 
+                {
+                    "transcript": "du"
+                }, 
+                {
+                    "transcript": "dog"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146443032eksaubaara": {
+            "alternative": [
+                {
+                    "transcript": "XO Bara"
+                }, 
+                {
+                    "transcript": "Exo Bara"
+                }, 
+                {
+                    "transcript": "IGNOU Bara"
+                }, 
+                {
+                    "transcript": "IGNOU Bahra"
+                }, 
+                {
+                    "transcript": "IGNOU Barra"
+                }, 
+                {
+                    "transcript": "IGNOU baroda"
+                }, 
+                {
+                    "transcript": "ejipura"
+                }, 
+                {
+                    "transcript": "IGNOU forum"
+                }, 
+                {
+                    "transcript": "IGNOU form"
+                }, 
+                {
+                    "transcript": "IGNOU khanna"
+                }, 
+                {
+                    "transcript": "IGNOU course"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146443287q9": {
+            "alternative": [
+                {
+                    "transcript": "Paanch kitabu Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch kitabo Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch kitabu Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch kitabo Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch kitabu Urdu pension Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146443477q11": {
+            "alternative": [
+                {
+                    "confidence": 0.84014064, 
+                    "transcript": "Ek Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "is Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "IIT Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "it Matki Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146443608pyaaz": {
+            "alternative": [
+                {
+                    "confidence": 0.59573108, 
+                    "transcript": "Pyar"
+                }, 
+                {
+                    "transcript": "Pyaar"
+                }, 
+                {
+                    "transcript": "PR"
+                }, 
+                {
+                    "transcript": "Pyar Hai"
+                }, 
+                {
+                    "transcript": "Pyaar Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146443701q10": {
+            "alternative": [
+                {
+                    "transcript": "teen pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "teen pension Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "tin pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "tin pension Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "teen tension Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146443848dosauchattis": {
+            "alternative": [
+                {
+                    "transcript": "do Socha tea"
+                }, 
+                {
+                    "transcript": "do Socha t"
+                }, 
+                {
+                    "transcript": "do so chhattees"
+                }, 
+                {
+                    "transcript": "dude so chhattees"
+                }, 
+                {
+                    "transcript": "do Socha tease"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146443980solah": {
+            "alternative": [
+                {
+                    "confidence": 0.73595637, 
+                    "transcript": "solar"
+                }, 
+                {
+                    "transcript": "Sola"
+                }, 
+                {
+                    "transcript": "Shola"
+                }, 
+                {
+                    "transcript": "solr"
+                }, 
+                {
+                    "transcript": "so la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146444100chay": {
+            "alternative": [
+                {
+                    "confidence": 0.64528835, 
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "c"
+                }, 
+                {
+                    "transcript": "see"
+                }, 
+                {
+                    "transcript": "shi"
+                }, 
+                {
+                    "transcript": "XI"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146444226eksaupachas": {
+            "alternative": [
+                {
+                    "transcript": "Ek supercharge"
+                }, 
+                {
+                    "transcript": "exo pachar"
+                }, 
+                {
+                    "transcript": "XO pachar"
+                }, 
+                {
+                    "transcript": "IGNOU pachar"
+                }, 
+                {
+                    "transcript": "Ek super charge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146444360q2": {
+            "alternative": [
+                {
+                    "confidence": 0.8398667, 
+                    "transcript": "Paanch gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch kajare Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch kajare Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146444489eksauattara": {
+            "alternative": [
+                {
+                    "confidence": 0.22839303, 
+                    "transcript": "Ek to atarra"
+                }, 
+                {
+                    "transcript": "ec2 attra"
+                }, 
+                {
+                    "transcript": "IGNOU atarra"
+                }, 
+                {
+                    "transcript": "IGNOU attra"
+                }, 
+                {
+                    "transcript": "Ek tour Tara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146444612nabbe": {
+            "alternative": [
+                {
+                    "confidence": 0.25791293, 
+                    "transcript": "navpay"
+                }, 
+                {
+                    "transcript": "Nabi"
+                }, 
+                {
+                    "transcript": "FB"
+                }, 
+                {
+                    "transcript": "maybe"
+                }, 
+                {
+                    "transcript": "Nav pay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146444774q4": {
+            "alternative": [
+                {
+                    "transcript": "does glass aur Panch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass aur Paanch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass or Paanch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass aur punch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass or punch Chudiyan Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146444948sau": {
+            "alternative": [
+                {
+                    "confidence": 0.50465047, 
+                    "transcript": "so"
+                }, 
+                {
+                    "transcript": "song"
+                }, 
+                {
+                    "transcript": "CEO"
+                }, 
+                {
+                    "transcript": "show"
+                }, 
+                {
+                    "transcript": "Sau"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146445080sathra": {
+            "alternative": [
+                {
+                    "transcript": "Sakra"
+                }, 
+                {
+                    "transcript": "Satra"
+                }, 
+                {
+                    "transcript": "sakera"
+                }, 
+                {
+                    "transcript": "Shakira"
+                }, 
+                {
+                    "transcript": "Chakra"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146445199q13": {
+            "alternative": [
+                {
+                    "transcript": "DU bus 218 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do bus to 18 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "DU bus stone 18 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "DU bus to 18 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do bus stone 18 game zone Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146445340das": {
+            "alternative": [
+                {
+                    "confidence": 0.60356206, 
+                    "transcript": "does"
+                }, 
+                {
+                    "transcript": "Dus"
+                }, 
+                {
+                    "transcript": "death"
+                }, 
+                {
+                    "transcript": "dase"
+                }, 
+                {
+                    "transcript": "duck"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146445466firprayaaskare": {
+            "alternative": [
+                {
+                    "transcript": "Phir friars kare"
+                }, 
+                {
+                    "transcript": "sirf Riyaz kare"
+                }, 
+                {
+                    "transcript": "Phir Yaad kare"
+                }, 
+                {
+                    "transcript": "V Riyaz kare"
+                }, 
+                {
+                    "transcript": "Phir friars curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146445626dosau": {
+            "alternative": [
+                {
+                    "confidence": 0.47261441, 
+                    "transcript": "Do song"
+                }, 
+                {
+                    "transcript": "DU song"
+                }, 
+                {
+                    "transcript": "Dol song"
+                }, 
+                {
+                    "transcript": "Dhol song"
+                }, 
+                {
+                    "transcript": "door song"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146445761bottle": {
+            "alternative": [
+                {
+                    "confidence": 0.51710898, 
+                    "transcript": "bottle"
+                }, 
+                {
+                    "transcript": "Botal"
+                }, 
+                {
+                    "transcript": "hotel"
+                }, 
+                {
+                    "transcript": "portal"
+                }, 
+                {
+                    "transcript": "total"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146445894eksouuntis": {
+            "alternative": [
+                {
+                    "transcript": "XO aunties"
+                }, 
+                {
+                    "transcript": "Exo aunties"
+                }, 
+                {
+                    "transcript": "ixo aunties"
+                }, 
+                {
+                    "transcript": "XO auntys"
+                }, 
+                {
+                    "transcript": "IGNOU aunties"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146446058q14": {
+            "alternative": [
+                {
+                    "confidence": 0.83061862, 
+                    "transcript": "this game do 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dus game do 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "this game the 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "just game do 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does game do 18 bottle on Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146446523chaubis": {
+            "alternative": [
+                {
+                    "transcript": "hobbies"
+                }, 
+                {
+                    "transcript": "sau bees"
+                }, 
+                {
+                    "transcript": "tubbies"
+                }, 
+                {
+                    "transcript": "so bees"
+                }, 
+                {
+                    "transcript": "Zombies"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146446814chalis": {
+            "alternative": [
+                {
+                    "confidence": 0.13289115, 
+                    "transcript": "Charlie"
+                }, 
+                {
+                    "transcript": "Charlie's"
+                }, 
+                {
+                    "transcript": "Chinese"
+                }, 
+                {
+                    "transcript": "charlies"
+                }, 
+                {
+                    "transcript": "Chali"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146446963pachchis": {
+            "alternative": [
+                {
+                    "confidence": 0.18436123, 
+                    "transcript": "Archies"
+                }, 
+                {
+                    "transcript": "but she's"
+                }, 
+                {
+                    "transcript": "purchase"
+                }, 
+                {
+                    "transcript": "budgies"
+                }, 
+                {
+                    "transcript": "Maachis"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146447085kanghi": {
+            "alternative": [
+                {
+                    "confidence": 0.40703353, 
+                    "transcript": "nangi"
+                }, 
+                {
+                    "transcript": "Sangai"
+                }, 
+                {
+                    "transcript": "fungi"
+                }, 
+                {
+                    "transcript": "Khanki"
+                }, 
+                {
+                    "transcript": "Dangi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146447252unahattar": {
+            "alternative": [
+                {
+                    "confidence": 0.17859975, 
+                    "transcript": "antar"
+                }, 
+                {
+                    "transcript": "in hunter"
+                }, 
+                {
+                    "transcript": "on hunter"
+                }, 
+                {
+                    "transcript": "hunter"
+                }, 
+                {
+                    "transcript": "and hunter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146447381sahijawaab": {
+            "alternative": [
+                {
+                    "confidence": 0.21548721, 
+                    "transcript": "Faizabad"
+                }, 
+                {
+                    "transcript": "Java"
+                }, 
+                {
+                    "transcript": "Jabong"
+                }, 
+                {
+                    "transcript": "Hyderabad"
+                }, 
+                {
+                    "transcript": "Faridabad"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146447503dosaupachasi": {
+            "alternative": [
+                {
+                    "confidence": 0.38280258, 
+                    "transcript": "do super chasi"
+                }, 
+                {
+                    "transcript": "dose of HRC"
+                }, 
+                {
+                    "transcript": "DU super chasi"
+                }, 
+                {
+                    "transcript": "DDU super chasi"
+                }, 
+                {
+                    "transcript": "the super chasi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146447664bees": {
+            "alternative": [
+                {
+                    "confidence": 0.61486852, 
+                    "transcript": "beach"
+                }, 
+                {
+                    "transcript": "dish"
+                }, 
+                {
+                    "transcript": "bees"
+                }, 
+                {
+                    "transcript": "Beas"
+                }, 
+                {
+                    "transcript": "BIS"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072019/assets/1466146447797ek": {
+            "alternative": [
+                {
+                    "confidence": 0.32112783, 
+                    "transcript": "Ek"
+                }, 
+                {
+                    "transcript": "IIT"
+                }, 
+                {
+                    "transcript": "Ik"
+                }, 
+                {
+                    "transcript": "eat"
+                }, 
+                {
+                    "transcript": "is"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "Debasis Singh"
+}

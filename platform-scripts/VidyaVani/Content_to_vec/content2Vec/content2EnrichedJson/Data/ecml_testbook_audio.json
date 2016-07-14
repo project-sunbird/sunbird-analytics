@@ -1,0 +1,55 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test_QA", 
+    "developer": "EkStep", 
+    "identifier": "ecml_testbook_audio", 
+    "imageTags": [
+        "icon home", 
+        "icon previous", 
+        "icon sound", 
+        "icon next"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 3, 
+        "ogg": 2, 
+        "png": 4
+    }, 
+    "mp3Length": 158.27544387755103, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/ecml_testbook_audio/assets/1461230066197scene19": {
+            "alternative": [
+                {
+                    "confidence": 0.90688288, 
+                    "transcript": "now Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "no Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "Nau Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Shrinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Srinivas will not need a hair cut for a very long time"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

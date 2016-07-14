@@ -1,0 +1,352 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u0915\u094d\u092f\u093e \u0906\u092a\u0915\u094b \u0926\u094c\u0921\u093c \u0932\u0917\u093e\u0928\u0947 \u092e\u0947\u0902 \u092e\u091c\u093c\u093e \u0906\u0924\u093e \u0939\u0948? \u0939\u092e\u093e\u0930\u0940 \u0915\u0939\u093e\u0928\u0940 \u0915\u0947 \u0939\u093f\u0930\u0923 \u0915\u094b \u092d\u0940 \u092f\u0939 \u092c\u0939\u0941\u0924 \u092d\u093e\u0924\u093e \u0939\u0948| Published by MangoSense.", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "org.ekstep.ms_534d17eb69702d6bce040000", 
+    "imageTags": [
+        "c dcca d", 
+        "btn next", 
+        "btn ok highlights", 
+        "ffbb d fe", 
+        "btn back", 
+        "d d f ea", 
+        "d b a", 
+        "icon reload", 
+        "caaf", 
+        "popuptint", 
+        "icon home", 
+        "e d", 
+        "a fb de", 
+        "icon hint", 
+        "retrybg", 
+        "ef f", 
+        "background", 
+        "a bd de e", 
+        "icon submit", 
+        "b cf dfc", 
+        "goodjobbg", 
+        "c a", 
+        "ffa b f"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "keywords": [
+        "\u0935\u0939", 
+        "\u0939\u0901\u0938", 
+        "\u0926\u093f\u092f\u093e", 
+        "Hindi", 
+        "Animals and Nature", 
+        "Bedtime Stories", 
+        "Family and Friends", 
+        "General and Miscellaneous", 
+        "Fun", 
+        "Race", 
+        "Sports", 
+        "Friends", 
+        "Family", 
+        "Courage", 
+        "Deer", 
+        "Wound", 
+        "Happiness", 
+        "Nature", 
+        "Kids Story", 
+        "Hindi Stories", 
+        "Education", 
+        "Pratham Books", 
+        "Pratham Books, MangoReader", 
+        "Sanjiv Jaiswal 'Sanjay'"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 12, 
+        "mp3": 14, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 65.1118820861678, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/1461659978320789df558d1": {
+            "alternative": [
+                {
+                    "confidence": 0.48134384, 
+                    "transcript": "who has Dr"
+                }, 
+                {
+                    "transcript": "who has TR"
+                }, 
+                {
+                    "transcript": "STR"
+                }, 
+                {
+                    "transcript": "Woh Hasti"
+                }, 
+                {
+                    "transcript": "Woh STR"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/1461659979369710ad2c662": {
+            "alternative": [
+                {
+                    "transcript": "Punjabi Pasand Aaya Hu chup Rahoon"
+                }, 
+                {
+                    "transcript": "Bandar Ne Pasand Aaya Hu chup Rahoon"
+                }, 
+                {
+                    "transcript": "Punjabi Pasand Aaya Hu chup rahun"
+                }, 
+                {
+                    "transcript": "Bandar Ne Pasand Aaya Hu chup rahun"
+                }, 
+                {
+                    "transcript": "Bandar Ne paise Na Ja chup Rahoon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/14616599796023a1e997162": {
+            "alternative": [
+                {
+                    "confidence": 0.94408321, 
+                    "transcript": "Hathi se bhi aage"
+                }, 
+                {
+                    "transcript": "Hathi se bhi aa gaye"
+                }, 
+                {
+                    "transcript": "Sathi Se Bhi aage"
+                }, 
+                {
+                    "transcript": "Kathi se bhi aage"
+                }, 
+                {
+                    "transcript": "Har ki se bhi aage"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/14616599802650998c8a1f6": {
+            "alternative": [
+                {
+                    "transcript": "Hiran ka bacha bola tha"
+                }, 
+                {
+                    "transcript": "hidden ka bacha bola tha"
+                }, 
+                {
+                    "transcript": "Hiran ka bacha ho raha tha"
+                }, 
+                {
+                    "transcript": "hidden ka bachcha ho raha tha"
+                }, 
+                {
+                    "transcript": "Shirin ka bacha bola tha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/1461659980893d42dec4793": {
+            "alternative": [
+                {
+                    "transcript": "thanco se aage"
+                }, 
+                {
+                    "transcript": "thanku se aage"
+                }, 
+                {
+                    "transcript": "thanco's se aage"
+                }, 
+                {
+                    "transcript": "thnku se aage"
+                }, 
+                {
+                    "transcript": "thancos se aage"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/14616599813867cf70e10bc": {
+            "alternative": [
+                {
+                    "transcript": "Maa boli Ni Patthar ko Mar Diya"
+                }, 
+                {
+                    "transcript": "Maa boli Mai Patthar ko Mar Diya"
+                }, 
+                {
+                    "transcript": "maayboli to Patthar ko Mar Diya"
+                }, 
+                {
+                    "transcript": "Maa Di boli no Patthar ko Mar Diya"
+                }, 
+                {
+                    "transcript": "maayboli no Patthar ko Mar Diya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/1461659981597d1c993e76c": {
+            "alternative": [
+                {
+                    "transcript": "Bhalu Dada ne uthaya poochudava"
+                }, 
+                {
+                    "transcript": "Balu Dada ne uthaya poochudava"
+                }, 
+                {
+                    "transcript": "Bhalu Dada Ne uthaya push up now wow"
+                }, 
+                {
+                    "transcript": "Bhalu Dada Ne uthaya chut now va"
+                }, 
+                {
+                    "transcript": "Balu Dada Ne uthaya chut now va"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/146165998182915e87fdf11": {
+            "alternative": [
+                {
+                    "confidence": 0.82303011, 
+                    "transcript": "khandeparkar Gaya"
+                }, 
+                {
+                    "transcript": "khandeparkar gya"
+                }, 
+                {
+                    "transcript": "khandeparkar Gair"
+                }, 
+                {
+                    "transcript": "khandeparkar gaia"
+                }, 
+                {
+                    "transcript": "khandhar Parkar Gaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/146165998204500fc01ba83": {
+            "alternative": [
+                {
+                    "transcript": "Kiran ka baccha Gulab Maru 1980 Ne Lage Ga Ma history be husband"
+                }, 
+                {
+                    "transcript": "Kiran ka baccha gulahmed Maru 1980 Ne Lage Ga Ma history be husband"
+                }, 
+                {
+                    "transcript": "Kiran ka baccha gulahmed Maru 180 Ne Lage Ga Ma history be husband"
+                }, 
+                {
+                    "transcript": "Kiran ka baccha Gola Maru 1980 Ne Lage Ga Ma history be husband"
+                }, 
+                {
+                    "transcript": "Kiran ka baccha gulahmed Maru 1980 Ne Lage Ga Ma has baby has been a car"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/1461659982303f63b85e878": {
+            "alternative": [
+                {
+                    "transcript": "who is only lager"
+                }, 
+                {
+                    "transcript": "who is owner Laga"
+                }, 
+                {
+                    "transcript": "who is only Laga"
+                }, 
+                {
+                    "transcript": "who is owner lager"
+                }, 
+                {
+                    "transcript": "who is owner Naga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/14616599825142089e8dd0a": {
+            "alternative": [
+                {
+                    "transcript": "unnala Kud Gaya"
+                }, 
+                {
+                    "transcript": "unnala could Gaya"
+                }, 
+                {
+                    "transcript": "Sonala Kud Gaya"
+                }, 
+                {
+                    "transcript": "manala Kud Gaya"
+                }, 
+                {
+                    "transcript": "unnala hud Gaya"
+                }, 
+                {
+                    "transcript": "unnala coorg"
+                }, 
+                {
+                    "transcript": "ola could Gaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/14616599829970c01781760": {
+            "alternative": [
+                {
+                    "transcript": "Madani Patel padatha Thokar Lagi"
+                }, 
+                {
+                    "transcript": "Madani Patel padatha Thokar Lagi to kill para"
+                }, 
+                {
+                    "transcript": "Maidan e pattil padatha Thokar Lagi"
+                }, 
+                {
+                    "transcript": "Maidan e pattil padatha Thokar Lagi to kill para"
+                }, 
+                {
+                    "transcript": "Madani Patel padatha Thokar Lagi bugil para"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_534d17eb69702d6bce040000/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "vah hass diya", 
+        "veh has diya", 
+        "Kids Story", 
+        "Hindi Stories", 
+        "Happiness", 
+        "Nature", 
+        "Deer", 
+        "Wound", 
+        "Family", 
+        "Courage", 
+        "MangoSense", 
+        "Education", 
+        "Pratham Books", 
+        "Friends", 
+        "Sports", 
+        "Race", 
+        "Fun"
+    ]
+}

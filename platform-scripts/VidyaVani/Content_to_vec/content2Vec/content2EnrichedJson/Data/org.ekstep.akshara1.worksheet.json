@@ -1,0 +1,530 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u092e\u0948\u0902 \u0915\u094c\u0928 \u0939\u0942\u0901", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.akshara1.worksheet", 
+    "imageTags": [
+        "gu", 
+        "roo", 
+        "lah", 
+        "ge", 
+        "ga", 
+        "go", 
+        "yes", 
+        "milk", 
+        "gi", 
+        "row", 
+        "pe", 
+        "dhaa", 
+        "le", 
+        "la", 
+        "dhaha", 
+        "dhai", 
+        "dham", 
+        "li", 
+        "jam", 
+        "jai", 
+        "ra", 
+        "yi", 
+        "dae", 
+        "dhii", 
+        "yoo", 
+        "daa", 
+        "dh", 
+        "di", 
+        "ya", 
+        "dam", 
+        "blue box", 
+        "de", 
+        "ye", 
+        "dai", 
+        "da", 
+        "moo", 
+        "gee", 
+        "pai", 
+        "du", 
+        "yu", 
+        "dhu", 
+        "maha", 
+        "dxaa", 
+        "guu", 
+        "baa", 
+        "eee", 
+        "shi", 
+        "bam", 
+        "bai", 
+        "diya", 
+        "ee", 
+        "mi", 
+        "hair", 
+        "see", 
+        "gaha", 
+        "play audio", 
+        "ouu", 
+        "lee", 
+        "ru", 
+        "retry", 
+        "dxuu", 
+        "re", 
+        "suu", 
+        "samosa", 
+        "gou", 
+        "pee", 
+        "ro", 
+        "ri", 
+        "ree", 
+        "mee", 
+        "be", 
+        "ba", 
+        "jow", 
+        "daha", 
+        "ju", 
+        "bo", 
+        "lu", 
+        "bi", 
+        "sh", 
+        "water", 
+        "bu", 
+        "baha", 
+        "jo", 
+        "ji", 
+        "puu", 
+        "end screen", 
+        "icon sound", 
+        "ja", 
+        "icon previous", 
+        "teacher pop up", 
+        "saha", 
+        "thread", 
+        "pu", 
+        "bou", 
+        "s", 
+        "lo", 
+        "ow", 
+        "aha", 
+        "dxou", 
+        "pou", 
+        "sai", 
+        "soo", 
+        "start page", 
+        "sah", 
+        "sou", 
+        "je", 
+        "dhuu", 
+        "daee", 
+        "raa", 
+        "yii", 
+        "loo", 
+        "teacher", 
+        "yam", 
+        "pa", 
+        "yai", 
+        "icon reload", 
+        "jee", 
+        "pi", 
+        "yaa", 
+        "po", 
+        "ram", 
+        "yaha", 
+        "icon home", 
+        "lou", 
+        "buu", 
+        "tiger", 
+        "page sel bg", 
+        "gam", 
+        "retry bg", 
+        "gai", 
+        "juu", 
+        "gaa", 
+        "me", 
+        "ma", 
+        "uu", 
+        "mo", 
+        "tree", 
+        "grey", 
+        "duu", 
+        "mu", 
+        "jaa", 
+        "dee", 
+        "aa", 
+        "raha", 
+        "shii", 
+        "sam", 
+        "do", 
+        "ai", 
+        "dxu", 
+        "confirm bg", 
+        "am", 
+        "rai", 
+        "dxo", 
+        "dxii", 
+        "paha", 
+        "dxi", 
+        "saw", 
+        "dxa", 
+        "dho", 
+        "yo", 
+        "dhi", 
+        "no", 
+        "dhe", 
+        "bii", 
+        "paa", 
+        "shaa", 
+        "yow", 
+        "u", 
+        "jaha", 
+        "pam", 
+        "lam", 
+        "mau", 
+        "lai", 
+        "laa", 
+        "goodjob bg", 
+        "maa", 
+        "icon next", 
+        "mai", 
+        "dhow", 
+        "mam", 
+        "a", 
+        "e", 
+        "su", 
+        "si", 
+        "mango", 
+        "so", 
+        "necklace", 
+        "sa", 
+        "dow", 
+        "se"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 14, 
+        "ogg": 0, 
+        "png": 195
+    }, 
+    "mp3Length": 22.213242630385484, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554206085Sher": {
+            "alternative": [
+                {
+                    "confidence": 0.11145239, 
+                    "transcript": "share"
+                }, 
+                {
+                    "transcript": "Shir"
+                }, 
+                {
+                    "transcript": "Sher"
+                }, 
+                {
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "she's"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554208091Mein%20kaun%20hoo": {
+            "alternative": [
+                {
+                    "confidence": 0.64707965, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554208995Samosa": {
+            "alternative": [
+                {
+                    "confidence": 0.92150384, 
+                    "transcript": "samosa"
+                }, 
+                {
+                    "transcript": "samoosa"
+                }, 
+                {
+                    "transcript": "samosha"
+                }, 
+                {
+                    "transcript": "Samartha"
+                }, 
+                {
+                    "transcript": "Samir Shah"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554219468Diya": {
+            "alternative": [
+                {
+                    "confidence": 0.51650608, 
+                    "transcript": "Diya"
+                }, 
+                {
+                    "transcript": "Dr"
+                }, 
+                {
+                    "transcript": "Dia"
+                }, 
+                {
+                    "transcript": "Jiya"
+                }, 
+                {
+                    "transcript": "dr."
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554221818Maalaa": {
+            "alternative": [
+                {
+                    "confidence": 0.75961357, 
+                    "transcript": "Mala"
+                }, 
+                {
+                    "transcript": "Malar"
+                }, 
+                {
+                    "transcript": "Marla"
+                }, 
+                {
+                    "transcript": "Maula"
+                }, 
+                {
+                    "transcript": "ma la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554222222end": {
+            "alternative": [
+                {
+                    "confidence": 0.13682067, 
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "amt"
+                }, 
+                {
+                    "transcript": "Anth"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554222890Doodh": {
+            "alternative": [
+                {
+                    "confidence": 0.72043902, 
+                    "transcript": "dude"
+                }, 
+                {
+                    "transcript": "dudh"
+                }, 
+                {
+                    "transcript": "Dood"
+                }, 
+                {
+                    "transcript": "doud"
+                }, 
+                {
+                    "transcript": "doodh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554224545goodjob": {
+            "alternative": [
+                {
+                    "transcript": "sahi jawab"
+                }, 
+                {
+                    "transcript": "Sahih jawab"
+                }, 
+                {
+                    "transcript": "Jabong"
+                }, 
+                {
+                    "transcript": "soal jawab"
+                }, 
+                {
+                    "transcript": "Singam"
+                }, 
+                {
+                    "transcript": "sai ke jawab"
+                }, 
+                {
+                    "transcript": "the jawab"
+                }, 
+                {
+                    "transcript": "shayari jawab"
+                }, 
+                {
+                    "transcript": "Shashi jawab"
+                }, 
+                {
+                    "transcript": "jawab"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554229888Jal": {
+            "alternative": [
+                {
+                    "confidence": 0.27836791, 
+                    "transcript": "Jal"
+                }, 
+                {
+                    "transcript": "Jain"
+                }, 
+                {
+                    "transcript": "Jaan"
+                }, 
+                {
+                    "transcript": "Jan"
+                }, 
+                {
+                    "transcript": "gen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554231349Aam": {
+            "alternative": [
+                {
+                    "confidence": 0.17986654, 
+                    "transcript": "mmm"
+                }, 
+                {
+                    "transcript": "um"
+                }, 
+                {
+                    "transcript": "mm"
+                }, 
+                {
+                    "transcript": "Aam"
+                }, 
+                {
+                    "transcript": "arm"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554231871Baal": {
+            "alternative": [
+                {
+                    "transcript": "Bal"
+                }, 
+                {
+                    "transcript": "baal"
+                }, 
+                {
+                    "transcript": "bars"
+                }, 
+                {
+                    "transcript": "Bhal"
+                }, 
+                {
+                    "transcript": "bol"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554232708Ped": {
+            "alternative": [
+                {
+                    "confidence": 0.6740911, 
+                    "transcript": "speed"
+                }, 
+                {
+                    "transcript": "paid"
+                }, 
+                {
+                    "transcript": "peed"
+                }, 
+                {
+                    "transcript": "PID"
+                }, 
+                {
+                    "transcript": "spead"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554234155letstryagain": {
+            "alternative": [
+                {
+                    "transcript": "Har Kisi"
+                }, 
+                {
+                    "transcript": "how to say"
+                }, 
+                {
+                    "transcript": "o** Tujhse"
+                }, 
+                {
+                    "transcript": "Tujhse"
+                }, 
+                {
+                    "transcript": "who is she"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.akshara1.worksheet/assets/1455554236084Dhaaga": {
+            "alternative": [
+                {
+                    "confidence": 0.48556083, 
+                    "transcript": "Doga"
+                }, 
+                {
+                    "transcript": "Daga"
+                }, 
+                {
+                    "transcript": "Gaga"
+                }, 
+                {
+                    "transcript": "Dhaka"
+                }, 
+                {
+                    "transcript": "da ga"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Hindi", 
+        "hindi_lit_activities"
+    ]
+}

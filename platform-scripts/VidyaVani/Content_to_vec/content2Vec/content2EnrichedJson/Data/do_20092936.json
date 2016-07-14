@@ -1,0 +1,30 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "TestStory_RnP", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20092936", 
+    "imageTags": [], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 0, 
+        "ogg": 0, 
+        "png": 0
+    }, 
+    "mp3Length": 0, 
+    "mp3Transcription": {}, 
+    "owner": "Roy D"
+}

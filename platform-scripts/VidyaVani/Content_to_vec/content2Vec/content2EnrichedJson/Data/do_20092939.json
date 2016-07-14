@@ -1,0 +1,56 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_rnp", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20092939", 
+    "imageTags": [
+        "", 
+        "endscreen", 
+        "recordbtn", 
+        "blacktint", 
+        "btn next", 
+        "soundbtn", 
+        "btn ok highlights", 
+        "btn back", 
+        "mic", 
+        "icon reload", 
+        "popuptint", 
+        "play", 
+        "icon home", 
+        "icon hint", 
+        "retrybg", 
+        "background", 
+        "icon sound", 
+        "literacy", 
+        "icon submit", 
+        "ekstep placeholder blue eye", 
+        "pagesel bg", 
+        "goodjobbg"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 24
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092939/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092939/assets/retry_1460636610607": []
+    }, 
+    "owner": "Srivathsa Dhanraj"
+}

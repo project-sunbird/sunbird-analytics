@@ -1,0 +1,127 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "templets", 
+    "developer": "EkStep", 
+    "identifier": "domain_45161", 
+    "imageTags": [
+        "btn ok highlights", 
+        "btn next", 
+        "greenbox", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "retry bg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "goodjob bg"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 6, 
+        "ogg": 0, 
+        "png": 14
+    }, 
+    "mp3Length": 10.666893424036282, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_45161/assets/A_346_1462778085_1462778086183": {
+            "alternative": [
+                {
+                    "confidence": 0.31761399, 
+                    "transcript": "e"
+                }, 
+                {
+                    "transcript": "a"
+                }, 
+                {
+                    "transcript": "I"
+                }, 
+                {
+                    "transcript": "hey"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_45161/assets/apple_346_1462775690_1462775690504": {
+            "alternative": [
+                {
+                    "confidence": 0.89226049, 
+                    "transcript": "Apple"
+                }, 
+                {
+                    "transcript": "appl"
+                }, 
+                {
+                    "transcript": "April"
+                }, 
+                {
+                    "transcript": "Atal"
+                }, 
+                {
+                    "transcript": "Avril"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_45161/assets/apple_346_1462783750_1462783750519": {
+            "alternative": [
+                {
+                    "confidence": 0.89226049, 
+                    "transcript": "Apple"
+                }, 
+                {
+                    "transcript": "appl"
+                }, 
+                {
+                    "transcript": "April"
+                }, 
+                {
+                    "transcript": "Atal"
+                }, 
+                {
+                    "transcript": "Avril"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_45161/assets/friday_346_1462775225_1462775239828": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_45161/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_45161/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

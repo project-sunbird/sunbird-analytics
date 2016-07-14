@@ -1,0 +1,634 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u0938\u0902\u0916\u094d\u092f\u093e \u091a\u093e\u0930\u094d\u091f", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.numchart.worksheet", 
+    "imageTags": [
+        "thirtythree", 
+        "gridmtf", 
+        "home icon", 
+        "puzzle", 
+        "grid x", 
+        "ninetynine", 
+        "ninetyeight", 
+        "dummy main", 
+        "icon sound", 
+        "three", 
+        "eleven", 
+        "areyousure", 
+        "fiftyfive", 
+        "teacher popup bg", 
+        "twentyseven", 
+        "twenty only", 
+        "fiftysix", 
+        "hundred", 
+        "eightytwo", 
+        "empty", 
+        "sixtysix", 
+        "mtf trans", 
+        "fourtyfour", 
+        "eighty", 
+        "goodjob bg", 
+        "eightyeight", 
+        "page sel bg", 
+        "retry bg", 
+        "blue btn", 
+        "icon next", 
+        "sixty", 
+        "thirtynine", 
+        "fifteen", 
+        "icon previous", 
+        "eightynine", 
+        "seventyfive", 
+        "fourtynine", 
+        "twentynine", 
+        "seventyfour", 
+        "teacher icon", 
+        "fourtyone", 
+        "ninetythree", 
+        "ninetyone", 
+        "five", 
+        "eight"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 28, 
+        "ogg": 0, 
+        "png": 55
+    }, 
+    "mp3Length": 57.64934240362811, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553991658pandhraseduszyada": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399182950": {
+            "alternative": [
+                {
+                    "transcript": "Bajaj"
+                }, 
+                {
+                    "transcript": "pachar"
+                }, 
+                {
+                    "transcript": "Punjab"
+                }, 
+                {
+                    "transcript": "bachcha"
+                }, 
+                {
+                    "transcript": "Baja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399208245": {
+            "alternative": [
+                {
+                    "confidence": 0.25653061, 
+                    "transcript": "Italian"
+                }, 
+                {
+                    "transcript": "petaling"
+                }, 
+                {
+                    "transcript": "PayPal"
+                }, 
+                {
+                    "transcript": "petal"
+                }, 
+                {
+                    "transcript": "Betal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399239382": {
+            "alternative": [
+                {
+                    "confidence": 0.41419008, 
+                    "transcript": "Sakshi"
+                }, 
+                {
+                    "transcript": "taxi"
+                }, 
+                {
+                    "transcript": "saxy"
+                }, 
+                {
+                    "transcript": "XE"
+                }, 
+                {
+                    "transcript": "xxxi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553992774fir%20prayaas%20kare": {
+            "alternative": [
+                {
+                    "transcript": "Phir Yaad kare"
+                }, 
+                {
+                    "transcript": "Phir Yaad Karoon"
+                }, 
+                {
+                    "transcript": "Phir Yaad Karu"
+                }, 
+                {
+                    "transcript": "Phir Prayag Karu"
+                }, 
+                {
+                    "transcript": "Phir Prayag curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553992902paanchseduszyada": {
+            "alternative": [
+                {
+                    "transcript": "Panch Kedar Zyada"
+                }, 
+                {
+                    "transcript": "Panch Kedar Yadav"
+                }, 
+                {
+                    "transcript": "Paanch Siddharth Yadav"
+                }, 
+                {
+                    "transcript": "Panch Siddharth Yadav"
+                }, 
+                {
+                    "transcript": "Paanch Siddharth Jadhav"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553993284chartmeinkhoje": {
+            "alternative": [
+                {
+                    "transcript": "Chahat Mein Kho Jaye"
+                }, 
+                {
+                    "transcript": "chat Mai coaching"
+                }, 
+                {
+                    "transcript": "Chahat Mein kuche"
+                }, 
+                {
+                    "transcript": "Chahat Mai Kho Jaye"
+                }, 
+                {
+                    "transcript": "Chahat Mein coaching"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553993548sahijawaab": {
+            "alternative": [
+                {
+                    "confidence": 0.70715129, 
+                    "transcript": "sahi jawab"
+                }, 
+                {
+                    "transcript": "Sahih jawab"
+                }, 
+                {
+                    "transcript": "Kahi jawab"
+                }, 
+                {
+                    "transcript": "nahi jawab"
+                }, 
+                {
+                    "transcript": "khi jawab"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399433291": {
+            "alternative": [
+                {
+                    "transcript": "Ya Nabi"
+                }, 
+                {
+                    "transcript": "kya Nabi"
+                }, 
+                {
+                    "transcript": "kya Labh"
+                }, 
+                {
+                    "transcript": "Kya Naam"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/14555539950875": {
+            "alternative": [
+                {
+                    "transcript": "bars"
+                }, 
+                {
+                    "transcript": "Park"
+                }, 
+                {
+                    "transcript": "cars"
+                }, 
+                {
+                    "transcript": "search"
+                }, 
+                {
+                    "transcript": "pass"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399569263": {
+            "alternative": [
+                {
+                    "confidence": 0.22166796, 
+                    "transcript": "pictures"
+                }, 
+                {
+                    "transcript": "features"
+                }, 
+                {
+                    "transcript": "Tirchi"
+                }, 
+                {
+                    "transcript": "Silchar"
+                }, 
+                {
+                    "transcript": "picture"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399622536": {
+            "alternative": [
+                {
+                    "confidence": 0.17905931, 
+                    "transcript": "chut seal"
+                }, 
+                {
+                    "transcript": "tehsil"
+                }, 
+                {
+                    "transcript": "x**"
+                }, 
+                {
+                    "transcript": "castile"
+                }, 
+                {
+                    "transcript": "just seen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399636277": {
+            "alternative": [
+                {
+                    "confidence": 0.5144158, 
+                    "transcript": "Satadhar"
+                }, 
+                {
+                    "transcript": "Shapath"
+                }, 
+                {
+                    "transcript": "Zapak"
+                }, 
+                {
+                    "transcript": "Shapath her"
+                }, 
+                {
+                    "transcript": "Shapath Khar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553996502chartmein": {
+            "alternative": [
+                {
+                    "transcript": "chut Me Sahi sankya cookies Cadbury"
+                }, 
+                {
+                    "transcript": "Chahat Me Sahi son kya kru keystride Bhari"
+                }, 
+                {
+                    "transcript": "chut Me Sahi son kya kru keystride Bhari"
+                }, 
+                {
+                    "transcript": "Chahat Me Sahi son kya cookies Cadbury"
+                }, 
+                {
+                    "transcript": "Chahat Me Sahi Sun kya kru keystride Bhari"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399664311": {
+            "alternative": [
+                {
+                    "confidence": 0.27952868, 
+                    "transcript": "Gara"
+                }, 
+                {
+                    "transcript": "garil"
+                }, 
+                {
+                    "transcript": "Carol"
+                }, 
+                {
+                    "transcript": "Yara"
+                }, 
+                {
+                    "transcript": "Gaurav"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553996752chaubeesseekzyada": {
+            "alternative": [
+                {
+                    "transcript": "jombis Se Jyada"
+                }, 
+                {
+                    "transcript": "sau bees Se Jyada"
+                }, 
+                {
+                    "transcript": "jobys Se Jyada"
+                }, 
+                {
+                    "transcript": "toby's Se Jyada"
+                }, 
+                {
+                    "transcript": "hobbies Se Jyada"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455553996879chaubeesseekkam": {
+            "alternative": [
+                {
+                    "transcript": "taubys seat come"
+                }, 
+                {
+                    "transcript": "tobys seat come"
+                }, 
+                {
+                    "transcript": "toby's se ek kam"
+                }, 
+                {
+                    "transcript": "toby's seat come"
+                }, 
+                {
+                    "transcript": "tobys se ek kam"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399699425": {
+            "alternative": [
+                {
+                    "confidence": 0.12813541, 
+                    "transcript": "purchase"
+                }, 
+                {
+                    "transcript": "petite"
+                }, 
+                {
+                    "transcript": "Panchsheel"
+                }, 
+                {
+                    "transcript": "Sachin"
+                }, 
+                {
+                    "transcript": "Patil"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399796415": {
+            "alternative": [
+                {
+                    "confidence": 0.20586647, 
+                    "transcript": "undress"
+                }, 
+                {
+                    "transcript": "Andhra"
+                }, 
+                {
+                    "transcript": "pandra"
+                }, 
+                {
+                    "transcript": "Bandra"
+                }, 
+                {
+                    "transcript": "Andra"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399805132": {
+            "alternative": [
+                {
+                    "transcript": "patties"
+                }, 
+                {
+                    "transcript": "Satish"
+                }, 
+                {
+                    "transcript": "Basheer"
+                }, 
+                {
+                    "transcript": "battis"
+                }, 
+                {
+                    "transcript": "Bashir"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555399869381": {
+            "alternative": [
+                {
+                    "transcript": "PRC"
+                }, 
+                {
+                    "transcript": "Pyasi"
+                }, 
+                {
+                    "transcript": "TRC"
+                }, 
+                {
+                    "transcript": "DRC"
+                }, 
+                {
+                    "transcript": "Kya Kiya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455554000147100": {
+            "alternative": [
+                {
+                    "confidence": 0.69838727, 
+                    "transcript": "so"
+                }, 
+                {
+                    "transcript": "CEO"
+                }, 
+                {
+                    "transcript": "Sau"
+                }, 
+                {
+                    "transcript": "show"
+                }, 
+                {
+                    "transcript": "song"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555400040296": {
+            "alternative": [
+                {
+                    "confidence": 0.26547012, 
+                    "transcript": "kya"
+                }, 
+                {
+                    "transcript": "KR"
+                }, 
+                {
+                    "transcript": "Haryanvi"
+                }, 
+                {
+                    "transcript": "hey are we"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455554000517paanchseanth": {
+            "alternative": [
+                {
+                    "transcript": "pansear Chole wali Samjhawan Balam Tu Ne"
+                }, 
+                {
+                    "transcript": "HCL Chole wali Samjhawan Balam today"
+                }, 
+                {
+                    "transcript": "HCL Chole wali Samjhawan Balam Tu Ne"
+                }, 
+                {
+                    "transcript": "HCL Chole wali sankya kaadhalum today"
+                }, 
+                {
+                    "transcript": "HCL Chole wali Samjhawan bellandur"
+                }, 
+                {
+                    "transcript": "HCL Chole wali samjhao kaadhalum today"
+                }, 
+                {
+                    "transcript": "HCL Chole wali Samjhawan barleyz today"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555400080523": {
+            "alternative": [
+                {
+                    "confidence": 0.24137996, 
+                    "transcript": "sail"
+                }, 
+                {
+                    "transcript": "sale"
+                }, 
+                {
+                    "transcript": "tail"
+                }, 
+                {
+                    "transcript": "hail"
+                }, 
+                {
+                    "transcript": "Hale"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/1455554001303firprayaaskare": {
+            "alternative": [
+                {
+                    "transcript": "Phir Yaad kare"
+                }, 
+                {
+                    "transcript": "Phir Yaad Karoon"
+                }, 
+                {
+                    "transcript": "Phir Yaad Karu"
+                }, 
+                {
+                    "transcript": "Phir Prayag Karu"
+                }, 
+                {
+                    "transcript": "Phir Prayag curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/145555400261819": {
+            "alternative": [
+                {
+                    "confidence": 0.29125151, 
+                    "transcript": "police"
+                }, 
+                {
+                    "transcript": "will leave"
+                }, 
+                {
+                    "transcript": "will need"
+                }, 
+                {
+                    "transcript": "will meet"
+                }, 
+                {
+                    "transcript": "Willys"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.numchart.worksheet/assets/14555540027412": {
+            "alternative": [
+                {
+                    "transcript": "do"
+                }, 
+                {
+                    "transcript": "no"
+                }, 
+                {
+                    "transcript": "du"
+                }, 
+                {
+                    "transcript": "dog"
+                }, 
+                {
+                    "transcript": "door"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Hindi", 
+        "hindi_reading_camp", 
+        "hindi_num_activities"
+    ]
+}

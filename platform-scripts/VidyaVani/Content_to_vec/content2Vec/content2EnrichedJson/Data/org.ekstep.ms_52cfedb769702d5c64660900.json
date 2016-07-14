@@ -1,0 +1,160 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "The Little Christmas Tree is a cute book to read to your children this holiday season. It is a story of a little fir tree who dreamt of growing up so that he could Christmas tree among humans. Read the story to find out if the little fir tree made it to a home.  Published by MangoSense.", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "org.ekstep.ms_52cfedb769702d5c64660900", 
+    "imageTags": [
+        "d d", 
+        "greenbox", 
+        "f f c", 
+        "e b c d", 
+        "e f", 
+        "bc a c", 
+        "icon submit", 
+        "icon next", 
+        "icon home", 
+        "icon hint", 
+        "f e", 
+        "speech bubble", 
+        "yellowbox", 
+        "icon reload", 
+        "background", 
+        "b f", 
+        "d c", 
+        "f a e", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "keywords": [
+        "The", 
+        "Little", 
+        "Christmas", 
+        "Tree", 
+        "English", 
+        "Family and Friends", 
+        "Holidays and Celebrations", 
+        "Plants", 
+        "Christmas", 
+        "Family", 
+        "GamesLife", 
+        "Nature", 
+        "Fun", 
+        "Rhymes", 
+        "Mangoreader", 
+        "Dugald A Steer"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 9, 
+        "mp3": 7, 
+        "ogg": 0, 
+        "png": 10
+    }, 
+    "mp3Length": 153.78133333333335, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_52cfedb769702d5c64660900/assets/14601432840700161d72edb": {
+            "alternative": [
+                {
+                    "transcript": "have had a head finish decorating cancel operation mm life"
+                }, 
+                {
+                    "transcript": "have had a head finish decorating cancel operation 2000 live"
+                }, 
+                {
+                    "transcript": "have had a head finish decorating cancel operation mm line"
+                }, 
+                {
+                    "transcript": "have had a head finish decorating cancel operation 2000 life"
+                }, 
+                {
+                    "transcript": "Hathway head finish decorating cancel operation mm life"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_52cfedb769702d5c64660900/assets/1460143285213bd40240ff6": {
+            "alternative": [
+                {
+                    "transcript": "so you're stuck UP Police employee into the living room he will hung with decoration"
+                }, 
+                {
+                    "transcript": "the u.s. stock up employee into the living room he will hung with decoration"
+                }, 
+                {
+                    "transcript": "the u.s. stock up employee into the living room he was hung with decoration"
+                }, 
+                {
+                    "transcript": "the u.s. stock apple employee into the living room he will hung with decoration"
+                }, 
+                {
+                    "transcript": "so you're stuck UP Police employee into the living room he will hung with activation"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_52cfedb769702d5c64660900/assets/146014328635293b5268dea": {
+            "alternative": [
+                {
+                    "transcript": "Asia Summit action up again to put in back into the living room he was really happy with his new family and have any and the biggest regional wrong about something something is a good afternoon"
+                }, 
+                {
+                    "transcript": "Asia Summit action up again to put in back into the living room he was really happy with his new family and I have any and the biggest reason along about something something is a good afternoon"
+                }, 
+                {
+                    "transcript": "Asia Summit action up again to put it back into the living room he was really happy with his new family and I have any and the biggest reason along about something something is a good afternoon"
+                }, 
+                {
+                    "transcript": "ECS payment action up again to put in back into the living room he was really happy with his new family and have any and the biggest regional wrong about something something is a good afternoon"
+                }, 
+                {
+                    "transcript": "Asia Summit action up again to put in back into the living room he was really happy with his new family and I have any and the biggest regional wrong about something something is a good afternoon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_52cfedb769702d5c64660900/assets/146014328676380e8e5bd6d": {
+            "alternative": [
+                {
+                    "transcript": "he was so quiz tomorrow and day consultancy amateur thanks to change the first train to decorative LED in the children at told him at first sight"
+                }, 
+                {
+                    "transcript": "he was so quiz tomorrow and day consultancy amateur thanks to change the first train to decorative LED in while the children at told him at first sight"
+                }, 
+                {
+                    "transcript": "qsl quiz tomorrow and day consultancy amateur thanks to change the first train to decorative LED in the children at told him at first sight"
+                }, 
+                {
+                    "transcript": "qsl quiz tomorrow and day consultancy amateur thanks to change the first train to decorative LED in while the children at told him at first sight"
+                }, 
+                {
+                    "transcript": "he was so quiz tomorrow and day consultancy amateur thanks to change the first train to decorative LED in my own the children at told him at first sight"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "Dugald A Steer", 
+    "tags": [
+        "Plants", 
+        "Christmas", 
+        "MangoSense", 
+        "Rhymes", 
+        "Fun", 
+        "Nature", 
+        "GamesLife", 
+        "Family"
+    ]
+}

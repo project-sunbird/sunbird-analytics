@@ -1,0 +1,50 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_47728", 
+    "imageTags": [
+        "btn ok highlights", 
+        "index", 
+        "btn next", 
+        "greenbox", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "retry bg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "goodjob bg"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 14
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47728/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47728/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

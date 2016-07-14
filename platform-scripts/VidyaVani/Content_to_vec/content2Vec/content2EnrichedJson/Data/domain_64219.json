@@ -1,0 +1,727 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "FSTest2", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_64219", 
+    "imageTags": [
+        "", 
+        "tap", 
+        "end", 
+        "numberchart", 
+        "hint", 
+        "banana", 
+        "tomato", 
+        "tiger", 
+        "brinjal", 
+        "icon next", 
+        "icon sound", 
+        "icon previous", 
+        "a", 
+        "c", 
+        "b", 
+        "e", 
+        "d", 
+        "g", 
+        "f", 
+        "i", 
+        "h", 
+        "k", 
+        "j", 
+        "m", 
+        "l", 
+        "o", 
+        "n", 
+        "q", 
+        "p", 
+        "s", 
+        "r", 
+        "u", 
+        "t", 
+        "w", 
+        "v", 
+        "y", 
+        "x", 
+        "z", 
+        "logo en"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 33, 
+        "ogg": 0, 
+        "png": 68
+    }, 
+    "mp3Length": 69.126391723356, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318810285whats_the_first_sound_you_hear_in_the_word": {
+            "alternative": [
+                {
+                    "confidence": 0.8289904, 
+                    "transcript": "what's the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "watch the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "was the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "what is the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "what's the first sound you here in the word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318810655my_teachers_name_is_raju": {
+            "alternative": [
+                {
+                    "confidence": 0.86131299, 
+                    "transcript": "My teacher's name is Raju"
+                }, 
+                {
+                    "transcript": "My teacher's name is Rodger"
+                }, 
+                {
+                    "transcript": "my teachers name is Raju"
+                }, 
+                {
+                    "transcript": "My teacher's name is Rajiv"
+                }, 
+                {
+                    "transcript": "My teacher's name is Raj you"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318811002answerwithcompletesentences": {
+            "alternative": [
+                {
+                    "transcript": "answer with complete sentences"
+                }, 
+                {
+                    "transcript": "Ansal with complete sentences"
+                }, 
+                {
+                    "transcript": "uncle with complete sentences"
+                }, 
+                {
+                    "transcript": "Aanchal with complete sentences"
+                }, 
+                {
+                    "transcript": "Anchal with complete sentences"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318811423do_you_like_dogs": {
+            "alternative": [
+                {
+                    "confidence": 0.88232267, 
+                    "transcript": "do you like dogs"
+                }, 
+                {
+                    "transcript": "you like dogs"
+                }, 
+                {
+                    "transcript": "do you like talks"
+                }, 
+                {
+                    "transcript": "do you like talk"
+                }, 
+                {
+                    "transcript": "do you like jokes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318812006what_is_your_name": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "what is your name"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318812259do_you_like_icecream": {
+            "alternative": [
+                {
+                    "confidence": 0.83922243, 
+                    "transcript": "do you like ice cream"
+                }, 
+                {
+                    "transcript": "do you like icecream"
+                }, 
+                {
+                    "transcript": "do u like icecream"
+                }, 
+                {
+                    "transcript": "do you like ice creams"
+                }, 
+                {
+                    "transcript": "do you like I scream"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318812567car": {
+            "alternative": [
+                {
+                    "confidence": 0.52356815, 
+                    "transcript": "cars"
+                }, 
+                {
+                    "transcript": "car"
+                }, 
+                {
+                    "transcript": "Kaash"
+                }, 
+                {
+                    "transcript": "Akash"
+                }, 
+                {
+                    "transcript": "cash"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318812735yes": {
+            "alternative": [
+                {
+                    "confidence": 0.87216407, 
+                    "transcript": "yes"
+                }, 
+                {
+                    "transcript": "s"
+                }, 
+                {
+                    "transcript": "yeah"
+                }, 
+                {
+                    "transcript": "Jess"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318812915mango": {
+            "alternative": [
+                {
+                    "confidence": 0.95347679, 
+                    "transcript": "mango"
+                }, 
+                {
+                    "transcript": "Manga"
+                }, 
+                {
+                    "transcript": "Mangalore"
+                }, 
+                {
+                    "transcript": "Bango"
+                }, 
+                {
+                    "transcript": "mangle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318813077threestarsforthreemarks": {
+            "alternative": [
+                {
+                    "transcript": "3 Stars for 3 marks"
+                }, 
+                {
+                    "transcript": "3 Stars with 3 marks"
+                }, 
+                {
+                    "transcript": "three stars for 3 marks"
+                }, 
+                {
+                    "transcript": "3 Stars 3 marks"
+                }, 
+                {
+                    "transcript": "three stars with 3 marks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318813495bus": {
+            "alternative": [
+                {
+                    "confidence": 0.65444851, 
+                    "transcript": "bus"
+                }, 
+                {
+                    "transcript": "bas"
+                }, 
+                {
+                    "transcript": "bes"
+                }, 
+                {
+                    "transcript": "buss"
+                }, 
+                {
+                    "transcript": "but"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318815761answeranytwoquestionsinoneword": {
+            "alternative": [
+                {
+                    "confidence": 0.77300322, 
+                    "transcript": "answer any two questions in one word"
+                }, 
+                {
+                    "transcript": "answer any 2 questions in one word"
+                }, 
+                {
+                    "transcript": "answer any 2 questions in 1 Word"
+                }, 
+                {
+                    "transcript": "answer any two questions in 1 Word"
+                }, 
+                {
+                    "transcript": "answer any 2 questions in 1word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318815927recite_an_english_rhyme_with_actions": {
+            "alternative": [
+                {
+                    "confidence": 0.77404654, 
+                    "transcript": "listen English rhyme with actions"
+                }, 
+                {
+                    "transcript": "listen English rhymes with actions"
+                }, 
+                {
+                    "transcript": "listen English rhyme with action"
+                }, 
+                {
+                    "transcript": "listen English rhymes with action"
+                }, 
+                {
+                    "transcript": "written English rhyme with actions"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318816099nameanytwocapitalletters": {
+            "alternative": [
+                {
+                    "confidence": 0.81641519, 
+                    "transcript": "name any two capital letters"
+                }, 
+                {
+                    "transcript": "name any 2 capital letters"
+                }, 
+                {
+                    "transcript": "name any to capital letters"
+                }, 
+                {
+                    "transcript": "name any two capital letter"
+                }, 
+                {
+                    "transcript": "name any tow capital letters"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318816300nostarsforzeromarks": {
+            "alternative": [
+                {
+                    "confidence": 0.79076636, 
+                    "transcript": "no starts with 0 marks"
+                }, 
+                {
+                    "transcript": "no starts with zero marks"
+                }, 
+                {
+                    "transcript": "no starts with 0 Marx"
+                }, 
+                {
+                    "transcript": "no stars 20 marks"
+                }, 
+                {
+                    "transcript": "no starts with 0 Max"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318816444onestarforonemark": {
+            "alternative": [
+                {
+                    "transcript": "onesta for one mark"
+                }, 
+                {
+                    "transcript": "1 star for one mark"
+                }, 
+                {
+                    "transcript": "one staff for one mark"
+                }, 
+                {
+                    "transcript": "1star for one mark"
+                }, 
+                {
+                    "transcript": "1 star for 1 marks"
+                }, 
+                {
+                    "transcript": "1 star for one coorg"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318816593do_you_like_this_school": {
+            "alternative": [
+                {
+                    "confidence": 0.88829935, 
+                    "transcript": "do you like this school"
+                }, 
+                {
+                    "transcript": "do you like the school"
+                }, 
+                {
+                    "transcript": "do you like to school"
+                }, 
+                {
+                    "transcript": "do you like this cool"
+                }, 
+                {
+                    "transcript": "do you like this is cool"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318816944pleasemarkthescore": {
+            "alternative": [
+                {
+                    "confidence": 0.63956553, 
+                    "transcript": "please master scores"
+                }, 
+                {
+                    "transcript": "please mark 2 scores"
+                }, 
+                {
+                    "transcript": "please Mark II scores"
+                }, 
+                {
+                    "transcript": "please Mata scores"
+                }, 
+                {
+                    "transcript": "please mark the scores"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318817661good_job": {
+            "alternative": [
+                {
+                    "confidence": 0.89504707, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "goodjob"
+                }, 
+                {
+                    "transcript": "good Java"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318817832identifyanythreepictures": {
+            "alternative": [
+                {
+                    "confidence": 0.84611225, 
+                    "transcript": "identify any three pictures"
+                }, 
+                {
+                    "transcript": "identify any 3 pictures"
+                }, 
+                {
+                    "transcript": "identify any tree pictures"
+                }, 
+                {
+                    "transcript": "identify any 3 pitches"
+                }, 
+                {
+                    "transcript": "identify any three features"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318817979what_is_your_mothers_name": {
+            "alternative": [
+                {
+                    "confidence": 0.93888587, 
+                    "transcript": "what is your mother's name"
+                }, 
+                {
+                    "transcript": "what is your father's name"
+                }, 
+                {
+                    "transcript": "what is your mother's mean"
+                }, 
+                {
+                    "transcript": "what is your mothers mean"
+                }, 
+                {
+                    "transcript": "what is your mother's names"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318818379no": {
+            "alternative": [
+                {
+                    "confidence": 0.83368099, 
+                    "transcript": "no"
+                }, 
+                {
+                    "transcript": "new"
+                }, 
+                {
+                    "transcript": "know"
+                }, 
+                {
+                    "transcript": "you"
+                }, 
+                {
+                    "transcript": "no."
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318818537nameanytwosmallletters": {
+            "alternative": [
+                {
+                    "confidence": 0.92409164, 
+                    "transcript": "name any two small letters"
+                }, 
+                {
+                    "transcript": "name any 2 small letters"
+                }, 
+                {
+                    "transcript": "name any two small letter"
+                }, 
+                {
+                    "transcript": "name any two small lettuce"
+                }, 
+                {
+                    "transcript": "name any two small letter s"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318818682what_is_your_teachers_name": {
+            "alternative": [
+                {
+                    "transcript": "what is your teachers name"
+                }, 
+                {
+                    "transcript": "what is your teacher's name"
+                }, 
+                {
+                    "transcript": "what is your teachers neme"
+                }, 
+                {
+                    "transcript": "what is your teachers names"
+                }, 
+                {
+                    "transcript": "what is your teacher's neme"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318818927write_the_alphabets_a_to_e_in_your_notebook-": {
+            "alternative": [
+                {
+                    "transcript": "write alphabets a to e in your notebook"
+                }, 
+                {
+                    "transcript": "write alphabets a to eat in your notebook"
+                }, 
+                {
+                    "transcript": "write alphabets A to Z in your notebook"
+                }, 
+                {
+                    "transcript": "write a alphabets a to e in your notebook"
+                }, 
+                {
+                    "transcript": "write alphabets a to in your notebook"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318819582write_the_alphabets_a_to_e_in_the_paper_given_below": {
+            "alternative": [
+                {
+                    "transcript": "20 alphabets A to Z in the paper given below"
+                }, 
+                {
+                    "transcript": "20 alphabets a to e in the paper given below"
+                }, 
+                {
+                    "transcript": "Ghanti alphabets A to Z in the paper given below"
+                }, 
+                {
+                    "transcript": "Ghanti alphabets a to e in the paper given below"
+                }, 
+                {
+                    "transcript": "Jonty alphabets A to Z in the paper given below"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318821526twostarsfortwomarks": {
+            "alternative": [
+                {
+                    "transcript": "2 stars 2 marks"
+                }, 
+                {
+                    "transcript": "two stars 2 marks"
+                }, 
+                {
+                    "transcript": "2 stars with 2 marks"
+                }, 
+                {
+                    "transcript": "2 stars to marks"
+                }, 
+                {
+                    "transcript": "2 stars 2marks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318824434what_is_your_fathers_name": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "what is your father's name"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318824707openyourmouth": {
+            "alternative": [
+                {
+                    "confidence": 0.94803828, 
+                    "transcript": "open your mouth"
+                }, 
+                {
+                    "transcript": "open your mouse"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318825896selectanytwoinstructions": {
+            "alternative": [
+                {
+                    "confidence": 0.80469763, 
+                    "transcript": "select any two instructions"
+                }, 
+                {
+                    "transcript": "select any 2 instructions"
+                }, 
+                {
+                    "transcript": "select any 2 instruction"
+                }, 
+                {
+                    "transcript": "select any two instruction"
+                }, 
+                {
+                    "transcript": "select any to instructions"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318826047closeyoureyes": {
+            "alternative": [
+                {
+                    "confidence": 0.94537896, 
+                    "transcript": "close your eyes"
+                }, 
+                {
+                    "transcript": "close your thighs"
+                }, 
+                {
+                    "transcript": "close your ride"
+                }, 
+                {
+                    "transcript": "close your guys"
+                }, 
+                {
+                    "transcript": "close your dad"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318827657showmeyournose": {
+            "alternative": [
+                {
+                    "confidence": 0.90037155, 
+                    "transcript": "show me your nose"
+                }, 
+                {
+                    "transcript": "show me your name"
+                }, 
+                {
+                    "transcript": "show me your known"
+                }, 
+                {
+                    "transcript": "show me your no"
+                }, 
+                {
+                    "transcript": "show me your moon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64219/assets/1465318829074do_you_like_apples": {
+            "alternative": [
+                {
+                    "transcript": "do you like apples"
+                }, 
+                {
+                    "transcript": "do you like apple"
+                }, 
+                {
+                    "transcript": "do you like Apple is"
+                }, 
+                {
+                    "transcript": "do you like apple us"
+                }, 
+                {
+                    "transcript": "do you like apple a"
+                }, 
+                {
+                    "transcript": "do you love apple"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "128"
+}

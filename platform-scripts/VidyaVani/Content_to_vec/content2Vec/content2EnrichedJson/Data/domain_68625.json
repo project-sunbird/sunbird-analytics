@@ -1,0 +1,53 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Contains 5 questions of double digit with double digit subtraction (without borrowing) and 5 questions of double digit with double digit subtraction (with borrowing)", 
+    "developer": "EkStep", 
+    "domain": [
+        "numeracy"
+    ], 
+    "identifier": "domain_68625", 
+    "imageTags": [
+        "popuptint", 
+        "btn ok highlights", 
+        "btn back", 
+        "icon submit", 
+        "icon hint", 
+        "retrybg", 
+        "goodjobbg", 
+        "chalkboard", 
+        "background", 
+        "icon home", 
+        "btn next", 
+        "icon reload"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 12
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_68625/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_68625/assets/retry_1460636610607": []
+    }, 
+    "owner": "376", 
+    "tags": [
+        "subtraction", 
+        "double digit subtraction", 
+        "difference", 
+        "subtract"
+    ]
+}

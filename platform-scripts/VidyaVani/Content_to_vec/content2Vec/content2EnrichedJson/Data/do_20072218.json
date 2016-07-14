@@ -1,0 +1,55 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "cows are not", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20072218", 
+    "imageTags": [
+        "popuptint", 
+        "", 
+        "play", 
+        "btn next", 
+        "recordbtn", 
+        "btn back", 
+        "icon submit", 
+        "btn ok highlights", 
+        "endscreen", 
+        "pagesel bg", 
+        "icon hint", 
+        "retrybg", 
+        "blacktint", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "soundbtn", 
+        "icon sound", 
+        "mic", 
+        "literacy"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 22
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072218/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072218/assets/retry_1460636610607": []
+    }, 
+    "owner": "Srivathsa Dhanraj"
+}

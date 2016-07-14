@@ -1,0 +1,46 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Joy", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.en.joy", 
+    "imageTags": [
+        "no", 
+        "speech bubble", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "start", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 12, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 53.208, 
+    "mp3Transcription": {}, 
+    "owner": "EkStep", 
+    "tags": [
+        "english_stories"
+    ]
+}

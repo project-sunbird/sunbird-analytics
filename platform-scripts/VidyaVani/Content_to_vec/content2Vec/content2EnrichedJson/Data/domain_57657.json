@@ -1,0 +1,118 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Numeracy counting worksheet", 
+    "developer": "EkStep", 
+    "domain": [
+        "numeracy"
+    ], 
+    "identifier": "domain_57657", 
+    "imageTags": [
+        "", 
+        "popuptint", 
+        "school", 
+        "apple", 
+        "btn back", 
+        "icon submit", 
+        "btn ok highlights", 
+        "question b", 
+        "dog", 
+        "earth", 
+        "icon hint", 
+        "retrybg", 
+        "music", 
+        "forest", 
+        "background", 
+        "icon home", 
+        "goodjobbg", 
+        "btn next", 
+        "contentbackground", 
+        "icon reload"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 5, 
+        "ogg": 0, 
+        "png": 29
+    }, 
+    "mp3Length": 10.217006802721087, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57657/assets/dog_starts_with__d_239_1464850175_1464850175679": {
+            "alternative": [
+                {
+                    "confidence": 0.71646267, 
+                    "transcript": "job starts with"
+                }, 
+                {
+                    "transcript": "dog starts with"
+                }, 
+                {
+                    "transcript": "dog starts with J"
+                }, 
+                {
+                    "transcript": "dog starts with d"
+                }, 
+                {
+                    "transcript": "job starts with J"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57657/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57657/assets/how_many_are_they_239_1464844664_1464844665155": {
+            "alternative": [
+                {
+                    "confidence": 0.64019394, 
+                    "transcript": "how many all day"
+                }, 
+                {
+                    "transcript": "how many hours"
+                }, 
+                {
+                    "transcript": "how many hours a"
+                }, 
+                {
+                    "transcript": "how many years day"
+                }, 
+                {
+                    "transcript": "how many as day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57657/assets/how_many_are_they_239_1464844701_1464844701776": {
+            "alternative": [
+                {
+                    "confidence": 0.64019221, 
+                    "transcript": "how many all day"
+                }, 
+                {
+                    "transcript": "how many hours"
+                }, 
+                {
+                    "transcript": "how many hours a"
+                }, 
+                {
+                    "transcript": "how many years day"
+                }, 
+                {
+                    "transcript": "how many as day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57657/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

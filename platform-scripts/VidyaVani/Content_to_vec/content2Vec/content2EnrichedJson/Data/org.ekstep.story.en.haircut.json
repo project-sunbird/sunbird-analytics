@@ -1,0 +1,106 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Annual Haircut Day (Non-interactive)", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.en.haircut", 
+    "imageTags": [
+        "image", 
+        "walk animation", 
+        "question b", 
+        "speech bubble", 
+        "level band", 
+        "tailor inner", 
+        "yes", 
+        "saw", 
+        "wife inner", 
+        "wife outer", 
+        "razor", 
+        "sringeri", 
+        "no", 
+        "start", 
+        "scissors", 
+        "barber outer", 
+        "knife", 
+        "icon reload", 
+        "confirm bg", 
+        "icon home", 
+        "carpenter", 
+        "icon hint", 
+        "tailor", 
+        "barber", 
+        "icon next", 
+        "barber inner", 
+        "icon sound", 
+        "icon previous", 
+        "wife", 
+        "tailor outer", 
+        "publisher logo"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 2, 
+        "jpg": 20, 
+        "mp3": 2, 
+        "ogg": 22, 
+        "png": 28
+    }, 
+    "mp3Length": 7.740952380952381, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.haircut/assets/1455555024803take%20me%20home": {
+            "alternative": [
+                {
+                    "confidence": 0.89798558, 
+                    "transcript": "Take Me Home take each person to the home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person to their home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person 2 day home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person 2 the home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person to day home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.haircut/assets/1455555026037match%20the%20tools%20to%20the%20people": {
+            "alternative": [
+                {
+                    "confidence": 0.78617138, 
+                    "transcript": "match the tools to the people"
+                }, 
+                {
+                    "transcript": "matched tools to the people"
+                }, 
+                {
+                    "transcript": "maths tools to the people"
+                }, 
+                {
+                    "transcript": "maths to tools to the people"
+                }, 
+                {
+                    "transcript": "maths the tools to the people"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "english_stories"
+    ]
+}

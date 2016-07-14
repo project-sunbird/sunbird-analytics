@@ -1,0 +1,308 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.hi.wedding", 
+    "imageTags": [
+        "speech bubble", 
+        "no", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "start", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 13, 
+        "mp3": 13, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 176.77061224489793, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556070642scene7": {
+            "alternative": [
+                {
+                    "transcript": "Mujhe Pyas lagi hai mujhe kuch khana peena hai mere bhai ko bhook Lagi Hai Mujhe khana Chahta Hai"
+                }, 
+                {
+                    "transcript": "Mujhe Pyas lagi hai mujhe kuch janda peena hai mere bhai ko bhook Lagi Hai Mujhe khana Chahta Hai"
+                }, 
+                {
+                    "transcript": "Mujhe Pyar Se Bhi Hai Mujhe Kuch khana peena hai mere bhai ko bhook Lagi Hai Kuch khana Chahta Hai"
+                }, 
+                {
+                    "transcript": "Mujhe Pyar Se Bhi Hai Mujhe Kuch janda peena hai mere bhai ko bhook Lagi Hai Kuch khana Chahta Hai"
+                }, 
+                {
+                    "transcript": "Mujhe Pyas lagi hai mujhe kuch khana peena hai mere bhai ki bhook Lagi Hai Mujhe khana Chahta Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556070941scene3": {
+            "alternative": [
+                {
+                    "transcript": "sabse Pehle Hum station Panch Ke Papa Mummy bhaiya aur Main"
+                }, 
+                {
+                    "transcript": "sabse pahle Hum station Panch Ke Papa Mummy bhaiya aur Main"
+                }, 
+                {
+                    "transcript": "sabse Pehle Hum station Paanch Ke Papa Mummy bhaiya aur Main"
+                }, 
+                {
+                    "transcript": "sabse pahle Hum station Paanch Ke Papa Mummy bhaiya aur Main"
+                }, 
+                {
+                    "transcript": "sabse Pehle Hum station punch Ke Papa Mummy bhaiya aur Main"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556071080scene13": {
+            "alternative": [
+                {
+                    "transcript": "audiko daddy Kehti Hai Chhote Chachaji hi Hamari Ho Rahi Hai Woh Kehte Hain Humse Milte Hain station se Chalti Hai"
+                }, 
+                {
+                    "transcript": "audiko Dadi Kehti Hai Chhote Chachaji hi Hamari Ho Rahi Hai Woh Kehte Hain Humse Milte Hain station se Chalti Hai"
+                }, 
+                {
+                    "transcript": "audiko daddy Kehti Hai Chhote Chachaji hi Hamari Ho Rahi Hai Woh Kehte Hain Humse Milte Hain train station se Chalti Hai"
+                }, 
+                {
+                    "transcript": "audiko daddy Kehti Hai Chhote Chachaji hi Hamari Ho Rahi Hai Woh Kehte Hain Ham se Milte Hain station se Chalti Hai"
+                }, 
+                {
+                    "transcript": "audiko daddy Kehti Hai Chhote Chachaji hi Hamari Ho Rahi Hai Woh Kehte Hain Hum Saath Saath Hain station se Chalti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556071281scene4": {
+            "alternative": [
+                {
+                    "transcript": "Hamari saas do party all those who take hele Hain Ye Lal Rang Ki Pani Ki bottle"
+                }, 
+                {
+                    "transcript": "Hamari saas do party all those who take hele hai ye Lal Rang Ki Pani Ki bottle"
+                }, 
+                {
+                    "transcript": "Hamari Chahat do party all those hote hain ye Lal Rang Ki Pani Ki bottle"
+                }, 
+                {
+                    "transcript": "Hamari saas do party all those hote hain ye Lal Rang Ki Pani Ki bottle"
+                }, 
+                {
+                    "transcript": "Hamari Chahat do party all those who take hele Hain Ye Lal Rang Ki Pani Ki bottle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556071429scene8": {
+            "alternative": [
+                {
+                    "transcript": "Maa Kehti Hai Zara Roko abhi jo hum train me Baithe bhi nahi bhukh Lagi Hai Tu mere paas mein Aaya Hai Pyar Kiya Hai Pani Hai"
+                }, 
+                {
+                    "transcript": "Maa Kehti Hai Zara Roko abhi jo hum train me Baithe bhi nahi bhukh Lagi Hai Tu mere paas mein Aaya Hai Pyar Kiya Hai Pani Hai Jab Tak Hai Jaan"
+                }, 
+                {
+                    "transcript": "Maa Kehti Hai Zara Roko abhi jo hum train me beti bhi nahi bhukh Lagi Hai Tu mere paas mein Aaya Hai Pyar Kiya Hai Pani Hai"
+                }, 
+                {
+                    "transcript": "Maa Kehti Hai Zara Roko abhi jo hum train me beti bhi nahi bhukh Lagi Hai Tu mere paas mein Aaya Hai Pyar Kiya Hai Pani Hai Jab Tak Hai Jaan"
+                }, 
+                {
+                    "transcript": "Maa Kehti Hai Jara Roko abhi jo hum train me Baithe bhi nahi bhukh Lagi Hai Tu mere paas mein Aaya Hai Pyar Kiya Hai Pani Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556072123scene10": {
+            "alternative": [
+                {
+                    "transcript": "meri moti chachi Aa Gayi Hai unke Saath Patli Chachaji bhi hai on car suitcase Sapno Se Bhare"
+                }, 
+                {
+                    "transcript": "meri moti chachi Aa Gayi Hai unke Sath Patli Chachaji bhi hai on car suitcase Sapno Se Bhare"
+                }, 
+                {
+                    "transcript": "meri moti chachi aa gai hai unke Saath Patli Chachaji bhi hai on car suitcase Sapno Se Bhare"
+                }, 
+                {
+                    "transcript": "meri moti chachi Aa Gayi Hai unke Saath Patli Chachaji bhi hai on car suitcase Sapno Se Bhare hai"
+                }, 
+                {
+                    "transcript": "meri moti chachi Aa Gayi Hai unke Saath Patli Chachaji bhi hai on car suitcase Sapno Se Bhare Hain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556073280scene6": {
+            "alternative": [
+                {
+                    "transcript": "Veer he Mere Dadaji please Dhire Dhire chal rahi hai ye Hamid Hoon Rahi Hai Ke Piche Piche Meri dadi ji aa rahi hai"
+                }, 
+                {
+                    "transcript": "Veer he Mere Dadaji please Dhire Dhire chal rahi hai ye Hamid Hoon Rahi Hai Ke Piche Piche Meri Ja Re Ja Rahe Hai"
+                }, 
+                {
+                    "transcript": "Veer he Mere Dadaji please Dhire Dhire chal rahi hai ye Hamid Hoon rahi hain Ke Piche Piche Meri dadi ji aa rahi hai"
+                }, 
+                {
+                    "transcript": "Veer he Mere Dadaji please Dhire Dhire chal rahe hain ye Hamid Hoon rahi hain Ke Piche Piche Meri dadi ji aa rahi hai"
+                }, 
+                {
+                    "transcript": "Veer he Mere Dadaji please Dhire Dhire chal rahe hain ye Hamid Hoon Rahi Hai Ke Piche Piche Meri dadi ji aa rahi hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556073430scene5": {
+            "alternative": [
+                {
+                    "confidence": 0.81136703, 
+                    "transcript": "abhi time nahi hai Bahar chalo kar rahe hai Sabhi train Ka Intezar kar rahe hai Hamare Pariwar ki Baar Kilo Ka Haath hai"
+                }, 
+                {
+                    "transcript": "abhi time nahi hai Bahar chalo kar rahe hai Sabhi train Ka Intezar kar rahe hai Hamare Pariwar Ke Bas Kilo Ka Haath hai"
+                }, 
+                {
+                    "transcript": "abhi time nahi hai Bahar chalo kar rahe hai Sabhi train Ka Intezar kar rahe hai hamara Pariwar ki Baar Kilo Ka Haath hai"
+                }, 
+                {
+                    "transcript": "abhi time nahi hai Bahar chalo kar rahe hai Sabhi train Ka Intezar kar rahe hai hamara Parivar ki Baar Kilo Ka Haath hai"
+                }, 
+                {
+                    "transcript": "abhi time nahi hai Bahar chalo kar rahe hai Sabhi train ka intezaar kar rahe hai Hamare Pariwar ki Baar Kilo Ka Haath hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556074073scene9": {
+            "alternative": [
+                {
+                    "transcript": "Meri dadi ji ke paas ek Chhota Sa Chehra Hai Aaine Ke Paar Se Chudi bhi hai Dadaji Ka pad bada hai Shayad Mai khane ki pahechan hai"
+                }, 
+                {
+                    "transcript": "Meri dadi ji ke paas ek Chhota Sa Chehra Hai Aaine Ke Paar Se Chudi bhi hai Dadaji Ka bad bada hai Shayad Mai khane ki pahechan hai"
+                }, 
+                {
+                    "transcript": "Meri dadi ji ke paas ek Chhota Sa Chehra Hai Aaine Ke Paar Se Chudi bhi hai Dadaji Ka pad bada hai Shayad khane ki pahechan hai"
+                }, 
+                {
+                    "transcript": "Meri dadi ji ke paas ek Chhota Sa Chehra Hai Aaine Ke Paar Se Chudi bhi hai Dadaji Ka bada bada hai Shayad Mai khane ki pahechan hai"
+                }, 
+                {
+                    "transcript": "Meri dadi ji ke paas ek Chhota Sa Chehra Hai Aaine Ke Paar Se Chudi bhi hai Dadaji Ka bada bada hai Shayad khane ki pahechan hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556074546scene11": {
+            "alternative": [
+                {
+                    "transcript": "show image Ne Laga Re Na Re Hai Re Na Rahe Hai Sab train me chudai ki koshish Mithe Woh kahan hai jinki shaadi Mein Hum Sath ja rahe hai"
+                }, 
+                {
+                    "transcript": "show image Ne Laga Re Na Re Hai Re Na Rahe Hai Sab train me chudai ki koshish Mithe Woh kahan hai jinki shaadi Mein Hum Sath jaa rahe hai"
+                }, 
+                {
+                    "transcript": "show image Ne Laga Re Na Re Hai Re Na Rahe Hai Sab train me chudai ki koshish Meethe Woh kahan hai jinki shaadi Mein Hum Sath ja rahe hai"
+                }, 
+                {
+                    "transcript": "show image Ne Laga Re Na Re Hai Re Na Rahe Hai Sab train me chudai ki koshish Mithe Woh kahan hai jinki shaadi Mein Hum Sath ja rahe hain"
+                }, 
+                {
+                    "transcript": "show image main Laga Re Na Re Hai Re Na Rahe Hai Sab train me chudai ki koshish Mithe Woh kahan hai jinki shaadi Mein Hum Sath ja rahe hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556075145scene2": {
+            "alternative": [
+                {
+                    "transcript": "Mere Chacha Ki Shaadi Hai shadi kab Hogi Hum Sath shadi Mein Ja Rahe Sablok train Shegaon Jayenge"
+                }, 
+                {
+                    "transcript": "Mere Chacha Ki Shaadi Hai shaadi kab Hogi Hum Sath shadi Mai Ja Rahe Sablok train Shegaon Jayenge"
+                }, 
+                {
+                    "transcript": "Mere Chacha Ki Shaadi Hai shadi kab Hogi Hum Sath shadi Mai Ja Rahe Sablok train Shegaon Jayenge"
+                }, 
+                {
+                    "transcript": "Mere Chacha Ki Shadi Hai shadi kab Hogi Hum Sath shadi Mai Ja Rahe Sablok train Shegaon Jayenge"
+                }, 
+                {
+                    "transcript": "Mere Chacha Ki Shaadi Hai Shaadi Ka Me Ho Gaye Hum Sath shadi Mai Ja Rahe Hain Sapno train Shegaon Jayenge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556075310scene1": {
+            "alternative": [
+                {
+                    "confidence": 0.7650575, 
+                    "transcript": "Chacha ki shadi"
+                }, 
+                {
+                    "transcript": "Chacha ki shaadi"
+                }, 
+                {
+                    "transcript": "Chacha ki Sadi"
+                }, 
+                {
+                    "transcript": "Chacha Ki Sardi"
+                }, 
+                {
+                    "transcript": "Chacha ki saadi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.wedding/assets/1455556076675scene12": {
+            "alternative": [
+                {
+                    "transcript": "Humse Pyar Hai Lekin Chachaji Kahan Hai Mere Papa ne Lagte Hain Mere Dadaji dhuni Lagte Hai Meri mummy Pareshan lag rahi hai lekin Dadiji Muskura Rahe Hai"
+                }, 
+                {
+                    "transcript": "Humse Pyar Hai Lekin Chachaji Kahan Hai Mere Papa ne Lagte Hain Mere Dadaji dhuni Lagte Hain Meri mummy Pareshan lag rahi hai lekin Dadiji Muskura Rahe Hai"
+                }, 
+                {
+                    "transcript": "Humse Pyar Hai Lekin Chachaji Kahan Hai Mere Papa ne Lagte Hain Mere Dadaji dhuni Lagte Hai Meri mummy pareshan nahi hai lekin Dadiji Muskura Rahe Hai"
+                }, 
+                {
+                    "transcript": "Humse Pyaar Hai Lekin Chachaji Kahan Hai Mere Papa ne Lagte Hain Mere Dadaji dhuni Lagte Hai Meri mummy Pareshan lag rahi hai lekin Dadiji Muskura Rahe Hai"
+                }, 
+                {
+                    "transcript": "Humse Pyar Hai Lekin chacha ji Kaha Hai Mere Papa ne Lagte Hain Mere Dadaji dhuni Lagte Hai Meri mummy Pareshan lag rahi hai lekin Dadiji Muskura Rahe Hai"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_stories"
+    ]
+}

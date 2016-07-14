@@ -1,0 +1,188 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.Thetreehindi", 
+    "imageTags": [
+        "no", 
+        "start", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "speech bubble", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 11, 
+        "ogg": 0, 
+        "png": 23
+    }, 
+    "mp3Length": 228.4930612244898, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.Thetreehindi/assets/1455555597948scene4": {
+            "alternative": [
+                {
+                    "transcript": "Yeh hai payr hai Dharti par uski Ja Rahe Mitti Mein Jagi Hai Mitti mein aur Charu over hey Hari Hari Ghas call Charu old Hari Hari gas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti par uski Ja Rahe Mitti Mein Jagi Hindi mai aur Charu over hey Hari Hari Ghas call Charu old Hari Hari gas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti Pe iski Ja Rahe Mitti Mein Jagi Hai Mitti mein aur Charu over hi hari hari Ghas call Charu old Hari Hari gas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti Pe iski Ja Rahe Mitti Mein Jagi Hai Mitti mein aur Charu over hey Hari Hari Ghas call Charu old Hari Hari gas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti par iski Ja Rahe Mitti Mein Jagi Hindi mai aur Charu over hey Hari Hari Ghas call Charu old Hari Hari gas"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.Thetreehindi/assets/1455555599787scene1": {
+            "alternative": [
+                {
+                    "confidence": 0.25757557, 
+                    "transcript": "field"
+                }, 
+                {
+                    "transcript": "Heer"
+                }, 
+                {
+                    "transcript": "paid"
+                }, 
+                {
+                    "transcript": "feed"
+                }, 
+                {
+                    "transcript": "peed"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.Thetreehindi/assets/1455555600031scene3": {
+            "alternative": [
+                {
+                    "transcript": "Yeh hai payr hai Dharti par uski Jaate Hain Mitti mein aur Charo Aur Hai Hari Hari Ghas Sarovar hi hari hari Ghas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti par Jiski Jaate Hain Mitti mein aur Charo Aur Hai Hari Hari Ghas Sarovar hi hari hari Ghas"
+                }, 
+                {
+                    "transcript": "Yehi Pyar Hai Dharti par uski Jaate Hain Mitti mein aur Charo Aur Hai Hari Hari Ghas Sarovar hi hari hari Ghas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti par Jiski Jaate Hain Mitti Main Aur Charo Aur Hai Hari Hari Ghas Sarovar hi hari hari Ghas"
+                }, 
+                {
+                    "transcript": "Yehi Pyar Hai Dharti par Jiski Jaate Hain Mitti mein aur Charo Aur Hai Hari Hari Ghas Sarovar hi hari hari Ghas"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.Thetreehindi/assets/1455555600315scene11": {
+            "alternative": [
+                {
+                    "transcript": "jaldi he is beach say uncle hogayi Komal powder to 8 pin Banega Ek Vishal paid Charu old Hogi Hare Hare Ghas aur Charo Aur Hogi Hari Hari Ghas"
+                }, 
+                {
+                    "transcript": "jaldi he is Big C Ankur hogayi Komal Potter jokes in Banega Ek Vishal paid Charu old Hogi Hare Hare Ghas aur Charo Aur Hogi Hari Hari Ghas"
+                }, 
+                {
+                    "transcript": "jaldi he is dead sea Ankur hogayi Komal powder to 8 pin Banega Ek Vishal paid Charu old Hogi Hare Hare Ghas aur Charo Aur Hogi Hari Hari Ghas"
+                }, 
+                {
+                    "transcript": "jaldi he is beach say uncle hogayi Komal powder to 8 pin Banega Ek Vishal paid Charu old Hogi Hare Hare Ghas all charro all Hogi Hari Hari Ghas"
+                }, 
+                {
+                    "transcript": "jaldi he is beach say uncle hogayi Komal Potter jokes in Banega Ek Vishal paid Charu old Hogi Hare Hare Ghas aur Charo Aur Hogi Hari Hari Ghas"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.Thetreehindi/assets/1455555601009scene5": {
+            "alternative": [
+                {
+                    "transcript": "Yeh Hai Peeni Hai Dharti par uski Chaddi himmatein Ada Bhi Hai Meetha Meetha Hai Zameen Ke Upar of Charu over Hare Hare Hare Ghas hor hor hi hari hari Ghas"
+                }, 
+                {
+                    "transcript": "Yeh Hai Peeni Hai Dharti par uski Chaddi himmatein Ada Bhi Hai Mitti Mein pehna Hai Zameen Ke Upar nacha Rover hey Hari Hari Ghas hor hor hi hari hari Ghas"
+                }, 
+                {
+                    "transcript": "Yeh Hai Peeni Hai Dharti par uski Chaddi himmatein Ada Bhi Hai Meetha Meetha Hai Zameen Ke Upar of Charu over hey Hari Hari Ghas hor hor hi hari hari Ghas"
+                }, 
+                {
+                    "transcript": "Yeh Hai Peeni Hai Dharti par uski Chaddi himmatein Ada Bhi Hai Meetha Meetha Hai Zameen Ke Upar of Charu over Hare Hare Hare Ghas Hazaaron aur hey Hari Hari Ghas"
+                }, 
+                {
+                    "transcript": "Yeh Hai Peeni Hai Dharti par uski Chaddi himmatein Ada Bhi Hai Meetha Meetha Hai Zameen Ke Upar of Charu over Hare Hare Hare Ghas Hazaaron Oru hi hari hari Ghas"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.Thetreehindi/assets/1455555602645scene2": {
+            "alternative": [
+                {
+                    "transcript": "Yeh Tera Ghar tepa all Charu Hare Hare Hare Ghas aur Charo Hare Hare Ghas"
+                }, 
+                {
+                    "transcript": "Yeh Tera Ghar tepa all Char Hare Hare Hare Ghas aur Charo Hare Hare Ghas"
+                }, 
+                {
+                    "transcript": "Yeh Tera Ghar tepa all Charu Hare Hare Hare Ghas aur Charo Hari Hari Das"
+                }, 
+                {
+                    "transcript": "Yeh Tera Ghar tepa all Chaar Hare Hare Hare Ghas aur Charo Hare Hare Ghas"
+                }, 
+                {
+                    "transcript": "kehti Thi Ghar tepa all Charu Hare Hare Hare Ghas aur Charo Hare Hare Ghas"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.Thetreehindi/assets/1455555602791scene6": {
+            "alternative": [
+                {
+                    "transcript": "Yeh hai payr hai Dharti Pe iski Jane himmatein Ada Bhi Hai Mitti Mein pehna Hai Zameen Ke Upar Jis Se Nikalti Hai Kitni Duniya all Charu old Hare Hare Hare Hare Hare Hare Hare Ghas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti Pe uski Jaane himmatein Ada Bhi Hai Mitti Mein pehna Hai Zameen Ke Upar Jis Se Nikalti Hai Kitni Duniya all Charu old Hare Hare Hare Hare Hare Hare Hare Ghas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti Pe iski Jaane himmatein Ada Bhi Hai Mitti Mein pehna Hai Zameen Ke Upar Jis Se Nikalti Hai Kitni Duniya all Charu old Hare Hare Hare Hare Hare Hare Hare Ghas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti Pe kis ki Jhadi himmatein Ada Di Hai Mitti Mein pehna Hai Zameen Ke Upar Jis Se Nikalti Hai Kitni Duniya all Charu old Hare Hare Hare Hare Hare Hare Hare Ghas"
+                }, 
+                {
+                    "transcript": "Yeh hai payr hai Dharti Pe kis ki Jhadi himmatein Ada Bhi Hai Mitti Mein pehna Hai Zameen Ke Upar Jis Se Nikalti Hai Kitni Duniya all Charu old Hare Hare Hare Hare Hare Hare Hare Ghas"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_stories", 
+        "hindi_reading_camp"
+    ]
+}

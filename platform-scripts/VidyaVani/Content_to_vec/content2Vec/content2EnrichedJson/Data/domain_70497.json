@@ -1,0 +1,68 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "TWOO", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_70497", 
+    "imageTags": [
+        "popuptint", 
+        "btn ok highlights", 
+        "btn back", 
+        "icon submit", 
+        "icon hint", 
+        "retrybg", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "btn next"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 4, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 6.626621315192744, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_70497/assets/_345_1465379740_1465379741013": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_70497/assets/friday_345_1465379722_1465379722675": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_70497/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_70497/assets/retry_1460636610607": []
+    }, 
+    "owner": "345"
+}

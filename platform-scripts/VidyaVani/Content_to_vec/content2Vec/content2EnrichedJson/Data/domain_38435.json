@@ -1,0 +1,62 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test ", 
+    "developer": "EkStep", 
+    "identifier": "domain_38435", 
+    "imageTags": [
+        "greenbox", 
+        "icon home", 
+        "icon submit", 
+        "ekstep placeholder blue eye", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "icon reload", 
+        "background", 
+        "icon next", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 1, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 2.914104308390023, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_38435/assets/q1_1460133785285": {
+            "alternative": [
+                {
+                    "confidence": 0.86713403, 
+                    "transcript": "Ek gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "IIT gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "EC gajar Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

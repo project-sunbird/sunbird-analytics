@@ -1,0 +1,644 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/data/story_data.json\": {\n", 
+        "        \"kettle_hindi,model,root\": [\n", 
+        "            \"Hindi: \\u0915\\u0947\\u091f\\u0932\\u0940\"\n", 
+        "        ], \n", 
+        "        \"kettle_rhyme,model,root\": [\n", 
+        "            \"Rhyme: I'm a little Teapot...\"\n", 
+        "        ], \n", 
+        "        \"kettle_synonyms,model,root\": [\n", 
+        "            \"Synonyms: Teapot\"\n", 
+        "        ], \n", 
+        "        \"kettle_title,model,root\": [\n", 
+        "            \"Kettle\"\n", 
+        "        ], \n", 
+        "        \"kettle_usage,model,root\": [\n", 
+        "            \"Kettle is used for boiling tea.\"\n", 
+        "        ], \n", 
+        "        \"scene10_body,model,root\": [\n", 
+        "            \"Poor Sringeri Srinivas. It seemed no one would cut his hair on this Annual Haircut Day.\"\n", 
+        "        ], \n", 
+        "        \"scene11_body,model,root\": [\n", 
+        "            \"In tears, he walked off by himself past the village forest.\"\n", 
+        "        ], \n", 
+        "        \"scene12_body,model,root\": [\n", 
+        "            \"He sat near a cave and cried loudly.\"\n", 
+        "        ], \n", 
+        "        \"scene13_body,model,root\": [\n", 
+        "            \"\\\"The day is nearly over. How can I keep my promise to cut my hair? Oh God, help me!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene14_body,model,root\": [\n", 
+        "            \"The tiger sleeping peacefully inside the cave was very disturbed by all the noise.\"\n", 
+        "        ], \n", 
+        "        \"scene15_body,model,root\": [\n", 
+        "            \"He came out, roaring, waving his giant paws at Sringeri Srinivas.\"\n", 
+        "        ], \n", 
+        "        \"scene16_body,model,root\": [\n", 
+        "            \"Poor Sringeri Srinivas was so scared, so scared, so scared that ...\"\n", 
+        "        ], \n", 
+        "        \"scene17_body,model,root\": [\n", 
+        "            \"... all the hair fell off his head!\"\n", 
+        "        ], \n", 
+        "        \"scene18_body,model,root\": [\n", 
+        "            \"Sringeri Srinivas ran all the way back to the village. The tiger went back to sleep.\"\n", 
+        "        ], \n", 
+        "        \"scene19_body,model,root\": [\n", 
+        "            \"Now, Sringeri Srinivas will not need a haircut for a very long time.\"\n", 
+        "        ], \n", 
+        "        \"scene1_body,model,root\": [\n", 
+        "            \"It was the Annual Haircut Day for Sringeri Srinivas.\"\n", 
+        "        ], \n", 
+        "        \"scene20_body,model,root\": [\n", 
+        "            \"Find the Barber.\"\n", 
+        "        ], \n", 
+        "        \"scene20_hint,model,root\": [\n", 
+        "            \"Barber has Scissors to Cut hair.\"\n", 
+        "        ], \n", 
+        "        \"scene21_body,model,root\": [\n", 
+        "            \"Find the Carpenter.\"\n", 
+        "        ], \n", 
+        "        \"scene21_hint,model,root\": [\n", 
+        "            \"Carpenter has a hammer and nail.\"\n", 
+        "        ], \n", 
+        "        \"scene22_body,model,root\": [\n", 
+        "            \"Match the tools to the people.\"\n", 
+        "        ], \n", 
+        "        \"scene22_hint,model,root\": [\n", 
+        "            \"Carpenter uses this to cut wood.\"\n", 
+        "        ], \n", 
+        "        \"scene23_body,model,root\": [\n", 
+        "            \"Take me home. Take each person to their home.\"\n", 
+        "        ], \n", 
+        "        \"scene23_hint,model,root\": [\n", 
+        "            \"The tailor is surrounded by clothers to stitch.\"\n", 
+        "        ], \n", 
+        "        \"scene2_body,model,root\": [\n", 
+        "            \"Sringeri Srinivas left home as usual to go to the local barber.\"\n", 
+        "        ], \n", 
+        "        \"scene3_body,model,root\": [\n", 
+        "            \"But the barber said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene4_body,model,root\": [\n", 
+        "            \"Feeling sad, Sringeri Srinivas went back home to ask his wife for help.\"\n", 
+        "        ], \n", 
+        "        \"scene5_body,model,root\": [\n", 
+        "            \"But his wife said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene6_body,model,root\": [\n", 
+        "            \"Feeling a little angry, Sringeri Srinivas went to his friend, the tailor.\"\n", 
+        "        ], \n", 
+        "        \"scene7_body,model,root\": [\n", 
+        "            \"But the tailor said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene8_body,model,root\": [\n", 
+        "            \"Now a little worried, Sringeri Srinivas went to one more friend, the carpenter.\"\n", 
+        "        ], \n", 
+        "        \"scene9_body,model,root\": [\n", 
+        "            \"But the carpenter said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "description": "Annual Haircut Day", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.lit.haircut.story", 
+    "imageTags": [
+        "cc", 
+        "ccby", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "speech bubble", 
+        "level band", 
+        "walk animation", 
+        "tailor inner", 
+        "yes", 
+        "saw", 
+        "wife inner", 
+        "wife outer", 
+        "razor", 
+        "sringeri", 
+        "start", 
+        "question block", 
+        "scissors", 
+        "barber outer", 
+        "knife", 
+        "icon reload", 
+        "icon home", 
+        "carpenter", 
+        "icon hint", 
+        "tailor", 
+        "barber", 
+        "no", 
+        "icon next", 
+        "pb storyweaver logo", 
+        "barber inner", 
+        "icon sound", 
+        "icon previous", 
+        "wife", 
+        "tailor outer", 
+        "publisher logo"
+    ], 
+    "items": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/items/assessment.json\": {\n", 
+        "        \"answer,options,set_1,items,root\": [\n", 
+        "            \"0\", \n", 
+        "            \"2\"\n", 
+        "        ], \n", 
+        "        \"asset,title_audio,model,root\": [\n", 
+        "            \"wife_img\", \n", 
+        "            \"barber_img\", \n", 
+        "            \"t-inner\", \n", 
+        "            \"w-outer\", \n", 
+        "            \"takemehome\", \n", 
+        "            \"carpenter_img\", \n", 
+        "            \"learning11_sound\", \n", 
+        "            \"tailor_img\", \n", 
+        "            \"scissors\", \n", 
+        "            \"matchtools\", \n", 
+        "            \"knife\", \n", 
+        "            \"razor\", \n", 
+        "            \"learning13_sound\", \n", 
+        "            \"learning10_sound\", \n", 
+        "            \"learning12_sound\", \n", 
+        "            \"b-outer\", \n", 
+        "            \"saw\", \n", 
+        "            \"b-inner\", \n", 
+        "            \"t-outer\", \n", 
+        "            \"w-inner\"\n", 
+        "        ], \n", 
+        "        \"feedback,set_1,items,root\": [\n", 
+        "            \"\"\n", 
+        "        ], \n", 
+        "        \"identifier,root\": [\n", 
+        "            \"haircut_story_1\", \n", 
+        "            \"hs1_set_1_4\", \n", 
+        "            \"hs1_set_1_3\", \n", 
+        "            \"hs1_set_1_2\", \n", 
+        "            \"hs1_set_1_1\"\n", 
+        "        ], \n", 
+        "        \"kettle_hindi,model,root\": [\n", 
+        "            \"Hindi: \\u0915\\u0947\\u091f\\u0932\\u0940\"\n", 
+        "        ], \n", 
+        "        \"kettle_rhyme,model,root\": [\n", 
+        "            \"Rhyme: I'm a little Teapot...\"\n", 
+        "        ], \n", 
+        "        \"kettle_synonyms,model,root\": [\n", 
+        "            \"Synonyms: Teapot\"\n", 
+        "        ], \n", 
+        "        \"kettle_title,model,root\": [\n", 
+        "            \"Kettle\"\n", 
+        "        ], \n", 
+        "        \"kettle_usage,model,root\": [\n", 
+        "            \"Kettle is used for boiling tea.\"\n", 
+        "        ], \n", 
+        "        \"max_score,root\": [\n", 
+        "            \"9\", \n", 
+        "            \"3\", \n", 
+        "            \"1\"\n", 
+        "        ], \n", 
+        "        \"partial_scoring,set_1,items,root\": [\n", 
+        "            \"False\", \n", 
+        "            \"True\"\n", 
+        "        ], \n", 
+        "        \"qlevel,set_1,items,root\": [\n", 
+        "            \"MEDIUM\"\n", 
+        "        ], \n", 
+        "        \"scene10_body,model,root\": [\n", 
+        "            \"Poor Sringeri Srinivas. It seemed no one would cut his hair on this Annual Haircut Day.\"\n", 
+        "        ], \n", 
+        "        \"scene11_body,model,root\": [\n", 
+        "            \"In tears, he walked off by himself past the village forest.\"\n", 
+        "        ], \n", 
+        "        \"scene12_body,model,root\": [\n", 
+        "            \"He sat near a cave and cried loudly.\"\n", 
+        "        ], \n", 
+        "        \"scene13_body,model,root\": [\n", 
+        "            \"\\\"The day is nearly over. How can I keep my promise to cut my hair? Oh God, help me!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene14_body,model,root\": [\n", 
+        "            \"The tiger sleeping peacefully inside the cave was very disturbed by all the noise.\"\n", 
+        "        ], \n", 
+        "        \"scene15_body,model,root\": [\n", 
+        "            \"He came out, roaring, waving his giant paws at Sringeri Srinivas.\"\n", 
+        "        ], \n", 
+        "        \"scene16_body,model,root\": [\n", 
+        "            \"Poor Sringeri Srinivas was so scared, so scared, so scared that ...\"\n", 
+        "        ], \n", 
+        "        \"scene17_body,model,root\": [\n", 
+        "            \"... all the hair fell off his head!\"\n", 
+        "        ], \n", 
+        "        \"scene18_body,model,root\": [\n", 
+        "            \"Sringeri Srinivas ran all the way back to the village. The tiger went back to sleep.\"\n", 
+        "        ], \n", 
+        "        \"scene19_body,model,root\": [\n", 
+        "            \"Now, Sringeri Srinivas will not need a haircut for a very long time.\"\n", 
+        "        ], \n", 
+        "        \"scene1_body,model,root\": [\n", 
+        "            \"It was the Annual Haircut Day for Sringeri Srinivas.\"\n", 
+        "        ], \n", 
+        "        \"scene20_hint,model,root\": [\n", 
+        "            \"Barber has Scissors to Cut hair.\"\n", 
+        "        ], \n", 
+        "        \"scene21_hint,model,root\": [\n", 
+        "            \"Carpenter has a hammer and nail.\"\n", 
+        "        ], \n", 
+        "        \"scene22_hint,model,root\": [\n", 
+        "            \"Carpenter uses this to cut wood.\"\n", 
+        "        ], \n", 
+        "        \"scene23_hint,model,root\": [\n", 
+        "            \"The tailor is surrounded by clothers to stitch.\"\n", 
+        "        ], \n", 
+        "        \"scene2_body,model,root\": [\n", 
+        "            \"Sringeri Srinivas left home as usual to go to the local barber.\"\n", 
+        "        ], \n", 
+        "        \"scene3_body,model,root\": [\n", 
+        "            \"But the barber said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene4_body,model,root\": [\n", 
+        "            \"Feeling sad, Sringeri Srinivas went back home to ask his wife for help.\"\n", 
+        "        ], \n", 
+        "        \"scene5_body,model,root\": [\n", 
+        "            \"But his wife said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene6_body,model,root\": [\n", 
+        "            \"Feeling a little angry, Sringeri Srinivas went to his friend, the tailor.\"\n", 
+        "        ], \n", 
+        "        \"scene7_body,model,root\": [\n", 
+        "            \"But the tailor said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ], \n", 
+        "        \"scene8_body,model,root\": [\n", 
+        "            \"Now a little worried, Sringeri Srinivas went to one more friend, the carpenter.\"\n", 
+        "        ], \n", 
+        "        \"scene9_body,model,root\": [\n", 
+        "            \"But the carpenter said, \\\"Today, I have no time to cut such long hair!\\\"\"\n", 
+        "        ], \n", 
+        "        \"subject,root\": [\n", 
+        "            \"LIT\"\n", 
+        "        ], \n", 
+        "        \"template,set_1,items,root\": [\n", 
+        "            \"mtf_template_1\", \n", 
+        "            \"mcq_template_1\", \n", 
+        "            \"mtf_template_2\"\n", 
+        "        ], \n", 
+        "        \"title,root\": [\n", 
+        "            \"Find the Barber.\", \n", 
+        "            \"Haircut Story Assessment\", \n", 
+        "            \"Find the Carpenter.\", \n", 
+        "            \"Match the tools to the people.\", \n", 
+        "            \"Take me home. Take each person to their home.\"\n", 
+        "        ], \n", 
+        "        \"total_items,root\": [\n", 
+        "            \"4\"\n", 
+        "        ], \n", 
+        "        \"type,set_1,items,root\": [\n", 
+        "            \"text\", \n", 
+        "            \"mtf\", \n", 
+        "            \"image\", \n", 
+        "            \"mcq\", \n", 
+        "            \"audio\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 4, 
+        "jpg": 42, 
+        "mp3": 48, 
+        "ogg": 44, 
+        "png": 64
+    }, 
+    "mp3Length": 616.5246258503402, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/match the tools to the people": {
+            "alternative": [
+                {
+                    "confidence": 0.78616619, 
+                    "transcript": "match the tools to the people"
+                }, 
+                {
+                    "transcript": "matched tools to the people"
+                }, 
+                {
+                    "transcript": "maths tools to the people"
+                }, 
+                {
+                    "transcript": "maths to tools to the people"
+                }, 
+                {
+                    "transcript": "maths the tools to the people"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene10": {
+            "alternative": [
+                {
+                    "transcript": "first Sringeri Srinivas it seems no one will cut hair on this annual haircut day"
+                }, 
+                {
+                    "transcript": "first rigorous training as it seems no one will cut hair on this annual haircut day"
+                }, 
+                {
+                    "transcript": "first Sringeri Srinivas it seems no one would cut his hair on this annual Hai Kaante"
+                }, 
+                {
+                    "transcript": "first Sringeri Srinivas it seems no one would cut his hair on this annual hi Kaante"
+                }, 
+                {
+                    "transcript": "first rigorous training as it seems no one would cut his hair on this annual Hai Kaante"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene11": {
+            "alternative": [
+                {
+                    "transcript": "grz work to buy and sell Spice the village forest"
+                }, 
+                {
+                    "transcript": "here we walked off by myself pastor village forest"
+                }, 
+                {
+                    "transcript": "here we walked off by ourselves pastor village forest"
+                }, 
+                {
+                    "transcript": "here we walked off by ourselves past of village forest"
+                }, 
+                {
+                    "transcript": "here we walked off by ourselves pass the village forest"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene13": {
+            "alternative": [
+                {
+                    "confidence": 0.91010809, 
+                    "transcript": "how can I keep my promise to cut my God help me"
+                }, 
+                {
+                    "transcript": "how can I keep my promise to catch my God help me"
+                }, 
+                {
+                    "transcript": "how can I keep my promised to cut my God help me"
+                }, 
+                {
+                    "transcript": "how can I keep my promises to cut my God help me"
+                }, 
+                {
+                    "transcript": "how can I keep my promise to keep my God help me"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene14": {
+            "alternative": [
+                {
+                    "transcript": "The Tiger sleeping peacefully inside the cave full sreen disturber all the nodes"
+                }, 
+                {
+                    "transcript": "The Tiger sleeping peacefully inside the cave full sreen disturb are all the noise"
+                }, 
+                {
+                    "transcript": "The Tiger sleeping peacefully inside the cave full sreen disturber all the notes"
+                }, 
+                {
+                    "transcript": "The Tiger sleeping peacefully inside the cave full sreen disturber all the noise for"
+                }, 
+                {
+                    "transcript": "The Tiger sleeping peacefully inside the cave full sreen disturb are all the noise for"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene15": {
+            "alternative": [
+                {
+                    "transcript": "Mickey Mouse drawing"
+                }, 
+                {
+                    "transcript": "CK Mouse drawing"
+                }, 
+                {
+                    "transcript": "he came out flooring"
+                }, 
+                {
+                    "transcript": "Mickey Mouse drawings"
+                }, 
+                {
+                    "transcript": "he came out Florence"
+                }, 
+                {
+                    "transcript": "time out Florence"
+                }, 
+                {
+                    "transcript": "take out Florence"
+                }, 
+                {
+                    "transcript": "check out Florence"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene16": {
+            "alternative": [
+                {
+                    "confidence": 0.80943543, 
+                    "transcript": "to Sringeri Srinivasa so scared so scared so scared"
+                }, 
+                {
+                    "transcript": "to Sringeri Srinivas oh so scared so scared so scared"
+                }, 
+                {
+                    "transcript": "to Sringeri Srinivas was so scared so scared so scared"
+                }, 
+                {
+                    "transcript": "to Sringeri srinivasu so scared so scared so scared"
+                }, 
+                {
+                    "transcript": "shringeri Srinivasa so scared so scared so scared"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene17": {
+            "alternative": [
+                {
+                    "transcript": "Apple office"
+                }, 
+                {
+                    "transcript": "Airtel office"
+                }, 
+                {
+                    "transcript": "Hebbal office"
+                }, 
+                {
+                    "transcript": "Aircel office"
+                }, 
+                {
+                    "transcript": "sample of assets"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene18": {
+            "alternative": [
+                {
+                    "transcript": "Sridevi Srinivasan all the way back to the village The Tiger going back to sleep"
+                }, 
+                {
+                    "transcript": "Sridevi Srinivas Run all the way back to the village The Tiger going back to sleep"
+                }, 
+                {
+                    "transcript": "Sridevi Srinivas Van all the way back to the village The Tiger going back to sleep"
+                }, 
+                {
+                    "transcript": "Sridevi Srinivasan and all the way back to the village The Tiger going back to sleep"
+                }, 
+                {
+                    "transcript": "Sridevi sreenivas Run all the way back to the village The Tiger going back to sleep"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene19": {
+            "alternative": [
+                {
+                    "confidence": 0.90689427, 
+                    "transcript": "now Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "no Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "Nau Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Shrinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Srinivas will not need a hair cut for a very long time"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene20": {
+            "alternative": [
+                {
+                    "transcript": "find the barber Barber has scissors to cut hair"
+                }, 
+                {
+                    "transcript": "find the barber Barber scissors to cut hair"
+                }, 
+                {
+                    "transcript": "find the barber Barber has scissors to cut hairs"
+                }, 
+                {
+                    "transcript": "find the barber Barber head scissors to cut hair"
+                }, 
+                {
+                    "transcript": "find the barber Barber scissors to cut hairs"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene21": {
+            "alternative": [
+                {
+                    "confidence": 0.90592504, 
+                    "transcript": "find the carpenter carpenter has a hammer and nail"
+                }, 
+                {
+                    "transcript": "find the carpenter carpenter had a hammer and nail"
+                }, 
+                {
+                    "transcript": "find the carpenter carpenter has a hammer and nails"
+                }, 
+                {
+                    "transcript": "find the car painter carpenter has a hammer and nail"
+                }, 
+                {
+                    "transcript": "find the carpenter carpenter have a hammer and nail"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/scene3": {
+            "alternative": [
+                {
+                    "transcript": "udbhava said today I have no time to cut such long hair Babar Babar is cutting hairs Barber uses razor and Scissors to cut hair laser razor is used to cut hair"
+                }, 
+                {
+                    "transcript": "udbhava said today I have no time to cut such long hair Babar Babar is cutting hair Barber uses razor and Scissors to cut hair laser razor is used to cut hair"
+                }, 
+                {
+                    "transcript": "udbhava said today I have no time to cut such a long hair Babar Babar is cutting hairs Barber uses razor and Scissors to cut hair laser razor is used to cut hair"
+                }, 
+                {
+                    "transcript": "udbhava said today I have no time to cut such a long hair Babar Babar is cutting hair Barber uses razor and Scissors to cut hair laser razor is used to cut hair"
+                }, 
+                {
+                    "transcript": "udbhava said today I have no time to cut fat long hair Babar Babar is cutting hairs Barber uses razor and Scissors to cut hair laser razor is used to cut hair"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/splash": {
+            "alternative": [
+                {
+                    "confidence": 0.63061708, 
+                    "transcript": "animal hair cut a"
+                }, 
+                {
+                    "transcript": "the animal hair cut a"
+                }, 
+                {
+                    "transcript": "animal hair cutting"
+                }, 
+                {
+                    "transcript": "animal hair cut"
+                }, 
+                {
+                    "transcript": "animal haircut"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.haircut.story/assets/take me home": {
+            "alternative": [
+                {
+                    "confidence": 0.89798778, 
+                    "transcript": "Take Me Home take each person to the home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person to their home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person 2 day home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person 2 the home"
+                }, 
+                {
+                    "transcript": "Take Me Home take each person to day home"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "English", 
+        "english_stories"
+    ]
+}

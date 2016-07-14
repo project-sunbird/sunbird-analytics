@@ -1,0 +1,48 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "tell me now- happy and sad", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.tellmenowhappyandsad", 
+    "imageTags": [
+        "no", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "speech bubble", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "start", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 7, 
+        "mp3": 7, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 147.43792857142859, 
+    "mp3Transcription": {}, 
+    "owner": "EkStep", 
+    "tags": [
+        "English", 
+        "english_stories", 
+        "hindi_reading_camp"
+    ]
+}

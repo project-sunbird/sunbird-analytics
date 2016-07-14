@@ -1,0 +1,766 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "MCQ Test New1", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_48322", 
+    "imageTags": [
+        "btn ok highlights", 
+        "btn next", 
+        "btn back", 
+        "icon submit", 
+        "icon next", 
+        "grey", 
+        "goodjob bg", 
+        "micro", 
+        "retry bg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "icon hint", 
+        "popup tint"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 59, 
+        "ogg": 0, 
+        "png": 48
+    }, 
+    "mp3Length": 89.68439909297047, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463035050_1463035050898": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463035056_1463035056613": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463035301_1463035302007": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463035302_1463035302632": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036048_1463036048313": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036048_1463036048652": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036410_1463036411081": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036411_1463036411814": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036699_1463036699268": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036699_1463036699907": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036700_1463036700487": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036700_1463036700980": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463036701_1463036701450": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463056068_1463056068896": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463056069_1463056069433": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463056070_1463056071014": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463056071_1463056071512": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463123975_1463123975416": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463123975_1463123975684": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463124350_1463124350550": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463124352_1463124352227": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463124352_1463124352874": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463124661_1463124661591": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/_345_1463124661_1463124662077": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463035045_1463035046156": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463035050_1463035050502": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463035050_1463035056288": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463035301_1463035301694": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463035302_1463035302324": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463035308_1463035308285": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036046_1463036047229": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036047_1463036047557": {
+            "alternative": [
+                {
+                    "confidence": 0.49870101, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036047_1463036047980": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036409_1463036410077": {
+            "alternative": [
+                {
+                    "confidence": 0.49870124, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036412_1463036412459": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036412_1463036413131": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036413_1463036413808": {
+            "alternative": [
+                {
+                    "confidence": 0.49870279, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036698_1463036698773": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036701_1463036702015": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036702_1463036702654": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036702_1463036703160": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463036703_1463036703577": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463037217_1463037217435": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463056067_1463056067305": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463056067_1463056067776": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463056068_1463056068263": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463056069_1463056069944": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463056070_1463056070446": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463056071_1463056072064": {
+            "alternative": [
+                {
+                    "confidence": 0.49870124, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463056198_1463056198475": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463123974_1463123975166": {
+            "alternative": [
+                {
+                    "confidence": 0.49870279, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463123975_1463123975931": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463123976_1463123976353": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463124350_1463124351144": {
+            "alternative": [
+                {
+                    "confidence": 0.49870124, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463124351_1463124351727": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463124662_1463124662665": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/friday_345_1463124662_1463124663181": {
+            "alternative": [
+                {
+                    "confidence": 0.49870121, 
+                    "transcript": "Main Kaun Ho"
+                }, 
+                {
+                    "transcript": "Main Kaun Hoon"
+                }, 
+                {
+                    "transcript": "Nikon home"
+                }, 
+                {
+                    "transcript": "Main Kaun hun"
+                }, 
+                {
+                    "transcript": "make own home"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_48322/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

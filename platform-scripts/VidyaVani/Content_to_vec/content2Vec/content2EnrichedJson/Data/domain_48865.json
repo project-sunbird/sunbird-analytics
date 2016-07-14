@@ -1,0 +1,31 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "https://dev-community.ekstep.in/component/ekcontent/contentform/1421?tmpl=component", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_48865", 
+    "imageTags": [], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Bengali"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 0, 
+        "ogg": 0, 
+        "png": 0
+    }, 
+    "mp3Length": 0, 
+    "mp3Transcription": {}, 
+    "owner": "209"
+}

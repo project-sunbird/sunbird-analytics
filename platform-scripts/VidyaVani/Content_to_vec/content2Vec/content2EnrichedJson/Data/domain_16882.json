@@ -1,0 +1,142 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test", 
+    "developer": "EkStep", 
+    "identifier": "domain_16882", 
+    "imageTags": [
+        "greenbox", 
+        "kalam", 
+        "icon home", 
+        "icon submit", 
+        "blue box", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "icon reload", 
+        "background", 
+        "icon next", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 5, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 63.67201814058957, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_16882/assets/1454011987641story%2011": {
+            "alternative": [
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Aakash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash symmetry Soni ko Aakash Me Le Gayi Dono Akash me Sath Sath khelne Lagi"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik baari Akash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik baari Aakash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_16882/assets/1454011994768story%208": {
+            "alternative": [
+                {
+                    "transcript": "Main Choti Si bachi Ho muje Phoolon Ka pasand hai bache Mujhe dekhna Chahte Hain"
+                }, 
+                {
+                    "transcript": "Main Choti Se Pita Hu Mujhe Phoolon Ka pasand hai bache Mujhe dekhna Chahte Hain"
+                }, 
+                {
+                    "transcript": "Main Choti Se Pita Hu Mujhe Phoolo Ka pasand hai bache Mujhe dekhna Chahte Hain"
+                }, 
+                {
+                    "transcript": "Main Choti Se Pita Hu muje Phoolon Ka pasand hai bache Mujhe dekhna Chahte Hain"
+                }, 
+                {
+                    "transcript": "Main Choti Se Pita Hu Mujhe Phoolon Ka pasand hai Bachche Mujhe dekhna Chahte Hain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_16882/assets/1454011995357story%205": {
+            "alternative": [
+                {
+                    "transcript": "Charu hot saree payr Hai thirupachur Yaad Aati Hain Chudiyan gaana chutti hai Ve Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere parche Diyan Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere parche Rehti Hain Chudiyan gaana chutti hai Ve Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere Bagiya Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere Pateriya Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_16882/assets/1454011999588story%201": {
+            "alternative": [
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "Mera Naam Doon par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "Mera Naam Doon par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi karti ho"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_16882/assets/1454012000586story%203": {
+            "alternative": [
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam pagariya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam bagadiya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam pagaria Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Paani Mein Hum Bhi khelenge garam garam pagariya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam bagadia Jayenge"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

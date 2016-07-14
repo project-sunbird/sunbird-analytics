@@ -1,0 +1,1698 @@
+{
+    "concepts": [
+        "LD2,LO1"
+    ], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Elephant's Wedding (Hindi)", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.hi.elephant", 
+    "imageTags": [
+        "olaga", 
+        "crow", 
+        "image", 
+        "confirm bg", 
+        "deer", 
+        "yellow", 
+        "lion", 
+        "carrot", 
+        "lakdi", 
+        "yes", 
+        "blue", 
+        "saree", 
+        "monkey", 
+        "no", 
+        "green box", 
+        "fox", 
+        "retry button", 
+        "activitybg", 
+        "icon reload", 
+        "elephant", 
+        "beans", 
+        "puri", 
+        "red", 
+        "eagle", 
+        "squirrel", 
+        "fire", 
+        "icon home", 
+        "garland l", 
+        "peas", 
+        "bear", 
+        "goodjob bg", 
+        "tiger", 
+        "page sel bg", 
+        "garland r", 
+        "retry bg", 
+        "brinjal", 
+        "rabbit", 
+        "icon next", 
+        "teacher pop up", 
+        "end screen", 
+        "icon sound", 
+        "teacher", 
+        "icon previous", 
+        "tomato", 
+        "chilli", 
+        "drum", 
+        "parrot", 
+        "onion", 
+        "flowers r", 
+        "pant", 
+        "potato", 
+        "green", 
+        "flowers l", 
+        "deepa", 
+        "laddu"
+    ], 
+    "items": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/items/assessment.json\": {\n", 
+        "        \"answer,options,set_1,items,root\": [\n", 
+        "            \"True\"\n", 
+        "        ], \n", 
+        "        \"asset,title_audio,model,set_1,items,root\": [\n", 
+        "            \"\\u0939\\u093e\\u0925\\u0940 \\u0914\\u0930 \\u0932\\u094b\\u092e\\u095c\\u0940\", \n", 
+        "            \"mtf_bear_sound\", \n", 
+        "            \"bear\", \n", 
+        "            \"mtf_lion_sound\", \n", 
+        "            \"\\u0932\\u094b\\u092e\\u095c\\u0940 \\u0914\\u0930 \\u092d\\u093e\\u0932\\u0942\", \n", 
+        "            \"\\u0922\\u093c\\u094b\\u0932\", \n", 
+        "            \"\\u0932\\u094b\\u092e\\u095c\\u0940\", \n", 
+        "            \"\\u0924\\u092c\\u0932\\u093e\", \n", 
+        "            \"lion\", \n", 
+        "            \"\\u0924\\u094b\\u0924\\u093e\", \n", 
+        "            \"question3.2_sound\", \n", 
+        "            \"fox\", \n", 
+        "            \"\\u092e\\u093f\\u0932\\u094b\", \n", 
+        "            \"\\u0921\\u092b\\u0932\\u0940\", \n", 
+        "            \"\\u0936\\u0947\\u0930\", \n", 
+        "            \"question3.1_sound\", \n", 
+        "            \"fitb_sound\", \n", 
+        "            \"\\u092d\\u0932\\u093e \", \n", 
+        "            \"\\u091c\\u0932\\u093e\\u0908\", \n", 
+        "            \"\\u091a\\u094b\\u0930\", \n", 
+        "            \"\\u092d\\u093e\\u0932\\u0942 \\u0914\\u0930 \\u0915\\u094c\\u0935\\u093e\", \n", 
+        "            \"\\u0924\\u0941\\u0930\\u0939\\u0940\", \n", 
+        "            \"Q5_sound\", \n", 
+        "            \"\\u092c\\u0928\\u093e\\u0908  \", \n", 
+        "            \"tiger\", \n", 
+        "            \"\\u092c\\u0947\\u0930\\u0940\", \n", 
+        "            \"\\u0939\\u093e\\u0925\\u0940 \\u0914\\u0930 \\u092d\\u093e\\u0932\\u0942\", \n", 
+        "            \"\\u092c\\u091c\\u093e\\u092f\\u093e\", \n", 
+        "            \"elephant\", \n", 
+        "            \"\\u0916\\u0947\\u0932\\u094b\", \n", 
+        "            \"\\u092a\\u0939\\u0928\\u093e\\u0908\", \n", 
+        "            \"\\u0916\\u093e\\u0930\\u093e\"\n", 
+        "        ], \n", 
+        "        \"dimension,set_1,items,root\": [\n", 
+        "            \"LD10\", \n", 
+        "            \"LD2\"\n", 
+        "        ], \n", 
+        "        \"exres,set_1,items,root\": [\n", 
+        "            \"ek.q222.c\", \n", 
+        "            \"ek.q221.c\", \n", 
+        "            \"ek.q224.b\", \n", 
+        "            \"ek.q220.b\", \n", 
+        "            \"ek.q223.d\", \n", 
+        "            \"ek.q217.a\", \n", 
+        "            \"ek.q218.b\", \n", 
+        "            \"ek.q219.d\"\n", 
+        "        ], \n", 
+        "        \"feedback,set_1,items,root\": [\n", 
+        "            \"\"\n", 
+        "        ], \n", 
+        "        \"fontsize,value,options,set_1,items,root\": [\n", 
+        "            \"300\", \n", 
+        "            \"250\", \n", 
+        "            \"500\", \n", 
+        "            \"480\"\n", 
+        "        ], \n", 
+        "        \"identifier,root\": [\n", 
+        "            \"LO48.2\", \n", 
+        "            \"LO43.1\", \n", 
+        "            \"LO38\", \n", 
+        "            \"Q224\", \n", 
+        "            \"Q223\", \n", 
+        "            \"Q222\", \n", 
+        "            \"Q221\", \n", 
+        "            \"Q220\", \n", 
+        "            \"Q217\", \n", 
+        "            \"Q218\", \n", 
+        "            \"Q219\", \n", 
+        "            \"HAB_1\", \n", 
+        "            \"LO1\"\n", 
+        "        ], \n", 
+        "        \"max_score,root\": [\n", 
+        "            \"4\", \n", 
+        "            \"1\"\n", 
+        "        ], \n", 
+        "        \"qid,set_1,items,root\": [\n", 
+        "            \"ek.q222\", \n", 
+        "            \"ek.q223\", \n", 
+        "            \"ek.q220\", \n", 
+        "            \"ek.q221\", \n", 
+        "            \"ek.q224\", \n", 
+        "            \"ek.q219\", \n", 
+        "            \"ek.q218\", \n", 
+        "            \"ek.q217\"\n", 
+        "        ], \n", 
+        "        \"qlevel,set_1,items,root\": [\n", 
+        "            \"EASY\"\n", 
+        "        ], \n", 
+        "        \"relation,concepts,set_1,items,root\": [\n", 
+        "            \"associatedTo\"\n", 
+        "        ], \n", 
+        "        \"shuffle,root\": [\n", 
+        "            \"False\"\n", 
+        "        ], \n", 
+        "        \"subject,root\": [\n", 
+        "            \"LIT\"\n", 
+        "        ], \n", 
+        "        \"subtitleone,set_1,items,root\": [\n", 
+        "            \" \", \n", 
+        "            \"\\u091c\\u0902\\u0917\\u0932 \\u0915\\u093e \\u0930\\u093e\\u091c\\u093e\", \n", 
+        "            \"\\u092d\\u093e\\u0932\\u0942\", \n", 
+        "            \"      \", \n", 
+        "            \"\\u0939\\u093e\\u0925\\u0940 \\u0915\\u094b \\u092a\\u0924\\u0932\\u0942\\u0928 ___  \\u0917\\u0908 \", \n", 
+        "            \"\\u091a\\u093e\\u0930\\u093e\", \n", 
+        "            \"\\u092e\\u0947\\u0930\\u0940\", \n", 
+        "            \"\\u0932\\u094b\\u092e\\u0921\\u093c\\u0940 \\u0928\\u0947 _________ \\u092c\\u091c\\u093e\\u092f\\u0940\"\n", 
+        "        ], \n", 
+        "        \"template,set_1,items,root\": [\n", 
+        "            \"mcq_template_8.1\", \n", 
+        "            \"mcq_template_8.3\", \n", 
+        "            \"mcq_template_8.2\", \n", 
+        "            \"mcq_template_3.1\", \n", 
+        "            \"mcq_template_7.1\", \n", 
+        "            \"mcq_template_3\", \n", 
+        "            \"mcq_template_7\", \n", 
+        "            \"mcq_template_8\"\n", 
+        "        ], \n", 
+        "        \"title,root\": [\n", 
+        "            \"HAB Assessment\", \n", 
+        "            \"\\u0938\\u093e\\u092e\\u093e\\u0928 \\u0905\\u0902\\u0924 \\u0927\\u094d\\u0935\\u0928\\u093f \\u0935\\u093e\\u0932\\u0947 \\u0936\\u092c\\u094d\\u0926\\u094b\\u0902 \\u0915\\u094b \\u092e\\u093f\\u0932\\u093e\\u090f\\u0902\", \n", 
+        "            \"   \\u0932\\u0921\\u094d\\u0921\\u0942 \\u0914\\u0930 \\u0916\\u0940\\u0930 \\u0915\\u093f\\u0938\\u0928\\u0947 \\u092c\\u0928\\u093e\\u0908?\", \n", 
+        "            \"\\u0916\\u093e\\u0932\\u0940 \\u091c\\u0917\\u0939 \\u092d\\u0930\\u0947\\u0902 -  \", \n", 
+        "            \"\\u0936\\u092c\\u094d\\u0926 \\u0915\\u094b \\u0938\\u0939\\u0940 \\u091a\\u093f\\u0924\\u094d\\u0930 \\u0938\\u0947 \\u092e\\u093f\\u0932\\u093e\\u090f\\u0902:\", \n", 
+        "            \"\\u0936\\u092c\\u094d\\u0926 \\u0915\\u094b \\u0938\\u0939\\u0940 \\u091a\\u093f\\u0924\\u094d\\u0930 \\u0938\\u0947 \\u092e\\u093f\\u0932\\u093e\\u090f\\u0902: \", \n", 
+        "            \"   \\u0915\\u093f\\u0938\\u0938\\u0947 - \\u0915\\u093f\\u0938\\u0915\\u0940 \\u0936\\u093e\\u0926\\u0940 \\u0939\\u0941\\u0908?\"\n", 
+        "        ], \n", 
+        "        \"total_items,root\": [\n", 
+        "            \"8\"\n", 
+        "        ], \n", 
+        "        \"type,set_1,items,root\": [\n", 
+        "            \"text\", \n", 
+        "            \"image\", \n", 
+        "            \"audio\", \n", 
+        "            \"MCQ\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 164, 
+        "ogg": 0, 
+        "png": 146
+    }, 
+    "mp3Length": 232.81108843537413, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Drum_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Fire_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Fox_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Monkey_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Olaga_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Q3_sound": {
+            "alternative": [
+                {
+                    "transcript": "Haji ko Patloon dash Ye Banai Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji ko Patloon dash guy Banaye Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji ko Patloon dash ke bhane Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji co Patloon dash Ye Banai Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji ko Patloon dash guy Banai Baj Aaya July 9"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Q4_sound": {
+            "alternative": [
+                {
+                    "transcript": "Lou marini dash Baje Dhol to rhi tabla Dafli"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to Rahi tabla Dafli"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to Rahe tabla Dafli"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to rhi tabla Daphne"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to Rahi tabla Daphne"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Q5_sound": {
+            "alternative": [
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hatim aur Bhalu Bhalu aur cover"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hatim aur Bhalu Bhalu aur Kawa"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hatim aur Bhalu bhaluka cover"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hathi aur Bhalu Bhalu are cover"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hathi aur Bhalu Bhalu aur cover"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Q6_sound": {
+            "alternative": [
+                {
+                    "transcript": "laddu Aarthi Kisne Banai loma De Tota jungle ka raja Balu"
+                }, 
+                {
+                    "transcript": "laddu Aarthi Kisne Banai loma De Tota jungle ka raja Bhalu"
+                }, 
+                {
+                    "transcript": "laddu earthy Kisne Banai loma De Tota jungle ka raja Balu"
+                }, 
+                {
+                    "transcript": "laddu Archie Kisne Banai loma De Tota jungle ka raja Balu"
+                }, 
+                {
+                    "transcript": "laddu Aarthi Kisne Banai loma De Tota jungle ka Raja bhaloo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Q7_sound": {
+            "alternative": [
+                {
+                    "transcript": "chara Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "Jara Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "Tara Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "chahra Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "Zara Se Milo Khara Khara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Q8_sound": {
+            "alternative": [
+                {
+                    "confidence": 0.54501903, 
+                    "transcript": "Meri Milo Meri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri Milo Teri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri Billo Teri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri mil O Meri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri Milo Meri Chod Bala"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Squirrel_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/Tiger_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/aag": {
+            "alternative": [
+                {
+                    "confidence": 0.18109939, 
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "Khan"
+                }, 
+                {
+                    "transcript": "Hulk"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/aaloo": {
+            "alternative": [
+                {
+                    "confidence": 0.43978035, 
+                    "transcript": "Allu"
+                }, 
+                {
+                    "transcript": "aloo"
+                }, 
+                {
+                    "transcript": "Aalu"
+                }, 
+                {
+                    "transcript": "I'll look"
+                }, 
+                {
+                    "transcript": "aaloo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/aapka swagat hai": {
+            "alternative": [
+                {
+                    "confidence": 0.8108263, 
+                    "transcript": "aapka swagat hai"
+                }, 
+                {
+                    "transcript": "aap ka Swagat hai"
+                }, 
+                {
+                    "transcript": "Aapka kya karte hai"
+                }, 
+                {
+                    "transcript": "aap ka Swagat hi"
+                }, 
+                {
+                    "transcript": "aap ka kya karte hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/aloo": {
+            "alternative": [
+                {
+                    "confidence": 0.39305222, 
+                    "transcript": "Allu"
+                }, 
+                {
+                    "transcript": "aloo"
+                }, 
+                {
+                    "transcript": "ALU"
+                }, 
+                {
+                    "transcript": "Aalu"
+                }, 
+                {
+                    "transcript": "aaloo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/bagh": {
+            "alternative": [
+                {
+                    "transcript": "she's"
+                }, 
+                {
+                    "transcript": "she is"
+                }, 
+                {
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "Shir"
+                }, 
+                {
+                    "transcript": "Heer"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/baingan": {
+            "alternative": [
+                {
+                    "confidence": 0.43631265, 
+                    "transcript": "bengan"
+                }, 
+                {
+                    "transcript": "Bengali"
+                }, 
+                {
+                    "transcript": "Bengal"
+                }, 
+                {
+                    "transcript": "dengan"
+                }, 
+                {
+                    "transcript": "bangon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/bandar": {
+            "alternative": [
+                {
+                    "transcript": "bandit"
+                }, 
+                {
+                    "transcript": "Banded"
+                }, 
+                {
+                    "transcript": "Bandar"
+                }, 
+                {
+                    "transcript": "Bander"
+                }, 
+                {
+                    "transcript": "Bandhan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/beans": {
+            "alternative": [
+                {
+                    "confidence": 0.48964903, 
+                    "transcript": "teens"
+                }, 
+                {
+                    "transcript": "themes"
+                }, 
+                {
+                    "transcript": "teams"
+                }, 
+                {
+                    "transcript": "beans"
+                }, 
+                {
+                    "transcript": "pins"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/beri": {
+            "alternative": [
+                {
+                    "confidence": 0.18059161, 
+                    "transcript": "Beri"
+                }, 
+                {
+                    "transcript": "dairy"
+                }, 
+                {
+                    "transcript": "baby"
+                }, 
+                {
+                    "transcript": "Meri"
+                }, 
+                {
+                    "transcript": "wary"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/bhalaa": {
+            "alternative": [
+                {
+                    "confidence": 0.34559813, 
+                    "transcript": "Bala"
+                }, 
+                {
+                    "transcript": "Bhala"
+                }, 
+                {
+                    "transcript": "Malla"
+                }, 
+                {
+                    "transcript": "Mala"
+                }, 
+                {
+                    "transcript": "Malala"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/bhoori": {
+            "alternative": [
+                {
+                    "confidence": 0.18133348, 
+                    "transcript": "Puri"
+                }, 
+                {
+                    "transcript": "Zuri"
+                }, 
+                {
+                    "transcript": "brewery"
+                }, 
+                {
+                    "transcript": "Madhuri"
+                }, 
+                {
+                    "transcript": "jury"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/chaalu": {
+            "alternative": [
+                {
+                    "confidence": 0.57022488, 
+                    "transcript": "chalu"
+                }, 
+                {
+                    "transcript": "chaloo"
+                }, 
+                {
+                    "transcript": "Shalu"
+                }, 
+                {
+                    "transcript": "Charlie"
+                }, 
+                {
+                    "transcript": "Cha Lu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/chara": {
+            "alternative": [
+                {
+                    "confidence": 0.52040768, 
+                    "transcript": "chara"
+                }, 
+                {
+                    "transcript": "Jara"
+                }, 
+                {
+                    "transcript": "Tara"
+                }, 
+                {
+                    "transcript": "Sara"
+                }, 
+                {
+                    "transcript": "Zara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/chor": {
+            "alternative": [
+                {
+                    "confidence": 0.34573317, 
+                    "transcript": "chor"
+                }, 
+                {
+                    "transcript": "Thor"
+                }, 
+                {
+                    "transcript": "chod"
+                }, 
+                {
+                    "transcript": "chole"
+                }, 
+                {
+                    "transcript": "chode"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/crow_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/deer_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/dhol": {
+            "alternative": [
+                {
+                    "confidence": 0.44386017, 
+                    "transcript": "Dhol"
+                }, 
+                {
+                    "transcript": "Dol"
+                }, 
+                {
+                    "transcript": "TOI"
+                }, 
+                {
+                    "transcript": "Dole"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/diya": {
+            "alternative": [
+                {
+                    "confidence": 0.66707557, 
+                    "transcript": "Diya"
+                }, 
+                {
+                    "transcript": "Dia"
+                }, 
+                {
+                    "transcript": "Dr"
+                }, 
+                {
+                    "transcript": "Jiya"
+                }, 
+                {
+                    "transcript": "DIY"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/end": {
+            "alternative": [
+                {
+                    "confidence": 0.1332365, 
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "amt"
+                }, 
+                {
+                    "transcript": "Anth"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/gaajar": {
+            "alternative": [
+                {
+                    "confidence": 0.72426587, 
+                    "transcript": "gajar"
+                }, 
+                {
+                    "transcript": "Kajal"
+                }, 
+                {
+                    "transcript": "gadget"
+                }, 
+                {
+                    "transcript": "gorgeous"
+                }, 
+                {
+                    "transcript": "Gaja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/garud": {
+            "alternative": [
+                {
+                    "confidence": 0.14753351, 
+                    "transcript": "karo"
+                }, 
+                {
+                    "transcript": "Karu"
+                }, 
+                {
+                    "transcript": "caro"
+                }, 
+                {
+                    "transcript": "Tarot"
+                }, 
+                {
+                    "transcript": "Karur"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/geela": {
+            "alternative": [
+                {
+                    "confidence": 0.7455439, 
+                    "transcript": "Jilla"
+                }, 
+                {
+                    "transcript": "Jee le"
+                }, 
+                {
+                    "transcript": "Gila"
+                }, 
+                {
+                    "transcript": "Jila"
+                }, 
+                {
+                    "transcript": "Sheela"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/gilahari": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.6167503, 
+                    "transcript": "Jabong"
+                }, 
+                {
+                    "transcript": "jawab"
+                }, 
+                {
+                    "transcript": "Singam"
+                }, 
+                {
+                    "transcript": "Krishan Janam"
+                }, 
+                {
+                    "transcript": "Singham"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/guldasta": {
+            "alternative": [
+                {
+                    "confidence": 0.78849226, 
+                    "transcript": "Guldasta"
+                }, 
+                {
+                    "transcript": "Kolkata"
+                }, 
+                {
+                    "transcript": "Google Duster"
+                }, 
+                {
+                    "transcript": "Kuldhara"
+                }, 
+                {
+                    "transcript": "golden star"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/haathi ko patloon": {
+            "alternative": [
+                {
+                    "confidence": 0.66737163, 
+                    "transcript": "Haji ko Patloon dash guy"
+                }, 
+                {
+                    "transcript": "Haji co Patloon dash guy"
+                }, 
+                {
+                    "transcript": "Haji ko Patloon dash gai"
+                }, 
+                {
+                    "transcript": "Haji go Patloon dash guy"
+                }, 
+                {
+                    "transcript": "Haji co Patloon dash gai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/haraa": {
+            "alternative": [
+                {
+                    "transcript": "header"
+                }, 
+                {
+                    "transcript": "Hira"
+                }, 
+                {
+                    "transcript": "Haider"
+                }, 
+                {
+                    "transcript": "hi da"
+                }, 
+                {
+                    "transcript": "hello"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/hathi aur bhaloo ki shadi": {
+            "alternative": [
+                {
+                    "transcript": "Hathi aur Bhalu ki shadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Hathi aur Bhalu ki shaadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Haathi aur Bhalu ki shadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Haathi aur Bhalu ki shaadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Har ki aur Bhalu ki shadi aapka swagat hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/hiran": {
+            "alternative": [
+                {
+                    "confidence": 0.29867816, 
+                    "transcript": "Kiran"
+                }, 
+                {
+                    "transcript": "hidden"
+                }, 
+                {
+                    "transcript": "heroine"
+                }, 
+                {
+                    "transcript": "he ran"
+                }, 
+                {
+                    "transcript": "he Run"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/jangal": {
+            "alternative": [
+                {
+                    "confidence": 0.78912741, 
+                    "transcript": "jungle"
+                }, 
+                {
+                    "transcript": "Jangal"
+                }, 
+                {
+                    "transcript": "jungal"
+                }, 
+                {
+                    "transcript": "Janghai"
+                }, 
+                {
+                    "transcript": "Junglee"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/kauwa": {
+            "alternative": [
+                {
+                    "confidence": 0.38757145, 
+                    "transcript": "Kauwa"
+                }, 
+                {
+                    "transcript": "cover"
+                }, 
+                {
+                    "transcript": "CA va"
+                }, 
+                {
+                    "transcript": "Kawa"
+                }, 
+                {
+                    "transcript": "Goa"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/khaali jagah bharein": {
+            "alternative": [
+                {
+                    "confidence": 0.89310122, 
+                    "transcript": "Khali jagah bharo"
+                }, 
+                {
+                    "transcript": "Tally Jagadhri"
+                }, 
+                {
+                    "transcript": "Khali jagah par hai"
+                }, 
+                {
+                    "transcript": "Khali Jagah bahen"
+                }, 
+                {
+                    "transcript": "Khali jagah par Ek"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/khara": {
+            "alternative": [
+                {
+                    "confidence": 0.39073324, 
+                    "transcript": "Khara"
+                }, 
+                {
+                    "transcript": "Cara"
+                }, 
+                {
+                    "transcript": "Kara"
+                }, 
+                {
+                    "transcript": "Karan"
+                }, 
+                {
+                    "transcript": "khana"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/khargosh": {
+            "alternative": [
+                {
+                    "confidence": 0.88655889, 
+                    "transcript": "Khargosh"
+                }, 
+                {
+                    "transcript": "head coach"
+                }, 
+                {
+                    "transcript": "Kharku"
+                }, 
+                {
+                    "transcript": "Khargone"
+                }, 
+                {
+                    "transcript": "Ken Ghosh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/khelo": {
+            "alternative": [
+                {
+                    "confidence": 0.19819002, 
+                    "transcript": "hello"
+                }, 
+                {
+                    "transcript": "kilo"
+                }, 
+                {
+                    "transcript": "khelo"
+                }, 
+                {
+                    "transcript": "Kiloo"
+                }, 
+                {
+                    "transcript": "Caillou"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/kisse kiski shaadi hui": {
+            "alternative": [
+                {
+                    "confidence": 0.86637706, 
+                    "transcript": "Kis Kis ki shaadi Hui"
+                }, 
+                {
+                    "transcript": "Kis Kis Ki Shaadi Hai"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shadi Hui"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi"
+                }, 
+                {
+                    "transcript": "kis kiss ki shadi Hui"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/laal": {
+            "alternative": [
+                {
+                    "confidence": 0.50375831, 
+                    "transcript": "Lal"
+                }, 
+                {
+                    "transcript": "lol"
+                }, 
+                {
+                    "transcript": "Laal"
+                }, 
+                {
+                    "transcript": "learn"
+                }, 
+                {
+                    "transcript": "lion"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/laddoo": {
+            "alternative": [
+                {
+                    "confidence": 0.77993941, 
+                    "transcript": "laddu"
+                }, 
+                {
+                    "transcript": "ladoo"
+                }, 
+                {
+                    "transcript": "Laddoo"
+                }, 
+                {
+                    "transcript": "ladooo"
+                }, 
+                {
+                    "transcript": "lead to"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/ladoo aur kheer kisne banayi": {
+            "alternative": [
+                {
+                    "transcript": "laddu Aarthi Kisne Banai"
+                }, 
+                {
+                    "transcript": "laddu Aarthi kisne banaya"
+                }, 
+                {
+                    "transcript": "laddu aur chut Kisne Banai"
+                }, 
+                {
+                    "transcript": "laddu earthy Kisne Banai"
+                }, 
+                {
+                    "transcript": "laddu Archie Kisne Banai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/lakdi": {
+            "alternative": [
+                {
+                    "confidence": 0.93121082, 
+                    "transcript": "Lakdi"
+                }, 
+                {
+                    "transcript": "Lugdi"
+                }, 
+                {
+                    "transcript": "Lak De"
+                }, 
+                {
+                    "transcript": "Lucky Di"
+                }, 
+                {
+                    "transcript": "Lak Di"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/letstryagain": {
+            "alternative": [
+                {
+                    "transcript": "Sheeshe koshish kare"
+                }, 
+                {
+                    "transcript": "Kisi koshish kare"
+                }, 
+                {
+                    "transcript": "hishe koshish kare"
+                }, 
+                {
+                    "transcript": "Shishe koshish kare"
+                }, 
+                {
+                    "transcript": "fisher koshish kare"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/lomdi": {
+            "alternative": [
+                {
+                    "transcript": "lonely"
+                }, 
+                {
+                    "transcript": "lomdi"
+                }, 
+                {
+                    "transcript": "nobody"
+                }, 
+                {
+                    "transcript": "comedy"
+                }, 
+                {
+                    "transcript": "loma De"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/mala": {
+            "alternative": [
+                {
+                    "confidence": 0.75567394, 
+                    "transcript": "Mala"
+                }, 
+                {
+                    "transcript": "Malar"
+                }, 
+                {
+                    "transcript": "Malla"
+                }, 
+                {
+                    "transcript": "Malala"
+                }, 
+                {
+                    "transcript": "ma la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/matar": {
+            "alternative": [
+                {
+                    "transcript": "method"
+                }, 
+                {
+                    "transcript": "mutton"
+                }, 
+                {
+                    "transcript": "matted"
+                }, 
+                {
+                    "transcript": "muttered"
+                }, 
+                {
+                    "transcript": "martyred"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/meri": {
+            "alternative": [
+                {
+                    "confidence": 0.36738527, 
+                    "transcript": "Meri"
+                }, 
+                {
+                    "transcript": "Mary"
+                }, 
+                {
+                    "transcript": "MIDI"
+                }, 
+                {
+                    "transcript": "merry"
+                }, 
+                {
+                    "transcript": "Mady"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/milo": {
+            "alternative": [
+                {
+                    "confidence": 0.81126827, 
+                    "transcript": "Milo"
+                }, 
+                {
+                    "transcript": "Miller"
+                }, 
+                {
+                    "transcript": "Mila"
+                }, 
+                {
+                    "transcript": "me lo"
+                }, 
+                {
+                    "transcript": "mee lo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/mirchi": {
+            "alternative": [
+                {
+                    "confidence": 0.94888806, 
+                    "transcript": "Mirchi"
+                }, 
+                {
+                    "transcript": "mirch"
+                }, 
+                {
+                    "transcript": "mirc"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/mtf_bear": {
+            "alternative": [
+                {
+                    "confidence": 0.54447711, 
+                    "transcript": "Shabdkosh Sahi Chithra Chameli Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chaitra Chameli Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chithra chamale Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chithra chamaila Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chithra Chameli Balu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/mtf_lion": {
+            "alternative": [
+                {
+                    "confidence": 0.6714716, 
+                    "transcript": "Shabdkosh Sahi Chithra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chaitra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Shahid Chithra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Shahi Chithra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Shahid Chaitra Chameli jungle ka Raja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/neela": {
+            "alternative": [
+                {
+                    "transcript": "Nila"
+                }, 
+                {
+                    "transcript": "Neela"
+                }, 
+                {
+                    "transcript": "Nela"
+                }, 
+                {
+                    "transcript": "Miller"
+                }, 
+                {
+                    "transcript": "Mela"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/page 1": {
+            "alternative": [
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto se bana rahe hai"
+                }, 
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto Salman aa rahe hai"
+                }, 
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto Sama Na Rahe Hai"
+                }, 
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jangal Me Sabhi Dosto se bana rahe hai"
+                }, 
+                {
+                    "transcript": "aaj raat ko Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto se bana rahe hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/page 2": {
+            "alternative": [
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe hai Sabko Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi sabjiyo Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nhi go Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi go Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ki shadi pe nahi sabjiyo Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi sabjiyo eatlo"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi sabjiyo uppi 2"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/page 3": {
+            "alternative": [
+                {
+                    "transcript": "Sunny Deol bachaya"
+                }, 
+                {
+                    "transcript": "Tell Me Dole bachaya"
+                }, 
+                {
+                    "transcript": "tell me Dol bachaya"
+                }, 
+                {
+                    "transcript": "Dhol Baja Yaadein"
+                }, 
+                {
+                    "transcript": "Sunny Deol bachaya To Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/page 4": {
+            "alternative": [
+                {
+                    "confidence": 0.662521, 
+                    "transcript": "Kuwait altadena RD July"
+                }, 
+                {
+                    "transcript": "Kavita today 19 July"
+                }, 
+                {
+                    "transcript": "Kuwait auto Theni RD July"
+                }, 
+                {
+                    "transcript": "kiewit altadena RD July"
+                }, 
+                {
+                    "transcript": "kawait altadena RD July"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/page 5": {
+            "alternative": [
+                {
+                    "transcript": "jungle ki rajdhani laddu on cheap and a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "Jangal Ki Rajdhani live to watch IBN a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "jungle ki rajdhani laddu on a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "jungle ki rajdhani live to watch IBN a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "Jangal Ki Rajdhani live to watch even a lonely may fool Banaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/page 6": {
+            "alternative": [
+                {
+                    "transcript": "swadist Pujan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadist Poojan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Pujan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan Piyar Kiya Gaya Sab dosto ne Milkar Na Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan pvr Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan Piyar Kiya Gaya Sab dosto ne Milkar naukri"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/parrot_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/patloon": {
+            "alternative": [
+                {
+                    "confidence": 0.89876693, 
+                    "transcript": "Patloon"
+                }, 
+                {
+                    "transcript": "patlun"
+                }, 
+                {
+                    "transcript": "Patlu moon"
+                }, 
+                {
+                    "transcript": "Pat Loon"
+                }, 
+                {
+                    "transcript": "but Loon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/peela": {
+            "alternative": [
+                {
+                    "confidence": 0.24966094, 
+                    "transcript": "Pila"
+                }, 
+                {
+                    "transcript": "Tila"
+                }, 
+                {
+                    "transcript": "Taylor"
+                }, 
+                {
+                    "transcript": "peeler"
+                }, 
+                {
+                    "transcript": "Billa"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/poori": {
+            "alternative": [
+                {
+                    "confidence": 0.81967884, 
+                    "transcript": "Puri"
+                }, 
+                {
+                    "transcript": "poori"
+                }, 
+                {
+                    "transcript": "Pune"
+                }, 
+                {
+                    "transcript": "Suri"
+                }, 
+                {
+                    "transcript": "sorry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/pyaz": {
+            "alternative": [
+                {
+                    "confidence": 0.51826215, 
+                    "transcript": "Pyar"
+                }, 
+                {
+                    "transcript": "kya"
+                }, 
+                {
+                    "transcript": "Pyaar"
+                }, 
+                {
+                    "transcript": "PR"
+                }, 
+                {
+                    "transcript": "TR"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/rabbit_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/saman dhwani wale shabdon ko milayein": {
+            "alternative": [
+                {
+                    "confidence": 0.55887854, 
+                    "transcript": "Samantha Navel a subdomain"
+                }, 
+                {
+                    "transcript": "Samantha Navel shabdo Milan"
+                }, 
+                {
+                    "transcript": "Samantha Navel a subdomain line"
+                }, 
+                {
+                    "transcript": "Samantha Nepali shabdo Milan"
+                }, 
+                {
+                    "transcript": "Samantha nivale shabdo Milan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/saree": {
+            "alternative": [
+                {
+                    "confidence": 0.59696054, 
+                    "transcript": "saree"
+                }, 
+                {
+                    "transcript": "shayari"
+                }, 
+                {
+                    "transcript": "sari"
+                }, 
+                {
+                    "transcript": "Sadi"
+                }, 
+                {
+                    "transcript": "shadi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/shabd ko sahi chitre se milayein": {
+            "alternative": [
+                {
+                    "transcript": "Shabdkosh ahi Chikni Chameli"
+                }, 
+                {
+                    "transcript": "Shabdkosh chahi Chikni Chameli"
+                }, 
+                {
+                    "transcript": "Shabdkosh ahi chitrame line"
+                }, 
+                {
+                    "transcript": "Shabdkosh ahi chitramala"
+                }, 
+                {
+                    "transcript": "Shabdkosh ahi Chithra Malai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/sher": {
+            "alternative": [
+                {
+                    "confidence": 0.33795309, 
+                    "transcript": "share"
+                }, 
+                {
+                    "transcript": "Sher"
+                }, 
+                {
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "hey"
+                }, 
+                {
+                    "transcript": "shave"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/tamatar": {
+            "alternative": [
+                {
+                    "confidence": 0.58915883, 
+                    "transcript": "Tamatar"
+                }, 
+                {
+                    "transcript": "tomato"
+                }, 
+                {
+                    "transcript": "tamato"
+                }, 
+                {
+                    "transcript": "tamate"
+                }, 
+                {
+                    "transcript": "the matter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/tota": {
+            "alternative": [
+                {
+                    "confidence": 0.4830851, 
+                    "transcript": "Tota"
+                }, 
+                {
+                    "transcript": "Thota"
+                }, 
+                {
+                    "transcript": "Dota"
+                }, 
+                {
+                    "transcript": "Toyota"
+                }, 
+                {
+                    "transcript": "Kota"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.elephant/assets/turahi": {
+            "alternative": [
+                {
+                    "transcript": "Dhee"
+                }, 
+                {
+                    "transcript": "today he"
+                }, 
+                {
+                    "transcript": "Tere he"
+                }, 
+                {
+                    "transcript": "so rahi"
+                }, 
+                {
+                    "transcript": "so Rahe"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Hindi", 
+        "hindi_reading_camp", 
+        "hindi_num_activities"
+    ]
+}

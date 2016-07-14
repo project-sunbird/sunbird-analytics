@@ -1,0 +1,313 @@
+{
+    "concepts": [], 
+    "contentType": "Collection", 
+    "data": [
+        "{}"
+    ], 
+    "description": "", 
+    "developer": "EkStep", 
+    "identifier": "domain_57429", 
+    "imageTags": [
+        "btn ok highlights", 
+        "popuptint", 
+        "story", 
+        "btn back", 
+        "icon submit", 
+        "icon hint", 
+        "retrybg", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "btn next"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 23, 
+        "ogg": 0, 
+        "png": 73
+    }, 
+    "mp3Length": 115.58426303854876, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785780354retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785780678goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785782167p1_1464082184346": {
+            "alternative": [
+                {
+                    "transcript": "Humpty Bhasha ki kitabe humpati Vigyan ki kitabe"
+                }, 
+                {
+                    "transcript": "Humpty Bhasha ki kitabe Humpty Vigyan ki kitabe"
+                }, 
+                {
+                    "transcript": "Humpty Bhasha ki kitabe humpati Vigyan Ki Kitab"
+                }, 
+                {
+                    "transcript": "Humpty Bhasha ki kitabe Humpty Vigyan Ki Kitab"
+                }, 
+                {
+                    "transcript": "Humpty Bhasha ki kitabe Humpty Vigyan ki kitaben"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785782487p2_1464082209278": {
+            "alternative": [
+                {
+                    "confidence": 0.76797813, 
+                    "transcript": "Humpty padna likhna humme Sakte Ganesh Thal karna"
+                }, 
+                {
+                    "transcript": "Hum Sakte padna likhna humme Sakte Ganesh Thal karna"
+                }, 
+                {
+                    "transcript": "Hum Sidhe padna likhna humme Sakte Ganesh Thal karna"
+                }, 
+                {
+                    "transcript": "Hum Sabke padna likhna humme Sakte Ganesh Thal karna"
+                }, 
+                {
+                    "transcript": "Humpty padna likhna humme Sakte Ganesh her karna"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785917817retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785918089goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785920235p1_1464077627848": {
+            "alternative": [
+                {
+                    "transcript": "papa Bazar Se naya TV live Humne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar Se Nair TV live hum ne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar C Nair TV live hum ne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar Se Nair TV live Humne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar Se naya TV live Humne TV May March Dekha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464785920614p2_1464077660928": {
+            "alternative": [
+                {
+                    "transcript": "Papa ne khabri Suni mummy ne bhi Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne khabri Suni mummy maybe Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne kaberi Suni mummy ne bhi Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne kaberi Suni mummy maybe Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne khabri Sunni mummy maybe Qadri Sunni"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464786020695retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464786020935goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464786022881p1_1464082067688": {
+            "alternative": [
+                {
+                    "transcript": "milk pass it Tota Hai Uska Rang Hara hai"
+                }, 
+                {
+                    "transcript": "meaning pass it Tota Hai Uska Rang Hara hai"
+                }, 
+                {
+                    "transcript": "milk pass it Thota Hai Uska Rang Hara hai"
+                }, 
+                {
+                    "transcript": "milk pass it Tota Hai Uska Ram Hara hai"
+                }, 
+                {
+                    "transcript": "milk pass it to Ta Hai Uska Rang Hara hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464786023164p2_1464082090156": {
+            "alternative": [
+                {
+                    "transcript": "Husky Jones Naal Hai Mitro Mitro kutta hai"
+                }, 
+                {
+                    "transcript": "Husky Jones Naal Hai Mitro Mitro karta hai"
+                }, 
+                {
+                    "transcript": "Husky change Naal Hai Mitro Mitro kutta hai"
+                }, 
+                {
+                    "transcript": "uski change Naal Hai Mitro Mitro kutta hai"
+                }, 
+                {
+                    "transcript": "Husky change Naal Hai Mitro Mitro karta hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464787912894p3_1464078638983": {
+            "alternative": [
+                {
+                    "transcript": "vadakare Aangan Mein Aa Gayi Sunidhi Mor Ke Sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "Vadakara Aangan Mein Aa Gayi Sunidhi Mor Ke Sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "vadakare Aangan Mein Aa Gayi Sunidhi Moh ke sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "Vadakara Aangan Mein Aa Gayi Sunidhi Moh ke sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "Vadakara Aangan Mein Aa Gayi Sone be more ke sath Nach Ne Lagi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464787913181p4_1464078676344": {
+            "alternative": [
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nachna bhul gaya Khada hokar Sone Ka Naach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nachna bhul gaya Khada hokar Sone Ka Nach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nach Na Bhool Gaya Khada hokar Sone Ka Naach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nach Na Bhool Gaya Khada hokar Sone Ka Nach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nachu Na Bhul Gaya Khada hokar Sone Ka Naach dekhne Laga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464787914484retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464787914855goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464787917237p1_1464078542644": {
+            "alternative": [
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Angan me Mor Dekha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Angan me Mor dikha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Aangan Mein Mor Dekha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Aangan me Mor Dekha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Aangan Mein Mor dikha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464787917384p2_1464078573511": {
+            "alternative": [
+                {
+                    "transcript": "most Sunder Punk Ke Le Kar Na Raha Tha Sony co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sundar Pankh Ke Le Kar Na Raha Tha Sony co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sunder Punk Ke Le Kar Na Raha Tha Soni co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sundar Punk Ke Le Kar Na Raha Tha Sony co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sundar Pankh Ke Le Kar Na Raha Tha Soni co star Nach achha lag raha tha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464788077932p3_1464080163376": {
+            "alternative": [
+                {
+                    "transcript": "itne me Hath Me Bhi waha bahut Gayi usne apni Bachi Ki sugnd Pani Me daldi Hathi ka baccha Ghat Ghat Pani Peene Laga"
+                }, 
+                {
+                    "transcript": "Itni me Hath Me Bhi waha bahut Gayi usne apni bachi ki Sund Pani Me daldi Hathi ka baccha Ghat Ghat Pani Peene Laga"
+                }, 
+                {
+                    "transcript": "itne me Hath Me Bhi waha bahut Gayi usne apni Bachi Ki sugnd Pani Me daldi Hathi ka baccha Gut Gut Pani Peene Laga"
+                }, 
+                {
+                    "transcript": "Itni me Hath Me Bhi waha bahut Gayi usne apni bachi ki Sund Pani Me daldi Hathi ka baccha Gut Gut Pani Peene Laga"
+                }, 
+                {
+                    "transcript": "itne me Hath Me Bhi waha bahut Gayi usne Apne Bache Ki sugnd Pani Me daldi Hathi ka baccha Gut Gut Pani Peene Laga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464788078312p2_1464080142357": {
+            "alternative": [
+                {
+                    "transcript": "no Pani nahi papaya Phir usne apni Bur Dubai is bar Beaver Pani Nahi Pita ka"
+                }, 
+                {
+                    "transcript": "mopani nahi papaya Phir usne apni Bur Dubai is bar Beaver Pani Nahi Pita ka"
+                }, 
+                {
+                    "transcript": "Pani nahi papaya Phir usne apni Bur Dubai is bar Beaver Pani Nahi Pita ka"
+                }, 
+                {
+                    "transcript": "no Pani nahi papaya Phir usne apni Bur Dubai is baar Beaver Pani Nahi Pita ka"
+                }, 
+                {
+                    "transcript": "Pani nahi papaya Phir usne apni Bur Dubai is baar Beaver Pani Nahi Pita ka"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/1464788078514p1_1464080119085": {
+            "alternative": [
+                {
+                    "transcript": "Hathi Ki Bachi Ki Pyas Lagi Akele Nahi Jata Ho Jana Dil Ke Pani Me Pahali usne apni gaand by"
+                }, 
+                {
+                    "transcript": "Hathi Ki Bachi Ki Pyas Lagi Akele Nahi Jata Ho Jana Dil Ke Pani Me Pahali usne apni gand Dubai"
+                }, 
+                {
+                    "transcript": "Hathi ki bachchi Ki Pyas Lagi Akele Nahi Jata Ho Jana Dil Ke Pani Me Pahali usne apni gaand by"
+                }, 
+                {
+                    "transcript": "Hathi Ki Bachi Ki Pyas Lagi the Akele Nahi Jata Ho Jana Dil Ke Pani Me Pahali usne apni gaand by"
+                }, 
+                {
+                    "transcript": "Hathi ki bachchi Ki Pyas Lagi Akele Nahi Jata Ho Jana Dil Ke Pani Me Pahali usne apni gand Dubai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57429/assets/retry_1460636610607": []
+    }, 
+    "owner": "239"
+}

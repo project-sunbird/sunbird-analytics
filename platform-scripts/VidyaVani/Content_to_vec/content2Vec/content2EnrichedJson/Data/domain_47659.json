@@ -1,0 +1,73 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "A small Telugu rhyme", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_47659", 
+    "imageTags": [
+        "btn ok highlights", 
+        "btn next", 
+        "greenbox", 
+        "parrot", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "retry bg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "goodjob bg"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Telugu"
+    ], 
+    "languageCode": "te", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 5, 
+        "ogg": 0, 
+        "png": 15
+    }, 
+    "mp3Length": 27.4938820861678, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47659/assets/1455036370690parrot_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47659/assets/1455036373810Parrot": {
+            "alternative": [
+                {
+                    "confidence": 0.58629227, 
+                    "transcript": "parrot"
+                }, 
+                {
+                    "transcript": "pirate"
+                }, 
+                {
+                    "transcript": "Tarak"
+                }, 
+                {
+                    "transcript": "Sarath"
+                }, 
+                {
+                    "transcript": "sharet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47659/assets/Chitti_Chilakamma_1463036754499": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47659/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47659/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

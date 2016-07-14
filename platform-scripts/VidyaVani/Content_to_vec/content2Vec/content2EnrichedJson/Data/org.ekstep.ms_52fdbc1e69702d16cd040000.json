@@ -1,0 +1,77 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "One day Maaloo had to get some potatoes from his kitchen garden. Who do you think helped him? Kaaloo, of course! Read about Maaloo's morning with Kaaloo as they found some 'Aaloo'! Published by MangoSense.", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "org.ekstep.ms_52fdbc1e69702d16cd040000", 
+    "imageTags": [
+        "popuptint", 
+        "btn ok highlights", 
+        "btn next", 
+        "btn back", 
+        "icon submit", 
+        "e d f d", 
+        "e a bb", 
+        "ffa ace", 
+        "retrybg", 
+        "c b f c", 
+        "goodjobbg", 
+        "ed e e", 
+        "background", 
+        "f bff f", 
+        "icon home", 
+        "icon hint", 
+        "c d", 
+        "eacbe d", 
+        "icon reload"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "keywords": [
+        "Aaloo-Maaloo-Kaaloo", 
+        "English", 
+        "Animals and Nature", 
+        "Bedtime Stories", 
+        "Family and Friends", 
+        "Fun", 
+        "Nature", 
+        "Courage", 
+        "Farm", 
+        "Friends", 
+        "Pratham Books", 
+        "Vinita Krishna"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 8, 
+        "mp3": 10, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 317.5673587999303, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_52fdbc1e69702d16cd040000/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_52fdbc1e69702d16cd040000/assets/retry_1460636610607": []
+    }, 
+    "owner": "Vinita Krishna", 
+    "tags": [
+        "Friends", 
+        "Farm", 
+        "Courage", 
+        "Nature", 
+        "Fun", 
+        "MangoSense", 
+        "Pratham Books"
+    ]
+}

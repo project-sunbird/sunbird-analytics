@@ -1,0 +1,2355 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Please enter description", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_60417", 
+    "imageTags": [
+        "", 
+        "h", 
+        "worksheet end", 
+        "retrybg", 
+        "hi", 
+        "icon sound", 
+        "bg math", 
+        "icon next", 
+        "goodjobbg", 
+        "worksheet start", 
+        "home icon", 
+        "ellipse", 
+        "icon previous", 
+        "home iconsm"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 111, 
+        "ogg": 0, 
+        "png": 24
+    }, 
+    "mp3Length": 138.29920634920634, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488174865987_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.68389875, 
+                    "transcript": "Satta Sri"
+                }, 
+                {
+                    "transcript": "Satta Shree"
+                }, 
+                {
+                    "transcript": "Satta Sree"
+                }, 
+                {
+                    "transcript": "Satta Shrey"
+                }, 
+                {
+                    "transcript": "Satta she"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488174881347_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.29188564, 
+                    "transcript": "Santali"
+                }, 
+                {
+                    "transcript": "centre list"
+                }, 
+                {
+                    "transcript": "Central East"
+                }, 
+                {
+                    "transcript": "Santa least"
+                }, 
+                {
+                    "transcript": "Centre least"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488174904111_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.71448195, 
+                    "transcript": "Gyan"
+                }, 
+                {
+                    "transcript": "Jayan"
+                }, 
+                {
+                    "transcript": "gyaan"
+                }, 
+                {
+                    "transcript": "Pyar"
+                }, 
+                {
+                    "transcript": "kya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817491965_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.29211241, 
+                    "transcript": "Paanch"
+                }, 
+                {
+                    "transcript": "punch"
+                }, 
+                {
+                    "transcript": "Panch"
+                }, 
+                {
+                    "transcript": "pant"
+                }, 
+                {
+                    "transcript": "bunch"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881749341pcnr02": {
+            "alternative": [
+                {
+                    "transcript": "Indu who sang Shyam ke beech Aane Wale Sabhi sankhya on kochunni"
+                }, 
+                {
+                    "transcript": "Indu who sang Shyam ke beech Aane Wale Sabhi sankhya ko chune"
+                }, 
+                {
+                    "transcript": "Indu who sang Shyam ke beech Aane Wale Sabhi sankhya on ko chune"
+                }, 
+                {
+                    "transcript": "Hindu no Sang Shyam Ke beech Aane Wale Sabhi sankhya on kochunni"
+                }, 
+                {
+                    "transcript": "Hindu no Sang Shyam Ke beech Aane Wale Sabhi sankhya ko chune"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881749544pcnr01": {
+            "alternative": [
+                {
+                    "confidence": 0.80399168, 
+                    "transcript": "Kitni ungli karti hai"
+                }, 
+                {
+                    "transcript": "Kitni ungli khadi hai"
+                }, 
+                {
+                    "transcript": "Kitani ungli karti hai"
+                }, 
+                {
+                    "transcript": "Kitni ungli karte hai"
+                }, 
+                {
+                    "transcript": "Kitni ungli Kari hi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488174970773_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.41591465, 
+                    "transcript": "the hunter"
+                }, 
+                {
+                    "transcript": "Lata"
+                }, 
+                {
+                    "transcript": "Satta"
+                }, 
+                {
+                    "transcript": "attr"
+                }, 
+                {
+                    "transcript": "actor"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488174989069_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.19766992, 
+                    "transcript": "cool hunter"
+                }, 
+                {
+                    "transcript": "Lata"
+                }, 
+                {
+                    "transcript": "antar"
+                }, 
+                {
+                    "transcript": "cool hacker"
+                }, 
+                {
+                    "transcript": "full hunter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881750019sahijawaab": {
+            "alternative": [
+                {
+                    "confidence": 0.70715159, 
+                    "transcript": "sahi jawab"
+                }, 
+                {
+                    "transcript": "Sahih jawab"
+                }, 
+                {
+                    "transcript": "Kahi jawab"
+                }, 
+                {
+                    "transcript": "nahi jawab"
+                }, 
+                {
+                    "transcript": "khi jawab"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175031154_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.57639754, 
+                    "transcript": "show one"
+                }, 
+                {
+                    "transcript": "show 1"
+                }, 
+                {
+                    "transcript": "saw 1"
+                }, 
+                {
+                    "transcript": "No 1"
+                }, 
+                {
+                    "transcript": "the one"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175076355_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.93100154, 
+                    "transcript": "Bachpan"
+                }, 
+                {
+                    "transcript": "touchpal"
+                }, 
+                {
+                    "transcript": "bachban"
+                }, 
+                {
+                    "transcript": "buchpan"
+                }, 
+                {
+                    "transcript": "patch panel"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175090357_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.74441665, 
+                    "transcript": "Satta 1"
+                }, 
+                {
+                    "transcript": "Satta one"
+                }, 
+                {
+                    "transcript": "Satta won"
+                }, 
+                {
+                    "transcript": "sattaa 1"
+                }, 
+                {
+                    "transcript": "satata 1"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175106243_hindi": {
+            "alternative": [
+                {
+                    "transcript": "tantalus"
+                }, 
+                {
+                    "transcript": "Santali"
+                }, 
+                {
+                    "transcript": "$10"
+                }, 
+                {
+                    "transcript": "10 Dallas"
+                }, 
+                {
+                    "transcript": "10th Ali's"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175121265_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Penn State"
+                }, 
+                {
+                    "transcript": "pant shirt"
+                }, 
+                {
+                    "transcript": "pent shirt"
+                }, 
+                {
+                    "transcript": "PESIT"
+                }, 
+                {
+                    "transcript": "pension"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175135198_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.32741275, 
+                    "transcript": "Jaan Ve"
+                }, 
+                {
+                    "transcript": "Thanvi"
+                }, 
+                {
+                    "transcript": "turn away"
+                }, 
+                {
+                    "transcript": "Tanvi"
+                }, 
+                {
+                    "transcript": "I turn away"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175153429_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.57763791, 
+                    "transcript": "aunties"
+                }, 
+                {
+                    "transcript": "auntys"
+                }, 
+                {
+                    "transcript": "antys"
+                }, 
+                {
+                    "transcript": "anties"
+                }, 
+                {
+                    "transcript": "auntis"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817517154_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.41883922, 
+                    "transcript": "chaar"
+                }, 
+                {
+                    "transcript": "char"
+                }, 
+                {
+                    "transcript": "charge"
+                }, 
+                {
+                    "transcript": "chart"
+                }, 
+                {
+                    "transcript": "SAS"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175186725_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Archies"
+                }, 
+                {
+                    "transcript": "patties"
+                }, 
+                {
+                    "transcript": "but she's"
+                }, 
+                {
+                    "transcript": "pachees"
+                }, 
+                {
+                    "transcript": "cheese"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175200990_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Nabi"
+                }, 
+                {
+                    "transcript": "FB"
+                }, 
+                {
+                    "transcript": "maybe"
+                }, 
+                {
+                    "transcript": "f b"
+                }, 
+                {
+                    "transcript": "Yebhi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175216967_hindi": {
+            "alternative": [
+                {
+                    "transcript": "sad set"
+                }, 
+                {
+                    "transcript": "sunset"
+                }, 
+                {
+                    "transcript": "sad sad"
+                }, 
+                {
+                    "transcript": "search set"
+                }, 
+                {
+                    "transcript": "sun set"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881752315pcpvxx2": {
+            "alternative": [
+                {
+                    "transcript": "Sahih sankhya ki period chune"
+                }, 
+                {
+                    "transcript": "Shashi sankhya ki period chune"
+                }, 
+                {
+                    "transcript": "Shahi sankhya ki period chune"
+                }, 
+                {
+                    "transcript": "Sahih sankhya ki period Chennai"
+                }, 
+                {
+                    "transcript": "Shahi sankhya ki period Chennai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175248486_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.27571452, 
+                    "transcript": "crc"
+                }, 
+                {
+                    "transcript": "TRC"
+                }, 
+                {
+                    "transcript": "cerc"
+                }, 
+                {
+                    "transcript": "grc"
+                }, 
+                {
+                    "transcript": "PRC"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175263427_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.62172949, 
+                    "transcript": "Satta"
+                }, 
+                {
+                    "transcript": "Satish"
+                }, 
+                {
+                    "transcript": "Satta is"
+                }, 
+                {
+                    "transcript": "Satta ice"
+                }, 
+                {
+                    "transcript": "Satta I"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175277184_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.82705551, 
+                    "transcript": "Chaurasi"
+                }, 
+                {
+                    "transcript": "jaurasi"
+                }, 
+                {
+                    "transcript": "jorasi"
+                }, 
+                {
+                    "transcript": "show Rasi"
+                }, 
+                {
+                    "transcript": "Chauraasi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175290577_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Sathya actor"
+                }, 
+                {
+                    "transcript": "Satta"
+                }, 
+                {
+                    "transcript": "setheader"
+                }, 
+                {
+                    "transcript": "Sukh Harta"
+                }, 
+                {
+                    "transcript": "Satya actor"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175304589_hindi": {
+            "alternative": [
+                {
+                    "transcript": "niwasi"
+                }, 
+                {
+                    "transcript": "Nivas c"
+                }, 
+                {
+                    "transcript": "Niwas c"
+                }, 
+                {
+                    "transcript": "Nivas she"
+                }, 
+                {
+                    "transcript": "Niwas she"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175332117_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Sakra"
+                }, 
+                {
+                    "transcript": "Satra"
+                }, 
+                {
+                    "transcript": "sakera"
+                }, 
+                {
+                    "transcript": "Shakira"
+                }, 
+                {
+                    "transcript": "Satya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175345152_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.19476008, 
+                    "transcript": "bahwan"
+                }, 
+                {
+                    "transcript": "Bhavin"
+                }, 
+                {
+                    "transcript": "Bawan"
+                }, 
+                {
+                    "transcript": "Bavan"
+                }, 
+                {
+                    "transcript": "Bhavan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175358295_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Pehchan Hai"
+                }, 
+                {
+                    "transcript": "Sachin Z"
+                }, 
+                {
+                    "transcript": "Pehchan Z"
+                }, 
+                {
+                    "transcript": "Pehchaan Z"
+                }, 
+                {
+                    "transcript": "passion Z"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175398640_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Charlie's"
+                }, 
+                {
+                    "transcript": "Chinese"
+                }, 
+                {
+                    "transcript": "charlies"
+                }, 
+                {
+                    "transcript": "charli's"
+                }, 
+                {
+                    "transcript": "Charlize"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175415262_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.17826472, 
+                    "transcript": "barshat"
+                }, 
+                {
+                    "transcript": "Basit"
+                }, 
+                {
+                    "transcript": "barssat"
+                }, 
+                {
+                    "transcript": "basat"
+                }, 
+                {
+                    "transcript": "bars at"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175449315_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.60652292, 
+                    "transcript": "pandra"
+                }, 
+                {
+                    "transcript": "Bandra"
+                }, 
+                {
+                    "transcript": "open bra"
+                }, 
+                {
+                    "transcript": "pandhara"
+                }, 
+                {
+                    "transcript": "pandhra"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175462181_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.25000611, 
+                    "transcript": "akhya Si"
+                }, 
+                {
+                    "transcript": "Akhiya c"
+                }, 
+                {
+                    "transcript": "Akhiyan c"
+                }, 
+                {
+                    "transcript": "Akhiyan Si"
+                }, 
+                {
+                    "transcript": "Itihas e"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175474593_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.12745816, 
+                    "transcript": "Tiranga"
+                }, 
+                {
+                    "transcript": "tirange"
+                }, 
+                {
+                    "transcript": "tirante"
+                }, 
+                {
+                    "transcript": "kiranmai"
+                }, 
+                {
+                    "transcript": "Tirangaa"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175489691_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.6871531, 
+                    "transcript": "iGyaan way"
+                }, 
+                {
+                    "transcript": "igyann way"
+                }, 
+                {
+                    "transcript": "igyan way"
+                }, 
+                {
+                    "transcript": "iGyaan Ve"
+                }, 
+                {
+                    "transcript": "iGyaan v"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175502076_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.44901344, 
+                    "transcript": "she hurted"
+                }, 
+                {
+                    "transcript": "sihunta"
+                }, 
+                {
+                    "transcript": "theatre"
+                }, 
+                {
+                    "transcript": "Satta"
+                }, 
+                {
+                    "transcript": "she hated"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175516849_hindi": {
+            "alternative": [
+                {
+                    "transcript": "incharge"
+                }, 
+                {
+                    "transcript": "unchar"
+                }, 
+                {
+                    "transcript": "inches"
+                }, 
+                {
+                    "transcript": "in charge"
+                }, 
+                {
+                    "transcript": "conscious"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175551313_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.60268128, 
+                    "transcript": "Tera"
+                }, 
+                {
+                    "transcript": "Thira"
+                }, 
+                {
+                    "transcript": "Veera"
+                }, 
+                {
+                    "transcript": "Terra"
+                }, 
+                {
+                    "transcript": "terror"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817555961_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.53435433, 
+                    "transcript": "IIT"
+                }, 
+                {
+                    "transcript": "Ek"
+                }, 
+                {
+                    "transcript": "is"
+                }, 
+                {
+                    "transcript": "Ik"
+                }, 
+                {
+                    "transcript": "eat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175572999_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Minion v"
+                }, 
+                {
+                    "transcript": "Minion we"
+                }, 
+                {
+                    "transcript": "Minion way"
+                }, 
+                {
+                    "transcript": "Minions"
+                }, 
+                {
+                    "transcript": "Minion away"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175586038_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.52453846, 
+                    "transcript": "aunties"
+                }, 
+                {
+                    "transcript": "auntys"
+                }, 
+                {
+                    "transcript": "Archies"
+                }, 
+                {
+                    "transcript": "Atif"
+                }, 
+                {
+                    "transcript": "add keys"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881756013pcadxx2": {
+            "alternative": [
+                {
+                    "transcript": "sahi jawab chahiye"
+                }, 
+                {
+                    "transcript": "Shashi jawab chahiye"
+                }, 
+                {
+                    "transcript": "Shashi jawab Sohniye"
+                }, 
+                {
+                    "transcript": "Sahih jawab chahiye"
+                }, 
+                {
+                    "transcript": "Shashi jawab Chennai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881756156pcadxx": {
+            "alternative": [
+                {
+                    "confidence": 0.76637298, 
+                    "transcript": "Jodi"
+                }, 
+                {
+                    "transcript": "Jodha"
+                }, 
+                {
+                    "transcript": "Jodi a"
+                }, 
+                {
+                    "transcript": "Jody"
+                }, 
+                {
+                    "transcript": "joda"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817564427_hindi": {
+            "alternative": [
+                {
+                    "transcript": "short"
+                }, 
+                {
+                    "transcript": "start"
+                }, 
+                {
+                    "transcript": "search"
+                }, 
+                {
+                    "transcript": "chart"
+                }, 
+                {
+                    "transcript": "satt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175657558_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.53792334, 
+                    "transcript": "ativan"
+                }, 
+                {
+                    "transcript": "Harman"
+                }, 
+                {
+                    "transcript": "Saavn"
+                }, 
+                {
+                    "transcript": "Sawan"
+                }, 
+                {
+                    "transcript": "star 1"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175672588_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.24731836, 
+                    "transcript": "Itarsi"
+                }, 
+                {
+                    "transcript": "Itachi"
+                }, 
+                {
+                    "transcript": "HRC"
+                }, 
+                {
+                    "transcript": "itasi"
+                }, 
+                {
+                    "transcript": "atashi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175728324_hindi": {
+            "alternative": [
+                {
+                    "transcript": "hobbies"
+                }, 
+                {
+                    "transcript": "sau bees"
+                }, 
+                {
+                    "transcript": "so bees"
+                }, 
+                {
+                    "transcript": "Zombies"
+                }, 
+                {
+                    "transcript": "herbies"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175750364_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.30289924, 
+                    "transcript": "chosat"
+                }, 
+                {
+                    "transcript": "Jorhat"
+                }, 
+                {
+                    "transcript": "josette"
+                }, 
+                {
+                    "transcript": "just sat"
+                }, 
+                {
+                    "transcript": "chess set"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175762926_hindi": {
+            "alternative": [
+                {
+                    "transcript": "chubbies"
+                }, 
+                {
+                    "transcript": "chubbys"
+                }, 
+                {
+                    "transcript": "Shabbir"
+                }, 
+                {
+                    "transcript": "Shabir"
+                }, 
+                {
+                    "transcript": "chubby"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175776522_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.51213932, 
+                    "transcript": "buy"
+                }, 
+                {
+                    "transcript": "bye"
+                }, 
+                {
+                    "transcript": "by"
+                }, 
+                {
+                    "transcript": "boys"
+                }, 
+                {
+                    "transcript": "bi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175794059_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.51426655, 
+                    "transcript": "insert"
+                }, 
+                {
+                    "transcript": "INSAT"
+                }, 
+                {
+                    "transcript": "onset"
+                }, 
+                {
+                    "transcript": "on set"
+                }, 
+                {
+                    "transcript": "sunset"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175808985_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.86153257, 
+                    "transcript": "HRC"
+                }, 
+                {
+                    "transcript": "pachasi"
+                }, 
+                {
+                    "transcript": "paccha c"
+                }, 
+                {
+                    "transcript": "h r c"
+                }, 
+                {
+                    "transcript": "achha see"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175824682_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.7576437, 
+                    "transcript": "buy RC"
+                }, 
+                {
+                    "transcript": "buy ICSI"
+                }, 
+                {
+                    "transcript": "by RC"
+                }, 
+                {
+                    "transcript": "by ICSI"
+                }, 
+                {
+                    "transcript": "buy AC"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881758366pcpvxx1": {
+            "alternative": [
+                {
+                    "confidence": 0.82775801, 
+                    "transcript": "aap kitne din sakti ho"
+                }, 
+                {
+                    "transcript": "aap kitne din sakte ho"
+                }, 
+                {
+                    "transcript": "aap kitne din sakti hu"
+                }, 
+                {
+                    "transcript": "aap kitney Gill sakti ho"
+                }, 
+                {
+                    "transcript": "aap kitney Gil sakti ho"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175865661_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.34638846, 
+                    "transcript": "exit"
+                }, 
+                {
+                    "transcript": "PicsArt"
+                }, 
+                {
+                    "transcript": "its at"
+                }, 
+                {
+                    "transcript": "x art"
+                }, 
+                {
+                    "transcript": "except"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175880146_hindi": {
+            "alternative": [
+                {
+                    "transcript": "GR list"
+                }, 
+                {
+                    "transcript": "Gia list"
+                }, 
+                {
+                    "transcript": "Dr list"
+                }, 
+                {
+                    "transcript": "TR list"
+                }, 
+                {
+                    "transcript": "Jiya list"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881759105100_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.29090649, 
+                    "transcript": "exo"
+                }, 
+                {
+                    "transcript": "XO"
+                }, 
+                {
+                    "transcript": "extra"
+                }, 
+                {
+                    "transcript": "x o"
+                }, 
+                {
+                    "transcript": "its so"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175928212_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.70608962, 
+                    "transcript": "Bara"
+                }, 
+                {
+                    "transcript": "Bahra"
+                }, 
+                {
+                    "transcript": "Barra"
+                }, 
+                {
+                    "transcript": "Bora"
+                }, 
+                {
+                    "transcript": "Vara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175942663_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.52317256, 
+                    "transcript": "Tissot"
+                }, 
+                {
+                    "transcript": "cricket"
+                }, 
+                {
+                    "transcript": "set"
+                }, 
+                {
+                    "transcript": "K set"
+                }, 
+                {
+                    "transcript": "reset"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175957736_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.12972575, 
+                    "transcript": "chateze"
+                }, 
+                {
+                    "transcript": "Shakti"
+                }, 
+                {
+                    "transcript": "chutneys"
+                }, 
+                {
+                    "transcript": "chakkys"
+                }, 
+                {
+                    "transcript": "chatiw"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175972920_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.1947982, 
+                    "transcript": "beach"
+                }, 
+                {
+                    "transcript": "Beas"
+                }, 
+                {
+                    "transcript": "bees"
+                }, 
+                {
+                    "transcript": "BIS"
+                }, 
+                {
+                    "transcript": "beef"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488175988816_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.75347918, 
+                    "transcript": "solar"
+                }, 
+                {
+                    "transcript": "Sola"
+                }, 
+                {
+                    "transcript": "Shola"
+                }, 
+                {
+                    "transcript": "solr"
+                }, 
+                {
+                    "transcript": "so la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176009535_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.86681241, 
+                    "transcript": "p******"
+                }, 
+                {
+                    "transcript": "pantys"
+                }, 
+                {
+                    "transcript": "penties"
+                }, 
+                {
+                    "transcript": "aunties"
+                }, 
+                {
+                    "transcript": "antys"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176026470_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.57135844, 
+                    "transcript": "Satta"
+                }, 
+                {
+                    "transcript": "sector"
+                }, 
+                {
+                    "transcript": "Sakta"
+                }, 
+                {
+                    "transcript": "Sapta"
+                }, 
+                {
+                    "transcript": "factor"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176041675_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.6885069, 
+                    "transcript": "Nachattar"
+                }, 
+                {
+                    "transcript": "nachatar"
+                }, 
+                {
+                    "transcript": "Patna"
+                }, 
+                {
+                    "transcript": "Patthar"
+                }, 
+                {
+                    "transcript": "Lata"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176054014_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Jodha"
+                }, 
+                {
+                    "transcript": "choda"
+                }, 
+                {
+                    "transcript": "joda"
+                }, 
+                {
+                    "transcript": "jhoda"
+                }, 
+                {
+                    "transcript": "show the"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176067160_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.18001166, 
+                    "transcript": "chart"
+                }, 
+                {
+                    "transcript": "start"
+                }, 
+                {
+                    "transcript": "sat"
+                }, 
+                {
+                    "transcript": "shirt"
+                }, 
+                {
+                    "transcript": "search"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176082641_hindi": {
+            "alternative": [
+                {
+                    "transcript": "ittali"
+                }, 
+                {
+                    "transcript": "Ek thali"
+                }, 
+                {
+                    "transcript": "Ik thali"
+                }, 
+                {
+                    "transcript": "Ekta lease"
+                }, 
+                {
+                    "transcript": "Ek Chalis"
+                }, 
+                {
+                    "transcript": "Ekta in"
+                }, 
+                {
+                    "transcript": "active lease"
+                }, 
+                {
+                    "transcript": "kia lease"
+                }, 
+                {
+                    "transcript": "act lease"
+                }, 
+                {
+                    "transcript": "m2 lease"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881760953pcsbxx": {
+            "alternative": [
+                {
+                    "confidence": 0.39531732, 
+                    "transcript": "that I"
+                }, 
+                {
+                    "transcript": "hi"
+                }, 
+                {
+                    "transcript": "Ghanta"
+                }, 
+                {
+                    "transcript": "great i a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176111450_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.71401674, 
+                    "transcript": "Bajaj"
+                }, 
+                {
+                    "transcript": "pachar"
+                }, 
+                {
+                    "transcript": "Pehchaan"
+                }, 
+                {
+                    "transcript": "pachal"
+                }, 
+                {
+                    "transcript": "Achar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817612729_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.88161558, 
+                    "transcript": "no"
+                }, 
+                {
+                    "transcript": "know"
+                }, 
+                {
+                    "transcript": "Nau"
+                }, 
+                {
+                    "transcript": "now"
+                }, 
+                {
+                    "transcript": "no."
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176139642_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.69767708, 
+                    "transcript": "wireless"
+                }, 
+                {
+                    "transcript": "barely"
+                }, 
+                {
+                    "transcript": "by Ali"
+                }, 
+                {
+                    "transcript": "buy or lease"
+                }, 
+                {
+                    "transcript": "buy Ali"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176196848_hindi": {
+            "alternative": [
+                {
+                    "transcript": "adaaliz"
+                }, 
+                {
+                    "transcript": "italys"
+                }, 
+                {
+                    "transcript": "charlies"
+                }, 
+                {
+                    "transcript": "Italy"
+                }, 
+                {
+                    "transcript": "italy's"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176233218_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.68479556, 
+                    "transcript": "atarra"
+                }, 
+                {
+                    "transcript": "Antara"
+                }, 
+                {
+                    "transcript": "attra"
+                }, 
+                {
+                    "transcript": "Tara"
+                }, 
+                {
+                    "transcript": "Dhara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176246931_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.27534401, 
+                    "transcript": "ticketees"
+                }, 
+                {
+                    "transcript": "ecartes"
+                }, 
+                {
+                    "transcript": "kutties"
+                }, 
+                {
+                    "transcript": "kurties"
+                }, 
+                {
+                    "transcript": "acrtes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176261319_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.14739504, 
+                    "transcript": "Unni"
+                }, 
+                {
+                    "transcript": "Anish"
+                }, 
+                {
+                    "transcript": "Anees"
+                }, 
+                {
+                    "transcript": "Anas"
+                }, 
+                {
+                    "transcript": "unni's"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881762904pcnr04": {
+            "alternative": [
+                {
+                    "confidence": 0.47316113, 
+                    "transcript": "Santiago Suno aur chut Pacino"
+                }, 
+                {
+                    "transcript": "Santiago Suno aur chart but you know"
+                }, 
+                {
+                    "transcript": "sankhya ko Suno aur chut Pacino"
+                }, 
+                {
+                    "transcript": "sankhya ko Suno aur chart but you know"
+                }, 
+                {
+                    "transcript": "Santiago Suno aur chut Fortuner"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176323045_hindi": {
+            "alternative": [
+                {
+                    "transcript": "pantallas"
+                }, 
+                {
+                    "transcript": "pentiless"
+                }, 
+                {
+                    "transcript": "Santali"
+                }, 
+                {
+                    "transcript": "Mentalist"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817634563_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.35115135, 
+                    "transcript": "team"
+                }, 
+                {
+                    "transcript": "teen"
+                }, 
+                {
+                    "transcript": "tin"
+                }, 
+                {
+                    "transcript": "theme"
+                }, 
+                {
+                    "transcript": "teens"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881763700pcnr03": {
+            "alternative": [
+                {
+                    "confidence": 0.66152, 
+                    "transcript": "Santiago Sahi Jagah Bada Liye"
+                }, 
+                {
+                    "transcript": "Santiago Sahi Jagah Barda Liye"
+                }, 
+                {
+                    "transcript": "Santiago Sahi jagah par da Liye"
+                }, 
+                {
+                    "transcript": "Santiago Sahi Jagah Parda Liye"
+                }, 
+                {
+                    "transcript": "Samsung Core Sahi Jagah Bada Liye"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817641086_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.74549782, 
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "c"
+                }, 
+                {
+                    "transcript": "g"
+                }, 
+                {
+                    "transcript": "shi"
+                }, 
+                {
+                    "transcript": "XI"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176434951_hindi": {
+            "alternative": [
+                {
+                    "transcript": "ikya one"
+                }, 
+                {
+                    "transcript": "ikya 1"
+                }, 
+                {
+                    "transcript": "Akhiyan 1"
+                }, 
+                {
+                    "transcript": "Akhiyan one"
+                }, 
+                {
+                    "transcript": "Akhiya 1"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176451544_hindi": {
+            "alternative": [
+                {
+                    "transcript": "qawwalis"
+                }, 
+                {
+                    "transcript": "qawwali"
+                }, 
+                {
+                    "transcript": "Chor police"
+                }, 
+                {
+                    "transcript": "qawali"
+                }, 
+                {
+                    "transcript": "chorr police"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176484228_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.22880442, 
+                    "transcript": "actors"
+                }, 
+                {
+                    "transcript": "actress"
+                }, 
+                {
+                    "transcript": "actrees"
+                }, 
+                {
+                    "transcript": "Eyes"
+                }, 
+                {
+                    "transcript": "actores"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817649988_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.65803832, 
+                    "transcript": "art"
+                }, 
+                {
+                    "transcript": "add"
+                }, 
+                {
+                    "transcript": "heart"
+                }, 
+                {
+                    "transcript": "at"
+                }, 
+                {
+                    "transcript": "aunt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176512492_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.16031568, 
+                    "transcript": "Manvi"
+                }, 
+                {
+                    "transcript": "Ban v"
+                }, 
+                {
+                    "transcript": "one way"
+                }, 
+                {
+                    "transcript": "bhanvi"
+                }, 
+                {
+                    "transcript": "Banvi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176527771_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.44890276, 
+                    "transcript": "ITR"
+                }, 
+                {
+                    "transcript": "Qatar"
+                }, 
+                {
+                    "transcript": "pichunter"
+                }, 
+                {
+                    "transcript": "attr"
+                }, 
+                {
+                    "transcript": "Akhtar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176542934_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.23098531, 
+                    "transcript": "aunties"
+                }, 
+                {
+                    "transcript": "shanthis"
+                }, 
+                {
+                    "transcript": "shanthees"
+                }, 
+                {
+                    "transcript": "Shanti"
+                }, 
+                {
+                    "transcript": "auntys"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176555980_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.18529384, 
+                    "transcript": "Assi"
+                }, 
+                {
+                    "transcript": "SC"
+                }, 
+                {
+                    "transcript": "AC"
+                }, 
+                {
+                    "transcript": "ICSI"
+                }, 
+                {
+                    "transcript": "Asi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176569468_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.91958189, 
+                    "transcript": "edcet"
+                }, 
+                {
+                    "transcript": "I'd set"
+                }, 
+                {
+                    "transcript": "iriset"
+                }, 
+                {
+                    "transcript": "ad set"
+                }, 
+                {
+                    "transcript": "set"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176584021_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.70292151, 
+                    "transcript": "it is"
+                }, 
+                {
+                    "transcript": "kiss"
+                }, 
+                {
+                    "transcript": "it kiss"
+                }, 
+                {
+                    "transcript": "a kiss"
+                }, 
+                {
+                    "transcript": "ek kiss"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/14648817659582_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.51907474, 
+                    "transcript": "do"
+                }, 
+                {
+                    "transcript": "du"
+                }, 
+                {
+                    "transcript": "DDU"
+                }, 
+                {
+                    "transcript": "Doon"
+                }, 
+                {
+                    "transcript": "no"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176611578_hindi": {
+            "alternative": [
+                {
+                    "transcript": "at hunter"
+                }, 
+                {
+                    "transcript": "actor"
+                }, 
+                {
+                    "transcript": "Atta Atta"
+                }, 
+                {
+                    "transcript": "Atta"
+                }, 
+                {
+                    "transcript": "attr"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176626174_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Chahat"
+                }, 
+                {
+                    "transcript": "Chahat Hai"
+                }, 
+                {
+                    "transcript": "Jorhat"
+                }, 
+                {
+                    "transcript": "Chauhan"
+                }, 
+                {
+                    "transcript": "Chaha Tha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176640937_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.48385566, 
+                    "transcript": "p******"
+                }, 
+                {
+                    "transcript": "shanties"
+                }, 
+                {
+                    "transcript": "Sandese"
+                }, 
+                {
+                    "transcript": "Santhi"
+                }, 
+                {
+                    "transcript": "sandys"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176653553_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.39592716, 
+                    "transcript": "thiruppan"
+                }, 
+                {
+                    "transcript": "Kirpan"
+                }, 
+                {
+                    "transcript": "tirpal"
+                }, 
+                {
+                    "transcript": "tiruttani"
+                }, 
+                {
+                    "transcript": "tirthan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176667023_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.29215613, 
+                    "transcript": "tees"
+                }, 
+                {
+                    "transcript": "TES"
+                }, 
+                {
+                    "transcript": "tease"
+                }, 
+                {
+                    "transcript": "peace"
+                }, 
+                {
+                    "transcript": "please"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176680783_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.22363475, 
+                    "transcript": "terrace scene"
+                }, 
+                {
+                    "transcript": "Rasi"
+                }, 
+                {
+                    "transcript": "terrace c"
+                }, 
+                {
+                    "transcript": "Rashi"
+                }, 
+                {
+                    "transcript": "Raasi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176693196_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.29098332, 
+                    "transcript": "Saiyaan Ve"
+                }, 
+                {
+                    "transcript": "PNB"
+                }, 
+                {
+                    "transcript": "gianvi"
+                }, 
+                {
+                    "transcript": "hryanve"
+                }, 
+                {
+                    "transcript": "hriyanvi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176708897_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.52873254, 
+                    "transcript": "Satta nwe"
+                }, 
+                {
+                    "transcript": "Satta nve"
+                }, 
+                {
+                    "transcript": "Shaitan way"
+                }, 
+                {
+                    "transcript": "Satta nawe"
+                }, 
+                {
+                    "transcript": "Shaitan Re"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176724933_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.61564285, 
+                    "transcript": "p******"
+                }, 
+                {
+                    "transcript": "penties"
+                }, 
+                {
+                    "transcript": "pantys"
+                }, 
+                {
+                    "transcript": "Penty"
+                }, 
+                {
+                    "transcript": "p****"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176754732_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.68771404, 
+                    "transcript": "battis"
+                }, 
+                {
+                    "transcript": "butt tease"
+                }, 
+                {
+                    "transcript": "batis"
+                }, 
+                {
+                    "transcript": "patties"
+                }, 
+                {
+                    "transcript": "but tease"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176784756_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Chhappan"
+                }, 
+                {
+                    "transcript": "jappan"
+                }, 
+                {
+                    "transcript": "Japan"
+                }, 
+                {
+                    "transcript": "chappal"
+                }, 
+                {
+                    "transcript": "chappan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176798510_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.53805196, 
+                    "transcript": "does"
+                }, 
+                {
+                    "transcript": "Dus"
+                }, 
+                {
+                    "transcript": "dase"
+                }, 
+                {
+                    "transcript": "Das"
+                }, 
+                {
+                    "transcript": "Dash"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176813772_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.29448143, 
+                    "transcript": "Bhakra"
+                }, 
+                {
+                    "transcript": "bhunter"
+                }, 
+                {
+                    "transcript": "Bahattar"
+                }, 
+                {
+                    "transcript": "bhattar"
+                }, 
+                {
+                    "transcript": "bhattara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176828694_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Haryanvi"
+                }, 
+                {
+                    "transcript": "haranve"
+                }, 
+                {
+                    "transcript": "show runway"
+                }, 
+                {
+                    "transcript": "Charan way"
+                }, 
+                {
+                    "transcript": "chauranga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/1464881768654fir-prayaas-kare": {
+            "alternative": [
+                {
+                    "transcript": "Phir Yaad kare"
+                }, 
+                {
+                    "transcript": "Phir Yaad Karoon"
+                }, 
+                {
+                    "transcript": "Phir Yaad Karu"
+                }, 
+                {
+                    "transcript": "Phir Prayag Karu"
+                }, 
+                {
+                    "transcript": "Phir Prayag curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176894630_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.24824479, 
+                    "transcript": "tees"
+                }, 
+                {
+                    "transcript": "peace"
+                }, 
+                {
+                    "transcript": "TES"
+                }, 
+                {
+                    "transcript": "tease"
+                }, 
+                {
+                    "transcript": "peas"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176908679_hindi": {
+            "alternative": [
+                {
+                    "transcript": "Unni RC"
+                }, 
+                {
+                    "transcript": "Unni ICSI"
+                }, 
+                {
+                    "transcript": "Unni Aasai"
+                }, 
+                {
+                    "transcript": "Unni r c"
+                }, 
+                {
+                    "transcript": "unny RC"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176921139_hindi": {
+            "alternative": [
+                {
+                    "transcript": "in Tally"
+                }, 
+                {
+                    "transcript": "interleaf"
+                }, 
+                {
+                    "transcript": "Mitali"
+                }, 
+                {
+                    "transcript": "kundali"
+                }, 
+                {
+                    "transcript": "Anta Lee"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_60417/assets/146488176936466_hindi": {
+            "alternative": [
+                {
+                    "confidence": 0.63049895, 
+                    "transcript": "Siasat"
+                }, 
+                {
+                    "transcript": "siyasat"
+                }, 
+                {
+                    "transcript": "Gia set"
+                }, 
+                {
+                    "transcript": "Jiya set"
+                }, 
+                {
+                    "transcript": "GR search"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "257"
+}

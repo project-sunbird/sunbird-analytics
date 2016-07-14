@@ -1,0 +1,90 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "The Moon and the Cap", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.lit.moon_cap.story", 
+    "imageTags": [
+        "cap", 
+        "fair", 
+        "image", 
+        "yellow", 
+        "juice", 
+        "bright", 
+        "ravana", 
+        "level band", 
+        "breakfast", 
+        "bluesky", 
+        "fto redcap", 
+        "blue", 
+        "redcap", 
+        "leaf", 
+        "sun", 
+        "fto sun", 
+        "moon", 
+        "icecream", 
+        "fto glasses", 
+        "shiningstar", 
+        "icon reload", 
+        "crying", 
+        "new", 
+        "red", 
+        "chintu icon", 
+        "bg", 
+        "star", 
+        "branch", 
+        "icon home", 
+        "bought", 
+        "hand", 
+        "lunch", 
+        "smile", 
+        "fc", 
+        "icon next", 
+        "baby", 
+        "icon hint", 
+        "icon sound", 
+        "icon previous", 
+        "me", 
+        "smilingmoon", 
+        "speech bubble", 
+        "ramu", 
+        "publisher logo", 
+        "tree", 
+        "grey", 
+        "candy", 
+        "fancyglasses", 
+        "dinner", 
+        "bluecap", 
+        "green", 
+        "pipaltree", 
+        "chintu"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 11, 
+        "mp3": 7, 
+        "ogg": 86, 
+        "png": 86
+    }, 
+    "mp3Length": 433.9097837868481, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.moon_cap.story/assets/1455554359712intro_with_delay": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.moon_cap.story/assets/1455554365151child_crying_delayed": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.lit.moon_cap.story/assets/1455554374831leaves_rustling_delayed": []
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "english_stories", 
+        "hindi_reading_camp"
+    ]
+}

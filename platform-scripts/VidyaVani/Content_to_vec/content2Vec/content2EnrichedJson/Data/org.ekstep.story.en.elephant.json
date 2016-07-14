@@ -1,0 +1,1967 @@
+{
+    "concepts": [
+        "LD2,LO1"
+    ], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Elephant's Wedding (English)", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.en.elephant", 
+    "imageTags": [
+        "parrot image", 
+        "olaga", 
+        "crow", 
+        "image", 
+        "confirm bg", 
+        "enjoying food", 
+        "yellow", 
+        "sad", 
+        "lion", 
+        "carrot", 
+        "lakdi", 
+        "play audio", 
+        "trumpet", 
+        "yes", 
+        "squirrel", 
+        "blue", 
+        "saree", 
+        "retry", 
+        "monkey", 
+        "no", 
+        "green box", 
+        "fox", 
+        "frog", 
+        "activitybg", 
+        "lamp", 
+        "icon reload", 
+        "elephant", 
+        "beans", 
+        "puri", 
+        "chilli", 
+        "no expression", 
+        "red", 
+        "eagle", 
+        "yellow box", 
+        "blue box", 
+        "fire", 
+        "icon home", 
+        "pant image", 
+        "garland l", 
+        "peas", 
+        "bear", 
+        "goodjob bg", 
+        "tiger", 
+        "page sel bg", 
+        "garland r", 
+        "retry bg", 
+        "brinjal", 
+        "rabbit", 
+        "icon next", 
+        "teacher pop up", 
+        "end screen", 
+        "icon sound", 
+        "teacher", 
+        "icon previous", 
+        "tomato", 
+        "lamps image", 
+        "bored", 
+        "drum", 
+        "parrot", 
+        "onion", 
+        "flowers r", 
+        "pant", 
+        "deer", 
+        "potato", 
+        "grey", 
+        "green", 
+        "flowers l", 
+        "deepa", 
+        "playing", 
+        "laddu"
+    ], 
+    "items": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/items/assessment.json\": {\n", 
+        "        \"answer,options,set_1,items,root\": [\n", 
+        "            \"True\"\n", 
+        "        ], \n", 
+        "        \"asset,title_audio,model,set_1,items,root\": [\n", 
+        "            \"Elephant and Fox\", \n", 
+        "            \"mtf_bear_sound\", \n", 
+        "            \"Drum\", \n", 
+        "            \"bear\", \n", 
+        "            \"Jungle King\", \n", 
+        "            \"mtf_lion_sound\", \n", 
+        "            \"Trumpet\", \n", 
+        "            \"Shirt\", \n", 
+        "            \"Fox\", \n", 
+        "            \"lion\", \n", 
+        "            \"fox\", \n", 
+        "            \"Chain\", \n", 
+        "            \"fitb_sound4\", \n", 
+        "            \"fitb_sound1\", \n", 
+        "            \"fitb_sound2\", \n", 
+        "            \"fitb_sound3\", \n", 
+        "            \"Saree\", \n", 
+        "            \"Jungle friends\", \n", 
+        "            \"Guitar\", \n", 
+        "            \"Bear and Fox\", \n", 
+        "            \"bored\", \n", 
+        "            \"tiger\", \n", 
+        "            \"Elephant and Bear\", \n", 
+        "            \"Bear and Crow\", \n", 
+        "            \"sad\", \n", 
+        "            \"Pants\", \n", 
+        "            \"Eagle\", \n", 
+        "            \"enjoyingfood\", \n", 
+        "            \"Flute\", \n", 
+        "            \"elephant\", \n", 
+        "            \"mtf_yummy_sound\", \n", 
+        "            \"expressionless\"\n", 
+        "        ], \n", 
+        "        \"dimension,set_1,items,root\": [\n", 
+        "            \"LD2\"\n", 
+        "        ], \n", 
+        "        \"exres,set_1,items,root\": [\n", 
+        "            \"ek.q204.c\", \n", 
+        "            \"ek.q207.c\", \n", 
+        "            \"ek.q202.b\", \n", 
+        "            \"ek.q205.b\", \n", 
+        "            \"ek.q206.c\", \n", 
+        "            \"ek.q201.a\", \n", 
+        "            \"ek.q203.b\"\n", 
+        "        ], \n", 
+        "        \"font,value,options,set_1,items,root\": [\n", 
+        "            \"Calibri\"\n", 
+        "        ], \n", 
+        "        \"fontsize,value,options,set_1,items,root\": [\n", 
+        "            \"220\", \n", 
+        "            \"300\", \n", 
+        "            \"230\"\n", 
+        "        ], \n", 
+        "        \"identifier,root\": [\n", 
+        "            \"Q206\", \n", 
+        "            \"EWB_ENG_1\", \n", 
+        "            \"LO43.1\", \n", 
+        "            \"Q205\", \n", 
+        "            \"Q204\", \n", 
+        "            \"Q207\", \n", 
+        "            \"Q201\", \n", 
+        "            \"Q203\", \n", 
+        "            \"Q202\", \n", 
+        "            \"LO1\"\n", 
+        "        ], \n", 
+        "        \"max_score,root\": [\n", 
+        "            \"4\", \n", 
+        "            \"1\"\n", 
+        "        ], \n", 
+        "        \"qid,set_1,items,root\": [\n", 
+        "            \"ek.q201\", \n", 
+        "            \"ek.q202\", \n", 
+        "            \"ek.q203\", \n", 
+        "            \"ek.q204\", \n", 
+        "            \"ek.q205\", \n", 
+        "            \"ek.q206\", \n", 
+        "            \"ek.q207\"\n", 
+        "        ], \n", 
+        "        \"qlevel,set_1,items,root\": [\n", 
+        "            \"EASY\"\n", 
+        "        ], \n", 
+        "        \"relation,concepts,set_1,items,root\": [\n", 
+        "            \"associatedTo\"\n", 
+        "        ], \n", 
+        "        \"shuffle,root\": [\n", 
+        "            \"False\"\n", 
+        "        ], \n", 
+        "        \"subject,root\": [\n", 
+        "            \"LIT\"\n", 
+        "        ], \n", 
+        "        \"subtitleone,set_1,items,root\": [\n", 
+        "            \"\", \n", 
+        "            \" Bear\", \n", 
+        "            \" \", \n", 
+        "            \" Yummy\", \n", 
+        "            \" Jungle King\"\n", 
+        "        ], \n", 
+        "        \"template,set_1,items,root\": [\n", 
+        "            \"mcq_template_8.1\", \n", 
+        "            \"mcq_template_3.1\", \n", 
+        "            \"mcq_template_7.2\", \n", 
+        "            \"mcq_template_7.1\", \n", 
+        "            \"mcq_template_3\", \n", 
+        "            \"mcq_template_7\", \n", 
+        "            \"mcq_template_8\"\n", 
+        "        ], \n", 
+        "        \"title,root\": [\n", 
+        "            \"Match the word to the picture: \", \n", 
+        "            \"The Fox played the _______\", \n", 
+        "            \"The Bear wore a _________\", \n", 
+        "            \"EWB_ENG Assessment\", \n", 
+        "            \"Who made the ladoos and the kheer?\", \n", 
+        "            \"Whose wedding was it?\"\n", 
+        "        ], \n", 
+        "        \"total_items,root\": [\n", 
+        "            \"7\"\n", 
+        "        ], \n", 
+        "        \"type,set_1,items,root\": [\n", 
+        "            \"text\", \n", 
+        "            \"image\", \n", 
+        "            \"audio\", \n", 
+        "            \"MCQ\"\n", 
+        "        ]\n", 
+        "    }, \n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/items/worksheet2.json\": {\n", 
+        "        \"answer,options,set_1,items,root\": [\n", 
+        "            \"True\"\n", 
+        "        ], \n", 
+        "        \"asset,title_audio,model,set_1,items,root\": [\n", 
+        "            \"Pen  \", \n", 
+        "            \"Elephant and Fox\", \n", 
+        "            \"mtf_bear_sound\", \n", 
+        "            \"Drum\", \n", 
+        "            \"L\", \n", 
+        "            \"bear\", \n", 
+        "            \"Jungle King\", \n", 
+        "            \"mtf_lion_sound\", \n", 
+        "            \"Trumpet\", \n", 
+        "            \"Shirt\", \n", 
+        "            \"Drum  \", \n", 
+        "            \"Fox\", \n", 
+        "            \"lion\", \n", 
+        "            \"Legs  \", \n", 
+        "            \"fox\", \n", 
+        "            \"Played  \", \n", 
+        "            \"O\", \n", 
+        "            \"S\", \n", 
+        "            \"Chain\", \n", 
+        "            \"fitb_sound4\", \n", 
+        "            \"fitb_sound1\", \n", 
+        "            \"fitb_sound2\", \n", 
+        "            \"fitb_sound3\", \n", 
+        "            \"Lamp  \", \n", 
+        "            \"Saree\", \n", 
+        "            \"Jungle friends\", \n", 
+        "            \"Guitar\", \n", 
+        "            \"Bear and Fox\", \n", 
+        "            \"bored\", \n", 
+        "            \"P\", \n", 
+        "            \"N\", \n", 
+        "            \"tiger\", \n", 
+        "            \"R\", \n", 
+        "            \"Trumpet  \", \n", 
+        "            \"tickWord\", \n", 
+        "            \"Elephant and Bear\", \n", 
+        "            \"Celebrating\", \n", 
+        "            \"Bear and Crow\", \n", 
+        "            \"sad\", \n", 
+        "            \"taponP\", \n", 
+        "            \"Pants\", \n", 
+        "            \"Eagle\", \n", 
+        "            \"enjoyingfood\", \n", 
+        "            \"Flute\", \n", 
+        "            \"elephant\", \n", 
+        "            \"mtf_yummy_sound\", \n", 
+        "            \"A\", \n", 
+        "            \"E\", \n", 
+        "            \"M\", \n", 
+        "            \"expressionless\", \n", 
+        "            \"H\", \n", 
+        "            \"T\"\n", 
+        "        ], \n", 
+        "        \"dimension,set_1,items,root\": [\n", 
+        "            \"LD2\"\n", 
+        "        ], \n", 
+        "        \"exres,set_1,items,root\": [\n", 
+        "            \"ek.q215.d\", \n", 
+        "            \"ek.q204.c\", \n", 
+        "            \"ek.q207.c\", \n", 
+        "            \"ek.q209.a\", \n", 
+        "            \"ek.q202.b\", \n", 
+        "            \"ek.q205.b\", \n", 
+        "            \"ek.q210.a\", \n", 
+        "            \"ek.q208.a\", \n", 
+        "            \"ek.q206.c\", \n", 
+        "            \"ek.q212.a\", \n", 
+        "            \"ek.q214.a\", \n", 
+        "            \"ek.q211.a\", \n", 
+        "            \"ek.q213.d\", \n", 
+        "            \"ek.q201.a\", \n", 
+        "            \"ek.q203.b\"\n", 
+        "        ], \n", 
+        "        \"font,value,options,set_1,items,root\": [\n", 
+        "            \"Calibri\", \n", 
+        "            \"Verdana\"\n", 
+        "        ], \n", 
+        "        \"fontsize,value,options,set_1,items,root\": [\n", 
+        "            \"220\", \n", 
+        "            \"1100\", \n", 
+        "            \"300\", \n", 
+        "            \"1250\", \n", 
+        "            \"1500\", \n", 
+        "            \"1200\", \n", 
+        "            \"230\", \n", 
+        "            \"1050\"\n", 
+        "        ], \n", 
+        "        \"identifier,root\": [\n", 
+        "            \"Q206\", \n", 
+        "            \"EWB_ENG_1\", \n", 
+        "            \"Q212\", \n", 
+        "            \"LO43.1\", \n", 
+        "            \"Q215\", \n", 
+        "            \"EWB_ENG_2\", \n", 
+        "            \"Q213\", \n", 
+        "            \"Q210\", \n", 
+        "            \"Q214\", \n", 
+        "            \"Q209\", \n", 
+        "            \"Q208\", \n", 
+        "            \"Q205\", \n", 
+        "            \"Q204\", \n", 
+        "            \"Q207\", \n", 
+        "            \"Q201\", \n", 
+        "            \"Q203\", \n", 
+        "            \"Q202\", \n", 
+        "            \"Q211\", \n", 
+        "            \"LO1\"\n", 
+        "        ], \n", 
+        "        \"max_score,root\": [\n", 
+        "            \"4\", \n", 
+        "            \"1\"\n", 
+        "        ], \n", 
+        "        \"qid,set_1,items,root\": [\n", 
+        "            \"ek.q209\", \n", 
+        "            \"ek.q201\", \n", 
+        "            \"ek.q202\", \n", 
+        "            \"ek.q203\", \n", 
+        "            \"ek.q204\", \n", 
+        "            \"ek.q205\", \n", 
+        "            \"ek.q206\", \n", 
+        "            \"ek.q207\", \n", 
+        "            \"ek.q208\", \n", 
+        "            \"ek.q213\", \n", 
+        "            \"ek.q212\", \n", 
+        "            \"ek.q211\", \n", 
+        "            \"ek.q210\", \n", 
+        "            \"ek.q215\", \n", 
+        "            \"ek.q214\"\n", 
+        "        ], \n", 
+        "        \"qlevel,set_1,items,root\": [\n", 
+        "            \"EASY\"\n", 
+        "        ], \n", 
+        "        \"relation,concepts,set_1,items,root\": [\n", 
+        "            \"associatedTo\"\n", 
+        "        ], \n", 
+        "        \"shuffle,root\": [\n", 
+        "            \"False\"\n", 
+        "        ], \n", 
+        "        \"subject,root\": [\n", 
+        "            \"LIT\"\n", 
+        "        ], \n", 
+        "        \"subtitleone,set_1,items,root\": [\n", 
+        "            \"\", \n", 
+        "            \" Bear\", \n", 
+        "            \" \", \n", 
+        "            \" Yummy\", \n", 
+        "            \" Jungle King\"\n", 
+        "        ], \n", 
+        "        \"template,set_1,items,root\": [\n", 
+        "            \"mcq_template_8.1\", \n", 
+        "            \"mcq_template_3.1\", \n", 
+        "            \"mcq_template_7.2\", \n", 
+        "            \"mcq_template_7.1\", \n", 
+        "            \"mcq_template_9\", \n", 
+        "            \"mcq_template_3\", \n", 
+        "            \"mcq_template_7\", \n", 
+        "            \"mcq_template_10.3\", \n", 
+        "            \"mcq_template_10\", \n", 
+        "            \"mcq_template_10.1\", \n", 
+        "            \"mcq_template_10.2\", \n", 
+        "            \"mcq_template_9.1\", \n", 
+        "            \"mcq_template_9.2\", \n", 
+        "            \"mcq_template_9.3\", \n", 
+        "            \"mcq_template_8\"\n", 
+        "        ], \n", 
+        "        \"title,root\": [\n", 
+        "            \"Match the word to the picture: \", \n", 
+        "            \"Tap on the letter 'P' \", \n", 
+        "            \"The Fox played the _______\", \n", 
+        "            \"Choose the correct word.\", \n", 
+        "            \"The Bear wore a _________\", \n", 
+        "            \"EWB_ENG Assessment\", \n", 
+        "            \"Choose the correct word. \", \n", 
+        "            \"Who made the ladoos and the kheer?\", \n", 
+        "            \"Whose wedding was it?\"\n", 
+        "        ], \n", 
+        "        \"total_items,root\": [\n", 
+        "            \"8\", \n", 
+        "            \"7\"\n", 
+        "        ], \n", 
+        "        \"type,set_1,items,root\": [\n", 
+        "            \"text\", \n", 
+        "            \"image\", \n", 
+        "            \"audio\", \n", 
+        "            \"MCQ\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 170, 
+        "ogg": 0, 
+        "png": 180
+    }, 
+    "mp3Length": 420.471179138322, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Beans": {
+            "alternative": [
+                {
+                    "confidence": 0.25377843, 
+                    "transcript": "beans"
+                }, 
+                {
+                    "transcript": "been"
+                }, 
+                {
+                    "transcript": "Bing"
+                }, 
+                {
+                    "transcript": "Bean"
+                }, 
+                {
+                    "transcript": "Bheem"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Bear": {
+            "alternative": [
+                {
+                    "confidence": 0.18127398, 
+                    "transcript": "bears"
+                }, 
+                {
+                    "transcript": "base"
+                }, 
+                {
+                    "transcript": "bed"
+                }, 
+                {
+                    "transcript": "bear"
+                }, 
+                {
+                    "transcript": "besh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Blue": {
+            "alternative": [
+                {
+                    "confidence": 0.84824282, 
+                    "transcript": "blue"
+                }, 
+                {
+                    "transcript": "Blu"
+                }, 
+                {
+                    "transcript": "bleu"
+                }, 
+                {
+                    "transcript": "glue"
+                }, 
+                {
+                    "transcript": "Glu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Bouquet": {
+            "alternative": [
+                {
+                    "confidence": 0.27743059, 
+                    "transcript": "flowers"
+                }, 
+                {
+                    "transcript": "small"
+                }, 
+                {
+                    "transcript": "flower"
+                }, 
+                {
+                    "transcript": "lol"
+                }, 
+                {
+                    "transcript": "Salal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Brinjal": {
+            "alternative": [
+                {
+                    "confidence": 0.89898586, 
+                    "transcript": "brinjal"
+                }, 
+                {
+                    "transcript": "brinjol"
+                }, 
+                {
+                    "transcript": "brinzal"
+                }, 
+                {
+                    "transcript": "bring joy"
+                }, 
+                {
+                    "transcript": "bring John"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Carrot": {
+            "alternative": [
+                {
+                    "confidence": 0.69654107, 
+                    "transcript": "carrot"
+                }, 
+                {
+                    "transcript": "carat"
+                }, 
+                {
+                    "transcript": "Karat"
+                }, 
+                {
+                    "transcript": "caret"
+                }, 
+                {
+                    "transcript": "cat it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Celebrating": {
+            "alternative": [
+                {
+                    "confidence": 0.62801254, 
+                    "transcript": "celebrating"
+                }, 
+                {
+                    "transcript": "calibrating"
+                }, 
+                {
+                    "transcript": "celebrity"
+                }, 
+                {
+                    "transcript": "celebrities"
+                }, 
+                {
+                    "transcript": "celebrated"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Chilli": {
+            "alternative": [
+                {
+                    "confidence": 0.19750328, 
+                    "transcript": "Chile"
+                }, 
+                {
+                    "transcript": "silly"
+                }, 
+                {
+                    "transcript": "Chilli"
+                }, 
+                {
+                    "transcript": "chili"
+                }, 
+                {
+                    "transcript": "chilly"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Choose the correct word": {
+            "alternative": [
+                {
+                    "confidence": 0.95995635, 
+                    "transcript": "choose the correct word"
+                }, 
+                {
+                    "transcript": "choose the correct words"
+                }, 
+                {
+                    "transcript": "choose the correct verb"
+                }, 
+                {
+                    "transcript": "choose the correct world"
+                }, 
+                {
+                    "transcript": "show the correct word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Crow": {
+            "alternative": [
+                {
+                    "transcript": "true"
+                }, 
+                {
+                    "transcript": "crow"
+                }, 
+                {
+                    "transcript": "crew"
+                }, 
+                {
+                    "transcript": "screw"
+                }, 
+                {
+                    "transcript": "crore"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Deer": {
+            "alternative": [
+                {
+                    "confidence": 0.3492049, 
+                    "transcript": "dish"
+                }, 
+                {
+                    "transcript": "diras"
+                }, 
+                {
+                    "transcript": "dearest"
+                }, 
+                {
+                    "transcript": "garish"
+                }, 
+                {
+                    "transcript": "Girish"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Drum": {
+            "alternative": [
+                {
+                    "confidence": 0.86924833, 
+                    "transcript": "drum"
+                }, 
+                {
+                    "transcript": "drums"
+                }, 
+                {
+                    "transcript": "drug"
+                }, 
+                {
+                    "transcript": "gram"
+                }, 
+                {
+                    "transcript": "DRAM"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Drum_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Drums": {
+            "alternative": [
+                {
+                    "confidence": 0.68960965, 
+                    "transcript": "drums"
+                }, 
+                {
+                    "transcript": "drum"
+                }, 
+                {
+                    "transcript": "drams"
+                }, 
+                {
+                    "transcript": "drunk"
+                }, 
+                {
+                    "transcript": "drummer"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Eagle": {
+            "alternative": [
+                {
+                    "confidence": 0.82198918, 
+                    "transcript": "eagle"
+                }, 
+                {
+                    "transcript": "Eagles"
+                }, 
+                {
+                    "transcript": "egal"
+                }, 
+                {
+                    "transcript": "Eega"
+                }, 
+                {
+                    "transcript": "eager"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Elephant Weds Bear": {
+            "alternative": [
+                {
+                    "confidence": 0.85487103, 
+                    "transcript": "elephant white bear a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant with Bear a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant white bear a story about the wedding day of the elephant and the bears"
+                }, 
+                {
+                    "transcript": "elephant with Bear a story about the wedding day of the elephant and the bears"
+                }, 
+                {
+                    "transcript": "elephant with pair a story about the wedding day of the elephant and the Bear"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Explore": {
+            "alternative": [
+                {
+                    "transcript": "explore"
+                }, 
+                {
+                    "transcript": "text floor"
+                }, 
+                {
+                    "transcript": "text flowers"
+                }, 
+                {
+                    "transcript": "text flour"
+                }, 
+                {
+                    "transcript": "ext floor"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Fire": {
+            "alternative": [
+                {
+                    "confidence": 0.90606207, 
+                    "transcript": "fire"
+                }, 
+                {
+                    "transcript": "Phire"
+                }, 
+                {
+                    "transcript": "Faya"
+                }, 
+                {
+                    "transcript": "Payal"
+                }, 
+                {
+                    "transcript": "fire eye"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Fire_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Fox": {
+            "alternative": [
+                {
+                    "transcript": "songs"
+                }, 
+                {
+                    "transcript": "song"
+                }, 
+                {
+                    "transcript": "socks"
+                }, 
+                {
+                    "transcript": "Sox"
+                }, 
+                {
+                    "transcript": "sucks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Fox_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Garland": {
+            "alternative": [
+                {
+                    "confidence": 0.89234048, 
+                    "transcript": "garland"
+                }, 
+                {
+                    "transcript": "gardaland"
+                }, 
+                {
+                    "transcript": "girl and"
+                }, 
+                {
+                    "transcript": "garand"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Green": {
+            "alternative": [
+                {
+                    "confidence": 0.89231324, 
+                    "transcript": "green"
+                }, 
+                {
+                    "transcript": "Greene"
+                }, 
+                {
+                    "transcript": "grill"
+                }, 
+                {
+                    "transcript": "gril"
+                }, 
+                {
+                    "transcript": "dream"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Jungle King": {
+            "alternative": [
+                {
+                    "confidence": 0.92705977, 
+                    "transcript": "jungle king"
+                }, 
+                {
+                    "transcript": "Jungle Kings"
+                }, 
+                {
+                    "transcript": "Jungle k***"
+                }, 
+                {
+                    "transcript": "Jangal Ki"
+                }, 
+                {
+                    "transcript": "Jangal k***"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Lamp": {
+            "alternative": [
+                {
+                    "confidence": 0.83781147, 
+                    "transcript": "lamp"
+                }, 
+                {
+                    "transcript": "length"
+                }, 
+                {
+                    "transcript": "lump"
+                }, 
+                {
+                    "transcript": "lund"
+                }, 
+                {
+                    "transcript": "clamp"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Learn": {
+            "alternative": [
+                {
+                    "confidence": 0.3018688, 
+                    "transcript": "lund"
+                }, 
+                {
+                    "transcript": "learn"
+                }, 
+                {
+                    "transcript": "land"
+                }, 
+                {
+                    "transcript": "lond"
+                }, 
+                {
+                    "transcript": "learnt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Legs": {
+            "alternative": [
+                {
+                    "confidence": 0.80375206, 
+                    "transcript": "legs"
+                }, 
+                {
+                    "transcript": "leg"
+                }, 
+                {
+                    "transcript": "lags"
+                }, 
+                {
+                    "transcript": "Zedge"
+                }, 
+                {
+                    "transcript": "leagues"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Monkey": {
+            "alternative": [
+                {
+                    "confidence": 0.86866885, 
+                    "transcript": "monkey"
+                }, 
+                {
+                    "transcript": "monky"
+                }, 
+                {
+                    "transcript": "monkeys"
+                }, 
+                {
+                    "transcript": "funky"
+                }, 
+                {
+                    "transcript": "Manki"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Monkey_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Olaga_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Onion": {
+            "alternative": [
+                {
+                    "confidence": 0.83435833, 
+                    "transcript": "onion"
+                }, 
+                {
+                    "transcript": "Anniyan"
+                }, 
+                {
+                    "transcript": "onions"
+                }, 
+                {
+                    "transcript": "and Ian"
+                }, 
+                {
+                    "transcript": "on Ian"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Pant": {
+            "alternative": [
+                {
+                    "confidence": 0.8535133, 
+                    "transcript": "pant"
+                }, 
+                {
+                    "transcript": "paint"
+                }, 
+                {
+                    "transcript": "pent"
+                }, 
+                {
+                    "transcript": "spent"
+                }, 
+                {
+                    "transcript": "bant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Pants": {
+            "alternative": [
+                {
+                    "confidence": 0.58123314, 
+                    "transcript": "pant"
+                }, 
+                {
+                    "transcript": "Bank"
+                }, 
+                {
+                    "transcript": "pants"
+                }, 
+                {
+                    "transcript": "thanks"
+                }, 
+                {
+                    "transcript": "tank"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Parrot": {
+            "alternative": [
+                {
+                    "confidence": 0.61822844, 
+                    "transcript": "parrot"
+                }, 
+                {
+                    "transcript": "pirate"
+                }, 
+                {
+                    "transcript": "Sarath"
+                }, 
+                {
+                    "transcript": "sharet"
+                }, 
+                {
+                    "transcript": "shareit"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Peas": {
+            "alternative": [
+                {
+                    "confidence": 0.19327612, 
+                    "transcript": "peace"
+                }, 
+                {
+                    "transcript": "peas"
+                }, 
+                {
+                    "transcript": "tees"
+                }, 
+                {
+                    "transcript": "fees"
+                }, 
+                {
+                    "transcript": "please"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Pen": {
+            "alternative": [
+                {
+                    "confidence": 0.53467381, 
+                    "transcript": "pen"
+                }, 
+                {
+                    "transcript": "Penn"
+                }, 
+                {
+                    "transcript": "Spain"
+                }, 
+                {
+                    "transcript": "pain"
+                }, 
+                {
+                    "transcript": "send"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Played": {
+            "alternative": [
+                {
+                    "confidence": 0.29277632, 
+                    "transcript": "played"
+                }, 
+                {
+                    "transcript": "please"
+                }, 
+                {
+                    "transcript": "plate"
+                }, 
+                {
+                    "transcript": "clit"
+                }, 
+                {
+                    "transcript": "sleet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Poori": {
+            "alternative": [
+                {
+                    "confidence": 0.70415807, 
+                    "transcript": "Puri"
+                }, 
+                {
+                    "transcript": "poori"
+                }, 
+                {
+                    "transcript": "kudi"
+                }, 
+                {
+                    "transcript": "2D"
+                }, 
+                {
+                    "transcript": "Pudi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Potatoes": {
+            "alternative": [
+                {
+                    "confidence": 0.53421479, 
+                    "transcript": "TuTiTu"
+                }, 
+                {
+                    "transcript": "potato"
+                }, 
+                {
+                    "transcript": "putty tool"
+                }, 
+                {
+                    "transcript": "Tu Ti Tu"
+                }, 
+                {
+                    "transcript": "potatoes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Practice": {
+            "alternative": [
+                {
+                    "transcript": "YTD"
+                }, 
+                {
+                    "transcript": "Tractors"
+                }, 
+                {
+                    "transcript": "shattered"
+                }, 
+                {
+                    "transcript": "tractor"
+                }, 
+                {
+                    "transcript": "Shatranj"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Rabbit": {
+            "alternative": [
+                {
+                    "confidence": 0.91801429, 
+                    "transcript": "rabbit"
+                }, 
+                {
+                    "transcript": "Radhe"
+                }, 
+                {
+                    "transcript": "Rajat"
+                }, 
+                {
+                    "transcript": "rebate"
+                }, 
+                {
+                    "transcript": "read it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Red": {
+            "alternative": [
+                {
+                    "transcript": "zend"
+                }, 
+                {
+                    "transcript": "rent"
+                }, 
+                {
+                    "transcript": "send"
+                }, 
+                {
+                    "transcript": "went"
+                }, 
+                {
+                    "transcript": "lent"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Rhyming1": {
+            "alternative": [
+                {
+                    "transcript": "bear where most beach"
+                }, 
+                {
+                    "transcript": "be there most beach"
+                }, 
+                {
+                    "transcript": "beer where most beach"
+                }, 
+                {
+                    "transcript": "bare bare mose bole beat"
+                }, 
+                {
+                    "transcript": "beer where Moses beat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Rhyming2": {
+            "alternative": [
+                {
+                    "confidence": 0.79495651, 
+                    "transcript": "drum pain when come April"
+                }, 
+                {
+                    "transcript": "drum same when come April"
+                }, 
+                {
+                    "transcript": "drum scene when come April"
+                }, 
+                {
+                    "transcript": "drum same band come April"
+                }, 
+                {
+                    "transcript": "drum same man come April"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/RhymingQuestion": {
+            "alternative": [
+                {
+                    "transcript": "picked a word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pick a word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pick the word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pics of word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pink word that rhymes with the given word the last sound of rhyming words are the same"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Squirrel": {
+            "alternative": [
+                {
+                    "confidence": 0.89606577, 
+                    "transcript": "squirrel"
+                }, 
+                {
+                    "transcript": "s********"
+                }, 
+                {
+                    "transcript": "squirrels"
+                }, 
+                {
+                    "transcript": "School"
+                }, 
+                {
+                    "transcript": "squiggle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Squirrel_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Tap on the letter p": {
+            "alternative": [
+                {
+                    "transcript": "tap on the letter T"
+                }, 
+                {
+                    "transcript": "tap on the letter P"
+                }, 
+                {
+                    "transcript": "Tekken the letter T"
+                }, 
+                {
+                    "transcript": "top on the letter T"
+                }, 
+                {
+                    "transcript": "Tekken The letter P"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Tiger": {
+            "alternative": [
+                {
+                    "confidence": 0.77708089, 
+                    "transcript": "lion"
+                }, 
+                {
+                    "transcript": "lien"
+                }, 
+                {
+                    "transcript": "lyon"
+                }, 
+                {
+                    "transcript": "lione"
+                }, 
+                {
+                    "transcript": "line"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Tiger_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Tomato": {
+            "alternative": [
+                {
+                    "confidence": 0.8947103, 
+                    "transcript": "tomato"
+                }, 
+                {
+                    "transcript": "tamato"
+                }, 
+                {
+                    "transcript": "Zomato"
+                }, 
+                {
+                    "transcript": "Tamatar"
+                }, 
+                {
+                    "transcript": "Himachal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Trumpet": {
+            "alternative": [
+                {
+                    "confidence": 0.95498723, 
+                    "transcript": "trumpet"
+                }, 
+                {
+                    "transcript": "Trump it"
+                }, 
+                {
+                    "transcript": "trumpets"
+                }, 
+                {
+                    "transcript": "drum pad"
+                }, 
+                {
+                    "transcript": "Chromepet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Wood": {
+            "alternative": [
+                {
+                    "confidence": 0.32181978, 
+                    "transcript": "bullet"
+                }, 
+                {
+                    "transcript": "VIT"
+                }, 
+                {
+                    "transcript": "good"
+                }, 
+                {
+                    "transcript": "wood"
+                }, 
+                {
+                    "transcript": "bulat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Yellow": {
+            "alternative": [
+                {
+                    "confidence": 0.84403491, 
+                    "transcript": "yellow"
+                }, 
+                {
+                    "transcript": "Yello"
+                }, 
+                {
+                    "transcript": "hello"
+                }, 
+                {
+                    "transcript": "Xolo"
+                }, 
+                {
+                    "transcript": "ye lo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/Yummy": {
+            "alternative": [
+                {
+                    "confidence": 0.65899056, 
+                    "transcript": "yummy"
+                }, 
+                {
+                    "transcript": "Yami"
+                }, 
+                {
+                    "transcript": "yeah me"
+                }, 
+                {
+                    "transcript": "EMI"
+                }, 
+                {
+                    "transcript": "Army"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/crow_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/deer_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Q1": {
+            "alternative": [
+                {
+                    "transcript": "the Bebo shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the bed for a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the Bebo shirt pant saree change"
+                }, 
+                {
+                    "transcript": "the bed for a shirt pant saree change"
+                }, 
+                {
+                    "transcript": "the Bebo shirt pant sari chain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Q2": {
+            "alternative": [
+                {
+                    "confidence": 0.87003177, 
+                    "transcript": "the fox play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the first play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the f***** play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the fuct play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the forks play the flute trumpet guitar drum"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Q3": {
+            "alternative": [
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and f***** elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was great bear and Fox elephant and f***** elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and Fox elephant and the Bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and f***** elephant and the Bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was great bear and Fox elephant and Fox elephant and the Bear and crow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Q4": {
+            "alternative": [
+                {
+                    "transcript": "who made the dude and the kid Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the ladoos and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the dude and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the ladoos and the keys Fox Jungle friends jungle king eagle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Question": {
+            "alternative": [
+                {
+                    "confidence": 0.94091088, 
+                    "transcript": "do you remember the following things"
+                }, 
+                {
+                    "transcript": "do you remember the following thing"
+                }, 
+                {
+                    "transcript": "do you remember the following kings"
+                }, 
+                {
+                    "transcript": "do you remember the following king"
+                }, 
+                {
+                    "transcript": "do you remember the following think"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Question1": {
+            "alternative": [
+                {
+                    "transcript": "the barrowed shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the barrowed a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the bay Road shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the barrowed shirt pant saree change"
+                }, 
+                {
+                    "transcript": "the barrowed a shirt pant saree change"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Question2": {
+            "alternative": [
+                {
+                    "confidence": 0.88289487, 
+                    "transcript": "the fox play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the forks play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the fox play the flute trumpet guitars drum"
+                }, 
+                {
+                    "transcript": "the fox play the flute trumpet guitar drums"
+                }, 
+                {
+                    "transcript": "the fox play the flute trumpet Gitar drum"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Question3": {
+            "alternative": [
+                {
+                    "transcript": "whose wedding was it there and Fox elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it there and f**** elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it there and forks elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and f*** elephant and bear bear and crow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/fitb_Question4": {
+            "alternative": [
+                {
+                    "confidence": 0.78124005, 
+                    "transcript": "who made the dude and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the dude and the kid Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the ladoos and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the Dudes and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the Dudes and the kid Fox Jungle Friend jungle king eagle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.90795219, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "Govt jobs"
+                }, 
+                {
+                    "transcript": "good joke"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/laddoo": {
+            "alternative": [
+                {
+                    "confidence": 0.69942379, 
+                    "transcript": "laddu"
+                }, 
+                {
+                    "transcript": "ladoo"
+                }, 
+                {
+                    "transcript": "ladooo"
+                }, 
+                {
+                    "transcript": "Laddoo"
+                }, 
+                {
+                    "transcript": "Eenadu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.72767377, 
+                    "transcript": "let's try again"
+                }, 
+                {
+                    "transcript": "lets try again"
+                }, 
+                {
+                    "transcript": "let try again"
+                }, 
+                {
+                    "transcript": "let's try again a"
+                }, 
+                {
+                    "transcript": "let try again a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/listenLetter": {
+            "alternative": [
+                {
+                    "transcript": "listen to the audio and take the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and pick the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and get the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and that the correct letter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/listenWord": {
+            "alternative": [
+                {
+                    "transcript": "listen to the audio and take the correct word"
+                }, 
+                {
+                    "transcript": "listen to the audio and pick the correct word"
+                }, 
+                {
+                    "transcript": "listen to the audio and put the correct word"
+                }, 
+                {
+                    "transcript": "listen to the audio and the correct word"
+                }, 
+                {
+                    "transcript": "listen to the audio and that the correct word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/mtf_Question": {
+            "alternative": [
+                {
+                    "confidence": 0.87904495, 
+                    "transcript": "match the picture to the group"
+                }, 
+                {
+                    "transcript": "match the pictures to the group"
+                }, 
+                {
+                    "transcript": "match the picture to the Guru"
+                }, 
+                {
+                    "transcript": "match the picture to the brew"
+                }, 
+                {
+                    "transcript": "match the pictures to the Guru"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/mtf_bear": {
+            "alternative": [
+                {
+                    "confidence": 0.85153872, 
+                    "transcript": "match the word to the picture bed"
+                }, 
+                {
+                    "transcript": "match the word to the picture Bay"
+                }, 
+                {
+                    "transcript": "match the word to the picture there"
+                }, 
+                {
+                    "transcript": "match the word to the picture"
+                }, 
+                {
+                    "transcript": "match the word to the picture that"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/mtf_lion": {
+            "alternative": [
+                {
+                    "confidence": 0.91310722, 
+                    "transcript": "match the word to the picture Jungle King"
+                }, 
+                {
+                    "transcript": "match the word to the picture Jungle Kings"
+                }, 
+                {
+                    "transcript": "match the word to the picture Jungle k***"
+                }, 
+                {
+                    "transcript": "match two word to the picture Jungle King"
+                }, 
+                {
+                    "transcript": "match the word 2 the picture Jungle King"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/mtf_yummy": {
+            "alternative": [
+                {
+                    "confidence": 0.88167959, 
+                    "transcript": "match the word to the picture yummy"
+                }, 
+                {
+                    "transcript": "match the word to the picture yeah me"
+                }, 
+                {
+                    "transcript": "match the word to the picture young me"
+                }, 
+                {
+                    "transcript": "match the word to the picture Yami"
+                }, 
+                {
+                    "transcript": "matched word to the picture yummy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/page 1": {
+            "alternative": [
+                {
+                    "confidence": 0.90174103, 
+                    "transcript": "today is the wedding of the elephant and the Bear the Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear their Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the bear bear Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear day Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear dead Jungle friends are celebrating"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/page 2": {
+            "alternative": [
+                {
+                    "confidence": 0.34718919, 
+                    "transcript": "dabeerpura saree the elephant man"
+                }, 
+                {
+                    "transcript": "Dabirpura saree the elephant man"
+                }, 
+                {
+                    "transcript": "dabeerpura saree different women"
+                }, 
+                {
+                    "transcript": "Dabirpura saree different women"
+                }, 
+                {
+                    "transcript": "dabeerpura saree different versions"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/page 3": {
+            "alternative": [
+                {
+                    "transcript": "The Eagle played the drum the fox play the trumpet"
+                }, 
+                {
+                    "transcript": "legal played the drum the fox play the trumpet"
+                }, 
+                {
+                    "transcript": "The Eagle played the drum the forks play The trumpet"
+                }, 
+                {
+                    "transcript": "legal played the drum the forks play The trumpet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/page 4": {
+            "alternative": [
+                {
+                    "confidence": 0.87574869, 
+                    "transcript": "the crow and the parrot little Lambs"
+                }, 
+                {
+                    "transcript": "the crow and the parrot little and"
+                }, 
+                {
+                    "transcript": "the crow and the pirate little Lambs"
+                }, 
+                {
+                    "transcript": "the crow and the parrot let the Lambs"
+                }, 
+                {
+                    "transcript": "the crow and the parrot little lamb"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/page 5": {
+            "alternative": [
+                {
+                    "confidence": 0.73365498, 
+                    "transcript": "the jungle king Mela Do Din Ki the fox make poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the fox make puri curry"
+                }, 
+                {
+                    "transcript": "the jungle game Mela Do Din Ki the fox make poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the first mate poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the first mate Puri curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/page 6": {
+            "alternative": [
+                {
+                    "transcript": "yummy food was made all the friends enjoy the meal"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoy the mail"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoyed the mail"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoyed Aamir"
+                }, 
+                {
+                    "transcript": "yummy food with made all the friends enjoy the meal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/parrot_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/rabbit_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/tickoptions1": {
+            "alternative": [
+                {
+                    "confidence": 0.29250053, 
+                    "transcript": "kya pata na"
+                }, 
+                {
+                    "transcript": "Ya Paar star la"
+                }, 
+                {
+                    "transcript": "Ya Paar star na"
+                }, 
+                {
+                    "transcript": "Ya Paar star now"
+                }, 
+                {
+                    "transcript": "Ja par Star na"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant/assets/tickoptions2": {
+            "alternative": [
+                {
+                    "confidence": 0.84679288, 
+                    "transcript": "lamp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "clamp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lampp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lampe trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lamp trumpette played celebrating"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "english_stories_sample", 
+        "english_stories"
+    ]
+}

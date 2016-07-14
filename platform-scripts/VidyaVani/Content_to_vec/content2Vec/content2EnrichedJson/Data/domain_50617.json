@@ -1,0 +1,55 @@
+{
+    "concepts": [], 
+    "contentType": "Collection", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test Collection - Swapnil Nested", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_50617", 
+    "imageTags": [
+        "btn ok highlights", 
+        "horse", 
+        "btn next", 
+        "grass sky", 
+        "rabbit", 
+        "btn back", 
+        "icon submit", 
+        "elephant", 
+        "dog", 
+        "cat", 
+        "tiger", 
+        "lion", 
+        "retry bg", 
+        "icon hint", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "icon play", 
+        "goodjob bg", 
+        "popup tint"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 20
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_50617/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_50617/assets/retry_1460636610607": []
+    }, 
+    "owner": "275"
+}

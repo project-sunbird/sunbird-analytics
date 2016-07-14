@@ -1,0 +1,727 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test sample", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_63278", 
+    "imageTags": [
+        "", 
+        "tap", 
+        "end", 
+        "numberchart", 
+        "hint", 
+        "banana", 
+        "tomato", 
+        "tiger", 
+        "brinjal", 
+        "icon next", 
+        "icon sound", 
+        "icon previous", 
+        "a", 
+        "c", 
+        "b", 
+        "e", 
+        "d", 
+        "g", 
+        "f", 
+        "i", 
+        "h", 
+        "k", 
+        "j", 
+        "m", 
+        "l", 
+        "o", 
+        "n", 
+        "q", 
+        "p", 
+        "s", 
+        "r", 
+        "u", 
+        "t", 
+        "w", 
+        "v", 
+        "y", 
+        "x", 
+        "z", 
+        "logo en"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 33, 
+        "ogg": 0, 
+        "png": 68
+    }, 
+    "mp3Length": 69.12639172335601, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791041891465229135540do_you_like_icecream": {
+            "alternative": [
+                {
+                    "confidence": 0.83922309, 
+                    "transcript": "do you like ice cream"
+                }, 
+                {
+                    "transcript": "do you like icecream"
+                }, 
+                {
+                    "transcript": "do u like icecream"
+                }, 
+                {
+                    "transcript": "do you like ice creams"
+                }, 
+                {
+                    "transcript": "do you like I scream"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791048911465229136035bus": {
+            "alternative": [
+                {
+                    "confidence": 0.65444851, 
+                    "transcript": "bus"
+                }, 
+                {
+                    "transcript": "bas"
+                }, 
+                {
+                    "transcript": "bes"
+                }, 
+                {
+                    "transcript": "buss"
+                }, 
+                {
+                    "transcript": "but"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791072711465229138926yes": {
+            "alternative": [
+                {
+                    "confidence": 0.87216407, 
+                    "transcript": "yes"
+                }, 
+                {
+                    "transcript": "s"
+                }, 
+                {
+                    "transcript": "yeah"
+                }, 
+                {
+                    "transcript": "Jess"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791077181465229139825what_is_your_mothers_name": {
+            "alternative": [
+                {
+                    "confidence": 0.93888587, 
+                    "transcript": "what is your mother's name"
+                }, 
+                {
+                    "transcript": "what is your father's name"
+                }, 
+                {
+                    "transcript": "what is your mother's mean"
+                }, 
+                {
+                    "transcript": "what is your mothers mean"
+                }, 
+                {
+                    "transcript": "what is your mother's names"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791099461465229142044good_job": {
+            "alternative": [
+                {
+                    "confidence": 0.89504707, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "goodjob"
+                }, 
+                {
+                    "transcript": "good Java"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791103571465229142494do_you_like_apples": {
+            "alternative": [
+                {
+                    "transcript": "do you like apples"
+                }, 
+                {
+                    "transcript": "do you like apple"
+                }, 
+                {
+                    "transcript": "do you like Apple is"
+                }, 
+                {
+                    "transcript": "do you like apple us"
+                }, 
+                {
+                    "transcript": "do you like apple a"
+                }, 
+                {
+                    "transcript": "do you love apple"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791105381465229142694no": {
+            "alternative": [
+                {
+                    "confidence": 0.83368099, 
+                    "transcript": "no"
+                }, 
+                {
+                    "transcript": "new"
+                }, 
+                {
+                    "transcript": "know"
+                }, 
+                {
+                    "transcript": "you"
+                }, 
+                {
+                    "transcript": "no."
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791107461465229142914answerwithcompletesentences": {
+            "alternative": [
+                {
+                    "transcript": "answer with complete sentences"
+                }, 
+                {
+                    "transcript": "Ansal with complete sentences"
+                }, 
+                {
+                    "transcript": "uncle with complete sentences"
+                }, 
+                {
+                    "transcript": "Aanchal with complete sentences"
+                }, 
+                {
+                    "transcript": "Anchal with complete sentences"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791109671465229143118do_you_like_dogs": {
+            "alternative": [
+                {
+                    "confidence": 0.88232267, 
+                    "transcript": "do you like dogs"
+                }, 
+                {
+                    "transcript": "you like dogs"
+                }, 
+                {
+                    "transcript": "do you like talks"
+                }, 
+                {
+                    "transcript": "do you like talk"
+                }, 
+                {
+                    "transcript": "do you like jokes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791111941465229143403car": {
+            "alternative": [
+                {
+                    "confidence": 0.52356815, 
+                    "transcript": "cars"
+                }, 
+                {
+                    "transcript": "car"
+                }, 
+                {
+                    "transcript": "Kaash"
+                }, 
+                {
+                    "transcript": "Akash"
+                }, 
+                {
+                    "transcript": "cash"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791115791465229144056my_teachers_name_is_raju": {
+            "alternative": [
+                {
+                    "confidence": 0.86131299, 
+                    "transcript": "My teacher's name is Raju"
+                }, 
+                {
+                    "transcript": "My teacher's name is Rodger"
+                }, 
+                {
+                    "transcript": "my teachers name is Raju"
+                }, 
+                {
+                    "transcript": "My teacher's name is Rajiv"
+                }, 
+                {
+                    "transcript": "My teacher's name is Raj you"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791119151465229144281write_the_alphabets_a_to_e_in_the_paper_given_below": {
+            "alternative": [
+                {
+                    "transcript": "20 alphabets A to Z in the paper given below"
+                }, 
+                {
+                    "transcript": "20 alphabets a to e in the paper given below"
+                }, 
+                {
+                    "transcript": "Ghanti alphabets A to Z in the paper given below"
+                }, 
+                {
+                    "transcript": "Ghanti alphabets a to e in the paper given below"
+                }, 
+                {
+                    "transcript": "Jonty alphabets A to Z in the paper given below"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791121111465229144468do_you_like_this_school": {
+            "alternative": [
+                {
+                    "confidence": 0.88829935, 
+                    "transcript": "do you like this school"
+                }, 
+                {
+                    "transcript": "do you like the school"
+                }, 
+                {
+                    "transcript": "do you like to school"
+                }, 
+                {
+                    "transcript": "do you like this cool"
+                }, 
+                {
+                    "transcript": "do you like this is cool"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791128871465229145280what_is_your_fathers_name": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "what is your father's name"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791137021465229146165recite_an_english_rhyme_with_actions": {
+            "alternative": [
+                {
+                    "confidence": 0.77404326, 
+                    "transcript": "listen English rhyme with actions"
+                }, 
+                {
+                    "transcript": "listen English rhymes with actions"
+                }, 
+                {
+                    "transcript": "listen English rhyme with action"
+                }, 
+                {
+                    "transcript": "listen English rhymes with action"
+                }, 
+                {
+                    "transcript": "written English rhyme with actions"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791139411465229146387openyourmouth": {
+            "alternative": [
+                {
+                    "confidence": 0.94803828, 
+                    "transcript": "open your mouth"
+                }, 
+                {
+                    "transcript": "open your mouse"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791141981465229146570identifyanythreepictures": {
+            "alternative": [
+                {
+                    "confidence": 0.84611225, 
+                    "transcript": "identify any three pictures"
+                }, 
+                {
+                    "transcript": "identify any 3 pictures"
+                }, 
+                {
+                    "transcript": "identify any tree pictures"
+                }, 
+                {
+                    "transcript": "identify any 3 pitches"
+                }, 
+                {
+                    "transcript": "identify any three features"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791157771465229147892showmeyournose": {
+            "alternative": [
+                {
+                    "confidence": 0.90037155, 
+                    "transcript": "show me your nose"
+                }, 
+                {
+                    "transcript": "show me your name"
+                }, 
+                {
+                    "transcript": "show me your known"
+                }, 
+                {
+                    "transcript": "show me your no"
+                }, 
+                {
+                    "transcript": "show me your moon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791159611465229148081mango": {
+            "alternative": [
+                {
+                    "confidence": 0.95347679, 
+                    "transcript": "mango"
+                }, 
+                {
+                    "transcript": "Manga"
+                }, 
+                {
+                    "transcript": "Mangalore"
+                }, 
+                {
+                    "transcript": "Bango"
+                }, 
+                {
+                    "transcript": "mangle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791163551465229148415what_is_your_teachers_name": {
+            "alternative": [
+                {
+                    "transcript": "what is your teachers name"
+                }, 
+                {
+                    "transcript": "what is your teacher's name"
+                }, 
+                {
+                    "transcript": "what is your teachers neme"
+                }, 
+                {
+                    "transcript": "what is your teachers names"
+                }, 
+                {
+                    "transcript": "what is your teacher's neme"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791165531465229148643what_is_your_name": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "what is your name"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791180491465229150073closeyoureyes": {
+            "alternative": [
+                {
+                    "confidence": 0.94537896, 
+                    "transcript": "close your eyes"
+                }, 
+                {
+                    "transcript": "close your thighs"
+                }, 
+                {
+                    "transcript": "close your ride"
+                }, 
+                {
+                    "transcript": "close your guys"
+                }, 
+                {
+                    "transcript": "close your dad"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791214681465229154328twostarsfortwomarks": {
+            "alternative": [
+                {
+                    "transcript": "2 stars 2 marks"
+                }, 
+                {
+                    "transcript": "two stars 2 marks"
+                }, 
+                {
+                    "transcript": "2 stars with 2 marks"
+                }, 
+                {
+                    "transcript": "2 stars to marks"
+                }, 
+                {
+                    "transcript": "2 stars 2marks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791220271465229155048whats_the_first_sound_you_hear_in_the_word": {
+            "alternative": [
+                {
+                    "confidence": 0.8289876, 
+                    "transcript": "what's the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "watch the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "was the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "what is the first sound you here in the world"
+                }, 
+                {
+                    "transcript": "what's the first sound you here in the word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791222451465229155255onestarforonemark": {
+            "alternative": [
+                {
+                    "transcript": "onesta for one mark"
+                }, 
+                {
+                    "transcript": "1 star for one mark"
+                }, 
+                {
+                    "transcript": "one staff for one mark"
+                }, 
+                {
+                    "transcript": "1star for one mark"
+                }, 
+                {
+                    "transcript": "1 star for 1 marks"
+                }, 
+                {
+                    "transcript": "1 star for one coorg"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791224271465229155506nostarsforzeromarks": {
+            "alternative": [
+                {
+                    "confidence": 0.79076672, 
+                    "transcript": "no starts with 0 marks"
+                }, 
+                {
+                    "transcript": "no starts with zero marks"
+                }, 
+                {
+                    "transcript": "no starts with 0 Marx"
+                }, 
+                {
+                    "transcript": "no stars 20 marks"
+                }, 
+                {
+                    "transcript": "no starts with 0 Max"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791229831465229157980nameanytwocapitalletters": {
+            "alternative": [
+                {
+                    "confidence": 0.81642246, 
+                    "transcript": "name any two capital letters"
+                }, 
+                {
+                    "transcript": "name any 2 capital letters"
+                }, 
+                {
+                    "transcript": "name any to capital letters"
+                }, 
+                {
+                    "transcript": "name any two capital letter"
+                }, 
+                {
+                    "transcript": "name any tow capital letters"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791237021465229158665threestarsforthreemarks": {
+            "alternative": [
+                {
+                    "transcript": "3 Stars for 3 marks"
+                }, 
+                {
+                    "transcript": "3 Stars with 3 marks"
+                }, 
+                {
+                    "transcript": "three stars for 3 marks"
+                }, 
+                {
+                    "transcript": "3 Stars 3 marks"
+                }, 
+                {
+                    "transcript": "three stars with 3 marks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791238921465229158914selectanytwoinstructions": {
+            "alternative": [
+                {
+                    "confidence": 0.80469716, 
+                    "transcript": "select any two instructions"
+                }, 
+                {
+                    "transcript": "select any 2 instructions"
+                }, 
+                {
+                    "transcript": "select any 2 instruction"
+                }, 
+                {
+                    "transcript": "select any two instruction"
+                }, 
+                {
+                    "transcript": "select any to instructions"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791241321465229159117pleasemarkthescore": {
+            "alternative": [
+                {
+                    "confidence": 0.63956583, 
+                    "transcript": "please master scores"
+                }, 
+                {
+                    "transcript": "please mark 2 scores"
+                }, 
+                {
+                    "transcript": "please Mark II scores"
+                }, 
+                {
+                    "transcript": "please Mata scores"
+                }, 
+                {
+                    "transcript": "please mark the scores"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791243561465229159236answeranytwoquestionsinoneword": {
+            "alternative": [
+                {
+                    "confidence": 0.77300423, 
+                    "transcript": "answer any two questions in one word"
+                }, 
+                {
+                    "transcript": "answer any 2 questions in one word"
+                }, 
+                {
+                    "transcript": "answer any 2 questions in 1 Word"
+                }, 
+                {
+                    "transcript": "answer any two questions in 1 Word"
+                }, 
+                {
+                    "transcript": "answer any 2 questions in 1word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791246251465229159373nameanytwosmallletters": {
+            "alternative": [
+                {
+                    "confidence": 0.92409164, 
+                    "transcript": "name any two small letters"
+                }, 
+                {
+                    "transcript": "name any 2 small letters"
+                }, 
+                {
+                    "transcript": "name any two small letter"
+                }, 
+                {
+                    "transcript": "name any two small lettuce"
+                }, 
+                {
+                    "transcript": "name any two small letter s"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63278/assets/14652791248151465229159511write_the_alphabets_a_to_e_in_your_notebook-": {
+            "alternative": [
+                {
+                    "transcript": "write alphabets a to e in your notebook"
+                }, 
+                {
+                    "transcript": "write alphabets a to eat in your notebook"
+                }, 
+                {
+                    "transcript": "write alphabets A to Z in your notebook"
+                }, 
+                {
+                    "transcript": "write a alphabets a to e in your notebook"
+                }, 
+                {
+                    "transcript": "write alphabets a to in your notebook"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "349"
+}

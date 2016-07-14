@@ -1,0 +1,30 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_ewbk", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20092951", 
+    "imageTags": [], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Kannada"
+    ], 
+    "languageCode": "ka", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 0, 
+        "ogg": 0, 
+        "png": 0
+    }, 
+    "mp3Length": 0, 
+    "mp3Transcription": {}, 
+    "owner": "George E"
+}

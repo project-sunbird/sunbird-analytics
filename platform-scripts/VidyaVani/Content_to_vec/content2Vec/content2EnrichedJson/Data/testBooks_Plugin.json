@@ -1,0 +1,60 @@
+{
+    "concepts": [], 
+    "contentType": "Collection", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test_QA", 
+    "developer": "EkStep", 
+    "identifier": "testBooks_Plugin", 
+    "imageTags": [
+        "wife", 
+        "icon home", 
+        "carpenter", 
+        "tailor", 
+        "barber", 
+        "icon reload", 
+        "icon next", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 3, 
+        "ogg": 2, 
+        "png": 21
+    }, 
+    "mp3Length": 158.27544387755103, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/testBooks_Plugin/assets/1461230066197scene19": {
+            "alternative": [
+                {
+                    "confidence": 0.90689427, 
+                    "transcript": "now Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "no Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "Nau Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Shrinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Srinivas will not need a hair cut for a very long time"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

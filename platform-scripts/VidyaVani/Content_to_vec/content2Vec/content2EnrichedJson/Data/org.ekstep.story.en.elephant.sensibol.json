@@ -1,0 +1,1574 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Elephant's Wedding (Sensibol)", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.en.elephant.sensibol", 
+    "imageTags": [
+        "saree", 
+        "next button", 
+        "parrot image", 
+        "pant", 
+        "crow", 
+        "image", 
+        "confirm bg", 
+        "enjoying food", 
+        "yellow", 
+        "sad", 
+        "lion", 
+        "carrot", 
+        "lakdi", 
+        "frog", 
+        "touch", 
+        "play audio", 
+        "trumpet", 
+        "yes", 
+        "blue", 
+        "yellow box", 
+        "retry", 
+        "monkey", 
+        "no", 
+        "mic", 
+        "green box", 
+        "fox", 
+        "chilli", 
+        "activitybg", 
+        "lamp", 
+        "icon reload", 
+        "icon home", 
+        "beans", 
+        "puri", 
+        "bored", 
+        "no expression", 
+        "red", 
+        "eagle", 
+        "squirrel", 
+        "blue box", 
+        "fire", 
+        "deer", 
+        "pant image", 
+        "elephant", 
+        "garland l", 
+        "peas", 
+        "bear", 
+        "goodjob bg", 
+        "tiger", 
+        "page sel bg", 
+        "garland r", 
+        "retry bg", 
+        "stop record", 
+        "brinjal", 
+        "rabbit", 
+        "icon next", 
+        "drum", 
+        "end screen", 
+        "icon sound", 
+        "teacher", 
+        "icon previous", 
+        "tomato", 
+        "lamps image", 
+        "teacher pop up", 
+        "parrot", 
+        "onion", 
+        "potato", 
+        "flowers r", 
+        "grey", 
+        "olaga", 
+        "record", 
+        "blacktint", 
+        "green", 
+        "flowers l", 
+        "deepa", 
+        "retry button", 
+        "playing", 
+        "laddu"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 80, 
+        "ogg": 0, 
+        "png": 98
+    }, 
+    "mp3Length": 411.08907029478473, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554518795rabbit_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554518923Yellow": {
+            "alternative": [
+                {
+                    "confidence": 0.84533703, 
+                    "transcript": "yellow"
+                }, 
+                {
+                    "transcript": "Yello"
+                }, 
+                {
+                    "transcript": "hello"
+                }, 
+                {
+                    "transcript": "Xolo"
+                }, 
+                {
+                    "transcript": "ye lo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554519246Jungle%20King": {
+            "alternative": [
+                {
+                    "confidence": 0.91529769, 
+                    "transcript": "jungle king"
+                }, 
+                {
+                    "transcript": "Jungle Kings"
+                }, 
+                {
+                    "transcript": "Jangal Ki"
+                }, 
+                {
+                    "transcript": "Jungle k***"
+                }, 
+                {
+                    "transcript": "Jungle cake"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554519821page%203": {
+            "alternative": [
+                {
+                    "transcript": "The Eagle play the drum the fox play the trumpet"
+                }, 
+                {
+                    "transcript": "The Eagle play the drum the forks play The trumpet"
+                }, 
+                {
+                    "transcript": "legal played the drum the fox play the trumpet"
+                }, 
+                {
+                    "transcript": "The Eagle play the drum the f**** play the trumpet"
+                }, 
+                {
+                    "transcript": "The Eagle played the drum the fox play the trumpet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554520165Red": {
+            "alternative": [
+                {
+                    "confidence": 0.17836794, 
+                    "transcript": "went"
+                }, 
+                {
+                    "transcript": "zend"
+                }, 
+                {
+                    "transcript": "rent"
+                }, 
+                {
+                    "transcript": "vent"
+                }, 
+                {
+                    "transcript": "send"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554520364Carrot": {
+            "alternative": [
+                {
+                    "confidence": 0.70273846, 
+                    "transcript": "carrot"
+                }, 
+                {
+                    "transcript": "carat"
+                }, 
+                {
+                    "transcript": "Karat"
+                }, 
+                {
+                    "transcript": "caret"
+                }, 
+                {
+                    "transcript": "cat it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554520502Garland": {
+            "alternative": [
+                {
+                    "confidence": 0.89691252, 
+                    "transcript": "garland"
+                }, 
+                {
+                    "transcript": "gardaland"
+                }, 
+                {
+                    "transcript": "girl and"
+                }, 
+                {
+                    "transcript": "garand"
+                }, 
+                {
+                    "transcript": "gallant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554521099Green": {
+            "alternative": [
+                {
+                    "confidence": 0.86764109, 
+                    "transcript": "green"
+                }, 
+                {
+                    "transcript": "Greene"
+                }, 
+                {
+                    "transcript": "dream"
+                }, 
+                {
+                    "transcript": "Greens"
+                }, 
+                {
+                    "transcript": "cream"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554521325Pants": {
+            "alternative": [
+                {
+                    "confidence": 0.51601249, 
+                    "transcript": "thanks"
+                }, 
+                {
+                    "transcript": "pants"
+                }, 
+                {
+                    "transcript": "banks"
+                }, 
+                {
+                    "transcript": "Bank"
+                }, 
+                {
+                    "transcript": "tanks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554521609page%206": {
+            "alternative": [
+                {
+                    "transcript": "yummy food was made all the friends enjoy the meal"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoy the mail"
+                }, 
+                {
+                    "transcript": "yummy food with made all the friends enjoy the meal"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoyed the mail"
+                }, 
+                {
+                    "transcript": "yummy food with made all the friends enjoy the mail"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554521889Bouquet": {
+            "alternative": [
+                {
+                    "confidence": 0.74356365, 
+                    "transcript": "flowers"
+                }, 
+                {
+                    "transcript": "flower"
+                }, 
+                {
+                    "transcript": "flour"
+                }, 
+                {
+                    "transcript": "/"
+                }, 
+                {
+                    "transcript": "flash"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554522003fitb_Q4": {
+            "alternative": [
+                {
+                    "confidence": 0.84503388, 
+                    "transcript": "who made the ladoos and the keys Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the laddoos and the keys Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the ladoos and the kid Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the doors and the keys Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the laddoos and the kid Fox Jungle friends jungle king eagle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554522285mtf_bear": {
+            "alternative": [
+                {
+                    "transcript": "match the word to the picture"
+                }, 
+                {
+                    "transcript": "match the word to the picture Bay"
+                }, 
+                {
+                    "transcript": "match the letter to the picture"
+                }, 
+                {
+                    "transcript": "match the word to the picture bed"
+                }, 
+                {
+                    "transcript": "match the word to the picture there"
+                }, 
+                {
+                    "transcript": "match the words with the picture"
+                }, 
+                {
+                    "transcript": "matching the word to the picture"
+                }, 
+                {
+                    "transcript": "match the word to the picture that"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554522463Pen": {
+            "alternative": [
+                {
+                    "confidence": 0.35272908, 
+                    "transcript": "pen"
+                }, 
+                {
+                    "transcript": "spend"
+                }, 
+                {
+                    "transcript": "Penn"
+                }, 
+                {
+                    "transcript": "Spain"
+                }, 
+                {
+                    "transcript": "send"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554522573page%205": {
+            "alternative": [
+                {
+                    "confidence": 0.65992826, 
+                    "transcript": "the jungle king Mela Do Din Ki the fox make poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the fox make puri curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the fox me Puri curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the fox me poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king made laddu think is the fox make poori curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554523068page%204": {
+            "alternative": [
+                {
+                    "confidence": 0.76872861, 
+                    "transcript": "the crow and the parrot little Lambs"
+                }, 
+                {
+                    "transcript": "the crow and the parrot little and"
+                }, 
+                {
+                    "transcript": "the crow and the parrot little ants"
+                }, 
+                {
+                    "transcript": "the crow and the parrot little hands"
+                }, 
+                {
+                    "transcript": "the crow and the pirate little Lambs"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554523344Elephant%20Weds%20Bear": {
+            "alternative": [
+                {
+                    "transcript": "elephant when there's a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant white bear a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant with Bear a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant when was a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant when there's a story about the wedding day of the elephant and the bears"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554523758mtf_yummy": {
+            "alternative": [
+                {
+                    "confidence": 0.90135545, 
+                    "transcript": "match the word to the picture yummy"
+                }, 
+                {
+                    "transcript": "match the word to the picture young me"
+                }, 
+                {
+                    "transcript": "match the word to the picture yeah me"
+                }, 
+                {
+                    "transcript": "match the word to the picture Yang me"
+                }, 
+                {
+                    "transcript": "match the word to the picture Yami"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554524026Wood": {
+            "alternative": [
+                {
+                    "confidence": 0.18085591, 
+                    "transcript": "good"
+                }, 
+                {
+                    "transcript": "would"
+                }, 
+                {
+                    "transcript": "Bhuj"
+                }, 
+                {
+                    "transcript": "wood"
+                }, 
+                {
+                    "transcript": "VIT"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554524265laddoo": {
+            "alternative": [
+                {
+                    "confidence": 0.73734832, 
+                    "transcript": "laddu"
+                }, 
+                {
+                    "transcript": "ladoo"
+                }, 
+                {
+                    "transcript": "ladooo"
+                }, 
+                {
+                    "transcript": "Laddoo"
+                }, 
+                {
+                    "transcript": "Eenadu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554524519Brinjal": {
+            "alternative": [
+                {
+                    "confidence": 0.92312372, 
+                    "transcript": "brinjal"
+                }, 
+                {
+                    "transcript": "brinjol"
+                }, 
+                {
+                    "transcript": "bring joy"
+                }, 
+                {
+                    "transcript": "brinzal"
+                }, 
+                {
+                    "transcript": "bring join"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554525545Tiger": {
+            "alternative": [
+                {
+                    "confidence": 0.83345115, 
+                    "transcript": "tiger"
+                }, 
+                {
+                    "transcript": "Tyga"
+                }, 
+                {
+                    "transcript": "Taiga"
+                }, 
+                {
+                    "transcript": "tyger"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554525915crow_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554526461Drum": {
+            "alternative": [
+                {
+                    "confidence": 0.9141863, 
+                    "transcript": "drum"
+                }, 
+                {
+                    "transcript": "drums"
+                }, 
+                {
+                    "transcript": "drug"
+                }, 
+                {
+                    "transcript": "gram"
+                }, 
+                {
+                    "transcript": "DRAM"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554526862Practice": {
+            "alternative": [
+                {
+                    "confidence": 0.51434702, 
+                    "transcript": "Tractors"
+                }, 
+                {
+                    "transcript": "practice"
+                }, 
+                {
+                    "transcript": "practise"
+                }, 
+                {
+                    "transcript": "cactus"
+                }, 
+                {
+                    "transcript": "status"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554526995Fire_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554527557Crow": {
+            "alternative": [
+                {
+                    "confidence": 0.24333727, 
+                    "transcript": "crow"
+                }, 
+                {
+                    "transcript": "crew"
+                }, 
+                {
+                    "transcript": "crore"
+                }, 
+                {
+                    "transcript": "CRO"
+                }, 
+                {
+                    "transcript": "true"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554527695listenLetter": {
+            "alternative": [
+                {
+                    "confidence": 0.90644634, 
+                    "transcript": "listen to the audio and take the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and pick the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and get the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and take the correct later"
+                }, 
+                {
+                    "transcript": "listen to the audio and pick the correct later"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554527833Peas": {
+            "alternative": [
+                {
+                    "confidence": 0.27515802, 
+                    "transcript": "peace"
+                }, 
+                {
+                    "transcript": "peas"
+                }, 
+                {
+                    "transcript": "tees"
+                }, 
+                {
+                    "transcript": "speech"
+                }, 
+                {
+                    "transcript": "please"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554528348RhymingQuestion": {
+            "alternative": [
+                {
+                    "transcript": "pick a word that rhymes with the given word the last sounds of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "picked a word that rhymes with the given word the last sounds of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pick word that rhymes with the given word the last sounds of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pic to word that rhymes with the given word the last sounds of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pick the word that rhymes with the given word the last sounds of rhyming words are the same"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554528501page%202": {
+            "alternative": [
+                {
+                    "transcript": "dabeerpura saree different work pants"
+                }, 
+                {
+                    "transcript": "Dabirpura saree different work pants"
+                }, 
+                {
+                    "transcript": "dabeerpura saree the elephant work pants"
+                }, 
+                {
+                    "transcript": "Dabirpura saree the elephant work pants"
+                }, 
+                {
+                    "transcript": "the Belur a saree the elephant work pants"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554529203Rhyming1": {
+            "alternative": [
+                {
+                    "transcript": "they were both beat"
+                }, 
+                {
+                    "transcript": "beer where most beach"
+                }, 
+                {
+                    "transcript": "bear where most beach"
+                }, 
+                {
+                    "transcript": "bare bare mose bole beat"
+                }, 
+                {
+                    "transcript": "be there most beach"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554529344Rhyming2": {
+            "alternative": [
+                {
+                    "confidence": 0.83519739, 
+                    "transcript": "drum same when come April"
+                }, 
+                {
+                    "transcript": "drum scene when come April"
+                }, 
+                {
+                    "transcript": "drum same man come April"
+                }, 
+                {
+                    "transcript": "drum same band come April"
+                }, 
+                {
+                    "transcript": "drum seen when come April"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554529476Monkey": {
+            "alternative": [
+                {
+                    "confidence": 0.86822039, 
+                    "transcript": "monkey"
+                }, 
+                {
+                    "transcript": "monky"
+                }, 
+                {
+                    "transcript": "monkeys"
+                }, 
+                {
+                    "transcript": "funky"
+                }, 
+                {
+                    "transcript": "Manki"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554529607Bear": {
+            "alternative": [
+                {
+                    "confidence": 0.25119171, 
+                    "transcript": "bear"
+                }, 
+                {
+                    "transcript": "b"
+                }, 
+                {
+                    "transcript": "bare"
+                }, 
+                {
+                    "transcript": "beer"
+                }, 
+                {
+                    "transcript": "bears"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554530283Poori": {
+            "alternative": [
+                {
+                    "confidence": 0.84198463, 
+                    "transcript": "Puri"
+                }, 
+                {
+                    "transcript": "poori"
+                }, 
+                {
+                    "transcript": "puree"
+                }, 
+                {
+                    "transcript": "Suri"
+                }, 
+                {
+                    "transcript": "pury"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554530816goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.93531686, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "Govt jobs"
+                }, 
+                {
+                    "transcript": "good Bob"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554530931Yummy": {
+            "alternative": [
+                {
+                    "confidence": 0.53724563, 
+                    "transcript": "yummy"
+                }, 
+                {
+                    "transcript": "Yami"
+                }, 
+                {
+                    "transcript": "yeah me"
+                }, 
+                {
+                    "transcript": "EMI"
+                }, 
+                {
+                    "transcript": "ya me"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554531060Potatoes": {
+            "alternative": [
+                {
+                    "confidence": 0.68715537, 
+                    "transcript": "putty tools"
+                }, 
+                {
+                    "transcript": "putty tool"
+                }, 
+                {
+                    "transcript": "Twitter tools"
+                }, 
+                {
+                    "transcript": "PT tools"
+                }, 
+                {
+                    "transcript": "Puti tools"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554531460Drums": {
+            "alternative": [
+                {
+                    "confidence": 0.86869156, 
+                    "transcript": "drums"
+                }, 
+                {
+                    "transcript": "drum"
+                }, 
+                {
+                    "transcript": "drunk"
+                }, 
+                {
+                    "transcript": "drams"
+                }, 
+                {
+                    "transcript": "Trump"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554531883fitb_Question4": {
+            "alternative": [
+                {
+                    "confidence": 0.85082364, 
+                    "transcript": "do you remember the following things who made the ladoos and the keys Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "do you remember the following things who made the laddoos and the keys Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "do you remember the following things who made the ladoos and the kid Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "do you remember the following things who made the laddoos and the kid Fox Jungle friends jungle king eagle"
+                }, 
+                {
+                    "transcript": "do you remember the following things who made the latus and the keys Fox Jungle friends jungle king eagle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554532035fitb_Question2": {
+            "alternative": [
+                {
+                    "confidence": 0.89927661, 
+                    "transcript": "do you remember the following things the fox play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "do you remember the following things the forks play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "do you remember the following things the fox play the flute trumpet guitars drum"
+                }, 
+                {
+                    "transcript": "do you remember the following things the folks play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "do you remember the following things the foxx play the flute trumpet guitar drum"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554532308fitb_Question3": {
+            "alternative": [
+                {
+                    "transcript": "do you remember the following things cool wedding was great bear and Fox elephant and Fox elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "do you remember the following things full wedding was great bear and Fox elephant and Fox elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "do you remember the following things full the wedding was great bear and Fox elephant and Fox elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "do you remember the following things full wedding was it their and Fox elephant and Fox elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "do you remember the following things cool wedding was great bear and Fox elephant and f***** elephant and bear bear and crow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554532436fitb_Question1": {
+            "alternative": [
+                {
+                    "transcript": "do you remember the following things the bed for a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "do you remember the following things the bed for a shirt pant saree change"
+                }, 
+                {
+                    "transcript": "do you remember the following things the bed for a shirt pant sari chain"
+                }, 
+                {
+                    "transcript": "do you remember the following things the bad for a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "do you remember the following things the bed for a shirt pant Fairy Tail"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554533183Tiger_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554533322Parrot": {
+            "alternative": [
+                {
+                    "confidence": 0.58629227, 
+                    "transcript": "parrot"
+                }, 
+                {
+                    "transcript": "pirate"
+                }, 
+                {
+                    "transcript": "Tarak"
+                }, 
+                {
+                    "transcript": "Sarath"
+                }, 
+                {
+                    "transcript": "sharet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554533605Onion": {
+            "alternative": [
+                {
+                    "confidence": 0.86123616, 
+                    "transcript": "onion"
+                }, 
+                {
+                    "transcript": "Anniyan"
+                }, 
+                {
+                    "transcript": "onions"
+                }, 
+                {
+                    "transcript": "arnion"
+                }, 
+                {
+                    "transcript": "on Ian"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554534315letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.75745016, 
+                    "transcript": "let's try again"
+                }, 
+                {
+                    "transcript": "lets try again"
+                }, 
+                {
+                    "transcript": "let's try again a"
+                }, 
+                {
+                    "transcript": "lets try again a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554534433mtf_Question": {
+            "alternative": [
+                {
+                    "confidence": 0.85696644, 
+                    "transcript": "match the picture to the group"
+                }, 
+                {
+                    "transcript": "matched picture to the group"
+                }, 
+                {
+                    "transcript": "match the pictures to the group"
+                }, 
+                {
+                    "transcript": "match picture to the group"
+                }, 
+                {
+                    "transcript": "magic picture to the group"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554534565Lamp": {
+            "alternative": [
+                {
+                    "confidence": 0.50981426, 
+                    "transcript": "lamp"
+                }, 
+                {
+                    "transcript": "length"
+                }, 
+                {
+                    "transcript": "land"
+                }, 
+                {
+                    "transcript": "clamp"
+                }, 
+                {
+                    "transcript": "lamb"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554535258Learn": {
+            "alternative": [
+                {
+                    "confidence": 0.51859242, 
+                    "transcript": "learn"
+                }, 
+                {
+                    "transcript": "lund"
+                }, 
+                {
+                    "transcript": "land"
+                }, 
+                {
+                    "transcript": "lond"
+                }, 
+                {
+                    "transcript": "learnt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554535665Fox": {
+            "alternative": [
+                {
+                    "transcript": "songs"
+                }, 
+                {
+                    "transcript": "song"
+                }, 
+                {
+                    "transcript": "socks"
+                }, 
+                {
+                    "transcript": "Sox"
+                }, 
+                {
+                    "transcript": "sucks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554536075page%201": {
+            "alternative": [
+                {
+                    "confidence": 0.90246081, 
+                    "transcript": "today is the wedding of the elephant and the Bear the Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear their Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the bear bear Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear day Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today's the wedding of the elephant and the Bear the Jungle friends are celebrating"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554536470Fox_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554536617Explore": {
+            "alternative": [
+                {
+                    "confidence": 0.82704556, 
+                    "transcript": "explore"
+                }, 
+                {
+                    "transcript": "Explorer"
+                }, 
+                {
+                    "transcript": "xplore"
+                }, 
+                {
+                    "transcript": "explode"
+                }, 
+                {
+                    "transcript": "X close"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554536761mtf_lion": {
+            "alternative": [
+                {
+                    "transcript": "match the word to the picture Jungle King"
+                }, 
+                {
+                    "transcript": "match the words to the picture Jungle King"
+                }, 
+                {
+                    "transcript": "match the word to the picture Jungle Kings"
+                }, 
+                {
+                    "transcript": "match the word to the pitcher jungle king"
+                }, 
+                {
+                    "transcript": "match the words to the picture Jungle Kings"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554536905Tap%20on%20the%20letter%20p": {
+            "alternative": [
+                {
+                    "transcript": "tap on the letter T"
+                }, 
+                {
+                    "transcript": "tap on the letter P"
+                }, 
+                {
+                    "transcript": "Tekken the letter T"
+                }, 
+                {
+                    "transcript": "top on the letter T"
+                }, 
+                {
+                    "transcript": "Tekken The letter P"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554538233Rabbit": {
+            "alternative": [
+                {
+                    "confidence": 0.93069482, 
+                    "transcript": "rabbit"
+                }, 
+                {
+                    "transcript": "Radhe"
+                }, 
+                {
+                    "transcript": "Rajat"
+                }, 
+                {
+                    "transcript": "Rapid"
+                }, 
+                {
+                    "transcript": "Rajesh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554538760fitb_Q3": {
+            "alternative": [
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and Fox elephant and the Bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and Fox elephant and bare bare and crow"
+                }, 
+                {
+                    "transcript": "who's wedding was it their and Fox elephant and Fox elephant and the Bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it there and Fox elephant and Fox elephant and the Bear and crow"
+                }, 
+                {
+                    "transcript": "who's wedding was it their and Fox elephant and Fox elephant and bare bare and crow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554539049Squirrel_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554539201Legs": {
+            "alternative": [
+                {
+                    "confidence": 0.85238564, 
+                    "transcript": "legs"
+                }, 
+                {
+                    "transcript": "leg"
+                }, 
+                {
+                    "transcript": "lags"
+                }, 
+                {
+                    "transcript": "lens"
+                }, 
+                {
+                    "transcript": "Legi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554539330Squirrel": {
+            "alternative": [
+                {
+                    "confidence": 0.92864835, 
+                    "transcript": "squirrel"
+                }, 
+                {
+                    "transcript": "s********"
+                }, 
+                {
+                    "transcript": "squirrels"
+                }, 
+                {
+                    "transcript": "skrill"
+                }, 
+                {
+                    "transcript": "squiggle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554539849Eagle": {
+            "alternative": [
+                {
+                    "confidence": 0.87284046, 
+                    "transcript": "eagle"
+                }, 
+                {
+                    "transcript": "egal"
+                }, 
+                {
+                    "transcript": "Eagles"
+                }, 
+                {
+                    "transcript": "Eega"
+                }, 
+                {
+                    "transcript": "eager"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554540468Blue": {
+            "alternative": [
+                {
+                    "confidence": 0.84761906, 
+                    "transcript": "blue"
+                }, 
+                {
+                    "transcript": "Blu"
+                }, 
+                {
+                    "transcript": "bleu"
+                }, 
+                {
+                    "transcript": "glue"
+                }, 
+                {
+                    "transcript": "Glu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554540598fitb_Q1": {
+            "alternative": [
+                {
+                    "transcript": "the bed for a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the bed for a shirt pant saree change"
+                }, 
+                {
+                    "transcript": "the bed for a shirt pant sari chain"
+                }, 
+                {
+                    "transcript": "the bad for a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the bar for a shirt pant saree chain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554541983Trumpet": {
+            "alternative": [
+                {
+                    "confidence": 0.90557039, 
+                    "transcript": "trumpet"
+                }, 
+                {
+                    "transcript": "Trump it"
+                }, 
+                {
+                    "transcript": "Chromepet"
+                }, 
+                {
+                    "transcript": "Chrompet"
+                }, 
+                {
+                    "transcript": "Trump 8"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554542657Beans": {
+            "alternative": [
+                {
+                    "confidence": 0.7754693, 
+                    "transcript": "beans"
+                }, 
+                {
+                    "transcript": "been"
+                }, 
+                {
+                    "transcript": "Bing"
+                }, 
+                {
+                    "transcript": "Bean"
+                }, 
+                {
+                    "transcript": "means"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554542791Tomato": {
+            "alternative": [
+                {
+                    "confidence": 0.86964208, 
+                    "transcript": "tomato"
+                }, 
+                {
+                    "transcript": "tamato"
+                }, 
+                {
+                    "transcript": "Zomato"
+                }, 
+                {
+                    "transcript": "Tamatar"
+                }, 
+                {
+                    "transcript": "Himachal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554543051Deer": {
+            "alternative": [
+                {
+                    "transcript": "there's"
+                }, 
+                {
+                    "transcript": "dish"
+                }, 
+                {
+                    "transcript": "Darsh"
+                }, 
+                {
+                    "transcript": "Yash"
+                }, 
+                {
+                    "transcript": "bears"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554543285Drum_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554543436parrot_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554543527Pant": {
+            "alternative": [
+                {
+                    "confidence": 0.84506738, 
+                    "transcript": "pant"
+                }, 
+                {
+                    "transcript": "paint"
+                }, 
+                {
+                    "transcript": "pent"
+                }, 
+                {
+                    "transcript": "bant"
+                }, 
+                {
+                    "transcript": "spent"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554543925tickoptions2": {
+            "alternative": [
+                {
+                    "confidence": 0.79610151, 
+                    "transcript": "lamp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "clamp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lampp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lampe trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lamp trumpet blade celebrating"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554544079tickoptions1": {
+            "alternative": [
+                {
+                    "transcript": "ga pa sa la"
+                }, 
+                {
+                    "transcript": "ga pa sa na"
+                }, 
+                {
+                    "transcript": "Ja par Shan na"
+                }, 
+                {
+                    "transcript": "yeah pa sa la"
+                }, 
+                {
+                    "transcript": "Ja pa sa la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554544202Olaga_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554544482Monkey_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554544881Choose%20the%20correct%20word": {
+            "alternative": [
+                {
+                    "confidence": 0.96033072, 
+                    "transcript": "choose the correct word"
+                }, 
+                {
+                    "transcript": "choose the correct words"
+                }, 
+                {
+                    "transcript": "choose the correct verb"
+                }, 
+                {
+                    "transcript": "choose the correct world"
+                }, 
+                {
+                    "transcript": "who is the correct word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554545005Chilli": {
+            "alternative": [
+                {
+                    "confidence": 0.21045926, 
+                    "transcript": "Chile"
+                }, 
+                {
+                    "transcript": "silly"
+                }, 
+                {
+                    "transcript": "Chilli"
+                }, 
+                {
+                    "transcript": "chili"
+                }, 
+                {
+                    "transcript": "chilly"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554545780fitb_Q2": {
+            "alternative": [
+                {
+                    "confidence": 0.89777476, 
+                    "transcript": "the fox play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the forks play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the fox play the flute trumpet guitars drum"
+                }, 
+                {
+                    "transcript": "the folks play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "dapox play the flute trumpet guitar drum"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.elephant.sensibol/assets/1455554546067Fire": {
+            "alternative": [
+                {
+                    "confidence": 0.90626043, 
+                    "transcript": "fire"
+                }, 
+                {
+                    "transcript": "Phire"
+                }, 
+                {
+                    "transcript": "Faya"
+                }, 
+                {
+                    "transcript": "Payal"
+                }, 
+                {
+                    "transcript": "fire eye"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

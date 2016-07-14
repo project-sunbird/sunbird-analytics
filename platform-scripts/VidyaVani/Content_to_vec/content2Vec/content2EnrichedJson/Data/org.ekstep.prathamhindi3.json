@@ -1,0 +1,431 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u0939\u093f\u0928\u094d\u0926\u0940 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0901 \u092d\u093e\u0917 3", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.prathamhindi3", 
+    "imageTags": [
+        "next button", 
+        "story image", 
+        "image", 
+        "confirm bg", 
+        "blacktint", 
+        "touch", 
+        "play audio", 
+        "yes", 
+        "kahani", 
+        "yellow box", 
+        "retry", 
+        "no", 
+        "mic", 
+        "green box", 
+        "retry button", 
+        "activitybg", 
+        "icon reload", 
+        "literacy", 
+        "blue box", 
+        "icon home", 
+        "goodjob bg", 
+        "page sel bg", 
+        "retry bg", 
+        "stop record", 
+        "icon next", 
+        "front page", 
+        "end screen", 
+        "icon sound", 
+        "teacher", 
+        "icon previous", 
+        "teacher pop up", 
+        "grey", 
+        "record"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 2, 
+        "mp3": 18, 
+        "ogg": 0, 
+        "png": 53
+    }, 
+    "mp3Length": 130.4274829931973, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555388933goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.93531686, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "Govt jobs"
+                }, 
+                {
+                    "transcript": "good Bob"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555389374story%2012": {
+            "alternative": [
+                {
+                    "transcript": "butter toffee Inorbit show me barabar barabar Bharti going but I had bache ko Chikni Chameli"
+                }, 
+                {
+                    "transcript": "butter toffee Inorbit Jhoom Barabar barabar Bharti going but I her bache ko Chikni Chameli"
+                }, 
+                {
+                    "transcript": "butter toffee Inorbit Jhoom Barabar barabar party going but I her bache ko Chikni Chameli"
+                }, 
+                {
+                    "transcript": "butter toffee Inorbit Jhoom Barabar barabar party going but I heard bache ko Chikni Chameli"
+                }, 
+                {
+                    "transcript": "butter toffee Inorbit Jhoom Barabar barabar Baati going but I her bache ko Chikni Chameli"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555390035story%2011": {
+            "alternative": [
+                {
+                    "transcript": "Amit Ne Satte Samne se tera and Kali Ye Bata kitne Ambedkar"
+                }, 
+                {
+                    "transcript": "Amit Ne Satta Samne se tera and khaliye Bata kitne Ambedkar"
+                }, 
+                {
+                    "transcript": "Amit Ne Satte Samne se tera and Kali Ye Bata kitne Ambajogai"
+                }, 
+                {
+                    "transcript": "Amit Ne Satta Samne Se Tere ankha Liye Bata kitne Ambedkar"
+                }, 
+                {
+                    "transcript": "Amit Ne Satta Samne Se Tere ankha Liye Bata kitne Ambajogai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555390378story%2010": {
+            "alternative": [
+                {
+                    "transcript": "Agar atisunder me Se Bara Ande kharab ho gayi To Bata kitne Ande se he bache hai"
+                }, 
+                {
+                    "transcript": "Agar atisunder me Se Bara Ande kharab ho gayi Tu Bata kitne Ande se he bache hai"
+                }, 
+                {
+                    "transcript": "Agar Ek isando me Se Bara Ande kharab ho gayi Tu Bata kitne Ande se he bache hai"
+                }, 
+                {
+                    "transcript": "Agar atisunder me Se Bara under kharab ho gayi To Bata kitne Ande se he bache hai"
+                }, 
+                {
+                    "transcript": "Agar Ek isando me Se Bara under kharab ho gayi To Bata kitne Ande se he bache hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555390680Practice": {
+            "alternative": [
+                {
+                    "confidence": 0.51434702, 
+                    "transcript": "Tractors"
+                }, 
+                {
+                    "transcript": "practice"
+                }, 
+                {
+                    "transcript": "practise"
+                }, 
+                {
+                    "transcript": "cactus"
+                }, 
+                {
+                    "transcript": "status"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555391597Learn": {
+            "alternative": [
+                {
+                    "confidence": 0.51859242, 
+                    "transcript": "learn"
+                }, 
+                {
+                    "transcript": "lund"
+                }, 
+                {
+                    "transcript": "land"
+                }, 
+                {
+                    "transcript": "lond"
+                }, 
+                {
+                    "transcript": "learnt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555391988letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.75744992, 
+                    "transcript": "let's try again"
+                }, 
+                {
+                    "transcript": "lets try again"
+                }, 
+                {
+                    "transcript": "let's try again a"
+                }, 
+                {
+                    "transcript": "lets try again a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555394864end": {
+            "alternative": [
+                {
+                    "confidence": 0.13682067, 
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "amt"
+                }, 
+                {
+                    "transcript": "Anth"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555395017story%204": {
+            "alternative": [
+                {
+                    "transcript": "Chandu Ki Keemat vs rupee Hai To Bataye Kanda Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hai To Bataye Kanda Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hai To Bataye ki Gand Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hi To Bata Hai Ek Aandhi Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hi To Bataye Kanda Ki Keemat Kya Hogi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555395207story%205": {
+            "alternative": [
+                {
+                    "transcript": "dukan Mai taital Iske ki dukan Dar settings Cup all Ya Ya Khushi ki dukan me kitne kam ho gaya"
+                }, 
+                {
+                    "transcript": "dukan Mai Tai talisker ki dukan Dar settings Cup all Ya Ya Khushi ki dukan me kitne kam ho gaya"
+                }, 
+                {
+                    "transcript": "dukan Mehta talisker ki dukan Dar settings Cup all Ya Ya Khushi ki dukan me kitne kam ho gaya"
+                }, 
+                {
+                    "transcript": "dukan Mai taital Iske ki dukan Dar settings Cup all yeah yeah Aashiqi Tu Kahan mein kitne kam ho gaya"
+                }, 
+                {
+                    "transcript": "dukan Mehta talisker ki dukan Dar se please come early I R Us ki dukan me kitne kam ho gaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555395418story%206": {
+            "alternative": [
+                {
+                    "transcript": "tokri mein wali Skillet Hai usme se be skill based a tokri mein aap Kitne Gile Bachke"
+                }, 
+                {
+                    "transcript": "tokri mein wali Skillet Hai usme se be skill based a tokri mein aap kitne kilae Bhaskar"
+                }, 
+                {
+                    "transcript": "tokri mein wali Skillet Hai usme se be skill based a tokri mein aap Kitne Gile bajgai"
+                }, 
+                {
+                    "transcript": "tokri mein wali Skillet Hai usme se be skill based a tokri mein aap kitne kilae Bachke"
+                }, 
+                {
+                    "transcript": "23 May be early Skillet Hai usme se be skill based a tokri mein aap kitne kilae Bhaskar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555395732story%207": {
+            "alternative": [
+                {
+                    "transcript": "tractor get chahte hai aise he contractor ke kul Mila kar kitne Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor Gate chahte hai aise hee contractor ke kul Mila kar kitne Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor Gate chahte hai aise hee contractor ke kul Mila kar Kitne Bhi Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor Gate chahte hai aise hee contractor ki kul Mila kar kitne Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor kit chahte hai aise hee contractor ke kul Mila kar kitne Honge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555395915story%208": {
+            "alternative": [
+                {
+                    "transcript": "pandhara rupee a core team logo Mein barabar barabar baat nahi Par Har Ek Ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandhara rupee a core team logo main barabar barabar baat nahi Par Har Ek Ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandra rupee a core team logo Mein barabar barabar baat nahi Par Har Ek Ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandhara rupee a core team logo Mai barabar barabar baat nahi Par Har Ek Ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandhara rupee a core team logo Mein barabar barabar baat nahi par Hari ko kitne rupee Milenge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555396066story%209": {
+            "alternative": [
+                {
+                    "transcript": "Ek Gaon Mein Base Gayatri Maha VAT is gaya aa gayi Ek Gaon Mein Koi Mila kar kitni der ho gayi"
+                }, 
+                {
+                    "transcript": "agar mein base Gayatri Maha VAT is gaya aa gayi Ek Gaon Mein Koi Mila kar kitni der ho gayi"
+                }, 
+                {
+                    "transcript": "Ek Gaon Mein Base Gayatri Baja bettys gaya aa gayi Ek Gaon Mein Koi Mila kar Kitni Gai Ho Gayi"
+                }, 
+                {
+                    "transcript": "agar mein base Gayatri Baja bettys gaya aa gayi Ek Gaon Mein Koi Mila kar Kitni Gai Ho Gayi"
+                }, 
+                {
+                    "transcript": "Ek Gaon Mein this Gayatri Baja bettys gaya aa gayi Ek Gaon Mein Koi Mila kar Kitni Gai Ho Gayi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555397190story%201": {
+            "alternative": [
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hi Rahul Naino Se Bara Pallam aur didi to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hi Rahul Naino Se Bara Balam aur didi to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hi Rahul Naino Se Bara Kaalam Oru dady to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hey Rahul Naino Se Bara Pallam aur didi to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hey Rahul Naino Se Bara Balam aur didi to Amar ke paas kul kitne Kal Ho Gayi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555397651story%203": {
+            "alternative": [
+                {
+                    "transcript": "Ek Khilona Ki Keemat petalis rupee Hai Aise hee teen Chinu Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Ek Khilona Ki Keemat petalis rupiah Hai Aise hitting Khilona Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Ek Khilona Ki Keemat petalis rupiah Hai Aise heating Khilona Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Ek Khilona Ki Keemat petalis rupiah Hai Aise hee teen Chinu Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Ek Khilona Ki Keemat beta less rupee Hai Aise hee Kim Channo Ki Keemat Kya Hogi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555397811story%202": {
+            "alternative": [
+                {
+                    "transcript": "HS rupee Michigan Tera rupee kam kar di AJ Tu kitne rupay Bachchan gay"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupee kam kar de AJ Tu kitne rupay Bachchan gay"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupee a kam kar di AJ Tu kitne rupay Bachchan gay"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupee a kam kar de AJ Tu kitne rupay Bachchan gay"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupiya kam kar di AJ Tu kitne rupay Bachchan gay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.prathamhindi3/assets/1455555400062Explore": {
+            "alternative": [
+                {
+                    "confidence": 0.82704556, 
+                    "transcript": "explore"
+                }, 
+                {
+                    "transcript": "Explorer"
+                }, 
+                {
+                    "transcript": "xplore"
+                }, 
+                {
+                    "transcript": "explode"
+                }, 
+                {
+                    "transcript": "X close"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Hindi", 
+        "hindi_stories", 
+        "hindi_reading_camp"
+    ]
+}

@@ -1,0 +1,285 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_prathamstoriesfirstday", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20075816", 
+    "imageTags": [
+        "kahani", 
+        "", 
+        "play", 
+        "recordbtn", 
+        "mic", 
+        "pagesel bg", 
+        "blacktint", 
+        "icon next", 
+        "storyimage", 
+        "literacy", 
+        "icon previous", 
+        "soundbtn"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 4, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 31
+    }, 
+    "mp3Length": 158.95510204081634, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112373342story-4": {
+            "alternative": [
+                {
+                    "transcript": "Ek bahut bada bageecha hey buddy achhe may though Hazare Tera Hero me Lage Hain Kuch Meetha Kuch khatte Hain"
+                }, 
+                {
+                    "transcript": "Ek bahut bada Bagicha hai baat hai may though Hazare Tera Hero Main Haal aa gaye hain Kuch Meetha Kuch khatte Hain"
+                }, 
+                {
+                    "transcript": "Ek bahut bada bageecha hey Buddy 3 May though Hazare Tera Hero me Bhai Lage Hain Kuch Meetha Kuch khatte Hain"
+                }, 
+                {
+                    "transcript": "Ek bahut bada bageecha hey buddy achhe Mai bahut sari Payal Hai Peeni Hai Lage Hain Kuch Meetha Kuch khatte Hain"
+                }, 
+                {
+                    "transcript": "Ek bahut bada bageecha hey buddy achhe may though Hazare Tera Hero me Bhai Lage Hain Kuch Meetha Kuch khatte Hain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112373953story-3": {
+            "alternative": [
+                {
+                    "transcript": "Barish Ka Mausam aaya hai ki sari Khushi Laya Hai Pani Mein Hum Bhi khelenge garam garam pagariya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya Hain saree Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam pagariya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai ki sari Khushi Laya Hai Pani Mein Hum Bhi khelenge garam garam bagadiya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya Hain saree Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam bagadiya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai ki sari Khushi Laya Hai Pani Mein Hum Bhi khelenge garam garam pagaria Jayenge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112374235story-11": {
+            "alternative": [
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash Savitri Soni ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Aakash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash Luthra Soni ko Aakash Me Le Gai Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash Luthra Soni ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112374639story-6": {
+            "alternative": [
+                {
+                    "transcript": "Sameer Naam Ka Ek Ladka Hai bahut apne School Jata Hai Roz nahi Kahaniya parta hai kahan ja Sunata hai"
+                }, 
+                {
+                    "transcript": "Sameer Naam Ka Ek Ladka Hai Jo Sapne School Jata Hai Roz nahi Kahaniya parta hai kahan ja Sunata hai"
+                }, 
+                {
+                    "transcript": "Sameer Naam Ka Ek Ladka Hai bahut apne School Jata Hai Rose nahi Kahaniya parta hai kahan ja Sunata hai"
+                }, 
+                {
+                    "transcript": "Sameer Naam Ka Ek Ladka Hai bahut apne School Jata Hai Roshni Kahaniya parta hai kahan ja Sunata hai"
+                }, 
+                {
+                    "transcript": "Sameer Naam Ka Ek Ladka Hai Jo Sapno School Jata Hai Roz nahi Kahaniya parta hai kahan ja Sunata hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112374972story-10": {
+            "alternative": [
+                {
+                    "transcript": "Suman Naam Ki Ek Ladki Hai Subah uth kar Muth Marte Hai Na Tha Kar Ke School Jaati Hai Shahnawaz khelti hai"
+                }, 
+                {
+                    "transcript": "Suman Naam Ki Ek Ladki Hai Subah uthkar Muth Marte Hai Na Tha Kar Ke School Jaati Hai Shahnawaz khelti hai"
+                }, 
+                {
+                    "transcript": "Suman Naam Ki Ek Ladki Hai Subah uthkar madhyavarti Hai Na Tha Kar Ke School Jaati Hai Shahnawaz khelti hai"
+                }, 
+                {
+                    "transcript": "Suman Naam Ki Ek Ladki Hai Subah uth kar Muth Marte Hai Na Tha Kar Ke School Jaati Hai Shava khelti hai"
+                }, 
+                {
+                    "transcript": "Suman Naam Ki Ek Ladki Hai Subah uthkar Muth Marte Hai Na Tha Kar Ke School Jaati Hai Shava khelti hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112375297story-5": {
+            "alternative": [
+                {
+                    "transcript": "Charu hot saree payr hai tere Pateriya Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr Hai parapariya Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr Hai Tera Pateriya Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr Hai Tera pateria Rehte Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr Hai Tera pateria Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112375761story-2": {
+            "alternative": [
+                {
+                    "transcript": "Suraj Nikal Aaya Hai Charo Aur Ujala Khela Hai Andhera which ka Hi Bache school ja rahe hai"
+                }, 
+                {
+                    "transcript": "Suraj Nikal Aaya Hai Charo Aur Ujala Chala Hai Andhera which ka Hi Bache School jaa rahi hai"
+                }, 
+                {
+                    "transcript": "Suraj Nikal Aaya Hai Charo Aur Ujala Chala Hai Andhera which ka Hi Bache School jaa rahe hai"
+                }, 
+                {
+                    "transcript": "Suraj Nikal Aaya Hai Charo Aur Ujala Chala Hai Andhera which Kar Hi Bache School jaa rahe hai"
+                }, 
+                {
+                    "transcript": "Suraj Nikal Aaya Hai Charo Aur Ujala Mela Hai Andhera which ka Hi Bache School jaa rahe hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112376688story-1": {
+            "alternative": [
+                {
+                    "transcript": "Mera Naam Doon par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain meray se bhi karti ho"
+                }, 
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "Mera Naam Doon par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain meray se bhi Karti Hoon"
+                }, 
+                {
+                    "transcript": "Mera Naam Doon par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi Karti Hoon"
+                }, 
+                {
+                    "transcript": "mera naam par hai mujhe Jalebi bahut pasand hai mere baba Jalebi Lagte Hain Mujhse Jalebi karti ho"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112378001story-12": {
+            "alternative": [
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska rankala hai venues gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska rankala Hai when was gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska rankala Hai was gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska Rang Kala Hai was gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska rankala Hai venues gaana Gati Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112380487story-9": {
+            "alternative": [
+                {
+                    "transcript": "Charmi hot saree Mor hey Mor Pankh bahut Sundar Hai Aakash me jab Badal Jate Hain Mor Pankh Laga Hoon Na Chahte Hain"
+                }, 
+                {
+                    "transcript": "Charmi hot saree Mor a mor Pankh bahut Sundar Hai Aakash me jab Badal Jate Hain Mor Pankh Laga Hoon Na Chahte Hain"
+                }, 
+                {
+                    "transcript": "Charmi hot saree Mor hey Mor Pankh bahut Sundar Hai Aakash me jo badal Jate Hain Mor Pankh Laga Hoon Na Chahte Hain"
+                }, 
+                {
+                    "transcript": "Charmi hot saree Mohe Mohe Punk bahut Sundar Hai Aakash me jab Badal Jate Hain Mor Pankh Laga Hoon Na Chahte Hain"
+                }, 
+                {
+                    "transcript": "Charmi hot saree Mor hey Mor Pankh bahut Sundar Hai Aakash Mein Jab Badal Jate Hain Mor Pankh Laga Hoon Na Chahte Hain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112382338story-7": {
+            "alternative": [
+                {
+                    "confidence": 0.82659352, 
+                    "transcript": "Mangal Naam Ka Ladka Hai Nadi Kinare Uska Ghar hai ajnabi me nahane Jata Hai Na Dena Mujhe achha lagta hai"
+                }, 
+                {
+                    "transcript": "Mangal Naam Ka Ladka Hai Nadi Kinare Uska Ghar Hai Re slows Nadi me nahane Jata Hai Na Dena Mujhe achha lagta hai"
+                }, 
+                {
+                    "transcript": "Mangal Naam Ka Ladka Hai Nadi Kinare Uska Ghar Hai Re Sajna Di me nahane Jata Hai Na Dena Mujhe achha lagta hai"
+                }, 
+                {
+                    "transcript": "Mangal Naam Ka Ladka Hai Nadi Kinare Uska Ghar hai ajnabi me nahane Jata Hai Nadeem achha lagta hai"
+                }, 
+                {
+                    "transcript": "Mangal Naam Ka Ladka Hai Nadi Kinare Uska Ghar hai ajnabi Main Nahi Jata Hai Na Dena Mujhe achha lagta hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075816/assets/1467112383486story-8": {
+            "alternative": [
+                {
+                    "transcript": "Main Choti Si bachi Ne Mujhe Phoolon Ka pasand hai bache Mujhe dekhna Chahte Hain Main kisi ke haath nahi aati hai"
+                }, 
+                {
+                    "transcript": "Mai Choti Si bachi Ne Mujhe Phoolon Ka pasand hai bache Mujhe dekhna Chahte Hain kisi ke haath nahi aati hai"
+                }, 
+                {
+                    "transcript": "Mai Choti Si bachi Ne Mujhe Phoolon Ka pasand hai bache Mujhe dekhna chahte hain mein kisi ke haath nahi aati hai"
+                }, 
+                {
+                    "transcript": "Mai Choti Si bachi Ne Mujhe Phoolon Ka pasand hai bache Mujhe dekhna chahte hain mein kisi ke Hath nahi aati hai"
+                }, 
+                {
+                    "transcript": "Mai Choti Si bachi Ne Mujhe Phoolo Ka pasand hai bache Mujhe dekhna chahte hain mein kisi ke haath nahi aati hai"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "Debasis Singh"
+}
