@@ -1,0 +1,285 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_prathamstoriessecondday", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20076152", 
+    "imageTags": [
+        "kahani", 
+        "", 
+        "play", 
+        "recordbtn", 
+        "mic", 
+        "soundbtn", 
+        "pagesel bg", 
+        "blacktint", 
+        "icon next", 
+        "storyimage", 
+        "literacy", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 34
+    }, 
+    "mp3Length": 163.134693877551, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016362358story6": {
+            "alternative": [
+                {
+                    "transcript": "Raju Ke Ghar Main Ek Gai Ho Gaya Karam Karna Hai charges Kehlata Hai Deti Hai"
+                }, 
+                {
+                    "transcript": "Raju Ke Ghar Main Ek gaya ho gaya Karam Karna Hai charges Kehlata Hai Deti Hai"
+                }, 
+                {
+                    "transcript": "Raju Ke Ghar Main Ek Gaya Gaya Karam Karna Hai charges Kehlata Hai Deti Hai"
+                }, 
+                {
+                    "transcript": "Raju ki Ghar Main Ek Gai Ho Gaya Karam Karna Hai charges Kehlata Hai Deti Hai"
+                }, 
+                {
+                    "transcript": "Raju Ke Ghar Main Ek Gaya Gaya Karam Kaala Hai charges Kehlata Hai Deti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016362523story5": {
+            "alternative": [
+                {
+                    "transcript": "Mere Shikshak bahut acche hai ye kabhi Nahin Aate Hain Mujhe Pyar Jal Jate Hain Mujhse Bada Acha Lagta Hai"
+                }, 
+                {
+                    "transcript": "Mere Shikshak bahut acche hai ye kabhi Nahin Aate Hain Mujhe Pyar Jal Jate Hain Mujhse Bada accha lagta hai"
+                }, 
+                {
+                    "transcript": "Mere Shikshak bahut acche hai ye kabhi Nahin Aate Hain Mujhe Pyar Jal Jate Hain Se Bada Acha Lagta Hai"
+                }, 
+                {
+                    "transcript": "Meri Shikshak bahut acche hai ye kabhi Nahin Aate Hain Mujhe Pyar Jal Jate Hain Mujhse Bada Acha Lagta Hai"
+                }, 
+                {
+                    "transcript": "Mere Shikshak bahut acche hai ye kabhi Nahin Aate Hain Mujhe Pyar Jal Jate Hain Se Bada accha lagta hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016362711story4": {
+            "alternative": [
+                {
+                    "confidence": 0.71583372, 
+                    "transcript": "Subah Subah Hui Hai Jaan Ke Khet Mein Paani Bhar Gaya Hai"
+                }, 
+                {
+                    "transcript": "Subah Subah Hui Hai Jaan Ke Khet Me Pani Bhar Gaya Hai"
+                }, 
+                {
+                    "transcript": "Subah Subah Hui Hai Jaan Ke Khet Mein Pani Bhar Gaya Hai"
+                }, 
+                {
+                    "transcript": "subah subah Rasoi Hai Jaan Ke Khet Me Pani Bhar Gaya Hai"
+                }, 
+                {
+                    "transcript": "subah subah Rasoi Hai Jaan Ke Khet Mein Paani Bhar Gaya Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016363113story3": {
+            "alternative": [
+                {
+                    "transcript": "Ravi ke paas ek kutta hai paise kamane Le jata hai ghar ki rakhwali Karta Hai Pyar Karta Hai"
+                }, 
+                {
+                    "transcript": "Ravi ke paas ek kutta hai paise kamane jata hai ghar ki rakhwali Karta Hai Pyar Karta Hai"
+                }, 
+                {
+                    "transcript": "Ravi ke paas ek kutta hai paise kamane Le jata hai ki rakhwali Karta Hai Pyar Karta Hai"
+                }, 
+                {
+                    "transcript": "Ravi ke paas ek kutta hai paise kamane Le Jata Hai kutta ki rakhwali Karta Hai Pyar Karta Hai"
+                }, 
+                {
+                    "transcript": "Ravi ke paas ek kutta hai Bharosa Humne Le jata hai ki rakhwali Karta Hai Pyar Karta Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016363482story2": {
+            "alternative": [
+                {
+                    "transcript": "Mere chacha ji ki chaal hai Khet Mai Janu Gaate Hai Jab Barish hone Lagti Hai Jaan ka kya Kehlata Hai"
+                }, 
+                {
+                    "transcript": "Mere chacha ji ki chaal hai Khet Mai Janu Gaate Hai Jab Barish hone Lagti Hai Jaan ka Paida Hota Hai"
+                }, 
+                {
+                    "transcript": "Mere chacha ji ki chaal hai Khet Mai Janu Gaate Hain Jab Barish hone Lagti Hai Jaan ka kya Kehlata Hai"
+                }, 
+                {
+                    "transcript": "Mere chacha ji ki chaal hai khat Mai Janu Gaate Hai Jab Barish hone Lagti Hai Jaan ka kya Kehlata Hai"
+                }, 
+                {
+                    "transcript": "Mere chacha ji ki chaal hai K Mai Janu Gaate Hai Jab Barish hone Lagti Hai Jaan ka kya Kehlata Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016363674story1": {
+            "alternative": [
+                {
+                    "transcript": "chachi Jungle Jaate Hain Jungle se Lakdi Lagte Hain Lakdi Bazaar Mein Bichhde Hain Mere Liye Nahi kitaben Aate Hain"
+                }, 
+                {
+                    "transcript": "chachi Jungle Jaate Hain Jungle se Lakdi Lagte Hain Lakdi Bazar Mai Bichhde Hain mere liye nahi kitabe Lagte Hain"
+                }, 
+                {
+                    "transcript": "chachi Jungle Jaate Hain Jungle se Lakdi Lagte Hain Lakdi Bazar main Bichhde Hain mere liye nahi kitabe Lagte Hain"
+                }, 
+                {
+                    "transcript": "chachi Jangal Jaate Hain Jungle se Lakdi Lagte Hain Lakdi Bazaar Mein Bichhde Hain Mere Liye Nahi kitaben Aate Hain"
+                }, 
+                {
+                    "transcript": "Itachi Jungle Jaate Hain Jungle se Lakdi Lagte Hain Lakdi Bazar Mai Bichhde Hain Mere Liye Nahi kitaben Aate Hain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016364323story10": {
+            "alternative": [
+                {
+                    "transcript": "Hamare ghar ke Paar Se Talab Talab bahut Sundar Bada Hai Uske Kinare Rang birange Phool Khile Hain"
+                }, 
+                {
+                    "transcript": "Hamare ghar ke Paar Se Talab Talab bahut Sundar aur Bada Hai Uske Kinare Rang birange Phool Khile Hain"
+                }, 
+                {
+                    "transcript": "Hamare ghar ke paas Talab Talab bahut Sundar Bada Hai Uske Kinare Rang birange Phool Khile Hain"
+                }, 
+                {
+                    "transcript": "Hamare ghar ke paas Talab Talab bahut Sundar aur Bada Hai Uske Kinare Rang birange Phool Khile Hain"
+                }, 
+                {
+                    "transcript": "Hamare ghar ke Paar Se Talab Talab bahut Sundar Bada Hai Uske Kinare Rang birangi Phool Khile Hain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016364617story11": {
+            "alternative": [
+                {
+                    "transcript": "Pahad Par Ek payr Hai paper ki daal Hai Ek Daal Par Ek ghosla Hai course Limited under hai"
+                }, 
+                {
+                    "transcript": "Pahad Par Ek payr Hai paper ki daal Hai Ek Daal Par Ek ghosla Hai course Limited under high"
+                }, 
+                {
+                    "transcript": "Pahad Par Ek payr Hai paper ki dal Hai Ek Daal Par Ek ghosla Hai course Limited under hai"
+                }, 
+                {
+                    "transcript": "Pahad Par Ek payr Hai paper ki daal Hai Ek Daal Par Ek ghosla hai kuch Limited under hai"
+                }, 
+                {
+                    "transcript": "Pahad Par Ek payr Hai paper ki daal Hai Ek Daal Par Ek ghosla hai kuch nahi karna hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016365553story9": {
+            "alternative": [
+                {
+                    "transcript": "Meenu ka ghar bahut bada hai ghar ke paas Itwari hai waha bahut se Phool Khile Hain Phool aur Bhavre Behti Hai"
+                }, 
+                {
+                    "transcript": "Meenu ka ghar bahut bada hai ghar ke paas Itwari hai waha bahut se Phool Khile Hain Phool aur Bhavri Behti Hai"
+                }, 
+                {
+                    "transcript": "Meenu ka ghar bahut bada hai ghar ke paas Shivari hai waha bahut se Phool Khile Hain Phool aur Bhavre Behti Hai"
+                }, 
+                {
+                    "transcript": "Meenu ka ghar bahut bada hai ghar ke paas Shivari hai waha bahut se Phool Khile Hain Phool aur Bhavre Beti Hai"
+                }, 
+                {
+                    "transcript": "Meenu ka ghar bahut bada hai ghar ke paas Shivari hai waha bahut se Phool Khile Hain Phool aur Bhavri Behti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016365758story7": {
+            "alternative": [
+                {
+                    "transcript": "Basant Ka Mahina Hai Rang birangi Phool Khile Hain Bhavre Mara rahe hain Phool aur Beti Hai"
+                }, 
+                {
+                    "transcript": "Basant Ka Mahina Hai Rang birangi Phool Khile Hain Bhavre Mantra rahe hain Phool aur Beti Hai"
+                }, 
+                {
+                    "transcript": "Basant Ka Mahina Hai Rang birange Phool Khile Hain Bhavre Mantra rahe hain Phool aur Beti Hai"
+                }, 
+                {
+                    "transcript": "Basant Ka Mahina Hai Rang birangi Phool Khile Hain Bhavre Mara Rahe Hain Magar Behti Hai"
+                }, 
+                {
+                    "transcript": "Basant Ka Mahina Hai Rang birangi Phool Khile Hain Bhavre Mantra rahe hain Behti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016365946story8": {
+            "alternative": [
+                {
+                    "transcript": "Bade Achhe Lagte Hain the hero's Paathshala jata hai usse Kavithai Acche Lagte Hain Tumko Kavita hai"
+                }, 
+                {
+                    "transcript": "Bade Achhe Lagte Hain the hero's Paathshala jata hai usse Kavithai Acche Lagte Hai Tujhko Kavita hai"
+                }, 
+                {
+                    "transcript": "Bade Achhe Lagte Hain the hero's Paathshala jata hai usse Kavithai Acche Lagte Hain Tumko Kavitayen"
+                }, 
+                {
+                    "transcript": "Bade Achhe Lagte Hain the hero's Paathshala jata hai usse Kavithai Acche Lagte Hain Mujhko Kavitayen"
+                }, 
+                {
+                    "transcript": "Bade Achhe Lagte Hain the hero's Paathshala jata hai usse Kavithai Acche Lagte Hai Tujhko Kavitayen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076152/assets/1467016367913story12": {
+            "alternative": [
+                {
+                    "transcript": "Hamare Gaon Mein Aye Khuda Hai Uska Rang Safed hai bahut bada hai kaam Aata Hai"
+                }, 
+                {
+                    "transcript": "Hamare Gaon Mein Aye Khuda Hai Uska Rang Safed hai bahut Choda Hai Aata Hai"
+                }, 
+                {
+                    "transcript": "Hamare Gaon Mein Aye Khuda Hai Uska Rang Safed Hai Bahut Yaad Aata Hai jata hai"
+                }, 
+                {
+                    "transcript": "Hamare Gaon Mein Aye Khuda Hai Uska Rang Safed Hai Bahut Yaad Aata Hai Kaam Aata Hai"
+                }, 
+                {
+                    "transcript": "Hamare Gaon Mein Aye Khuda Hai Uska Rang Safed hai bahut Jata Hai Kaam Aata Hai"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "Debasis Singh"
+}

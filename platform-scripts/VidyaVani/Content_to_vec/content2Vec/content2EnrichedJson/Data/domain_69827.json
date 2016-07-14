@@ -1,0 +1,1239 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_hathibhaluhindi", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_69827", 
+    "imageTags": [
+        "endscreen", 
+        "greenbox", 
+        "olaga", 
+        "crow", 
+        "image", 
+        "deer", 
+        "yellow", 
+        "lion", 
+        "carrot", 
+        "lakdi", 
+        "pagesel bg", 
+        "yes", 
+        "squirrel", 
+        "blue", 
+        "saree", 
+        "monkey", 
+        "no", 
+        "pant", 
+        "fox", 
+        "beans", 
+        "activitybg", 
+        "teacherpopup", 
+        "icon reload", 
+        "elephant", 
+        "goodjobbg", 
+        "puri", 
+        "red", 
+        "popuptint", 
+        "eagle", 
+        "retrybutton", 
+        "fire", 
+        "icon home", 
+        "peas", 
+        "bear", 
+        "tiger", 
+        "brinjal", 
+        "rabbit", 
+        "icon next", 
+        "icon sound", 
+        "teacher", 
+        "icon previous", 
+        "retrybg", 
+        "chilli", 
+        "drum", 
+        "onion", 
+        "parrot", 
+        "garlandl", 
+        "confirmbg", 
+        "potato", 
+        "tomato", 
+        "flowersr", 
+        "flowersl", 
+        "green", 
+        "garlandr", 
+        "deepa", 
+        "laddu"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 67, 
+        "ogg": 0, 
+        "png": 77
+    }, 
+    "mp3Length": 209.64639455782319, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596856553page4": {
+            "alternative": [
+                {
+                    "confidence": 0.66250896, 
+                    "transcript": "Kuwait altadena RD July"
+                }, 
+                {
+                    "transcript": "Kavita today 19 July"
+                }, 
+                {
+                    "transcript": "Kuwait auto Theni RD July"
+                }, 
+                {
+                    "transcript": "kiewit altadena RD July"
+                }, 
+                {
+                    "transcript": "kawait altadena RD July"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596857165aloo": {
+            "alternative": [
+                {
+                    "confidence": 0.39305222, 
+                    "transcript": "Allu"
+                }, 
+                {
+                    "transcript": "aloo"
+                }, 
+                {
+                    "transcript": "ALU"
+                }, 
+                {
+                    "transcript": "Aalu"
+                }, 
+                {
+                    "transcript": "aaloo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596857405q6_sound": {
+            "alternative": [
+                {
+                    "transcript": "laddu Aarthi Kisne Banai loma De Tota jungle ka raja Balu"
+                }, 
+                {
+                    "transcript": "laddu Aarthi Kisne Banai loma De Tota jungle ka raja Bhalu"
+                }, 
+                {
+                    "transcript": "laddu earthy Kisne Banai loma De Tota jungle ka raja Balu"
+                }, 
+                {
+                    "transcript": "laddu Archie Kisne Banai loma De Tota jungle ka raja Balu"
+                }, 
+                {
+                    "transcript": "laddu Aarthi Kisne Banai loma De Tota jungle ka Raja bhaloo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596857605q4_sound": {
+            "alternative": [
+                {
+                    "transcript": "Lou marini dash Baje Dhol to rhi tabla Dafli"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to Rahi tabla Dafli"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to Rahe tabla Dafli"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to rhi tabla Daphne"
+                }, 
+                {
+                    "transcript": "Lou marini dash Baje Dhol to Rahi tabla Daphne"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596859138tamatar": {
+            "alternative": [
+                {
+                    "confidence": 0.58915883, 
+                    "transcript": "Tamatar"
+                }, 
+                {
+                    "transcript": "tomato"
+                }, 
+                {
+                    "transcript": "tamato"
+                }, 
+                {
+                    "transcript": "tamate"
+                }, 
+                {
+                    "transcript": "the matter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596859543khaalijagahbharein": {
+            "alternative": [
+                {
+                    "confidence": 0.89310122, 
+                    "transcript": "Khali jagah bharo"
+                }, 
+                {
+                    "transcript": "Tally Jagadhri"
+                }, 
+                {
+                    "transcript": "Khali jagah par hai"
+                }, 
+                {
+                    "transcript": "Khali Jagah bahen"
+                }, 
+                {
+                    "transcript": "Khali jagah par Ek"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596859735patloon": {
+            "alternative": [
+                {
+                    "confidence": 0.89876693, 
+                    "transcript": "Patloon"
+                }, 
+                {
+                    "transcript": "patlun"
+                }, 
+                {
+                    "transcript": "Patlu moon"
+                }, 
+                {
+                    "transcript": "Pat Loon"
+                }, 
+                {
+                    "transcript": "but Loon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596859951gaajar": {
+            "alternative": [
+                {
+                    "confidence": 0.72426587, 
+                    "transcript": "gajar"
+                }, 
+                {
+                    "transcript": "Kajal"
+                }, 
+                {
+                    "transcript": "gadget"
+                }, 
+                {
+                    "transcript": "gorgeous"
+                }, 
+                {
+                    "transcript": "Gaja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596860402ladooaurkheerkisnebanayi": {
+            "alternative": [
+                {
+                    "transcript": "laddu Aarthi Kisne Banai"
+                }, 
+                {
+                    "transcript": "laddu Aarthi kisne banaya"
+                }, 
+                {
+                    "transcript": "laddu aur chut Kisne Banai"
+                }, 
+                {
+                    "transcript": "laddu earthy Kisne Banai"
+                }, 
+                {
+                    "transcript": "laddu Archie Kisne Banai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596860898end": {
+            "alternative": [
+                {
+                    "confidence": 0.1332365, 
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "amt"
+                }, 
+                {
+                    "transcript": "Anth"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596861087baingan": {
+            "alternative": [
+                {
+                    "confidence": 0.43631265, 
+                    "transcript": "bengan"
+                }, 
+                {
+                    "transcript": "Bengali"
+                }, 
+                {
+                    "transcript": "Bengal"
+                }, 
+                {
+                    "transcript": "dengan"
+                }, 
+                {
+                    "transcript": "bangon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596861313khelo": {
+            "alternative": [
+                {
+                    "confidence": 0.19819002, 
+                    "transcript": "hello"
+                }, 
+                {
+                    "transcript": "kilo"
+                }, 
+                {
+                    "transcript": "khelo"
+                }, 
+                {
+                    "transcript": "Kiloo"
+                }, 
+                {
+                    "transcript": "Caillou"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596861530neela": {
+            "alternative": [
+                {
+                    "transcript": "Nila"
+                }, 
+                {
+                    "transcript": "Neela"
+                }, 
+                {
+                    "transcript": "Nela"
+                }, 
+                {
+                    "transcript": "Miller"
+                }, 
+                {
+                    "transcript": "Mela"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596861903goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.6167503, 
+                    "transcript": "Jabong"
+                }, 
+                {
+                    "transcript": "jawab"
+                }, 
+                {
+                    "transcript": "Singam"
+                }, 
+                {
+                    "transcript": "Krishan Janam"
+                }, 
+                {
+                    "transcript": "Singham"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596862777samandhwaniwaleshabdonkomilayein": {
+            "alternative": [
+                {
+                    "confidence": 0.55887765, 
+                    "transcript": "Samantha Navel a subdomain"
+                }, 
+                {
+                    "transcript": "Samantha Navel shabdo Milan"
+                }, 
+                {
+                    "transcript": "Samantha Navel a subdomain line"
+                }, 
+                {
+                    "transcript": "Samantha Nepali shabdo Milan"
+                }, 
+                {
+                    "transcript": "Samantha nivale shabdo Milan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596864428laddoo": {
+            "alternative": [
+                {
+                    "confidence": 0.77993941, 
+                    "transcript": "laddu"
+                }, 
+                {
+                    "transcript": "ladoo"
+                }, 
+                {
+                    "transcript": "Laddoo"
+                }, 
+                {
+                    "transcript": "ladooo"
+                }, 
+                {
+                    "transcript": "lead to"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596864836q3_sound": {
+            "alternative": [
+                {
+                    "transcript": "Haji ko Patloon dash Ye Banai Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji ko Patloon dash guy Banaye Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji ko Patloon dash ke bhane Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji co Patloon dash Ye Banai Baj Aaya July 9"
+                }, 
+                {
+                    "transcript": "Haji ko Patloon dash guy Banai Baj Aaya July 9"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596865520bandar": {
+            "alternative": [
+                {
+                    "transcript": "bandit"
+                }, 
+                {
+                    "transcript": "Banded"
+                }, 
+                {
+                    "transcript": "Bandar"
+                }, 
+                {
+                    "transcript": "Bander"
+                }, 
+                {
+                    "transcript": "Bandhan"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596865732mala": {
+            "alternative": [
+                {
+                    "confidence": 0.75567394, 
+                    "transcript": "Mala"
+                }, 
+                {
+                    "transcript": "Malar"
+                }, 
+                {
+                    "transcript": "Malla"
+                }, 
+                {
+                    "transcript": "Malala"
+                }, 
+                {
+                    "transcript": "ma la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596867393page6": {
+            "alternative": [
+                {
+                    "transcript": "swadist Pujan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadist Poojan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Pujan Piyar Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan Piyar Kiya Gaya Sab dosto ne Milkar Na Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan pvr Kiya Gaya Sab dosto ne Milkar Na Kaya"
+                }, 
+                {
+                    "transcript": "swadisht Poojan Piyar Kiya Gaya Sab dosto ne Milkar naukri"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596867826lakdi": {
+            "alternative": [
+                {
+                    "confidence": 0.93121082, 
+                    "transcript": "Lakdi"
+                }, 
+                {
+                    "transcript": "Lugdi"
+                }, 
+                {
+                    "transcript": "Lak De"
+                }, 
+                {
+                    "transcript": "Lucky Di"
+                }, 
+                {
+                    "transcript": "Lak Di"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596868033guldasta": {
+            "alternative": [
+                {
+                    "confidence": 0.78849226, 
+                    "transcript": "Guldasta"
+                }, 
+                {
+                    "transcript": "Kolkata"
+                }, 
+                {
+                    "transcript": "Google Duster"
+                }, 
+                {
+                    "transcript": "Kuldhara"
+                }, 
+                {
+                    "transcript": "golden star"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596868491q7_sound": {
+            "alternative": [
+                {
+                    "transcript": "chara Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "Jara Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "Tara Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "chahra Se Milo Khara Khara"
+                }, 
+                {
+                    "transcript": "Zara Se Milo Khara Khara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596869359gilahari": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596870304saree": {
+            "alternative": [
+                {
+                    "confidence": 0.59696054, 
+                    "transcript": "saree"
+                }, 
+                {
+                    "transcript": "shayari"
+                }, 
+                {
+                    "transcript": "sari"
+                }, 
+                {
+                    "transcript": "Sadi"
+                }, 
+                {
+                    "transcript": "shadi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596870534crow_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596871321tota": {
+            "alternative": [
+                {
+                    "confidence": 0.4830851, 
+                    "transcript": "Tota"
+                }, 
+                {
+                    "transcript": "Thota"
+                }, 
+                {
+                    "transcript": "Dota"
+                }, 
+                {
+                    "transcript": "Toyota"
+                }, 
+                {
+                    "transcript": "Kota"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596872256hathiaurbhalookishadi": {
+            "alternative": [
+                {
+                    "transcript": "Hathi aur Bhalu ki shadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Hathi aur Bhalu ki shaadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Haathi aur Bhalu ki shadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Haathi aur Bhalu ki shaadi aapka swagat hai"
+                }, 
+                {
+                    "transcript": "Har ki aur Bhalu ki shadi aapka swagat hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596873185letstryagain": {
+            "alternative": [
+                {
+                    "transcript": "Sheeshe koshish kare"
+                }, 
+                {
+                    "transcript": "Kisi koshish kare"
+                }, 
+                {
+                    "transcript": "hishe koshish kare"
+                }, 
+                {
+                    "transcript": "Shishe koshish kare"
+                }, 
+                {
+                    "transcript": "fisher koshish kare"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596874459q5_sound": {
+            "alternative": [
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hatim aur Bhalu Bhalu aur cover"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hatim aur Bhalu Bhalu aur Kawa"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hatim aur Bhalu bhaluka cover"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hathi aur Bhalu Bhalu are cover"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi Hui lomdi aur Bhalu Hathi all only Hathi aur Bhalu Bhalu aur cover"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596874890matar": {
+            "alternative": [
+                {
+                    "transcript": "method"
+                }, 
+                {
+                    "transcript": "mutton"
+                }, 
+                {
+                    "transcript": "matted"
+                }, 
+                {
+                    "transcript": "muttered"
+                }, 
+                {
+                    "transcript": "martyred"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596875965hiran": {
+            "alternative": [
+                {
+                    "confidence": 0.29868668, 
+                    "transcript": "Kiran"
+                }, 
+                {
+                    "transcript": "hidden"
+                }, 
+                {
+                    "transcript": "heroine"
+                }, 
+                {
+                    "transcript": "he ran"
+                }, 
+                {
+                    "transcript": "he Run"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596876377pyaz": {
+            "alternative": [
+                {
+                    "confidence": 0.51826215, 
+                    "transcript": "Pyar"
+                }, 
+                {
+                    "transcript": "kya"
+                }, 
+                {
+                    "transcript": "Pyaar"
+                }, 
+                {
+                    "transcript": "PR"
+                }, 
+                {
+                    "transcript": "TR"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596876950turahi": {
+            "alternative": [
+                {
+                    "transcript": "Dhee"
+                }, 
+                {
+                    "transcript": "today he"
+                }, 
+                {
+                    "transcript": "Tere he"
+                }, 
+                {
+                    "transcript": "so rahi"
+                }, 
+                {
+                    "transcript": "so Rahe"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596878323mtf_lion": {
+            "alternative": [
+                {
+                    "confidence": 0.66113061, 
+                    "transcript": "Shabdkosh Sahi Chithra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chaitra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Shahid Chithra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Shahi Chithra Chameli jungle ka Raja"
+                }, 
+                {
+                    "transcript": "Shabdkosh Shahid Chaitra Chameli jungle ka Raja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596878738poori": {
+            "alternative": [
+                {
+                    "confidence": 0.81967884, 
+                    "transcript": "Puri"
+                }, 
+                {
+                    "transcript": "poori"
+                }, 
+                {
+                    "transcript": "Pune"
+                }, 
+                {
+                    "transcript": "Suri"
+                }, 
+                {
+                    "transcript": "sorry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596879210beans": {
+            "alternative": [
+                {
+                    "confidence": 0.48965123, 
+                    "transcript": "teens"
+                }, 
+                {
+                    "transcript": "themes"
+                }, 
+                {
+                    "transcript": "teams"
+                }, 
+                {
+                    "transcript": "beans"
+                }, 
+                {
+                    "transcript": "pins"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596879585laal": {
+            "alternative": [
+                {
+                    "confidence": 0.50375831, 
+                    "transcript": "Lal"
+                }, 
+                {
+                    "transcript": "lol"
+                }, 
+                {
+                    "transcript": "Laal"
+                }, 
+                {
+                    "transcript": "learn"
+                }, 
+                {
+                    "transcript": "lion"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596879775page5": {
+            "alternative": [
+                {
+                    "transcript": "jungle ki rajdhani laddu on cheap and a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "Jangal Ki Rajdhani live to watch IBN a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "jungle ki rajdhani laddu on a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "jungle ki rajdhani live to watch IBN a lonely may fool Banaya"
+                }, 
+                {
+                    "transcript": "Jangal Ki Rajdhani live to watch even a lonely may fool Banaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596881747parrot_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596882664kissekiskishaadihui": {
+            "alternative": [
+                {
+                    "confidence": 0.86637723, 
+                    "transcript": "Kis Kis ki shaadi Hui"
+                }, 
+                {
+                    "transcript": "Kis Kis Ki Shaadi Hai"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shadi Hui"
+                }, 
+                {
+                    "transcript": "Kis Kis ki shaadi"
+                }, 
+                {
+                    "transcript": "kis kiss ki shadi Hui"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596882943mtf_bear": {
+            "alternative": [
+                {
+                    "confidence": 0.54447234, 
+                    "transcript": "Shabdkosh Sahi Chithra Chameli Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chaitra Chameli Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chithra chamale Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chithra chamaila Bhalu"
+                }, 
+                {
+                    "transcript": "Shabdkosh Sahi Chithra Chameli Balu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596883958diya": {
+            "alternative": [
+                {
+                    "confidence": 0.66707557, 
+                    "transcript": "Diya"
+                }, 
+                {
+                    "transcript": "Dia"
+                }, 
+                {
+                    "transcript": "Dr"
+                }, 
+                {
+                    "transcript": "Jiya"
+                }, 
+                {
+                    "transcript": "DIY"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596884160lomdi": {
+            "alternative": [
+                {
+                    "transcript": "lonely"
+                }, 
+                {
+                    "transcript": "lomdi"
+                }, 
+                {
+                    "transcript": "nobody"
+                }, 
+                {
+                    "transcript": "comedy"
+                }, 
+                {
+                    "transcript": "loma De"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596884369kauwa": {
+            "alternative": [
+                {
+                    "confidence": 0.38757145, 
+                    "transcript": "Kauwa"
+                }, 
+                {
+                    "transcript": "cover"
+                }, 
+                {
+                    "transcript": "CA va"
+                }, 
+                {
+                    "transcript": "Kawa"
+                }, 
+                {
+                    "transcript": "Goa"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596884593page2": {
+            "alternative": [
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe hai Sabko Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi sabjiyo Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nhi go Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi go Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ki shadi pe nahi sabjiyo Patlu"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi sabjiyo eatlo"
+                }, 
+                {
+                    "transcript": "Sapne Bhalu ko shadi pe nahi sabjiyo uppi 2"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596884809page1": {
+            "alternative": [
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto se bana rahe hai"
+                }, 
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto Salman aa rahe hai"
+                }, 
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto Sama Na Rahe Hai"
+                }, 
+                {
+                    "transcript": "Aaj Raat Aur Bhalu Ki Shaadi Hai Jangal Me Sabhi Dosto se bana rahe hai"
+                }, 
+                {
+                    "transcript": "aaj raat ko Bhalu Ki Shaadi Hai Jungle Mein Sabhi Dosto se bana rahe hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596885268deer_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596885501aag": {
+            "alternative": [
+                {
+                    "confidence": 0.18109939, 
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "Khan"
+                }, 
+                {
+                    "transcript": "Hulk"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596885965mirchi": {
+            "alternative": [
+                {
+                    "confidence": 0.94888806, 
+                    "transcript": "Mirchi"
+                }, 
+                {
+                    "transcript": "mirch"
+                }, 
+                {
+                    "transcript": "mirc"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596886434q8_sound": {
+            "alternative": [
+                {
+                    "confidence": 0.54501683, 
+                    "transcript": "Meri Milo Meri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri Milo Teri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri Billo Teri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri mil O Meri Chod Dala"
+                }, 
+                {
+                    "transcript": "Meri Milo Meri Chod Bala"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596886708khargosh": {
+            "alternative": [
+                {
+                    "confidence": 0.88655889, 
+                    "transcript": "Khargosh"
+                }, 
+                {
+                    "transcript": "head coach"
+                }, 
+                {
+                    "transcript": "Kharku"
+                }, 
+                {
+                    "transcript": "Khargone"
+                }, 
+                {
+                    "transcript": "Ken Ghosh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596886984peela": {
+            "alternative": [
+                {
+                    "confidence": 0.24966094, 
+                    "transcript": "Pila"
+                }, 
+                {
+                    "transcript": "Tila"
+                }, 
+                {
+                    "transcript": "Taylor"
+                }, 
+                {
+                    "transcript": "peeler"
+                }, 
+                {
+                    "transcript": "Billa"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596887264garud": {
+            "alternative": [
+                {
+                    "confidence": 0.14753351, 
+                    "transcript": "karo"
+                }, 
+                {
+                    "transcript": "Karu"
+                }, 
+                {
+                    "transcript": "caro"
+                }, 
+                {
+                    "transcript": "Tarot"
+                }, 
+                {
+                    "transcript": "Karur"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596887482haraa": {
+            "alternative": [
+                {
+                    "transcript": "header"
+                }, 
+                {
+                    "transcript": "Hira"
+                }, 
+                {
+                    "transcript": "Haider"
+                }, 
+                {
+                    "transcript": "hi da"
+                }, 
+                {
+                    "transcript": "hello"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596888574dhol": {
+            "alternative": [
+                {
+                    "confidence": 0.44386017, 
+                    "transcript": "Dhol"
+                }, 
+                {
+                    "transcript": "Dol"
+                }, 
+                {
+                    "transcript": "TOI"
+                }, 
+                {
+                    "transcript": "Dole"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596888962page3": {
+            "alternative": [
+                {
+                    "transcript": "Sunny Deol bachaya"
+                }, 
+                {
+                    "transcript": "Tell Me Dole bachaya"
+                }, 
+                {
+                    "transcript": "tell me Dol bachaya"
+                }, 
+                {
+                    "transcript": "Dhol Baja Yaadein"
+                }, 
+                {
+                    "transcript": "Sunny Deol bachaya To Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596889199rabbit_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596889619bagh": {
+            "alternative": [
+                {
+                    "transcript": "she's"
+                }, 
+                {
+                    "transcript": "she is"
+                }, 
+                {
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "Shir"
+                }, 
+                {
+                    "transcript": "Heer"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596889876bhalu_audio": {
+            "alternative": [
+                {
+                    "confidence": 0.28337377, 
+                    "transcript": "Bhalu"
+                }, 
+                {
+                    "transcript": "Balu"
+                }, 
+                {
+                    "transcript": "bhaloo"
+                }, 
+                {
+                    "transcript": "vaalu"
+                }, 
+                {
+                    "transcript": "hello"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596890023monkey_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596890303fire_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596890526tiger_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596890757olaga_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596890992fox_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596891218squirrel_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69827/assets/1466596891462drum_sound": []
+    }, 
+    "owner": "216"
+}

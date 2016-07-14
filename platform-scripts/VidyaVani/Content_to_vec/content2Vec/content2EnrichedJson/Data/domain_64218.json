@@ -1,0 +1,56 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Please enter description", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_64218", 
+    "imageTags": [
+        "popuptint", 
+        "btn ok highlights", 
+        "endscreen", 
+        "icon home", 
+        "icon submit", 
+        "ekstep placeholder blue eye", 
+        "stop", 
+        "pagesel bg", 
+        "icon hint", 
+        "retrybg", 
+        "record", 
+        "blacktint", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "icon next", 
+        "icon previous", 
+        "icon sound", 
+        "mic", 
+        "literacy"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 3, 
+        "ogg": 0, 
+        "png": 20
+    }, 
+    "mp3Length": 5.840045351473923, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64218/assets/dog-barking_1454410236812": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64218/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_64218/assets/retry_1460636610607": []
+    }, 
+    "owner": "251"
+}

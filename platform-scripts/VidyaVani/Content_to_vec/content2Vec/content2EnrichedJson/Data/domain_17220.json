@@ -1,0 +1,69 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test", 
+    "developer": "EkStep", 
+    "identifier": "domain_17220", 
+    "imageTags": [
+        "school", 
+        "greenbox", 
+        "orchard", 
+        "story image", 
+        "icon home", 
+        "icon submit", 
+        "ekstep placeholder blue eye", 
+        "yellowbox", 
+        "page sel bg", 
+        "icon hint", 
+        "speech bubble", 
+        "kids school", 
+        "icon reload", 
+        "background", 
+        "icon next", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 3, 
+        "mp3": 3, 
+        "ogg": 0, 
+        "png": 16
+    }, 
+    "mp3Length": 15.572947845804988, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17220/assets/1454012000586story%203": {
+            "alternative": [
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam pagariya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam bagadiya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam pagaria Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Paani Mein Hum Bhi khelenge garam garam pagariya Jayenge"
+                }, 
+                {
+                    "transcript": "Barish Ka Mausam aaya hai Khesari Kushal Aaya Hai Pani Mein Hum Bhi khelenge garam garam bagadia Jayenge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17220/assets/1455036367860Squirrel_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17220/assets/bee_1454327434417": []
+    }, 
+    "owner": "EkStep"
+}

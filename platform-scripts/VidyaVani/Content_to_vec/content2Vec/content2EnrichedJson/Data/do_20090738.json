@@ -1,0 +1,55 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test content", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20090738", 
+    "imageTags": [
+        "popuptint", 
+        "btn ok highlights", 
+        "endscreen", 
+        "icon reload", 
+        "record", 
+        "icon home", 
+        "mic", 
+        "stop", 
+        "pagesel bg", 
+        "icon hint", 
+        "retrybg", 
+        "motaraja", 
+        "blacktint", 
+        "goodjobbg", 
+        "stick", 
+        "background", 
+        "icon next", 
+        "literacy", 
+        "icon sound", 
+        "icon submit", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 2, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 20
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20090738/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20090738/assets/retry_1460636610607": []
+    }, 
+    "owner": "Arka Maini"
+}

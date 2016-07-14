@@ -1,0 +1,1539 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_hathibhaluenglish", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20075561", 
+    "imageTags": [
+        "endscreen", 
+        "yellowbox", 
+        "greenbox", 
+        "olaga", 
+        "crow", 
+        "image", 
+        "noexpression", 
+        "deer", 
+        "yellow", 
+        "sad", 
+        "lion", 
+        "carrot", 
+        "lakdi", 
+        "pagesel bg", 
+        "retrybg", 
+        "yes", 
+        "trumpet", 
+        "blue", 
+        "saree", 
+        "enjoyingfood", 
+        "monkey", 
+        "no", 
+        "pant", 
+        "fox", 
+        "beans", 
+        "frog", 
+        "activitybg", 
+        "bluebox", 
+        "lamp", 
+        "teacherpopup", 
+        "icon reload", 
+        "elephant", 
+        "goodjobbg", 
+        "puri", 
+        "bored", 
+        "red", 
+        "popuptint", 
+        "eagle", 
+        "squirrel", 
+        "fire", 
+        "icon home", 
+        "peas", 
+        "bear", 
+        "tiger", 
+        "lampsimage", 
+        "retry", 
+        "brinjal", 
+        "rabbit", 
+        "icon next", 
+        "parrotimage", 
+        "icon sound", 
+        "teacher", 
+        "icon previous", 
+        "tomato", 
+        "chilli", 
+        "drum", 
+        "parrot", 
+        "onion", 
+        "potato", 
+        "confirmbg", 
+        "garlandl", 
+        "grey", 
+        "flowersr", 
+        "playaudio", 
+        "flowersl", 
+        "pantimage", 
+        "green", 
+        "garlandr", 
+        "deepa", 
+        "playing", 
+        "laddu"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 80, 
+        "ogg": 0, 
+        "png": 92
+    }, 
+    "mp3Length": 404.71934240362805, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029874201blue": {
+            "alternative": [
+                {
+                    "confidence": 0.84824282, 
+                    "transcript": "blue"
+                }, 
+                {
+                    "transcript": "Blu"
+                }, 
+                {
+                    "transcript": "bleu"
+                }, 
+                {
+                    "transcript": "glue"
+                }, 
+                {
+                    "transcript": "Glu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029874395fitb_q4": {
+            "alternative": [
+                {
+                    "transcript": "who made the dude and the kid Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the ladoos and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the dude and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the ladoos and the keys Fox Jungle friends jungle king eagle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029874634squirrel_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029874823pant": {
+            "alternative": [
+                {
+                    "confidence": 0.8535133, 
+                    "transcript": "pant"
+                }, 
+                {
+                    "transcript": "paint"
+                }, 
+                {
+                    "transcript": "pent"
+                }, 
+                {
+                    "transcript": "spent"
+                }, 
+                {
+                    "transcript": "bant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029875449mtf_bear": {
+            "alternative": [
+                {
+                    "confidence": 0.85153872, 
+                    "transcript": "match the word to the picture bed"
+                }, 
+                {
+                    "transcript": "match the word to the picture Bay"
+                }, 
+                {
+                    "transcript": "match the word to the picture there"
+                }, 
+                {
+                    "transcript": "match the word to the picture"
+                }, 
+                {
+                    "transcript": "match the word to the picture that"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029876828eagle": {
+            "alternative": [
+                {
+                    "confidence": 0.82198918, 
+                    "transcript": "eagle"
+                }, 
+                {
+                    "transcript": "Eagles"
+                }, 
+                {
+                    "transcript": "egal"
+                }, 
+                {
+                    "transcript": "Eega"
+                }, 
+                {
+                    "transcript": "eager"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029877361peas": {
+            "alternative": [
+                {
+                    "confidence": 0.19327612, 
+                    "transcript": "peace"
+                }, 
+                {
+                    "transcript": "peas"
+                }, 
+                {
+                    "transcript": "tees"
+                }, 
+                {
+                    "transcript": "fees"
+                }, 
+                {
+                    "transcript": "please"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029877823monkey": {
+            "alternative": [
+                {
+                    "confidence": 0.86866885, 
+                    "transcript": "monkey"
+                }, 
+                {
+                    "transcript": "monky"
+                }, 
+                {
+                    "transcript": "monkeys"
+                }, 
+                {
+                    "transcript": "funky"
+                }, 
+                {
+                    "transcript": "Manki"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029878754legs": {
+            "alternative": [
+                {
+                    "confidence": 0.80375206, 
+                    "transcript": "legs"
+                }, 
+                {
+                    "transcript": "leg"
+                }, 
+                {
+                    "transcript": "lags"
+                }, 
+                {
+                    "transcript": "Zedge"
+                }, 
+                {
+                    "transcript": "leagues"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029880264poori": {
+            "alternative": [
+                {
+                    "confidence": 0.70415807, 
+                    "transcript": "Puri"
+                }, 
+                {
+                    "transcript": "poori"
+                }, 
+                {
+                    "transcript": "kudi"
+                }, 
+                {
+                    "transcript": "2D"
+                }, 
+                {
+                    "transcript": "Pudi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029880647page-4": {
+            "alternative": [
+                {
+                    "confidence": 0.87574589, 
+                    "transcript": "the crow and the parrot little Lambs"
+                }, 
+                {
+                    "transcript": "the crow and the parrot little and"
+                }, 
+                {
+                    "transcript": "the crow and the pirate little Lambs"
+                }, 
+                {
+                    "transcript": "the crow and the parrot let the Lambs"
+                }, 
+                {
+                    "transcript": "the crow and the parrot little lamb"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029880865page-1": {
+            "alternative": [
+                {
+                    "confidence": 0.90172273, 
+                    "transcript": "today is the wedding of the elephant and the Bear the Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear their Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the bear bear Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear day Jungle friends are celebrating"
+                }, 
+                {
+                    "transcript": "today is the wedding of the elephant and the Bear dead Jungle friends are celebrating"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029881276lamp": {
+            "alternative": [
+                {
+                    "confidence": 0.83781147, 
+                    "transcript": "lamp"
+                }, 
+                {
+                    "transcript": "length"
+                }, 
+                {
+                    "transcript": "lump"
+                }, 
+                {
+                    "transcript": "lund"
+                }, 
+                {
+                    "transcript": "clamp"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029881475tomato": {
+            "alternative": [
+                {
+                    "confidence": 0.8947103, 
+                    "transcript": "tomato"
+                }, 
+                {
+                    "transcript": "tamato"
+                }, 
+                {
+                    "transcript": "Zomato"
+                }, 
+                {
+                    "transcript": "Tamatar"
+                }, 
+                {
+                    "transcript": "Himachal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029881693deer_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029881891elephant-weds-bear": {
+            "alternative": [
+                {
+                    "confidence": 0.85487151, 
+                    "transcript": "elephant white bear a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant with Bear a story about the wedding day of the elephant and the Bear"
+                }, 
+                {
+                    "transcript": "elephant white bear a story about the wedding day of the elephant and the bears"
+                }, 
+                {
+                    "transcript": "elephant with Bear a story about the wedding day of the elephant and the bears"
+                }, 
+                {
+                    "transcript": "elephant with pair a story about the wedding day of the elephant and the Bear"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029882099rhyming1": {
+            "alternative": [
+                {
+                    "transcript": "bear where most beach"
+                }, 
+                {
+                    "transcript": "be there most beach"
+                }, 
+                {
+                    "transcript": "beer where most beach"
+                }, 
+                {
+                    "transcript": "bare bare mose bole beat"
+                }, 
+                {
+                    "transcript": "beer where Moses beat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029882345rhyming2": {
+            "alternative": [
+                {
+                    "confidence": 0.79495651, 
+                    "transcript": "drum pain when come April"
+                }, 
+                {
+                    "transcript": "drum same when come April"
+                }, 
+                {
+                    "transcript": "drum scene when come April"
+                }, 
+                {
+                    "transcript": "drum same band come April"
+                }, 
+                {
+                    "transcript": "drum same man come April"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029882801drums": {
+            "alternative": [
+                {
+                    "confidence": 0.68960965, 
+                    "transcript": "drums"
+                }, 
+                {
+                    "transcript": "drum"
+                }, 
+                {
+                    "transcript": "drams"
+                }, 
+                {
+                    "transcript": "drunk"
+                }, 
+                {
+                    "transcript": "drummer"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029884183laddoo": {
+            "alternative": [
+                {
+                    "confidence": 0.69942379, 
+                    "transcript": "laddu"
+                }, 
+                {
+                    "transcript": "ladoo"
+                }, 
+                {
+                    "transcript": "ladooo"
+                }, 
+                {
+                    "transcript": "Laddoo"
+                }, 
+                {
+                    "transcript": "Eenadu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029884348deer": {
+            "alternative": [
+                {
+                    "confidence": 0.3492049, 
+                    "transcript": "dish"
+                }, 
+                {
+                    "transcript": "diras"
+                }, 
+                {
+                    "transcript": "dearest"
+                }, 
+                {
+                    "transcript": "garish"
+                }, 
+                {
+                    "transcript": "Girish"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029884807bear": {
+            "alternative": [
+                {
+                    "confidence": 0.18127398, 
+                    "transcript": "bears"
+                }, 
+                {
+                    "transcript": "base"
+                }, 
+                {
+                    "transcript": "bed"
+                }, 
+                {
+                    "transcript": "bear"
+                }, 
+                {
+                    "transcript": "besh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029885006mtf_yummy": {
+            "alternative": [
+                {
+                    "confidence": 0.88167959, 
+                    "transcript": "match the word to the picture yummy"
+                }, 
+                {
+                    "transcript": "match the word to the picture yeah me"
+                }, 
+                {
+                    "transcript": "match the word to the picture young me"
+                }, 
+                {
+                    "transcript": "match the word to the picture Yami"
+                }, 
+                {
+                    "transcript": "matched word to the picture yummy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029885212fitb_q3": {
+            "alternative": [
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and f***** elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was great bear and Fox elephant and f***** elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and Fox elephant and the Bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and f***** elephant and the Bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was great bear and Fox elephant and Fox elephant and the Bear and crow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029886323yummy": {
+            "alternative": [
+                {
+                    "confidence": 0.65899056, 
+                    "transcript": "yummy"
+                }, 
+                {
+                    "transcript": "Yami"
+                }, 
+                {
+                    "transcript": "yeah me"
+                }, 
+                {
+                    "transcript": "EMI"
+                }, 
+                {
+                    "transcript": "Army"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029887167fitb_q2": {
+            "alternative": [
+                {
+                    "confidence": 0.87003177, 
+                    "transcript": "the fox play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the first play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the f***** play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the fuct play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the forks play the flute trumpet guitar drum"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029887368garland": {
+            "alternative": [
+                {
+                    "confidence": 0.89234048, 
+                    "transcript": "garland"
+                }, 
+                {
+                    "transcript": "gardaland"
+                }, 
+                {
+                    "transcript": "girl and"
+                }, 
+                {
+                    "transcript": "garand"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029887548page-6": {
+            "alternative": [
+                {
+                    "transcript": "yummy food was made all the friends enjoy the meal"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoy the mail"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoyed the mail"
+                }, 
+                {
+                    "transcript": "yummy food was made all the friends enjoyed Aamir"
+                }, 
+                {
+                    "transcript": "yummy food with made all the friends enjoy the meal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029888623brinjal": {
+            "alternative": [
+                {
+                    "confidence": 0.89898586, 
+                    "transcript": "brinjal"
+                }, 
+                {
+                    "transcript": "brinjol"
+                }, 
+                {
+                    "transcript": "brinzal"
+                }, 
+                {
+                    "transcript": "bring joy"
+                }, 
+                {
+                    "transcript": "bring John"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029888833yellow": {
+            "alternative": [
+                {
+                    "confidence": 0.84403491, 
+                    "transcript": "yellow"
+                }, 
+                {
+                    "transcript": "Yello"
+                }, 
+                {
+                    "transcript": "hello"
+                }, 
+                {
+                    "transcript": "Xolo"
+                }, 
+                {
+                    "transcript": "ye lo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029889255listenletter": {
+            "alternative": [
+                {
+                    "transcript": "listen to the audio and take the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and pick the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and get the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and the correct letter"
+                }, 
+                {
+                    "transcript": "listen to the audio and that the correct letter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029889675squirrel": {
+            "alternative": [
+                {
+                    "confidence": 0.89606577, 
+                    "transcript": "squirrel"
+                }, 
+                {
+                    "transcript": "s********"
+                }, 
+                {
+                    "transcript": "squirrels"
+                }, 
+                {
+                    "transcript": "School"
+                }, 
+                {
+                    "transcript": "squiggle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029890102mtf_question": {
+            "alternative": [
+                {
+                    "confidence": 0.87904602, 
+                    "transcript": "match the picture to the group"
+                }, 
+                {
+                    "transcript": "match the pictures to the group"
+                }, 
+                {
+                    "transcript": "match the picture to the Guru"
+                }, 
+                {
+                    "transcript": "match the picture to the brew"
+                }, 
+                {
+                    "transcript": "match the pictures to the Guru"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029891045fox": {
+            "alternative": [
+                {
+                    "transcript": "songs"
+                }, 
+                {
+                    "transcript": "song"
+                }, 
+                {
+                    "transcript": "socks"
+                }, 
+                {
+                    "transcript": "Sox"
+                }, 
+                {
+                    "transcript": "sucks"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029891274olaga_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029891500onion": {
+            "alternative": [
+                {
+                    "confidence": 0.83435833, 
+                    "transcript": "onion"
+                }, 
+                {
+                    "transcript": "Anniyan"
+                }, 
+                {
+                    "transcript": "onions"
+                }, 
+                {
+                    "transcript": "and Ian"
+                }, 
+                {
+                    "transcript": "on Ian"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029891743learn": {
+            "alternative": [
+                {
+                    "confidence": 0.3018688, 
+                    "transcript": "lund"
+                }, 
+                {
+                    "transcript": "learn"
+                }, 
+                {
+                    "transcript": "land"
+                }, 
+                {
+                    "transcript": "lond"
+                }, 
+                {
+                    "transcript": "learnt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029892896fitb_question4": {
+            "alternative": [
+                {
+                    "confidence": 0.78124017, 
+                    "transcript": "who made the dude and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the dude and the kid Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the ladoos and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the Dudes and the keys Fox Jungle Friend jungle king eagle"
+                }, 
+                {
+                    "transcript": "who made the Dudes and the kid Fox Jungle Friend jungle king eagle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029893138fitb_question2": {
+            "alternative": [
+                {
+                    "confidence": 0.88286495, 
+                    "transcript": "the fox play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the forks play the flute trumpet guitar drum"
+                }, 
+                {
+                    "transcript": "the fox play the flute trumpet guitars drum"
+                }, 
+                {
+                    "transcript": "the fox play the flute trumpet guitar drums"
+                }, 
+                {
+                    "transcript": "the fox play the flute trumpet Gitar drum"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029893392fitb_question3": {
+            "alternative": [
+                {
+                    "transcript": "whose wedding was it there and Fox elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it there and f**** elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it there and forks elephant and fork elephant and bear bear and crow"
+                }, 
+                {
+                    "transcript": "whose wedding was it their and Fox elephant and f*** elephant and bear bear and crow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029894082fitb_question1": {
+            "alternative": [
+                {
+                    "transcript": "the barrowed shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the barrowed a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the bay Road shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the barrowed shirt pant saree change"
+                }, 
+                {
+                    "transcript": "the barrowed a shirt pant saree change"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029894980pants": {
+            "alternative": [
+                {
+                    "confidence": 0.58122551, 
+                    "transcript": "pant"
+                }, 
+                {
+                    "transcript": "Bank"
+                }, 
+                {
+                    "transcript": "pants"
+                }, 
+                {
+                    "transcript": "thanks"
+                }, 
+                {
+                    "transcript": "tank"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029895212drum_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029895432choose-the-correct-word": {
+            "alternative": [
+                {
+                    "confidence": 0.95995635, 
+                    "transcript": "choose the correct word"
+                }, 
+                {
+                    "transcript": "choose the correct words"
+                }, 
+                {
+                    "transcript": "choose the correct verb"
+                }, 
+                {
+                    "transcript": "choose the correct world"
+                }, 
+                {
+                    "transcript": "show the correct word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029895644tap-on-the-letter-p": {
+            "alternative": [
+                {
+                    "transcript": "tap on the letter T"
+                }, 
+                {
+                    "transcript": "tap on the letter P"
+                }, 
+                {
+                    "transcript": "Tekken the letter T"
+                }, 
+                {
+                    "transcript": "top on the letter T"
+                }, 
+                {
+                    "transcript": "Tekken The letter P"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029896012chilli": {
+            "alternative": [
+                {
+                    "confidence": 0.19750328, 
+                    "transcript": "Chile"
+                }, 
+                {
+                    "transcript": "silly"
+                }, 
+                {
+                    "transcript": "Chilli"
+                }, 
+                {
+                    "transcript": "chili"
+                }, 
+                {
+                    "transcript": "chilly"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029896695drum": {
+            "alternative": [
+                {
+                    "confidence": 0.86924833, 
+                    "transcript": "drum"
+                }, 
+                {
+                    "transcript": "drums"
+                }, 
+                {
+                    "transcript": "drug"
+                }, 
+                {
+                    "transcript": "gram"
+                }, 
+                {
+                    "transcript": "DRAM"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029896916carrot": {
+            "alternative": [
+                {
+                    "confidence": 0.69654107, 
+                    "transcript": "carrot"
+                }, 
+                {
+                    "transcript": "carat"
+                }, 
+                {
+                    "transcript": "Karat"
+                }, 
+                {
+                    "transcript": "caret"
+                }, 
+                {
+                    "transcript": "cat it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029897371pen": {
+            "alternative": [
+                {
+                    "confidence": 0.53467381, 
+                    "transcript": "pen"
+                }, 
+                {
+                    "transcript": "Penn"
+                }, 
+                {
+                    "transcript": "Spain"
+                }, 
+                {
+                    "transcript": "pain"
+                }, 
+                {
+                    "transcript": "send"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029897584goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.90795219, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "Govt jobs"
+                }, 
+                {
+                    "transcript": "good joke"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029898072rabbit_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029898280page-3": {
+            "alternative": [
+                {
+                    "transcript": "The Eagle played the drum the fox play the trumpet"
+                }, 
+                {
+                    "transcript": "legal played the drum the fox play the trumpet"
+                }, 
+                {
+                    "transcript": "The Eagle played the drum the forks play The trumpet"
+                }, 
+                {
+                    "transcript": "legal played the drum the forks play The trumpet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029898473crow_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029899653rabbit": {
+            "alternative": [
+                {
+                    "confidence": 0.91799641, 
+                    "transcript": "rabbit"
+                }, 
+                {
+                    "transcript": "Radhe"
+                }, 
+                {
+                    "transcript": "Rajat"
+                }, 
+                {
+                    "transcript": "rebate"
+                }, 
+                {
+                    "transcript": "read it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029899872red": {
+            "alternative": [
+                {
+                    "transcript": "zend"
+                }, 
+                {
+                    "transcript": "rent"
+                }, 
+                {
+                    "transcript": "send"
+                }, 
+                {
+                    "transcript": "went"
+                }, 
+                {
+                    "transcript": "lent"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029900313bouquet": {
+            "alternative": [
+                {
+                    "confidence": 0.27743059, 
+                    "transcript": "flowers"
+                }, 
+                {
+                    "transcript": "small"
+                }, 
+                {
+                    "transcript": "flower"
+                }, 
+                {
+                    "transcript": "lol"
+                }, 
+                {
+                    "transcript": "Salal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029901580rhymingquestion": {
+            "alternative": [
+                {
+                    "transcript": "picked a word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pick a word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pick the word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pics of word that rhymes with the given word the last sound of rhyming words are the same"
+                }, 
+                {
+                    "transcript": "pink word that rhymes with the given word the last sound of rhyming words are the same"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029904502fire_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029905580page-5": {
+            "alternative": [
+                {
+                    "confidence": 0.73364991, 
+                    "transcript": "the jungle king Mela Do Din Ki the fox make poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the fox make puri curry"
+                }, 
+                {
+                    "transcript": "the jungle game Mela Do Din Ki the fox make poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the first mate poori curry"
+                }, 
+                {
+                    "transcript": "the jungle king Mela Do Din Ki the first mate Puri curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029905999fitb_q1": {
+            "alternative": [
+                {
+                    "transcript": "the Bebo shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the bed for a shirt pant saree chain"
+                }, 
+                {
+                    "transcript": "the Bebo shirt pant saree change"
+                }, 
+                {
+                    "transcript": "the bed for a shirt pant saree change"
+                }, 
+                {
+                    "transcript": "the Bebo shirt pant sari chain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029906226tiger": {
+            "alternative": [
+                {
+                    "confidence": 0.77708089, 
+                    "transcript": "lion"
+                }, 
+                {
+                    "transcript": "lien"
+                }, 
+                {
+                    "transcript": "lyon"
+                }, 
+                {
+                    "transcript": "lione"
+                }, 
+                {
+                    "transcript": "line"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029907189mtf_lion": {
+            "alternative": [
+                {
+                    "confidence": 0.91310722, 
+                    "transcript": "match the word to the picture Jungle King"
+                }, 
+                {
+                    "transcript": "match the word to the picture Jungle Kings"
+                }, 
+                {
+                    "transcript": "match the word to the picture Jungle k***"
+                }, 
+                {
+                    "transcript": "match two word to the picture Jungle King"
+                }, 
+                {
+                    "transcript": "match the word 2 the picture Jungle King"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029907638parrot": {
+            "alternative": [
+                {
+                    "confidence": 0.61822844, 
+                    "transcript": "parrot"
+                }, 
+                {
+                    "transcript": "pirate"
+                }, 
+                {
+                    "transcript": "Sarath"
+                }, 
+                {
+                    "transcript": "sharet"
+                }, 
+                {
+                    "transcript": "shareit"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029909316fire": {
+            "alternative": [
+                {
+                    "confidence": 0.90606207, 
+                    "transcript": "fire"
+                }, 
+                {
+                    "transcript": "Phire"
+                }, 
+                {
+                    "transcript": "Faya"
+                }, 
+                {
+                    "transcript": "Payal"
+                }, 
+                {
+                    "transcript": "fire eye"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029909733fox_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029910575letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.72767335, 
+                    "transcript": "let's try again"
+                }, 
+                {
+                    "transcript": "lets try again"
+                }, 
+                {
+                    "transcript": "let try again"
+                }, 
+                {
+                    "transcript": "let's try again a"
+                }, 
+                {
+                    "transcript": "let try again a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029910956beans": {
+            "alternative": [
+                {
+                    "confidence": 0.25377843, 
+                    "transcript": "beans"
+                }, 
+                {
+                    "transcript": "been"
+                }, 
+                {
+                    "transcript": "Bing"
+                }, 
+                {
+                    "transcript": "Bean"
+                }, 
+                {
+                    "transcript": "Bheem"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029911137trumpet": {
+            "alternative": [
+                {
+                    "confidence": 0.95498723, 
+                    "transcript": "trumpet"
+                }, 
+                {
+                    "transcript": "Trump it"
+                }, 
+                {
+                    "transcript": "trumpets"
+                }, 
+                {
+                    "transcript": "drum pad"
+                }, 
+                {
+                    "transcript": "Chromepet"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029911764tiger_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029912005page-2": {
+            "alternative": [
+                {
+                    "confidence": 0.34718916, 
+                    "transcript": "dabeerpura saree the elephant man"
+                }, 
+                {
+                    "transcript": "Dabirpura saree the elephant man"
+                }, 
+                {
+                    "transcript": "dabeerpura saree different women"
+                }, 
+                {
+                    "transcript": "Dabirpura saree different women"
+                }, 
+                {
+                    "transcript": "dabeerpura saree different versions"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029912151green": {
+            "alternative": [
+                {
+                    "confidence": 0.89231324, 
+                    "transcript": "green"
+                }, 
+                {
+                    "transcript": "Greene"
+                }, 
+                {
+                    "transcript": "grill"
+                }, 
+                {
+                    "transcript": "gril"
+                }, 
+                {
+                    "transcript": "dream"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029912865potatoes": {
+            "alternative": [
+                {
+                    "confidence": 0.53421479, 
+                    "transcript": "TuTiTu"
+                }, 
+                {
+                    "transcript": "potato"
+                }, 
+                {
+                    "transcript": "putty tool"
+                }, 
+                {
+                    "transcript": "Tu Ti Tu"
+                }, 
+                {
+                    "transcript": "potatoes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029913058parrot_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029913285practice": {
+            "alternative": [
+                {
+                    "transcript": "YTD"
+                }, 
+                {
+                    "transcript": "Tractors"
+                }, 
+                {
+                    "transcript": "shattered"
+                }, 
+                {
+                    "transcript": "tractor"
+                }, 
+                {
+                    "transcript": "Shatranj"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029913468monkey_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029913912jungle-king": {
+            "alternative": [
+                {
+                    "confidence": 0.92705977, 
+                    "transcript": "jungle king"
+                }, 
+                {
+                    "transcript": "Jungle Kings"
+                }, 
+                {
+                    "transcript": "Jungle k***"
+                }, 
+                {
+                    "transcript": "Jangal Ki"
+                }, 
+                {
+                    "transcript": "Jangal k***"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029914304crow": {
+            "alternative": [
+                {
+                    "transcript": "true"
+                }, 
+                {
+                    "transcript": "crow"
+                }, 
+                {
+                    "transcript": "crew"
+                }, 
+                {
+                    "transcript": "screw"
+                }, 
+                {
+                    "transcript": "crore"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029914951wood": {
+            "alternative": [
+                {
+                    "confidence": 0.32182056, 
+                    "transcript": "bullet"
+                }, 
+                {
+                    "transcript": "VIT"
+                }, 
+                {
+                    "transcript": "good"
+                }, 
+                {
+                    "transcript": "wood"
+                }, 
+                {
+                    "transcript": "bulat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029915199tickoptions1": {
+            "alternative": [
+                {
+                    "confidence": 0.29249904, 
+                    "transcript": "kya pata na"
+                }, 
+                {
+                    "transcript": "Ya Paar star la"
+                }, 
+                {
+                    "transcript": "Ya Paar star na"
+                }, 
+                {
+                    "transcript": "Ya Paar star now"
+                }, 
+                {
+                    "transcript": "Ja par Star na"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20075561/assets/1467029915373tickoptions2": {
+            "alternative": [
+                {
+                    "confidence": 0.84679341, 
+                    "transcript": "lamp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "clamp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lampp trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lampe trumpet played celebrating"
+                }, 
+                {
+                    "transcript": "lamp trumpette played celebrating"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "Debasis Singh"
+}

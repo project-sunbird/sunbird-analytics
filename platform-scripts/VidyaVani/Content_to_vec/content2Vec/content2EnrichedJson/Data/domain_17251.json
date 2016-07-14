@@ -1,0 +1,84 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Publishing a story for Apr6 E2E testing. ", 
+    "developer": "EkStep", 
+    "identifier": "domain_17251", 
+    "imageTags": [
+        "greenbox", 
+        "orchard", 
+        "story image", 
+        "icon home", 
+        "icon submit", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "icon reload", 
+        "background", 
+        "icon next", 
+        "end screen", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 17.300702947845803, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17251/assets/1454011986688Explore": {
+            "alternative": [
+                {
+                    "confidence": 0.82704556, 
+                    "transcript": "explore"
+                }, 
+                {
+                    "transcript": "Explorer"
+                }, 
+                {
+                    "transcript": "xplore"
+                }, 
+                {
+                    "transcript": "explode"
+                }, 
+                {
+                    "transcript": "X close"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17251/assets/1454011987641story%2011": {
+            "alternative": [
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Aakash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik Bari Akash symmetry Soni ko Aakash Me Le Gayi Dono Akash me Sath Sath khelne Lagi"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik baari Akash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }, 
+                {
+                    "transcript": "Sony Aangan Mein Khel rahi thi thi Ik baari Aakash Savitri Sone ko Aakash Me Le Gayi Dono Akash me Sath Sath Chalne Lage"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

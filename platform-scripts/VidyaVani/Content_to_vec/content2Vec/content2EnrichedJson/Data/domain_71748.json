@@ -1,0 +1,75 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Added proper assessment items.", 
+    "domain": [
+        "numeracy"
+    ], 
+    "identifier": "domain_71748", 
+    "imageTags": [
+        "", 
+        "capture", 
+        "school", 
+        "rsz speech bubble green", 
+        "popuptint", 
+        "btn back", 
+        "icon submit", 
+        "btn ok highlights", 
+        "question b", 
+        "icon hint", 
+        "retrybg", 
+        "download", 
+        "goodjobbg", 
+        "blue circle md", 
+        "background", 
+        "icon home", 
+        "images", 
+        "music", 
+        "btn next", 
+        "icon reload"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 3, 
+        "ogg": 0, 
+        "png": 24
+    }, 
+    "mp3Length": 5.941632653061225, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_71748/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_71748/assets/how_many_are_they_239_1464844664_1464844665155": {
+            "alternative": [
+                {
+                    "confidence": 0.6401931, 
+                    "transcript": "how many all day"
+                }, 
+                {
+                    "transcript": "how many hours"
+                }, 
+                {
+                    "transcript": "how many hours a"
+                }, 
+                {
+                    "transcript": "how many years day"
+                }, 
+                {
+                    "transcript": "how many as day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_71748/assets/retry_1460636610607": []
+    }, 
+    "owner": "Vinu Kumar"
+}

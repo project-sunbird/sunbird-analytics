@@ -1,0 +1,31 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Iteration 36-1", 
+    "developer": "EkStep", 
+    "identifier": "test.org.ekstep.gc.iteration.36.1", 
+    "imageTags": [
+        "icon next", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 0, 
+        "ogg": 0, 
+        "png": 3
+    }, 
+    "mp3Length": 0, 
+    "mp3Transcription": {}, 
+    "owner": "EkStep"
+}

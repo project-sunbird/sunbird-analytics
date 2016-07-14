@@ -1,0 +1,248 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.khusi", 
+    "imageTags": [
+        "no", 
+        "start", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "speech bubble", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 12, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 151.84979591836733, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555637855scene9": {
+            "alternative": [
+                {
+                    "transcript": "bacon whiskey teaching of ownership pattern firstcry"
+                }, 
+                {
+                    "transcript": "bacon whiskey teaching of ownership pattern fat gai"
+                }, 
+                {
+                    "transcript": "bacon whiskey teaching of ownership pattern fat Gayi"
+                }, 
+                {
+                    "transcript": "bacon whisky teaching of ownership pattern firstcry"
+                }, 
+                {
+                    "transcript": "bacon whiskey teaching of ownership pattern ft k"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555638010scene11": {
+            "alternative": [
+                {
+                    "transcript": "uski Maa boli phonerotico Dekho Hum Pathan Ka Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli phonerotico Dekho Hum Shaitan ka Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli phonerotico Dekho Hum is Patang Ko Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli phonerotico Dekho Hum is Pathan Ka Kya bana Deti Hai"
+                }, 
+                {
+                    "transcript": "uski Maa boli phonerotico Dekho Hum Ek Tha Tumko Kya bana Deti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555638502scene12": {
+            "alternative": [
+                {
+                    "transcript": "manai 30 Patang ki Randiya Bana Di aur apne ghar ke darwaje ko Saja Diya khargosh Ki Kuch Ho Gaya"
+                }, 
+                {
+                    "transcript": "manai 30 Patang ki Randiya Bana Di aur apne ghar ke darwaze ko Saja Diya khargosh Ki Kuch Ho Gaya"
+                }, 
+                {
+                    "transcript": "Mane x** Pathan ki Randiya Bana Di aur apne ghar ke darwaje ko Saja Diya khargosh Ki Kuch Ho Gaya"
+                }, 
+                {
+                    "transcript": "maa ne 30 Patang ki Randiya Bana Di aur apne ghar ke darwaje ko Saja Diya khargosh Ki Kuch Ho Gaya"
+                }, 
+                {
+                    "transcript": "Mane x** Pathan ki Randiya Bana Di aur apne ghar ke darwaze ko Saja Diya khargosh Ki Kuch Ho Gaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555638927scene8": {
+            "alternative": [
+                {
+                    "transcript": "kurti patterns Dheere Dheere Neeche Aa Gayi Ek khargosh Ke Bache Ne muzhe nangi Patang Ko Dekha Hai Apne Bhanje Se Mujh se baat karna chahta hai"
+                }, 
+                {
+                    "transcript": "kurti patterns Dheere Dheere Neeche Aa Gayi Ek khargosh Ke Bache Ne muzhe nangi Patang Ko Dekha Hai Apne Bhanje Se Mujh se baat karna chahta tha"
+                }, 
+                {
+                    "transcript": "kurti patterns Dheere Dheere Neeche Aa Gayi Ek khargosh Ke Bache Ne muzhe Rangi Patang Ko Dekha Hai Apne Bhanje Se Mujh se baat karna chahta hai"
+                }, 
+                {
+                    "transcript": "kurti patterns Dheere Dheere Neeche Aa Gayi Ek khargosh Ke Bache Ne muzhe Rangi Patang Ko Dekha Re Apne Bhanje Se Mujh se baat karna chahta hai"
+                }, 
+                {
+                    "transcript": "kurti patterns Dheere Dheere Neeche Aa Gayi Ek khargosh Ke Bache Ne muzhe Rangi Patang Ko Dekha Hai Apne Bhanje Se Mujh se baat karna chahta tha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555640627scene1": {
+            "alternative": [
+                {
+                    "confidence": 0.48207262, 
+                    "transcript": "Khushi"
+                }, 
+                {
+                    "transcript": "Kushi"
+                }, 
+                {
+                    "transcript": "khushii"
+                }, 
+                {
+                    "transcript": "Krishi"
+                }, 
+                {
+                    "transcript": "p****"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555641683scene6": {
+            "alternative": [
+                {
+                    "transcript": "Ek Chidiya Apne chote baccho ko chodna Sikhaya rahe hai bache ko aur main main dar lag raha hai na Cheliya Ne Kaha Jo Nahi spunky Dota 2"
+                }, 
+                {
+                    "transcript": "Ek Chidiya Apne chote baccho ko chodna Sikhaya rahe hai baccho ko aur main main dar lag raha hai na Cheliya Ne Kaha Jo Nahi spunky Dota 2"
+                }, 
+                {
+                    "transcript": "Ek Chidiya Apne chote baccho ko chodna Sikhaya rahi hai baccho ko aur main main dar lag raha hai na Cheliya Ne Kaha Jo Nahi spunky Dota 2"
+                }, 
+                {
+                    "transcript": "Ek Chidiya Apne chote baccho ko chodna Sikha rahe hai baccho ko aur main main dar lag raha hai na Cheliya Ne Kaha Jo Nahi spunky Dota 2"
+                }, 
+                {
+                    "transcript": "Ek Chidiya Apne chote bache ko chodna Sikhaya rahe hai baccho ko aur main main dar lag raha hai na Cheliya Ne Kaha Jo Nahi kuch punky.com low"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555642089scene3": {
+            "alternative": [
+                {
+                    "transcript": "maniyani Zor Ka Jhatka Diya aur choot ke bare me fas gai"
+                }, 
+                {
+                    "transcript": "maniyani Zor Ka Jhatka Diya aur choot ke bare me Fas Gayi"
+                }, 
+                {
+                    "transcript": "maniyani Zor Ka Jhatka Diya aur choot ke bare me fasgayi"
+                }, 
+                {
+                    "transcript": "maniyani Zor Ka Jhatka Diya atank choot ke bare me fas gai"
+                }, 
+                {
+                    "transcript": "maniyani Zor Ka Jhatka Diya atank choot ke bare me Fas Gayi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555643191scene2": {
+            "alternative": [
+                {
+                    "transcript": "Muniya O Raju Pathan Guna rahe hai ki nangi patangi Chali gayi Patang yeh toh phir may 1st k"
+                }, 
+                {
+                    "transcript": "Muniya O Raju Pathan Guna rahe hai ki nangi patangi Chali gayi Patang yeh to pay me first"
+                }, 
+                {
+                    "transcript": "Muniya O Raju button Guna rahe hai ki nangi patangi Chali gayi Patang yeh toh phir may 1st k"
+                }, 
+                {
+                    "transcript": "Muniya O Raju button Guna rahe hai ki nangi patangi Chali gayi Patang yeh to pay me first"
+                }, 
+                {
+                    "transcript": "Muniya O Raju Pathan Guna rahe hai ki nangi patangi Chali gayi Patang Yeh To Pyar Mein Phas Gayi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555643355scene10": {
+            "alternative": [
+                {
+                    "transcript": "Chhota khargosh saiyo Ne Laga"
+                }, 
+                {
+                    "transcript": "Chhota khargosh Hero Ne Laga"
+                }, 
+                {
+                    "transcript": "Chhota khargosh heroni Laga"
+                }, 
+                {
+                    "transcript": "Chhota khargosh 0 Ne Laga"
+                }, 
+                {
+                    "transcript": "Chota khargosh saiyo Ne Laga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.khusi/assets/1455555643498scene4": {
+            "alternative": [
+                {
+                    "transcript": "Raju dance Le Aaya Ho Chakkar Teri Patang utarne ki koshish ki lekin Band Baja Japan chahi nahi"
+                }, 
+                {
+                    "transcript": "Raju dance Le Aaya Ho Chakkar Teri Patang utarne ki koshish ki lekin Barnes Mahadev Panja he nahi"
+                }, 
+                {
+                    "transcript": "Raju dance Le Aaya Ho Chakkar Teri Patang utarne ki koshish ki lekin Band Baja Japan Sahi nahi"
+                }, 
+                {
+                    "transcript": "Raju dance Le Aaya Ho Chakkar Teri Patang utarne ki koshish ki lekin Barnes Mahadev Pooja he nahi"
+                }, 
+                {
+                    "transcript": "Raju dance Le Aaya Ho Chakkar Teri Patang utarne ki koshish ki lekin Baj Raha Japan Sahi nahi"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_stories", 
+        "hindi_reading_camp"
+    ]
+}

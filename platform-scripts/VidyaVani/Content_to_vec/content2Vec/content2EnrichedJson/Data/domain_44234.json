@@ -1,0 +1,44 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Swapnil testing all templates and types of assessments , Testing Content Detail Screen with LOOOOOONG description.Testing Content Detail Screen with LOOOOOONG description.Testing Content Detail Screen with LOOOOOONG description.Testing Content Detail Screen with LOOOOOONG description.Testing Content Detail Screen with LOOOOOONG description. SwapDesc", 
+    "developer": "EkStep", 
+    "identifier": "domain_44234", 
+    "imageTags": [
+        "btn ok highlights", 
+        "btn next", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "grey", 
+        "icon hint", 
+        "retry bg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "goodjob bg"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 12
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_44234/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_44234/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

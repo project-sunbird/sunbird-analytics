@@ -1,0 +1,91 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u090f\u0915 \u091b\u094b\u091f\u0940 \u0938\u0940  \u0915\u0939\u093e\u0928\u0940 ", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_57000", 
+    "imageTags": [
+        "btn ok highlights", 
+        "popuptint", 
+        "story", 
+        "btn back", 
+        "icon submit", 
+        "icon hint", 
+        "retrybg", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "btn next"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 4, 
+        "ogg": 0, 
+        "png": 14
+    }, 
+    "mp3Length": 13.949614512471655, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57000/assets/1464785917817retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57000/assets/1464785918089goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57000/assets/1464785920235p1_1464077627848": {
+            "alternative": [
+                {
+                    "transcript": "papa Bazar Se naya TV live Humne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar Se Nair TV live hum ne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar C Nair TV live hum ne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar Se Nair TV live Humne TV may match Dekha"
+                }, 
+                {
+                    "transcript": "papa Bazar Se naya TV live Humne TV May March Dekha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57000/assets/1464785920614p2_1464077660928": {
+            "alternative": [
+                {
+                    "transcript": "Papa ne khabri Suni mummy ne bhi Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne khabri Suni mummy maybe Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne kaberi Suni mummy ne bhi Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne kaberi Suni mummy maybe Qadri Sunni"
+                }, 
+                {
+                    "transcript": "Papa ne khabri Sunni mummy maybe Qadri Sunni"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "239", 
+    "tags": [
+        "mela 3", 
+        "pratham"
+    ]
+}

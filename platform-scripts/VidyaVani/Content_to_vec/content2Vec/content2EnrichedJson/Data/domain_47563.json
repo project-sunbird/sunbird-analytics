@@ -1,0 +1,74 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "As requested by Harish", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_47563", 
+    "imageTags": [
+        "btn ok highlights", 
+        "end screen", 
+        "greenbox", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "goodjob bg", 
+        "speech bubble", 
+        "yellowbox", 
+        "retry bg", 
+        "icon hint", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "trash", 
+        "icon sound", 
+        "btn next", 
+        "literacy"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 4, 
+        "ogg": 0, 
+        "png": 18
+    }, 
+    "mp3Length": 28.07829917800453, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47563/assets/1460624454227friday": {
+            "alternative": [
+                {
+                    "confidence": 0.52192849, 
+                    "transcript": "shayari"
+                }, 
+                {
+                    "transcript": "shayri"
+                }, 
+                {
+                    "transcript": "Friday"
+                }, 
+                {
+                    "transcript": "CID"
+                }, 
+                {
+                    "transcript": "Saidi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47563/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47563/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

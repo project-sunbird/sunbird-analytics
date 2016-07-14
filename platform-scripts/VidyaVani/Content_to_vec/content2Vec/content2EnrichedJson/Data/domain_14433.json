@@ -1,0 +1,310 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "I am trying to see if I can successfully translate one story from English to Hindi", 
+    "developer": "EkStep", 
+    "identifier": "domain_14433", 
+    "imageTags": [
+        "speech bubble", 
+        "confirm bg", 
+        "no", 
+        "icon home", 
+        "image", 
+        "publisher logo", 
+        "question b", 
+        "icon hint", 
+        "start", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 16, 
+        "mp3": 14, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 151.80266666666665, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554620061scene8": {
+            "alternative": [
+                {
+                    "transcript": "hello your ministers child"
+                }, 
+                {
+                    "transcript": "hello your ministers tried"
+                }, 
+                {
+                    "transcript": "hello you ministers child"
+                }, 
+                {
+                    "transcript": "hello your ministers tired"
+                }, 
+                {
+                    "transcript": "hello you Minister style"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554620242scene4": {
+            "alternative": [
+                {
+                    "transcript": "I think that weird find out the weight of my elephant and vagrant card"
+                }, 
+                {
+                    "transcript": "I think that will find out the weight of my elephant and vagrant card"
+                }, 
+                {
+                    "transcript": "I think that weird find out the weight of my elephant and win a grand card"
+                }, 
+                {
+                    "transcript": "I think that will find out the weight of my elephant and win a grand card"
+                }, 
+                {
+                    "transcript": "I think that way to find out the weight of my elephant and vagrant card"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554620808scene10": {
+            "alternative": [
+                {
+                    "confidence": 0.79062915, 
+                    "transcript": "property in Hardwell Apache solr barclaycard and hearts and thoughts left she had an idea"
+                }, 
+                {
+                    "transcript": "property in Hardwell Apache solr barclaycard and hearts and tarts left she had an idea"
+                }, 
+                {
+                    "transcript": "property in Hardwell Apache solr barclaycard and hearts and thoughts last she had an idea"
+                }, 
+                {
+                    "transcript": "property in Hardwell Apache solr barclaycard and hearts and thoughts life she had an idea"
+                }, 
+                {
+                    "transcript": "property in Hardwell I'm at a solar battery charge and hearts and thoughts left she had an idea"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554620976scene6": {
+            "alternative": [
+                {
+                    "confidence": 0.67252207, 
+                    "transcript": "Everest height"
+                }, 
+                {
+                    "transcript": "latest house"
+                }, 
+                {
+                    "transcript": "latest Eyes"
+                }, 
+                {
+                    "transcript": "latest hai"
+                }, 
+                {
+                    "transcript": "about Nexus 5"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554621233scene12": {
+            "alternative": [
+                {
+                    "transcript": "anchor picture be happy that wasn't any chewable"
+                }, 
+                {
+                    "transcript": "anchor picture be happy journey I wasn't any chewable"
+                }, 
+                {
+                    "transcript": "anchor HRP happy journey I wasn't any chewable"
+                }, 
+                {
+                    "transcript": "in car picture be happy that wasn't any chewable"
+                }, 
+                {
+                    "transcript": "in car picture be happy journey I wasn't any chewable"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554621376scene14": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554621813scene3": {
+            "alternative": [
+                {
+                    "transcript": "one day a k said about I wonder how much my all friends"
+                }, 
+                {
+                    "transcript": "Vande AK said about I wonder how much my all friends"
+                }, 
+                {
+                    "transcript": "one day a k set alarm I wonder how much my all friends"
+                }, 
+                {
+                    "transcript": "one day a k set alarm I want how much my all friends"
+                }, 
+                {
+                    "transcript": "one day a k set alarm I wonder how much my ola friends"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554621984scene2": {
+            "alternative": [
+                {
+                    "transcript": "Naruto Manga out there was a kid that I wasn't a Roly Poly elephant to be happy alone"
+                }, 
+                {
+                    "transcript": "Naruto Manga out there was a kid again that I wasn't a Roly Poly elephant to be happy alone"
+                }, 
+                {
+                    "transcript": "Naruto Manga out there was a kid that I wasn't a Roly Poly allotment to be happy alone"
+                }, 
+                {
+                    "transcript": "Naruto Manga out there was a kid that I wasn't Roly Poly elephant to be happy alone"
+                }, 
+                {
+                    "transcript": "Naruto Manga out there was a kid again that I wasn't a Roly Poly allotment to be happy alone"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554622412scene15": {
+            "alternative": [
+                {
+                    "transcript": "Naved is density of my weight and not ok to the weight of your office"
+                }, 
+                {
+                    "transcript": "Norway dispenser Phoenix my weight and not ok to the weight of your office"
+                }, 
+                {
+                    "transcript": "Norway dispenser pick up my weight and not ok to the weight of your office"
+                }, 
+                {
+                    "transcript": "now where does conception of my weight and not ok to the weight of your office"
+                }, 
+                {
+                    "transcript": "Naved is perception of my weight and not ok to the weight of your office"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554622565scene5": {
+            "alternative": [
+                {
+                    "confidence": 0.83289748, 
+                    "transcript": "South Africa time"
+                }, 
+                {
+                    "transcript": "South Africa Chand"
+                }, 
+                {
+                    "transcript": "South African child"
+                }, 
+                {
+                    "transcript": "South Africa this time"
+                }, 
+                {
+                    "transcript": "South Africa style"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554623148scene7": {
+            "alternative": [
+                {
+                    "confidence": 0.19713835, 
+                    "transcript": "schedule of child"
+                }, 
+                {
+                    "transcript": "scheduler style"
+                }, 
+                {
+                    "transcript": "the duelist child"
+                }, 
+                {
+                    "transcript": "Hercules time"
+                }, 
+                {
+                    "transcript": "Hercules child"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554623311scene11": {
+            "alternative": [
+                {
+                    "transcript": "she like the king's roly-poly elephant the weather"
+                }, 
+                {
+                    "transcript": "she live the kings roly-poly elephant the weather"
+                }, 
+                {
+                    "transcript": "she live the kings Roly Poly elephant the weather"
+                }, 
+                {
+                    "transcript": "free live the kings roly-poly elephant the weather"
+                }, 
+                {
+                    "transcript": "free live the kings Roly Poly elephant the weather"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554626242scene13": {
+            "alternative": [
+                {
+                    "transcript": "send sent sent to know more about"
+                }, 
+                {
+                    "transcript": "send sent sent no more"
+                }, 
+                {
+                    "transcript": "send sent sent to know more about it"
+                }, 
+                {
+                    "transcript": "send send send send to know more about"
+                }, 
+                {
+                    "transcript": "thanks and sent to know more about"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_14433/assets/1455554626828scene9": {
+            "alternative": [
+                {
+                    "transcript": "even though quotes scientists tried a lot what happens that matters a battery to help us"
+                }, 
+                {
+                    "transcript": "even the quote scientists tried a lot what happens that matters a battery to help us"
+                }, 
+                {
+                    "transcript": "even the court scientists tried a lot what happens that matters a battery to help us"
+                }, 
+                {
+                    "transcript": "even though quotes scientists tried a lot what happens that matters a battery to Corpus"
+                }, 
+                {
+                    "transcript": "even the quote scientists tried a lot what happens that matters a battery to Corpus"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "275"
+}

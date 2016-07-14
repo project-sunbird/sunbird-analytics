@@ -1,0 +1,246 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "ESl2partforth", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_69078", 
+    "imageTags": [
+        "endscreen", 
+        "apple", 
+        "home icon", 
+        "goodjob", 
+        "splashbg", 
+        "table", 
+        "grammar cover", 
+        "onions", 
+        "onion square", 
+        "areyousure", 
+        "mango", 
+        "assessment cover", 
+        "orange", 
+        "banana", 
+        "play", 
+        "bg", 
+        "cauliflower", 
+        "chillies", 
+        "writing cover", 
+        "teacherpopupbg", 
+        "rhyme cover", 
+        "brinjal", 
+        "alphabets cover", 
+        "icon next", 
+        "phonetics cover", 
+        "icon sound", 
+        "icon previous", 
+        "tomato", 
+        "chilli", 
+        "onion", 
+        "potato", 
+        "potatoes", 
+        "tomato square", 
+        "reading cover", 
+        "blacktint"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 11, 
+        "mp3": 8, 
+        "ogg": 0, 
+        "png": 26
+    }, 
+    "mp3Length": 20.982131519274375, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737166123introduction": {
+            "alternative": [
+                {
+                    "confidence": 0.92505646, 
+                    "transcript": "hello everyone welcome to easy English today's lesson is fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English today's letter names fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome 2 easy English today's lesson is fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English todays letter names fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English today's lesson Ales fruits and vegetables"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737167151selecttheapple": {
+            "alternative": [
+                {
+                    "confidence": 0.81921774, 
+                    "transcript": "select the Apple"
+                }, 
+                {
+                    "transcript": "select d appl"
+                }, 
+                {
+                    "transcript": "selected the Apple"
+                }, 
+                {
+                    "transcript": "select the appl"
+                }, 
+                {
+                    "transcript": "select- d appl"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737167459selectonepotato": {
+            "alternative": [
+                {
+                    "confidence": 0.95847797, 
+                    "transcript": "select one potato"
+                }, 
+                {
+                    "transcript": "select one potatoes"
+                }, 
+                {
+                    "transcript": "Select 1 potatoes"
+                }, 
+                {
+                    "transcript": "select one potato two"
+                }, 
+                {
+                    "transcript": "select won potatoes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737168813selectthemango": {
+            "alternative": [
+                {
+                    "confidence": 0.92243344, 
+                    "transcript": "select the mango"
+                }, 
+                {
+                    "transcript": "collect the mango"
+                }, 
+                {
+                    "transcript": "select a mango"
+                }, 
+                {
+                    "transcript": "select the Manga"
+                }, 
+                {
+                    "transcript": "collect the Manga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737170051selectmanychillies": {
+            "alternative": [
+                {
+                    "transcript": "select many Chillies"
+                }, 
+                {
+                    "transcript": "selectmany Chili's"
+                }, 
+                {
+                    "transcript": "selectmany Chillies"
+                }, 
+                {
+                    "transcript": "select many Chili's"
+                }, 
+                {
+                    "transcript": "selectmany chilis"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737170747selectthebanana": {
+            "alternative": [
+                {
+                    "confidence": 0.94772881, 
+                    "transcript": "select the banana"
+                }, 
+                {
+                    "transcript": "select a banana"
+                }, 
+                {
+                    "transcript": "Slate the banana"
+                }, 
+                {
+                    "transcript": "let the banana"
+                }, 
+                {
+                    "transcript": "select the Bana nah"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737171507selecttheonion": {
+            "alternative": [
+                {
+                    "transcript": "sweat the onions"
+                }, 
+                {
+                    "transcript": "select the onions"
+                }, 
+                {
+                    "transcript": "saute the onions"
+                }, 
+                {
+                    "transcript": "select the onion"
+                }, 
+                {
+                    "transcript": "Philip the onions"
+                }, 
+                {
+                    "transcript": "sauteed onions"
+                }, 
+                {
+                    "transcript": "since the onions"
+                }, 
+                {
+                    "transcript": "since the onion"
+                }, 
+                {
+                    "transcript": "shallots onions"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69078/assets/1465737171629selecttheorange": {
+            "alternative": [
+                {
+                    "confidence": 0.86490363, 
+                    "transcript": "select the orange"
+                }, 
+                {
+                    "transcript": "select d'orange"
+                }, 
+                {
+                    "transcript": "collect the orange"
+                }, 
+                {
+                    "transcript": "select- d'orange"
+                }, 
+                {
+                    "transcript": "celect d'orange"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "216"
+}

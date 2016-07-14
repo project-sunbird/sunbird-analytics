@@ -1,0 +1,464 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Thirsty Crow", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20076060", 
+    "imageTags": [
+        "", 
+        "popuptint", 
+        "ekstep placeholder blue eye", 
+        "f", 
+        "btn back", 
+        "icon submit", 
+        "scooby doo", 
+        "icon hint", 
+        "retrybg", 
+        "gfdg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "images", 
+        "goodjobbg", 
+        "btn next", 
+        "btn ok highlights", 
+        "short stories lionandmouse"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 24, 
+        "mp3": 27, 
+        "ogg": 0, 
+        "png": 12
+    }, 
+    "mp3Length": 53.72511700680273, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/10_1466574902266": {
+            "alternative": [
+                {
+                    "transcript": "Vikram dropped the petals into the past"
+                }, 
+                {
+                    "transcript": "Vikram dropped the pedals into the past"
+                }, 
+                {
+                    "transcript": "Vikral dropped the petals into the past"
+                }, 
+                {
+                    "transcript": "Vikral dropped the pedals into the past"
+                }, 
+                {
+                    "transcript": "Vikram dropped the petals into the cost"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/11_1466575057154": {
+            "alternative": [
+                {
+                    "confidence": 0.8197428, 
+                    "transcript": "the water level rise up slowly the Clever crow drinking water"
+                }, 
+                {
+                    "transcript": "water level rise up slowly the Clever crow drinking water"
+                }, 
+                {
+                    "transcript": "the most level rise up slowly the Clever crow drinking water"
+                }, 
+                {
+                    "transcript": "the most saleable rise up slowly the Clever crow drinking water"
+                }, 
+                {
+                    "transcript": "the water level rise up slowly but clever crow drinking water"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/12_1466575158632": {
+            "alternative": [
+                {
+                    "confidence": 0.84988493, 
+                    "transcript": "Little Flower very happily"
+                }, 
+                {
+                    "transcript": "Vikram flower very happily"
+                }, 
+                {
+                    "transcript": "Vikral full movie happily"
+                }, 
+                {
+                    "transcript": "Vikral full very happily"
+                }, 
+                {
+                    "transcript": "Vikram full very happily"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/13_1466575326710": {
+            "alternative": [
+                {
+                    "confidence": 0.79978526, 
+                    "transcript": "Maru hair there is a will there is a way"
+                }, 
+                {
+                    "transcript": "Mallu hair there is a will there is a way"
+                }, 
+                {
+                    "transcript": "moral hair there is a will there is a way"
+                }, 
+                {
+                    "transcript": "no longer there is a will there is a way"
+                }, 
+                {
+                    "transcript": "moral here there is a will there is a way"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/2_1466573683475": {
+            "alternative": [
+                {
+                    "transcript": "once there was a crow he was very thirsty"
+                }, 
+                {
+                    "transcript": "once there was a crow it was very thirsty"
+                }, 
+                {
+                    "transcript": "once there was a trouble which was very thirsty"
+                }, 
+                {
+                    "transcript": "once there was a crow which was very thirsty"
+                }, 
+                {
+                    "transcript": "once there was a crow was very thirsty"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/3_1466573988183": {
+            "alternative": [
+                {
+                    "confidence": 0.62987936, 
+                    "transcript": "it started searching for water"
+                }, 
+                {
+                    "transcript": "it staff extraction from water"
+                }, 
+                {
+                    "transcript": "it staff exception from water"
+                }, 
+                {
+                    "transcript": "it's tough exception from water"
+                }, 
+                {
+                    "transcript": "it started searching from water"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/4_1466574115845": {
+            "alternative": [
+                {
+                    "transcript": "prolong time it could not find the water"
+                }, 
+                {
+                    "transcript": "so long time it could not find the water"
+                }, 
+                {
+                    "transcript": "long time it could not find the water"
+                }, 
+                {
+                    "transcript": "free long time it could not find the water"
+                }, 
+                {
+                    "transcript": "how long time it could not find the water"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/5_1466574251605": {
+            "alternative": [
+                {
+                    "confidence": 0.50936449, 
+                    "transcript": "chocolate so thoughtful quotes"
+                }, 
+                {
+                    "transcript": "chocolate so thoughtful washer"
+                }, 
+                {
+                    "transcript": "choclate so thoughtful quotes"
+                }, 
+                {
+                    "transcript": "choclate so thoughtful washer"
+                }, 
+                {
+                    "transcript": "choclates so thoughtful quotes"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/6_1466574374015": {
+            "alternative": [
+                {
+                    "transcript": "but there was only Little Rock"
+                }, 
+                {
+                    "transcript": "there was only Little Rock"
+                }, 
+                {
+                    "transcript": "but there was only little boy f***"
+                }, 
+                {
+                    "transcript": "there was only little boy f***"
+                }, 
+                {
+                    "transcript": "but there was only little walk"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/7_1466574501052": {
+            "alternative": [
+                {
+                    "confidence": 0.84577149, 
+                    "transcript": "macro could not reach the water"
+                }, 
+                {
+                    "transcript": "the crew could not reach the water"
+                }, 
+                {
+                    "transcript": "the crow could not reach the water"
+                }, 
+                {
+                    "transcript": "micro could not reach the water"
+                }, 
+                {
+                    "transcript": "Mitra could not reach the water"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/8_1466574610440": {
+            "alternative": [
+                {
+                    "transcript": "Vikram so some petals around the process application idea"
+                }, 
+                {
+                    "transcript": "Vikram so awesome petals around the process application idea"
+                }, 
+                {
+                    "transcript": "Vikram so some petals around the clock and supplication idea"
+                }, 
+                {
+                    "transcript": "Vikram so awesome petals around the clock and supplication idea"
+                }, 
+                {
+                    "transcript": "Vikram so some tattoos around the process application idea"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/9_1466574714532": {
+            "alternative": [
+                {
+                    "transcript": "LIC repeat the table"
+                }, 
+                {
+                    "transcript": "LIC Ropar the table"
+                }, 
+                {
+                    "transcript": "recruited the table"
+                }, 
+                {
+                    "transcript": "Wipro pick the table"
+                }, 
+                {
+                    "transcript": "kropex the table"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/crow_1466576813699": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/crow_1466577132778": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/crow_1466577310715": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/crow_1466577742312": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/dog-barking_1454410236812": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/friday_1460357268210": {
+            "alternative": [
+                {
+                    "confidence": 0.52192849, 
+                    "transcript": "shayari"
+                }, 
+                {
+                    "transcript": "shayri"
+                }, 
+                {
+                    "transcript": "Friday"
+                }, 
+                {
+                    "transcript": "CID"
+                }, 
+                {
+                    "transcript": "Saidi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/pebbles_1466578379076": {
+            "alternative": [
+                {
+                    "confidence": 0.2745527, 
+                    "transcript": "pebbles"
+                }, 
+                {
+                    "transcript": "Hebbal"
+                }, 
+                {
+                    "transcript": "fables"
+                }, 
+                {
+                    "transcript": "Sable"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/pot-with-water_1466577764144": {
+            "alternative": [
+                {
+                    "transcript": "tops with washer"
+                }, 
+                {
+                    "transcript": "pops with water"
+                }, 
+                {
+                    "transcript": "tops with water"
+                }, 
+                {
+                    "transcript": "pops with washer"
+                }, 
+                {
+                    "transcript": "Box with water"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/q1_1460133785285": {
+            "alternative": [
+                {
+                    "confidence": 0.86713642, 
+                    "transcript": "Ek gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "IIT gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "EC gajar Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/the-bird-is_1466590936343": {
+            "alternative": [
+                {
+                    "confidence": 0.69039857, 
+                    "transcript": "lotus"
+                }, 
+                {
+                    "transcript": "what is"
+                }, 
+                {
+                    "transcript": "notice"
+                }, 
+                {
+                    "transcript": "nutties"
+                }, 
+                {
+                    "transcript": "not is"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/the-crow-found_1466591017760": {
+            "alternative": [
+                {
+                    "transcript": "profound the watering"
+                }, 
+                {
+                    "transcript": "Vikram found the watering"
+                }, 
+                {
+                    "transcript": "Vikral found the watering"
+                }, 
+                {
+                    "transcript": "vicryl found the watering"
+                }, 
+                {
+                    "transcript": "Vikram found the water rain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/the-crow-is-in-the_1466591097031": {
+            "alternative": [
+                {
+                    "transcript": "the crow is in the circuit"
+                }, 
+                {
+                    "transcript": "the crow is in the selection"
+                }, 
+                {
+                    "transcript": "the crow is in the search"
+                }, 
+                {
+                    "transcript": "the crow is in the search in there"
+                }, 
+                {
+                    "transcript": "the crow is in the search it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076060/assets/tt_1466573583003": {
+            "alternative": [
+                {
+                    "transcript": "firstcry"
+                }, 
+                {
+                    "transcript": "search takrao"
+                }, 
+                {
+                    "transcript": "search thakral"
+                }, 
+                {
+                    "transcript": "search the grove"
+                }, 
+                {
+                    "transcript": "search dikhlao"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "External Testing vendor"
+}

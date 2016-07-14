@@ -1,0 +1,89 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_MATC", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_70073", 
+    "imageTags": [
+        "chintu icon", 
+        "publisher logo", 
+        "fair", 
+        "image", 
+        "icon next", 
+        "yellow", 
+        "speech bubble", 
+        "bright", 
+        "ravana", 
+        "level band", 
+        "breakfast", 
+        "bluesky", 
+        "fto redcap", 
+        "blue", 
+        "redcap", 
+        "leaf", 
+        "sun", 
+        "fto sun", 
+        "moon", 
+        "icecream", 
+        "fto glasses", 
+        "shiningstar", 
+        "icon reload", 
+        "branch", 
+        "new", 
+        "red", 
+        "chintu", 
+        "bg", 
+        "star", 
+        "crying", 
+        "icon home", 
+        "icon hint", 
+        "lunch", 
+        "fc", 
+        "smile", 
+        "baby", 
+        "hand", 
+        "icon sound", 
+        "icon previous", 
+        "me", 
+        "smilingmoon", 
+        "juice", 
+        "ramu", 
+        "cap", 
+        "tree", 
+        "grey", 
+        "candy", 
+        "fancyglasses", 
+        "dinner", 
+        "bluecap", 
+        "green", 
+        "pipaltree", 
+        "bought"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 11, 
+        "mp3": 7, 
+        "ogg": 86, 
+        "png": 86
+    }, 
+    "mp3Length": 433.90978378684804, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_70073/assets/1466579032124child_crying_delayed": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_70073/assets/1466579041683leaves_rustling_delayed": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_70073/assets/1466579075785intro_with_delay": []
+    }, 
+    "owner": "216"
+}

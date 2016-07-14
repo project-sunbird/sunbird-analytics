@@ -1,0 +1,75 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Custom Plugins Showcase", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.showcase.customplugins", 
+    "imageTags": [
+        "blacktint", 
+        "tailor inner", 
+        "wife inner", 
+        "wife outer", 
+        "mic", 
+        "icon reload", 
+        "barber outer", 
+        "play", 
+        "icon home", 
+        "felt", 
+        "carpenter", 
+        "tailor", 
+        "barber", 
+        "rabbit", 
+        "icon next", 
+        "barber inner", 
+        "icon previous", 
+        "wife", 
+        "tailor outer", 
+        "potato", 
+        "grey", 
+        "record", 
+        "stop record"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 4, 
+        "ogg": 4, 
+        "png": 48
+    }, 
+    "mp3Length": 43.85925510204081, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.showcase.customplugins/assets/drag": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.showcase.customplugins/assets/scene19": {
+            "alternative": [
+                {
+                    "confidence": 0.90689999, 
+                    "transcript": "now Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "no Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "Nau Sringeri Srinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Shrinivas will not need a haircut for a very long time"
+                }, 
+                {
+                    "transcript": "now Sringeri Srinivas will not need a hair cut for a very long time"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

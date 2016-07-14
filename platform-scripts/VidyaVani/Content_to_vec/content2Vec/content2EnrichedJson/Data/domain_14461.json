@@ -1,0 +1,37 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "A touching yet funny tale about Greater SAilash's most efficient domestic help who wanted to buy a television from a super store named 'NEXT'.", 
+    "developer": "EkStep", 
+    "identifier": "domain_14461", 
+    "imageTags": [
+        "greenbox", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "background", 
+        "icon next", 
+        "teacher", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 0, 
+        "ogg": 0, 
+        "png": 8
+    }, 
+    "mp3Length": 0, 
+    "mp3Transcription": {}, 
+    "owner": "EkStep"
+}

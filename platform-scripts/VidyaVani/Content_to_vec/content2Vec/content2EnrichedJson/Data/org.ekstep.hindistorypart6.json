@@ -1,0 +1,429 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u0939\u093f\u0928\u094d\u0926\u0940 \u0915\u0939\u093e\u0928\u093f\u092f\u093e\u0901 \u092d\u093e\u0917 6", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.hindistorypart6", 
+    "imageTags": [
+        "next button", 
+        "story image", 
+        "image", 
+        "confirm bg", 
+        "blacktint", 
+        "touch", 
+        "yes", 
+        "play audio", 
+        "kahani", 
+        "yellow box", 
+        "retry", 
+        "no", 
+        "mic", 
+        "green box", 
+        "retry button", 
+        "activitybg", 
+        "icon reload", 
+        "icon previous", 
+        "blue box", 
+        "icon home", 
+        "goodjob bg", 
+        "page sel bg", 
+        "retry bg", 
+        "stop record", 
+        "icon next", 
+        "front page", 
+        "end screen", 
+        "icon sound", 
+        "teacher", 
+        "literacy", 
+        "teacher pop up", 
+        "grey", 
+        "record"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 2, 
+        "mp3": 18, 
+        "ogg": 0, 
+        "png": 53
+    }, 
+    "mp3Length": 162.9673469387755, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556139529end": {
+            "alternative": [
+                {
+                    "confidence": 0.13682067, 
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "amt"
+                }, 
+                {
+                    "transcript": "Anth"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556142474story%201": {
+            "alternative": [
+                {
+                    "transcript": "Rajdhani dukandar se teen Kalamkari decolam Ki Keemat band rahti hai To Bataye Ki Radha Ne dukan Dar Ko kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Rajdhani dukandar se teen Kalamkari de Ek Kalam Ki Keemat Bandra Hote Hai To Bataye Ki Radha Ne dukan Dar Ko kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Rajdhani dukandar se teen Kalamkari de Ek Kalam Ki Keemat Bandra Rote Hai To Bataye Ki Radha Ne dukan Dar Ko kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Rajdhani dukandar se teen Kalamkari D Ek Kalam Ki Keemat Bandra Hote Hai To Bataye Ki Radha Ne dukan Dar Ko kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Rajdhani dukandar se teen Kalamkari D Ek Kalam Ki Keemat Bandra Rote Hai To Bataye Ki Radha Ne dukan Dar Ko kitne rupay ki hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556142623story%203": {
+            "alternative": [
+                {
+                    "transcript": "except Ameesha Din hote hain to kya Satta me kitne din ho gaye"
+                }, 
+                {
+                    "transcript": "accepta Mr Din hote hain to kya Satta me kitne din ho gaye"
+                }, 
+                {
+                    "transcript": "except Ameesha Din hote hain to kya Satta me kitne din hoge"
+                }, 
+                {
+                    "transcript": "acceptor Michigan hote hain to kya Satta me kitne din ho gaye"
+                }, 
+                {
+                    "transcript": "accepta Mishra Din hote hain to kya Satta me kitne din ho gaye"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556142783story%202": {
+            "alternative": [
+                {
+                    "transcript": "Amit ke paas paise Tera Panchayat hey Raju hey wise country or de diya Bataye Amit Ke Paas Kitne country Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amit ke paas paise Tera Panchayat hey Raju hey guys country or De Diya Bati Amit Ke Paas Kitne country Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amit ke paas paise Tera Panchayat hey Raju hey guys can share De Diya Bati Amit Ke Paas Kitne country Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amit ke paas paise Tera Panchayat hey Raju hey guys can say or de diya Bataye Amit Ke Paas Kitne country Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amit ke paas paise Tera Panchayat hey Raju hey guys country or De Diya Baati Amit Ke Paas Kitne country Ho Gayi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556143046Learn": {
+            "alternative": [
+                {
+                    "confidence": 0.51859242, 
+                    "transcript": "learn"
+                }, 
+                {
+                    "transcript": "lund"
+                }, 
+                {
+                    "transcript": "land"
+                }, 
+                {
+                    "transcript": "lond"
+                }, 
+                {
+                    "transcript": "learnt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556143503letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.7574501, 
+                    "transcript": "let's try again"
+                }, 
+                {
+                    "transcript": "lets try again"
+                }, 
+                {
+                    "transcript": "let's try again a"
+                }, 
+                {
+                    "transcript": "lets try again a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556143646Explore": {
+            "alternative": [
+                {
+                    "confidence": 0.82704556, 
+                    "transcript": "explore"
+                }, 
+                {
+                    "transcript": "Explorer"
+                }, 
+                {
+                    "transcript": "xplore"
+                }, 
+                {
+                    "transcript": "explode"
+                }, 
+                {
+                    "transcript": "X close"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556143785story%204": {
+            "alternative": [
+                {
+                    "transcript": "search kitabo Ki Keemat Chiso purchase rupiah Hai To Ek Kitab Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "search kitabo Ki Keemat Chiso purchase repair Hai To Ek Kitab Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "search kitabo Ki Keemat Chiso purchase rupiah Hai To Ek Raat Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "search kitabo Ki Keemat Chiso purchase repair Hai Ek Kitab Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "search kitabo Ki Keemat Chiso purchase repair Hai Ek Raat Ki Keemat Kya Hogi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556144053story%205": {
+            "alternative": [
+                {
+                    "transcript": "itokri main AECS of a police safety usme se Chaurasi se nikal liye Tu Kitna se bajgai"
+                }, 
+                {
+                    "transcript": "itokri main AECS of a police safety usme se Chaurasi saves Nikah liye Tu Kitna se bajgai"
+                }, 
+                {
+                    "transcript": "itokri main AECS of a police safety usme se Chora Si sabes Nikah liye Tu Kitna se bajgai"
+                }, 
+                {
+                    "transcript": "itokri makes of a police safety usme se Chaurasi saves Nikah liye Tu Kitna se bajgai"
+                }, 
+                {
+                    "transcript": "itokri main x of a police safety usme se Chaurasi saves Nikah liye Tu Kitna se bajgai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556144248story%206": {
+            "alternative": [
+                {
+                    "transcript": "Anju ke paas ek Sath at tirupathy usne petalis Roop yoga Ek Khilona Khaira Bataye uske paas kitne baje"
+                }, 
+                {
+                    "transcript": "Anju ke paas ek Sath at tirupathy usne petalis rupee OK Ek Khilona Kaliya Bataye uske paas kitne baje"
+                }, 
+                {
+                    "transcript": "Anju ke paas ek Sath Satta rupee ate hai usne petalis rupee OK Ek Khilona Kaliya Bataye uske paas kitne baje"
+                }, 
+                {
+                    "transcript": "Anju ke paas ek Sath Satta rupee ate hai usne petalis Roop yoga Ek Khilona Khaira Bataye uske paas kitne baje"
+                }, 
+                {
+                    "transcript": "Anju ke paas ek Sath at tirupathy usne petalis Roop yoga Ek Khilona Khaira Bataye uske paas kitne rupay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556144415story%207": {
+            "alternative": [
+                {
+                    "transcript": "Anjali ke paas chhattis rupee Hai Aise Pinguda Adhik rupee hi Ankita ke paas hai Bataye Ke Ankita Ke Paas Kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Anjali ke paas chhattis rupee hai usse Pinguda Adhik rupee hi Ankita ke paas hai Bataye Ke Ankita Ke Paas Kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Anjali ke paas chhattis rupee Hai Aise Pinguda Ajith rupee hi Ankita ke paas hai Bataye Ke Ankita Ke Paas Kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Anjali ke paas chhattis rupee Hain Aise Pinguda Adhik rupee hi Ankita ke paas hai Bataye Ke Ankita Ke Paas Kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Anjali ke paas chhattis rupee hai mujhse Pinguda Adhik rupee hi Ankita ke paas hai Bataye Ke Ankita Ke Paas Kitne rupay ki hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556144566story%208": {
+            "alternative": [
+                {
+                    "transcript": "bus Mai se Taali slow pakkathe ugly standby but slow cooker guy that are such a low today but I was bus me kul kitne log Aate Hain"
+                }, 
+                {
+                    "transcript": "bus Mai se Taali slow pakkathe ugly standby but slow poor guy that are satyalok today but I was bus me kul kitne log Aate Hain"
+                }, 
+                {
+                    "transcript": "bus Mai se Taali slow pakkathe ugly standby but slow poor guy that are such a low today but I was bus me kul kitne log Aate Hain"
+                }, 
+                {
+                    "transcript": "bus Mai se Taali slow pakkathe ugly standby but slow poor guy that are such a low today but I was bus Mai kitne log Aate Hain"
+                }, 
+                {
+                    "transcript": "bus Mai se Taali slow pakkathe ugly standby but slow poor guy that are such a low today but I was bus me kitne log Aate Hain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556144701story%209": {
+            "alternative": [
+                {
+                    "transcript": "Gam ki kulapati ek hazar baar Jo Aati Hai Magar main Keh so pachas Purush Orchha properties Mahila Hi Toh Baccha ki sankhya Kitni Hogi"
+                }, 
+                {
+                    "transcript": "Gam ki kulapati ek hazar baar Jo Aati Hain Kaun Thi so pachas Purush Orchha so pachas Mahila Hi Toh bachho ki sankhya Kitni Hogi"
+                }, 
+                {
+                    "transcript": "Gam ki kulapati ek hazar baar Jo Aati Hain Kaun Thi so pachas Purush Orchha so pachas Mahila Hai Toh Baccha ki sankhya Kitni Hogi"
+                }, 
+                {
+                    "transcript": "Gam ki kulapati ek hazar baar Jo Aati Hai olx com a case of patties Purush Orchha properties Mahila Hi Toh Baccha Kishan kya Kitni Hogi"
+                }, 
+                {
+                    "transcript": "Gam ki kulapati ek hazar baar Jo Aati Hai olx com a case of patties Purush Orchha so pachas Mahila Hi Toh bachho ki sankhya Kitni Hogi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556145348story%2011": {
+            "alternative": [
+                {
+                    "transcript": "Rajesh K Pas Sone se petalis rupiah Kam Hai Sone ke paas Agar Satta se rupee to Rajesh Ke Paas Kitne rupay"
+                }, 
+                {
+                    "transcript": "Rajesh ke paas Sone se petalis rupiah Kam Hai Sone ke paas Agar Satta se rupee to Rajesh Ke Paas Kitne rupay"
+                }, 
+                {
+                    "transcript": "Rajesh K Pas Sone se petalis rupiah kum hai sone ke paas Agar Satta se rupee to Rajesh Ke Paas Kitne rupay"
+                }, 
+                {
+                    "transcript": "Rajesh K Pas Sone se petalis rupiah Kam Hai Sone ke paas Agar Satta say rupee to Rajesh Ke Paas Kitne rupay"
+                }, 
+                {
+                    "transcript": "Rajesh K Pas Sone se petalis rupiah Kam Hai Sone ke paas August Satta se rupee to Rajesh Ke Paas Kitne rupay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556145615story%2012": {
+            "alternative": [
+                {
+                    "transcript": "Seema Ne is so bees rupay Ki Namkeen a dosa batter Thuppakki metre kharidi the Bataye seemane kal kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Seema Ne is so bees rupay Ki Namkeen a dosa batter Thuppakki mithai 3D the Bataye seemane kal kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Seema ne ek so bees rupay ki namkin a dosa batter Thuppakki metre kharidi the Bataye seemane kal kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Seema Ne is so bees rupay ki namkin a dosa batter Thuppakki metre kharidi the Bataye seemane kal kitne rupay ki hai"
+                }, 
+                {
+                    "transcript": "Seema Ne is so bees rupay ki namkin a dosa batter Thuppakki mithai 3D the Bataye seemane kal kitne rupay ki hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556145899story%2010": {
+            "alternative": [
+                {
+                    "transcript": "nossa Nabi rupee am 18 coming se milti hai to a kameez banwane ke liye kuch kitne rupay Ki Zaroorat Hogi"
+                }, 
+                {
+                    "transcript": "nossa Nabi rupee am 18 coming se milti hai to a kameez banane ke liye kitne rupay Ki Zaroorat Hogi"
+                }, 
+                {
+                    "transcript": "nosso Nabi rupee am 18 coming se milti hai to a kameez banwane ke liye kuch kitne rupay Ki Zaroorat Hogi"
+                }, 
+                {
+                    "transcript": "nosso Nabi rupee am 18 coming se milti hai to a kameez banane ke liye kitne rupay Ki Zaroorat Hogi"
+                }, 
+                {
+                    "transcript": "no sir Nabi rupee am 18 coming se milti hai to a kameez banwane ke liye kuch kitne rupay Ki Zaroorat Hogi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556149136Practice": {
+            "alternative": [
+                {
+                    "confidence": 0.51434702, 
+                    "transcript": "Tractors"
+                }, 
+                {
+                    "transcript": "practice"
+                }, 
+                {
+                    "transcript": "practise"
+                }, 
+                {
+                    "transcript": "cactus"
+                }, 
+                {
+                    "transcript": "status"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.hindistorypart6/assets/1455556149511goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.93531686, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "Govt jobs"
+                }, 
+                {
+                    "transcript": "good Bob"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_reading_week"
+    ]
+}

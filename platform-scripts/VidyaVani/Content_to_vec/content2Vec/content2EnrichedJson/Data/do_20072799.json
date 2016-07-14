@@ -1,0 +1,435 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "The Crocodile And The Monkey", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20072799", 
+    "imageTags": [
+        "", 
+        "popuptint", 
+        "btn back", 
+        "icon submit", 
+        "btn ok highlights", 
+        "icon hint", 
+        "retrybg", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "btn next"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 18, 
+        "mp3": 21, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 105.95729433106577, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/10_1466488248285": {
+            "alternative": [
+                {
+                    "confidence": 0.88250834, 
+                    "transcript": "the monkey happily accepted the invitation and asked the crocodile how I would come with you in the late I don't know swimming"
+                }, 
+                {
+                    "transcript": "the monkey happily accepted the invitation and asked the crocodial how I would come with you in the late I don't know swimming"
+                }, 
+                {
+                    "transcript": "the monkey happily accepted the invitation and ask the crocodile how I would come with you in the late I don't know swimming"
+                }, 
+                {
+                    "transcript": "the monkey happily accepted the invitation and asked the crocodile have I would come with you in the late I don't know swimming"
+                }, 
+                {
+                    "transcript": "the monkey happily accepted the invitation and asked the crocodile how I would come with you in the late I don't need swimming"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/11_1466488323121": {
+            "alternative": [
+                {
+                    "confidence": 0.84998375, 
+                    "transcript": "the crocodile office n ride on his back"
+                }, 
+                {
+                    "transcript": "the crocodile office and ride on his back"
+                }, 
+                {
+                    "transcript": "the crocodile office in ride on his back"
+                }, 
+                {
+                    "transcript": "the crocodial office n ride on his back"
+                }, 
+                {
+                    "transcript": "the crocodile office n ride on his bag"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/12_1466488416501": {
+            "alternative": [
+                {
+                    "transcript": "meetings you distance the crocodile try to push down the monkey enter the lakes to kill him"
+                }, 
+                {
+                    "transcript": "meetings you distance the crocodile try to push down the monkey enter the lake to kill him"
+                }, 
+                {
+                    "transcript": "meetings you distance the crocodile try to put on the monkey enter the lake to kill him"
+                }, 
+                {
+                    "transcript": "meetings you distance the crocodile try to put on the monkey enter the lakes to kill him"
+                }, 
+                {
+                    "transcript": "meetings you distance the crocodial try to push down the monkey enter the lakes to kill him"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/13_1466488489060": {
+            "alternative": [
+                {
+                    "confidence": 0.84620911, 
+                    "transcript": "the monkey was shocked and asked it friend crocodile about the happening"
+                }, 
+                {
+                    "transcript": "the monkey was shocked and asked it friends crocodile about the happening"
+                }, 
+                {
+                    "transcript": "the monkey was shocked and asked if friend crocodile about the happening"
+                }, 
+                {
+                    "transcript": "the monkey was shocked and asked friend crocodile about the happening"
+                }, 
+                {
+                    "transcript": "the monkey was shocked and asked his freind crocodile about the happening"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/14_1466489032235": {
+            "alternative": [
+                {
+                    "confidence": 0.90225381, 
+                    "transcript": "the crocodile explain the monkey about the conversation with his wife late night and the plan to have his heart"
+                }, 
+                {
+                    "transcript": "the crocodile explain the monkey about the conversation with his wife late night and they plan to have his heart"
+                }, 
+                {
+                    "transcript": "the crocodile explain the monkey about the conversation with his wife late night and the plan to have you thought"
+                }, 
+                {
+                    "transcript": "the crocodile explain the monkey about the conversation with his wife late night and the planned to have his heart"
+                }, 
+                {
+                    "transcript": "the crocodile explained the monkey about the conversation with his wife late night and the plan to have his heart"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/15_1466489102356": {
+            "alternative": [
+                {
+                    "transcript": "the monkey quick recovery clever idea to escape it hold the crocodile my friend I left my heart on the tree let us go back and bring it"
+                }, 
+                {
+                    "transcript": "the monkey quickly Gaurav clever idea to escape it hold the crocodile my friend I left my heart on the tree let us go back and bring it"
+                }, 
+                {
+                    "transcript": "the monkey quickly Gori clever idea to escape it hold the crocodile my friend I left my heart on the tree let us go back and bring it"
+                }, 
+                {
+                    "transcript": "the monkey quickly Gaurav Plaza idea to escape it hold the crocodile my friend I left my heart on the tree let us go back and bring it"
+                }, 
+                {
+                    "transcript": "the monkey quick recovery plan idea to escape it hold the crocodile my friend I left my heart on the tree let us go back and bring it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/16_1466489170483": {
+            "alternative": [
+                {
+                    "confidence": 0.90982622, 
+                    "transcript": "foolish crocodile believe the monkey and prove him back to the tree"
+                }, 
+                {
+                    "transcript": "foolish crocodile believe the monkey and prose him back to the tree"
+                }, 
+                {
+                    "transcript": "foolish crocodile believe the monkey and prove him back 2 the tree"
+                }, 
+                {
+                    "transcript": "foolish crocodile believe the monkey and pros him back to the tree"
+                }, 
+                {
+                    "transcript": "foolish crocodile believe the monky and prove him back to the tree"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/17_1466489292830": {
+            "alternative": [
+                {
+                    "transcript": "advance the Clever monkey client on directory and escape it"
+                }, 
+                {
+                    "transcript": "advanced the Clever monkey client on directory and escape it"
+                }, 
+                {
+                    "transcript": "advance the Clever monkey client on directory and escaped"
+                }, 
+                {
+                    "transcript": "advance the Clever monkey climbed on to the tree and escape it"
+                }, 
+                {
+                    "transcript": "advanced the Clever monkey client on directory and escaped"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/18_1466489408404": {
+            "alternative": [
+                {
+                    "transcript": "moral of the crocodile and the monkey story is a person who wants to cheat others will be treated and released everything"
+                }, 
+                {
+                    "transcript": "moral of the crocodile and the monkey story is the person who wants to cheat others will be treated and released everything"
+                }, 
+                {
+                    "transcript": "moral of the crocodile and the monkey story is a person who wants to cheat at it will be treated and released everything"
+                }, 
+                {
+                    "transcript": "moral of the crocodile and the monkey story is a person who wants to cheat others will be cheated and list everything"
+                }, 
+                {
+                    "transcript": "moral of the crocodile and the monkey story is a person who wants to cheat others will be treated and delete everything"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/1b_1466487334574": {
+            "alternative": [
+                {
+                    "confidence": 0.74505341, 
+                    "transcript": "gelastic crocodile in a lake surrounded by green grass is sweetest Jamun trees and beautiful mountains"
+                }, 
+                {
+                    "transcript": "gelastic crocodile in a lake surrounded by green grass is sweetest German trees and beautiful mountains"
+                }, 
+                {
+                    "transcript": "gelastic crocodile in a lake surrounded by green grass is sweet lemon trees and beautiful mountains"
+                }, 
+                {
+                    "transcript": "gelastic crocodile in a lake surrounded by greengrocers sweetest Jamun trees and beautiful mountains"
+                }, 
+                {
+                    "transcript": "jealous to Crocodile in a lake surrounded by green grass is sweetest Jamun trees and beautiful mountains"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/3bb_1466487525850": {
+            "alternative": [
+                {
+                    "transcript": "the oscillator happy monkey at the jamun tree near the lake"
+                }, 
+                {
+                    "transcript": "the oscillator happy monkey at the German tree near the lake"
+                }, 
+                {
+                    "transcript": "oscillator happy monkey at the jamun tree near the lake"
+                }, 
+                {
+                    "transcript": "oscillator happy monkey at the German tree near the lake"
+                }, 
+                {
+                    "transcript": "the oscillator happy monkey at the chairman tree near the lake"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/4bb_1466487682625": {
+            "alternative": [
+                {
+                    "confidence": 0.91437656, 
+                    "transcript": "the monkey and the Crocodile became friends with each other"
+                }, 
+                {
+                    "transcript": "the monkey and the Crocodile became friends with eachother"
+                }, 
+                {
+                    "transcript": "the monkey and the Crocodile I became friends with each other"
+                }, 
+                {
+                    "transcript": "the monkey and the Crocodile I became friends with eachother"
+                }, 
+                {
+                    "transcript": "the monkey and the Crocodile became friends with each other uh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/5b_1466487809242": {
+            "alternative": [
+                {
+                    "transcript": "the crocodile will Richardson monkey HD the monkey list of Hamburg Street German fruits from the tree"
+                }, 
+                {
+                    "transcript": "the crocodile will Richardson monkey 80 day the monkey list of Hamburg Street Jamun fruits from the tree"
+                }, 
+                {
+                    "transcript": "the crocodile will Richardson monkey HD the monkey list of Hamburg Street Jamun fruits from the tree"
+                }, 
+                {
+                    "transcript": "the crocodile will Richardson monkey HD the monkey list of the Hamburg Street German fruits from the tree"
+                }, 
+                {
+                    "transcript": "the crocodile will Richardson monkey HD the monkey he used of a Hamburg Street Jamun fruits from the tree"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/6_1466487926571": {
+            "alternative": [
+                {
+                    "transcript": "one day the crocodile jokes in German Street style voice"
+                }, 
+                {
+                    "transcript": "Vande the crocodile jokes in German Street style voice"
+                }, 
+                {
+                    "transcript": "one day the crocodile attacks in German Street style voice"
+                }, 
+                {
+                    "transcript": "oneday the crocodile jokes in German Street style voice"
+                }, 
+                {
+                    "transcript": "one day the crocodile jokes in German Street style wife"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/7_1466488011031": {
+            "alternative": [
+                {
+                    "transcript": "the greedy voice crocodile after having the fruits at her husband imagine how sweet the monkey's heart with place Turkey is Germans everyday"
+                }, 
+                {
+                    "transcript": "the greedy voice crocodile after having the fruits at her husband imagine how sweet the monkey's heart with a steady eat sheet Germans everyday"
+                }, 
+                {
+                    "transcript": "the greedy voice crocodile after having the fruits at her husband imagine how sweet the monkey's heart with place Turkey is Germany's everyday"
+                }, 
+                {
+                    "transcript": "the greedy voice crocodile after having the fruits at her husband imagine how sweet the monkey's heart with a staci eat sheet Germans everyday"
+                }, 
+                {
+                    "transcript": "the greater voice crocodile after having the fruits at her husband imagine how sweet the monkey's heart with place Turkey is Germans everyday"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/8_1466488073979": {
+            "alternative": [
+                {
+                    "transcript": "tell the voice crocodial asked her husband to bring the monkey today him"
+                }, 
+                {
+                    "transcript": "tell the voice crocodile asked her husband to bring the monkey today him"
+                }, 
+                {
+                    "transcript": "the voice crocodile asked her husband to bring the monkey today him"
+                }, 
+                {
+                    "transcript": "tell the wife crocodial asked her husband to bring the monkey today him"
+                }, 
+                {
+                    "transcript": "tell the wife crocodile asked her husband to bring the monkey today him"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/9_1466488152639": {
+            "alternative": [
+                {
+                    "transcript": "next day the crocodile went to the monkey and invited him to his home for lunch"
+                }, 
+                {
+                    "transcript": "next day the crocodile went to the monkey and invited into his home for lunch"
+                }, 
+                {
+                    "transcript": "next to the crocodile went to the monkey and invited him to his home for lunch"
+                }, 
+                {
+                    "transcript": "next time the crocodile went to the monkey and invited him to his home for lunch"
+                }, 
+                {
+                    "transcript": "next day the crocodial went to the monkey and invited him to his home for lunch"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/title-page_1466486976340": {
+            "alternative": [
+                {
+                    "confidence": 0.93886739, 
+                    "transcript": "the crocodile and the Monkey"
+                }, 
+                {
+                    "transcript": "the crocodile and monkey"
+                }, 
+                {
+                    "transcript": "crocodile and the Monkey"
+                }, 
+                {
+                    "transcript": "the crocodile and a monkey"
+                }, 
+                {
+                    "transcript": "and crocodile and the Monkey"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20072799/assets/title_1466487133722": {
+            "alternative": [
+                {
+                    "confidence": 0.87236392, 
+                    "transcript": "the crocodile and the Monkey"
+                }, 
+                {
+                    "transcript": "the crocodile and monkey"
+                }, 
+                {
+                    "transcript": "crocodile and monkey"
+                }, 
+                {
+                    "transcript": "crocodile and the Monkey"
+                }, 
+                {
+                    "transcript": "the crocodile and a monkey"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "External Testing vendor"
+}

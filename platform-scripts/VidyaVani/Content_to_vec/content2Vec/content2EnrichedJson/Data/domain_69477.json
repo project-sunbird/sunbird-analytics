@@ -1,0 +1,67 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "NCERT", 
+    "developer": "EkStep", 
+    "domain": [
+        "numeracy"
+    ], 
+    "identifier": "domain_69477", 
+    "imageTags": [
+        "", 
+        "twelve", 
+        "walking", 
+        "bicycle", 
+        "house", 
+        "geometry figure", 
+        "four", 
+        "btn next", 
+        "btn ok highlights", 
+        "btn back", 
+        "three", 
+        "icon home", 
+        "oclock", 
+        "icon reload", 
+        "ncert", 
+        "circle", 
+        "banana", 
+        "rectangle", 
+        "dots", 
+        "triangle", 
+        "bus", 
+        "watch", 
+        "chart", 
+        "icon hint", 
+        "retrybg", 
+        "subtraction", 
+        "background", 
+        "contentbackground", 
+        "butterfly", 
+        "icon submit", 
+        "goodjobbg", 
+        "popuptint"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 42
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69477/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_69477/assets/retry_1460636610607": []
+    }, 
+    "owner": "213"
+}

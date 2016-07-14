@@ -1,0 +1,147 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Jhoola", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.jhoola", 
+    "imageTags": [
+        "jhaadu", 
+        "tree", 
+        "scene", 
+        "teacher popup bg", 
+        "level band", 
+        "table", 
+        "earth", 
+        "play audio", 
+        "jhoola", 
+        "girl", 
+        "cloud", 
+        "branch glow", 
+        "yellow box", 
+        "leaf", 
+        "option bg", 
+        "tire", 
+        "green box", 
+        "khazana", 
+        "dharti", 
+        "activitybg", 
+        "icon reload", 
+        "branch", 
+        "gate", 
+        "main", 
+        "matc", 
+        "blue box", 
+        "icon home", 
+        "baras", 
+        "rain", 
+        "aasman", 
+        "close button", 
+        "cart", 
+        "daali", 
+        "icon next", 
+        "icon sound", 
+        "teacher", 
+        "icon previous", 
+        "boy", 
+        "clouds", 
+        "patta", 
+        "leaves", 
+        "publisher logo", 
+        "cover", 
+        "grey", 
+        "abhyas", 
+        "bag", 
+        "akm", 
+        "swing", 
+        "backtostory", 
+        "badal", 
+        "word highlight"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 3, 
+        "ogg": 0, 
+        "png": 60
+    }, 
+    "mp3Length": 3.558458049886622, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.jhoola/assets/1455555303526thela": {
+            "alternative": [
+                {
+                    "confidence": 0.50801027, 
+                    "transcript": "killer"
+                }, 
+                {
+                    "transcript": "Taylor"
+                }, 
+                {
+                    "transcript": "Sheela"
+                }, 
+                {
+                    "transcript": "Kila"
+                }, 
+                {
+                    "transcript": "Qila"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.jhoola/assets/1455555304183gathari": {
+            "alternative": [
+                {
+                    "confidence": 0.51409769, 
+                    "transcript": "battery"
+                }, 
+                {
+                    "transcript": "get free"
+                }, 
+                {
+                    "transcript": "Gayatri"
+                }, 
+                {
+                    "transcript": "Katri"
+                }, 
+                {
+                    "transcript": "the tree"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.jhoola/assets/1455555313839baras": {
+            "alternative": [
+                {
+                    "confidence": 0.78088391, 
+                    "transcript": "Paris"
+                }, 
+                {
+                    "transcript": "Paras"
+                }, 
+                {
+                    "transcript": "Baarish"
+                }, 
+                {
+                    "transcript": "Baras"
+                }, 
+                {
+                    "transcript": "barrish"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Delhi Curriculum"
+    ]
+}

@@ -1,0 +1,285 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_prathamstoriesthirdday", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20076114", 
+    "imageTags": [
+        "kahani", 
+        "", 
+        "play", 
+        "recordbtn", 
+        "mic", 
+        "soundbtn", 
+        "pagesel bg", 
+        "blacktint", 
+        "icon next", 
+        "storyimage", 
+        "literacy", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 35
+    }, 
+    "mp3Length": 119.09224489795918, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112403501story3": {
+            "alternative": [
+                {
+                    "transcript": "Khilona Ki Keemat petalis rupiya Hai Aise hee Kim Channo Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Khilona Ki Keemat petalis rupee Hai Aise hee Kim Channo Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Khilona Ki Keemat petalis repair Hai Aise hee Kim Channo Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Khilona Ki Keemat petalis repair hi aise hee Kim Channo Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Khilona Ki Keemat petalis Rote Hai Aise hee Kim Channo Ki Keemat Kya Hogi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112403909story4": {
+            "alternative": [
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hai To Bataye Kanda Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hai To Bataye ki Gand Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hi To Bataye Kanda Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hi Tu bataye ki Gand Ki Keemat Kya Hogi"
+                }, 
+                {
+                    "transcript": "Charan Do Ki Keemat vs rupee Hi Tu Bataye Kanda Ki Keemat Kya Hogi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112404137story1": {
+            "alternative": [
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hi Rahul Naino Se Bara Pallam aur didi to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hi Rahul Naino Se Bara Balam aur didi to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hi Rahul Naino Se Bara Kaalam Oru De De to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hey Rahul Naino Se Bara Pallam aur didi to Amar ke paas kul kitne Kal Ho Gayi"
+                }, 
+                {
+                    "transcript": "Amar ke paas Punjab Kalam hi Rahul Naino Se Bara Kaalam Oru dady to Amar ke paas kul kitne Kal Ho Gayi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112404393story2": {
+            "alternative": [
+                {
+                    "transcript": "HS rupee Michigan Tera rupee kam kar di AJ Tu kitne rupay Bajrangi"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupee a kam kar di AJ Tu kitne rupay Bajrangi"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupee a kam kar de AJ Tu kitne rupay Bajrangi"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupee kam kar Diye Ja Tu kitne rupay Bajrangi"
+                }, 
+                {
+                    "transcript": "HS rupee Michigan Tera rupee from kar Diye Ja Tu kitne rupay Bajrangi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112405232story7": {
+            "alternative": [
+                {
+                    "transcript": "tractor get chahte hai aise he contractor ke kul Mila kar kitne Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor get chahte hai aise he contractor ke kul Mila kar kitne Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor Gate chahte hai aise hee contractor ke kul Mila kar kitne Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor Gate chahte hai aise he didn't tractor ki kul Mila kar kitne Honge"
+                }, 
+                {
+                    "transcript": "IIT tractor Gate chahte hai aise hee contractor ke kul Mila kar Kitne Bhi Honge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112406432story8": {
+            "alternative": [
+                {
+                    "transcript": "pandhara rupee a core team logo Mein barabar barabar baat nahi par Hari ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandhara rupee a core team logo main barabar barabar baat nahi par Hari ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandra rupee a core team logo Mein barabar barabar baat nahi par Hari ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandra rupee a core team logo main barabar barabar baat nahi par Hari ko kitne rupee Milenge"
+                }, 
+                {
+                    "transcript": "pandhara rupee a core team logo me barabar barabar baat nahi par Hari ko kitne rupee Milenge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112407526story5": {
+            "alternative": [
+                {
+                    "transcript": "dukan Mai petalis Cup 3 dukan Dar cities Cup all Ja Ja kahan Mein Kitna Ho Gaya"
+                }, 
+                {
+                    "transcript": "dukan Mai petalis Cup 3 dukandar cities Cup all Ja Ja kahan Mein Kitna Ho Gaya"
+                }, 
+                {
+                    "transcript": "dukan make a telescope 3 dukandaar cities Cup all Ja Ja kahan Mein Kitna Ho Gaya"
+                }, 
+                {
+                    "transcript": "dukan make a telescope 3 dukandaar cities Cup all Ja Ja kahan Main Kitna Ho Gaya"
+                }, 
+                {
+                    "transcript": "dukan make a telescope 3 dukandar cities Cup all Ja Ja kahan Mein Kitna Ho Gaya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112408309story6": {
+            "alternative": [
+                {
+                    "transcript": "tokri mein police ke Leke usme se be skill based year to km up Kitne Gile bajgai"
+                }, 
+                {
+                    "transcript": "tokri mein police ke liye usme se be skill based year to km up Kitne Gile bajgai"
+                }, 
+                {
+                    "transcript": "tokri mein police ke Leke usme se be skill based year to km of Kitne Gile bajgai"
+                }, 
+                {
+                    "transcript": "tokri mein police ke Leke usme se be skill based year to km of Kitni Khile bajgai"
+                }, 
+                {
+                    "transcript": "tokri mein police ke liye usme se be skill based year to km of Kitne Gile bajgai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112409322story9": {
+            "alternative": [
+                {
+                    "transcript": "Agar Main dish Gayatri Baja bettys Gai Ho Gayi Ek Gaon Mein kul Mila kar kitni der ho gayi"
+                }, 
+                {
+                    "transcript": "Ek Gaon main dish Gayatri Baja bettys Jai Ho Gayi Ek Gaon Mein kul Mila kar kitni der ho gayi"
+                }, 
+                {
+                    "transcript": "Agar Main dish Gayatri Baja bettys Jai Ho Gayi Ek Gaon Mein kul Mila kar Kitni Ho Gayi"
+                }, 
+                {
+                    "transcript": "Ek Gaon main dish Gayatri Baja bettys Gai Ho Gayi Ek Gaon Mein kul Mila kar Nigahen Ho Gayi"
+                }, 
+                {
+                    "transcript": "Agar Main dish Gayatri Baja bettys Jai Ho Gayi Ek Gaon Mein kul Mila kar kitni der ho gayi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112413320story10": {
+            "alternative": [
+                {
+                    "transcript": "Agar Tyson Tumhi Se Bara Ande kharab ho gayi Tu Bata kitne Ande se he bache hai"
+                }, 
+                {
+                    "transcript": "Agar Taekwondo me Se Bara Ande kharab ho gayi To Bata kitne Ande se he bache hai"
+                }, 
+                {
+                    "transcript": "Agar Taekwondo me Se Bara Ande kharab ho gayi Tu Bata kitne Ande se he bache hai"
+                }, 
+                {
+                    "transcript": "Agar Taekwondo me Se Bara Ande kharab ho gayi Tu Bata kitne Ande se he bache Hain"
+                }, 
+                {
+                    "transcript": "Agar Tyson Tumhi Se Bara Ande kharab ho gayi Tu Bata kitne Ande Se Hi Bache hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112413528story11": {
+            "alternative": [
+                {
+                    "transcript": "Amit Ne Satte Samne se tera and Kali Ye Bata kitne Ambedkar"
+                }, 
+                {
+                    "transcript": "Amit Ne Satte Samne se tera and Kali Ye Bata kitne Ambajogai"
+                }, 
+                {
+                    "transcript": "Amit Ne Satta Samne se tera and khaliye Bata kitne Ambedkar"
+                }, 
+                {
+                    "transcript": "Amit Ne Satta Samne se tera and Kali Ye Bata kitne Ambedkar"
+                }, 
+                {
+                    "transcript": "Amit Ne Satta Samne se tera and Kali Ye Bata kitne Ambajogai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20076114/assets/1467112413724story12": {
+            "alternative": [
+                {
+                    "transcript": "but of ya know but you may barabar barabar Bharti going but I her bache ko Kitni toh family"
+                }, 
+                {
+                    "transcript": "but of ya know but you may barabar barabar Bharti going but I had Bachche ko Kitni toh family"
+                }, 
+                {
+                    "transcript": "but of ya know but you may barabar barabar Bharti going but I had bache ko Kitni toh family"
+                }, 
+                {
+                    "transcript": "but of ya know but you may barabar barabar Bharti going but I heard bache ko Kitni toh family"
+                }, 
+                {
+                    "transcript": "but of ya know but you may barabar barabar Bharti going but I her bache ko Kitni toe family"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "Debasis Singh"
+}

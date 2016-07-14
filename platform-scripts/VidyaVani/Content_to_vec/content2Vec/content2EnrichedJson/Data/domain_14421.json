@@ -1,0 +1,37 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Check for review content", 
+    "developer": "EkStep", 
+    "identifier": "domain_14421", 
+    "imageTags": [
+        "kahani", 
+        "greenbox", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "background", 
+        "icon next", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 0, 
+        "ogg": 0, 
+        "png": 8
+    }, 
+    "mp3Length": 0, 
+    "mp3Transcription": {}, 
+    "owner": "EkStep"
+}

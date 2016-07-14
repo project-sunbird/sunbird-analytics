@@ -1,0 +1,50 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "@story4", 
+    "developer": "EkStep", 
+    "identifier": "domain_46039", 
+    "imageTags": [
+        "btn ok highlights", 
+        "story", 
+        "btn next", 
+        "greenbox", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "goodjob bg", 
+        "speech bubble", 
+        "yellowbox", 
+        "retry bg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "icon hint"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 20
+    }, 
+    "mp3Length": 3.8024943310657595, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_46039/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_46039/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "40 - 50 words"
+    ]
+}

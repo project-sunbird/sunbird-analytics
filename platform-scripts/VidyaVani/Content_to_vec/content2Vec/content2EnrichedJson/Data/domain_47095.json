@@ -1,0 +1,114 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u0c95\u0cae\u0cb2\u0cb3 \u0cb8\u0cb0 \r\n\r\nKamala's Necklace", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_47095", 
+    "imageTags": [
+        "", 
+        "btn ok highlights", 
+        "btn next", 
+        "greenbox", 
+        "btn back", 
+        "icon submit", 
+        "sara", 
+        "goodjob bg", 
+        "speech bubble", 
+        "yellowbox", 
+        "bg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "retry bg", 
+        "icon hint", 
+        "popup tint"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Kannada"
+    ], 
+    "languageCode": "ka", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 3, 
+        "mp3": 5, 
+        "ogg": 0, 
+        "png": 15
+    }, 
+    "mp3Length": 14.715873015873017, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47095/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47095/assets/retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47095/assets/story_1463028904581": {
+            "alternative": [
+                {
+                    "transcript": "Kamala Das Ara available others Saravana daasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available other Saravana daasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available at the Saravana daasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available others Saravana Dasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available as a Saravana daasara under"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47095/assets/title_143_1463030687_1463030687940": {
+            "alternative": [
+                {
+                    "confidence": 0.22428609, 
+                    "transcript": "Sara"
+                }, 
+                {
+                    "transcript": "Sarah"
+                }, 
+                {
+                    "transcript": "Zara"
+                }, 
+                {
+                    "transcript": "shut up"
+                }, 
+                {
+                    "transcript": "cera"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47095/assets/title_1463028873415": {
+            "alternative": [
+                {
+                    "confidence": 0.22428609, 
+                    "transcript": "Sara"
+                }, 
+                {
+                    "transcript": "Sarah"
+                }, 
+                {
+                    "transcript": "Zara"
+                }, 
+                {
+                    "transcript": "shut up"
+                }, 
+                {
+                    "transcript": "cera"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

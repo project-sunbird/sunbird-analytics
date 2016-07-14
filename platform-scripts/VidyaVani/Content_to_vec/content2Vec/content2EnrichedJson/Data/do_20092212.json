@@ -1,0 +1,103 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "In this story we will see how mouse helps lion in his problem. ", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20092212", 
+    "imageTags": [
+        "", 
+        "recordbtn", 
+        "btn back", 
+        "icon submit", 
+        "icon hint", 
+        "icon reload", 
+        "soundbtn", 
+        "icon sound", 
+        "mic", 
+        "literacy"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 3, 
+        "mp3": 3, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 26.17365, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092212/assets/13983783_1467105181621": {
+            "alternative": [
+                {
+                    "transcript": "today's weather of hunter game 2 forest and saw lion he dropped the Lion into the night and went to dillards to bring other people's lion was shouting help help"
+                }, 
+                {
+                    "transcript": "today's weather for hunter game 2 forest and saw lion he dropped the Lion into the night and went to dillards to bring other people's lion was shouting help help"
+                }, 
+                {
+                    "transcript": "today's weather of hunter game to forest and saw lion he dropped the Lion into the night and went to dillards to bring other people's lion was shouting help help"
+                }, 
+                {
+                    "transcript": "today's weather of hunter game 2 forest and saw lion he dropped the Lion into the night and went to billy's to bring other people's lion was shouting help help"
+                }, 
+                {
+                    "transcript": "today's weather for hunter game 2 forest and saw lion he dropped the Lion into the night and went to billy's to bring other people's lion was shouting help help"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092212/assets/13983930_1467105570994": {
+            "alternative": [
+                {
+                    "transcript": "Mossad lion streisand can to help him its either not into pieces and free Balayan finally the Lion escape from the net"
+                }, 
+                {
+                    "transcript": "Noushad lion streisand can to help him its either not into pieces and free Balayan finally the Lion escape from the net"
+                }, 
+                {
+                    "transcript": "Mossad lion streisand can to help him it's either not into pieces and free Balayan finally the Lion escape from the net"
+                }, 
+                {
+                    "transcript": "Mossad lion streisand can to help an Internet into pieces and free Balayan finally the Lion escape from the net"
+                }, 
+                {
+                    "transcript": "Mossad lion streisand can to help him it's rather not into pieces and free Balayan finally the Lion escape from the net"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092212/assets/lion1_1467098130125": {
+            "alternative": [
+                {
+                    "confidence": 0.70097977, 
+                    "transcript": "stories of Lion and the mouse"
+                }, 
+                {
+                    "transcript": "stories about lion and the mouse"
+                }, 
+                {
+                    "transcript": "story of Lion and the mouse"
+                }, 
+                {
+                    "transcript": "stories of lion and mouse"
+                }, 
+                {
+                    "transcript": "stories of the lion and the mouse"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "External Testing vendor"
+}

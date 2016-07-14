@@ -1,0 +1,36 @@
+{
+    "concepts": [], 
+    "contentType": "Collection", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Nia the squirrel learns mathematics with animals, fruits, vegetables, foods, etc...", 
+    "developer": "EkStep", 
+    "domain": [
+        "numeracy"
+    ], 
+    "identifier": "domain_48674", 
+    "imageTags": [], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 0, 
+        "ogg": 0, 
+        "png": 0
+    }, 
+    "mp3Length": 0, 
+    "mp3Transcription": {}, 
+    "owner": "375", 
+    "tags": [
+        "Nia", 
+        "1Math", 
+        "CountTo10"
+    ]
+}

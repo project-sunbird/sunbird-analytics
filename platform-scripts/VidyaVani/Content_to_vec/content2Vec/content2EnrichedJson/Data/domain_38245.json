@@ -1,0 +1,83 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Pratham Mysore Level  1 Saralakshara Story ", 
+    "developer": "EkStep", 
+    "identifier": "domain_38245", 
+    "imageTags": [
+        "", 
+        "greenbox", 
+        "page sel bg", 
+        "icon home", 
+        "icon submit", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "icon reload", 
+        "background", 
+        "icon next", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Kannada"
+    ], 
+    "languageCode": "ka", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 2, 
+        "ogg": 0, 
+        "png": 12
+    }, 
+    "mp3Length": 9.717551020408164, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_38245/assets/story_1460612852422": {
+            "alternative": [
+                {
+                    "transcript": "Kamala Das Ara available others Saravana daasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available other Saravana daasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available at the Saravana daasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available others Saravana Dasara under"
+                }, 
+                {
+                    "transcript": "Kamala Das Ara available as a Saravana daasara under"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_38245/assets/title_1460612881289": {
+            "alternative": [
+                {
+                    "confidence": 0.22428609, 
+                    "transcript": "Sara"
+                }, 
+                {
+                    "transcript": "Sarah"
+                }, 
+                {
+                    "transcript": "Zara"
+                }, 
+                {
+                    "transcript": "shut up"
+                }, 
+                {
+                    "transcript": "cera"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

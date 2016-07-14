@@ -1,0 +1,66 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.en.sweet", 
+    "imageTags": [
+        "no", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "speech bubble", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "start", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 12, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 184.21709523809523, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.en.sweet/assets/1455554930725scene12": {
+            "alternative": [
+                {
+                    "transcript": "is there acid and God yes there is some acid in curd"
+                }, 
+                {
+                    "transcript": "is there acid and curd yes there is some acid in curd"
+                }, 
+                {
+                    "transcript": "is there acid in God yes there is some acid in curd"
+                }, 
+                {
+                    "transcript": "is there acid and God yes there is some acid and curd"
+                }, 
+                {
+                    "transcript": "is there acid and curd yes there is some acid and curd"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "english_stories"
+    ]
+}

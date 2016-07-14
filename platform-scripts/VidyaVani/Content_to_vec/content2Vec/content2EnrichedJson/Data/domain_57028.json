@@ -1,0 +1,131 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "\u090f\u0915 \u091b\u094b\u091f\u0940 \u0938\u0940 \u0915\u0939\u093e\u0928\u0940 ", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_57028", 
+    "imageTags": [
+        "btn ok highlights", 
+        "popuptint", 
+        "story", 
+        "icon home", 
+        "icon submit", 
+        "icon hint", 
+        "retrybg", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "btn back", 
+        "btn next"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 6, 
+        "ogg": 0, 
+        "png": 16
+    }, 
+    "mp3Length": 33.187346938775505, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57028/assets/1464787912894p3_1464078638983": {
+            "alternative": [
+                {
+                    "transcript": "vadakare Aangan Mein Aa Gayi Sunidhi Mor Ke Sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "Vadakara Aangan Mein Aa Gayi Sunidhi Mor Ke Sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "vadakare Aangan Mein Aa Gayi Sunidhi Moh ke sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "Vadakara Aangan Mein Aa Gayi Sunidhi Moh ke sath Nach Ne Lagi"
+                }, 
+                {
+                    "transcript": "Vadakara Aangan Mein Aa Gayi Sone be more ke sath Nach Ne Lagi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57028/assets/1464787913181p4_1464078676344": {
+            "alternative": [
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nachna bhul gaya Khada hokar Sone Ka Naach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nachna bhul gaya Khada hokar Sone Ka Nach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nach Na Bhool Gaya Khada hokar Sone Ka Naach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nach Na Bhool Gaya Khada hokar Sone Ka Nach dekhne Laga"
+                }, 
+                {
+                    "transcript": "pushkaraj Dekhkar Mor Nachu Na Bhul Gaya Khada hokar Sone Ka Naach dekhne Laga"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57028/assets/1464787914484retry_1460636610607": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57028/assets/1464787914855goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57028/assets/1464787917237p1_1464078542644": {
+            "alternative": [
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Angan me Mor Dekha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Angan me Mor dikha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Aangan Mein Mor Dekha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Aangan me Mor Dekha"
+                }, 
+                {
+                    "transcript": "Sony Ghar Ki Chhat Pe Khadi Thi usne Aangan Mein Mor dikha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57028/assets/1464787917384p2_1464078573511": {
+            "alternative": [
+                {
+                    "transcript": "most Sunder Punk Ke Le Kar Na Raha Tha Sony co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sundar Pankh Ke Le Kar Na Raha Tha Sony co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sunder Punk Ke Le Kar Na Raha Tha Soni co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sundar Punk Ke Le Kar Na Raha Tha Sony co star Nach achha lag raha tha"
+                }, 
+                {
+                    "transcript": "most Sundar Pankh Ke Le Kar Na Raha Tha Soni co star Nach achha lag raha tha"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "239", 
+    "tags": [
+        "PRATHAM", 
+        "MELA  3"
+    ]
+}

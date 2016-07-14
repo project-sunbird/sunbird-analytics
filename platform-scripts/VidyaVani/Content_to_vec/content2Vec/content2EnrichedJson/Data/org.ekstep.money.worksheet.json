@@ -1,0 +1,1782 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/data/Moonandthecap.json\": {\n", 
+        "        \"scene4_body,model,root\": [\n", 
+        "            \"\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "description": "\u0926\u0941\u0915\u093e\u0928-\u0926\u0941\u0915\u093e\u0928", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.money.worksheet", 
+    "imageTags": [
+        "teacher icon", 
+        "home icon", 
+        "goodjob bg", 
+        "ruralshops", 
+        "areyousure", 
+        "retry bg", 
+        "que", 
+        "teacher popup bg", 
+        "icon next", 
+        "end screen", 
+        "icon previous"
+    ], 
+    "items": [
+        "{\n", 
+        "    \"/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/items/assessment.json\": {\n", 
+        "        \"answer,options,set_1,items,root\": [\n", 
+        "            \"True\"\n", 
+        "        ], \n", 
+        "        \"asset,obj4_audio,model,root\": [\n", 
+        "            \"ath_sound\", \n", 
+        "            \"Glass_sound\", \n", 
+        "            \"matka_sound\", \n", 
+        "            \"q9_sound\", \n", 
+        "            \"90\", \n", 
+        "            \"bees_sound\", \n", 
+        "            \"25\", \n", 
+        "            \"20\", \n", 
+        "            \"eksaubaais_sound\", \n", 
+        "            \"eksauattara_sound\", \n", 
+        "            \"4\", \n", 
+        "            \"ek_sound\", \n", 
+        "            \"8\", \n", 
+        "            \"96\", \n", 
+        "            \"285\", \n", 
+        "            \"q6_sound\", \n", 
+        "            \"chaubis_sound\", \n", 
+        "            \"q8_sound\", \n", 
+        "            \"balla_sound\", \n", 
+        "            \"pachas_sound\", \n", 
+        "            \"Gaajar_sound\", \n", 
+        "            \"122\", \n", 
+        "            \"12\", \n", 
+        "            \"sau_sound\", \n", 
+        "            \"q7_sound\", \n", 
+        "            \"24\", \n", 
+        "            \"129\", \n", 
+        "            \"patang_sound\", \n", 
+        "            \"17\", \n", 
+        "            \"dosauchattis_sound\", \n", 
+        "            \"kanghi_sound\", \n", 
+        "            \"50\", \n", 
+        "            \"nabbe_sound\", \n", 
+        "            \"que1\", \n", 
+        "            \"19\", \n", 
+        "            \"que2\", \n", 
+        "            \"das_sound\", \n", 
+        "            \"q11_sound\", \n", 
+        "            \"mithai_sound\", \n", 
+        "            \"eksaupachas_sound\", \n", 
+        "            \"kitaab_sound\", \n", 
+        "            \"dosaupachasi_sound\", \n", 
+        "            \"unahattar_sound\", \n", 
+        "            \"118\", \n", 
+        "            \"pencil_sound\", \n", 
+        "            \"que3\", \n", 
+        "            \"18\", \n", 
+        "            \"3\", \n", 
+        "            \"Cup_sound\", \n", 
+        "            \"chattis_sound\", \n", 
+        "            \"Choodi_sound\", \n", 
+        "            \"100\", \n", 
+        "            \"dosaupachas_sound\", \n", 
+        "            \"nau_sound\", \n", 
+        "            \"38\", \n", 
+        "            \"Pyaaz_sound\", \n", 
+        "            \"chalis_sound\", \n", 
+        "            \"dosau_sound\", \n", 
+        "            \"36\", \n", 
+        "            \"7\", \n", 
+        "            \"teen_sound\", \n", 
+        "            \"pachchis_sound\", \n", 
+        "            \"q5_sound\", \n", 
+        "            \"dosaupachpan_sound\", \n", 
+        "            \"69\", \n", 
+        "            \"solah_sound\", \n", 
+        "            \"255\", \n", 
+        "            \"do_sound\", \n", 
+        "            \"2\", \n", 
+        "            \"186\", \n", 
+        "            \"6\", \n", 
+        "            \"basta_sound\", \n", 
+        "            \"250\", \n", 
+        "            \"9\", \n", 
+        "            \"eksouuntis_sound\", \n", 
+        "            \"q13_sound\", \n", 
+        "            \"60\", \n", 
+        "            \"q4_sound\", \n", 
+        "            \"225\", \n", 
+        "            \"10\", \n", 
+        "            \"16\", \n", 
+        "            \"Adatis_sound\", \n", 
+        "            \"q3_sound\", \n", 
+        "            \"q14_sound\", \n", 
+        "            \"unnis_sound\", \n", 
+        "            \"attarah_sound\", \n", 
+        "            \"dosaupachchis_sound\", \n", 
+        "            \"150\", \n", 
+        "            \"q2_sound\", \n", 
+        "            \"236\", \n", 
+        "            \"q15_sound\", \n", 
+        "            \"pandrah_sound\", \n", 
+        "            \"48\", \n", 
+        "            \"eksauchayasi_sound\", \n", 
+        "            \"char_sound\", \n", 
+        "            \"chay_sound\", \n", 
+        "            \"40\", \n", 
+        "            \"saath_sound\", \n", 
+        "            \"sathra_sound\", \n", 
+        "            \"200\", \n", 
+        "            \"adthalis_sound\", \n", 
+        "            \"sathh_sound\", \n", 
+        "            \"bottle_sound\", \n", 
+        "            \"chiyanve_sound\", \n", 
+        "            \"paanch_sound\", \n", 
+        "            \"q10_sound\", \n", 
+        "            \"gaind_sound\", \n", 
+        "            \"q1_sound\", \n", 
+        "            \"q12_sound\", \n", 
+        "            \"barah_sound\"\n", 
+        "        ], \n", 
+        "        \"color,value,options,set_1,items,root\": [\n", 
+        "            \"black\"\n", 
+        "        ], \n", 
+        "        \"dimension,set_1,items,root\": [\n", 
+        "            \"LD5\"\n", 
+        "        ], \n", 
+        "        \"exres,set_1,items,root\": [\n", 
+        "            \"ek.q86.c\", \n", 
+        "            \"ek.q82.c\", \n", 
+        "            \"ek.q93.c\", \n", 
+        "            \"ek.q84.c\", \n", 
+        "            \"ek.q79.b\", \n", 
+        "            \"ek.q80.a\", \n", 
+        "            \"ek.q85.c\", \n", 
+        "            \"ek.q90.c\", \n", 
+        "            \"ek.q89.c\", \n", 
+        "            \"ek.q81.c\", \n", 
+        "            \"ek.q87.c\", \n", 
+        "            \"ek.q88.c\", \n", 
+        "            \"ek.q91.b\", \n", 
+        "            \"ek.q83.c\", \n", 
+        "            \"ek.q92.c\"\n", 
+        "        ], \n", 
+        "        \"font,value,options,set_1,items,root\": [\n", 
+        "            \"Verdana\"\n", 
+        "        ], \n", 
+        "        \"identifier,root\": [\n", 
+        "            \"M200\", \n", 
+        "            \"M190\", \n", 
+        "            \"M184\", \n", 
+        "            \"M199\", \n", 
+        "            \"prices_1\", \n", 
+        "            \"Q15\", \n", 
+        "            \"Q7\", \n", 
+        "            \"Q8\", \n", 
+        "            \"Q14\", \n", 
+        "            \"Q11\", \n", 
+        "            \"Q10\", \n", 
+        "            \"Q13\", \n", 
+        "            \"Q12\", \n", 
+        "            \"Q1\", \n", 
+        "            \"Q3\", \n", 
+        "            \"Q2\", \n", 
+        "            \"Q5\", \n", 
+        "            \"Q4\", \n", 
+        "            \"Q6\", \n", 
+        "            \"Q9\"\n", 
+        "        ], \n", 
+        "        \"max_score,root\": [\n", 
+        "            \"1\", \n", 
+        "            \"5\"\n", 
+        "        ], \n", 
+        "        \"mc,set_1,items,root\": [\n", 
+        "            \"LO43.2\"\n", 
+        "        ], \n", 
+        "        \"methodCode,set_1,items,root\": [\n", 
+        "            \"LT61\"\n", 
+        "        ], \n", 
+        "        \"qid,set_1,items,root\": [\n", 
+        "            \"ek.q80\", \n", 
+        "            \"ek.q83\", \n", 
+        "            \"ek.q92\", \n", 
+        "            \"ek.q93\", \n", 
+        "            \"ek.q90\", \n", 
+        "            \"ek.q91\", \n", 
+        "            \"ek.q79\", \n", 
+        "            \"ek.q81\", \n", 
+        "            \"ek.q82\", \n", 
+        "            \"ek.q85\", \n", 
+        "            \"ek.q84\", \n", 
+        "            \"ek.q87\", \n", 
+        "            \"ek.q86\", \n", 
+        "            \"ek.q89\", \n", 
+        "            \"ek.q88\"\n", 
+        "        ], \n", 
+        "        \"question,set_1,items,root\": [\n", 
+        "            \"5 \\u092c\\u0932\\u094d\\u0932\\u094b\\u0902 \\u0914\\u0930 3 \\u0915\\u0902\\u0918\\u0940 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"10 \\u0917\\u0947\\u0902\\u0926\\u094b\\u0902 \\u0914\\u0930 5 \\u092c\\u094b\\u0924\\u0932\\u094b\\u0902 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"5 \\u0915\\u093f\\u0924\\u093e\\u092c\\u0947\\u0902 \\u0914\\u0930 2 \\u092a\\u0947\\u0902\\u0938\\u093f\\u0932 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"2 \\u092a\\u0924\\u0902\\u0917, 2 \\u0915\\u0902\\u0918\\u0940 \\u0914\\u0930 2 \\u092a\\u0947\\u0901\\u0938\\u093f\\u0932 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"5 \\u0917\\u093e\\u091c\\u0930 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ? \", \n", 
+        "            \" 2 \\u092c\\u094b\\u0924\\u0932\\u094b\\u0902 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"2 \\u092e\\u093f\\u0920\\u093e\\u0907\\u092f\\u094b\\u0902, 5 \\u092e\\u091f\\u0915\\u094b\\u0902  \\u0914\\u0930 2 \\u0917\\u0947\\u0902\\u0926\\u094b\\u0902 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ? \", \n", 
+        "            \"2 \\u092a\\u094d\\u092f\\u093e\\u091c \\u0914\\u0930 2 \\u200b\\u200b\\u0915\\u092a \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ? \", \n", 
+        "            \"\\u090f\\u0915 \\u092a\\u0924\\u0902\\u0917 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"10 \\u0917\\u093f\\u0932\\u093e\\u0938 \\u0914\\u0930 5 \\u091a\\u0942\\u0921\\u093c\\u093f\\u092f\\u094b\\u0902 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ? \", \n", 
+        "            \"1 \\u092e\\u091f\\u0915\\u0947 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ? \", \n", 
+        "            \" 2 \\u092c\\u0938\\u094d\\u0924\\u094b\\u0902 \\u0914\\u0930 3 \\u0917\\u0947\\u0902\\u0926\\u094b\\u0902 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"10 \\u0915\\u092a , 5 \\u091a\\u0942\\u0921\\u093c\\u093f\\u092f\\u093e\\u0901 \\u0914\\u0930 2 \\u0917\\u093e\\u091c\\u0930 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ? \", \n", 
+        "            \"3 \\u092a\\u0947\\u0902\\u0938\\u093f\\u0932 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?\", \n", 
+        "            \"1 \\u0917\\u093e\\u091c\\u0930 \\u0915\\u0940 \\u0915\\u0940\\u092e\\u0924 \\u0915\\u094d\\u092f\\u093e \\u0939\\u0948 ?  \"\n", 
+        "        ], \n", 
+        "        \"relation,concepts,set_1,items,root\": [\n", 
+        "            \"associatedTo\"\n", 
+        "        ], \n", 
+        "        \"scene10_body,model,root\": [\n", 
+        "            \"\"\n", 
+        "        ], \n", 
+        "        \"shuffle,root\": [\n", 
+        "            \"False\"\n", 
+        "        ], \n", 
+        "        \"subject,root\": [\n", 
+        "            \"LIT\"\n", 
+        "        ], \n", 
+        "        \"template,set_1,items,root\": [\n", 
+        "            \"mcq_template_1\"\n", 
+        "        ], \n", 
+        "        \"title,root\": [\n", 
+        "            \"Prices\"\n", 
+        "        ], \n", 
+        "        \"total_items,root\": [\n", 
+        "            \"15\"\n", 
+        "        ], \n", 
+        "        \"type,set_1,items,root\": [\n", 
+        "            \"text\", \n", 
+        "            \"image\", \n", 
+        "            \"mcq\", \n", 
+        "            \"audio\"\n", 
+        "        ]\n", 
+        "    }\n", 
+        "}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 142, 
+        "ogg": 0, 
+        "png": 26
+    }, 
+    "mp3Length": 152.31312925170064, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/Choodi": {
+            "alternative": [
+                {
+                    "confidence": 0.58716637, 
+                    "transcript": "chudai"
+                }, 
+                {
+                    "transcript": "Chudi"
+                }, 
+                {
+                    "transcript": "Choodi"
+                }, 
+                {
+                    "transcript": "Judy"
+                }, 
+                {
+                    "transcript": "Jodi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/Cup": {
+            "alternative": [
+                {
+                    "confidence": 0.61777037, 
+                    "transcript": "cup"
+                }, 
+                {
+                    "transcript": "KAP"
+                }, 
+                {
+                    "transcript": "cub"
+                }, 
+                {
+                    "transcript": "cuhp"
+                }, 
+                {
+                    "transcript": "rcub"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/Gaajar": {
+            "alternative": [
+                {
+                    "confidence": 0.75453699, 
+                    "transcript": "gajar"
+                }, 
+                {
+                    "transcript": "Gaza"
+                }, 
+                {
+                    "transcript": "Georgia"
+                }, 
+                {
+                    "transcript": "gorgeous"
+                }, 
+                {
+                    "transcript": "Ganja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/Glass": {
+            "alternative": [
+                {
+                    "confidence": 0.89090157, 
+                    "transcript": "glass"
+                }, 
+                {
+                    "transcript": "class"
+                }, 
+                {
+                    "transcript": "blas"
+                }, 
+                {
+                    "transcript": "Bilas"
+                }, 
+                {
+                    "transcript": "glasses"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/Pyaaz": {
+            "alternative": [
+                {
+                    "confidence": 0.59573108, 
+                    "transcript": "Pyar"
+                }, 
+                {
+                    "transcript": "Pyaar"
+                }, 
+                {
+                    "transcript": "PR"
+                }, 
+                {
+                    "transcript": "Pyar Hai"
+                }, 
+                {
+                    "transcript": "Pyaar Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/ath": {
+            "alternative": [
+                {
+                    "confidence": 0.77031964, 
+                    "transcript": "art"
+                }, 
+                {
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "heart"
+                }, 
+                {
+                    "transcript": "aren't"
+                }, 
+                {
+                    "transcript": "Earth"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/attarah": {
+            "alternative": [
+                {
+                    "confidence": 0.49524233, 
+                    "transcript": "atarra"
+                }, 
+                {
+                    "transcript": "adhara"
+                }, 
+                {
+                    "transcript": "attra"
+                }, 
+                {
+                    "transcript": "adora"
+                }, 
+                {
+                    "transcript": "Antara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/balla": {
+            "alternative": [
+                {
+                    "confidence": 0.24279588, 
+                    "transcript": "Bhalla"
+                }, 
+                {
+                    "transcript": "Malla"
+                }, 
+                {
+                    "transcript": "Bala"
+                }, 
+                {
+                    "transcript": "Bella"
+                }, 
+                {
+                    "transcript": "Billa"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/barah": {
+            "alternative": [
+                {
+                    "confidence": 0.72078794, 
+                    "transcript": "Bara"
+                }, 
+                {
+                    "transcript": "Bahra"
+                }, 
+                {
+                    "transcript": "Barra"
+                }, 
+                {
+                    "transcript": "Bora"
+                }, 
+                {
+                    "transcript": "Dara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/basta": {
+            "alternative": [
+                {
+                    "confidence": 0.68691385, 
+                    "transcript": "bus stop"
+                }, 
+                {
+                    "transcript": "bus star"
+                }, 
+                {
+                    "transcript": "bus staff"
+                }, 
+                {
+                    "transcript": "bas star"
+                }, 
+                {
+                    "transcript": "busta"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/bees": {
+            "alternative": [
+                {
+                    "confidence": 0.61486852, 
+                    "transcript": "beach"
+                }, 
+                {
+                    "transcript": "dish"
+                }, 
+                {
+                    "transcript": "bees"
+                }, 
+                {
+                    "transcript": "Beas"
+                }, 
+                {
+                    "transcript": "BIS"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/bottle": {
+            "alternative": [
+                {
+                    "confidence": 0.51710898, 
+                    "transcript": "bottle"
+                }, 
+                {
+                    "transcript": "Botal"
+                }, 
+                {
+                    "transcript": "hotel"
+                }, 
+                {
+                    "transcript": "portal"
+                }, 
+                {
+                    "transcript": "total"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/chalis": {
+            "alternative": [
+                {
+                    "confidence": 0.1328909, 
+                    "transcript": "Charlie"
+                }, 
+                {
+                    "transcript": "Charlie's"
+                }, 
+                {
+                    "transcript": "Chinese"
+                }, 
+                {
+                    "transcript": "charlies"
+                }, 
+                {
+                    "transcript": "Chali"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/char": {
+            "alternative": [
+                {
+                    "confidence": 0.42622823, 
+                    "transcript": "chaar"
+                }, 
+                {
+                    "transcript": "char"
+                }, 
+                {
+                    "transcript": "chart"
+                }, 
+                {
+                    "transcript": "jar"
+                }, 
+                {
+                    "transcript": "chat"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/chattis": {
+            "alternative": [
+                {
+                    "confidence": 0.22270451, 
+                    "transcript": "champy's"
+                }, 
+                {
+                    "transcript": "chateze"
+                }, 
+                {
+                    "transcript": "chutneys"
+                }, 
+                {
+                    "transcript": "Satish"
+                }, 
+                {
+                    "transcript": "chanies"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/chaubis": {
+            "alternative": [
+                {
+                    "transcript": "hobbies"
+                }, 
+                {
+                    "transcript": "sau bees"
+                }, 
+                {
+                    "transcript": "tubbies"
+                }, 
+                {
+                    "transcript": "so bees"
+                }, 
+                {
+                    "transcript": "Zombies"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/chay": {
+            "alternative": [
+                {
+                    "confidence": 0.64528835, 
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "c"
+                }, 
+                {
+                    "transcript": "see"
+                }, 
+                {
+                    "transcript": "shi"
+                }, 
+                {
+                    "transcript": "XI"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/chiyanve": {
+            "alternative": [
+                {
+                    "confidence": 0.75389111, 
+                    "transcript": "Saiyaan Ve"
+                }, 
+                {
+                    "transcript": "fiance"
+                }, 
+                {
+                    "transcript": "PNB"
+                }, 
+                {
+                    "transcript": "Haryanvi"
+                }, 
+                {
+                    "transcript": "c and b"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/das": {
+            "alternative": [
+                {
+                    "confidence": 0.60356206, 
+                    "transcript": "does"
+                }, 
+                {
+                    "transcript": "Dus"
+                }, 
+                {
+                    "transcript": "death"
+                }, 
+                {
+                    "transcript": "dase"
+                }, 
+                {
+                    "transcript": "duck"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/do": {
+            "alternative": [
+                {
+                    "confidence": 0.69017798, 
+                    "transcript": "Dhoom"
+                }, 
+                {
+                    "transcript": "do"
+                }, 
+                {
+                    "transcript": "Doom"
+                }, 
+                {
+                    "transcript": "du"
+                }, 
+                {
+                    "transcript": "dog"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/dosau": {
+            "alternative": [
+                {
+                    "confidence": 0.47261441, 
+                    "transcript": "Do song"
+                }, 
+                {
+                    "transcript": "DU song"
+                }, 
+                {
+                    "transcript": "Dol song"
+                }, 
+                {
+                    "transcript": "Dhol song"
+                }, 
+                {
+                    "transcript": "door song"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/dosauchattis": {
+            "alternative": [
+                {
+                    "transcript": "do Socha tea"
+                }, 
+                {
+                    "transcript": "do Socha t"
+                }, 
+                {
+                    "transcript": "do so chhattees"
+                }, 
+                {
+                    "transcript": "dude so chhattees"
+                }, 
+                {
+                    "transcript": "do Socha tease"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/dosaupachas": {
+            "alternative": [
+                {
+                    "confidence": 0.26895794, 
+                    "transcript": "do so pachas"
+                }, 
+                {
+                    "transcript": "don't overcharge"
+                }, 
+                {
+                    "transcript": "Dosto Pehchaan"
+                }, 
+                {
+                    "transcript": "do so much as"
+                }, 
+                {
+                    "transcript": "door stopper char"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/dosaupachasi": {
+            "alternative": [
+                {
+                    "confidence": 0.38280272, 
+                    "transcript": "do super chasi"
+                }, 
+                {
+                    "transcript": "dose of HRC"
+                }, 
+                {
+                    "transcript": "DU super chasi"
+                }, 
+                {
+                    "transcript": "DDU super chasi"
+                }, 
+                {
+                    "transcript": "the super chasi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/dosaupachchis": {
+            "alternative": [
+                {
+                    "transcript": "do super cheap"
+                }, 
+                {
+                    "transcript": "do super cheese"
+                }, 
+                {
+                    "transcript": "do supercheats"
+                }, 
+                {
+                    "transcript": "dude super cheese"
+                }, 
+                {
+                    "transcript": "dude super cheap"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/dosaupachpan": {
+            "alternative": [
+                {
+                    "transcript": "dusu patch panel"
+                }, 
+                {
+                    "transcript": "dusu Bachpan"
+                }, 
+                {
+                    "transcript": "Dushu patch panel"
+                }, 
+                {
+                    "transcript": "doosu patch panel"
+                }, 
+                {
+                    "transcript": "Dhoom 2 patch panel"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/ek": {
+            "alternative": [
+                {
+                    "confidence": 0.32112783, 
+                    "transcript": "Ek"
+                }, 
+                {
+                    "transcript": "IIT"
+                }, 
+                {
+                    "transcript": "Ik"
+                }, 
+                {
+                    "transcript": "eat"
+                }, 
+                {
+                    "transcript": "is"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/eksauattara": {
+            "alternative": [
+                {
+                    "confidence": 0.22839327, 
+                    "transcript": "Ek to atarra"
+                }, 
+                {
+                    "transcript": "ec2 attra"
+                }, 
+                {
+                    "transcript": "IGNOU atarra"
+                }, 
+                {
+                    "transcript": "IGNOU attra"
+                }, 
+                {
+                    "transcript": "Ek tour Tara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/eksaubaais": {
+            "alternative": [
+                {
+                    "confidence": 0.35686526, 
+                    "transcript": "IGNOU by"
+                }, 
+                {
+                    "transcript": "IGNOU B"
+                }, 
+                {
+                    "transcript": "Exo by"
+                }, 
+                {
+                    "transcript": "IGNOU buy"
+                }, 
+                {
+                    "transcript": "its by"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/eksaubaara": {
+            "alternative": [
+                {
+                    "transcript": "XO Bara"
+                }, 
+                {
+                    "transcript": "Exo Bara"
+                }, 
+                {
+                    "transcript": "IGNOU Bara"
+                }, 
+                {
+                    "transcript": "IGNOU Bahra"
+                }, 
+                {
+                    "transcript": "IGNOU Barra"
+                }, 
+                {
+                    "transcript": "IGNOU baroda"
+                }, 
+                {
+                    "transcript": "ejipura"
+                }, 
+                {
+                    "transcript": "IGNOU forum"
+                }, 
+                {
+                    "transcript": "IGNOU form"
+                }, 
+                {
+                    "transcript": "IGNOU khanna"
+                }, 
+                {
+                    "transcript": "IGNOU course"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/eksauchayasi": {
+            "alternative": [
+                {
+                    "confidence": 0.87829626, 
+                    "transcript": "Xperia C"
+                }, 
+                {
+                    "transcript": "xvicha see"
+                }, 
+                {
+                    "transcript": "Ek Sachi RC"
+                }, 
+                {
+                    "transcript": "Ek Sachi ICSI"
+                }, 
+                {
+                    "transcript": "Xperia see"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/eksaupachas": {
+            "alternative": [
+                {
+                    "transcript": "Ek supercharge"
+                }, 
+                {
+                    "transcript": "exo pachar"
+                }, 
+                {
+                    "transcript": "XO pachar"
+                }, 
+                {
+                    "transcript": "IGNOU pachar"
+                }, 
+                {
+                    "transcript": "Ek super charge"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/eksouuntis": {
+            "alternative": [
+                {
+                    "transcript": "XO aunties"
+                }, 
+                {
+                    "transcript": "Exo aunties"
+                }, 
+                {
+                    "transcript": "ixo aunties"
+                }, 
+                {
+                    "transcript": "XO auntys"
+                }, 
+                {
+                    "transcript": "IGNOU aunties"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/firprayaaskare": {
+            "alternative": [
+                {
+                    "transcript": "Phir friars kare"
+                }, 
+                {
+                    "transcript": "sirf Riyaz kare"
+                }, 
+                {
+                    "transcript": "Phir Yaad kare"
+                }, 
+                {
+                    "transcript": "V Riyaz kare"
+                }, 
+                {
+                    "transcript": "Phir friars curry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/gaind": {
+            "alternative": [
+                {
+                    "confidence": 0.60631818, 
+                    "transcript": "games"
+                }, 
+                {
+                    "transcript": "Jind"
+                }, 
+                {
+                    "transcript": "game"
+                }, 
+                {
+                    "transcript": "gained"
+                }, 
+                {
+                    "transcript": "deemed"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/kanghi": {
+            "alternative": [
+                {
+                    "confidence": 0.40703353, 
+                    "transcript": "nangi"
+                }, 
+                {
+                    "transcript": "Sangai"
+                }, 
+                {
+                    "transcript": "fungi"
+                }, 
+                {
+                    "transcript": "Khanki"
+                }, 
+                {
+                    "transcript": "Dangi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/kitaab": {
+            "alternative": [
+                {
+                    "confidence": 0.62572122, 
+                    "transcript": "Kitab"
+                }, 
+                {
+                    "transcript": "Kitaab"
+                }, 
+                {
+                    "transcript": "gitams"
+                }, 
+                {
+                    "transcript": "kitabu"
+                }, 
+                {
+                    "transcript": "guitar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/matka": {
+            "alternative": [
+                {
+                    "confidence": 0.88367283, 
+                    "transcript": "Matka"
+                }, 
+                {
+                    "transcript": "mat kar"
+                }, 
+                {
+                    "transcript": "Mattka"
+                }, 
+                {
+                    "transcript": "mataka"
+                }, 
+                {
+                    "transcript": "smart car"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/mithai": {
+            "alternative": [
+                {
+                    "confidence": 0.17841865, 
+                    "transcript": "MIT"
+                }, 
+                {
+                    "transcript": "methyl"
+                }, 
+                {
+                    "transcript": "mithai"
+                }, 
+                {
+                    "transcript": "mitai"
+                }, 
+                {
+                    "transcript": "Mitali"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/nabbe": {
+            "alternative": [
+                {
+                    "confidence": 0.25791293, 
+                    "transcript": "navpay"
+                }, 
+                {
+                    "transcript": "Nabi"
+                }, 
+                {
+                    "transcript": "FB"
+                }, 
+                {
+                    "transcript": "maybe"
+                }, 
+                {
+                    "transcript": "Nav pay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/nau": {
+            "alternative": [
+                {
+                    "confidence": 0.88144088, 
+                    "transcript": "no"
+                }, 
+                {
+                    "transcript": "know"
+                }, 
+                {
+                    "transcript": "Nau"
+                }, 
+                {
+                    "transcript": "now"
+                }, 
+                {
+                    "transcript": "no."
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/paanch": {
+            "alternative": [
+                {
+                    "confidence": 0.36877695, 
+                    "transcript": "Paanch"
+                }, 
+                {
+                    "transcript": "Panch"
+                }, 
+                {
+                    "transcript": "punch"
+                }, 
+                {
+                    "transcript": "bunch"
+                }, 
+                {
+                    "transcript": "pant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/pachas": {
+            "alternative": [
+                {
+                    "confidence": 0.51347762, 
+                    "transcript": "Panchal"
+                }, 
+                {
+                    "transcript": "pachar"
+                }, 
+                {
+                    "transcript": "panchayat"
+                }, 
+                {
+                    "transcript": "Achar"
+                }, 
+                {
+                    "transcript": "Panchang"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/pachchis": {
+            "alternative": [
+                {
+                    "confidence": 0.18436123, 
+                    "transcript": "Archies"
+                }, 
+                {
+                    "transcript": "but she's"
+                }, 
+                {
+                    "transcript": "purchase"
+                }, 
+                {
+                    "transcript": "budgies"
+                }, 
+                {
+                    "transcript": "Maachis"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/pandrah": {
+            "alternative": [
+                {
+                    "confidence": 0.43335727, 
+                    "transcript": "pandra"
+                }, 
+                {
+                    "transcript": "Bandra"
+                }, 
+                {
+                    "transcript": "Tundra"
+                }, 
+                {
+                    "transcript": "Chandra"
+                }, 
+                {
+                    "transcript": "pandhra"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/patang": {
+            "alternative": [
+                {
+                    "confidence": 0.36401233, 
+                    "transcript": "Patang"
+                }, 
+                {
+                    "transcript": "pattern"
+                }, 
+                {
+                    "transcript": "Pattam"
+                }, 
+                {
+                    "transcript": "button"
+                }, 
+                {
+                    "transcript": "Patna"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/pencil": {
+            "alternative": [
+                {
+                    "confidence": 0.91534042, 
+                    "transcript": "pencil"
+                }, 
+                {
+                    "transcript": "pencils"
+                }, 
+                {
+                    "transcript": "pension"
+                }, 
+                {
+                    "transcript": "tenses"
+                }, 
+                {
+                    "transcript": "cancel"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q1": {
+            "alternative": [
+                {
+                    "confidence": 0.86713648, 
+                    "transcript": "Ek gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "IIT gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "EC gajar Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q10": {
+            "alternative": [
+                {
+                    "transcript": "teen pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "teen pension Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "tin pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "tin pension Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "teen tension Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q11": {
+            "alternative": [
+                {
+                    "confidence": 0.84014064, 
+                    "transcript": "Ek Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "is Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "IIT Matki Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "it Matki Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q12": {
+            "alternative": [
+                {
+                    "confidence": 0.91230339, 
+                    "transcript": "Do betiyon Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both Lun Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both loan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both Loon Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do both alone Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q13": {
+            "alternative": [
+                {
+                    "transcript": "DU bus 218 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do bus to 18 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "DU bus stone 18 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "DU bus to 18 game zone Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do bus stone 18 game zone Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q14": {
+            "alternative": [
+                {
+                    "confidence": 0.83061713, 
+                    "transcript": "this game do 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dus game do 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "this game the 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "just game do 18 bottle on Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does game do 18 bottle on Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q15": {
+            "alternative": [
+                {
+                    "transcript": "do mateo punch Matka Urdu gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do betiyon Paanch Matka Urdu gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do mateo punch Matka or do gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do mateo Paanch Matka Urdu gandu Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do mateo Paanch Matka or do gandu Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q2": {
+            "alternative": [
+                {
+                    "confidence": 0.8398667, 
+                    "transcript": "Paanch gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch kajare Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch kajare Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q3": {
+            "alternative": [
+                {
+                    "confidence": 0.7722919, 
+                    "transcript": "Do Pyar Urdu Cup Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Do Pyar Urdu kab Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do Pyaar Urdu Cup Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do Pyase Urdu Cup Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "do Pyaar Urdu kab Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q4": {
+            "alternative": [
+                {
+                    "transcript": "does glass aur Panch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass aur Paanch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass or Paanch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass aur punch Chudiyan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "does glass or punch Chudiyan Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q5": {
+            "alternative": [
+                {
+                    "confidence": 0.68283206, 
+                    "transcript": "desktop and Studio Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop punch Julia Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop Panch Julia Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop Paanch Julia Urdu gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "desktop Panch judeo Urdu gajar Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q6": {
+            "alternative": [
+                {
+                    "confidence": 0.84450817, 
+                    "transcript": "Ek Pathan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik Pathan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ek Bachan Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ek patton Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ek Bachpan Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q7": {
+            "alternative": [
+                {
+                    "transcript": "Dupatta dukan ki urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta MDU Khanki Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta do Khanki Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta do kangi Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Dupatta MDU kangi Urdu pencil Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q8": {
+            "alternative": [
+                {
+                    "transcript": "punch below 18 kangi Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch below 18 MG Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch below 18 can see Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch below 18 kangi Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "punch below eighteen kangi Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/q9": {
+            "alternative": [
+                {
+                    "transcript": "Paanch kitabu Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch kitabo Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch kitabu Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Panch kitabo Urdu pencil Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Paanch kitabu Urdu pension Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/saath": {
+            "alternative": [
+                {
+                    "confidence": 0.2222627, 
+                    "transcript": "saath"
+                }, 
+                {
+                    "transcript": "saat"
+                }, 
+                {
+                    "transcript": "sath"
+                }, 
+                {
+                    "transcript": "start"
+                }, 
+                {
+                    "transcript": "chart"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/sahijawaab": {
+            "alternative": [
+                {
+                    "confidence": 0.21548721, 
+                    "transcript": "Faizabad"
+                }, 
+                {
+                    "transcript": "Java"
+                }, 
+                {
+                    "transcript": "Jabong"
+                }, 
+                {
+                    "transcript": "Hyderabad"
+                }, 
+                {
+                    "transcript": "Faridabad"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/sathh": {
+            "alternative": [
+                {
+                    "confidence": 0.14915055, 
+                    "transcript": "search"
+                }, 
+                {
+                    "transcript": "sad"
+                }, 
+                {
+                    "transcript": "sat"
+                }, 
+                {
+                    "transcript": "saath"
+                }, 
+                {
+                    "transcript": "chart"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/sathra": {
+            "alternative": [
+                {
+                    "transcript": "Sakra"
+                }, 
+                {
+                    "transcript": "Satra"
+                }, 
+                {
+                    "transcript": "sakera"
+                }, 
+                {
+                    "transcript": "Shakira"
+                }, 
+                {
+                    "transcript": "Chakra"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/sau": {
+            "alternative": [
+                {
+                    "confidence": 0.50465047, 
+                    "transcript": "so"
+                }, 
+                {
+                    "transcript": "song"
+                }, 
+                {
+                    "transcript": "CEO"
+                }, 
+                {
+                    "transcript": "show"
+                }, 
+                {
+                    "transcript": "Sau"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/solah": {
+            "alternative": [
+                {
+                    "confidence": 0.73595637, 
+                    "transcript": "solar"
+                }, 
+                {
+                    "transcript": "Sola"
+                }, 
+                {
+                    "transcript": "Shola"
+                }, 
+                {
+                    "transcript": "solr"
+                }, 
+                {
+                    "transcript": "so la"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/teen": {
+            "alternative": [
+                {
+                    "confidence": 0.52575046, 
+                    "transcript": "teen"
+                }, 
+                {
+                    "transcript": "tin"
+                }, 
+                {
+                    "transcript": "team"
+                }, 
+                {
+                    "transcript": "theme"
+                }, 
+                {
+                    "transcript": "theen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/unahattar": {
+            "alternative": [
+                {
+                    "confidence": 0.17859975, 
+                    "transcript": "antar"
+                }, 
+                {
+                    "transcript": "in hunter"
+                }, 
+                {
+                    "transcript": "on hunter"
+                }, 
+                {
+                    "transcript": "hunter"
+                }, 
+                {
+                    "transcript": "and hunter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.money.worksheet/assets/unnis": {
+            "alternative": [
+                {
+                    "confidence": 0.52992266, 
+                    "transcript": "Unni"
+                }, 
+                {
+                    "transcript": "Anish"
+                }, 
+                {
+                    "transcript": "Anas"
+                }, 
+                {
+                    "transcript": "only"
+                }, 
+                {
+                    "transcript": "Anees"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_num_activities", 
+        "hindi_reading_camp", 
+        "Hindi"
+    ]
+}

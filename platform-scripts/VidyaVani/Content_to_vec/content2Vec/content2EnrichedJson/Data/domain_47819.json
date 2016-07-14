@@ -1,0 +1,73 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_47819", 
+    "imageTags": [
+        "btn ok highlights", 
+        "index", 
+        "btn next", 
+        "greenbox", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "goodjob bg", 
+        "speech bubble", 
+        "yellowbox", 
+        "short stories foxandgrapes", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "retry bg", 
+        "icon hint"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 3, 
+        "mp3": 5, 
+        "ogg": 0, 
+        "png": 14
+    }, 
+    "mp3Length": 34.601859268707486, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47819/assets/1455036363986Fox_sound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47819/assets/end_1456466493037": {
+            "alternative": [
+                {
+                    "confidence": 0.13682067, 
+                    "transcript": "aunt"
+                }, 
+                {
+                    "transcript": "amt"
+                }, 
+                {
+                    "transcript": "Anth"
+                }, 
+                {
+                    "transcript": "ant"
+                }, 
+                {
+                    "transcript": "aren't"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47819/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47819/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

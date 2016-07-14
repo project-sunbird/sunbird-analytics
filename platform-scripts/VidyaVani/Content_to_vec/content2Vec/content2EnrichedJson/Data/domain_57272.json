@@ -1,0 +1,67 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "These are the Kannada stories which are of different level of difficulty. The stories or leveled up or down depending on the complexity measures", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_57272", 
+    "imageTags": [
+        "popuptint", 
+        "btn ok highlights", 
+        "btn back", 
+        "icon submit", 
+        "icon hint", 
+        "retrybg", 
+        "goodjobbg", 
+        "icon reload", 
+        "background", 
+        "icon home", 
+        "btn next"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Kannada"
+    ], 
+    "languageCode": "ka", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 11
+    }, 
+    "mp3Length": 367.8446193310657, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57272/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57272/assets/para___level_1_1464803218540": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57272/assets/para___level_2_1464802975767": {
+            "alternative": [
+                {
+                    "transcript": "Nala cooker Aye Bahar Aye Mere Gali Mai Mare Gali Gali De kar lo dangudu kathalu Nadia Ali Neeru kudiyoke Dave"
+                }, 
+                {
+                    "transcript": "nalan kukade Bihari Gali Mai Mare Gali Gali De kar lo dangudu kathalu Nadia Ali Neeru kudiyoke Dave"
+                }, 
+                {
+                    "transcript": "nalan kukade Bahara Mare Gali Mai Mare Gali Gali De kar lo dangudu kathalu Nadia Ali Neeru kudiyoke Dave"
+                }, 
+                {
+                    "transcript": "Nala kukade Bahara Mere Gali Mai Mare Gali Gali De kar lo dangudu kathalu Nadia Ali Neeru kudiyoke Dave"
+                }, 
+                {
+                    "transcript": "nalan kukade Bahara Gali Mai Mare Gali Gali De kar lo dangudu kathalu Nadia Ali Neeru kudiyoke Dave"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_57272/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep"
+}

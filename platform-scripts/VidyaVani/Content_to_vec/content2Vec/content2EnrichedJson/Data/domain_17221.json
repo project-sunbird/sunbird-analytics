@@ -1,0 +1,111 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "A little girl called Kali", 
+    "developer": "EkStep", 
+    "identifier": "domain_17221", 
+    "imageTags": [
+        "school", 
+        "greenbox", 
+        "page sel bg", 
+        "story image", 
+        "icon home", 
+        "icon submit", 
+        "icon next", 
+        "bear", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "icon reload", 
+        "background", 
+        "elephant", 
+        "front page", 
+        "play audio", 
+        "icon sound", 
+        "math", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 1, 
+        "mp3": 3, 
+        "ogg": 0, 
+        "png": 18
+    }, 
+    "mp3Length": 6.086802721088436, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17221/assets/1454011999404goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.93531686, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "Govt jobs"
+                }, 
+                {
+                    "transcript": "good Bob"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17221/assets/1455033537241chartmeinkhoje": {
+            "alternative": [
+                {
+                    "transcript": "Chahat Mein Kho Jaye"
+                }, 
+                {
+                    "transcript": "chat Mai coaching"
+                }, 
+                {
+                    "transcript": "Chahat Mein kuche"
+                }, 
+                {
+                    "transcript": "Chahat Mai Kho Jaye"
+                }, 
+                {
+                    "transcript": "Chahat Mein coaching"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_17221/assets/hathi": {
+            "alternative": [
+                {
+                    "confidence": 0.28015181, 
+                    "transcript": "Hathi"
+                }, 
+                {
+                    "transcript": "x**"
+                }, 
+                {
+                    "transcript": "haathi"
+                }, 
+                {
+                    "transcript": "happy"
+                }, 
+                {
+                    "transcript": "Har Ki"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

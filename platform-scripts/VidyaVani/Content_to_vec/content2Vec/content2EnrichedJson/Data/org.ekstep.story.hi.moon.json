@@ -1,0 +1,252 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.story.hi.moon", 
+    "imageTags": [
+        "no", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "speech bubble", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "start", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 11, 
+        "mp3": 10, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 90.40979591836735, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556077697scene9": {
+            "alternative": [
+                {
+                    "transcript": "school ke baad Himani Mujhse 89 sexy Lal Dopidi Chandni Bhi Hai Maa Ne Kaha"
+                }, 
+                {
+                    "transcript": "school ke baad Himani Mujhse Itni Shakti Lal Dopidi Chandni Bhi Hai Maa Ne Kaha"
+                }, 
+                {
+                    "transcript": "school ke baad Himani Mujhse 89 sexy Lal Dopidi Chandni bheji Hai Maa Ne Kaha"
+                }, 
+                {
+                    "transcript": "school ke baad Himani Mujhse 89 sexy Lal Dopidi Chandni bhi hai"
+                }, 
+                {
+                    "transcript": "school ke baad Himani Mujhse 89 saxy Lal Dopidi Chandni Bhi Hai Maa Ne Kaha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556077832scene10": {
+            "alternative": [
+                {
+                    "transcript": "Khush Rakh chaandan Mein Dono ne apni Toh Kya Pehli Baar Muskura hum bahut khush hue"
+                }, 
+                {
+                    "transcript": "Gujarat chaandan mein Dono ne apni Toh Kya Pehli Baar Muskura hum bahut khush hue"
+                }, 
+                {
+                    "transcript": "ruhsraj chaandan Mein Dono ne apni Toh Kya Pehli Baar Muskura hum bahut khush hue"
+                }, 
+                {
+                    "transcript": "Ishrat Jahan Mein Dono ne apni Toh Kya Pehli Baar Muskura hum bahut khush hue"
+                }, 
+                {
+                    "transcript": "Ishrat Jahan Mein Dono ne apni toh Kiya Pehli Baar Muskura hum bahut khush hue"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556078003scene8": {
+            "alternative": [
+                {
+                    "transcript": "Chandni meaning"
+                }, 
+                {
+                    "transcript": "Chandni Meri Khushi Se"
+                }, 
+                {
+                    "transcript": "Chand Ne Meri Khushi Se"
+                }, 
+                {
+                    "transcript": "chanting meaning"
+                }, 
+                {
+                    "transcript": "Chandni Merry Christmas"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556078148scene7": {
+            "alternative": [
+                {
+                    "transcript": "Devdas Me Chand Nikla usme purane people per Meri choti bacchi"
+                }, 
+                {
+                    "transcript": "Dil Hashmi Chand Nikla usme purane people par meri topi Baki"
+                }, 
+                {
+                    "transcript": "Dil Hashmi Chand Nikla usme purane people par meri choti bacchi"
+                }, 
+                {
+                    "transcript": "Dil Hashmi Chand Nikla usne purane people par meri choti bacchi"
+                }, 
+                {
+                    "transcript": "Dil Hashmi Chand Nikla usme purane people par meri choti bachi"
+                }, 
+                {
+                    "transcript": "Dil Hashmi Chand Nikla usme purane pvr par meri topi Baki"
+                }, 
+                {
+                    "transcript": "Dil Hashmi Chand Nikla usme purane paywheel par meri topi Baki"
+                }, 
+                {
+                    "transcript": "Dil Hashmi Chand Nikla usme purane people barleyz topi Baki"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556078544scene4": {
+            "alternative": [
+                {
+                    "confidence": 0.59348768, 
+                    "transcript": "Bharathi cement surji Himachal Bhoomi resources"
+                }, 
+                {
+                    "transcript": "Bharathi cement Roorkee Himachal Bhoomi resources"
+                }, 
+                {
+                    "transcript": "Bharathi cement Surti Himachal Bhoomi resources"
+                }, 
+                {
+                    "transcript": "Bharathi cement surkhi Himachal Bhoomi resources"
+                }, 
+                {
+                    "transcript": "Bharathi cement Roorkee Himachal"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556078828scene3": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556079831scene11": {
+            "alternative": [
+                {
+                    "transcript": "Aapka kya haal hai Suraj ko subah ki jarurat hai"
+                }, 
+                {
+                    "transcript": "Aapka kya haal hai Sooraj ko subah ki jarurat hai"
+                }, 
+                {
+                    "transcript": "Aapka kya haal hai kya Suraj ko subah ki jarurat hai"
+                }, 
+                {
+                    "transcript": "Aapka kya haal hai Suraj Ko Tu He ki jarurat hai"
+                }, 
+                {
+                    "transcript": "Aapka kya haal hai Suraj ko beta Zaroorat Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556080295scene5": {
+            "alternative": [
+                {
+                    "transcript": "Meri topi Suhani Si Palke pedh Ki Dali par jo ladki"
+                }, 
+                {
+                    "transcript": "Meri topi Suhani Si Palke pedh Ki Dali Baja ladki"
+                }, 
+                {
+                    "transcript": "Meri topi Suhani Si Palke pedh Ki Dali Praja ladki"
+                }, 
+                {
+                    "transcript": "Meri topi Suhani Si Palke pedh ki Jali Pooja ladki"
+                }, 
+                {
+                    "transcript": "Meri topi Suhani Si Palke pedh Ki Doli Baja ladki"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556081029scene2": {
+            "alternative": [
+                {
+                    "transcript": "Samsung special edition"
+                }, 
+                {
+                    "transcript": "songs of Mera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "Samsung Tera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "songspk Mera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "pk songs Mera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "pk song Mera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "Hum Sab Tera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "Hum song Tera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "yeh kaisa Mera Gaon Mera Desh"
+                }, 
+                {
+                    "transcript": "Ham song Tera Gaon Mera Desh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.story.hi.moon/assets/1455556082031scene6": {
+            "alternative": [
+                {
+                    "transcript": "boob Romance erotic Kannada"
+                }, 
+                {
+                    "transcript": "boob Romance erotic Kannada lingayat"
+                }, 
+                {
+                    "transcript": "boob Romance erotic Kannada Mil Gaya"
+                }, 
+                {
+                    "transcript": "Khub Romance erotic Kannada"
+                }, 
+                {
+                    "transcript": "boob Romance erotic Kannada higher"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_stories"
+    ]
+}

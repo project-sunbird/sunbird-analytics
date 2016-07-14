@@ -1,0 +1,407 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.coloursofnaturehindi", 
+    "imageTags": [
+        "speech bubble", 
+        "icon reload", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon home", 
+        "icon hint", 
+        "start", 
+        "no", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Hindi"
+    ], 
+    "languageCode": "hi", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 17, 
+        "mp3": 17, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 69.0938775510204, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555684270scene7": {
+            "alternative": [
+                {
+                    "transcript": "Phool aur nikalte Maza"
+                }, 
+                {
+                    "transcript": "phoolaur nikalte Maza"
+                }, 
+                {
+                    "transcript": "Phool aur nikalte Mirza"
+                }, 
+                {
+                    "transcript": "Phool or illegal se maza"
+                }, 
+                {
+                    "transcript": "phoolaur nikalte Mirza"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555684537scene2": {
+            "alternative": [
+                {
+                    "transcript": "Neeli Titli KP by"
+                }, 
+                {
+                    "transcript": "Neeli Titli Katy by"
+                }, 
+                {
+                    "transcript": "Neeli Titli KP buy"
+                }, 
+                {
+                    "transcript": "nili Titli Katy by"
+                }, 
+                {
+                    "transcript": "Neeli Titli kehti by"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555684674scene4": {
+            "alternative": [
+                {
+                    "transcript": "machli soti Aankhein Khuli"
+                }, 
+                {
+                    "transcript": "machli soti Aankhen Khuli"
+                }, 
+                {
+                    "transcript": "Maithili soti Aankhen Bole"
+                }, 
+                {
+                    "transcript": "machli soti Aankhen Bole"
+                }, 
+                {
+                    "transcript": "Maithili soti Aankhe Bole"
+                }, 
+                {
+                    "transcript": "Maithili soti Aankhen ola"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555684823scene5": {
+            "alternative": [
+                {
+                    "confidence": 0.78644764, 
+                    "transcript": "mendhar Dakota state Bole"
+                }, 
+                {
+                    "transcript": "main Dharti kutte Se Bole"
+                }, 
+                {
+                    "transcript": "Maine Dharti kutte Se Bole"
+                }, 
+                {
+                    "transcript": "mendhar deku tested Bole"
+                }, 
+                {
+                    "transcript": "mendhar teeku tested Bole"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555684985scene15": {
+            "alternative": [
+                {
+                    "confidence": 0.59362096, 
+                    "transcript": "Pehle murgi Misty lake"
+                }, 
+                {
+                    "transcript": "Pehle murgi Mr Lake"
+                }, 
+                {
+                    "transcript": "Peeli murghi Misty lake"
+                }, 
+                {
+                    "transcript": "Pehle murgi little ek"
+                }, 
+                {
+                    "transcript": "pel murghi Misty lake"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555685123scene1": {
+            "alternative": [
+                {
+                    "transcript": "Gujarat ki rand"
+                }, 
+                {
+                    "transcript": "Gujrat ki rand"
+                }, 
+                {
+                    "transcript": "Gujarat ki round"
+                }, 
+                {
+                    "transcript": "Gujarat ki raand"
+                }, 
+                {
+                    "transcript": "Gujarat key round"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555685252scene10": {
+            "alternative": [
+                {
+                    "transcript": "Kanimozhi loma De Bahane"
+                }, 
+                {
+                    "transcript": "Charmi Mujhe loma De Bahane"
+                }, 
+                {
+                    "transcript": "Charmi Moshe loma De Bahane"
+                }, 
+                {
+                    "transcript": "Kanimozhi lomadi Bahane"
+                }, 
+                {
+                    "transcript": "Charmi Mujhe lomadi Bahane"
+                }, 
+                {
+                    "transcript": "Charmi madhuloka De Bahane"
+                }, 
+                {
+                    "transcript": "Charmi Mujhe localoye Bahane"
+                }, 
+                {
+                    "transcript": "Charmi Mujhe zomato Bahane"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555685405scene13": {
+            "alternative": [
+                {
+                    "confidence": 0.53541136, 
+                    "transcript": "harama Gadkari maskari"
+                }, 
+                {
+                    "transcript": "harama Gadkari Mistry"
+                }, 
+                {
+                    "transcript": "harama Gadkari maskeri"
+                }, 
+                {
+                    "transcript": "harama Gadkari mystery"
+                }, 
+                {
+                    "transcript": "Hai Rama Gadkari maskari"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555686150scene17": {
+            "alternative": [
+                {
+                    "confidence": 0.23399378, 
+                    "transcript": "marido and chromosphere junction"
+                }, 
+                {
+                    "transcript": "Meri dooron chromis Sasural Simar"
+                }, 
+                {
+                    "transcript": "marido Ankur Mishra Run Sharma"
+                }, 
+                {
+                    "transcript": "marido Ankur Mishra Junction"
+                }, 
+                {
+                    "transcript": "marido Ankur me Sasural Simar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555686985scene8": {
+            "alternative": [
+                {
+                    "confidence": 0.38782638, 
+                    "transcript": "Dilip sht Narangi topi"
+                }, 
+                {
+                    "transcript": "Delhi Pasadena Rangi topi"
+                }, 
+                {
+                    "transcript": "Dilip sht Narangi toki"
+                }, 
+                {
+                    "transcript": "dileep's HD Narangi topi"
+                }, 
+                {
+                    "transcript": "Delhi Pasadena Ranji Trophy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555687161scene3": {
+            "alternative": [
+                {
+                    "confidence": 0.64828598, 
+                    "transcript": "Peelamedu Machi ptj"
+                }, 
+                {
+                    "transcript": "Peelamedu Machi ttj"
+                }, 
+                {
+                    "transcript": "Peelamedu Machi tpj"
+                }, 
+                {
+                    "transcript": "Peelamedu machi to TJ"
+                }, 
+                {
+                    "transcript": "peelamadu Machi ptj"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555687431scene14": {
+            "alternative": [
+                {
+                    "transcript": "some basic guitar cake"
+                }, 
+                {
+                    "transcript": "Shama Sheeshe Ka Tha cake"
+                }, 
+                {
+                    "transcript": "someday Jakarta cake"
+                }, 
+                {
+                    "transcript": "SAP basic guitar cake"
+                }, 
+                {
+                    "transcript": "song Mujhe se Khata cake"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555688039scene11": {
+            "alternative": [
+                {
+                    "confidence": 0.52080804, 
+                    "transcript": "titilagarh Akbar padne"
+                }, 
+                {
+                    "transcript": "Tida Laga Akbar padne"
+                }, 
+                {
+                    "transcript": "titilagarh akber padne"
+                }, 
+                {
+                    "transcript": "tidda Laga Akbar padne"
+                }, 
+                {
+                    "transcript": "titilagarh Akhbar padne"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555688808scene12": {
+            "alternative": [
+                {
+                    "transcript": "Naino Me beti bakri"
+                }, 
+                {
+                    "transcript": "Naino Ne beti bakri"
+                }, 
+                {
+                    "transcript": "Naino Me beti Bakrid"
+                }, 
+                {
+                    "transcript": "Naino Mein Behti bakri"
+                }, 
+                {
+                    "transcript": "Naino Ne beti Bakrid"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555690543scene6": {
+            "alternative": [
+                {
+                    "confidence": 0.65212899, 
+                    "transcript": "Pyari buttock Ki Suno Sadha"
+                }, 
+                {
+                    "transcript": "Pyari Patak Ki Suno Sadha"
+                }, 
+                {
+                    "transcript": "Pyari Patak Ki Suno Sada"
+                }, 
+                {
+                    "transcript": "Pyari buttock Ki Suno Sada"
+                }, 
+                {
+                    "transcript": "pyaari buttock Ki Suno Sadha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555690698scene16": {
+            "alternative": [
+                {
+                    "transcript": "Shirke sanadi Meena hai"
+                }, 
+                {
+                    "transcript": "sherke sanadi Meena hai"
+                }, 
+                {
+                    "transcript": "share ke sanadi Meena hai"
+                }, 
+                {
+                    "transcript": "sirke sanadi Meena hai"
+                }, 
+                {
+                    "transcript": "Shirke sehne De Meena hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.coloursofnaturehindi/assets/1455555690851scene9": {
+            "alternative": [
+                {
+                    "transcript": "Gulabi Garmi chahiye Chuppi"
+                }, 
+                {
+                    "transcript": "Gulabi Garmi chahiye Chupke"
+                }, 
+                {
+                    "transcript": "Gulabi Garmi chutiya Chuppi"
+                }, 
+                {
+                    "transcript": "Gulabi Garmi ki chutti"
+                }, 
+                {
+                    "transcript": "Gulabi Garmi chutiya Chupke"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "hindi_stories", 
+        "hindi_reading_camp"
+    ]
+}

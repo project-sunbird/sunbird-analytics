@@ -1,0 +1,874 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Read the story of Keetu and Bolt's adventure as they walk through the jungle. Published by MangoSense.", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "org.ekstep.ms_54663e6869702d4e81020000", 
+    "imageTags": [
+        "c b d", 
+        "ac d", 
+        "c b c", 
+        "aa af a", 
+        "fb bda", 
+        "f eb f c", 
+        "ffbf c", 
+        "earth", 
+        "btn next", 
+        "btn ok highlights", 
+        "f ad db", 
+        "f aeac", 
+        "a b ca", 
+        "btn back", 
+        "icon home", 
+        "a dbc f a", 
+        "icon reload", 
+        "d dce", 
+        "b e", 
+        "aef a a", 
+        "popuptint", 
+        "d a", 
+        "d e e", 
+        "b c ab", 
+        "icon hint", 
+        "retrybg", 
+        "ruralshops", 
+        "a d b", 
+        "background", 
+        "a d bbe", 
+        "e", 
+        "de d ac", 
+        "c", 
+        "d ec", 
+        "f d b", 
+        "b c ec", 
+        "icon submit", 
+        "ekstep placeholder blue eye", 
+        "tree", 
+        "cc fa", 
+        "b c", 
+        "b b", 
+        "goodjobbg", 
+        "ca ac"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "keywords": [
+        "Keetu", 
+        "And", 
+        "Bolt's", 
+        "Visit", 
+        "to", 
+        "the", 
+        "Jungle", 
+        "English", 
+        "Action and Adventure", 
+        "Animals and Nature", 
+        "Classic Stories", 
+        "Family and Friends", 
+        "Picture Books", 
+        "General and Miscellaneous", 
+        "Fun", 
+        "Children", 
+        "Life", 
+        "Friends", 
+        "Friendship", 
+        "children Stories", 
+        "Children Story Book", 
+        "Scary", 
+        "Picture Book", 
+        "The Gyan Tree", 
+        "Vaishali Nitturkar", 
+        "The Gyan Tree, MangoReader", 
+        "Vaishali Nitturkar"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 31, 
+        "mp3": 41, 
+        "ogg": 0, 
+        "png": 14
+    }, 
+    "mp3Length": 351.17882086167805, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165872221747faab6ed2": {
+            "alternative": [
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger allow the noise it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger lauda noise it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger allowed on oil it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a big allow the noise it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger allowed annoys it was coming from behind victory"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165872245021a0873c44": {
+            "alternative": [
+                {
+                    "transcript": "one day T 20 20 aucking in the Jungle the song beautiful wild flowers"
+                }, 
+                {
+                    "transcript": "1 day T 20 20 aucking in the Jungle the song beautiful wild flowers"
+                }, 
+                {
+                    "transcript": "one day T 20 20 orking in the Jungle the song beautiful wild flowers"
+                }, 
+                {
+                    "transcript": "one day T20 20 aucking in the Jungle the song beautiful wild flowers"
+                }, 
+                {
+                    "transcript": "Vande T20 20 aucking in the Jungle the song beautiful wild flowers"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165872298647faab6ed2": {
+            "alternative": [
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger allow the noise it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger lauda noise it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger allowed on oil it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a big allow the noise it was coming from behind victory"
+                }, 
+                {
+                    "transcript": "the friends were wondering what to do when they had a bigger allowed annoys it was coming from behind victory"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658723524e3843eeb63": {
+            "alternative": [
+                {
+                    "confidence": 0.79527527, 
+                    "transcript": "T2 and boles visit to the Jungle"
+                }, 
+                {
+                    "transcript": "T2 and bowls visit to the Jungle"
+                }, 
+                {
+                    "transcript": "T2 and bolts visit to the Jungle"
+                }, 
+                {
+                    "transcript": "T2 and balls visit to the Jungle"
+                }, 
+                {
+                    "transcript": "Kittu and boles visit to the Jungle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658723757727c5d9191": {
+            "alternative": [
+                {
+                    "transcript": "all of them invited the new friend the baby giraffe to join them the baby giraffe for hungry so she join them happily"
+                }, 
+                {
+                    "transcript": "all of them invited the new friend the baby giraffe to join them the baby giraffe was hungry so she joined and happily"
+                }, 
+                {
+                    "transcript": "all of them invited the new friend the baby giraffe to join them the baby giraffe are hungry so she join them happily"
+                }, 
+                {
+                    "transcript": "all of them invited the new friend the baby giraffe to join them the baby giraffe was hungry so she join them happily"
+                }, 
+                {
+                    "transcript": "all of them invited the new friend the baby giraffe to join them the baby giraffe for hungry so she joined and happily"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165872458592deed630f": {
+            "alternative": [
+                {
+                    "transcript": "Aashiqui 2 Bolt and rabbit were about to eat they had another noise this time it was coming from near the pond"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 Bolt and rabbit were about to eat they had another know if this time it was coming from near the pond"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 Bolt and rabbit were about to eat they had another no is this time it was coming from near the pond"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 bold and rabbit were about to eat they had another know if this time it was coming from near the pond"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 bold and rabbit were about to eat they had another no is this time it was coming from near the pond"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658725143a8c55e1d01": {
+            "alternative": [
+                {
+                    "confidence": 0.82989097, 
+                    "transcript": "the mama elephant game all the friends right on her back"
+                }, 
+                {
+                    "transcript": "the mama elephant Gave all the friends right on her back"
+                }, 
+                {
+                    "transcript": "the mama elephant game all the friends write on her back"
+                }, 
+                {
+                    "transcript": "the mama elephant Gave all the friends write on her back"
+                }, 
+                {
+                    "transcript": "the mumma elephant game all the friends right on her back"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587256777ac9736f64": {
+            "alternative": [
+                {
+                    "transcript": "it was the mama elephant on the friends rent the mama elephant and told her how the baby elephant ate all the food but was still hungry"
+                }, 
+                {
+                    "transcript": "it was the mama elephant on the friends rent the mama elephant and told her how the baby elephant ate all the food but was still 3"
+                }, 
+                {
+                    "transcript": "it was the mama elephant on the friends right the mama elephant and told her how the baby elephant ate all the food but was still hungry"
+                }, 
+                {
+                    "transcript": "it was the mama elephant on the friends write the mama elephant and told her how the baby elephant ate all the food but was still hungry"
+                }, 
+                {
+                    "transcript": "it was the mama elephant on the friends rent the mama elephant and told her how the baby elephant ate all the food but was still very"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587261890a60ae6d57": {
+            "alternative": [
+                {
+                    "transcript": "desitape day picnic map to take out sandwiches fruit send cake from her basket she gave some doggy biscuits too cold as they were about to eat they had a no is this so a little rabbit behind the bush"
+                }, 
+                {
+                    "transcript": "desitape day picnic map to take out sandwiches fruit send cake from her basket she gave some doggie biscuits too cold as they were about to eat they had a no is this so a little rabbit behind the bush"
+                }, 
+                {
+                    "transcript": "desitape day picnic map to take out sandwiches fruit send cake from her basket she gave some doggy biscuits too cold as they were about to eat they had a no is this so a little rabbit behind Bush"
+                }, 
+                {
+                    "transcript": "desitape day picnic map to take out sandwiches fruit send cake from her basket she gave some doggie biscuits to cold as they were about to eat they had a no is this so a little rabbit behind the bush"
+                }, 
+                {
+                    "transcript": "desitape day picnic Matte take out sandwiches fruit send cake from her basket she gave some doggy biscuits too cold as they were about to eat they had a no is this so a little rabbit behind the bush"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658727187e8dc2ea6e2": {
+            "alternative": [
+                {
+                    "confidence": 0.91981566, 
+                    "transcript": "that night all the friends keep dreaming about the ride on the elephant"
+                }, 
+                {
+                    "transcript": "that night all the friends keep dreaming about a ride on the elephant"
+                }, 
+                {
+                    "transcript": "that's night all the friends keep dreaming about the ride on the elephant"
+                }, 
+                {
+                    "transcript": "date night all the friends keep dreaming about the ride on the elephant"
+                }, 
+                {
+                    "transcript": "that's night all the friends keep dreaming about a ride on the elephant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165872769358dd024abf": {
+            "alternative": [
+                {
+                    "transcript": "all of them invited a new friend the monkey to join them monkey was hungry so he joined and happily"
+                }, 
+                {
+                    "transcript": "all of them invited a new friend the monkey to join them monkey was hungry so he join them happily"
+                }, 
+                {
+                    "transcript": "all of them invited a new friend the monkey to join them monkey was hungry so he joined am happily"
+                }, 
+                {
+                    "transcript": "all of them invited a new friend the monkey to join them monkey was hungry so he joined I'm happily"
+                }, 
+                {
+                    "transcript": "all of them invited a new friend the monkey to join them monkey was hungry so he joined M happily"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658727910d3426e667f": {
+            "alternative": [
+                {
+                    "transcript": "T2 invited a new friend the little rabbit to join them for lunch little rabbit was hungry he joined them happily"
+                }, 
+                {
+                    "transcript": "T2 invited the new friend the little rabbit to join them for lunch little rabbit was hungry he joined them happily"
+                }, 
+                {
+                    "transcript": "T2 invited a new friend the little rabbit to join them for lunch little rabbit was hungry he joined and happily"
+                }, 
+                {
+                    "transcript": "T2 invited their new friend the little rabbit to join them for lunch little rabbit was hungry he joined them happily"
+                }, 
+                {
+                    "transcript": "T2 invited a new friend the little rabbit to join them for lunch little rabbit was hungry he joined am happily"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587291583721765461": {
+            "alternative": [
+                {
+                    "transcript": "the French Gave all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the French game all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the French give all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the friends Gave all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the French Gave all the food day had the elephant finished it all but was still hungry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587294063721765461": {
+            "alternative": [
+                {
+                    "transcript": "the French Gave all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the French game all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the French give all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the friends Gave all the food they had the elephant finished it all but was still hungry"
+                }, 
+                {
+                    "transcript": "the French Gave all the food day had the elephant finished it all but was still hungry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658729637b47cd5b243": {
+            "alternative": [
+                {
+                    "confidence": 0.8288604, 
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish them to she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish them too she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finished them too she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to give the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish them to she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish time to she was still hungry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658729874b47cd5b243": {
+            "alternative": [
+                {
+                    "confidence": 0.82886302, 
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish them to she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish them too she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finished them too she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to give the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish them to she was still hungry"
+                }, 
+                {
+                    "transcript": "Sokhi to get the little elephant some more friends but she finished them all at once then Bolt offered his dog biscuits the little elephant finish time to she was still hungry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165873042893a6d725d9": {
+            "alternative": [
+                {
+                    "confidence": 0.82378817, 
+                    "transcript": "T2 and boles visit to the Jungle"
+                }, 
+                {
+                    "transcript": "T2 and bowls visit to the Jungle"
+                }, 
+                {
+                    "transcript": "T2 and balls visit to the Jungle"
+                }, 
+                {
+                    "transcript": "T2 and bolts visit to the Jungle"
+                }, 
+                {
+                    "transcript": "T2 and bulls visit to the Jungle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165873068256cbb4fb2d": {
+            "alternative": [
+                {
+                    "confidence": 0.85891253, 
+                    "transcript": "once upon a time there lived a little girl named K2 she had a puppy called Bolt"
+                }, 
+                {
+                    "transcript": "once upon a time there lived a little girl named ki to she had a puppy called Bolt"
+                }, 
+                {
+                    "transcript": "once upon a time there lived a little girl named Ki Tu He had a puppy called Bolt"
+                }, 
+                {
+                    "transcript": "once upon a time there lived a little girl named key to she had a puppy called Bolt"
+                }, 
+                {
+                    "transcript": "once upon a time there lived a little girl named Kitu she had a puppy called Bolt"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658730971cc0e0df411": {
+            "alternative": [
+                {
+                    "transcript": "T20 Bolt went for a walk everyday sometimes they went to a park sometimes to a beach and sometimes in the jungle"
+                }, 
+                {
+                    "transcript": "T20 Bolt went for a walk everyday sometimes they went to park sometimes to a beach and sometimes in the jungle"
+                }, 
+                {
+                    "transcript": "T20 Bolt went for a walk everyday sometimes deventer Park sometimes to a beach and sometimes in the jungle"
+                }, 
+                {
+                    "transcript": "T 20 Bolt went for a walk everyday sometimes they went to a park sometimes to a beach and sometimes in the jungle"
+                }, 
+                {
+                    "transcript": "T 20 Bolt went for a walk everyday sometimes they went to park sometimes to a beach and sometimes in the jungle"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587315730c234dace6": {
+            "alternative": [
+                {
+                    "transcript": "ashki2 Bolt rabbit duckling and monkey where about to eat they had an oil day look behind the crock the song Baby giraffe"
+                }, 
+                {
+                    "transcript": "ashki2 bolte rabbit duckling and monkey where about to eat they had an oil day look behind the crock the song Baby giraffe"
+                }, 
+                {
+                    "transcript": "aashqi2 bolte rabbit duckling and monkey where about to eat they had an oil day look behind the crock the song Baby giraffe"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 Bolt rabbit duckling and monkey where about to eat they had an oil day look behind the crock the song Baby giraffe"
+                }, 
+                {
+                    "transcript": "ashki2 Bolt rabbit duckling and monkey where about to eat they had an oil day look behind the cross the song Baby giraffe"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658731803305fce42c7": {
+            "alternative": [
+                {
+                    "transcript": "ashki2 Bolt rabbit and duckling were about to eat they had another noise this time it was coming from the big tree they looked up and saw a monkey"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 Bolt rabbit and duckling were about to eat they had another noise this time it was coming from the big tree they looked up and saw a monkey"
+                }, 
+                {
+                    "transcript": "ashki 2 Bolt rabbit and duckling were about to eat they had another noise this time it was coming from the big tree they looked up and saw a monkey"
+                }, 
+                {
+                    "transcript": "ashki2 bolte rabbit and duckling were about to eat they had another noise this time it was coming from the big tree they looked up and saw a monkey"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 bold rabbit and duckling were about to eat they had another noise this time it was coming from the big tree they looked up and saw a monkey"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587323509dcf88b3b1": {
+            "alternative": [
+                {
+                    "transcript": "T20 bald got down and went back to their home the mama and baby elephant went back to their home too"
+                }, 
+                {
+                    "transcript": "T20 bald got down and went back to their home the mama and baby elephant when back to their home too"
+                }, 
+                {
+                    "transcript": "T20 bald got down and went back to their home the mama and baby elephant when back to their home to"
+                }, 
+                {
+                    "transcript": "T20 bald got down and went back to their home the mama and baby elephant went back to their home to"
+                }, 
+                {
+                    "transcript": "T20 bald got down and went back to their homes the mama and baby elephant went back to their home too"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658732583a57c590996": {
+            "alternative": [
+                {
+                    "confidence": 0.86893016, 
+                    "transcript": "the mama elephant went back to the Jungle and returned with lots of sugar cane for her baby the baby ate it all ends soon she was full"
+                }, 
+                {
+                    "transcript": "the mama elephant went back to the Jungle and returned with lots of sugar cane for her baby the baby ate it all and soon she was full"
+                }, 
+                {
+                    "transcript": "the mama elephant went back to the Jungle and returned with lots of sugarcane for her baby the baby ate it all ends soon she was full"
+                }, 
+                {
+                    "transcript": "the mama elephant went back to the Jungle and returned with lots of sugar cane for her baby the baby eat it all ends soon she was full"
+                }, 
+                {
+                    "transcript": "the mama elephant went back to the Jungle and returned with lots of sugar came for her baby the baby ate it all ends soon she was full"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658732817f36c12a5f7": {
+            "alternative": [
+                {
+                    "transcript": "The Mummy elephant laughed out loud she sent all of them for sharing their food she told them that her baby needs a lot of food to fill her tummy"
+                }, 
+                {
+                    "transcript": "the mama elephant laughed out loud she sent all of them for sharing their food she told them that her baby needs a lot of food to fill her tummy"
+                }, 
+                {
+                    "transcript": "The Mummy elephant laughed out loud sheet hand all of them for sharing their food she told them that her baby needs a lot of food to fill her tummy"
+                }, 
+                {
+                    "transcript": "The Mummy elephant laughed out loud she can't all of them for sharing their food she told them that her baby needs a lot of food to fill her tummy"
+                }, 
+                {
+                    "transcript": "The Mummy elephant laughed out loud shit has all of them for sharing their food she told them that her baby needs a lot of food to fill her tummy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165873433186dacee8b9": {
+            "alternative": [
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond that it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the point that it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond the read it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond the rabbit got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the Pound that it got down and went back behind the bush"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165873459286dacee8b9": {
+            "alternative": [
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond that it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the point that it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond the read it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond the rabbit got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the Pound that it got down and went back behind the bush"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165873486986dacee8b9": {
+            "alternative": [
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond that it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the point that it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond the read it got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the pond the rabbit got down and went back behind the bush"
+                }, 
+                {
+                    "transcript": "the monkey got down and went back to history the duckling got down and went back to the Pound that it got down and went back behind the bush"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658735489b6043e5128": {
+            "alternative": [
+                {
+                    "transcript": "went to a pond and sew a frock Jumping On A Lily pad day also so beautiful fish in the pond they had fun watching them"
+                }, 
+                {
+                    "transcript": "they went to a pond and sew a frock Jumping On A Lily pad day also so beautiful fish in the pond they had fun watching them"
+                }, 
+                {
+                    "transcript": "went to a pond and sew a frock Jumping On A Lily pad they also serve beautiful fish in the pond they had fun watching them"
+                }, 
+                {
+                    "transcript": "they went to a pond and sew a frock Jumping On A Lily pad they also serve beautiful fish in the pond they had fun watching them"
+                }, 
+                {
+                    "transcript": "went to a Pound and sew a frock Jumping On A Lily pad day also so beautiful fish in the pond they had fun watching them"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165873863748f8cc8815": {
+            "alternative": [
+                {
+                    "confidence": 0.87134302, 
+                    "transcript": "soon it was time to go home the baby giraffe got down then went home designed the big rock"
+                }, 
+                {
+                    "transcript": "soon it was time to go home the baby giraffe got down then went home designed the bigrock"
+                }, 
+                {
+                    "transcript": "soon it was time to go home the baby giraffe got done then went home designed the big rock"
+                }, 
+                {
+                    "transcript": "soon it was time to go home the baby giraffe got down then went home designed the big rope"
+                }, 
+                {
+                    "transcript": "soon it was time to go home the baby giraffe got done then went home designed the bigrock"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587388608d776093c3": {
+            "alternative": [
+                {
+                    "transcript": "it was a baby elephant all of them invited that new friend the baby elephant to join them she was hungry so she joined I'm happily"
+                }, 
+                {
+                    "transcript": "it was a baby elephant all of them invited that new friend the baby elephant to join them she was hungry so she join them happily"
+                }, 
+                {
+                    "transcript": "it was a baby elephant all of them invited that new friend the baby elephant to join them she was hungry so she joined am happily"
+                }, 
+                {
+                    "transcript": "it was a baby elephant all of them invited Dead new friend the baby elephant to join them she was hungry so she joined I'm happily"
+                }, 
+                {
+                    "transcript": "it was a baby elephant all of them invited that new friend the baby elephant to join them she was hungry so she joined and happily"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587392957afa7b0e12": {
+            "alternative": [
+                {
+                    "transcript": "the friends had no more food left what would I do now"
+                }, 
+                {
+                    "transcript": "the friends had no more food list what would I do now"
+                }, 
+                {
+                    "transcript": "the friend had no more food left what would I do now"
+                }, 
+                {
+                    "transcript": "the friend had no more food list what would I do now"
+                }, 
+                {
+                    "transcript": "the friends has no more food list what would I do now"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587395567afa7b0e12": {
+            "alternative": [
+                {
+                    "transcript": "the friends had no more food left what would I do now"
+                }, 
+                {
+                    "transcript": "the friends had no more food list what would I do now"
+                }, 
+                {
+                    "transcript": "the friend had no more food left what would I do now"
+                }, 
+                {
+                    "transcript": "the friend had no more food list what would I do now"
+                }, 
+                {
+                    "transcript": "the friends has no more food list what would I do now"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587397784b73152b98": {
+            "alternative": [
+                {
+                    "transcript": "Disha a little duckling f****** in walking towards them both invited their new friend little ducklings to join them the little duckling was hungry she joined them happily"
+                }, 
+                {
+                    "transcript": "Disha a little duckling f****** and walking towards them both invited the new friend little ducklings to join them the little duckling was hungry she joined them happily"
+                }, 
+                {
+                    "transcript": "Disha a little duckling f****** in walking towards them both invited the new friend little duckling to join them the little duckling was hungry she joined them happily"
+                }, 
+                {
+                    "transcript": "Disha a little duckling f****** in walking towards them both invited the new friend little ducklings to join them the little duckling was hungry she joined them happily"
+                }, 
+                {
+                    "transcript": "Disha a little duckling f****** in walking towards them both invited a new friend little ducklings to join them the little duckling was hungry she joined them happily"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165873999719696e3a14": {
+            "alternative": [
+                {
+                    "transcript": "at last day on set together and started eating the 8 a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last day on set together and started eating they ate a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last day all set together and started eating the 8 a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last day all set together and started eating they ate a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last the all set together and started eating the 8 a lot and everyone was full except the baby elephant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/146165874024319696e3a14": {
+            "alternative": [
+                {
+                    "transcript": "at last day on set together and started eating the 8 a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last day on set together and started eating they ate a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last day all set together and started eating the 8 a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last day all set together and started eating they ate a lot and everyone was full except the baby elephant"
+                }, 
+                {
+                    "transcript": "at last the all set together and started eating the 8 a lot and everyone was full except the baby elephant"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/1461658741020d811619a44": {
+            "alternative": [
+                {
+                    "transcript": "Aashiqui 2 bold rabbit duckling monkey and giraffe where about to eat the Howrah Bridge knowing the look here and there and saw something behind the sets"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 bold rabbit duckling monkey and giraffe where about to eat the Howrah Bridge love knowing the look here and there and saw something behind the sets"
+                }, 
+                {
+                    "transcript": "Aashiqui 2 bold rabbit duckling monkey and giraffe there about to eat the Howrah Bridge love knowing the look here and there and saw something behind the shops"
+                }, 
+                {
+                    "transcript": "ashki2 Bolt rabbit duckling monkey and giraffe where about to eat the Howrah Bridge knowing the look here and there and saw something behind the sets"
+                }, 
+                {
+                    "transcript": "ashki2 Bolt rabbit duckling monkey and giraffe there about to eat the Howrah Bridge knowing the look here and there and saw something behind the shops"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/14616587412799fe9ecb592": {
+            "alternative": [
+                {
+                    "confidence": 0.86762744, 
+                    "transcript": "deso a big tree there were many colourful Birds on the tree"
+                }, 
+                {
+                    "transcript": "this show a big tree there were many colourful Birds on the tree"
+                }, 
+                {
+                    "transcript": "this or a big tree there were many colourful Birds on the tree"
+                }, 
+                {
+                    "transcript": "the show a big tree there were many colourful Birds on the tree"
+                }, 
+                {
+                    "transcript": "Disha a big tree there were many colourful Birds on the tree"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/bee_1454327434417": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/bee_1456466570814": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/goodjob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.ms_54663e6869702d4e81020000/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Fun", 
+        "MangoSense", 
+        "Vaishali Nitturkar", 
+        "The Gyan Tree", 
+        "Scary", 
+        "Picture Book", 
+        "children Stories", 
+        "Children Story Book", 
+        "Friends", 
+        "Friendship", 
+        "Children", 
+        "Life"
+    ]
+}

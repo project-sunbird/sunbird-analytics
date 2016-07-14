@@ -1,0 +1,80 @@
+{
+    "concepts": [], 
+    "contentType": "Worksheet", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Learn to read some basic English Words with Nia. Swapnil Description. ", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_47357", 
+    "imageTags": [
+        "btn ok highlights", 
+        "horse", 
+        "btn next", 
+        "greenbox", 
+        "squirrel", 
+        "speech bubble", 
+        "alligator", 
+        "btn back", 
+        "icon submit", 
+        "popup tint", 
+        "dog", 
+        "icon home", 
+        "cat", 
+        "crocodile", 
+        "yellowbox", 
+        "retry bg", 
+        "icon hint", 
+        "icon reload", 
+        "background", 
+        "elephant", 
+        "goodjob bg"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 2, 
+        "mp3": 3, 
+        "ogg": 0, 
+        "png": 48
+    }, 
+    "mp3Length": 6.336369331065759, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47357/assets/Help_Help_Help_1463122167360": {
+            "alternative": [
+                {
+                    "transcript": "oh oh"
+                }, 
+                {
+                    "transcript": "oh oh oh"
+                }, 
+                {
+                    "transcript": "ok"
+                }, 
+                {
+                    "transcript": "hello"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47357/assets/goodJob_1460636677521": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_47357/assets/retry_1460636610607": []
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "English as Second Language", 
+        "ESL", 
+        "Mela", 
+        "EkStep Mela", 
+        "Swapnil ESL"
+    ]
+}

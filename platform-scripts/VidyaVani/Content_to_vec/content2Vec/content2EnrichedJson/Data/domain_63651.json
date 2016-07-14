@@ -1,0 +1,324 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Conversation and Rhymes", 
+    "developer": "EkStep", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "domain_63651", 
+    "imageTags": [
+        "endscreen", 
+        "home icon", 
+        "blacktint", 
+        "splashbg", 
+        "grammar cover", 
+        "hint", 
+        "mic", 
+        "areyousure", 
+        "lata", 
+        "assessment cover", 
+        "record", 
+        "tryagain", 
+        "play", 
+        "bg", 
+        "yellow fill", 
+        "teacherpopupbg", 
+        "writing cover", 
+        "rhyme cover", 
+        "speechbubble right", 
+        "alphabets cover", 
+        "icon next", 
+        "phonetics cover", 
+        "boygirl nofruit", 
+        "icon sound", 
+        "restart", 
+        "icon previous", 
+        "potatoes", 
+        "reading cover", 
+        "teacher icon", 
+        "goodjob", 
+        "goodjobbg", 
+        "stop record", 
+        "speechbubble left"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 2, 
+        "mp3": 16, 
+        "ogg": 0, 
+        "png": 34
+    }, 
+    "mp3Length": 65.56702947845805, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296754249mynameishema": {
+            "alternative": [
+                {
+                    "confidence": 0.81754822, 
+                    "transcript": "my name is Reema"
+                }, 
+                {
+                    "transcript": "my name is he ma"
+                }, 
+                {
+                    "transcript": "my name is Hima"
+                }, 
+                {
+                    "transcript": "my name is humour"
+                }, 
+                {
+                    "transcript": "my name is he Mar"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296755699hintaudio": {
+            "alternative": [
+                {
+                    "confidence": 0.78173321, 
+                    "transcript": "film the boxes with the answer"
+                }, 
+                {
+                    "transcript": "film the boxes with answer"
+                }, 
+                {
+                    "transcript": "fill in the boxes with the answer"
+                }, 
+                {
+                    "transcript": "film the boxes with the handsome"
+                }, 
+                {
+                    "transcript": "fill in the boxes with answer"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296756602introduction": {
+            "alternative": [
+                {
+                    "confidence": 0.92505646, 
+                    "transcript": "hello everyone welcome to easy English today's lesson is fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English today's letter names fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome 2 easy English today's lesson is fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English todays letter names fruits and vegetables"
+                }, 
+                {
+                    "transcript": "hello everyone welcome to easy English today's lesson Ales fruits and vegetables"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296757404hello_boy": {
+            "alternative": [
+                {
+                    "confidence": 0.86973596, 
+                    "transcript": "hello"
+                }, 
+                {
+                    "transcript": "hallo"
+                }, 
+                {
+                    "transcript": "helo"
+                }, 
+                {
+                    "transcript": "Aloe"
+                }, 
+                {
+                    "transcript": "yellow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296757566mynameisramu": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "my name is Ramu what is your name"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296758031whatisyourname": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "what is your name"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296758329letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.75744551, 
+                    "transcript": "let's try again"
+                }, 
+                {
+                    "transcript": "lets try again"
+                }, 
+                {
+                    "transcript": "let's try I gain"
+                }, 
+                {
+                    "transcript": "let's try again a"
+                }, 
+                {
+                    "transcript": "lets try I gain"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296759829a": {
+            "alternative": [
+                {
+                    "confidence": 0.31761399, 
+                    "transcript": "e"
+                }, 
+                {
+                    "transcript": "a"
+                }, 
+                {
+                    "transcript": "I"
+                }, 
+                {
+                    "transcript": "hey"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296759993comelearnrhyme": {
+            "alternative": [
+                {
+                    "transcript": "come let us learn this rhyme"
+                }, 
+                {
+                    "transcript": "come let's learn this rhyme"
+                }, 
+                {
+                    "transcript": "come let us learn this time"
+                }, 
+                {
+                    "transcript": "come let's learn this time"
+                }, 
+                {
+                    "transcript": "let's learn this rhyme"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296760153a": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296761182myfriendnameislata": {
+            "alternative": [
+                {
+                    "confidence": 0.87091333, 
+                    "transcript": "my friends name is Lata"
+                }, 
+                {
+                    "transcript": "my friends name is Latha"
+                }, 
+                {
+                    "transcript": "my friends name is letter"
+                }, 
+                {
+                    "transcript": "my friends name is later"
+                }, 
+                {
+                    "transcript": "my friends name IZ Latha"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296761473potato": {
+            "alternative": [
+                {
+                    "confidence": 0.7636025, 
+                    "transcript": "potato"
+                }, 
+                {
+                    "transcript": "TuTiTu"
+                }, 
+                {
+                    "transcript": "PT 2"
+                }, 
+                {
+                    "transcript": "pt2"
+                }, 
+                {
+                    "transcript": "Tu Ti Tu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296761629whatisyourfriendname": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "what is your friends name"
+                }, 
+                {
+                    "transcript": "what is your friends names"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296762481hello": {
+            "alternative": [
+                {
+                    "confidence": 0.86994565, 
+                    "transcript": "hello"
+                }, 
+                {
+                    "transcript": "hallo"
+                }, 
+                {
+                    "transcript": "helo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_63651/assets/1465296762667goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.88088846, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "goodjob"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "good joke"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "223", 
+    "tags": [
+        "fruits and vegetables", 
+        "AksharaESL2016", 
+        "part 1", 
+        "conversation and rhymes"
+    ]
+}

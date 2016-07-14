@@ -1,0 +1,1570 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Days of the Week", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.daysoftheweek", 
+    "imageTags": [
+        "home icon", 
+        "round arrow left", 
+        "blacktint", 
+        "playedwithadog", 
+        "arrow left", 
+        "cloud", 
+        "strawberry", 
+        "friends", 
+        "mic", 
+        "playcricket", 
+        "areyousure", 
+        "teacher popup bg", 
+        "dicey", 
+        "record", 
+        "bg", 
+        "stop", 
+        "round arrow right", 
+        "goodjob bg", 
+        "retry bg", 
+        "icon next", 
+        "icon sound", 
+        "icon previous", 
+        "school", 
+        "hint", 
+        "teacher icon", 
+        "night", 
+        "screen wake", 
+        "arrow right"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 74, 
+        "ogg": 0, 
+        "png": 36
+    }, 
+    "mp3Length": 166.86149863945576, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129206688wakeup": {
+            "alternative": [
+                {
+                    "confidence": 0.12421163, 
+                    "transcript": "Vita"
+                }, 
+                {
+                    "transcript": "Twitter"
+                }, 
+                {
+                    "transcript": "Veta"
+                }, 
+                {
+                    "transcript": "wake up"
+                }, 
+                {
+                    "transcript": "Rita"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129206944E": {
+            "alternative": [
+                {
+                    "transcript": "t"
+                }, 
+                {
+                    "transcript": "tea"
+                }, 
+                {
+                    "transcript": "e"
+                }, 
+                {
+                    "transcript": "ti"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129208182saturday": {
+            "alternative": [
+                {
+                    "confidence": 0.73982728, 
+                    "transcript": "Saturday"
+                }, 
+                {
+                    "transcript": "saturdy"
+                }, 
+                {
+                    "transcript": "Sakthi"
+                }, 
+                {
+                    "transcript": "sakadai"
+                }, 
+                {
+                    "transcript": "Sata d"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129208317fri": {
+            "alternative": [
+                {
+                    "confidence": 0.36194998, 
+                    "transcript": "try"
+                }, 
+                {
+                    "transcript": "tri"
+                }, 
+                {
+                    "transcript": "TRAI"
+                }, 
+                {
+                    "transcript": "Sai"
+                }, 
+                {
+                    "transcript": "fry"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129208451screen1": {
+            "alternative": [
+                {
+                    "confidence": 0.9093681, 
+                    "transcript": "we do different things on different days some days we go to school"
+                }, 
+                {
+                    "transcript": "do different things on different days some days we go to school"
+                }, 
+                {
+                    "transcript": "we do different things on different days some days I go to school"
+                }, 
+                {
+                    "transcript": "free do different things on different days some days we go to school"
+                }, 
+                {
+                    "transcript": "we do different things on different days someday if we go to school"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129208745somedaysweplayallday": {
+            "alternative": [
+                {
+                    "confidence": 0.86116379, 
+                    "transcript": "some days we play all day"
+                }, 
+                {
+                    "transcript": "someday we play all day"
+                }, 
+                {
+                    "transcript": "some days he play all day"
+                }, 
+                {
+                    "transcript": "some days people a all day"
+                }, 
+                {
+                    "transcript": "something is we play all day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129208873afternoon": {
+            "alternative": [
+                {
+                    "confidence": 0.89673734, 
+                    "transcript": "afternoon"
+                }, 
+                {
+                    "transcript": "after noon"
+                }, 
+                {
+                    "transcript": "postnoon"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129209044dragnames_sequence": {
+            "alternative": [
+                {
+                    "transcript": "drug names of the weeks to form the correct sequence"
+                }, 
+                {
+                    "transcript": "drag names of the week to form the correct sequence"
+                }, 
+                {
+                    "transcript": "drag names of the weeks to form the correct sequence"
+                }, 
+                {
+                    "transcript": "drug names of the week to form the correct sequence"
+                }, 
+                {
+                    "transcript": "Dragon names of the weeks to form the correct sequence"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129209334dragthenamesoftheweektomatchthesamedays": {
+            "alternative": [
+                {
+                    "transcript": "drug music week was the same day"
+                }, 
+                {
+                    "transcript": "drug music week was the same deal"
+                }, 
+                {
+                    "transcript": "drug music was the same day"
+                }, 
+                {
+                    "transcript": "drug music was the same deal"
+                }, 
+                {
+                    "transcript": "drug music we was the same day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129209985weeknames_backward": {
+            "alternative": [
+                {
+                    "transcript": "let see the names of the week backward"
+                }, 
+                {
+                    "transcript": "let's see the names of the week backward"
+                }, 
+                {
+                    "transcript": "lets see the names of the week backward"
+                }, 
+                {
+                    "transcript": "luxy the names of the week backward"
+                }, 
+                {
+                    "transcript": "let see the names of the week back word"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129210403today_yesterday": {
+            "alternative": [
+                {
+                    "transcript": "Laxman what today and yesterday mean"
+                }, 
+                {
+                    "transcript": "Laxman what today and yesterday me"
+                }, 
+                {
+                    "transcript": "Laxman what today and yesterday means"
+                }, 
+                {
+                    "transcript": "let's learn what today and yesterday mean"
+                }, 
+                {
+                    "transcript": "Lat Lon what today and yesterday mean"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129210760match_number": {
+            "alternative": [
+                {
+                    "confidence": 0.8170312, 
+                    "transcript": "catching the object to the number"
+                }, 
+                {
+                    "transcript": "matching the object to the number"
+                }, 
+                {
+                    "transcript": "cracking the object to the number"
+                }, 
+                {
+                    "transcript": "tracking the object to the number"
+                }, 
+                {
+                    "transcript": "touching the object to the number"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129211056N": {
+            "alternative": [
+                {
+                    "confidence": 0.26539913, 
+                    "transcript": "n"
+                }, 
+                {
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "m"
+                }, 
+                {
+                    "transcript": "end"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129211304hemaandhariplayedwithadog": {
+            "alternative": [
+                {
+                    "transcript": "Tuesday human Harry play with the dog"
+                }, 
+                {
+                    "transcript": "Tuesday human Harry played with the dog"
+                }, 
+                {
+                    "transcript": "USD human Harry play with the dog"
+                }, 
+                {
+                    "transcript": "Tuesday human Hari played with the dog"
+                }, 
+                {
+                    "transcript": "USD human Harry played with the dog"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129211434day": {
+            "alternative": [
+                {
+                    "confidence": 0.59526616, 
+                    "transcript": "d"
+                }, 
+                {
+                    "transcript": "De"
+                }, 
+                {
+                    "transcript": "t"
+                }, 
+                {
+                    "transcript": "do"
+                }, 
+                {
+                    "transcript": "Di"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129211565evening": {
+            "alternative": [
+                {
+                    "confidence": 0.90676832, 
+                    "transcript": "evening"
+                }, 
+                {
+                    "transcript": "evenings"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129211895drag_names_match": {
+            "alternative": [
+                {
+                    "transcript": "drug music week was the same day"
+                }, 
+                {
+                    "transcript": "drug music week was the same deal"
+                }, 
+                {
+                    "transcript": "drug music was the same day"
+                }, 
+                {
+                    "transcript": "drug music was the same deal"
+                }, 
+                {
+                    "transcript": "drug music we was the same day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129212016seventhday": {
+            "alternative": [
+                {
+                    "confidence": 0.17815691, 
+                    "transcript": "7th St"
+                }, 
+                {
+                    "transcript": "7 City"
+                }, 
+                {
+                    "transcript": "760"
+                }, 
+                {
+                    "transcript": "seven City"
+                }, 
+                {
+                    "transcript": "70"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129212311match_sound_letter": {
+            "alternative": [
+                {
+                    "confidence": 0.58923411, 
+                    "transcript": "turn the sound to the letter"
+                }, 
+                {
+                    "transcript": "turn the sound to the latter"
+                }, 
+                {
+                    "transcript": "turn the sound to the later"
+                }, 
+                {
+                    "transcript": "catching the sound to the letter"
+                }, 
+                {
+                    "transcript": "catching the sound to the latter"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129212448tur": {
+            "alternative": [
+                {
+                    "confidence": 0.37309346, 
+                    "transcript": "stores"
+                }, 
+                {
+                    "transcript": "Josh"
+                }, 
+                {
+                    "transcript": "doors"
+                }, 
+                {
+                    "transcript": "Store"
+                }, 
+                {
+                    "transcript": "torch"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129212572select_name": {
+            "alternative": [
+                {
+                    "transcript": "select name called out"
+                }, 
+                {
+                    "transcript": "select game called out"
+                }, 
+                {
+                    "transcript": "select name call Javed"
+                }, 
+                {
+                    "transcript": "select game call Javed"
+                }, 
+                {
+                    "transcript": "select them call Javed"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129212832weeknames_forward": {
+            "alternative": [
+                {
+                    "transcript": "Lord Shiva names of the weeks forward"
+                }, 
+                {
+                    "transcript": "Lord Shiva names of the week forward"
+                }, 
+                {
+                    "transcript": "Lakdi the names of the week forward"
+                }, 
+                {
+                    "transcript": "let see the names of the week forward"
+                }, 
+                {
+                    "transcript": "Lakdi the names of the weeks forward"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129212977today_tomorrow": {
+            "alternative": [
+                {
+                    "confidence": 0.68888253, 
+                    "transcript": "let's learn what a day and tomorrow me"
+                }, 
+                {
+                    "transcript": "let's learn what a day and tomorrow"
+                }, 
+                {
+                    "transcript": "let's learn what today and tomorrow"
+                }, 
+                {
+                    "transcript": "let's learn what to do and tomorrow"
+                }, 
+                {
+                    "transcript": "lets learn what a day and tomorrow me"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129213122monday": {
+            "alternative": [
+                {
+                    "confidence": 0.76273602, 
+                    "transcript": "Mandi"
+                }, 
+                {
+                    "transcript": "Mandy"
+                }, 
+                {
+                    "transcript": "Monday"
+                }, 
+                {
+                    "transcript": "mahndi"
+                }, 
+                {
+                    "transcript": "mandhi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129213399afternoon_school": {
+            "alternative": [
+                {
+                    "confidence": 0.90977424, 
+                    "transcript": "in the afternoon we go to school"
+                }, 
+                {
+                    "transcript": "in the afternoon I go to school"
+                }, 
+                {
+                    "transcript": "India afternoon we go to school"
+                }, 
+                {
+                    "transcript": "in the afternoon to go to school"
+                }, 
+                {
+                    "transcript": "in the afternoon you go to school"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129213557thursday_today": {
+            "alternative": [
+                {
+                    "transcript": "Thursday today is Thursday"
+                }, 
+                {
+                    "transcript": "30 today is Thursday"
+                }, 
+                {
+                    "transcript": "x** today is Thursday"
+                }, 
+                {
+                    "transcript": "thirsty today is Thursday"
+                }, 
+                {
+                    "transcript": "Dharti today is Thursday"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129213837fifthday": {
+            "alternative": [
+                {
+                    "confidence": 0.22328575, 
+                    "transcript": "630"
+                }, 
+                {
+                    "transcript": "SwiftKey"
+                }, 
+                {
+                    "transcript": "six x**"
+                }, 
+                {
+                    "transcript": "shift key"
+                }, 
+                {
+                    "transcript": "sipf x**"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129213967thirdday": {
+            "alternative": [
+                {
+                    "transcript": "Chod de"
+                }, 
+                {
+                    "transcript": "Tod De"
+                }, 
+                {
+                    "transcript": "chod di"
+                }, 
+                {
+                    "transcript": "x**"
+                }, 
+                {
+                    "transcript": "chaddi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129214249L": {
+            "alternative": [
+                {
+                    "confidence": 0.3888697, 
+                    "transcript": "l"
+                }, 
+                {
+                    "transcript": "I'll"
+                }, 
+                {
+                    "transcript": "Al"
+                }, 
+                {
+                    "transcript": "El"
+                }, 
+                {
+                    "transcript": "hell"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129214384sa": {
+            "alternative": [
+                {
+                    "transcript": "sir"
+                }, 
+                {
+                    "transcript": "Sa"
+                }, 
+                {
+                    "transcript": "Shah"
+                }, 
+                {
+                    "transcript": "so"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129214589goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.89711022, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "goodjob"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "the job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129214740whatisaday": {
+            "alternative": [
+                {
+                    "transcript": "what is 80"
+                }, 
+                {
+                    "transcript": "what is a t"
+                }, 
+                {
+                    "transcript": "what is it"
+                }, 
+                {
+                    "transcript": "what is the day"
+                }, 
+                {
+                    "transcript": "wat is it"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129215088morning": {
+            "alternative": [
+                {
+                    "confidence": 0.85420632, 
+                    "transcript": "morning"
+                }, 
+                {
+                    "transcript": "burning"
+                }, 
+                {
+                    "transcript": "mourning"
+                }, 
+                {
+                    "transcript": "learning"
+                }, 
+                {
+                    "transcript": "mornings"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129215208morning_wakeup": {
+            "alternative": [
+                {
+                    "confidence": 0.93611765, 
+                    "transcript": "we wake up in the morning"
+                }, 
+                {
+                    "transcript": "we wake up in the mornings"
+                }, 
+                {
+                    "transcript": "wake up in the morning"
+                }, 
+                {
+                    "transcript": "wake up in the mornings"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129215334hemaandhariwenttoplaycricket": {
+            "alternative": [
+                {
+                    "transcript": "Mandi human her event click skit"
+                }, 
+                {
+                    "transcript": "monkey human her event click skit"
+                }, 
+                {
+                    "transcript": "Mandi him and her event click skit"
+                }, 
+                {
+                    "transcript": "Mandi human her event clicks kit"
+                }, 
+                {
+                    "transcript": "Mandi human Hari went clicks kit"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129215545tomorrow": {
+            "alternative": [
+                {
+                    "confidence": 0.83192569, 
+                    "transcript": "tomorrow"
+                }, 
+                {
+                    "transcript": "tommorow"
+                }, 
+                {
+                    "transcript": "tommorrow"
+                }, 
+                {
+                    "transcript": "2 morrow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129215825yesterday": {
+            "alternative": [
+                {
+                    "confidence": 0.93816656, 
+                    "transcript": "yesterday"
+                }, 
+                {
+                    "transcript": "yesterdy"
+                }, 
+                {
+                    "transcript": "STD"
+                }, 
+                {
+                    "transcript": "yes today"
+                }, 
+                {
+                    "transcript": "esterday"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129215958sun": {
+            "alternative": [
+                {
+                    "confidence": 0.51937979, 
+                    "transcript": "sun"
+                }, 
+                {
+                    "transcript": "son"
+                }, 
+                {
+                    "transcript": "Sunn"
+                }, 
+                {
+                    "transcript": "fun"
+                }, 
+                {
+                    "transcript": "cen"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129216079M": {
+            "alternative": [
+                {
+                    "transcript": "m"
+                }, 
+                {
+                    "transcript": "n"
+                }, 
+                {
+                    "transcript": "and"
+                }, 
+                {
+                    "transcript": "I am"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129216208match_letter_sound": {
+            "alternative": [
+                {
+                    "confidence": 0.81477576, 
+                    "transcript": "matching the letter to the sound"
+                }, 
+                {
+                    "transcript": "show matching the letter to the sound"
+                }, 
+                {
+                    "transcript": "touching the letter to the sound"
+                }, 
+                {
+                    "transcript": "catching the letter to the sound"
+                }, 
+                {
+                    "transcript": "tracking the letter to the sound"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129216333Q": {
+            "alternative": [
+                {
+                    "confidence": 0.77900743, 
+                    "transcript": "Shiv"
+                }, 
+                {
+                    "transcript": "show"
+                }, 
+                {
+                    "transcript": "shoe"
+                }, 
+                {
+                    "transcript": "so"
+                }, 
+                {
+                    "transcript": "she"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129216462secondday": {
+            "alternative": [
+                {
+                    "transcript": "2nd ODI"
+                }, 
+                {
+                    "transcript": "2nd GD"
+                }, 
+                {
+                    "transcript": "second lady"
+                }, 
+                {
+                    "transcript": "second ODI"
+                }, 
+                {
+                    "transcript": "second day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129216599friday": {
+            "alternative": [
+                {
+                    "confidence": 0.52192849, 
+                    "transcript": "shayari"
+                }, 
+                {
+                    "transcript": "shayri"
+                }, 
+                {
+                    "transcript": "Friday"
+                }, 
+                {
+                    "transcript": "CID"
+                }, 
+                {
+                    "transcript": "Saidi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129216833thefirstdayoftheweekismonday": {
+            "alternative": [
+                {
+                    "confidence": 0.79888278, 
+                    "transcript": "monkey the first day of the week is Monday"
+                }, 
+                {
+                    "transcript": "Monday the first day of the week is Monday"
+                }, 
+                {
+                    "transcript": "Monday the 1st day of the week is Monday"
+                }, 
+                {
+                    "transcript": "Mandi the first day of the week is Monday"
+                }, 
+                {
+                    "transcript": "Mangi the first day of the week is Monday"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129217206match_dots": {
+            "alternative": [
+                {
+                    "transcript": "which time match the objects to the correct option"
+                }, 
+                {
+                    "transcript": "flickstime match the objects to the correct option"
+                }, 
+                {
+                    "transcript": "which time was the objects to the correct option"
+                }, 
+                {
+                    "transcript": "flickstime battery objects to the correct option"
+                }, 
+                {
+                    "transcript": "next time match the objects to the correct option"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129217357tues": {
+            "alternative": [
+                {
+                    "transcript": "cute"
+                }, 
+                {
+                    "transcript": "shoes"
+                }, 
+                {
+                    "transcript": "cues"
+                }, 
+                {
+                    "transcript": "choose"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129217486firstday": {
+            "alternative": [
+                {
+                    "transcript": "source De"
+                }, 
+                {
+                    "transcript": "source d"
+                }, 
+                {
+                    "transcript": "SOS De"
+                }, 
+                {
+                    "transcript": "SOS d"
+                }, 
+                {
+                    "transcript": "sochdi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129217612friday_tomorrow": {
+            "alternative": [
+                {
+                    "confidence": 0.78438663, 
+                    "transcript": "CID one day after all tomorrow will be Friday"
+                }, 
+                {
+                    "transcript": "CID one day after tomorrow will be Friday"
+                }, 
+                {
+                    "transcript": "CID oneday after all tomorrow will be Friday"
+                }, 
+                {
+                    "transcript": "slider one day after all tomorrow will be Friday"
+                }, 
+                {
+                    "transcript": "CID 1 day after tomorrow will be Friday"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129217762drag_letters": {
+            "alternative": [
+                {
+                    "transcript": "write letters to complete the name"
+                }, 
+                {
+                    "transcript": "draught letters to complete the name"
+                }, 
+                {
+                    "transcript": "black letters to complete the name"
+                }, 
+                {
+                    "transcript": "dot letters to complete the name"
+                }, 
+                {
+                    "transcript": "graph letters to complete the name"
+                }, 
+                {
+                    "transcript": "draw letters to complete the name"
+                }, 
+                {
+                    "transcript": "draught letters to complete the names"
+                }, 
+                {
+                    "transcript": "draught letter to complete the name"
+                }, 
+                {
+                    "transcript": "draught letters to complete your name"
+                }, 
+                {
+                    "transcript": "dr letters to complete the name"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129218039tuesday": {
+            "alternative": [
+                {
+                    "confidence": 0.86425072, 
+                    "transcript": "Tuesday"
+                }, 
+                {
+                    "transcript": "cues day"
+                }, 
+                {
+                    "transcript": "cues d"
+                }, 
+                {
+                    "transcript": "cues Di"
+                }, 
+                {
+                    "transcript": "queues d"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129218215drag_yes_tom": {
+            "alternative": [
+                {
+                    "confidence": 0.7486828, 
+                    "transcript": "Dragon names of the week for yesterday and tomorrow"
+                }, 
+                {
+                    "transcript": "Dragon games of the week for yesterday and tomorrow"
+                }, 
+                {
+                    "transcript": "drag the names of the week for yesterday and tomorrow"
+                }, 
+                {
+                    "transcript": "drug the names of the week for yesterday and tomorrow"
+                }, 
+                {
+                    "transcript": "Dragon games of the weak for yesterday and tomorrow"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129218350touch_name": {
+            "alternative": [
+                {
+                    "transcript": "tips to listen to the name of the day"
+                }, 
+                {
+                    "transcript": "top to listen to the name of the day"
+                }, 
+                {
+                    "transcript": "listen to the name of the day"
+                }, 
+                {
+                    "transcript": "text to listen to the name of the day"
+                }, 
+                {
+                    "transcript": "talks to listen to the name of the day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129218504differentdaysinaweek": {
+            "alternative": [
+                {
+                    "confidence": 0.94884121, 
+                    "transcript": "different days in a week"
+                }, 
+                {
+                    "transcript": "Kissan days in a week"
+                }, 
+                {
+                    "transcript": "Kaisan days in a week"
+                }, 
+                {
+                    "transcript": "recent days in a week"
+                }, 
+                {
+                    "transcript": "kissin days in a week"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129218647fourthday": {
+            "alternative": [
+                {
+                    "transcript": "sports D"
+                }, 
+                {
+                    "transcript": "sports day"
+                }, 
+                {
+                    "transcript": "sports 2"
+                }, 
+                {
+                    "transcript": "sports t"
+                }, 
+                {
+                    "transcript": "sport t"
+                }, 
+                {
+                    "transcript": "sports WE"
+                }, 
+                {
+                    "transcript": "kaththi"
+                }, 
+                {
+                    "transcript": "Potti"
+                }, 
+                {
+                    "transcript": "sports Go"
+                }, 
+                {
+                    "transcript": "sports Auto"
+                }, 
+                {
+                    "transcript": "sports Earth"
+                }, 
+                {
+                    "transcript": "sports Bai"
+                }, 
+                {
+                    "transcript": "sports O2"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129218808night_sleep": {
+            "alternative": [
+                {
+                    "confidence": 0.93720132, 
+                    "transcript": "in the night we sleep"
+                }, 
+                {
+                    "transcript": "in the night we slip"
+                }, 
+                {
+                    "transcript": "the night we sleep"
+                }, 
+                {
+                    "transcript": "in the night we streep"
+                }, 
+                {
+                    "transcript": "and the night we sleep"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129219056O": {
+            "alternative": [
+                {
+                    "confidence": 0.28554761, 
+                    "transcript": "oh"
+                }, 
+                {
+                    "transcript": "o"
+                }, 
+                {
+                    "transcript": "how"
+                }, 
+                {
+                    "transcript": "oo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129219190evening_friends": {
+            "alternative": [
+                {
+                    "transcript": "in the evening with slave with friends"
+                }, 
+                {
+                    "transcript": "in the evening we play with friends"
+                }, 
+                {
+                    "transcript": "in the evening with sli with friends"
+                }, 
+                {
+                    "transcript": "in the evening with play with friends"
+                }, 
+                {
+                    "transcript": "in the evening with slave with friend"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129219341wed": {
+            "alternative": [
+                {
+                    "transcript": "when"
+                }, 
+                {
+                    "transcript": "went"
+                }, 
+                {
+                    "transcript": "wet"
+                }, 
+                {
+                    "transcript": "wed"
+                }, 
+                {
+                    "transcript": "vent"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129219529night": {
+            "alternative": [
+                {
+                    "confidence": 0.61757851, 
+                    "transcript": "night"
+                }, 
+                {
+                    "transcript": "Knight"
+                }, 
+                {
+                    "transcript": "light"
+                }, 
+                {
+                    "transcript": "Nite"
+                }, 
+                {
+                    "transcript": "Nike"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129219715sunday": {
+            "alternative": [
+                {
+                    "confidence": 0.32654616, 
+                    "transcript": "Sandy"
+                }, 
+                {
+                    "transcript": "ssundee"
+                }, 
+                {
+                    "transcript": "Sunday"
+                }, 
+                {
+                    "transcript": "Sandeep"
+                }, 
+                {
+                    "transcript": "Sandi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129219875match_day_picture": {
+            "alternative": [
+                {
+                    "confidence": 0.75969183, 
+                    "transcript": "what's the name of the day to the picture"
+                }, 
+                {
+                    "transcript": "what's the name of the date today picture"
+                }, 
+                {
+                    "transcript": "what's the name of the day to day picture"
+                }, 
+                {
+                    "transcript": "what's the name of the day today picture"
+                }, 
+                {
+                    "transcript": "was the name of the day to the picture"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129220013wednesday_yesterday": {
+            "alternative": [
+                {
+                    "transcript": "what is the one day before yesterday was the Wednesday"
+                }, 
+                {
+                    "transcript": "what is the one day before yesterday was the weather today"
+                }, 
+                {
+                    "transcript": "what is D one day before yesterday was the Wednesday"
+                }, 
+                {
+                    "transcript": "what is D one day before yesterday was the weather today"
+                }, 
+                {
+                    "transcript": "which is the one day before yesterday was the Wednesday"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129220170wednesday": {
+            "alternative": [
+                {
+                    "confidence": 0.70133418, 
+                    "transcript": "Webmusic"
+                }, 
+                {
+                    "transcript": "web music"
+                }, 
+                {
+                    "transcript": "Webmusic d"
+                }, 
+                {
+                    "transcript": "when is day"
+                }, 
+                {
+                    "transcript": "Webmusic day"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129220334nes": {
+            "alternative": [
+                {
+                    "confidence": 0.5297929, 
+                    "transcript": "yes"
+                }, 
+                {
+                    "transcript": "Ness"
+                }, 
+                {
+                    "transcript": "net"
+                }, 
+                {
+                    "transcript": "nesse"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129220476say_it": {
+            "alternative": [
+                {
+                    "confidence": 0.734981, 
+                    "transcript": "seed after me"
+                }, 
+                {
+                    "transcript": "seat after me"
+                }, 
+                {
+                    "transcript": "ceed after me"
+                }, 
+                {
+                    "transcript": "read after me"
+                }, 
+                {
+                    "transcript": "scene after me"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129220631first": {
+            "alternative": [
+                {
+                    "confidence": 0.77552462, 
+                    "transcript": "first"
+                }, 
+                {
+                    "transcript": "1st"
+                }, 
+                {
+                    "transcript": "forced"
+                }, 
+                {
+                    "transcript": "cost"
+                }, 
+                {
+                    "transcript": "search"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129221110matchthefollowing": {
+            "alternative": [
+                {
+                    "confidence": 0.95950031, 
+                    "transcript": "match the following"
+                }, 
+                {
+                    "transcript": "match the following a"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129221260D": {
+            "alternative": [
+                {
+                    "confidence": 0.32881713, 
+                    "transcript": "d"
+                }, 
+                {
+                    "transcript": "the"
+                }, 
+                {
+                    "transcript": "p"
+                }, 
+                {
+                    "transcript": "b"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129221385letstryagain": {
+            "alternative": [
+                {
+                    "confidence": 0.75744247, 
+                    "transcript": "let's try again"
+                }, 
+                {
+                    "transcript": "lets try again"
+                }, 
+                {
+                    "transcript": "let's try again a"
+                }, 
+                {
+                    "transcript": "lets try again a"
+                }, 
+                {
+                    "transcript": "let's try I can"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129221605B": {
+            "alternative": [
+                {
+                    "confidence": 0.18016508, 
+                    "transcript": "Bing"
+                }, 
+                {
+                    "transcript": "beam"
+                }, 
+                {
+                    "transcript": "b"
+                }, 
+                {
+                    "transcript": "been"
+                }, 
+                {
+                    "transcript": "Bheem"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129221755sixthday": {
+            "alternative": [
+                {
+                    "transcript": "60"
+                }, 
+                {
+                    "transcript": "sixteen"
+                }, 
+                {
+                    "transcript": "16"
+                }, 
+                {
+                    "transcript": "XVI"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129221897thurs": {
+            "alternative": [
+                {
+                    "transcript": "house"
+                }, 
+                {
+                    "transcript": "horse"
+                }, 
+                {
+                    "transcript": "how's"
+                }, 
+                {
+                    "transcript": "hot"
+                }, 
+                {
+                    "transcript": "cars"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129221987mon": {
+            "alternative": [
+                {
+                    "confidence": 0.11955943, 
+                    "transcript": "mum"
+                }, 
+                {
+                    "transcript": "Maan"
+                }, 
+                {
+                    "transcript": "man"
+                }, 
+                {
+                    "transcript": "Mann"
+                }, 
+                {
+                    "transcript": "men"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/org.ekstep.daysoftheweek/assets/1456129222118thursday": {
+            "alternative": [
+                {
+                    "confidence": 0.62319243, 
+                    "transcript": "x**"
+                }, 
+                {
+                    "transcript": "Thursday"
+                }, 
+                {
+                    "transcript": "Thodi"
+                }, 
+                {
+                    "transcript": "Shirdi"
+                }, 
+                {
+                    "transcript": "today"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep", 
+    "tags": [
+        "Foundation Content"
+    ]
+}

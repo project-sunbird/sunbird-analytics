@@ -1,0 +1,48 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "tell me now - colours", 
+    "developer": "EkStep", 
+    "identifier": "org.ekstep.tellmenowcolours", 
+    "imageTags": [
+        "speech bubble", 
+        "no", 
+        "icon home", 
+        "image", 
+        "confirm bg", 
+        "question b", 
+        "icon hint", 
+        "start", 
+        "icon reload", 
+        "icon next", 
+        "level band", 
+        "yes", 
+        "icon sound", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 12, 
+        "mp3": 12, 
+        "ogg": 0, 
+        "png": 13
+    }, 
+    "mp3Length": 105.054, 
+    "mp3Transcription": {}, 
+    "owner": "EkStep", 
+    "tags": [
+        "English", 
+        "english_stories", 
+        "hindi_reading_camp"
+    ]
+}

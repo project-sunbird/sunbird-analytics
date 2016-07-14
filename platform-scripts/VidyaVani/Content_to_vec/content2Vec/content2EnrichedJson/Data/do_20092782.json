@@ -1,0 +1,903 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "test_hathibhalukannada", 
+    "domain": [
+        "literacy"
+    ], 
+    "identifier": "do_20092782", 
+    "imageTags": [
+        "eagle", 
+        "olaga", 
+        "endscreen", 
+        "greenbox", 
+        "pageselbg", 
+        "crow", 
+        "image", 
+        "deer", 
+        "yellow", 
+        "sad", 
+        "iconprevious", 
+        "lion", 
+        "carrot", 
+        "lakdi", 
+        "yes", 
+        "blue", 
+        "saree", 
+        "decor", 
+        "enjoyingfood", 
+        "drumbeat", 
+        "monkey", 
+        "brinjal", 
+        "no", 
+        "pant", 
+        "fox", 
+        "activitybg", 
+        "flowersl", 
+        "yellowbox", 
+        "teacherpopup", 
+        "elephant", 
+        "green", 
+        "puri", 
+        "bored", 
+        "red", 
+        "iconsound", 
+        "squirrel", 
+        "fire", 
+        "tree", 
+        "iconreload", 
+        "bear", 
+        "peas", 
+        "tiger", 
+        "sweets", 
+        "retry", 
+        "iconhome", 
+        "rabbit", 
+        "noexpression", 
+        "retrybg", 
+        "teacher", 
+        "beans", 
+        "tomato", 
+        "chilli", 
+        "drum", 
+        "onion", 
+        "parrot", 
+        "garlandl", 
+        "confirmbg", 
+        "potato", 
+        "iconnext", 
+        "grey", 
+        "flowersr", 
+        "bluebox", 
+        "goodjobbg", 
+        "jungle", 
+        "garlandr", 
+        "deepa", 
+        "laddu", 
+        "playaudio", 
+        "clothes"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "Kannada"
+    ], 
+    "languageCode": "ka", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 0, 
+        "mp3": 49, 
+        "ogg": 0, 
+        "png": 93
+    }, 
+    "mp3Length": 362.19766439909296, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/14671943643955": {
+            "alternative": [
+                {
+                    "transcript": "prathapa divano Guru TC"
+                }, 
+                {
+                    "transcript": "prathapa divano Guru t c"
+                }, 
+                {
+                    "transcript": "prathapa divano Guru tisi"
+                }, 
+                {
+                    "transcript": "prathapa divano Guru DC"
+                }, 
+                {
+                    "transcript": "prathapa devanur Guru TC"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194365275page4": {
+            "alternative": [
+                {
+                    "transcript": "Banegi delusion that I had Se Daaru Deepak Aage Gili kuon chalo"
+                }, 
+                {
+                    "transcript": "behne De Daru jaan tere haath Se Daaru Deepak Aage Gili kuon chalo"
+                }, 
+                {
+                    "transcript": "behne De Daru Jantri Harshita do Deepak Aage Gili kuon chalo"
+                }, 
+                {
+                    "transcript": "benergy delusion that I had Se Daaru Deepak Aage Gili kuon chalo"
+                }, 
+                {
+                    "transcript": "bengi delusion that I had Se Daaru Deepak Aage Gili kuon chalo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719436556275": {
+            "alternative": [
+                {
+                    "confidence": 0.53457361, 
+                    "transcript": "e"
+                }, 
+                {
+                    "transcript": "a"
+                }, 
+                {
+                    "transcript": "I"
+                }, 
+                {
+                    "transcript": "ee"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194365760page3": {
+            "alternative": [
+                {
+                    "transcript": "Garuda Nagari Badi to Na Re Bondhu Re Tu"
+                }, 
+                {
+                    "transcript": "Garuda Nagari Badi to Na Re Mora Gao Re Tu"
+                }, 
+                {
+                    "transcript": "Garuda Nagari Badi to Na Re Mora Gaon Re Tu"
+                }, 
+                {
+                    "transcript": "Garuda Nagari Badi to naa re Mora Gao Re Tu"
+                }, 
+                {
+                    "transcript": "Garuda Nagari Bade to Na Re Mora Gaon Re Tu"
+                }, 
+                {
+                    "transcript": "Garuda Nagari Badi to naati manae Gao Re Tu"
+                }, 
+                {
+                    "transcript": "Garuda Nagari Badi to Na Re Mora Gao uppi 2"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194366212monkeysound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194366476page6": {
+            "alternative": [
+                {
+                    "transcript": "Ruchi Khare I DK I to geleyaru UTA Madi Taru"
+                }, 
+                {
+                    "transcript": "Ruchika I DK I too geleyaru UTA Madi Taru"
+                }, 
+                {
+                    "transcript": "Ruchika I DK I to geleyaru Hooda Madi Taru"
+                }, 
+                {
+                    "transcript": "Ruchika I DK I to geleyaru hooter Madi Taru"
+                }, 
+                {
+                    "transcript": "Ruchi Khare I DK I to geleyaru Hooda Madi Taru"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194366801page3": {
+            "alternative": [
+                {
+                    "transcript": "Nagari volaga Nagar even do talvadya volaga atwa nadaswara PP"
+                }, 
+                {
+                    "transcript": "Nagari volaga Nagar even do Tara Wadiya volaga atwa nadaswara PP"
+                }, 
+                {
+                    "transcript": "Nagari volaga Nagar even do Tara Wadiya volaga at va nadaswara PP"
+                }, 
+                {
+                    "transcript": "Nagori volaga Nagar even do talvadya volaga atwa nadaswara PP"
+                }, 
+                {
+                    "transcript": "Nagari volaga Nagar even do Tara Wadia volaga atwa nadaswara PP"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/14671943674371": {
+            "alternative": [
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru TC Karadi vanaraja Ruchi Kara"
+                }, 
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru TC Karadi vanaraja Ruchika"
+                }, 
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru TC Kara De vanaraja Ruchi Kara"
+                }, 
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru TC Kara De vanaraja Ruchika"
+                }, 
+                {
+                    "transcript": "project case study harder chitrabhanu Guru TC Karadi vanaraja Ruchi Kara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194367776page6": {
+            "alternative": [
+                {
+                    "confidence": 0.56662476, 
+                    "transcript": "Ruchi Kara"
+                }, 
+                {
+                    "transcript": "Ruchika"
+                }, 
+                {
+                    "transcript": "Ruchi Karaar"
+                }, 
+                {
+                    "transcript": "Ruchika ra"
+                }, 
+                {
+                    "transcript": "Ruchi Cara"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194368194mcqbear": {
+            "alternative": [
+                {
+                    "transcript": "Gajakesari Hada chitrabhanu Guru TC Reddy"
+                }, 
+                {
+                    "transcript": "Gajakesari harder chitrabhanu Guru T C Reddy"
+                }, 
+                {
+                    "transcript": "Gajakesari Hada chitrabhanu Guru T C Reddy"
+                }, 
+                {
+                    "transcript": "Gajakesari Hada chitrabhanu Guru TC ready"
+                }, 
+                {
+                    "transcript": "Gajakesari harder chitrabhanu Guru TC Reddy"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/14671943684269": {
+            "alternative": [
+                {
+                    "transcript": "chitrabhanu gamana Vikatan ODI but a pressure Negi Uttara C Maulana Cherry tomato Airoli aloo Bade Nadiya Udupi nabhannu campanile hasiru Kharadi"
+                }, 
+                {
+                    "transcript": "chitrabhanu gamana Vikatan ODI Madhya Prash Negi Uttara C Maulana Cherry tomato Airoli aloo Bade Nadia Udupi nabhannu campanile hasiru Kharadi"
+                }, 
+                {
+                    "transcript": "chitragana gamana Vikatan ODI but a pressure Negi Uttara C Maulana Cherry tomato Airoli aloo Bade Nadiya Udupi nabhannu campanile hasiru Kharadi"
+                }, 
+                {
+                    "transcript": "chitrabhanu gamana Vikatan ODI but a pressure Negi Uttara C Maulana Cherry tomato Airoli aloo Bade Nadiya Udupi nabhannu campanile hasiru her daddy"
+                }, 
+                {
+                    "transcript": "chitrabhanu Garmin evict you know D but a pressure Negi Uttara C Maulana Cherry tomato Airoli aloo Bade Nadiya Udupi nabhannu campanile hasiru Kharadi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194369222end": {
+            "alternative": [
+                {
+                    "transcript": "Mukta ya"
+                }, 
+                {
+                    "transcript": "Mukhtar"
+                }, 
+                {
+                    "transcript": "Muktha"
+                }, 
+                {
+                    "transcript": "Muktha yeah"
+                }, 
+                {
+                    "transcript": "Muktha ya"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194369382page1": {
+            "alternative": [
+                {
+                    "transcript": "dinner and ego Kharadi go Madhavi kardena gallery gera gera"
+                }, 
+                {
+                    "transcript": "dinner and ego Kharadi go Madhuri ka Dina gallery game started error"
+                }, 
+                {
+                    "transcript": "dinner and ego Kharadi go Madhuri kardena gallery gera gera"
+                }, 
+                {
+                    "transcript": "dinner and ego Kharadi go Madhuri ka Dina gallery gera gera"
+                }, 
+                {
+                    "transcript": "dinner and ego Kharadi go Madhuri kar dena gallery game started error"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719436960273": {
+            "alternative": [
+                {
+                    "transcript": "inter"
+                }, 
+                {
+                    "transcript": "ETA"
+                }, 
+                {
+                    "transcript": "UTA"
+                }, 
+                {
+                    "transcript": "Utah"
+                }, 
+                {
+                    "transcript": "ulta"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719436980462": {
+            "alternative": [
+                {
+                    "transcript": "2"
+                }, 
+                {
+                    "transcript": "Tu"
+                }, 
+                {
+                    "transcript": "to"
+                }, 
+                {
+                    "transcript": "RTU"
+                }, 
+                {
+                    "transcript": "tu tu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194370412firesound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194370638page4": {
+            "alternative": [
+                {
+                    "confidence": 0.55332834, 
+                    "transcript": "corgi Hugli Arati Banegi daru"
+                }, 
+                {
+                    "transcript": "kagi Hugli Arati Banegi daru"
+                }, 
+                {
+                    "transcript": "Kaki Hugli Arati Banegi daru"
+                }, 
+                {
+                    "transcript": "corgi Hugli Aarati Banegi daru"
+                }, 
+                {
+                    "transcript": "Kar Gayi Hogi Arati Banegi daru"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/14671943716916": {
+            "alternative": [
+                {
+                    "transcript": "cheerleader Akshara vannu Guru TC"
+                }, 
+                {
+                    "transcript": "Canada Akshara vannu Guru TC"
+                }, 
+                {
+                    "transcript": "chillena Akshara vannu Guru TC"
+                }, 
+                {
+                    "transcript": "Kehlata Akshara vannu Guru TC"
+                }, 
+                {
+                    "transcript": "cheerleader Akshara vannu Guru tisi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194374221parrotsound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719437449563": {
+            "alternative": [
+                {
+                    "confidence": 0.57800704, 
+                    "transcript": "Lee"
+                }, 
+                {
+                    "transcript": "Li"
+                }, 
+                {
+                    "transcript": "lea"
+                }, 
+                {
+                    "transcript": "Lily"
+                }, 
+                {
+                    "transcript": "leigh"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719437536072": {
+            "alternative": [
+                {
+                    "transcript": "how do"
+                }, 
+                {
+                    "transcript": "hagu"
+                }, 
+                {
+                    "transcript": "Fargo"
+                }, 
+                {
+                    "transcript": "her go"
+                }, 
+                {
+                    "transcript": "hey boo"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719437555831": {
+            "alternative": [
+                {
+                    "transcript": "Madurai Yaariya Khiladi Tu Anari hagu Kara De Aane her Guna Re Aane Hadh Kardi Kardi Hadh Kar Gaye"
+                }, 
+                {
+                    "transcript": "Madhuri Yaariya Khiladi Tu Anari hagu Kara De Ani her Guna Re Aane Hadh Kardi Kardi Hadh Kar Gaye"
+                }, 
+                {
+                    "transcript": "Madurai Yaariya Khiladi Tu Anari hagu Kara De Ani her Guna Re Aane Hadh Kardi Kardi Hadh Kar Gaye"
+                }, 
+                {
+                    "transcript": "Madurai Yariya Khiladi Tu Anari hagu Kara De Aane her Guna Re Aane Hadh Kardi Kardi Hadh Kar Gaye"
+                }, 
+                {
+                    "transcript": "Madurai Yaariya Khiladi Tu Anari hagu Kara De aneha Guna Re Aane Hadh Kardi Kardi Hadh Kar Gaye"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194375754olagasound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194375967foxsound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194377585tigersound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719437878051": {
+            "alternative": [
+                {
+                    "transcript": "Bana Mara Vara Vara Dana"
+                }, 
+                {
+                    "transcript": "Bana Mara Vara Vara gana"
+                }, 
+                {
+                    "transcript": "Bana Mera Vara Vara Dana"
+                }, 
+                {
+                    "transcript": "Mana Mara Vara Vara Dana"
+                }, 
+                {
+                    "transcript": "Bana Mara Vara Vara gaana"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194378975squirrelsound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194379383page1": {
+            "alternative": [
+                {
+                    "transcript": "narry Hooghly Manga Ali Do Maula"
+                }, 
+                {
+                    "transcript": "Nari Huli Manga Ali Do Maula"
+                }, 
+                {
+                    "transcript": "narry fully Manga Ali Do Maula"
+                }, 
+                {
+                    "transcript": "Mary Huli Manga Ali Do Maula"
+                }, 
+                {
+                    "transcript": "Nadi Huli Manga Ali Do Maula"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194379604crowsound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194379964page5": {
+            "alternative": [
+                {
+                    "transcript": "one Raja ladoo hmgu Paya Samadi to naari Puri Hayabusa gummadi 2"
+                }, 
+                {
+                    "transcript": "one Raja ladoo hmgu Paya Samadi to Nari Puri Hayabusa gummadi 2"
+                }, 
+                {
+                    "transcript": "one Raja ladoo hagu Paya Samadi to Nari Puri Hayabusa gummadi 2"
+                }, 
+                {
+                    "transcript": "one Raja ladoo hug upaya Samadi to Nari Puri Hayabusa gummadi 2"
+                }, 
+                {
+                    "transcript": "one Raja ladoo hug upaya Samadi to naari Puri Hayabusa gummadi 2"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719438037371": {
+            "alternative": [
+                {
+                    "confidence": 0.61373597, 
+                    "transcript": "dinner"
+                }, 
+                {
+                    "transcript": "dena"
+                }, 
+                {
+                    "transcript": "Dina"
+                }, 
+                {
+                    "transcript": "Dinar"
+                }, 
+                {
+                    "transcript": "Dheena"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719438098322": {
+            "alternative": [
+                {
+                    "transcript": "Sunny adipathu Bandu Guruji scenery in Urdu volaga Nagari tamate tabala"
+                }, 
+                {
+                    "transcript": "Syria departure Bandu Guruji scenery in Urdu volaga Nagari tamate tabala"
+                }, 
+                {
+                    "transcript": "Saria departure Bandu Guruji scenery in Urdu volaga Nagari tamate tabala"
+                }, 
+                {
+                    "transcript": "Sunny adipathu Bandu Guruji scenery in Urdu volaga Nagari tamate tabla"
+                }, 
+                {
+                    "transcript": "Syria departure Bandu Guruji scenery in Urdu volaga Nagari tamate tabla"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194381658letstryagain": {
+            "alternative": [
+                {
+                    "transcript": "Tumi prayatnam RD"
+                }, 
+                {
+                    "transcript": "matami Prathna Madi"
+                }, 
+                {
+                    "transcript": "Tumi prayatnam ID"
+                }, 
+                {
+                    "transcript": "madhumeh prayatnam ID"
+                }, 
+                {
+                    "transcript": "matomy prayatnam ID"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/14671943832344and41": {
+            "alternative": [
+                {
+                    "transcript": "padunnu on DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "paaduvan no horn DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "paaduven Mohan DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "paduvan no horn DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "Padu Manmohan DC Nagara Dookudu buddy to see ya key to"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719438548674": {
+            "alternative": [
+                {
+                    "transcript": "ID gay"
+                }, 
+                {
+                    "transcript": "I DK"
+                }, 
+                {
+                    "transcript": "ID Gaye"
+                }, 
+                {
+                    "transcript": "Adi gay"
+                }, 
+                {
+                    "transcript": "Audi gay"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194386264page5": {
+            "alternative": [
+                {
+                    "transcript": "carrot Gajari hurali Kalu Bade Idli tomato badhane ka manasinakare Dinky to Rana maradu Puri"
+                }, 
+                {
+                    "transcript": "carrot Gajari hurali Kalu Bade Idli tomato badhane ka manasinakkare Dinky to Rana maradu Puri"
+                }, 
+                {
+                    "transcript": "carrot Gajari hurali Kalu gadhe Idli tomato badhane ka manasinakare Dinky to Rana maradu Puri"
+                }, 
+                {
+                    "transcript": "carrot Gajari hurali Kalu Gaddi Idli tomato badhane ka manasinakare Dinky to Rana maradu Puri"
+                }, 
+                {
+                    "transcript": "carrot Gajari hurali Kalu gadde Idli tomato badhane ka manasinakare Dinky to Rana maradu Puri"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719438880521": {
+            "alternative": [
+                {
+                    "transcript": "bitter butter tumbidy Kara De gayi re dash Madi Taru Har ki Daru Banegi Daru Oriya see the row"
+                }, 
+                {
+                    "transcript": "beta Paida tum bhi De Keh De gayi re dash Madi Taru Har ki Daru Banegi Daru Oriya see the row"
+                }, 
+                {
+                    "transcript": "bitter butter tum bhi De kar de gayi re dash Madi Taru Har ki Daru Banegi Daru Oriya see the row"
+                }, 
+                {
+                    "transcript": "bitter butter Tum BD Kara De gayi re dash Madi Taru Har ki Daru Banegi Daru Oriya see the row"
+                }, 
+                {
+                    "transcript": "bitter butter tum bhi De Kar Gayi Re dash Madi Taru Har ki Daru Banegi Daru Oriya see the row"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719438902832": {
+            "alternative": [
+                {
+                    "transcript": "ladooo hack upachaya Ruma De Daru Na Re kadugale Garu Garuda vanaraja"
+                }, 
+                {
+                    "transcript": "ladooo hack upaya Shair O Madi Taru Nari kadugale Garuda vanaraja"
+                }, 
+                {
+                    "transcript": "ladooo hack upachaya Ruma De Daru Na Re kadugale Garuda vanaraja"
+                }, 
+                {
+                    "transcript": "ladooo hack upaya Shair O Madi Taru Nari Karu Karu Garuda vanaraja"
+                }, 
+                {
+                    "transcript": "ladooo hack upachaya Ruma De Daru Na Re Karu Karu Garuda vanaraja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719438951261": {
+            "alternative": [
+                {
+                    "confidence": 0.29970792, 
+                    "transcript": "c"
+                }, 
+                {
+                    "transcript": "see"
+                }, 
+                {
+                    "transcript": "sea"
+                }, 
+                {
+                    "transcript": "she"
+                }, 
+                {
+                    "transcript": "Si"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719439037164": {
+            "alternative": [
+                {
+                    "confidence": 0.53145891, 
+                    "transcript": "Shah"
+                }, 
+                {
+                    "transcript": "Shar"
+                }, 
+                {
+                    "transcript": "Sha"
+                }, 
+                {
+                    "transcript": "Shaw"
+                }, 
+                {
+                    "transcript": "show"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/14671943913667": {
+            "alternative": [
+                {
+                    "transcript": "senada parannu Guru TC"
+                }, 
+                {
+                    "transcript": "Sunny Nada padunnu Guru tikki"
+                }, 
+                {
+                    "transcript": "Sunny Yadav padunnu Guru tikki"
+                }, 
+                {
+                    "transcript": "Sunny nagapada vannu Guru tikki"
+                }, 
+                {
+                    "transcript": "Sunny Nada padunnu coorg tikki"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194391560goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.52610916, 
+                    "transcript": "Subhash"
+                }, 
+                {
+                    "transcript": "Subhas"
+                }, 
+                {
+                    "transcript": "Shabash"
+                }, 
+                {
+                    "transcript": "shabhash"
+                }, 
+                {
+                    "transcript": "Shahbaz"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194391967title": {
+            "alternative": [
+                {
+                    "confidence": 0.42469302, 
+                    "transcript": "Ani Kharadi Madhuri"
+                }, 
+                {
+                    "transcript": "Anne Kharadi Madhuri"
+                }, 
+                {
+                    "transcript": "Anitha Reddy Madurai"
+                }, 
+                {
+                    "transcript": "Ani Kharadi Madurai"
+                }, 
+                {
+                    "transcript": "Honey Kharadi Madhuri"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/146719439215152": {
+            "alternative": [
+                {
+                    "transcript": "Ladu Palu Nadu Nadu Nadu"
+                }, 
+                {
+                    "transcript": "Ladu paalu Nadu Nadu Nadu"
+                }, 
+                {
+                    "transcript": "ladoo Palu Nadu Nadu Nadu"
+                }, 
+                {
+                    "transcript": "Lado Palu Nadu Nadu Nadu"
+                }, 
+                {
+                    "transcript": "Ladu Palu Nadu Nadu Nattu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194392601mcqlion": {
+            "alternative": [
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru TC vanaraja"
+                }, 
+                {
+                    "transcript": "budget case study harder chitrabanu Guru TC vanaraja"
+                }, 
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru tisi vanaraja"
+                }, 
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru t c vanaraja"
+                }, 
+                {
+                    "transcript": "budget case study harder chitrabhanu Guru thisai vanaraja"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194392832drumsound": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194393451mcqruchikara": {
+            "alternative": [
+                {
+                    "transcript": "Gajakesari harder chitrabhanu Guru TC Ruchika Rao"
+                }, 
+                {
+                    "transcript": "Gajakesari Hada chitrabhanu Guru TC Ruchika Rao"
+                }, 
+                {
+                    "transcript": "Gajakesari Hada chitrabhanu Guru TC Ruchi Kara"
+                }, 
+                {
+                    "transcript": "Gajakesari harder chitrabhanu Guru TC Ruchika"
+                }, 
+                {
+                    "transcript": "Gajakesari Hada chitrabanu Guru TC Ruchika Rao"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194394609homeaudio": {
+            "alternative": [
+                {
+                    "transcript": "holiday who Google do"
+                }, 
+                {
+                    "transcript": "holiday who Google"
+                }, 
+                {
+                    "transcript": "holiday huh Google do"
+                }, 
+                {
+                    "transcript": "horat who Google do"
+                }, 
+                {
+                    "transcript": "erotic who Google do"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/do_20092782/assets/1467194395644rabbitsound": []
+    }, 
+    "owner": "Debasis Singh"
+}

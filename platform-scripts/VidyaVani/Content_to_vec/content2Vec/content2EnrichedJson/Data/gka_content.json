@@ -1,0 +1,395 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test_QA", 
+    "developer": "EkStep", 
+    "identifier": "gka_content", 
+    "imageTags": [
+        "", 
+        "placevaluefirst", 
+        "areasquareimages", 
+        "dshapessecond", 
+        "dshapeseighth", 
+        "dshapesfourteen", 
+        "placevaluesecond", 
+        "icon next", 
+        "dshapestenth", 
+        "home", 
+        "dshapeseleventh", 
+        "fiftyrupee", 
+        "icon sound", 
+        "dshapesfourth", 
+        "dshapessixteen", 
+        "dshapestweleveth", 
+        "areasquares", 
+        "popup tint", 
+        "twentyrupee", 
+        "dshapesthirteen", 
+        "division", 
+        "dshapesfifteen", 
+        "dshapesthird", 
+        "dshapessixth", 
+        "dshapesseventh", 
+        "dshapesninth", 
+        "goodjob bg", 
+        "retry bg", 
+        "hundredrupee", 
+        "areasquare", 
+        "end screen", 
+        "placevaluethird", 
+        "icon previous", 
+        "dshapesfirst", 
+        "icon validate", 
+        "placevaluefifth", 
+        "decimal", 
+        "dshapesfifth", 
+        "placevaluefourth", 
+        "micro"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 4, 
+        "mp3": 16, 
+        "ogg": 0, 
+        "png": 40
+    }, 
+    "mp3Length": 61.54929705215419, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072399481GKAV2Q8": {
+            "alternative": [
+                {
+                    "transcript": "nainavannu nalku generic asamoah Gyan Sitare pratiyogi Vahana H2"
+                }, 
+                {
+                    "transcript": "nainavannu nalku generic asamoah Gyan Sitare pratiyogi Wahan Ayush 2"
+                }, 
+                {
+                    "transcript": "nainavannu nalku generic asamoah Gyan chudhary pratiyog Vahana H2"
+                }, 
+                {
+                    "transcript": "nainavannu nalku generic asamoah Gyan Sitare pratiyogi Vahana S2"
+                }, 
+                {
+                    "transcript": "nainavannu nalku generic asamoah Gyan Sitare pratiyog Vahana H2"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072400518GKAV2Q11": {
+            "alternative": [
+                {
+                    "transcript": "LED Rewa dashamamsha sankali get a tourist Thana Yahoo them with Anu with Teri"
+                }, 
+                {
+                    "transcript": "LED Rewa dashamamsha sankali get a tourist Thana Yahoo them with the Nova 3"
+                }, 
+                {
+                    "transcript": "LED Rewa dashamamsha sankali you are a tourist Thana Yahoo them with Anu with Teri"
+                }, 
+                {
+                    "transcript": "LED Rewa dashamamsha sankali you are a tourist Thana Yahoo them with the Nova 3"
+                }, 
+                {
+                    "transcript": "LED Rewa dashamamsha sankali you are a tourist Thana Yahoo them with the Nova theory"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/146407240204399": {
+            "alternative": [
+                {
+                    "transcript": "Tumba Tumba Tumba Teri"
+                }, 
+                {
+                    "transcript": "Tumba Tumba turnover Teri"
+                }, 
+                {
+                    "transcript": "Tumba Tumba to Novotel"
+                }, 
+                {
+                    "transcript": "tumbak tumbak Novotel"
+                }, 
+                {
+                    "transcript": "Tumba Tumba turnover theory"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072403250GKAV2Q12": {
+            "alternative": [
+                {
+                    "transcript": "nalkane morani Banke Me Ne Bana Tum beeruva chitraban NOVA 3"
+                }, 
+                {
+                    "transcript": "nalkane morani Banke Me Ne Bana Tum beeruva chaitraban NOVA 3"
+                }, 
+                {
+                    "transcript": "nalkane morani Banke Neeli Bane Tum beeruva chaitraban NOVA 3"
+                }, 
+                {
+                    "transcript": "nalkane morani Bharat ke meri behna Tum beeruva chitraban NOVA 3"
+                }, 
+                {
+                    "transcript": "nalkane morani Bhagat Ke Meri Behna Tum beeruva chitraban over 3"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072403580GKAV2Q11tens": [], 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072403821GKAV2Q14": {
+            "alternative": [
+                {
+                    "transcript": "Ujala critiano multibagger login Akruti aagadu"
+                }, 
+                {
+                    "transcript": "Ujala critiano Marathi Daga Yahoo gana kurti aagadu"
+                }, 
+                {
+                    "transcript": "Ujala critiano Marathi Daga Yahoo gaana Chutti aagadu"
+                }, 
+                {
+                    "transcript": "Ujala criatiano Marathi Daga Yahoo gana kurti aagadu"
+                }, 
+                {
+                    "transcript": "Ujala critiano Marathi Daga Yahoo gaana kurti aagadu"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/146407240450789": {
+            "alternative": [
+                {
+                    "confidence": 0.40985662, 
+                    "transcript": "Chamba Chamba turnover Teri"
+                }, 
+                {
+                    "transcript": "Chamba Chamba tunover Teri"
+                }, 
+                {
+                    "transcript": "gambit Amber turnover Teri"
+                }, 
+                {
+                    "transcript": "gambit Amber turnover theory"
+                }, 
+                {
+                    "transcript": "Chamba Chamba turnover theory"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072404698GKAV2Q9": {
+            "alternative": [
+                {
+                    "transcript": "LED revised and Kelly actress thanathintha BDS Thana K 12 hi Tanu Dussehra Pandaga BDS Thana Delhi a stupid girl by Guru"
+                }, 
+                {
+                    "transcript": "LED revised and Kelly actress thanathintha BDS Thana K 12 hi Tanu Dussehra Pandaga BDS Thana Delhi yes to Bidar Gurudwara Guru"
+                }, 
+                {
+                    "transcript": "Hindi revised and Kelly actress Thana Bindapur Thana K 12 hi Tanu Dussehra Pandaga BDS Thana Delhi a stupid girl by Guru"
+                }, 
+                {
+                    "transcript": "LED revised and Kelly actress Thana Bindapur Thana K 12 hi Tanu Dussehra Pandaga BDS Thana Delhi a stupid girl by Guru"
+                }, 
+                {
+                    "transcript": "Hindi revised and Kelly actress thanathintha BDS Thana K 12 hi Tanu Dussehra Pandaga BDS Thana Delhi yes to be declared by Guru"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/146407240503856": {
+            "alternative": [
+                {
+                    "confidence": 0.54012007, 
+                    "transcript": "Avatar Innova Teri"
+                }, 
+                {
+                    "transcript": "Avatar Run over Teri"
+                }, 
+                {
+                    "transcript": "Avatar anova Teri"
+                }, 
+                {
+                    "transcript": "Avatar anova theory"
+                }, 
+                {
+                    "transcript": "Avatar and over Teri"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072405379q1": {
+            "alternative": [
+                {
+                    "confidence": 0.86713648, 
+                    "transcript": "Ek gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "IIT gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "Ik gajar Ki Keemat kya hai"
+                }, 
+                {
+                    "transcript": "EC gajar Ki Keemat kya hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072406081GKAV2Q11Hundredth": {
+            "alternative": [
+                {
+                    "confidence": 0.42218608, 
+                    "transcript": "set answer"
+                }, 
+                {
+                    "transcript": "shut up"
+                }, 
+                {
+                    "transcript": "saptamsa"
+                }, 
+                {
+                    "transcript": "shut up shut"
+                }, 
+                {
+                    "transcript": "shutup Shah"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/146407240646160": {
+            "alternative": [
+                {
+                    "transcript": "aruvatham Teri"
+                }, 
+                {
+                    "transcript": "aruva turnover Teri"
+                }, 
+                {
+                    "transcript": "paruva turnover Teri"
+                }, 
+                {
+                    "transcript": "aruvatham Nova Teri"
+                }, 
+                {
+                    "transcript": "aruvatham NOVA 3"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/146407240691834": {
+            "alternative": [
+                {
+                    "confidence": 0.43044588, 
+                    "transcript": "Mohit nalkan over Teri"
+                }, 
+                {
+                    "transcript": "Mohit malkan over Teri"
+                }, 
+                {
+                    "transcript": "Mohit Naal canova Teri"
+                }, 
+                {
+                    "transcript": "mugatlal Khan over Teri"
+                }, 
+                {
+                    "transcript": "mugatlal canova Teri"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072408122GKAV2Q15": {
+            "alternative": [
+                {
+                    "transcript": "Akruti Avista Nagesh to"
+                }, 
+                {
+                    "transcript": "Akriti Avista Nagesh to"
+                }, 
+                {
+                    "transcript": "Aakriti Avista Nagesh to"
+                }, 
+                {
+                    "transcript": "Akriti evicted Nagesh to"
+                }, 
+                {
+                    "transcript": "Aakruti Avista Nagesh to"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072408334GKAV2Q11Units": {
+            "alternative": [
+                {
+                    "confidence": 0.32816389, 
+                    "transcript": "BD"
+                }, 
+                {
+                    "transcript": "didi"
+                }, 
+                {
+                    "transcript": "DD"
+                }, 
+                {
+                    "transcript": "b d"
+                }, 
+                {
+                    "transcript": "Bidi"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/gka_content/assets/1464072408721GKAV2Q6": {
+            "alternative": [
+                {
+                    "transcript": "interesting Charu PS2"
+                }, 
+                {
+                    "transcript": "Darshan Karu PS2"
+                }, 
+                {
+                    "transcript": "dasanfall PS2"
+                }, 
+                {
+                    "transcript": "interestin Karu PS2"
+                }, 
+                {
+                    "transcript": "iteration Karu PS2"
+                }, 
+                {
+                    "transcript": "interesting Karu PS2"
+                }, 
+                {
+                    "transcript": "Darshan coorg PS2"
+                }, 
+                {
+                    "transcript": "Darshan Karu uppi 2"
+                }, 
+                {
+                    "transcript": "Darshan uppi 2"
+                }, 
+                {
+                    "transcript": "cheats on cars PS2"
+                }, 
+                {
+                    "transcript": "Darshan Karu onesta"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}

@@ -1,0 +1,126 @@
+{
+    "concepts": [], 
+    "contentType": "Story", 
+    "data": [
+        "{}"
+    ], 
+    "description": "Test", 
+    "developer": "EkStep", 
+    "identifier": "domain_15134", 
+    "imageTags": [
+        "lighthouse", 
+        "greenbox", 
+        "story image", 
+        "icon home", 
+        "icon submit", 
+        "icon hint", 
+        "speech bubble", 
+        "yellowbox", 
+        "under water", 
+        "icon reload", 
+        "background", 
+        "icon next", 
+        "touch", 
+        "teacher", 
+        "icon previous"
+    ], 
+    "items": [
+        "{}"
+    ], 
+    "language": [
+        "English"
+    ], 
+    "languageCode": "en", 
+    "mediaCount": {
+        "gif": 0, 
+        "jpg": 2, 
+        "mp3": 4, 
+        "ogg": 0, 
+        "png": 14
+    }, 
+    "mp3Length": 40.74258503401361, 
+    "mp3Transcription": {
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_15134/assets/1454011988099story%2012": {
+            "alternative": [
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska Rang Kala Hai was gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska rankala Hai was gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska rankala he was gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska rankala hi Firoz gana Gati Hai"
+                }, 
+                {
+                    "transcript": "but he Suhana Mausam Hai Koyal Kuhu Kuhu kar rahi hai uska Rang Kala he was gana Gati Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_15134/assets/1454011995357story%205": {
+            "alternative": [
+                {
+                    "transcript": "Charu hot saree payr Hai thirupachur Yaad Aati Hain Chudiyan gaana chutti hai Ve Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere parche Diyan Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere parche Rehti Hain Chudiyan gaana chutti hai Ve Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere Bagiya Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }, 
+                {
+                    "transcript": "Charu hot saree payr hai tere Pateriya Rehti Hain Chudiyan gaana chutti hai re Nadi me Pani piti Hai"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_15134/assets/1454011999404goodjob": {
+            "alternative": [
+                {
+                    "confidence": 0.93531686, 
+                    "transcript": "good job"
+                }, 
+                {
+                    "transcript": "Govt job"
+                }, 
+                {
+                    "transcript": "good jobs"
+                }, 
+                {
+                    "transcript": "Govt jobs"
+                }, 
+                {
+                    "transcript": "good Bob"
+                }
+            ], 
+            "final": true
+        }, 
+        "/home/aditya/Downloads/EkStep/content2Vec/content2EnrichedJson/Data/domain_15134/assets/14555552702334%20and%204-1": {
+            "alternative": [
+                {
+                    "transcript": "padunnu on DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "paaduvan no horn DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "paaduven Mohan DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "paduvan no horn DC Nagara Dookudu buddy to see ya key to"
+                }, 
+                {
+                    "transcript": "Padu Manmohan DC Nagara Dookudu buddy to see ya key to"
+                }
+            ], 
+            "final": true
+        }
+    }, 
+    "owner": "EkStep"
+}
