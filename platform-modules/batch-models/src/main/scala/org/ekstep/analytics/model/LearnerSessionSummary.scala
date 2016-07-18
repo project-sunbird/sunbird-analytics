@@ -35,7 +35,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
                      val noOfLevelTransitions: Option[Int], val comments: Option[String], val fluency: Option[Int], val loc: Option[String],
                      val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Iterable[ActivitySummary]],
                      val completionStatus: Option[Boolean], val screenSummary: Option[Iterable[ScreenSummary]], val noOfInteractEvents: Int, val eventsSummary: Iterable[EventSummary],
-                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val tags: AnyRef) extends Serializable {};
+                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val tags: AnyRef, val telemetryVer: String) extends Serializable {};
 
 /**
  * @author Santhosh
@@ -323,7 +323,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] wit
             (x.userId, new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp,
                 Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp,
                     endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, firstEvent.tags));
+                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, firstEvent.tags, telemetryVer));
 
         }.filter(f => (f._2.timeSpent >= 1)).cache(); // Skipping the events, if timeSpent is -ve
 
@@ -359,7 +359,7 @@ object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] wit
                 "screenSummary" -> game.screenSummary,
                 "eventsSummary" -> game.eventsSummary,
                 "noOfLevelTransitions" -> game.noOfLevelTransitions,
-                "telemetryVersion" -> "1.0",
+                "telemetryVersion" -> game.telemetryVer,
                 "contentType" -> game.contentType,
                 "mimeType" -> game.mimeType);
             MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, userMap.gameId, None, None,
