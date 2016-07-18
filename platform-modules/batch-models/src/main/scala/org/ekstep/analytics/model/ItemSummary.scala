@@ -81,8 +81,7 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
             val metadata = itemObj.metadata;
             val res = telemetryVer match {
                 case "2.0" =>
-                    val resValues = if (null == event.edata.eks.resvalues) Array[String](); else event.edata.eks.resvalues.flatten.map { x => (x._1 + ":" + x._2.asInstanceOf[String]) };
-                    resValues;
+                    if (null == event.edata.eks.resvalues) Array[String](); else event.edata.eks.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) };
                 case _ =>
                     event.edata.eks.res;
             }
@@ -94,7 +93,7 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
     override def postProcess(data: RDD[ItemSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { itemData =>
-            val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", itemData.itemId, itemData.uid, itemData.syncts);
+            val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", itemData.itemId, itemData.uid, itemData.ts);
             val measures = Map(
                 "itemId" -> itemData.itemId,
                 "itype" -> itemData.itype,
