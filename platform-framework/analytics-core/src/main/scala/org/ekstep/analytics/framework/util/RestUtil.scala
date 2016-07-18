@@ -50,10 +50,9 @@ object RestUtil {
             val entity = httpResponse.getEntity()
             val inputStream = entity.getContent()
             val content = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString
-            inputStream.close
             JSONUtils.deserialize[T](content);
         } catch {
-            case ex: JsonParseException =>
+            case ex: Exception =>
                 JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
                 ex.printStackTrace();
                 null.asInstanceOf[T];
@@ -77,7 +76,7 @@ object RestUtil {
             inputStream.close
             JSONUtils.deserialize[T](content);
         } catch {
-            case ex: JsonParseException =>
+            case ex: Exception =>
                 JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
                 ex.printStackTrace();
                 null.asInstanceOf[T];

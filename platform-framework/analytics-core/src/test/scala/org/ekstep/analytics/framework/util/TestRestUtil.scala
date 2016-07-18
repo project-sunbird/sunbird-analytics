@@ -10,77 +10,62 @@ import org.ekstep.analytics.framework.SearchFilter
 import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.Params
+import com.google.common.net.InetAddresses
 
 /**
  * @author Santhosh
  */
-case class TestResult(content: Array[AnyRef]);
-case class TestResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: TestResult);
+case class PostR(args: Map[String, String], data: String, headers: Map[String, String], json: Map[String, AnyRef], origin: String, url: String);
+case class PostErrR(args: Map[String, String], data: String, headers: Map[String, String], json: String, origin: String, url: String);
+case class GetR(origin: String);
+
 class TestRestUtil extends BaseSpec {
-    
-    val LP_URL = AppConf.getConfig("lp.url");
 
-    "RestUtil" should "get data from learning platform API and parse it to Response Object" in {
-        val url = s"$LP_URL/learning-service/v2/content/org.ekstep.aser";
-        val response = RestUtil.get[Response](url);
+    "RestUtil" should "execute GET and parse response" in {
+        val url = "http://httpbin.org/ip";
+        val response = RestUtil.get[GetR](url);
         response should not be null;
-        response.responseCode should be("OK")
+        response.origin should not be null;
+        InetAddresses.isInetAddress(response.origin) should be(true);
     }
 
-    it should "throw Exception if unable to parse to Response object during GET" in {
-        val url = "https://www.google.com";
-        val response = RestUtil.get[Response](url);
-        response should be (null);
+    it should "throw Exception if unable to parse the response during GET" in {
+        val url = "http://httpbin.org/xml";
+        val response = RestUtil.get[GetR](url);
+        response should be(null);
     }
-    
-    it should "return error if the resource is not found" in {
-        val url = s"$LP_URL/learning-service/v2/content/test123_!@#";
-        val response = RestUtil.get[Response](url);
-        response should not be null;
-        response.responseCode should not be("OK")
-    }
-    
-    it should "post data to learning platform API and parse body to Response Object" in {
-        val url = s"$LP_URL/learning-service/v1/assessmentitem/search?taxonomyId=numeracy";
-        val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(Array("ek.n.q901", "ek.n.q902", "ek.n.q903"))))), 500));
-        val response = RestUtil.post[Response](url, JSONUtils.serialize(search));
-        response should not be null;
-        response.responseCode should be("OK")
-    }
-    
-    it should "patch data to learning platform API and parse body to Response Object" in {
-        val url = s"$LP_URL/learning-service/v2/content/numeracy_374";
-        val request = Map("request" -> Map("content" -> Map("popularity" -> 1)));
-        val response = RestUtil.patch[Response](url, JSONUtils.serialize(request));
-        response should not be null;
-        response.responseCode should be("OK")
-        
-    }
-    
-    it should "throw JsonParseException" in {
-        val url = s"$LP_URL/learning-service/v2/content/test123_!@#";
-        val response = RestUtil.patch[Response](url, "");
-    }
-    
 
-    it should "throw JsonParseException if unable to parse to Response object during POST" in {
-        val url = "https://www.google.com";
-        val resp = RestUtil.post[Response](url, "");
-        resp should be (null);
-    }
-    
-    it should "return error response if body is not passed during POST" in {
-        val url = s"$LP_URL/learning-service/v1/content/search?taxonomyId=domain&type=Story";
-        val resp = RestUtil.post[Response](url, "");
-        resp should be (null);
-    }
-    
-    it should "return success response even if no data found for search query" in {
-        val url = s"$LP_URL/learning-service/v1/content/search?taxonomyId=domain&type=Story";
-        val search = Search(Request(Metadata(Array(SearchFilter("identifier", "in", Option(Array("xyz1"))))), 500));
-        val response = RestUtil.post[TestResponse](url, JSONUtils.serialize(search));
+    it should "execute POST and parse response" in {
+        val url = "http://httpbin.org/post?type=test";
+        val response = RestUtil.post[PostR](url, "");
         response should not be null;
-        response.responseCode should be("OK")
+        response.url should be("http://httpbin.org/post?type=test");
+        InetAddresses.isInetAddress(response.origin) should be(true);
+    }
+
+    it should "throw Exception if unable to parse the response during POST" in {
+        val url = "http://httpbin.org/post?type=test";
+        val request = Map("popularity" -> 1);
+        val response = RestUtil.post[PostErrR](url, JSONUtils.serialize(request));
+        response should be(null);
+    }
+
+    it should "execute PATCH and parse response" in {
+        val url = "http://httpbin.org/patch?type=test";
+        val request = Map("popularity" -> 1);
+        val response = RestUtil.patch[PostR](url, JSONUtils.serialize(request));
+        response should not be null;
+        response.url should be("http://httpbin.org/patch?type=test");
+        InetAddresses.isInetAddress(response.origin) should be(true);
+        response.data should be("{\"popularity\":1}");
+        response.json.get("popularity").get should be(1);
+    }
+
+    it should "throw Exception if unable to parse the response during PATCH" in {
+        val url = "http://httpbin.org/patch?type=test";
+        val request = Map("popularity" -> 1);
+        val response = RestUtil.patch[PostErrR](url, JSONUtils.serialize(request));
+        response should be(null);
     }
 
 }

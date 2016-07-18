@@ -20,7 +20,5 @@
 - name: run script
   command: sh /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQ_dp_script.sh true
 
-- name: run script
-  command: python /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQPopulateGragph.py 
-
-
+#- name: run script
+ # command: python /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQPopulateGragph.py 

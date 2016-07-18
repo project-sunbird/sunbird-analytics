@@ -19,6 +19,8 @@ fwJar=$basePath/analytics-framework-1.0.jar
 # recommendation engine sprak-scala scripts path
 scriptDir=/mnt/data/analytics/VidyavaniCnQ
 
+CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6
+SPARK_HOME=/home/ec2-user/spark-1.5.2-bin-hadoop2.3
 # build mvn projects (in a subshell without changing directories)
 #if [ "$runFramework" = true ]; then
 #	echo "###### Building Analytics Frame Work ######"
@@ -39,12 +41,12 @@ scriptDir=/mnt/data/analytics/VidyavaniCnQ
 if [ "$cleanTables" = true ]; then
 	echo "#### Clearing All Required Tables in 'learner_db' ####"
 	#cd /Users/soma/apache-cassandra-2.2.5/bin
-	cqlsh -f $scriptDir/queries.txt -k learner_db
+	$CASSANDRA_HOME/bin/cqlsh -f $scriptDir/queries.txt -k learner_db
 fi
 
 
 echo "Running Recommendation Engine"
-spark-shell -i $scriptDir/RunLP.scala --jars $modelJar,$fwJar, --conf spark.cassandra.connection.host=127.0.0.1 spark.default.parallelism=4
+$SPARK_HOME/bin/spark-shell -i $scriptDir/RunLP.scala --jars $modelJar,$fwJar, --conf spark.cassandra.connection.host=127.0.0.1 spark.default.parallelism=4
 
 # neo4j (IP)
 # http://localhost:7474/browser/
