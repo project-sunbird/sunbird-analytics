@@ -19,6 +19,7 @@ object Constants {
     val LEARNER_PROFILE_TABLE = "learnerprofile";
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
+    val DEVICE_CONTENT_SUMMARY = "device_content_summary";
     val LP_URL = AppConf.getConfig("lp.url");
 
     def getContentList(): String = {
