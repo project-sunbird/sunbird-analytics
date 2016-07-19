@@ -248,7 +248,14 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
     
     it should "generate non-empty res array in itemResponse" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
-        val rdd1 = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2")));
+        val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
+        oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be (10)
+        
+        val event = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+        
+        itemRes.res.get.asInstanceOf[Array[String]].last should be ("ans1:10")
+        itemRes.resValues.get.asInstanceOf[Array[AnyRef]].last.asInstanceOf[Map[String,AnyRef]].get("ans1").get.asInstanceOf[Int] should be (10)
     }
 
     ignore should "extract timespent from takeoff summaries" in {

@@ -35,7 +35,7 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
         return Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]()));
     }
 
-    private def getItemData(contents: Array[Content], games: Array[String], apiVersion: String): Map[String, Item] = {
+    private def getItemData(contents: Array[Content], games: Array[String], apiVersion: String = "v2"): Map[String, Item] = {
 
         val gameIds = contents.map { x => x.id };
         val codeIdMap: Map[String, String] = contents.map { x => (x.metadata.get("code").get.asInstanceOf[String], x.id) }.toMap;

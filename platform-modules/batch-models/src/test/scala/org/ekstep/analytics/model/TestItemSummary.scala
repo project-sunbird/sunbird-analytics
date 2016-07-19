@@ -8,6 +8,9 @@ class TestItemSummary extends SparkSpec(null) {
     "ItemSummary" should "generate item responses" in {
 
         val rdd = loadFile[Event]("src/test/resources/item-summary/test-data.log");
+        val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
+        oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be (10)
+        
         val rdd2 = ItemSummary.execute(rdd, None);
         val me = rdd2.collect();
         me.length should be(6);
@@ -25,7 +28,10 @@ class TestItemSummary extends SparkSpec(null) {
         eksMap.get("score").get.asInstanceOf[Int] should be (0)
         val res = eksMap.get("res").get.asInstanceOf[Array[String]]
         res.length should be (1)
-        res(0) should be ("ans1:श")
+        res(0) should be ("ans1:10")
         eksMap.get("mc").get.asInstanceOf[Array[AnyRef]].length should be (0)
+        
+        val itemRes = event.edata.eks.asInstanceOf[Map[String,AnyRef]].get("res").get.asInstanceOf[Array[String]](0)
+        itemRes should be ("ans1:10")
     }
 }
