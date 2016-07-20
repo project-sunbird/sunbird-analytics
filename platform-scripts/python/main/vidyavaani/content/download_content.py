@@ -7,11 +7,10 @@ import codecs
 import json
 #Pass as a commandline argument later on
 root=os.path.dirname(os.path.abspath(__file__))
-ekstep='/'.join(root.split('/')[:-2])
+utils=os.path.join((os.path.split(root)[0]),'utils')
 import sys
-sys.path.insert(0, os.path.join(ekstep,'Utils'))#Insert at front of list ensuring that our util is executed first in 
-#To find files with a particular substring
-from findFiles import findFiles
+sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in #To find files with a particular substring
+from find_files import findFiles
 
 #Extracts all zipfiles into the download directory of that piece of content and deletes the zip files after extraction
 def unzip_files(directory):

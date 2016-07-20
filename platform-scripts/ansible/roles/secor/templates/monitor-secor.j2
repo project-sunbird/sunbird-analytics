@@ -46,14 +46,16 @@ echo "## Logging warning "
 ##Warnings
 warn_count=0
 subStr="com.pinterest.secor.common.FileRegistry:156) WARN  No writer found for path /mnt/secor-"
-while read -r line
-do
-	if [ "${line/$subStr}" = "$line" ] ; then
-  		msg=`sed 's/.*WARN \(.*\).*/\1/' <<< "$line"`
-		file_content+="WARN,$msg\n"
-		warn_count=$((warn_count+1))
-  	fi
-done <<< "$warn"
+if [ "$warn" != "" ]; then
+	while read -r line
+	do
+		if [ "${line/$subStr}" = "$line" ] ; then
+        	msg=`sed 's/.*WARN \(.*\).*/\1/' <<< "$line"`
+            file_content+="WARN,$msg\n"
+            warn_count=$((warn_count+1))
+        fi
+	done <<< "$warn"
+fi
 echo "## warnings logged "
 
 echo "Warn Count: $warn_count"

@@ -26,10 +26,9 @@ file_list=findFiles.findFiles(op_dir,['.json'])
 present_identifiers=[identifier[:-5].split('/')[-1] for identifier in file_list]
 absent_identifiers=[identifier for identifier in total_identifiers if identifier not in present_identifiers]
 root=os.path.dirname(os.path.abspath(__file__))
-
-for response in r['result']['contents'][520:]:
+for response in r['result']['contents']:
 	try:
-		if(response['identifier'] not in absent_identifiers):
+		if(response['identifier'] not in absent_identifiers or response['identifier']=='test.org.ekstep.beta-mp3'):
 			continue
 		subprocess.call(['python content2EnrichedJson.py \'http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/content\' \'%s\''%(response['identifier'])], shell=True)
 	except:

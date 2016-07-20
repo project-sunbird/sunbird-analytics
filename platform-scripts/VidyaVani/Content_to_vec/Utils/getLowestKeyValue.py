@@ -25,11 +25,11 @@ def f(obj,parent):
 		G.add_edge(encodeName(obj),encodeName(parent))
 
 def objpath(node):#Path from node to root
-	return ','.join(nx.shortest_path(G,node,'root')[1:])
+	return ','.join(nx.shortest_path(G,node,'groot')[1:])
 
 def flattenDict(obj):
 	assert type(obj)==dict	
-	f(obj,'root')
+	f(obj,'groot')
 	flattened_dict={}
 	for node in G.nodes():
 		if(len(list(nx.ancestors(G,node)))==0):

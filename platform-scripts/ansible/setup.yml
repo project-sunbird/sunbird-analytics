@@ -9,8 +9,11 @@
   roles:
     - common
     - service
-    - cassandra
     - spark
+
+- hosts: cassandra
+  roles:
+    - cassandra
 
 - hosts: api
   roles:

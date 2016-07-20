@@ -6,10 +6,9 @@ import os
 import json
 #Pass as a commandline argument later on
 root=os.path.dirname(os.path.abspath(__file__))
-ekstep='/'.join(root.split('/')[:-2])
+utils=os.path.join(os.path.split(os.path.split(root)[0])[0],'Utils')
 import sys
-sys.path.insert(0, os.path.join(ekstep,'Utils'))#Insert at front of list ensuring that our util is executed first in 
-from getAllValues import *
+sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in from getAllValues import *
 
 #This finds the concepts from the assessment data
 def filter_assessment_data(directory,conceptList):

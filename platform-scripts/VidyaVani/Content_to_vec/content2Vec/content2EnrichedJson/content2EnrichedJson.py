@@ -7,17 +7,16 @@ import sys
 import requests
 #Pass as a commandline argument later on
 root=os.path.dirname(os.path.abspath(__file__))
-ekstep='/'.join(root.split('/')[:-2])
+utils=os.path.join(os.path.split(os.path.split(root)[0])[0],'Utils')
 import sys
-sys.path.insert(0, os.path.join(ekstep,'Utils'))#Insert at front of list ensuring that our util is executed first in 
-
+sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
 root=os.path.dirname(os.path.abspath(__file__))
 tap=['download','media','json','concepts','end']
 
 #########Setting Up The Area
 #Define commandline arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('baseurl',type=unicode,help='This the base url for retrieving metadat about a content')
+parser.add_argument('baseurl',type=unicode,help='This the base url for retrieving metadata about a content')
 parser.add_argument('identifier',help='This is the identifier of the piece of content',default=os.path.join(root,'Data'))
 parser.add_argument('--ld',help='This is the operating directory',default=os.path.join(root,'Data'))
 parser.add_argument('--ts',help='This is the stage of tapping. Choices:%s'%(','.join(tap)),default='end',choices=tap)
@@ -89,7 +88,7 @@ logging.info('Transcribed all mp3 files except for these: %s'%(','.join(bad_mp3)
 images=imageNames(path)
 logging.info('Added image filenames')
 mediaStats={'mediaCount':count,'mp3Length':mp3Length,'mp3Transcription':transcribed,'imageTags':images}
-with codecs.open(os.path.join(path,'mediaStats.json'),'w',encoding='utf8') as f:
+with codecs.open(os.path.join(path,'mediaStats.json'),'w',encoding='utf-8') as f:
 	json.dump(mediaStats, f, sort_keys=True, indent=4)
 f.close()
 logging.info('Assets handled')

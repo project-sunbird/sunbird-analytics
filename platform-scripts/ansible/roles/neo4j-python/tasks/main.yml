@@ -1,16 +1,19 @@
 ---
 # tasks file for neo4j-python
 - name: install neo4j
-  get_url: url=http://dist.neo4j.org/neo4j-community-2.3.3-unix.tar.gz dest=/home/ec2-user/neo4j-community-2.3.3-unix.tar.gz timeout=1000 force=no owner=ec2-user 
+  get_url: url=http://dist.neo4j.org/neo4j-community-2.3.3-unix.tar.gz dest=/mnt/data/analytics/neo4j-community-2.3.3-unix.tar.gz timeout=1000 force=no owner=ec2-user 
 
 - name: Unarchive neo4j
-  unarchive: src=/home/ec2-user/neo4j-community-2.3.3-unix.tar.gz dest=/home/ec2-user copy=no group=ec2-user owner=ec2-user creates=/home/ec2-user/neo4j-community-2.3.3
+  unarchive: src=/mnt/data/analytics/neo4j-community-2.3.3-unix.tar.gz dest=/mnt/data/analytics copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/neo4j-community-2.3.3
+
+- name: Run neo4j
+  command: chdir=/mant/data/analytics/neo4j-community-2.3.3/bin ./neo4j start
 
 - name: install julia
-  get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/home/ec2-user/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
+  get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
 
 - name: Unarchive julia
-  unarchive: src=/home/ec2-user/julia-0.4.5-linux-x86_64.tar.gz dest=/home/ec2-user copy=no group=ec2-user owner=ec2-user creates=/home/ec2-user/julia-2ac304dfba
+  unarchive: src=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/julia-2ac304dfba
 
 - name: install gcc
   become: yes
