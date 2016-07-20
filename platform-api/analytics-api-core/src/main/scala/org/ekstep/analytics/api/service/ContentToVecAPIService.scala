@@ -12,7 +12,7 @@ object ContentToVecAPIService {
         
         val contentArr = Array(BASE_URL+contentId)
         val enrichedJson = sc.makeRDD(contentArr).pipe("python /Users/amitBehera/github/ekstep/Learning-Platform-Analytics/platform-scripts/python/main/vidyavaani/content/enrich_content.py").collect
-        JSONUtils.serialize(enrichedJson.last);
+        enrichedJson.last;
         
     }
     
