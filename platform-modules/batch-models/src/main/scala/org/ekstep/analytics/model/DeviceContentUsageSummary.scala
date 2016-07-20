@@ -14,7 +14,6 @@ case class DeviceContentUsageSummaryInput(device_id: String, contentId: String, 
 case class DeviceContentSummary(device_id: String, content_id: String, gamever: String, num_sessions: Long, total_interactions: Long, avg_interactions_min: Double,
                                 total_timespent: Double, last_played_on: Long, start_time: Long,
                                 mean_play_time_interval: Double, downloaded: Boolean, download_date: Long, group_user: Boolean) extends AlgoOutput
-case class DeviceContent(device_id: String, contentId: String)
 
 object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceSummaryInput, DeviceContentSummary, MeasuredEvent] with Serializable {
 
@@ -36,13 +35,35 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
 
     override def algorithm(data: RDD[DeviceSummaryInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContentSummary] = {
 
-        val events = data.flatMap { x => x.data }
-        val dcuSummaries = events.map { event =>
+        val deviceDetails = data.map { deviceSummary =>
+            val prevSummary = deviceSummary.prevData.getOrElse(UsageSummary(deviceSummary.device_id, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0, 0L, 0L, 0L, 0.0, 0L, 0.0, 0.0, ""));
+            val events = deviceSummary.data
+            val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
+            val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
+
+            val num_contents = prevSummary.num_contents
+            val eventStartTime = firstEvent.context.date_range.from
+            val play_start_time = if (prevSummary.start_time == 0) eventStartTime else if (eventStartTime > prevSummary.start_time) eventStartTime else prevSummary.start_time
+            val last_played_on = lastEvent.context.date_range.to
+            val total_play_time = CommonUtil.roundDouble(events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum, 2) + prevSummary.total_timespent;
+            val num_sessions = events.size + prevSummary.num_sessions
+            val mean_play_time = if (num_sessions == 0) total_play_time else CommonUtil.roundDouble(total_play_time / num_sessions, 2)
+            val timeDiff = CommonUtil.getTimeDiff(play_start_time, last_played_on).get
+            val play_time_interval = timeDiff - total_play_time
+            val mean_play_time_interval = if (num_sessions < 2) 0d else CommonUtil.roundDouble(BigDecimal(play_time_interval / (num_sessions - 1)).toDouble, 2)
+            val previously_played_content = lastEvent.dimensions.gdata.get.id
+            UsageSummary(prevSummary.device_id, prevSummary.start_time, prevSummary.end_time, prevSummary.num_days, prevSummary.total_launches, prevSummary.total_timespent, prevSummary.avg_num_launches, prevSummary.avg_time, num_contents, play_start_time, last_played_on, total_play_time, num_sessions, mean_play_time, mean_play_time_interval, previously_played_content)
+        }
+        deviceDetails.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE)
+
+        val inputEvents = data.flatMap { x => x.data }
+        val dcuSummaries = inputEvents.map { event =>
             val did = event.dimensions.did.get
             val content_id = event.dimensions.gdata.get.id
             ((did, content_id), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
-        val prevDeviceContentSummary = dcuSummaries.map(f => DeviceContent(f._1._1, f._1._2)).joinWithCassandraTable[DeviceContentSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY).map(f => ((f._1.device_id, f._1.contentId), f._2))
+        val prevDeviceSummary = dcuSummaries.map(f => Tuple1(f._1._1)).distinct.joinWithCassandraTable[DeviceContentSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY).map(f => (f._1._1, f._2))
+        val prevDeviceContentSummary = prevDeviceSummary.map { x => ((x._1, x._2.content_id), x._2) }
         val joinedData = dcuSummaries.leftOuterJoin(prevDeviceContentSummary)
         val dcusEvents = joinedData.map(f => DeviceContentUsageSummaryInput(f._1._1, f._1._2, f._2._1, f._2._2));
 
@@ -77,9 +98,7 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
                 "num_sessions" -> dcuSummary.num_sessions,
                 "total_timespent" -> dcuSummary.total_timespent,
                 "avg_interactions_min" -> dcuSummary.avg_interactions_min,
-                "total_interactions" -> dcuSummary.total_interactions,
                 "last_played_on" -> dcuSummary.last_played_on,
-                "start_time" -> dcuSummary.start_time,
                 "mean_play_time_interval" -> dcuSummary.mean_play_time_interval,
                 "downloaded" -> dcuSummary.downloaded,
                 "download_date" -> dcuSummary.download_date,
