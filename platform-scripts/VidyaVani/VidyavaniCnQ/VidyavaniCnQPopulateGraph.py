@@ -57,14 +57,15 @@ def moveConceptMap():
 
     import requests
 
-    url = "https://api.ekstep.org/learning-api/v2/concepts/"
+   
+    url = "https://api.ekstep.in/learning/v2/domains/numeracy/concepts"
 
     payload = "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"file\"\r\n\r\n\r\n-----011000010111000001101001--"
     headers = {
         'content-type': "multipart/form-data; boundary=---011000010111000001101001",
-        'user-id': "rayulu",
+        'user-id': "rayuluv",
         'cache-control': "no-cache",
-        'postman-token': "2ec90d9b-e64c-c486-349d-8fabebcd08d2"
+        'postman-token': "96bc4304-3f9b-6de5-6143-4c14507fe0a5"
         }
 
     resp = requests.request("GET", url, data=payload, headers=headers).json()
@@ -107,86 +108,22 @@ print('1: populating Neo4js with Concept Map')
 print('*******************')
 #moveConceptMap();
 
-# move concept map from sandbox
-def moveConceptMap():
-    # neo4j graph connector
-    graph = Graph()
-    # delete entire graph
-
-    url="http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/analytics/domain/map"
-    resp = requests.get(url).json()
-
-    # move all concepts
-    conceptList = resp["result"]["concepts"]
-    for conceptDict in conceptList:
-        identifier=None
-        if(not conceptDict.has_key('identifier')):
-            continue
-
-        identifier = conceptDict['identifier']
-        # create/find node
-        #node=Node("Concept",id=identifier)
-        node=graph.merge_one("Concept","id",identifier)
-        subject=None
-        gradeLevel=None
-        objectType =None
-        
-        if(conceptDict.has_key('subject')):
-            subject = conceptDict['subject']
-            node.properties["subject"]=subject
-            node.push()
-
-        if(conceptDict.has_key('gradeLevel')):
-            gradeLevel = conceptDict['gradeLevel']
-            node.properties["gradeLevel"]=gradeLevel
-            node.push()
-
-        if(conceptDict.has_key('objectType')):
-            objectType = conceptDict['objectType']
-            node.properties["objectType"]=objectType
-            node.push()
-    
-
-        # move all relations
-        relationList = resp["result"]["relations"]
-    for relationDict in relationList:
-
-        if (not relationDict.has_key('startNodeId') ):
-            continue
-        if (not relationDict.has_key('endNodeId') ):
-            continue
-        if (not relationDict.has_key('relationType') ):
-            continue
-        startNodeId = relationDict['startNodeId']
-        endNodeId = relationDict['endNodeId']
-        relationType = relationDict['relationType']
-        print('A:',startNodeId,'relationType',relationType,'B:',endNodeId)
-        #node1=Node("Concept",id=startNodeId)
-        node1=graph.merge_one("Concept","id",startNodeId)
-        #node2=Node("Concept",id=endNodeId)
-        node2=graph.merge_one("Concept","id",endNodeId)
-        graph.create(Relationship(node1, relationType, node2))
-moveConceptMap();
-
-
+#move sandbox content model
 def moveContentModel():
-    baseURL = "https://api.ekstep.org/learning-api/v2/analytics/getContent/"
-    listURL = "https://api.ekstep.org/learning-api/v2/content/list"
+    listURL= "https://api.ekstep.in/learning/v2/content/list"
 
-    payload = "{\n  \"request\": { \n      \"search\": {\n          \"status\": [\"Live\", \"Draft\", \"Retired\"],\n          \"contentType\": [\"Game\", \"Worksheet\", \"Story\"],\n          \"limit\": 2000\n      }\n  }\n}"
+    payload = "{\n  \"request\": { \n      \"search\": {\n          \"fields\": [\"name\", \"contentType\"],\n          \"status\":[\"Live\", \"Draft\", \"Retired\"],\n          \"contentType\":[\"Game\", \"Worksheet\", \"Story\"],\n          \"limit\":2000\n          \n      }\n  }\n}"
     headers = {
-    'content-type': "application/json",
-    'user-id': "mahesh",
-    'cache-control': "no-cache",
-    'postman-token': "d0fafff9-911a-9a91-2016-cfc4714cf543"
-    }
+        'content-type': "application/json",
+        'user-id': "mahesh",
+        'cache-control': "no-cache",
+        'postman-token': "cec63279-346d-a452-4b13-e3cc0a0c2e4d"
+        }
 
     resp = requests.request("POST", listURL, data=payload, headers=headers).json()
     # neo4j graph connector
     graph = Graph()
-    
-    #url = listURL
-    #resp = requests.get(url).json()
+  
     # no of content
     contentList = resp["result"]["content"]
     for contentListDict in contentList:
@@ -241,10 +178,8 @@ def moveContentModel():
             concepts = contentDict['concepts']
             
         for concept in concepts:
-            url = "https://api.ekstep.org/learning-api/v2/concepts/"+str(concept['identifier'])
-            resp2 = requests.request("GET", url, data=payload, headers=headers).json()
-            if(resp2['result']['Concept'].has_key('identifier')):
-                node2 = graph.merge_one("Concept","id",resp2['result']['Concept']['identifier'])
+              if(concept.has_key('identifier')):
+                node2 = graph.merge_one("Concept","id",concept['identifier'])
 
                 graph.create(Relationship(node2, "COVERED_IN", node))
 
@@ -254,6 +189,7 @@ print('*******************')
 print('2: populating Neo4js with Content Model')
 print('*******************')
 moveContentModel();
+
 
 def moveProficiencyTable():
     # get a list of all unique learners
