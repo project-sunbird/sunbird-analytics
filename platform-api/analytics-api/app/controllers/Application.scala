@@ -2,6 +2,7 @@ package controllers
 
 import org.ekstep.analytics.api.service.ContentAPIService
 import org.ekstep.analytics.api.service.HealthCheckAPIService
+import org.ekstep.analytics.api.service.ContentToVecAPIService
 import org.ekstep.analytics.api.util._
 import play.api._
 import play.api.mvc._
@@ -29,5 +30,18 @@ object Application extends Controller {
     def checkAPIhealth() = Action {
         val response = HealthCheckAPIService.getHealthStatus()(Context.sc)
         Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+    }
+    
+    def contentToVec(contentId: String) = Action {
+        
+        try {
+            val response = ContentToVecAPIService.getEnrichedJson(contentId)(Context.sc);
+            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+            
+        } catch {
+            case ex: Exception =>
+                ex.printStackTrace();
+                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentToVec", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
+        }
     }
 }
