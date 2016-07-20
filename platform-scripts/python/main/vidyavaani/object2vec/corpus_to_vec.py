@@ -8,15 +8,15 @@ import re
 import numpy as np
 import argparse #Accept commandline arguments
 import logging #Log the data given
+import sys
 from nltk.corpus import stopwords
 
 #Using utility functions
 root=os.path.dirname(os.path.abspath(__file__))
-utils=os.path.join(os.path.split(os.path.split(root)[0])[0],'Utils')
-import sys
+utils=os.path.join(os.path.split(os.path.split(root)[0])[0],'utils')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
 #To find files with a particular substring
-from findFiles import findFiles
+from find_files import findFiles
 
 #Define commandline arguments
 parser = argparse.ArgumentParser()
