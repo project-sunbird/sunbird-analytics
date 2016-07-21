@@ -21,6 +21,13 @@ config.read(config_file)
 op_dir = config.get('FilePath', 'temp_path')
 log_dir = config.get('FilePath','log_path')
 
+#check if paths exists
+if not os.path.exists(op_dir):
+	os.makedirs(op_dir)
+
+if not os.path.exists(log_dir):
+	os.makedirs(log_dir)
+
 for url in sys.stdin:
 	#define the identifier
 	url = url.rstrip('\n')

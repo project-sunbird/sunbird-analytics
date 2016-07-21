@@ -1,6 +1,6 @@
 # Author: Aditya Arora, adityaarora@ekstepplus.org
 
-import gensim as gs
+#import gensim as gs
 import os
 import numpy as np
 import codecs
@@ -71,6 +71,7 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 
 def train_model_pvdm(directory,language):#en-English,id-Hindi
 	doc=load_documents(findFiles(directory,['%s-text'%(language)]),language)
+	print doc
 	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=3, window=8, negative=10, workers=4, sample=1e-5)
 	return model
 
@@ -87,9 +88,21 @@ for f in models:
 if not os.path.exists(os.path.join(op_dir,'model')):
 	os.makedirs(os.path.join(op_dir,'model'))
 
-en_model_text=train_model_pvdm(op_dir,'en')
-en_model_text.save(os.path.join(op_dir,'en-text'))
-hi_model_text=train_model_pvdm(op_dir,'id')
-hi_model_text.save(os.path.join(op_dir,'id-text'))
-model_tags=train_model_pvdbow(op_dir)
-model_tags.save(os.path.join(op_dir,'tag'))
+try:
+	en_model_text=train_model_pvdm(op_dir,'en')
+	en_model_text.save(os.path.join(op_dir,'en-text'))
+except:
+	logging.info('english data not present')
+
+try:
+	hi_model_text=train_model_pvdm(op_dir,'id')
+	hi_model_text.save(os.path.join(op_dir,'id-text'))
+except:
+	logging.info('hindi data not present')
+try:
+	model_tags=train_model_pvdbow(op_dir)
+	model_tags.save(os.path.join(op_dir,'tag'))
+except:
+	logging.info('tags data not present')
+
+
