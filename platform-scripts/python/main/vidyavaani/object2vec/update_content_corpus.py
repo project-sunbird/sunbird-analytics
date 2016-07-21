@@ -14,7 +14,8 @@ from operator import itemgetter
 
 root=os.path.dirname(os.path.abspath(__file__))
 utils=os.path.join(os.path.split(root)[0],'utils')
-
+resource = os.path.join((os.path.split(root)[0]),'resources')
+config_file = os.path.join(resource,'config.properties')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
 import find_files
 import get_lowest_key_value
@@ -129,22 +130,24 @@ if not os.path.isdir(corpus_dir):
 lst_language = []
 jsonFiles = sys.stdin
 for data in jsonFiles:
-	identifier = data['identifier']
+	json_data = json.loads(data)
+	identifier = json_data['identifier']
 	max_tag_length=5
 	path=os.path.join(corpus_dir,identifier)
 	if not os.path.isdir(path):
 		os.makedirs(path)
 
-	tags=[concept for concept in data['concepts']]
+	tags=[concept for concept in json_data['concepts']]
 	#Data	
 	x=set()
-	data_list=json.loads(''.join(data['data']),encoding='utf-8')
+	data_list=json.loads(''.join(json_data['data']),encoding='utf-8')
+	# data_list=json.loads(''.join(data['data']),encoding='utf-8')
 	for key in data_list.keys():
-		x.add(''.join(process_data(getLowestKeyValue.flattenDict(data_list[key])).values()))
+		x.add(''.join(process_data(get_lowest_key_value.flattenDict(data_list[key])).values()))
 	string='\n'.join(list(x))
 	#mp3
 	mp3_string=''
-	dat=merge_strings(data['mp3Transcription']).values()
+	dat=merge_strings(json_data['mp3Transcription']).values()
 	for item in dat:
 		if(len(item.split(' '))>max_tag_length):
 			mp3_string+='\n'+item
@@ -190,12 +193,13 @@ for data in jsonFiles:
 		tags_data=False
 	if(not text and not tags_data):#No metadata
 		logging.info('Fail:%s'%(identifier))
-		print False
+		print 'False'
 	else:
-		print True
+		print 'True'
 
 lst_language = uniqfy_list(lst_language)
-text_file = open(os.path.join(corpus_dir,'language.txt'), "w")
-text_file.write(lst_language)
-text_file.close()
+#print lst_language
+# text_file = open(os.path.join(corpus_dir,'language.txt'), "w")
+# text_file.write(lst_language)
+# text_file.close()
 
