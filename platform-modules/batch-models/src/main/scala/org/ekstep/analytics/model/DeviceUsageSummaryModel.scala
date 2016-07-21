@@ -22,7 +22,7 @@ case class DeviceUsageSummary(device_id: String, start_time: Long, end_time: Lon
 case class DeviceUsageInput(device_id: String, currentData: Buffer[DerivedEvent], previousData: Option[DeviceUsageSummary]) extends AlgoInput
 case class DeviceId(device_id: String)
 
-object DeviceUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceUsageInput, DeviceUsageSummary, MeasuredEvent] with Serializable {
+object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceUsageInput, DeviceUsageSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceUsageSummary"
     override def name: String = "DeviceUsageSummarizer"

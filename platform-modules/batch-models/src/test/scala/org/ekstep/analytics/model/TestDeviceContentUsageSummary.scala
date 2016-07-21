@@ -91,7 +91,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         table1.previously_played_content should be("numeracy_369")
 
         val rdd5 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_1.log");
-        val rdd6 = DeviceUsageSummary.execute(rdd5, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val rdd6 = DeviceUsageSummaryModel.execute(rdd5, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
 
         val table2 = sc.cassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table2.avg_num_launches should be(0.25)
