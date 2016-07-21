@@ -86,7 +86,7 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
             val download_date = prevDeviceContentSummary.download_date
             val group_user = firstEvent.dimensions.group_user.get
             DeviceContentSummary(dcusEvent.device_id, dcusEvent.contentId, gameVer, num_sessions, total_interactions, avg_interactions_min, total_timespent, last_played_on, start_time, mean_play_time_interval, downloaded, download_date, group_user)
-        }.cache()
+        }
     }
 
     override def postProcess(data: RDD[DeviceContentSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
