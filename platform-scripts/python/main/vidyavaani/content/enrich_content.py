@@ -99,7 +99,6 @@ for url in sys.stdin:
 			json.dump(extract_json(json_files), f, sort_keys=True, indent=4)
 		f.close()
 		logging.info('%s JSON files handled'%(subdir))
-	sys.exit()
 	#########Get Concepts
 	#Download concept list if necessary
 	if (not os.path.isfile(os.path.join(op_dir,'conceptList.txt'))):

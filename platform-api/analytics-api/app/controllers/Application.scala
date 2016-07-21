@@ -2,7 +2,6 @@ package controllers
 
 import org.ekstep.analytics.api.service.ContentAPIService
 import org.ekstep.analytics.api.service.HealthCheckAPIService
-import org.ekstep.analytics.api.service.ContentToVecAPIService
 import org.ekstep.analytics.api.util._
 import play.api._
 import play.api.mvc._
@@ -35,7 +34,9 @@ object Application extends Controller {
     def contentToVec(contentId: String) = Action {
         
         try {
-            val response = ContentToVecAPIService.getEnrichedJson(contentId)(Context.sc);
+            val baseUrl = play.Play.application.configuration.getString("base.url")
+            val scriptLoc = play.Play.application.configuration.getString("python.scripts.loc")
+            val response = ContentAPIService.contentToVec(contentId, baseUrl, scriptLoc)(Context.sc);
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
             
         } catch {
