@@ -13,6 +13,10 @@ class TestItemSummary extends SparkSpec(null) {
         
         val rdd2 = ItemSummary.execute(rdd, None);
         val me = rdd2.collect();
+        for(e<-me){
+            e.dimensions.gdata.get.id should be ("domain_3915")
+            e.dimensions.gdata.get.ver should be ("5")
+        }
         me.length should be(6);
         val event = me(0)
         event.eid should be("ME_ITEM_SUMMARY")

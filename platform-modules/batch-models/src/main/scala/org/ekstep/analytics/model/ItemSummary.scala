@@ -18,9 +18,11 @@ import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.GData
 
 case class ItemSummaryInput(uid: String, event: Event) extends AlgoInput
-case class ItemSummaryOutput(uid: String, itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef], ts: Long, syncts: Long) extends AlgoOutput
+case class ItemSummaryOutput(uid: String, itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef], ts: Long, syncts: Long, gameId: String, gameVer: String) extends AlgoOutput
 
 object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSummaryOutput, MeasuredEvent] with Serializable {
 
@@ -76,6 +78,8 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
 
         val itemRes = data.map { x =>
             val event = x.event
+            val gameId = event.gdata.id
+            val gameVer = event.gdata.ver
             val telemetryVer = event.ver;
             val itemObj = getItem(itemMapping.value, event);
             val metadata = itemObj.metadata;
@@ -85,7 +89,7 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
                 case _ =>
                     event.edata.eks.res;
             }
-            ItemSummaryOutput(event.uid, event.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(event.edata.eks.length), metadata.get("ex_time_spent"), res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, event.edata.eks.score, Option(CommonUtil.getEventTS(event)), metadata.get("max_score"), metadata.get("domain"), CommonUtil.getTimestamp(event.ts), CommonUtil.getEventSyncTS(event));
+            ItemSummaryOutput(event.uid, event.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(event.edata.eks.length), metadata.get("ex_time_spent"), res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, event.edata.eks.score, Option(CommonUtil.getEventTS(event)), metadata.get("max_score"), metadata.get("domain"), CommonUtil.getTimestamp(event.ts), CommonUtil.getEventSyncTS(event), gameId, gameVer);
         }
         itemRes;
     }
@@ -110,7 +114,7 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
                 "domain" -> itemData.domain);
             MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), itemData.syncts, "1.0", mid, itemData.uid, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "EVENT", DtRange(itemData.ts, itemData.ts)),
-                null, MEEdata(measures));
+                Dimensions(None, None, Option(new GData(itemData.gameId, itemData.gameVer)), None, None, None), MEEdata(measures));
         };
     }
 }
