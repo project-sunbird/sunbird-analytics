@@ -37,6 +37,8 @@ object JobFactory {
                 LearnerProfileUpdaterJob
             case "dsu" =>
                 DeviceSpecificationUpdater
+            case "is" =>
+                ItemSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

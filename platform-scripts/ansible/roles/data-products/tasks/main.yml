@@ -27,3 +27,4 @@
   with_dict: "{{ monit_jobs }}"
   tags:
     - analytics
+
