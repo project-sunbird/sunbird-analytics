@@ -56,16 +56,8 @@ object DeviceUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceUsageI
                 (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
             }.sum + prevUsageSummary.total_timespent
             val avg_time = if (num_days == 0) totalTimeSpent else CommonUtil.roundDouble(totalTimeSpent / num_days, 2)
-            val num_contents = prevUsageSummary.num_contents
-            val play_start_time = prevUsageSummary.play_start_time
-            val last_played_on = prevUsageSummary.last_played_on
-            val total_play_time = prevUsageSummary.total_play_time
-            val num_sessions = prevUsageSummary.num_sessions
-            val mean_play_time = prevUsageSummary.mean_play_time
-            val mean_play_time_interval = prevUsageSummary.mean_play_time_interval
-            val previously_played_content = prevUsageSummary.previously_played_content
 
-            (UsageSummary(events.device_id, start_time, end_time, num_days, num_launches, totalTimeSpent, avg_num_launches, avg_time, num_contents, play_start_time, last_played_on, total_play_time, num_sessions, mean_play_time, mean_play_time_interval, previously_played_content))
+            (UsageSummary(events.device_id, start_time, end_time, num_days, num_launches, totalTimeSpent, avg_num_launches, avg_time, prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.previously_played_content))
         }.cache();
     }
 

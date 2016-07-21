@@ -43,11 +43,11 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
 
             val num_contents = prevSummary.num_contents
             val eventStartTime = firstEvent.context.date_range.from
-            val play_start_time = if (prevSummary.start_time == 0) eventStartTime else if (eventStartTime > prevSummary.start_time) eventStartTime else prevSummary.start_time
+            val play_start_time = if (prevSummary.play_start_time == 0) eventStartTime else if (eventStartTime > prevSummary.play_start_time) prevSummary.play_start_time else eventStartTime
             val last_played_on = lastEvent.context.date_range.to
-            val total_play_time = CommonUtil.roundDouble(events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum, 2) + prevSummary.total_timespent;
+            val total_play_time = CommonUtil.roundDouble(events.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum, 2) + prevSummary.total_play_time;
             val num_sessions = events.size + prevSummary.num_sessions
-            val mean_play_time = if (num_sessions == 0) total_play_time else CommonUtil.roundDouble(total_play_time / num_sessions, 2)
+            val mean_play_time = CommonUtil.roundDouble(total_play_time / num_sessions, 2)
             val timeDiff = CommonUtil.getTimeDiff(play_start_time, last_played_on).get
             val play_time_interval = timeDiff - total_play_time
             val mean_play_time_interval = if (num_sessions < 2) 0d else CommonUtil.roundDouble(BigDecimal(play_time_interval / (num_sessions - 1)).toDouble, 2)
@@ -79,7 +79,7 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
             val last_played_on = lastEvent.context.date_range.to
             val eventStartTime = firstEvent.context.date_range.from
             val start_time = if (prevDeviceContentSummary.start_time == 0) eventStartTime else if (eventStartTime > prevDeviceContentSummary.start_time) eventStartTime else prevDeviceContentSummary.start_time
-            val timeDiff = CommonUtil.getTimeDiff(start_time, last_played_on).get
+            val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(start_time, last_played_on).get,2)
             val play_time_interval = timeDiff - total_timespent
             val mean_play_time_interval = if (num_sessions < 2) 0d else CommonUtil.roundDouble(BigDecimal(play_time_interval / (num_sessions - 1)).toDouble, 2)
             val downloaded = prevDeviceContentSummary.downloaded
