@@ -2,6 +2,6 @@
 # tasks file for py-scripts
 - name: copy the scripts
   become: yes
-  command: cp vidyavaani /mnt/data/analytics/scripts/
+  copy: src=vidyavaani dest=/mnt/data/analytics/scripts/
   tags: 
        - always
