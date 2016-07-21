@@ -108,6 +108,23 @@ CREATE TABLE IF NOT EXISTS learner_db.device_usage_summary (
     PRIMARY KEY (device_id)
 );
 
+CREATE TABLE IF NOT EXISTS learner_db.device_content_summary (
+    device_id text,
+    content_id text,
+    gameVer text,
+    num_sessions bigint,
+    total_interactions bigint, 
+    avg_interactions_min double,
+    total_timespent double,
+    last_played_on timestamp,
+    start_time timestamp,
+    mean_play_time_interval double,
+    downloaded boolean,
+    download_date timestamp,
+    group_user boolean,
+    PRIMARY KEY (device_id, content_id)
+);
+
 CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
