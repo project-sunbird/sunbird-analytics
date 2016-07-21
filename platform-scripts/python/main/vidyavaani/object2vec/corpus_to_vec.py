@@ -1,6 +1,6 @@
 # Author: Aditya Arora, adityaarora@ekstepplus.org
 
-#import gensim as gs
+import gensim as gs
 import os
 import numpy as np
 import codecs
@@ -14,7 +14,9 @@ import ConfigParser
 
 #Using utility functions
 root=os.path.dirname(os.path.abspath(__file__))
-utils=os.path.join(os.path.split(os.path.split(root)[0])[0],'utils')
+utils=os.path.join((os.path.split(root)[0]),'utils')
+resource = os.path.join((os.path.split(root)[0]),'resources')
+config_file = os.path.join(resource,'config.properties')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
 #To find files with a particular substring
 from find_files import findFiles
@@ -71,12 +73,17 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 
 def train_model_pvdm(directory,language):#en-English,id-Hindi
 	doc=load_documents(findFiles(directory,['%s-text'%(language)]),language)
+	print(type(doc))
 	print doc
-	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=3, window=8, negative=10, workers=4, sample=1e-5)
+	if doc == []:
+		return 0
+	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=1, window=8, negative=10, workers=4, sample=1e-5)
 	return model
 
 def train_model_pvdbow(directory):
 	doc=load_documents(findFiles(directory,['tag']),"en")
+	if doc == []:
+		return 0
 	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=3, window=8, negative=10, workers=4, sample=1e-5, dm=0) #Apply PV-DBOW
 	return model
 
@@ -88,21 +95,22 @@ for f in models:
 if not os.path.exists(os.path.join(op_dir,'model')):
 	os.makedirs(os.path.join(op_dir,'model'))
 
-try:
-	en_model_text=train_model_pvdm(op_dir,'en')
-	en_model_text.save(os.path.join(op_dir,'en-text'))
-except:
+en_model_text=train_model_pvdm(op_dir,'en')
+if not en_model_text == 0:
+	en_model_text.save(os.path.join(op_dir,'model','en-text'))
+else:
 	logging.info('english data not present')
 
-try:
-	hi_model_text=train_model_pvdm(op_dir,'id')
-	hi_model_text.save(os.path.join(op_dir,'id-text'))
-except:
+hi_model_text=train_model_pvdm(op_dir,'id')
+if not hi_model_text == 0:
+	hi_model_text.save(os.path.join(op_dir,'model','id-text'))
+else:
 	logging.info('hindi data not present')
-try:
-	model_tags=train_model_pvdbow(op_dir)
-	model_tags.save(os.path.join(op_dir,'tag'))
-except:
+
+model_tags=train_model_pvdbow(op_dir)
+if not model_tags == 0:
+	model_tags.save(os.path.join(op_dir,'model','tag'))
+else:
 	logging.info('tags data not present')
 
 
