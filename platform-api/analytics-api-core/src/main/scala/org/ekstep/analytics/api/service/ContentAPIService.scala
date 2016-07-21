@@ -30,6 +30,12 @@ import org.ekstep.analytics.api.Constants
 
 object ContentAPIService {
 
+    def contentToVec(contentId: String, baseUrl: String, scriptLoc: String)(implicit sc: SparkContext): String = {
+        val contentArr = Array(baseUrl+contentId)
+        val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/enrich_content.py").collect
+        enrichedJson.last;
+    }
+    
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
         JSONUtils.serialize(contentUsageMetrics(contentId, reqBody));
