@@ -10,6 +10,7 @@ import argparse #Accept commandline arguments
 import logging #Log the data given
 import sys
 from nltk.corpus import stopwords
+import ConfigParser
 
 #Using utility functions
 root=os.path.dirname(os.path.abspath(__file__))
@@ -19,12 +20,15 @@ sys.path.insert(0, utils)#Insert at front of list ensuring that our util is exec
 from find_files import findFiles
 
 #Define commandline arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('--ld',help='This is the operating directory',default=os.path.join(root,'Corpus'))
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--ld',help='This is the operating directory',default=os.path.join(root,'Corpus'))
 
 #Read arguments given
-args = parser.parse_args()
-op_dir=args.ld
+# args = parser.parse_args()
+config = ConfigParser.RawConfigParser()
+config.read(config_file)
+op_dir = config.get('FilePath','corpus_path')
+# op_dir=args.ld
 #Set up logging
 logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging.DEBUG)
 logging.info('Corpus to Vectors')
@@ -77,8 +81,12 @@ def train_model_pvdbow(directory):
 
 models=['en-text','id-text','tag']
 for f in models:
-	if(os.path.isfile(os.path.join(op_dir,f))):
-		os.remove(os.path.join(op_dir,f))
+	if(os.path.isfile(os.path.join(op_dir,'model',f))):
+		os.remove(os.path.join(op_dir,'model',f))
+
+if not os.path.exists(os.path.join(op_dir,'model')):
+	os.makedirs(os.path.join(op_dir,'model'))
+
 en_model_text=train_model_pvdm(op_dir,'en')
 en_model_text.save(os.path.join(op_dir,'en-text'))
 hi_model_text=train_model_pvdm(op_dir,'id')

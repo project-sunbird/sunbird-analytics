@@ -117,10 +117,16 @@ def process_data(json_dictionary):
 		processed[k]='\n'.join([unicode(item[1]) for item in processed[k]])
 	return(processed)
 
+def uniqfy_list(seq):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
+
 if not os.path.isdir(corpus_dir):
 	os.makedirs(corpus_dir)
 
 #jsonFiles=findFiles.findFiles(json_dir,['.json'])
+lst_language = []
 jsonFiles = sys.stdin
 for data in jsonFiles:
 	identifier = data['identifier']
@@ -149,6 +155,8 @@ for data in jsonFiles:
 		#Detect language of string		
 		string_language=langdetect.detect(string)
 		mp3_language=langdetect.detect(mp3_string)
+		lst_language.append(string_language)
+		lst_language.append(mp3_language)
 		if(string_language==mp3_language):#Both same langauges
 			string+='\n'+mp3_string
 			with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
@@ -182,3 +190,12 @@ for data in jsonFiles:
 		tags_data=False
 	if(not text and not tags_data):#No metadata
 		logging.info('Fail:%s'%(identifier))
+		print False
+	else:
+		print True
+
+lst_language = uniqfy_list(lst_language)
+text_file = open(os.path.join(corpus_dir,'language.txt'), "w")
+text_file.write(lst_language)
+text_file.close()
+
