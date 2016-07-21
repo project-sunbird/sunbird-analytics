@@ -34,8 +34,12 @@ object ContentAPIService {
         val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
         val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").collect.last
         val enrichedJsonArr = Array(enrichedJson)
-        val corpusStatus = sc.makeRDD(enrichedJsonArr).pipe(s"python $scriptLoc/object2vec/update_content_corpus.py")
-        if(corpusStatus==1)
+        val corpusStatus = sc.makeRDD(enrichedJsonArr).pipe(s"python $scriptLoc/object2vec/update_content_corpus.py").collect.last
+        if("True".equals(corpusStatus)){
+            "Coupus Updated Successfully";
+        }else {
+            "Coupus Update Failed";
+        }
     }
     
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
