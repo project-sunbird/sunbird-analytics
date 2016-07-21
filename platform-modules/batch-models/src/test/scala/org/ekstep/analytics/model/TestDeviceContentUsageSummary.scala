@@ -14,7 +14,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
             session.execute("TRUNCATE learner_db.device_content_summary");
             session.execute("TRUNCATE learner_db.device_usage_summary;");
         }
-        
+
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-content-usage-summary/test_data1.log");
         val rdd2 = DeviceContentUsageSummary.execute(rdd1, None);
         val events1 = rdd2.collect
@@ -35,12 +35,12 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         eks1.get("total_timespent").get should be(10)
         eks1.get("avg_interactions_min").get should be(60)
         eks1.get("mean_play_time_interval").get should be(0)
-        
+
         val rdd3 = loadFile[DerivedEvent]("src/test/resources/device-content-usage-summary/test_data2.log");
         val rdd4 = DeviceContentUsageSummary.execute(rdd3, None);
         val events2 = rdd4.collect
 
-        events2.length should be(4)
+        events2.length should be(5)
         val event2 = events2(0);
 
         event2.eid should be("ME_DEVICE_CONTENT_USAGE_SUMMARY");
@@ -56,7 +56,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         eks2.get("total_timespent").get should be(25)
         eks2.get("avg_interactions_min").get should be(24)
         eks2.get("mean_play_time_interval").get should be(0)
-        
+
         val event3 = events2(1);
 
         event3.eid should be("ME_DEVICE_CONTENT_USAGE_SUMMARY");
@@ -72,7 +72,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         eks3.get("total_timespent").get should be(35)
         eks3.get("avg_interactions_min").get should be(34.29)
         eks3.get("mean_play_time_interval").get should be(2141937.63)
-        
+
         val table1 = sc.cassandraTable[UsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table1.avg_num_launches should be(0)
         table1.avg_time should be(0)
@@ -80,15 +80,15 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         table1.num_contents should be(0)
         table1.play_start_time should be(1460627674628L)
         table1.last_played_on should be(1461669647260L)
-        table1.total_play_time should be(20)
-        table1.num_sessions should be(2)
+        table1.total_play_time should be(30)
+        table1.num_sessions should be(3)
         table1.mean_play_time should be(10)
-        table1.mean_play_time_interval should be(1041952.63)
+        table1.mean_play_time_interval should be(520971.32)
         table1.previously_played_content should be("numeracy_369")
-        
+
         val rdd5 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_1.log");
         val rdd6 = DeviceUsageSummary.execute(rdd5, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
-        
+
         val table2 = sc.cassandraTable[UsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table2.avg_num_launches should be(0.25)
         table2.avg_time should be(2.5)
@@ -98,11 +98,11 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         table2.num_contents should be(0)
         table2.play_start_time should be(1460627674628L)
         table2.last_played_on should be(1461669647260L)
-        table2.total_play_time should be(20)
-        table2.num_sessions should be(2)
+        table2.total_play_time should be(30)
+        table2.num_sessions should be(3)
         table2.mean_play_time should be(10)
-        table2.mean_play_time_interval should be(1041952.63)
+        table2.mean_play_time_interval should be(520971.32)
         table2.previously_played_content should be("numeracy_369")
-        
+
     }
 }

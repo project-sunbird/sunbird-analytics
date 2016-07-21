@@ -79,7 +79,7 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
             val last_played_on = lastEvent.context.date_range.to
             val eventStartTime = firstEvent.context.date_range.from
             val start_time = if (prevDeviceContentSummary.start_time == 0) eventStartTime else if (eventStartTime > prevDeviceContentSummary.start_time) eventStartTime else prevDeviceContentSummary.start_time
-            val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(start_time, last_played_on).get,2)
+            val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(start_time, last_played_on).get, 2)
             val play_time_interval = timeDiff - total_timespent
             val mean_play_time_interval = if (num_sessions < 2) 0d else CommonUtil.roundDouble(BigDecimal(play_time_interval / (num_sessions - 1)).toDouble, 2)
             val downloaded = prevDeviceContentSummary.downloaded

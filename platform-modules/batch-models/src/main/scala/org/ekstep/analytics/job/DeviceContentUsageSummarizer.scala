@@ -8,9 +8,9 @@ import org.ekstep.analytics.framework.IJob
 import org.ekstep.analytics.framework.util.JobLogger
 
 object DeviceContentUsageSummarizer extends optional.Application with IJob {
-  
+
     implicit val className = "org.ekstep.analytics.job.DeviceContentUsageSummarizer"
-  
+
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
