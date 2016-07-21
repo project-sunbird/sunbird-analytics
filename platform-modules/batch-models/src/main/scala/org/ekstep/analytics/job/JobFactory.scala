@@ -39,6 +39,8 @@ object JobFactory {
                 DeviceSpecificationUpdater
             case "is" =>
                 ItemSummarizer
+            case "dcus" =>
+                DeviceContentUsageSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
