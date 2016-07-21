@@ -1,0 +1,7 @@
+---
+# tasks file for py-scripts
+- name: copy the scripts
+  become: yes
+  command: cp vidyavaani /mnt/data/analytics/scripts/
+  tags: 
+       - always
