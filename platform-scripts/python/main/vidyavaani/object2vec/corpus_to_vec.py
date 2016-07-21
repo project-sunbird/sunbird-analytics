@@ -14,7 +14,9 @@ import ConfigParser
 
 #Using utility functions
 root=os.path.dirname(os.path.abspath(__file__))
-utils=os.path.join(os.path.split(os.path.split(root)[0])[0],'utils')
+utils=os.path.join(os.path.split(root)[0],'utils')
+resource = os.path.join((os.path.split(root)[0]),'resources')
+config_file = os.path.join(resource,'config.properties')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
 #To find files with a particular substring
 from find_files import findFiles
