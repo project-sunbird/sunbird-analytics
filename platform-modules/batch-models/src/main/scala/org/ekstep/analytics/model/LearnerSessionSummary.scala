@@ -19,7 +19,7 @@ import org.ekstep.analytics.updater.LearnerProfile
 /**
  * Case class to hold the item responses
  */
-case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[AnyRef], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], resValues: Option[Array[AnyRef]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef]);
 
 case class ActivitySummary(actType: String, count: Int, timeSpent: Double)
 case class ScreenSummary(id: String, timeSpent: Double)
@@ -246,14 +246,21 @@ object LearnerSessionSummary extends SessionBatchModel[Event, MeasuredEvent] wit
             val itemResponses = assessEvents.map { x =>
                 val itemObj = getItem(itemMapping.value, x);
                 val metadata = itemObj.metadata;
-                val res = telemetryVer match {
+                
+                val resValues = telemetryVer match {
                     case "2.0" =>
-                        val resValues = if (null == x.edata.eks.resvalues) Array[Map[String, AnyRef]]() else x.edata.eks.resvalues;
-                        resValues.map(f => f.asInstanceOf[AnyRef])
+                        if (null == x.edata.eks.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(x.edata.eks.resvalues.map(f => f.asInstanceOf[AnyRef]))
                     case _ =>
-                        x.edata.eks.res.asInstanceOf[Array[AnyRef]]
+                        None;
                 }
-                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), metadata.get("domain"));
+                
+                val res = telemetryVer match {
+                case "2.0" =>
+                    if (null == x.edata.eks.resvalues) Option(Array[String]()); else Option(x.edata.eks.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) });
+                case _ =>
+                    Option(x.edata.eks.res);
+            }
+                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), metadata.get("domain"));
             }
             val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);

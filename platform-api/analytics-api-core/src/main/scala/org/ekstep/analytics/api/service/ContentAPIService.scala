@@ -36,9 +36,9 @@ object ContentAPIService {
         val enrichedJsonArr = Array(enrichedJson)
         val corpusStatus = sc.makeRDD(enrichedJsonArr).pipe(s"python $scriptLoc/object2vec/update_content_corpus.py").collect.last
         if("True".equals(corpusStatus)){
-            "Coupus Updated Successfully";
+            "{\"status\": \"Coupus Updated Successfully\"}";
         }else {
-            "Coupus Update Failed";
+            "{\"status\": \"Coupus Update Failed\"}";
         }
     }
     

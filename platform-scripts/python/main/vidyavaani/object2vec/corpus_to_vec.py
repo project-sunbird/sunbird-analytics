@@ -14,7 +14,11 @@ import ConfigParser
 
 #Using utility functions
 root=os.path.dirname(os.path.abspath(__file__))
+<<<<<<< HEAD
 utils=os.path.join((os.path.split(root)[0]),'utils')
+=======
+utils=os.path.join(os.path.split(root)[0],'utils')
+>>>>>>> fd58a9ab8eb0b941a1f5e2a68253bdafab402144
 resource = os.path.join((os.path.split(root)[0]),'resources')
 config_file = os.path.join(resource,'config.properties')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
