@@ -44,6 +44,9 @@ jobs:
   css:
     hour: 1
     minute: 28
+  is:
+     hour: 1
+     minute: 30
   dus:
     hour: 1
     minute: 45
