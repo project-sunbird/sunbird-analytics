@@ -36,7 +36,7 @@ object Application extends Controller {
     def contentToVec(contentId: String) = Action {
         
         try {
-            val response = ContentAPIService.contentToVec(contentId)(Context.sc);
+            val response = ContentAPIService.contentToVec(contentId)(Context.sc, config);
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
             
         } catch {
