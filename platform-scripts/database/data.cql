@@ -89,15 +89,41 @@ CREATE TABLE IF NOT EXISTS learner_db.devicespecification (
 );
 
 CREATE TABLE IF NOT EXISTS learner_db.device_usage_summary (
-	device_id text,
-	start_time bigint,
-	end_time bigint,
-	num_days bigint,
-	total_launches bigint,
-	total_timespent double,
-	avg_num_launches double,
-	avg_time double,
-	PRIMARY KEY (device_id)
+    device_id text,
+    start_time timestamp,
+    end_time timestamp,
+    num_days bigint,
+    total_launches bigint,
+    total_timespent double,
+    avg_num_launches double,
+    avg_time double,
+    num_contents bigint,
+    play_start_time timestamp,
+    last_played_on timestamp,
+    total_play_time double,
+    num_sessions bigint,
+    mean_play_time double,
+    mean_play_time_interval double, 
+    previously_played_content text,
+    PRIMARY KEY (device_id)
+);
+
+CREATE TABLE IF NOT EXISTS learner_db.device_content_summary_fact (
+    device_id text,
+    content_id text,
+    game_ver text,
+    num_sessions bigint,
+    total_interactions bigint, 
+    avg_interactions_min double,
+    total_timespent double,
+    last_played_on timestamp,
+    start_time timestamp,
+    mean_play_time_interval double,
+    downloaded boolean,
+    download_date timestamp,
+    num_group_user bigint,
+    num_individual_user bigint,
+    PRIMARY KEY (device_id, content_id)
 );
 
 CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {

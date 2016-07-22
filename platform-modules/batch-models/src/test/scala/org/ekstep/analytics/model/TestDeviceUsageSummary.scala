@@ -14,7 +14,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         }
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_1.log");
-        val rdd2 = DeviceUsageSummary.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
         val me = rdd2.collect()
         me.length should be(1)
         val event1 = me(0);
@@ -33,7 +33,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         eks.get("end_time").get should be(1461669647260L)
 
         val rdd3 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_2.log");
-        val rdd4 = DeviceUsageSummary.execute(rdd3, Option(Map("modelVersion" -> "1.0", "producerId" -> "AnalyticsDataPipeline")));
+        val rdd4 = DeviceUsageSummaryModel.execute(rdd3, Option(Map("modelVersion" -> "1.0", "producerId" -> "AnalyticsDataPipeline")));
         val me2 = rdd4.collect()
         me2.length should be(2)
 
@@ -75,7 +75,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         }
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_4.log");
-        val rdd2 = DeviceUsageSummary.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
         val me = rdd2.collect()
         me.length should be(1)
         val event1 = me(0);

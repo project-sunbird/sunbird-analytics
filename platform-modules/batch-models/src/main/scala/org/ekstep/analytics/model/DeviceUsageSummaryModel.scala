@@ -14,32 +14,36 @@ import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JobLogger
 
-case class UsageSummary(device_id: String, start_time: Long, end_time: Long, num_days: Long, total_launches: Long, total_timespent: Double, avg_num_launches: Double, avg_time: Double) extends AlgoOutput
-case class DeviceUsageInput(device_id: String, currentData: Buffer[DerivedEvent], previousData: Option[UsageSummary]) extends AlgoInput
+case class DeviceUsageSummary(device_id: String, start_time: Long, end_time: Long, num_days: Long, total_launches: Long, total_timespent: Double,
+                              avg_num_launches: Double, avg_time: Double, num_contents: Long, play_start_time: Long, last_played_on: Long,
+                              total_play_time: Double, num_sessions: Long, mean_play_time: Double,
+                              mean_play_time_interval: Double, previously_played_content: String) extends AlgoOutput
+
+case class DeviceUsageInput(device_id: String, currentData: Buffer[DerivedEvent], previousData: Option[DeviceUsageSummary]) extends AlgoInput
 case class DeviceId(device_id: String)
 
-object DeviceUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceUsageInput, UsageSummary, MeasuredEvent] with Serializable {
+object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceUsageInput, DeviceUsageSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceUsageSummary"
     override def name: String = "DeviceUsageSummarizer"
-    
+
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceUsageInput] = {
         val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")));
         val newGroupedEvents = filteredEvents.map(event => (event.dimensions.did.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
-        val prevDeviceSummary = newGroupedEvents.map(f => DeviceId(f._1)).joinWithCassandraTable[UsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
+        val prevDeviceSummary = newGroupedEvents.map(f => DeviceId(f._1)).joinWithCassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
         val deviceData = newGroupedEvents.leftOuterJoin(prevDeviceSummary);
         deviceData.map { x => DeviceUsageInput(x._1, x._2._1, x._2._2) }
     }
 
-    override def algorithm(data: RDD[DeviceUsageInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[UsageSummary] = {
+    override def algorithm(data: RDD[DeviceUsageInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceUsageSummary] = {
 
         val configMapping = sc.broadcast(config);
         data.map { events =>
             val eventsSortedByTS = events.currentData.sortBy { x => x.context.date_range.to };
             val eventsSortedByDateRange = events.currentData.sortBy { x => x.context.date_range.from };
-            val prevUsageSummary = events.previousData.getOrElse(UsageSummary(events.device_id, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0));
+            val prevUsageSummary = events.previousData.getOrElse(DeviceUsageSummary(events.device_id, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0, 0L, 0L, 0L, 0.0, 0L, 0.0, 0.0, ""));
             val tsInString = configMapping.value.getOrElse("startTime", "2015-03-01").asInstanceOf[String]
             val ts = CommonUtil.getTimestamp(tsInString, CommonUtil.dateFormat, "yyyy-MM-dd");
             val eventStartTime = if (eventsSortedByDateRange.head.context.date_range.from < ts) ts else eventsSortedByDateRange.head.context.date_range.from
@@ -53,11 +57,11 @@ object DeviceUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceUsageI
             }.sum + prevUsageSummary.total_timespent
             val avg_time = if (num_days == 0) totalTimeSpent else CommonUtil.roundDouble(totalTimeSpent / num_days, 2)
 
-            (UsageSummary(events.device_id, start_time, end_time, num_days, num_launches, totalTimeSpent, avg_num_launches, avg_time))
+            (DeviceUsageSummary(events.device_id, start_time, end_time, num_days, num_launches, totalTimeSpent, avg_num_launches, avg_time, prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.previously_played_content))
         }.cache();
     }
 
-    override def postProcess(data: RDD[UsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[DeviceUsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE);
         data.map { usageSummary =>
             val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, null, DtRange(0l, 0l));
@@ -66,7 +70,15 @@ object DeviceUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceUsageI
                 "end_time" -> usageSummary.end_time,
                 "num_days" -> usageSummary.num_days,
                 "avg_num_launches" -> usageSummary.avg_num_launches,
-                "avg_time" -> usageSummary.avg_time);
+                "avg_time" -> usageSummary.avg_time,
+                "num_contents" -> usageSummary.num_contents,
+                "play_start_time" -> usageSummary.play_start_time,
+                "last_played_on" -> usageSummary.last_played_on,
+                "total_play_time" -> usageSummary.total_play_time,
+                "num_sessions" -> usageSummary.num_sessions,
+                "mean_play_time" -> usageSummary.mean_play_time,
+                "mean_play_time_interval" -> usageSummary.mean_play_time_interval,
+                "previously_played_content" -> usageSummary.previously_played_content);
             MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), usageSummary.end_time, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "CUMULATIVE").asInstanceOf[String], DtRange(usageSummary.start_time, usageSummary.end_time)),
                 Dimensions(None, Option(usageSummary.device_id), None, None, None, None, None),

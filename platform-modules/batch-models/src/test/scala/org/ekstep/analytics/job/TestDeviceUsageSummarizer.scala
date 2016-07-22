@@ -11,12 +11,12 @@ import org.ekstep.analytics.framework.Filter
 class TestDeviceUsageSummarizer extends SparkSpec(null) {
 
     "DeviceUsageSummarizer" should "execute the job and shouldn't throw any exception" in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/device-usage-summary/test_data_3.log"))))), None, None, "org.ekstep.analytics.model.DeviceUsageSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceUsageSummarizer"), Option(false))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/device-usage-summary/test_data_3.log"))))), None, None, "org.ekstep.analytics.model.DeviceUsageSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceUsageSummarizer"), Option(false))
         DeviceUsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
   
     ignore should "execute the job from s3 data" in {
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("sandbox-data-store"), Option("gls/"), Option("2016-01-01"), Option("2016-04-14"))))), Option(Array(Filter("eventId", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")))), None, "org.ekstep.analytics.model.DeviceUsageSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceUsageSummarizer"), Option(false))
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("sandbox-data-store"), Option("gls/"), Option("2016-01-01"), Option("2016-04-14"))))), Option(Array(Filter("eventId", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")))), None, "org.ekstep.analytics.model.DeviceUsageSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceUsageSummarizer"), Option(false))
         DeviceUsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
 }
