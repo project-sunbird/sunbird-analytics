@@ -36,7 +36,9 @@ import org.ekstep.analytics.framework.DtRange
 
 object ContentAPIService {
 
-    def contentToVec(contentId: String, baseUrl: String, scriptLoc: String)(implicit sc: SparkContext): String = {
+    def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, Object]): String = {
+        val baseUrl = config.get("base.url").asInstanceOf[String];
+        val scriptLoc = config.get("python.scripts.loc").asInstanceOf[String];
         //val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
         val contentArr = Array(s"http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/content/$contentId");
         val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
