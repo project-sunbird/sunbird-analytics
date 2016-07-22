@@ -23,13 +23,32 @@ import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.ContentSummary
 import java.util.UUID
 import org.ekstep.analytics.api.Constants
-
+import org.ekstep.analytics.api.ContentToVector
 /**
  * @author Santhosh
  */
 
 object ContentAPIService {
 
+    def contentToVec(contentId: String, baseUrl: String, scriptLoc: String)(implicit sc: SparkContext): String = {
+        //val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
+        val contentArr = Array(s"http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/content/$contentId");
+        val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").collect.last
+        val enrichedJsonArr = Array(enrichedJson)
+        val corpusStatus = sc.makeRDD(enrichedJsonArr).pipe(s"python $scriptLoc/object2vec/update_content_corpus.py").collect.last
+        val testRdd = sc.makeRDD(enrichedJsonArr).cache
+        testRdd.pipe(s"python $scriptLoc/object2vec/corpus_to_vec.py").collect
+        val vectorString = testRdd.pipe(s"python $scriptLoc/object2vec/infer_query.py").collect.last
+        val vectorList = JSONUtils.deserialize[List[String]](vectorString)
+        val vecMap = (vectorList.indices zip vectorList).toMap
+        sc.parallelize(Array(ContentToVector(contentId, vecMap))).saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+        if("True".equals(corpusStatus)){
+            "{\"status\": \"Corpus Updated Successfully\",\"enrichedJson\":"+enrichedJson+", \"data\":"+vectorString+"}";
+        }else {
+            "{\"status\": \"Corpus Update Failed\"}";
+        }
+    }
+    
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
         JSONUtils.serialize(contentUsageMetrics(contentId, reqBody));

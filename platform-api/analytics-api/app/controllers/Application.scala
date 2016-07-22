@@ -30,4 +30,19 @@ object Application extends Controller {
         val response = HealthCheckAPIService.getHealthStatus()(Context.sc)
         Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
     }
+    
+    def contentToVec(contentId: String) = Action {
+        
+        try {
+            val baseUrl = play.Play.application.configuration.getString("base.url")
+            val scriptLoc = play.Play.application.configuration.getString("python.scripts.loc")
+            val response = ContentAPIService.contentToVec(contentId, baseUrl, scriptLoc)(Context.sc);
+            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+            
+        } catch {
+            case ex: Exception =>
+                ex.printStackTrace();
+                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentToVec", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
 }

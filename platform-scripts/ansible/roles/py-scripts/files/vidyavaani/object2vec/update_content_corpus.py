@@ -5,31 +5,40 @@ import argparse #Accept commandline arguments
 import logging #Log the data given
 import re
 import langdetect
+import sys
+import ConfigParser
 langdetect.DetectorFactory.seed=0
 
 from math import fabs
 from operator import itemgetter
 
 root=os.path.dirname(os.path.abspath(__file__))
-utils=os.path.join(os.path.split(root)[0],'Utils')
-import sys
+utils=os.path.join(os.path.split(root)[0],'utils')
+
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
-import findFiles
-import getLowestKeyValue
+import find_files
+import get_lowest_key_value
 root=os.path.dirname(os.path.abspath(__file__))
 
 #Define commandline arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('--json',help='This is the json directory',default=os.path.join(os.path.join(root,'content2EnrichedJson'),'Data'))
-parser.add_argument('--corpus',help='This is the corpus directory',default=os.path.join(os.path.join(root,'corpus2Vec'),'Corpus'))
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--json',help='This is the json directory',default=os.path.join(os.path.join(root,'content2EnrichedJson'),'Data'))
+# parser.add_argument('--corpus',help='This is the corpus directory',default=os.path.join(os.path.join(root,'corpus2Vec'),'Corpus'))
 
+#getiing paths from config file
+config = ConfigParser.RawConfigParser()
+config.read(config_file)
+corpus_dir = config.get('FilePath','corpus_path')
+log_dir = config.get('FilePath','log_path')
 #Read arguments given
-args = parser.parse_args()
-json_dir=args.json
-corpus_dir=args.corpus
+# args = parser.parse_args()
+# json_dir=args.json
+# corpus_dir=args.corpus
+
 #Set up logging
-logging.basicConfig(filename='enrichedJson2Corpus.log',level=logging.DEBUG)
-logging.info('enrichedJson2Corpus')
+logfile_name = os.path.join(log_dir,'update_content_corpus.log')
+logging.basicConfig(filename=logfile_name,level=logging.DEBUG)
+logging.info('update_content_corpus')
 
 """def find_word(ls,word):
 	index=[]
@@ -111,15 +120,15 @@ def process_data(json_dictionary):
 if not os.path.isdir(corpus_dir):
 	os.makedirs(corpus_dir)
 
-jsonFiles=findFiles.findFiles(json_dir,['.json'])
-for identifier_path in jsonFiles:
+#jsonFiles=findFiles.findFiles(json_dir,['.json'])
+jsonFiles = sys.stdin
+for data in jsonFiles:
+	identifier = data['identifier']
 	max_tag_length=5
-	path=os.path.join(corpus_dir,identifier_path.split('/')[-1][:-5])
+	path=os.path.join(corpus_dir,identifier)
 	if not os.path.isdir(path):
 		os.makedirs(path)
-	with codecs.open(identifier_path,'r',encoding='utf-8') as f:
-		data=json.load(f,encoding='utf-8')
-	f.close()
+
 	tags=[concept for concept in data['concepts']]
 	#Data	
 	x=set()
@@ -172,4 +181,4 @@ for identifier_path in jsonFiles:
 	else:
 		tags_data=False
 	if(not text and not tags_data):#No metadata
-		logging.info('Fail:%s'%(identifier_path.split('/')[-1][:-5]))
+		logging.info('Fail:%s'%(identifier))

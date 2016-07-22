@@ -23,7 +23,6 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
         me.length should be(1);
-
         val event1 = me(0);
         event1.eid should be("ME_SESSION_SUMMARY");
         event1.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
@@ -68,7 +67,6 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be(3);
-
         val event1 = me(0);
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
@@ -113,7 +111,6 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
 
         val event2 = me(1);
         event2.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
-
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.noOfLevelTransitions.get should be(0);
         summary2.levels should not be (None);
@@ -182,7 +179,6 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummary.execute(rdd, None);
         val me = rdd2.collect();
         me.length should be(2);
-
         val event1 = me(0);
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
@@ -248,6 +244,18 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         val eventMapLast = rdd2.last.edata.eks.asInstanceOf[Map[String, AnyRef]];
         rdd2.head.dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
         rdd2.last.dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
+    }
+    
+    it should "generate non-empty res array in itemResponse" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
+        val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
+        oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be (10)
+        
+        val event = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+        
+        itemRes.res.get.asInstanceOf[Array[String]].last should be ("ans1:10")
+        itemRes.resValues.get.asInstanceOf[Array[AnyRef]].last.asInstanceOf[Map[String,AnyRef]].get("ans1").get.asInstanceOf[Int] should be (10)
     }
 
     ignore should "extract timespent from takeoff summaries" in {

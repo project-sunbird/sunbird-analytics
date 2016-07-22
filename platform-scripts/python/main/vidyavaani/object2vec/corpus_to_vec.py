@@ -8,23 +8,30 @@ import re
 import numpy as np
 import argparse #Accept commandline arguments
 import logging #Log the data given
+import sys
 from nltk.corpus import stopwords
+import ConfigParser
 
 #Using utility functions
 root=os.path.dirname(os.path.abspath(__file__))
-utils=os.path.join(os.path.split(os.path.split(root)[0])[0],'Utils')
-import sys
+
+utils=os.path.join(os.path.split(root)[0],'utils')
+resource = os.path.join((os.path.split(root)[0]),'resources')
+config_file = os.path.join(resource,'config.properties')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
 #To find files with a particular substring
-from findFiles import findFiles
+from find_files import findFiles
 
 #Define commandline arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('--ld',help='This is the operating directory',default=os.path.join(root,'Corpus'))
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--ld',help='This is the operating directory',default=os.path.join(root,'Corpus'))
 
 #Read arguments given
-args = parser.parse_args()
-op_dir=args.ld
+# args = parser.parse_args()
+config = ConfigParser.RawConfigParser()
+config.read(config_file)
+op_dir = config.get('FilePath','corpus_path')
+# op_dir=args.ld
 #Set up logging
 logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging.DEBUG)
 logging.info('Corpus to Vectors')
@@ -67,21 +74,44 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 
 def train_model_pvdm(directory,language):#en-English,id-Hindi
 	doc=load_documents(findFiles(directory,['%s-text'%(language)]),language)
-	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=3, window=8, negative=10, workers=4, sample=1e-5)
+	print(type(doc))
+	print doc
+	if doc == []:
+		return 0
+	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=1, window=8, negative=10, workers=4, sample=1e-5)
 	return model
 
 def train_model_pvdbow(directory):
 	doc=load_documents(findFiles(directory,['tag']),"en")
+	if doc == []:
+		return 0
 	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=3, window=8, negative=10, workers=4, sample=1e-5, dm=0) #Apply PV-DBOW
 	return model
 
 models=['en-text','id-text','tag']
 for f in models:
-	if(os.path.isfile(os.path.join(op_dir,f))):
-		os.remove(os.path.join(op_dir,f))
+	if(os.path.isfile(os.path.join(op_dir,'model',f))):
+		os.remove(os.path.join(op_dir,'model',f))
+
+if not os.path.exists(os.path.join(op_dir,'model')):
+	os.makedirs(os.path.join(op_dir,'model'))
+
 en_model_text=train_model_pvdm(op_dir,'en')
-en_model_text.save(os.path.join(op_dir,'en-text'))
+if not en_model_text == 0:
+	en_model_text.save(os.path.join(op_dir,'model','en-text'))
+else:
+	logging.info('english data not present')
+
 hi_model_text=train_model_pvdm(op_dir,'id')
-hi_model_text.save(os.path.join(op_dir,'id-text'))
+if not hi_model_text == 0:
+	hi_model_text.save(os.path.join(op_dir,'model','id-text'))
+else:
+	logging.info('hindi data not present')
+
 model_tags=train_model_pvdbow(op_dir)
-model_tags.save(os.path.join(op_dir,'tag'))
+if not model_tags == 0:
+	model_tags.save(os.path.join(op_dir,'model','tag'))
+else:
+	logging.info('tags data not present')
+
+
