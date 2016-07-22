@@ -154,3 +154,9 @@ CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
     avg_depth double,
     PRIMARY KEY (content_id)
 );
+
+CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
+	content_id text,
+	vector map<int, text>,
+	PRIMARY KEY (content_id)
+);

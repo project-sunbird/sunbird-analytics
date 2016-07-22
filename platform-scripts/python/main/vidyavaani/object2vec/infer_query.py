@@ -34,13 +34,11 @@ logging.info('Corpus to Vectors')
 for folder in lst_folder:
 	content_folder = os.path.join(op_dir,folder)
 	file_path = os.path.join(content_folder,'id-text')
-	print file_path
 	if not os.path.exists(file_path):
 		print 0	
 		sys.exit()
 	txt = open(file_path)
 	query = txt.read()	
-	print query
 	language = langdetect.detect(query)
 	model_path = os.path.join(op_dir,'model','%s-text'%(language))
 	if not os.path.exists(model_path):

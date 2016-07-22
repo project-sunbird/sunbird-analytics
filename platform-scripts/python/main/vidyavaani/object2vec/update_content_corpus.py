@@ -193,9 +193,9 @@ for data in jsonFiles:
 		tags_data=False
 	if(not text and not tags_data):#No metadata
 		logging.info('Fail:%s'%(identifier))
-		print 'False'
+		print("False")
 	else:
-		print 'True'
+		print("True")
 
 lst_language = uniqfy_list(lst_language)
 #print lst_language
