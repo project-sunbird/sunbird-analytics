@@ -23,7 +23,7 @@ import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.ContentSummary
 import java.util.UUID
 import org.ekstep.analytics.api.Constants
-
+import org.ekstep.analytics.api.ContentToVector
 /**
  * @author Santhosh
  */
@@ -38,10 +38,16 @@ object ContentAPIService {
         val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").collect.last
         val enrichedJsonArr = Array(enrichedJson)
         val corpusStatus = sc.makeRDD(enrichedJsonArr).pipe(s"python $scriptLoc/object2vec/update_content_corpus.py").collect.last
+        val testRdd = sc.makeRDD(enrichedJsonArr).cache
+        testRdd.pipe(s"python $scriptLoc/object2vec/corpus_to_vec.py").collect
+        val vectorString = testRdd.pipe(s"python $scriptLoc/object2vec/infer_query.py").collect.last
+        val vectorList = JSONUtils.deserialize[List[String]](vectorString)
+        val vecMap = (vectorList.indices zip vectorList).toMap
+        sc.parallelize(Array(ContentToVector(contentId, vecMap))).saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
         if("True".equals(corpusStatus)){
-            "{\"status\": \"Coupus Updated Successfully\"}";
+            "{\"status\": \"Corpus Updated Successfully\",\"enrichedJson\":"+enrichedJson+", \"data\":"+vectorString+"}";
         }else {
-            "{\"status\": \"Coupus Update Failed\"}";
+            "{\"status\": \"Corpus Update Failed\"}";
         }
     }
     
