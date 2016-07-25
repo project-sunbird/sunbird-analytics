@@ -36,7 +36,7 @@ import org.ekstep.analytics.framework.DtRange
 
 object ContentAPIService {
 
-    def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, Object]): String = {
+    def contentToVec(contentId: String)(implicit sc: SparkContext, config: java.util.Map[String, Object]): String = {
         val baseUrl = config.get("base.url").asInstanceOf[String];
         val scriptLoc = config.get("python.scripts.loc").asInstanceOf[String];
         //val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
