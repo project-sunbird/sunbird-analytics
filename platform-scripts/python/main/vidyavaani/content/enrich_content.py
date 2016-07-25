@@ -89,6 +89,8 @@ for url in sys.stdin:
 	mp3Files=findFiles(path,['mp3'])
 	(transcribed,bad_mp3)=speech_recogniser(mp3Files)
 	logging.info('Transcribed all mp3 files except for these: %s'%(','.join(bad_mp3)))
+	transcribed = add_confidence(transcribed)
+	logging.info('Default confidence score added for empty confidence score')
 	images=imageNames(path)
 	logging.info('Added image filenames')
 	mediaStats={'mediaCount':count,'mp3Length':mp3Length,'mp3Transcription':transcribed,'imageTags':images}

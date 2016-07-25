@@ -14,11 +14,7 @@ import ConfigParser
 
 #Using utility functions
 root=os.path.dirname(os.path.abspath(__file__))
-<<<<<<< HEAD
-utils=os.path.join((os.path.split(root)[0]),'utils')
-=======
 utils=os.path.join(os.path.split(root)[0],'utils')
->>>>>>> fd58a9ab8eb0b941a1f5e2a68253bdafab402144
 resource = os.path.join((os.path.split(root)[0]),'resources')
 config_file = os.path.join(resource,'config.properties')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
@@ -35,6 +31,7 @@ config = ConfigParser.RawConfigParser()
 config.read(config_file)
 op_dir = config.get('FilePath','corpus_path')
 # op_dir=args.ld
+
 #Set up logging
 logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging.DEBUG)
 logging.info('Corpus to Vectors')
@@ -77,8 +74,6 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 
 def train_model_pvdm(directory,language):#en-English,id-Hindi
 	doc=load_documents(findFiles(directory,['%s-text'%(language)]),language)
-	print(type(doc))
-	print doc
 	if doc == []:
 		return 0
 	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=1, window=8, negative=10, workers=4, sample=1e-5)
