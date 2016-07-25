@@ -25,6 +25,8 @@ case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_group_
                                    m_last_sync_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long,
                                    m_avg_interactions_min: Double, m_avg_sessions_week: Option[Double], m_avg_ts_week: Option[Double])
 
+case class ContentToVector(content_id: String, vector: Map[Int, String])
+
 object Period extends Enumeration {
     type Period = Value
     val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
@@ -33,4 +35,5 @@ object Period extends Enumeration {
 object Constants {
     val CONTENT_DB = "content_db";
     val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
+    val CONTENT_TO_VEC = "content_to_vector";
 }

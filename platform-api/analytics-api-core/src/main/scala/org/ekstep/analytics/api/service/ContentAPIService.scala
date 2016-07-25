@@ -23,6 +23,12 @@ import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.ContentSummary
 import java.util.UUID
 import org.ekstep.analytics.api.Constants
+import org.ekstep.analytics.api.ContentToVector
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.framework.DtRange
 
 /**
  * @author Santhosh
@@ -30,16 +36,23 @@ import org.ekstep.analytics.api.Constants
 
 object ContentAPIService {
 
-    def contentToVec(contentId: String, baseUrl: String, scriptLoc: String)(implicit sc: SparkContext): String = {
-        val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
-        val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").collect.last
-        val enrichedJsonArr = Array(enrichedJson)
-        val corpusStatus = sc.makeRDD(enrichedJsonArr).pipe(s"python $scriptLoc/object2vec/update_content_corpus.py").collect.last
-        if("True".equals(corpusStatus)){
-            "{\"status\": \"Coupus Updated Successfully\"}";
-        }else {
-            "{\"status\": \"Coupus Update Failed\"}";
-        }
+    def contentToVec(contentId: String)(implicit sc: SparkContext, config: java.util.Map[String, Object]): String = {
+        val baseUrl = config.get("base.url").asInstanceOf[String];
+        val scriptLoc = config.get("python.scripts.loc").asInstanceOf[String];
+        //val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
+        val contentArr = Array(s"http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/content/$contentId");
+        val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
+        val vectorRDD = enrichedJson.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+        
+        vectorRDD.map{x=> 
+            val vectorList = JSONUtils.deserialize[List[String]](x)
+            val vecMap = (vectorList.indices zip vectorList).toMap
+            ContentToVector(contentId, vecMap);
+        }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+        
+        val enrichedJsonMap = enrichedJson.map{x => JSONUtils.deserialize[Map[String, AnyRef]](x)}.collect.last
+        val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
+        me;
     }
     
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
@@ -146,6 +159,13 @@ object ContentAPIService {
         }
         ContentUsageSummaryFact(fact1.d_content_id, fact1.d_period, fact1.d_group_user, fact1.d_content_type, fact1.d_mime_type, publish_date, sync_date,
             total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
+    }
+    
+    private def getME(data: Map[String, AnyRef], contentId: String): MeasuredEvent = {
+        val ts = System.currentTimeMillis()
+        val dateRange = DtRange(ts, ts)
+        val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId("AN_ENRICHED_CONTENT", null, null, dateRange, contentId);
+        MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange),null, MEEdata(Map("enrichedJson" -> data)));
     }
 
 }

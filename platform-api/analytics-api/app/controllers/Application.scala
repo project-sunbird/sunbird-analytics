@@ -10,7 +10,9 @@ import play.api.libs.functional.syntax._
 import context.Context
 
 object Application extends Controller {
-
+    
+    implicit val config = play.Play.application.configuration.asMap();
+    
     def contentUsageMetrics(contentId: String) = Action { implicit request =>
 
         try {
@@ -34,9 +36,7 @@ object Application extends Controller {
     def contentToVec(contentId: String) = Action {
         
         try {
-            val baseUrl = play.Play.application.configuration.getString("base.url")
-            val scriptLoc = play.Play.application.configuration.getString("python.scripts.loc")
-            val response = ContentAPIService.contentToVec(contentId, baseUrl, scriptLoc)(Context.sc);
+            val response = ContentAPIService.contentToVec(contentId)(Context.sc, config);
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
             
         } catch {
