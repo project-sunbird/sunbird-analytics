@@ -22,10 +22,31 @@ sys.path.insert(0, utils)#Insert at front of list ensuring that our util is exec
 #To find files with a particular substring
 from find_files import findFiles
 
+#get file path from config file 
 config = ConfigParser.RawConfigParser()
 config.read(config_file)
 op_dir = config.get('FilePath','corpus_path')
 
+#get parameters from config file
+language_model=config.get('Training','language_model')
+tags_model=config.get('Training','tags_model')
+
+#pvdm params
+pvdm_size=int(config.get('pvdm','size'))
+pvdm_min_count=int(config.get('pvdm','min_count'))
+pvdm_window=int(config.get('pvdm','window'))
+pvdm_negative=int(config.get('pvdm','negative'))
+pvdm_workers=int(config.get('pvdm','workers'))
+# pvdm_sample=int(config.get('pvdm','sample'))
+
+#pvdbow params
+pvdbow_size=int(config.get('pvdbow','size'))
+pvdbow_min_count=int(config.get('pvdbow','min_count'))
+pvdbow_window=int(config.get('pvdbow','window'))
+pvdbow_negative=int(config.get('pvdbow','negative'))
+pvdbow_workers=int(config.get('pvdbow','workers'))
+# pvdbow_sample=int(config.get('pvdbow','sample'))
+pvdbow_dm=int(config.get('pvdbow','dm'))
 #Set up logging
 logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging.DEBUG)
 logging.info('Corpus to Vectors')
@@ -60,6 +81,7 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 	doc=[]
 	for filename in filenames:
 		word_list=process_file(filename,language)
+		print word_list
 		if(word_list!=None):
 			doc.append(gs.models.doc2vec.TaggedDocument(words=word_list,tags=[filename]))  
 		else:
@@ -70,7 +92,7 @@ def train_model_pvdm(directory,language):#en-English,id-Hindi
 	doc=load_documents(findFiles(directory,[language]),language)
 	if doc == []:
 		return 0
-	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=1, window=8, negative=10, workers=4, sample=1e-5)
+	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdm_size, min_count=pvdm_min_count, window=pvdm_window, negative=pvdm_negative, workers=pvdm_workers, sample=1e-5)
 	return model
 
 def train_model_pvdbow(directory,language):
@@ -80,7 +102,7 @@ def train_model_pvdbow(directory,language):
 		doc=load_documents(findFiles(directory,[language]),language)
 	if doc == []:
 		return 0
-	model=gs.models.doc2vec.Doc2Vec(doc, size=50, min_count=1, window=8, negative=10, workers=4, sample=1e-5, dm=0) #Apply PV-DBOW
+	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdbow_size, min_count=pvdbow_min_count, window=pvdbow_window, negative=pvdbow_negative, workers=pvdbow_workers, sample=1e-5, dm=pvdbow_dm) #Apply PV-DBOW
 	return model
 
 def uniqfy_list(seq):
@@ -95,7 +117,7 @@ models_lang = [name
              if name.endswith(("-text"))]
 
 models_lang = uniqfy_list(models_lang)
-print models_lang
+# print models_lang
 
 models_tags = [name
              for root, dirs, files in os.walk(op_dir)
@@ -103,7 +125,7 @@ models_tags = [name
              if name.endswith(("tags"))]
 
 models_tags = uniqfy_list(models_tags)
-print models_tags
+# print models_tags
 
 # models=['en-text','id-text','tag']
 for f in models_lang:
@@ -114,18 +136,19 @@ if not os.path.exists(os.path.join(op_dir,'model')):
 	os.makedirs(os.path.join(op_dir,'model'))
 
 for model in models_lang:
+	function = 'train_model_%s'%language_model
 	if(model=='en-text' or model=='id-text'):
-		gensim_model = train_model_pvdm(op_dir,model)
+		gensim_model = eval(function)(op_dir,model)
 		if not gensim_model == 0:
 			gensim_model.save(os.path.join(op_dir,'model',model))
 		else:
 			logging.info('%s data not present'%(model))
 
-
-model_tags=train_model_pvdbow(op_dir,models_tags)
-if not model_tags == 0:
-	model_tags.save(os.path.join(op_dir,'model','tag'))
-else:
-	logging.info('tags data not present')
+# function = 'train_model_%s'%tags_model
+# model_tags=eval(function)(op_dir,models_tags)
+# if not model_tags == 0:
+# 	model_tags.save(os.path.join(op_dir,'model','tag'))
+# else:
+# 	logging.info('tags data not present')
 
 
