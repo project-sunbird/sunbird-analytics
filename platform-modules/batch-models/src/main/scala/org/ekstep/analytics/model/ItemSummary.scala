@@ -26,6 +26,8 @@ case class ItemSummaryOutput(uid: String, itemId: String, itype: Option[AnyRef],
 
 object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSummaryOutput, MeasuredEvent] with Serializable {
 
+    override def name() : String = "ItemSummarizer";
+    
     /**
      * Get item from broadcast item mapping variable
      */
