@@ -34,17 +34,17 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
 
         val table2 = sc.cassandraTable[DeviceContentSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table2.content_id should be("numeracy_360")
-        table2.avg_interactions_min should be(0.0)
-        table2.downloaded should be(false)
-        table2.install_date should be(1459839946698L)
-        table2.last_played_on should be(0L)
-        table2.mean_play_time_interval should be(0L)
-        table2.num_group_user should be(0)
-        table2.num_individual_user should be(0)
-        table2.num_sessions should be(0)
-        table2.start_time should be(0L)
-        table2.total_interactions should be(0)
-        table2.total_timespent should be(0)
+        table2.avg_interactions_min should be(None)
+        table2.downloaded.get should be(false)
+        table2.install_date.get should be(1459839946698L)
+        table2.last_played_on should be(None)
+        table2.mean_play_time_interval should be(None)
+        table2.num_group_user should be(None)
+        table2.num_individual_user should be(None)
+        table2.num_sessions should be(None)
+        table2.start_time should be(None)
+        table2.total_interactions should be(None)
+        table2.total_timespent should be(None)
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-content-usage-summary/test_data1.log");
         val rdd2 = DeviceContentUsageSummary.execute(rdd1, None);

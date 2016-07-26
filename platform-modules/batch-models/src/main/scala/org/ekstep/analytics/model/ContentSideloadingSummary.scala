@@ -53,9 +53,9 @@ object ContentSideloadingSummary extends IBatchModelTemplate[Event, ContentSidel
         val download_details = content_details.map { x =>
             val downloaded = if (x.transfer_count == 0) true else false
             val install_date = x.ts
-            DeviceContentSummary(x.did, x.content_id, "", 0l, 0l, 0.0, 0.0, 0l, 0l, 0.0, downloaded, install_date, 0l, 0l)
+            (x.did, x.content_id, downloaded, install_date)
         }
-        download_details.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT)
+        download_details.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT, SomeColumns("device_id","content_id","downloaded","install_date"))
 
         data.map { x =>
             val newContentMap = x.currentDetails
