@@ -197,9 +197,5 @@ for data in jsonFiles:
 	else:
 		print("True")
 
-lst_language = uniqfy_list(lst_language)
-#print lst_language
-# text_file = open(os.path.join(corpus_dir,'language.txt'), "w")
-# text_file.write(lst_language)
-# text_file.close()
+
 
