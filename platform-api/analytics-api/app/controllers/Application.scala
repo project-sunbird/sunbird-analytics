@@ -2,6 +2,7 @@ package controllers
 
 import org.ekstep.analytics.api.service.ContentAPIService
 import org.ekstep.analytics.api.service.HealthCheckAPIService
+import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.api.util._
 import play.api._
 import play.api.mvc._
@@ -47,5 +48,18 @@ object Application extends Controller {
                 ex.printStackTrace();
                 Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentToVec", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
         }
+    }
+    
+    def recommendations() = Action { implicit request =>
+      try {
+        val body: String = Json.stringify(request.body.asJson.get);
+        val response = RecommendationAPIService.recommendations(body)(Context.sc);
+        play.Logger.info(request + " body - " + body + "\n\t => " + response)
+        Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+      } catch {
+        case ex: Throwable => 
+          ex.printStackTrace();
+          Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
+      }
     }
 }
