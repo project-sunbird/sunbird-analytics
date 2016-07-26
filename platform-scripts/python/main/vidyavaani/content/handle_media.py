@@ -95,3 +95,15 @@ def imageNames(directory):
 	image_names=[' '.join(camel_case_split(image)) for image in image_names]#Split Camel Case
 	image_names=[image.lower() for image in image_names]#Turn all text to lower case
 	return(list(set(image_names)))#list(set(.)) removes identical values if any
+
+#add confidence score if it dosen't exist
+def add_confidence(mp3_dict):
+	for key, value in mp3_dict.iteritems():
+		# print key
+		# print value
+		if not value == []:
+			dict1 = value.get('alternative')[0]
+			if not dict1.has_key('confidence'):
+				dict1['confidence'] = 0.8
+			else:
+				print dict1['confidence']
