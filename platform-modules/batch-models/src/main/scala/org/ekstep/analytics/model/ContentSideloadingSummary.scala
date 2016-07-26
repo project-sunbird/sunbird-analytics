@@ -11,6 +11,7 @@ import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JobLogger
+import scala.collection.mutable.Buffer
 
 case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double)
 case class ReducedContentDetails(content_id: String, transfer_count: Double, did: String, origin: String, ts: Long, syncts: Long)
@@ -39,6 +40,22 @@ object ContentSideloadingSummary extends IBatchModelTemplate[Event, ContentSidel
     }
 
     override def algorithm(data: RDD[ContentSideloadingInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSideloadingOutput] = {
+
+        val content_details = data.map { x => x.currentDetails }.flatMap { x => x }
+        val device_details = content_details.map(x => (x.did, Buffer(x)))
+            .partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).map { y =>
+                val num_contents = y._2.size
+                DeviceUsageSummary(y._1, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0, num_contents, 0L, 0L, 0.0, 0L, 0.0, 0.0, "")
+            }
+        device_details.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE)
+
+        val download_details = content_details.map { x =>
+            val downloaded = if (x.transfer_count == 0) true else false
+            val install_date = x.ts
+            DeviceContentSummary(x.did, x.content_id, "", 0l, 0l, 0.0, 0.0, 0l, 0l, 0.0, downloaded, install_date, 0l, 0l)
+        }
+        download_details.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT)
 
         data.map { x =>
             val newContentMap = x.currentDetails

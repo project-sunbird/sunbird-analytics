@@ -13,7 +13,7 @@ case class DeviceSummaryInput(device_id: String, data: Buffer[DerivedEvent], pre
 case class DeviceContentUsageSummaryInput(device_id: String, contentId: String, data: Buffer[DerivedEvent], prevData: Option[DeviceContentSummary])
 case class DeviceContentSummary(device_id: String, content_id: String, game_ver: String, num_sessions: Long, total_interactions: Long, avg_interactions_min: Double,
                                 total_timespent: Double, last_played_on: Long, start_time: Long,
-                                mean_play_time_interval: Double, downloaded: Boolean, download_date: Long, num_group_user: Long, num_individual_user: Long) extends AlgoOutput
+                                mean_play_time_interval: Double, downloaded: Boolean, install_date: Long, num_group_user: Long, num_individual_user: Long) extends AlgoOutput
 case class DeviceContentSummaryIndex(device_id: String, content_id: String)
 
 object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, DeviceSummaryInput, DeviceContentSummary, MeasuredEvent] with Serializable {
@@ -52,8 +52,8 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
             val timeDiff = CommonUtil.getTimeDiff(play_start_time, last_played_on).get
             val play_time_interval = timeDiff - total_play_time
             val mean_play_time_interval = if (num_sessions < 2) 0d else CommonUtil.roundDouble(BigDecimal(play_time_interval / (num_sessions - 1)).toDouble, 2)
-            val previously_played_content = lastEvent.dimensions.gdata.get.id
-            DeviceUsageSummary(prevSummary.device_id, prevSummary.start_time, prevSummary.end_time, prevSummary.num_days, prevSummary.total_launches, prevSummary.total_timespent, prevSummary.avg_num_launches, prevSummary.avg_time, num_contents, play_start_time, last_played_on, total_play_time, num_sessions, mean_play_time, mean_play_time_interval, previously_played_content)
+            val last_played_content = lastEvent.dimensions.gdata.get.id
+            DeviceUsageSummary(prevSummary.device_id, prevSummary.start_time, prevSummary.end_time, prevSummary.num_days, prevSummary.total_launches, prevSummary.total_timespent, prevSummary.avg_num_launches, prevSummary.avg_time, num_contents, play_start_time, last_played_on, total_play_time, num_sessions, mean_play_time, mean_play_time_interval, last_played_content)
         }
         deviceDetails.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE)
 
@@ -83,10 +83,10 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
             val play_time_interval = timeDiff - total_timespent
             val mean_play_time_interval = if (num_sessions < 2) 0d else CommonUtil.roundDouble(BigDecimal(play_time_interval / (num_sessions - 1)).toDouble, 2)
             val downloaded = prevDeviceContentSummary.downloaded
-            val download_date = prevDeviceContentSummary.download_date
+            val install_date = prevDeviceContentSummary.install_date
             val num_group_user = dcusEvent.data.map { x => x.dimensions.group_user.get }.count { y => true.equals(y) }
             val num_individual_user = num_sessions - num_group_user
-            DeviceContentSummary(dcusEvent.device_id, dcusEvent.contentId, game_ver, num_sessions, total_interactions, avg_interactions_min, total_timespent, last_played_on, start_time, mean_play_time_interval, downloaded, download_date, num_group_user, num_individual_user)
+            DeviceContentSummary(dcusEvent.device_id, dcusEvent.contentId, game_ver, num_sessions, total_interactions, avg_interactions_min, total_timespent, last_played_on, start_time, mean_play_time_interval, downloaded, install_date, num_group_user, num_individual_user)
         }
     }
 
@@ -102,7 +102,7 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
                 "last_played_on" -> dcuSummary.last_played_on,
                 "mean_play_time_interval" -> dcuSummary.mean_play_time_interval,
                 "downloaded" -> dcuSummary.downloaded,
-                "download_date" -> dcuSummary.download_date,
+                "install_date" -> dcuSummary.install_date,
                 "num_group_user" -> dcuSummary.num_group_user,
                 "num_individual_user" -> dcuSummary.num_individual_user);
             MeasuredEvent("ME_DEVICE_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), dcuSummary.last_played_on, "1.0", mid, null, Option(dcuSummary.content_id), None,

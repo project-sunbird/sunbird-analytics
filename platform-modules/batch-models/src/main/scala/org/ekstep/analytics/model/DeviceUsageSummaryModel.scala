@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class DeviceUsageSummary(device_id: String, start_time: Long, end_time: Long, num_days: Long, total_launches: Long, total_timespent: Double,
                               avg_num_launches: Double, avg_time: Double, num_contents: Long, play_start_time: Long, last_played_on: Long,
                               total_play_time: Double, num_sessions: Long, mean_play_time: Double,
-                              mean_play_time_interval: Double, previously_played_content: String) extends AlgoOutput
+                              mean_play_time_interval: Double, last_played_content: String) extends AlgoOutput
 
 case class DeviceUsageInput(device_id: String, currentData: Buffer[DerivedEvent], previousData: Option[DeviceUsageSummary]) extends AlgoInput
 case class DeviceId(device_id: String)
@@ -57,7 +57,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
             }.sum + prevUsageSummary.total_timespent
             val avg_time = if (num_days == 0) totalTimeSpent else CommonUtil.roundDouble(totalTimeSpent / num_days, 2)
 
-            (DeviceUsageSummary(events.device_id, start_time, end_time, num_days, num_launches, totalTimeSpent, avg_num_launches, avg_time, prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.previously_played_content))
+            (DeviceUsageSummary(events.device_id, start_time, end_time, num_days, num_launches, totalTimeSpent, avg_num_launches, avg_time, prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.last_played_content))
         }.cache();
     }
 
@@ -78,7 +78,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
                 "num_sessions" -> usageSummary.num_sessions,
                 "mean_play_time" -> usageSummary.mean_play_time,
                 "mean_play_time_interval" -> usageSummary.mean_play_time_interval,
-                "previously_played_content" -> usageSummary.previously_played_content);
+                "last_played_content" -> usageSummary.last_played_content);
             MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), usageSummary.end_time, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "CUMULATIVE").asInstanceOf[String], DtRange(usageSummary.start_time, usageSummary.end_time)),
                 Dimensions(None, Option(usageSummary.device_id), None, None, None, None, None),
