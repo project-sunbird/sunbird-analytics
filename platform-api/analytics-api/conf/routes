@@ -3,6 +3,5 @@
 # ~~~~
 
 POST   /content/metrics/usage/:contentId   controllers.Application.contentUsageMetrics(contentId: String)
-
 GET   /health   controllers.Application.checkAPIhealth
-GET   /:contentId   controllers.Application.contentToVec(contentId: String)
+POST   /content-to-vec/:contentId   controllers.Application.contentToVec(contentId: String)
