@@ -42,5 +42,6 @@ class ApplicationSpec extends Specification {
            val home = route(FakeRequest(GET, "/health")).get
             status(home) must equalTo(OK)
        }
+       
     }
 }
