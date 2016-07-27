@@ -8,16 +8,16 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestDeviceUsageSummary extends SparkSpec(null) {
 
-    ignore should "generate DeviceUsageSummary events from a sample file and pass all positive test cases " in {
+    "DeviceUsageSummary" should "generate DeviceUsageSummary events from a sample file and pass all positive test cases " in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE learner_db.device_usage_summary;");
         }
 
-        val rdd0 = loadFile[Event]("src/test/resources/device-usage-summary/telemetry_test_data1.log");
+        val rdd0 = loadFile[Event]("src/test/resources/device-usage-summary/telemetry_test_data2.log");
         val me0 = ContentSideloadingSummary.execute(rdd0, None);
         
-        val rdd = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_5.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_4.log");
         val mex = DeviceContentUsageSummary.execute(rdd, None);
         
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_1.log");
@@ -87,7 +87,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_5.log");
         val me1 = DeviceContentUsageSummary.execute(rdd, None);
         
-        val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_4.log");
+        val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_3.log");
         val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
         val me = rdd2.collect()
         me.length should be(1)
