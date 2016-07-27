@@ -98,15 +98,15 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
         data.map { dcuSummary =>
             val mid = CommonUtil.getMessageId("ME_DEVICE_CONTENT_USAGE_SUMMARY", null, null, DtRange(0l, 0l), dcuSummary.content_id + dcuSummary.device_id);
             val measures = Map(
-                "num_sessions" -> dcuSummary.num_sessions.get,
-                "total_timespent" -> dcuSummary.total_timespent.get,
-                "avg_interactions_min" -> dcuSummary.avg_interactions_min.get,
-                "last_played_on" -> dcuSummary.last_played_on.get,
-                "mean_play_time_interval" -> dcuSummary.mean_play_time_interval.get,
+                "num_sessions" -> dcuSummary.num_sessions,
+                "total_timespent" -> dcuSummary.total_timespent,
+                "avg_interactions_min" -> dcuSummary.avg_interactions_min,
+                "last_played_on" -> dcuSummary.last_played_on,
+                "mean_play_time_interval" -> dcuSummary.mean_play_time_interval,
                 "downloaded" -> dcuSummary.downloaded,
                 "install_date" -> dcuSummary.download_date,
-                "num_group_user" -> dcuSummary.num_group_user.get,
-                "num_individual_user" -> dcuSummary.num_individual_user.get);
+                "num_group_user" -> dcuSummary.num_group_user,
+                "num_individual_user" -> dcuSummary.num_individual_user);
             MeasuredEvent("ME_DEVICE_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), dcuSummary.last_played_on.get, "1.0", mid, null, Option(dcuSummary.content_id), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", DtRange(dcuSummary.start_time.get, dcuSummary.last_played_on.get)),
                 Dimensions(None, Option(dcuSummary.device_id), Option(new GData(dcuSummary.content_id, dcuSummary.game_ver.get)), None, None, None, None, None),

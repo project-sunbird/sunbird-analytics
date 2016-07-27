@@ -67,11 +67,11 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
         data.map { usageSummary =>
             val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, null, DtRange(0l, 0l));
             val measures = Map(
-                "start_time" -> usageSummary.start_time.get,
-                "end_time" -> usageSummary.end_time.get,
-                "num_days" -> usageSummary.num_days.get,
-                "avg_num_launches" -> usageSummary.avg_num_launches.get,
-                "avg_time" -> usageSummary.avg_time.get,
+                "start_time" -> usageSummary.start_time,
+                "end_time" -> usageSummary.end_time,
+                "num_days" -> usageSummary.num_days,
+                "avg_num_launches" -> usageSummary.avg_num_launches,
+                "avg_time" -> usageSummary.avg_time,
                 "num_contents" -> usageSummary.num_contents,
                 "play_start_time" -> usageSummary.play_start_time,
                 "last_played_on" -> usageSummary.last_played_on,
