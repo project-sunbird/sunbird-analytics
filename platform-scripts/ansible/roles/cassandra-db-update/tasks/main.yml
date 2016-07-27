@@ -7,5 +7,6 @@
 
 - name: run cql
   command: "{{ cql_path }} -f /home/{{ cassandra_user }}/data.cql"
+  ignore_errors: yes
   tags:
     - cassandra
