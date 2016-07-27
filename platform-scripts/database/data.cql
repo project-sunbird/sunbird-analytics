@@ -186,3 +186,20 @@ CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	vector map<int, text>,
 	PRIMARY KEY (content_id)
 );
+
+CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
+	content_id text,
+	vector map<int, text>,
+	PRIMARY KEY (content_id)
+);
+
+CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
+CREATE TABLE IF NOT EXISTS device_db.device_recos(
+	device_id text,
+	scores list<frozen <tuple<text, double>>>,
+	PRIMARY KEY (device_id)
+);
