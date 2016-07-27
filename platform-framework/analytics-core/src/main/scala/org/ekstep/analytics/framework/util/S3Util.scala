@@ -34,7 +34,7 @@ object S3Util {
         for(obj<-objectArr){
             val key = obj.getKey
             val file = key.split("/").last
-            val fileObj = s3Service.getObject(bucketName, key)
+            val fileObj = s3Service.getObject(bucket, key)
             val is = fileObj.getDataInputStream()
             val in = scala.io.Source.fromInputStream(is)
             val out = new java.io.PrintWriter(new File(localPath+file))
