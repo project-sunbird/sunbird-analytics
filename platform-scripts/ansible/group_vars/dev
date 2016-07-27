@@ -71,11 +71,6 @@ jobs:
   cuu:
     hour: 2
     minute: 10
-
-
-
-
-
 monit_jobs:
   joblog.log:
     hour: 2
