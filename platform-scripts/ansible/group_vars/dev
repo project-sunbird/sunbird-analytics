@@ -47,35 +47,33 @@ jobs:
   is:
      hour: 1
      minute: 30
-  dus:
+  dcus:
     hour: 1
     minute: 45
-  cus:
+  dus:
     hour: 1
     minute: 47
-  lp:
+  cus:
     hour: 1
     minute: 49
-  as:
+  lp:
     hour: 1
     minute: 51
-  las:
+  as:
     hour: 1
     minute: 53
-  dsu:
+  las:
     hour: 1
     minute: 55
-  lcas:
+  dsu:
     hour: 1
     minute: 57
+  lcas:
+    hour: 1
+    minute: 59
   cuu:
     hour: 2
     minute: 10
-
-
-
-
-
 monit_jobs:
   joblog.log:
     hour: 2

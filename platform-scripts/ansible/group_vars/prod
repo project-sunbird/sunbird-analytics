@@ -47,27 +47,30 @@ jobs:
   is:
      hour: 6
      minute: 30
-  dus:
+  dcus:
     hour: 6
     minute: 45
-  cus:
+  dus:
     hour: 6
     minute: 47
-  lp:
+  cus:
     hour: 6
     minute: 49
-  as:
+  lp:
     hour: 6
     minute: 51
-  las:
+  as:
     hour: 6
     minute: 53
-  dsu:
+  las:
     hour: 6
     minute: 55
-  lcas:
+  dsu:
     hour: 6
     minute: 57
+  lcas:
+    hour: 6
+    minute: 59
   cuu:
     hour: 7
     minute: 10
