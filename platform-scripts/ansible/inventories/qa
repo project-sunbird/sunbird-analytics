@@ -1,20 +1,20 @@
 [secor-raw]
-54.169.51.61 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
+172.31.16.151 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [secor-me]
-54.169.51.61 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
+172.31.16.151 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [data-products]
-54.254.152.135 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
+172.31.18.88 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [spark]
-54.254.152.135 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
+172.31.18.88 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [analytics-api]
-54.254.152.135 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
+172.31.18.88 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [cassandra]
-54.254.152.135 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
+172.31.18.88 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [qa:children]
 secor
