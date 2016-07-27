@@ -5,13 +5,14 @@ import scala.concurrent.Future
 import filter.RequestInterceptor
 import context.Context
 import org.ekstep.analytics.framework.util.RestUtil
-import content.Content
+import org.ekstep.analytics.api.service.RecommendationAPIService
 
 object Global extends WithFilters(RequestInterceptor) {
 
     override def beforeStart(app: Application) {
         Context.setSparkContext();
-        Content.setContent()(Context.sc);
+        Logger.info("Caching content")
+        RecommendationAPIService.initCache()(Context.sc, Map("service.search.url" -> play.Play.application.configuration.getString("service.search.url")));
         Logger.info("Application has started...")
     }
 

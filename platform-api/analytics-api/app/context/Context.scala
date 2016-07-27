@@ -4,6 +4,7 @@ import play.api._
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkException
+import org.ekstep.analytics.api.service.RecommendationAPIService
 
 object Context {
 
@@ -48,6 +49,7 @@ object Context {
     def resetSparkContext() {
         closeSparkContext();
         setSparkContext();
+        RecommendationAPIService.initCache()(Context.sc, Map("service.search.url" -> play.Play.application.configuration.getString("service.search.url")));
     }
 
 }
