@@ -3,11 +3,12 @@ package context
 import play.api._
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
+import org.apache.spark.SparkException
 
 object Context {
-    
+
     var sc: SparkContext = null;
-    
+
     def setSparkContext() = {
         Logger.info("Starting spark context")
         val conf = new SparkConf().setAppName("AnalyticsAPIEngine");
@@ -24,9 +25,29 @@ object Context {
         sc = new SparkContext(conf);
         Logger.info("Spark context started")
     }
-    
+
     def closeSparkContext() = {
         Logger.info("Closing Spark Context")
         sc.stop();
     }
+
+    def checkSparkContext() {
+        try {
+            val nums = Array(10, 5, 18, 4, 8, 56)
+            val rdd = sc.parallelize(nums)
+            rdd.sortBy(f => f).collect
+        } catch {
+            case ex: SparkException =>
+                Context.resetSparkContext();
+            case ex: Exception =>
+                ex.printStackTrace();
+                Logger.info("Spark context is down...");
+        }
+    }
+    
+    def resetSparkContext() {
+        closeSparkContext();
+        setSparkContext();
+    }
+
 }

@@ -97,16 +97,17 @@ CREATE TABLE IF NOT EXISTS learner_db.device_usage_summary (
     total_timespent double,
     avg_num_launches double,
     avg_time double,
-    num_contents bigint,
-    play_start_time timestamp,
-    last_played_on timestamp,
-    total_play_time double,
-    num_sessions bigint,
-    mean_play_time double,
-    mean_play_time_interval double, 
-    previously_played_content text,
     PRIMARY KEY (device_id)
 );
+
+ALTER TABLE learner_db.device_usage_summary ADD num_contents bigint;
+ALTER TABLE learner_db.device_usage_summary ADD play_start_time timestamp;
+ALTER TABLE learner_db.device_usage_summary ADD last_played_on timestamp;
+ALTER TABLE learner_db.device_usage_summary ADD total_play_time double;
+ALTER TABLE learner_db.device_usage_summary ADD num_sessions bigint;
+ALTER TABLE learner_db.device_usage_summary ADD mean_play_time double;
+ALTER TABLE learner_db.device_usage_summary ADD mean_play_time_interval double; 
+ALTER TABLE learner_db.device_usage_summary ADD last_played_content text;
 
 CREATE TABLE IF NOT EXISTS learner_db.device_content_summary_fact (
     device_id text,
@@ -185,4 +186,21 @@ CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	content_id text,
 	vector map<int, text>,
 	PRIMARY KEY (content_id)
+);
+
+CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
+	content_id text,
+	vector map<int, text>,
+	PRIMARY KEY (content_id)
+);
+
+CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
+CREATE TABLE IF NOT EXISTS device_db.device_recos(
+	device_id text,
+	scores list<frozen <tuple<text, double>>>,
+	PRIMARY KEY (device_id)
 );

@@ -7,7 +7,7 @@ user_home: /home/ec2-user
 sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
-  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports']
+  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/DS_scripts]
   scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-2.2.6"
 cql_path: cqlsh
@@ -47,27 +47,30 @@ jobs:
   is:
      hour: 6
      minute: 30
-  dus:
+  dcus:
     hour: 6
     minute: 45
-  cus:
+  dus:
     hour: 6
     minute: 47
-  lp:
+  cus:
     hour: 6
     minute: 49
-  as:
+  lp:
     hour: 6
     minute: 51
-  las:
+  as:
     hour: 6
     minute: 53
-  dsu:
+  las:
     hour: 6
     minute: 55
-  lcas:
+  dsu:
     hour: 6
     minute: 57
+  lcas:
+    hour: 6
+    minute: 59
   cuu:
     hour: 7
     minute: 10

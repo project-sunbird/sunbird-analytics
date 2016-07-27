@@ -29,6 +29,10 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.DtRange
+import sys.process._
+import org.ekstep.analytics.framework.util.S3Util
+import java.io.File
+import org.ekstep.analytics.streaming.KafkaEventProducer
 
 /**
  * @author Santhosh
@@ -37,28 +41,53 @@ import org.ekstep.analytics.framework.DtRange
 object ContentAPIService {
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
-        
-        val baseUrl = config.get("base.url").get;
-        val scriptLoc = config.get("python.scripts.loc").get;
-        
-        val contentEnrichPyCall = s"python $scriptLoc/content/enrich_content.py";
-        val inferContentPyCall = s"python $scriptLoc/content/infer_query.py";
-        
-        val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
-        val enrichedJson = sc.makeRDD(contentArr).pipe(contentEnrichPyCall).cache
-        val vectorRDD = enrichedJson.pipe(inferContentPyCall)
-        
-        vectorRDD.map{x=> 
-            val vectorList = JSONUtils.deserialize[List[String]](x)
-            val vecMap = (vectorList.indices zip vectorList).toMap
-            ContentToVector(contentId, vecMap);
-        }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
-        
-        val enrichedJsonMap = enrichedJson.map{x => JSONUtils.deserialize[Map[String, AnyRef]](x)}.collect.last
-        val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
-        me;
+
+        try {
+            val baseUrl = config.get("base.url").get;
+            val scriptLoc = config.get("python.scripts.loc").get;
+            val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
+            val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
+
+            //            if ("true".equals(config.get("content.to.corpus.flag").get)) {
+            //                enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py");
+            //            }
+
+            val corpus = enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py");
+
+            val bucket = config.get("s3.bucket").get
+            val modelPath = config.get("model.file.path").get
+            val prefix = config.get("prefix").get
+
+            if ("true".equals(config.get("train.model").get)) {
+                //Training ....  
+                val status = s"python $scriptLoc/object2vec/corpus_to_vec.py".!
+                //upload model file
+                if (status == 0) {
+                    uploadModel(bucket, prefix, modelPath)
+                }
+            }
+            //download model
+            S3Util.download(bucket, prefix, modelPath)
+            val vectorRDD = corpus.map { x =>
+                JSONUtils.serialize(Map("contentId" -> contentId, "document" -> x, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));
+            }.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+
+            vectorRDD.map { x =>
+                val vectorList = JSONUtils.deserialize[List[String]](x)
+                val vecMap = (vectorList.indices zip vectorList).toMap
+                ContentToVector(contentId, vecMap);
+            }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+
+            val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
+            val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
+            //KafkaEventProducer.sendEvents(Array(me), config.get("topic").get, config.get("broker.list").get)
+            me;
+        } catch {
+            case ex: Exception =>
+                JSONUtils.serialize(Map("status" -> "FAILED", "Message" -> ex.getMessage));
+        }
     }
-    
+
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
         JSONUtils.serialize(contentUsageMetrics(contentId, reqBody));
@@ -66,7 +95,7 @@ object ContentAPIService {
 
     private def contentUsageMetrics(contentId: String, reqBody: RequestBody)(implicit sc: SparkContext): Response = {
         // Initialize to default values if not found from the request.
-        if(reqBody.request == null) {
+        if (reqBody.request == null) {
             throw new Exception("Request cannot be blank");
         }
         val reqTrend: Trend = reqBody.request.trend.getOrElse(Trend(Option(7), Option(5), Option(12)));
@@ -155,21 +184,34 @@ object ContentAPIService {
         val numWeeks = CommonUtil.getWeeksBetween(publish_date.getMillis, sync_date.getMillis)
         val avg_sessions_week = period match {
             case MONTH | CUMULATIVE => Option(if (numWeeks != 0) (total_sessions.toDouble) / numWeeks else total_sessions)
-            case _          => None
+            case _                  => None
         }
         val avg_ts_week = period match {
             case MONTH | CUMULATIVE => Option(if (numWeeks != 0) (total_ts) / numWeeks else total_ts)
-            case _          => None
+            case _                  => None
         }
         ContentUsageSummaryFact(fact1.d_content_id, fact1.d_period, fact1.d_group_user, fact1.d_content_type, fact1.d_mime_type, publish_date, sync_date,
             total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
     }
-    
+
     private def getME(data: Map[String, AnyRef], contentId: String): MeasuredEvent = {
         val ts = System.currentTimeMillis()
         val dateRange = DtRange(ts, ts)
         val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId("AN_ENRICHED_CONTENT", null, null, dateRange, contentId);
-        MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange),null, MEEdata(Map("enrichedJson" -> data)));
+        MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data)));
     }
 
+    private def uploadModel(bucket: String, prefix: String, modelPath: String) {
+
+        val d = new File(modelPath)
+        val files = if (d.exists && d.isDirectory) {
+            d.listFiles.filter(_.isFile).toList;
+        } else {
+            List[File]();
+        }
+        for (f <- files) {
+            val key = prefix + f.getName.split("/").last
+            S3Util.upload(bucket, f.getName, key)
+        }
+    }
 }

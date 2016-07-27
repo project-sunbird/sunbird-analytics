@@ -41,6 +41,8 @@ object JobFactory {
                 ItemSummarizer
             case "dcus" =>
                 DeviceContentUsageSummarizer
+            case "csv" => 
+                CSVDumpJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
