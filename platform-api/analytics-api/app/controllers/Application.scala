@@ -62,7 +62,7 @@ object Application extends Controller {
     def recommendations() = Action { implicit request =>
       try {
         val body: String = Json.stringify(request.body.asJson.get);
-        val response = RecommendationAPIService.recommendations(body)(Context.sc);
+        val response = RecommendationAPIService.recommendations(body)(Context.sc, config);
         play.Logger.info(request + " body - " + body + "\n\t => " + response)
         Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
       } catch {
