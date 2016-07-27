@@ -27,6 +27,21 @@ object S3Util {
         val fileObj = s3Service.putObject(bucketName, s3Object);
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
+    
+    def download(bucketName: String, prefix: String, localPath: String) {
+        val bucket = s3Service.createBucket(bucketName);
+        val objectArr = s3Service.listObjects(bucket, prefix, null)
+        for(obj<-objectArr){
+            val key = obj.getKey
+            val file = key.split("/").last
+            val fileObj = s3Service.getObject(bucketName, key)
+            val is = fileObj.getDataInputStream()
+            val in = scala.io.Source.fromInputStream(is)
+            val out = new java.io.PrintWriter(new File(localPath+file))
+            try { in.getLines().foreach(out.print(_)) }
+            finally { out.close }    
+        }
+    }
 
     /*
     def uploadPublic(bucketName: String, filePath: String, key: String) {
