@@ -36,13 +36,17 @@ import org.ekstep.analytics.framework.DtRange
 
 object ContentAPIService {
 
-    def contentToVec(contentId: String)(implicit sc: SparkContext, config: java.util.Map[String, Object]): String = {
-        val baseUrl = config.get("base.url").asInstanceOf[String];
-        val scriptLoc = config.get("python.scripts.loc").asInstanceOf[String];
-        //val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
-        val contentArr = Array(s"http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/content/$contentId");
-        val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
-        val vectorRDD = enrichedJson.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+    def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
+        
+        val baseUrl = config.get("base.url").get;
+        val scriptLoc = config.get("python.scripts.loc").get;
+        
+        val contentEnrichPyCall = s"python $scriptLoc/content/enrich_content.py";
+        val inferContentPyCall = s"python $scriptLoc/content/infer_query.py";
+        
+        val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
+        val enrichedJson = sc.makeRDD(contentArr).pipe(contentEnrichPyCall).cache
+        val vectorRDD = enrichedJson.pipe(inferContentPyCall)
         
         vectorRDD.map{x=> 
             val vectorList = JSONUtils.deserialize[List[String]](x)

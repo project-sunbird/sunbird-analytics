@@ -23,22 +23,22 @@ object Constants {
     val LP_URL = AppConf.getConfig("lp.url");
 
     def getContentList(): String = {
-        s"$LP_URL/learning-service/v2/analytics/content/list";
+        s"$LP_URL/v2/analytics/content/list";
     }
     
     def getDomainMap(): String = {
-        s"$LP_URL/learning-service/v2/analytics/domain/map";
+        s"$LP_URL/v2/analytics/domain/map";
     }
     
     def getContentItems(apiVersion: String, contentId: String): String = {
-        s"$LP_URL/learning-service/$apiVersion/analytics/items/" + URLEncoder.encode(contentId, "UTF-8");
+        s"$LP_URL/$apiVersion/analytics/items/" + URLEncoder.encode(contentId, "UTF-8");
     }
 
     def getItemConcept(version: String, contentId: String, itemId: String): String = {
-        s"$LP_URL/learning-service/$version/analytics/item/$contentId/$itemId";
+        s"$LP_URL/$version/analytics/item/$contentId/$itemId";
     }
     
     def getContentUpdateAPIUrl(contentId: String): String = {
-        s"$LP_URL/learning-service/v2/content/$contentId";
+        s"$LP_URL/v2/content/$contentId";
     }
 }

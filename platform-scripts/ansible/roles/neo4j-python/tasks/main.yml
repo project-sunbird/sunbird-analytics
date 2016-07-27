@@ -58,4 +58,5 @@
   with_items: 
             - matplotlib
             - scipy
-            - nltk.corpus 
+            - nltk.corpus
+            - pandas 
