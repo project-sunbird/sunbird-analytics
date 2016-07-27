@@ -36,7 +36,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         table2.content_id should be("numeracy_360")
         table2.avg_interactions_min should be(None)
         table2.downloaded.get should be(false)
-        table2.install_date.get should be(1459839946698L)
+        table2.download_date.get should be(1459839946698L)
         table2.last_played_on should be(None)
         table2.mean_play_time_interval should be(None)
         table2.num_group_user should be(None)
