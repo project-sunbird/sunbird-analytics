@@ -14,10 +14,10 @@ import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JobLogger
 
-case class DeviceUsageSummary(device_id: String, start_time: Long, end_time: Long, num_days: Long, total_launches: Long, total_timespent: Double,
-                              avg_num_launches: Double, avg_time: Double, num_contents: Long, play_start_time: Long, last_played_on: Long,
-                              total_play_time: Double, num_sessions: Long, mean_play_time: Double,
-                              mean_play_time_interval: Double, last_played_content: String) extends AlgoOutput
+case class DeviceUsageSummary(device_id: String, start_time: Option[Long], end_time: Option[Long], num_days: Option[Long], total_launches: Option[Long], total_timespent: Option[Double],
+                              avg_num_launches: Option[Double], avg_time: Option[Double], num_contents: Option[Long], play_start_time: Option[Long], last_played_on: Option[Long],
+                              total_play_time: Option[Double], num_sessions: Option[Long], mean_play_time: Option[Double],
+                              mean_play_time_interval: Option[Double], last_played_content: Option[String]) extends AlgoOutput
 
 case class DeviceUsageInput(device_id: String, currentData: Buffer[DerivedEvent], previousData: Option[DeviceUsageSummary]) extends AlgoInput
 case class DeviceId(device_id: String)
@@ -43,21 +43,22 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
         data.map { events =>
             val eventsSortedByTS = events.currentData.sortBy { x => x.context.date_range.to };
             val eventsSortedByDateRange = events.currentData.sortBy { x => x.context.date_range.from };
-            val prevUsageSummary = events.previousData.getOrElse(DeviceUsageSummary(events.device_id, 0L, 0L, 0L, 0L, 0.0, 0.0, 0.0, 0L, 0L, 0L, 0.0, 0L, 0.0, 0.0, ""));
+            val prevUsageSummary = events.previousData.getOrElse(DeviceUsageSummary(events.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
             val tsInString = configMapping.value.getOrElse("startTime", "2015-03-01").asInstanceOf[String]
             val ts = CommonUtil.getTimestamp(tsInString, CommonUtil.dateFormat, "yyyy-MM-dd");
             val eventStartTime = if (eventsSortedByDateRange.head.context.date_range.from < ts) ts else eventsSortedByDateRange.head.context.date_range.from
-            val start_time = if (prevUsageSummary.start_time == 0) eventStartTime else if (eventStartTime > prevUsageSummary.start_time) prevUsageSummary.start_time else eventStartTime;
+            val start_time = if (None.equals(prevUsageSummary.start_time)) eventStartTime else if (eventStartTime > prevUsageSummary.start_time.get) prevUsageSummary.start_time.get else eventStartTime;
             val end_time = eventsSortedByTS.last.context.date_range.to
             val num_days: Long = CommonUtil.daysBetween(new LocalDate(start_time), new LocalDate(end_time))
-            val num_launches = events.currentData.size + prevUsageSummary.total_launches
+            val num_launches = if (None.equals(prevUsageSummary.total_launches)) events.currentData.size else events.currentData.size + prevUsageSummary.total_launches.get
             val avg_num_launches = if (num_days == 0) num_launches else CommonUtil.roundDouble((num_launches / (num_days.asInstanceOf[Double])), 2)
-            val totalTimeSpent = events.currentData.map { x =>
+            val current_ts = events.currentData.map { x =>
                 (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
-            }.sum + prevUsageSummary.total_timespent
+            }.sum
+            val totalTimeSpent = if (None.equals(prevUsageSummary.total_timespent)) current_ts else current_ts + prevUsageSummary.total_timespent.get
             val avg_time = if (num_days == 0) totalTimeSpent else CommonUtil.roundDouble(totalTimeSpent / num_days, 2)
 
-            (DeviceUsageSummary(events.device_id, start_time, end_time, num_days, num_launches, totalTimeSpent, avg_num_launches, avg_time, prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.last_played_content))
+            (DeviceUsageSummary(events.device_id, Option(start_time), Option(end_time), Option(num_days), Option(num_launches), Option(totalTimeSpent), Option(avg_num_launches), Option(avg_time), prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.last_played_content))
         }.cache();
     }
 
@@ -66,21 +67,21 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
         data.map { usageSummary =>
             val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, null, DtRange(0l, 0l));
             val measures = Map(
-                "start_time" -> usageSummary.start_time,
-                "end_time" -> usageSummary.end_time,
-                "num_days" -> usageSummary.num_days,
-                "avg_num_launches" -> usageSummary.avg_num_launches,
-                "avg_time" -> usageSummary.avg_time,
-                "num_contents" -> usageSummary.num_contents,
-                "play_start_time" -> usageSummary.play_start_time,
-                "last_played_on" -> usageSummary.last_played_on,
-                "total_play_time" -> usageSummary.total_play_time,
-                "num_sessions" -> usageSummary.num_sessions,
-                "mean_play_time" -> usageSummary.mean_play_time,
-                "mean_play_time_interval" -> usageSummary.mean_play_time_interval,
-                "last_played_content" -> usageSummary.last_played_content);
-            MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), usageSummary.end_time, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "CUMULATIVE").asInstanceOf[String], DtRange(usageSummary.start_time, usageSummary.end_time)),
+                "start_time" -> usageSummary.start_time.get,
+                "end_time" -> usageSummary.end_time.get,
+                "num_days" -> usageSummary.num_days.get,
+                "avg_num_launches" -> usageSummary.avg_num_launches.get,
+                "avg_time" -> usageSummary.avg_time.get,
+                "num_contents" -> usageSummary.num_contents.get,
+                "play_start_time" -> usageSummary.play_start_time.get,
+                "last_played_on" -> usageSummary.last_played_on.get,
+                "total_play_time" -> usageSummary.total_play_time.get,
+                "num_sessions" -> usageSummary.num_sessions.get,
+                "mean_play_time" -> usageSummary.mean_play_time.get,
+                "mean_play_time_interval" -> usageSummary.mean_play_time_interval.get,
+                "last_played_content" -> usageSummary.last_played_content.get);
+            MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), usageSummary.end_time.get, "1.0", mid, "", None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "CUMULATIVE").asInstanceOf[String], DtRange(usageSummary.start_time.get, usageSummary.end_time.get)),
                 Dimensions(None, Option(usageSummary.device_id), None, None, None, None, None),
                 MEEdata(measures));
         }
