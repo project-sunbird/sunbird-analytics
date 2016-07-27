@@ -33,6 +33,7 @@ import sys.process._
 import org.ekstep.analytics.framework.util.S3Util
 import java.io.File
 import org.ekstep.analytics.streaming.KafkaEventProducer
+import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 
 /**
  * @author Santhosh
@@ -48,10 +49,6 @@ object ContentAPIService {
             val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
             val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
 
-            //            if ("true".equals(config.get("content.to.corpus.flag").get)) {
-            //                enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py");
-            //            }
-
             val corpus = enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py");
 
             val bucket = config.get("s3.bucket").get
@@ -60,11 +57,9 @@ object ContentAPIService {
 
             if ("true".equals(config.get("train.model").get)) {
                 //Training ....  
-                val status = s"python $scriptLoc/object2vec/corpus_to_vec.py".!
+                ScriptDispatcher.dispatch(Array(), Map("script" -> s"python $scriptLoc/object2vec/corpus_to_vec.py", "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath))
                 //upload model file
-                if (status == 0) {
-                    uploadModel(bucket, prefix, modelPath)
-                }
+                uploadModel(bucket, prefix, modelPath)
             }
             //download model
             S3Util.download(bucket, prefix, modelPath)
@@ -84,7 +79,7 @@ object ContentAPIService {
             me;
         } catch {
             case ex: Exception =>
-                JSONUtils.serialize(Map("status" -> "FAILED", "Message" -> ex.getMessage));
+                JSONUtils.serialize(Map("status" -> "FAILED", "Message" -> ex.getMessage, "stackTrace" -> ex.printStackTrace()));
         }
     }
 
@@ -211,7 +206,7 @@ object ContentAPIService {
         }
         for (f <- files) {
             val key = prefix + f.getName.split("/").last
-            S3Util.upload(bucket, f.getName, key)
+            S3Util.upload(bucket, f.getAbsolutePath, key)
         }
     }
 }
