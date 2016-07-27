@@ -32,6 +32,7 @@ import org.ekstep.analytics.framework.DtRange
 import sys.process._
 import org.ekstep.analytics.framework.util.S3Util
 import java.io.File
+import org.ekstep.analytics.streaming.KafkaEventProducer
 
 /**
  * @author Santhosh
@@ -47,8 +48,8 @@ object ContentAPIService {
             val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
             val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
 
-            if ("true".equals(config.get("content.to.corpus.flag").get)) {
-                enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py")
+            val corpus = if ("true".equals(config.get("content.to.corpus.flag").get)) {
+                enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py");
             }
 
             val bucket = config.get("s3.bucket").get
@@ -65,7 +66,9 @@ object ContentAPIService {
             }
             //download model
             S3Util.download(bucket, prefix, modelPath)
-            val vectorRDD = enrichedJson.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+            val vectorRDD = corpus.map{x => 
+                JSONUtils.serialize(Map("contentId"-> contentId, "document"-> x, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));    
+            }.pipe(s"python $scriptLoc/object2vec/infer_query.py")
 
             vectorRDD.map { x =>
                 val vectorList = JSONUtils.deserialize[List[String]](x)
