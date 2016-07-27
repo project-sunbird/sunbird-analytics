@@ -14,17 +14,17 @@ config.read(config_file)
 op_dir = config.get('FilePath', 'temp_path')
 conceptListFile = os.path.join(op_dir,'conceptList.txt')
 
-def getConcepts(URL='http://lp-sandbox.ekstep.org:8080/taxonomy-service/v2/analytics/domain/map'):
+def getConcepts(URL="https://api.ekstep.in/learning/v2/domains/numeracy/concepts"):
+	# https://dev.ekstep.in/api/learning/v2//analytics/domain/map
 	try:
 		resp=requests.get(URL).json()
 		conceptList=[]
 		for i in resp['result']['concepts']:
-			for k in i.keys():
-				try:
-					conceptList.index(i['identifier'])
-				except:
-					conceptList.append(i['identifier'])
-	except:
+			try:
+				conceptList.index(i['identifier'])
+			except:
+				conceptList.append(i['identifier'])
+	except:	
 		print("Bad internet")
 	with codecs.open(conceptListFile,"a",encoding="utf-8") as f:
 		f.write(",".join(conceptList))

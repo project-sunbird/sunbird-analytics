@@ -21,20 +21,18 @@ import find_files
 import get_lowest_key_value
 root=os.path.dirname(os.path.abspath(__file__))
 
-#Define commandline arguments
-# parser = argparse.ArgumentParser()
-# parser.add_argument('--json',help='This is the json directory',default=os.path.join(os.path.join(root,'content2EnrichedJson'),'Data'))
-# parser.add_argument('--corpus',help='This is the corpus directory',default=os.path.join(os.path.join(root,'corpus2Vec'),'Corpus'))
-
 #getiing paths from config file
 config = ConfigParser.RawConfigParser()
 config.read(config_file)
 corpus_dir = config.get('FilePath','corpus_path')
 log_dir = config.get('FilePath','log_path')
-#Read arguments given
-# args = parser.parse_args()
-# json_dir=args.json
-# corpus_dir=args.corpus
+
+#check if paths exists
+if not os.path.exists(corpus_dir):
+	os.makedirs(corpus_dir)
+
+if not os.path.exists(log_dir):
+	os.makedirs(log_dir)
 
 #Set up logging
 logfile_name = os.path.join(log_dir,'update_content_corpus.log')
@@ -53,6 +51,8 @@ def merge_strings(transcription):
 	keys=transcription.keys()
 	final_transcription={}
 	for key in keys:
+		if key == 'confidence':
+			continue
 		if(len(transcription[key])==0):
 			final_transcription[key]=''
 		else:
@@ -127,9 +127,9 @@ if not os.path.isdir(corpus_dir):
 	os.makedirs(corpus_dir)
 
 #jsonFiles=findFiles.findFiles(json_dir,['.json'])
-lst_language = []
-jsonFiles = sys.stdin
-for data in jsonFiles:
+# jsonFiles = sys.stdin
+for data in sys.stdin:
+	# data = ast.literal_eval(data)
 	json_data = json.loads(data)
 	identifier = json_data['identifier']
 	max_tag_length=5
@@ -154,33 +154,40 @@ for data in jsonFiles:
 		else:
 			tags.append(item)
 	text=True
+	#taking the language defined in json instead of detetecting (WIP)
+	string_language=json_data['languageCode']
+	mp3_language=json_data['languageCode']
+	corpus_dict = {}
 	if(len(string)>0 and len(mp3_string)>0):#There exist both stories and mp3 transcription
 		#Detect language of string		
-		string_language=langdetect.detect(string)
-		mp3_language=langdetect.detect(mp3_string)
-		lst_language.append(string_language)
-		lst_language.append(mp3_language)
+		# string_language=langdetect.detect(string)
+		# mp3_language=langdetect.detect(mp3_string)
 		if(string_language==mp3_language):#Both same langauges
 			string+='\n'+mp3_string
 			with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
 				f.write(string)
+				corpus_dict[string_language] = string
 			f.close()
 		else:#If different languages, then create separate files
 			with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
 				f.write(string)
+				corpus_dict[string_language] = string
 			f.close()
 			with codecs.open(os.path.join(path,'%s-text'%(mp3_language)),'w',encoding='utf-8') as f:
 				f.write(mp3_string)
+				corpus_dict[string_language] = mp3_string
 			f.close()
 	elif(len(string)>0):#Only stories
 		string_language=langdetect.detect(string)
 		with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
 			f.write(string)
+			corpus_dict[string_language] = string
 		f.close()
 	elif(len(mp3_string)>0):#Only mp3 transcription
 		mp3_language=langdetect.detect(mp3_string)
 		with codecs.open(os.path.join(path,'%s-text'%(mp3_language)),'w',encoding='utf-8') as f:
 			f.write(mp3_string)
+			corpus_dict[string_language] = mp3_string
 		f.close()
 	else:
 		text=False
@@ -188,6 +195,7 @@ for data in jsonFiles:
 	if(len(tags)>0):#Non zero tags
 		with codecs.open(os.path.join(path,'tags'),'w',encoding='utf-8') as f:
 			f.write(','.join(tags))
+			corpus_dict[string_language] = ','.join(tags)
 		f.close()
 	else:
 		tags_data=False
@@ -195,7 +203,7 @@ for data in jsonFiles:
 		logging.info('Fail:%s'%(identifier))
 		print("False")
 	else:
-		print("True")
+		print corpus_dict
 
 
 
