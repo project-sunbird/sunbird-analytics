@@ -27,10 +27,9 @@ config.read(config_file)
 # op_dir = config.get('FilePath','corpus_path')
 
 #inputs
-std_input = sys.stdin
+# std_input = sys.stdin
 for std_input in sys.stdin:
 	std_input = ast.literal_eval(std_input)
-	print type(std_input)
 	op_dir = std_input['corpus_loc']
 	model_loc = std_input['model']
 	params = std_input['params']

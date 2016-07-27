@@ -178,13 +178,13 @@ for data in sys.stdin:
 				corpus_dict[string_language] = mp3_string
 			f.close()
 	elif(len(string)>0):#Only stories
-		string_language=langdetect.detect(string)
+		# string_language=langdetect.detect(string)
 		with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
 			f.write(string)
 			corpus_dict[string_language] = string
 		f.close()
 	elif(len(mp3_string)>0):#Only mp3 transcription
-		mp3_language=langdetect.detect(mp3_string)
+		# mp3_language=langdetect.detect(mp3_string)
 		with codecs.open(os.path.join(path,'%s-text'%(mp3_language)),'w',encoding='utf-8') as f:
 			f.write(mp3_string)
 			corpus_dict[string_language] = mp3_string
