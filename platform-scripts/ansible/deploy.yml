@@ -15,7 +15,7 @@
 - hosts: analytics
   roles:
     - data-products
-    - py-scripts
+   # - py-scripts
 
 - hosts: api
   roles:
