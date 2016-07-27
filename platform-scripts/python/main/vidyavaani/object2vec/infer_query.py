@@ -89,7 +89,7 @@ else:
 		query = docs[key]
 		model_path = os.path.join(model_loc,model)
 		if not os.path.exists(model_path):
-			logging.info('%s model not found, using default model'%(lang))
+			logging.info('%s model not found, using default model'%(model))
 			model_path = os.path.join(model_loc,'en-text')
 			if not os.path.exists(model_path):
 				logging.info('default model not found, skipping vector this language')
