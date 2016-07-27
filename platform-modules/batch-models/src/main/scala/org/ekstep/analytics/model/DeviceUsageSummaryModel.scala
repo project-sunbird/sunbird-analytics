@@ -47,15 +47,15 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
             val tsInString = configMapping.value.getOrElse("startTime", "2015-03-01").asInstanceOf[String]
             val ts = CommonUtil.getTimestamp(tsInString, CommonUtil.dateFormat, "yyyy-MM-dd");
             val eventStartTime = if (eventsSortedByDateRange.head.context.date_range.from < ts) ts else eventsSortedByDateRange.head.context.date_range.from
-            val start_time = if (None.equals(prevUsageSummary.start_time)) eventStartTime else if (eventStartTime > prevUsageSummary.start_time.get) prevUsageSummary.start_time.get else eventStartTime;
+            val start_time = if (prevUsageSummary.start_time.isEmpty) eventStartTime else if (eventStartTime > prevUsageSummary.start_time.get) prevUsageSummary.start_time.get else eventStartTime;
             val end_time = eventsSortedByTS.last.context.date_range.to
             val num_days: Long = CommonUtil.daysBetween(new LocalDate(start_time), new LocalDate(end_time))
-            val num_launches = if (None.equals(prevUsageSummary.total_launches)) events.currentData.size else events.currentData.size + prevUsageSummary.total_launches.get
+            val num_launches = if (prevUsageSummary.total_launches.isEmpty) events.currentData.size else events.currentData.size + prevUsageSummary.total_launches.get
             val avg_num_launches = if (num_days == 0) num_launches else CommonUtil.roundDouble((num_launches / (num_days.asInstanceOf[Double])), 2)
             val current_ts = events.currentData.map { x =>
                 (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double])
             }.sum
-            val totalTimeSpent = if (None.equals(prevUsageSummary.total_timespent)) current_ts else current_ts + prevUsageSummary.total_timespent.get
+            val totalTimeSpent = if (prevUsageSummary.total_timespent.isEmpty) current_ts else current_ts + prevUsageSummary.total_timespent.get
             val avg_time = if (num_days == 0) totalTimeSpent else CommonUtil.roundDouble(totalTimeSpent / num_days, 2)
 
             (DeviceUsageSummary(events.device_id, Option(start_time), Option(end_time), Option(num_days), Option(num_launches), Option(totalTimeSpent), Option(avg_num_launches), Option(avg_time), prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.last_played_content))

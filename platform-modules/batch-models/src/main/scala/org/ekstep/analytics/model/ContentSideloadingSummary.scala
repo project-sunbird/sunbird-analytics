@@ -48,7 +48,7 @@ object ContentSideloadingSummary extends IBatchModelTemplate[Event, ContentSidel
         val joinedData = content_details.leftOuterJoin(previous_device_details)
         val device_details = joinedData.map { y =>
             val previous_summary = y._2._2.getOrElse(DeviceUsageSummary(y._1, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
-            val num_contents = if (None.equals(previous_summary.num_contents)) y._2._1.size else (y._2._1.size + previous_summary.num_contents.get)
+            val num_contents = if (previous_summary.num_contents.isEmpty) y._2._1.size else (y._2._1.size + previous_summary.num_contents.get)
             (y._1, Option(num_contents))
         }
         device_details.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE, SomeColumns("device_id", "num_contents"))
