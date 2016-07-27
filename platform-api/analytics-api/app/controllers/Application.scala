@@ -23,7 +23,9 @@ object Application extends Controller {
             "prefix" -> play.Play.application.configuration.getString("prefix"),
             "model.file.path" -> play.Play.application.configuration.getString("model.file.path"),
             "topic" -> play.Play.application.configuration.getString("topic"),
-            "broker.list" -> play.Play.application.configuration.getString("broker.list")
+            "broker.list" -> play.Play.application.configuration.getString("broker.list"),
+            "infer.all" -> play.Play.application.configuration.getString("infer.all"),
+            "corpus.loc" -> play.Play.application.configuration.getString("corpus.loc")
         );
 
     def contentUsageMetrics(contentId: String) = Action { implicit request =>
@@ -62,7 +64,7 @@ object Application extends Controller {
     def recommendations() = Action { implicit request =>
       try {
         val body: String = Json.stringify(request.body.asJson.get);
-        val response = RecommendationAPIService.recommendations(body)(Context.sc);
+        val response = RecommendationAPIService.recommendations(body)(Context.sc, config);
         play.Logger.info(request + " body - " + body + "\n\t => " + response)
         Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
       } catch {

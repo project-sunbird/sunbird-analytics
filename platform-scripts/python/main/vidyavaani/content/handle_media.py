@@ -105,5 +105,5 @@ def add_confidence(mp3_dict):
 			dict1 = value.get('alternative')[0]
 			if not dict1.has_key('confidence'):
 				dict1['confidence'] = 0.8
-			else:
-				print dict1['confidence']
+	return mp3_dict
+				
