@@ -29,6 +29,9 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.DtRange
+import sys.process._
+import org.ekstep.analytics.framework.util.S3Util
+import java.io.File
 
 /**
  * @author Santhosh
@@ -38,25 +41,46 @@ object ContentAPIService {
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
         
-        val baseUrl = config.get("base.url").get;
-        val scriptLoc = config.get("python.scripts.loc").get;
-        
-        val contentEnrichPyCall = s"python $scriptLoc/content/enrich_content.py";
-        val inferContentPyCall = s"python $scriptLoc/content/infer_query.py";
-        
-        val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
-        val enrichedJson = sc.makeRDD(contentArr).pipe(contentEnrichPyCall).cache
-        val vectorRDD = enrichedJson.pipe(inferContentPyCall)
-        
-        vectorRDD.map{x=> 
-            val vectorList = JSONUtils.deserialize[List[String]](x)
-            val vecMap = (vectorList.indices zip vectorList).toMap
-            ContentToVector(contentId, vecMap);
-        }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
-        
-        val enrichedJsonMap = enrichedJson.map{x => JSONUtils.deserialize[Map[String, AnyRef]](x)}.collect.last
-        val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
-        me;
+        try {
+            val baseUrl = config.get("base.url").get;
+            val scriptLoc = config.get("python.scripts.loc").get;
+            val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
+            val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
+
+            if ("true".equals(config.get("content.to.corpus.flag").get)) {
+                enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py")
+            }
+
+            val bucket = config.get("s3.bucket").get
+            val modelPath = config.get("model.file.path").get
+            val prefix = config.get("prefix").get
+            
+            if ("true".equals(config.get("train.model").get)) {
+                //Training ....  
+                val status = s"python $scriptLoc/object2vec/corpus_to_vec.py".!
+                //upload model file
+                if (status == 0) {
+                    uploadModel(bucket, prefix, modelPath)
+                }
+            }
+            //download model
+            S3Util.download(bucket, prefix, modelPath)
+            val vectorRDD = enrichedJson.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+
+            vectorRDD.map { x =>
+                val vectorList = JSONUtils.deserialize[List[String]](x)
+                val vecMap = (vectorList.indices zip vectorList).toMap
+                ContentToVector(contentId, vecMap);
+            }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+
+            val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
+            val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
+            //KafkaEventProducer.sendEvents(Array(me), config.get("topic").get, config.get("broker.list").get)
+            me;
+        } catch {
+            case ex: Exception =>
+                JSONUtils.serialize(Map("status"-> "FAILED", "Message" -> ex.getMessage));
+        }
     }
     
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
@@ -172,4 +196,17 @@ object ContentAPIService {
         MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange),null, MEEdata(Map("enrichedJson" -> data)));
     }
 
+    private def uploadModel(bucket: String, prefix: String, modelPath: String) {
+
+        val d = new File(modelPath)
+        val files = if (d.exists && d.isDirectory) {
+            d.listFiles.filter(_.isFile).toList;
+        } else {
+            List[File]();
+        }
+        for (f <- files) {
+            val key = prefix + f.getName.split("/").last
+            S3Util.upload(bucket, f.getName, key)
+        }
+    }
 }
