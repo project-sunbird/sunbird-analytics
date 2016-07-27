@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS learner_db.device_content_summary_fact (
     start_time timestamp,
     mean_play_time_interval double,
     downloaded boolean,
-    install_date timestamp,
+    download_date timestamp,
     num_group_user bigint,
     num_individual_user bigint,
     PRIMARY KEY (device_id, content_id)
