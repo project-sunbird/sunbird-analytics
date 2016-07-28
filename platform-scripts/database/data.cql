@@ -184,8 +184,9 @@ CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
 
 CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	content_id text,
+	category text,
 	vector map<int, text>,
-	PRIMARY KEY (content_id)
+	PRIMARY KEY (content_id, category)
 );
 
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
