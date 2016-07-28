@@ -18,14 +18,14 @@ config_file = os.path.join(resource,'config.properties')
 
 #inputs
 # std_input = sys.stdin
-for std_input in sys.stdin:
-	std_input = json.loads(std_input)
-	# std_input = ast.literal_eval(std_input)#remove
-	contentID = std_input['contentId']
-	docs = std_input['document']
-	inferFlag = std_input['infer_all']
-	corpus_loc = std_input['corpus_loc']
-	model_loc = std_input['model']
+std_input = sys.stdin.readline()
+# std_input = json.loads(std_input)
+std_input = ast.literal_eval(std_input)#remove
+contentID = std_input['contentId']
+docs = std_input['document']
+inferFlag = std_input['infer_all']
+corpus_loc = std_input['corpus_loc']
+model_loc = std_input['model']
 
 def get_immediate_subdirectories(a_dir):
     return [name for name in os.listdir(a_dir)
@@ -51,7 +51,7 @@ config.read(config_file)
 #check if paths existss
 if not os.path.exists(corpus_loc):
 	logging.info('Corpus folder do not exist')
-	os.makedirs(corpus_loc  )
+	os.makedirs(corpus_loc)
 #Set up logging
 logging.basicConfig(filename=os.path.join(corpus_loc,'inferQuery.log'),level=logging.DEBUG)
 logging.info('Corpus to Vectors')
