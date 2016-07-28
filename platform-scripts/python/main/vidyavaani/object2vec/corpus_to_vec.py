@@ -31,27 +31,49 @@ for std_input in sys.stdin:
 	std_input = ast.literal_eval(std_input)
 	op_dir = std_input['corpus_loc']
 	model_loc = std_input['model']
-	params = std_input['params']
-	training = params['training']
-	language_model=training['language_model']
-	tags_model=training['tags_model']
-	#pvdm params
-	pvdm = params['pvdm']
-	pvdm_size=int(pvdm['size'])
-	pvdm_min_count=int(pvdm['min_count'])
-	pvdm_window=int(pvdm['window'])
-	pvdm_negative=int(pvdm['negative'])
-	pvdm_workers=int(pvdm['workers'])
-	pvdm_sample=float(pvdm['sample'])
-	#pvdbow params
-	pvdbow = params['pvdbow']
-	pvdbow_size=int(pvdbow['size'])
-	pvdbow_min_count=int(pvdbow['min_count'])
-	pvdbow_window=int(pvdbow['window'])
-	pvdbow_negative=int(pvdbow['negative'])
-	pvdbow_workers=int(pvdbow['workers'])
-	pvdbow_dm=int(pvdbow['dm'])
-	pvdbow_sample=float(pvdbow['sample'])
+	# params = std_input['params']
+	# training = params['training']
+	# language_model=training['language_model']
+	# tags_model=training['tags_model']
+	# #pvdm params
+	# pvdm = params['pvdm']
+	# pvdm_size=int(pvdm['size'])
+	# pvdm_min_count=int(pvdm['min_count'])
+	# pvdm_window=int(pvdm['window'])
+	# pvdm_negative=int(pvdm['negative'])
+	# pvdm_workers=int(pvdm['workers'])
+	# pvdm_sample=float(pvdm['sample'])
+	# #pvdbow params
+	# pvdbow = params['pvdbow']
+	# pvdbow_size=int(pvdbow['size'])
+	# pvdbow_min_count=int(pvdbow['min_count'])
+	# pvdbow_window=int(pvdbow['window'])
+	# pvdbow_negative=int(pvdbow['negative'])
+	# pvdbow_workers=int(pvdbow['workers'])
+	# pvdbow_dm=int(pvdbow['dm'])
+	# pvdbow_sample=float(pvdbow['sample'])
+
+#get parameters from config file
+language_model=config.get('Training','language_model')
+tags_model=config.get('Training','tags_model')
+
+#pvdm params
+pvdm_size=int(config.get('pvdm','size'))
+pvdm_min_count=int(config.get('pvdm','min_count'))
+pvdm_window=int(config.get('pvdm','window'))
+pvdm_negative=int(config.get('pvdm','negative'))
+pvdm_workers=int(config.get('pvdm','workers'))
+pvdm_sample=float(config.get('pvdm','sample'))
+
+#pvdbow params
+pvdbow_size=int(config.get('pvdbow','size'))
+pvdbow_min_count=int(config.get('pvdbow','min_count'))
+pvdbow_window=int(config.get('pvdbow','window'))
+pvdbow_negative=int(config.get('pvdbow','negative'))
+pvdbow_workers=int(config.get('pvdbow','workers'))
+pvdbow_sample=float(config.get('pvdbow','sample'))
+pvdbow_dm=int(config.get('pvdbow','dm'))
+
 #check if paths existss
 if not os.path.exists(op_dir):
 	logging.info('Corpus folder do not exist')
