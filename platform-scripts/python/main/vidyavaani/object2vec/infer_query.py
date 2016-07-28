@@ -16,12 +16,7 @@ from find_files import *
 resource = os.path.join((os.path.split(root)[0]),'resources')
 config_file = os.path.join(resource,'config.properties')
 
-#inputs
-# std_input = sys.stdin
-# std_input = sys.stdin.readline()
-
 std_input = json.loads(sys.stdin.read())
-#std_input = ast.literal_eval(std_input)#remove
 contentID = std_input['contentId']
 docs = std_input['document']
 inferFlag = std_input['infer_all']
@@ -62,7 +57,7 @@ if not os.path.exists(corpus_loc):
 if not os.path.exists(model_loc):
 	logging.info('model folder do not exist')
 
-all_vector = {}
+all_vector = []
 if inferFlag == 'true':
 	op_dir = corpus_loc
 	lst_folder = get_immediate_subdirectories(op_dir)
@@ -89,8 +84,12 @@ if inferFlag == 'true':
 			q_vec=model.infer_vector(query)
 			# q_vec=model.infer_vector(query.split(' '),alpha=0.1, min_alpha=0.0001, steps=5)
 			vector_list = np.array(q_vec).tolist()
-			vector_dict[lang] = vector_list
-		all_vector[folder] = vector_dict
+			if not lang == 'tags':
+				vector_dict['text_vec'] = vector_list
+			else:
+				vector_dict['tags_vec'] = vector_list
+			vector_dict['contentId'] = folder
+		all_vector.append(vector_dict)
 	print all_vector
 else:
 	for key in docs.keys():
@@ -108,8 +107,12 @@ else:
 		gensim_model=gs.models.doc2vec.Doc2Vec.load(model_path)
 		q_vec=gensim_model.infer_vector(query)
 		vector_list = np.array(q_vec).tolist()
-		vector_dict[model] = vector_list
-	all_vector[contentID] = vector_dict
+		if not key == 'tags':
+			vector_dict['text_vec'] = vector_list
+		else:
+			vector_dict['tags_vec'] = vector_list
+		vector_dict['contentId'] = contentID
+	all_vector.append(vector_dict)
 	print all_vector
 
 #Infer search string from model
