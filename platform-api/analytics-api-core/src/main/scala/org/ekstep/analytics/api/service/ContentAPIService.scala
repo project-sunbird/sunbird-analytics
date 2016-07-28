@@ -67,12 +67,21 @@ object ContentAPIService {
                 JSONUtils.serialize(Map("contentId" -> contentId, "document" -> x, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));
             }.pipe(s"python $scriptLoc/object2vec/infer_query.py")
 
-            vectorRDD.map { x =>
-                val vectorList = JSONUtils.deserialize[List[String]](x)
-                val vecMap = (vectorList.indices zip vectorList).toMap
-                ContentToVector(contentId, vecMap);
-            }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+//            vectorRDD.map { x =>
+//                val vectorList = JSONUtils.deserialize[Map[String,Map[String,List[String]]]](x)
+//                //val vecMap = (vectorList.indices zip vectorList).toMap
+//                ContentToVector(contentId, vecMap);
+//            }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
 
+            vectorRDD.map { x => JSONUtils.deserialize[Map[String,Map[String,List[String]]]](x);}.flatMap(f=>f).map{x=>
+                val catVecList = x._2.toList;
+                val content = x._1
+                for(catVec <- catVecList){
+                    val vecMap = (catVec._2.indices zip catVec._2).toMap
+                    ContentToVector(content, catVec._1, vecMap);
+                }
+            }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+            
             val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
             val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
             //KafkaEventProducer.sendEvents(Array(me), config.get("topic").get, config.get("broker.list").get)
