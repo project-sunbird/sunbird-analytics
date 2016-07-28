@@ -26,11 +26,12 @@ config = ConfigParser.RawConfigParser()
 config.read(config_file)
 # op_dir = config.get('FilePath','corpus_path')
 #inputs
-for std_input in sys.stdin:
+op_dir = os.environ['corpus_loc']
+model_loc = os.environ['model']
+# for std_input in sys.stdin:
 	# std_input = ast.literal_eval(std_input)
 
-	op_dir = os.environ['corpus_loc']
-	model_loc = os.environ['model']
+
 	# params = std_input['params']
 	# training = params['training']
 	# language_model=training['language_model']
