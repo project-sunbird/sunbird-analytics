@@ -18,14 +18,14 @@ config_file = os.path.join(resource,'config.properties')
 
 #inputs
 # std_input = sys.stdin
-
-std_input = json.loads(sys.stdin[0])
-# std_input = ast.literal_eval(std_input)#remove
-contentID = std_input['contentId']
-docs = std_input['document']
-inferFlag = std_input['infer_all']
-corpus_loc = std_input['corpus_loc']
-model_loc = std_input['model']
+for std_input in sys.stdin:
+	std_input = json.loads(std_input)
+	# std_input = ast.literal_eval(std_input)#remove
+	contentID = std_input['contentId']
+	docs = std_input['document']
+	inferFlag = std_input['infer_all']
+	corpus_loc = std_input['corpus_loc']
+	model_loc = std_input['model']
 
 def get_immediate_subdirectories(a_dir):
     return [name for name in os.listdir(a_dir)
