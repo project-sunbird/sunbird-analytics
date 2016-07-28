@@ -15,5 +15,10 @@ class TestS3Util extends BaseSpec {
         val keys2 = S3Util.search("sandbox-data-store", "raw/", None, Option("2016-01-03"), Option(2));
         keys2 should not be null;
     }
+    
+    "S3Util" should "download keys from S3 bucket" in {
+        
+        S3Util.download("lpdev-ekstep", "output/", "files/");
+    }
   
 }

@@ -40,6 +40,8 @@ import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.Period._
 import org.joda.time.Weeks
 import org.ekstep.analytics.framework.Level._
+import java.io.InputStream
+import java.nio.file.CopyOption
 
 object CommonUtil {
 
@@ -111,6 +113,17 @@ object CommonUtil {
         val path = get(dir);
         JobLogger.log("Deleting directory", Option(path.toString()))
         Files.walkFileTree(path, new Visitor());
+    }
+    
+    def createDirectory(dir: String) {
+        val path = get(dir);
+        JobLogger.log("Creating directory", Option(path.toString()))
+        Files.createDirectories(path);
+    }
+    
+    def copyFile(from: InputStream, path: String, fileName: String) = {
+        createDirectory(path);
+        Files.copy(from, Paths.get(path + fileName), StandardCopyOption.REPLACE_EXISTING);
     }
 
     def deleteFile(file: String) {
