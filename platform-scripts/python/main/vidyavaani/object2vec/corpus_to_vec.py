@@ -27,8 +27,6 @@ config.read(config_file)
 # op_dir = config.get('FilePath','corpus_path')
 
 #inputs
-# std_input = sys.stdin
-op_dir=""
 for std_input in sys.stdin:
 	std_input = ast.literal_eval(std_input)
 	op_dir = std_input['corpus_loc']
@@ -44,6 +42,7 @@ for std_input in sys.stdin:
 	pvdm_window=int(pvdm['window'])
 	pvdm_negative=int(pvdm['negative'])
 	pvdm_workers=int(pvdm['workers'])
+	pvdm_sample=float(pvdm['sample'])
 	#pvdbow params
 	pvdbow = params['pvdbow']
 	pvdbow_size=int(pvdbow['size'])
@@ -52,7 +51,7 @@ for std_input in sys.stdin:
 	pvdbow_negative=int(pvdbow['negative'])
 	pvdbow_workers=int(pvdbow['workers'])
 	pvdbow_dm=int(pvdbow['dm'])
-
+	pvdbow_sample=float(pvdbow['sample'])
 #check if paths existss
 if not os.path.exists(op_dir):
 	logging.info('Corpus folder do not exist')
@@ -63,8 +62,8 @@ logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging
 logging.info('Corpus to Vectors')
 
 #get parameters from config file
-# pvdm_sample=int(config.get('pvdm','sample'))
-# pvdbow_sample=int(config.get('pvdbow','sample'))
+
+
 
 stopword = set(stopwords.words("english"))
 
@@ -110,7 +109,7 @@ def train_model_pvdm(directory,language):
 		doc=load_documents(findFiles(directory,[language]),language)
 	if doc == []:
 		return 0
-	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdm_size, min_count=pvdm_min_count, window=pvdm_window, negative=pvdm_negative, workers=pvdm_workers, sample=1e-5)
+	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdm_size, min_count=pvdm_min_count, window=pvdm_window, negative=pvdm_negative, workers=pvdm_workers, sample=pvdm_sample)
 	return model
 
 def train_model_pvdbow(directory,language):
@@ -120,7 +119,7 @@ def train_model_pvdbow(directory,language):
 		doc=load_documents(findFiles(directory,[language]),language)
 	if doc == []:
 		return 0
-	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdbow_size, min_count=pvdbow_min_count, window=pvdbow_window, negative=pvdbow_negative, workers=pvdbow_workers, sample=1e-5, dm=pvdbow_dm) #Apply PV-DBOW
+	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdbow_size, min_count=pvdbow_min_count, window=pvdbow_window, negative=pvdbow_negative, workers=pvdbow_workers, sample=pvdbow_sample, dm=pvdbow_dm) #Apply PV-DBOW
 	return model
 
 def uniqfy_list(seq):
