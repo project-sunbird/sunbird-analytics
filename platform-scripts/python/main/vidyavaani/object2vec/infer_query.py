@@ -48,13 +48,18 @@ def get_all_lang(directory,string):
 config = ConfigParser.RawConfigParser()
 config.read(config_file)
 
+#Set up logging
+logging.basicConfig(filename=os.path.join(corpus_loc,'inferQuery.log'),level=logging.DEBUG)
+logging.info('Corpus to Vectors')
+
+
 #check if paths existss
 if not os.path.exists(corpus_loc):
 	logging.info('Corpus folder do not exist')
 	os.makedirs(corpus_loc)
-#Set up logging
-logging.basicConfig(filename=os.path.join(corpus_loc,'inferQuery.log'),level=logging.DEBUG)
-logging.info('Corpus to Vectors')
+
+if not os.path.exists(model_loc):
+	logging.info('model folder do not exist')
 
 all_vector = {}
 if inferFlag == 'true':
