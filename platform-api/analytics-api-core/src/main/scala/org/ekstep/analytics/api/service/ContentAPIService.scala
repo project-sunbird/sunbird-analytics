@@ -24,8 +24,6 @@ import org.ekstep.analytics.api.ContentSummary
 import java.util.UUID
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.ContentToVector
-import org.ekstep.analytics.api.ContentCategory
-import org.ekstep.analytics.api.ContentVec
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.Context
@@ -67,18 +65,14 @@ object ContentAPIService {
             S3Util.download(bucket, prefix, modelPath)
             val vectorRDD = corpus.map { x =>
                 JSONUtils.serialize(Map("contentId" -> contentId, "document" -> x, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));
-            }.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+            }//.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+            vectorRDD.collect.last;
+            //vectorRDD.map { x => JSONUtils.deserialize[ContentToVector](x);}.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
 
-            vectorRDD.map { x => JSONUtils.deserialize[Map[String,AnyRef]](x);}.flatMap{x=> (x._1,)}
-                    ContentCategory(contentVec.content_id, vecMap.catVector);
-                }
-            }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
-
-
-            val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
-            val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
+            //val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
+            //val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
             //KafkaEventProducer.sendEvents(Array(me), config.get("topic").get, config.get("broker.list").get)
-            me;
+            //me;
         } catch {
             case ex: Exception =>
                 JSONUtils.serialize(Map("status" -> "FAILED", "Message" -> ex.getMessage, "stackTrace" -> ex.printStackTrace()));
