@@ -28,6 +28,7 @@ config.read(config_file)
 
 #inputs
 # std_input = sys.stdin
+op_dir=""
 for std_input in sys.stdin:
 	std_input = ast.literal_eval(std_input)
 	op_dir = std_input['corpus_loc']
@@ -62,15 +63,8 @@ logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging
 logging.info('Corpus to Vectors')
 
 #get parameters from config file
-
-
-
 # pvdm_sample=int(config.get('pvdm','sample'))
-
-
 # pvdbow_sample=int(config.get('pvdbow','sample'))
-
-
 
 stopword = set(stopwords.words("english"))
 
