@@ -44,21 +44,21 @@ object ContentSideloadingSummary extends IBatchModelTemplate[Event, ContentSidel
         val content_details = data.map { x => x.currentDetails }.flatMap { x => x }.map(x => (x.did, Buffer(x)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b)
-        val previous_device_details = content_details.map(x => DeviceId(x._1)).joinWithCassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
+        val previous_device_details = content_details.map(x => DeviceId(x._1)).joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
         val joinedData = content_details.leftOuterJoin(previous_device_details)
         val device_details = joinedData.map { y =>
             val previous_summary = y._2._2.getOrElse(DeviceUsageSummary(y._1, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
             val num_contents = if (previous_summary.num_contents.isEmpty) y._2._1.size else (y._2._1.size + previous_summary.num_contents.get)
             (y._1, Option(num_contents))
         }
-        device_details.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE, SomeColumns("device_id", "num_contents"))
+        device_details.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE, SomeColumns("device_id", "num_contents"))
 
         val download_details = content_details.flatMap { x => x._2 }.map { x =>
             val downloaded = if (x.transfer_count == 0) true else false
             val download_date = x.ts
             (x.did, x.content_id, downloaded, download_date)
         }
-        download_details.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT, SomeColumns("device_id", "content_id", "downloaded", "download_date"))
+        download_details.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT, SomeColumns("device_id", "content_id", "downloaded", "download_date"))
 
         data.map { x =>
             val newContentMap = x.currentDetails

@@ -65,14 +65,14 @@ object ContentAPIService {
             S3Util.download(bucket, prefix, modelPath)
             val vectorRDD = corpus.map { x =>
                 JSONUtils.serialize(Map("contentId" -> contentId, "document" -> x, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));
-            }//.pipe(s"python $scriptLoc/object2vec/infer_query.py")
-            vectorRDD.collect.last;
-            //vectorRDD.map { x => JSONUtils.deserialize[ContentToVector](x);}.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+            }.pipe(s"python $scriptLoc/object2vec/infer_query.py")
+            
+            vectorRDD.map { x => JSONUtils.deserialize[ContentToVector](x);}.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
 
-            //val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
-            //val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
+            val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
+            val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
             //KafkaEventProducer.sendEvents(Array(me), config.get("topic").get, config.get("broker.list").get)
-            //me;
+            me;
         } catch {
             case ex: Exception =>
                 JSONUtils.serialize(Map("status" -> "FAILED", "Message" -> ex.getMessage, "stackTrace" -> ex.printStackTrace()));

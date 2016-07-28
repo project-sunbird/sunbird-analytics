@@ -47,7 +47,7 @@ object DeviceSpecification extends IBatchModelTemplate[Event,Event,DeviceSpec,De
     }
     
     override def postProcess(data: RDD[DeviceSpec], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceSpec] = {
-        data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE);
+        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE);
         data
     }
 }
