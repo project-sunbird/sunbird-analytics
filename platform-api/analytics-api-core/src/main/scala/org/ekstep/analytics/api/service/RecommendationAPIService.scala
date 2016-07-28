@@ -8,6 +8,7 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.util.RestUtil
 import org.apache.spark.rdd.RDD
+import org.apache.spark.broadcast.Broadcast
 
 /**
  * @author mahesh
@@ -16,6 +17,7 @@ import org.apache.spark.rdd.RDD
 object RecommendationAPIService {
 
     var contentRDD: RDD[(String, Map[String, AnyRef])] = null;
+    var contentBroadcastMap : Broadcast[Map[String, Map[String, AnyRef]]] = null; 
 
     def initCache()(implicit sc: SparkContext, config: Map[String, String]) {
 
@@ -24,7 +26,9 @@ object RecommendationAPIService {
         val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000));
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        contentRDD = sc.parallelize(contentList, 4).map(f => (f.get("identifier").get.asInstanceOf[String], f)).cache();
+        //contentRDD = sc.parallelize(contentList, 4).map(f => (f.get("identifier").get.asInstanceOf[String], f)).cache();
+        val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
+        contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
     }
 
     def recommendations(requestBody: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
@@ -32,15 +36,19 @@ object RecommendationAPIService {
         val context = reqBody.request.context;
         val did = context.get("did").asInstanceOf[String];
         val dlang = context.get("dlang").asInstanceOf[String];
+        val limit = reqBody.request.limit.getOrElse(10);
+        
         if (StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
             throw new Exception("did or dlang is missing.");
         }
 
         val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
         val result = if (deviceRecos.count() > 0) {
-            val deviceRDD = sc.parallelize(deviceRecos.first, 4);
-            val contentRecos = deviceRDD.join(contentRDD).map(f => f._2._2);
-            val rec = contentRecos.collect();
+            /** The below code joins the data with content RDD but the order is removed from it - so the results require re-ordering of data */
+            //val deviceRDD = sc.parallelize(deviceRecos.first.take(limit), 4);
+            //val contentRecos = deviceRDD.join(contentRDD).map(f => f._2._2 ++ Map("reco_score" -> f._2._1));
+            //val rec = contentRecos.collect();
+            val rec = deviceRecos.first.take(limit).map(f => contentBroadcastMap.value.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
             Map[String, AnyRef]("content" -> rec);
         } else {
             Map[String, AnyRef]("content" -> Array());
