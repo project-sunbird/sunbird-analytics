@@ -184,8 +184,8 @@ CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
 
 CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	content_id text,
-	text_vector list<double>,
-	tag_vector list<double>,
+	text_vec list<double>,
+	tag_vec list<double>,
 	PRIMARY KEY (content_id)
 );
 
