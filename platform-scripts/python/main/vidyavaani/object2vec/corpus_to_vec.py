@@ -52,14 +52,14 @@ for std_input in sys.stdin:
 	pvdbow_workers=int(pvdbow['workers'])
 	pvdbow_dm=int(pvdbow['dm'])
 
-#Set up logging
-logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging.DEBUG)
-logging.info('Corpus to Vectors')
-
 #check if paths existss
 if not os.path.exists(op_dir):
 	logging.info('Corpus folder do not exist')
 	os.makedirs(op_dir)
+
+#Set up logging
+logging.basicConfig(filename=os.path.join(op_dir,'corpus2Vec.log'),level=logging.DEBUG)
+logging.info('Corpus to Vectors')
 
 #get parameters from config file
 
