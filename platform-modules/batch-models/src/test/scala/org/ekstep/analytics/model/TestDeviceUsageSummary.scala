@@ -11,7 +11,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
     "DeviceUsageSummary" should "generate DeviceUsageSummary events from a sample file and pass all positive test cases " in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE learner_db.device_usage_summary;");
+            session.execute("TRUNCATE device_db.device_usage_summary;");
         }
 
         val rdd0 = loadFile[Event]("src/test/resources/device-usage-summary/telemetry_test_data2.log");
@@ -78,7 +78,7 @@ class TestDeviceUsageSummary extends SparkSpec(null) {
     it should "generate DeviceUsageSummary event with start_time = March 1st 2015 " in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE learner_db.device_usage_summary;");
+            session.execute("TRUNCATE device_db.device_usage_summary;");
         }
 
         val rdd0 = loadFile[Event]("src/test/resources/device-usage-summary/telemetry_test_data1.log");

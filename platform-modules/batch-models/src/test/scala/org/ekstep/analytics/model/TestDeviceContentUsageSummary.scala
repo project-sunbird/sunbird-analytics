@@ -12,14 +12,14 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
     it should "generate device content summary events" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE learner_db.device_content_summary_fact");
-            session.execute("TRUNCATE learner_db.device_usage_summary;");
+            session.execute("TRUNCATE device_db.device_content_summary_fact");
+            session.execute("TRUNCATE device_db.device_usage_summary;");
         }
 
         val rdd = loadFile[Event]("src/test/resources/device-content-usage-summary/telemetry_test_data.log");
         val me = ContentSideloadingSummary.execute(rdd, None);
 
-        val table1 = sc.cassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
+        val table1 = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table1.avg_num_launches should be(None)
         table1.avg_time should be(None)
         table1.num_days should be(None)
@@ -32,7 +32,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         table1.mean_play_time_interval should be(None)
         table1.last_played_content should be(None)
 
-        val table2 = sc.cassandraTable[DeviceContentSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
+        val table2 = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table2.content_id should be("numeracy_360")
         table2.avg_interactions_min should be(None)
         table2.downloaded.get should be(false)
@@ -49,14 +49,14 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         val rdd0 = loadFile[Event]("src/test/resources/device-content-usage-summary/telemetry_test_data2.log");
         val me1 = ContentSideloadingSummary.execute(rdd0, None);
         
-        val table = sc.cassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
+        val table = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table.num_contents.get should be(4)
         
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-content-usage-summary/test_data1.log");
         val rdd2 = DeviceContentUsageSummary.execute(rdd1, None);
         val events1 = rdd2.collect
 
-        events1.length should be(3)
+        events1.length should be(4)
         val event1 = events1(0);
 
         event1.eid should be("ME_DEVICE_CONTENT_USAGE_SUMMARY");
@@ -114,7 +114,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         eks3.get("avg_interactions_min").get should be(Some(34.29))
         eks3.get("mean_play_time_interval").get should be(Some(2141937.63))
 
-        val table3 = sc.cassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
+        val table3 = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table3.avg_num_launches should be(None)
         table3.avg_time should be(None)
         table3.num_days should be(None)
@@ -130,7 +130,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         val rdd5 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_1.log");
         val rdd6 = DeviceUsageSummaryModel.execute(rdd5, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
 
-        val table4 = sc.cassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
+        val table4 = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table4.avg_num_launches.get should be(0.25)
         table4.avg_time.get should be(2.5)
         table4.start_time.get should be(1460627512768L)
