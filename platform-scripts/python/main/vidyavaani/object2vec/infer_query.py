@@ -19,8 +19,9 @@ config_file = os.path.join(resource,'config.properties')
 #inputs
 # std_input = sys.stdin
 # std_input = sys.stdin.readline()
-std_input = json.loads(std_input)
-std_input = ast.literal_eval(std_input)#remove
+
+std_input = json.loads(sys.stdin.read())
+#std_input = ast.literal_eval(std_input)#remove
 contentID = std_input['contentId']
 docs = std_input['document']
 inferFlag = std_input['infer_all']
