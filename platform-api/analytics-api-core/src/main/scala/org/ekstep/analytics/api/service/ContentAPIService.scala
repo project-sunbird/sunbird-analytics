@@ -73,11 +73,12 @@ object ContentAPIService {
 //                ContentToVector(contentId, vecMap);
 //            }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
 
-            vectorRDD.map ( x => JSONUtils.deserialize[Map[String,Map[String,List[String]]]](x);).flatMap(f=>f).map{x=>
+            vectorRDD.map { x => JSONUtils.deserialize[Map[String,Map[String,List[String]]]](x);}.flatMap(f=>f).map{x=>
                 val catVecList = x._2.toList;
                 val content = x._1
                 for(catVec <- catVecList){
-                    ContentToVector(content, catVec._1, catVec._2);
+                    val vecMap = (catVec._2.indices zip catVec._2).toMap
+                    ContentToVector(content, catVec._1, vecMap);
                 }
             }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
             
