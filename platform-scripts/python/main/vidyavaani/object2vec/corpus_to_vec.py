@@ -28,7 +28,7 @@ config.read(config_file)
 
 #inputs
 for std_input in sys.stdin:
-	std_input = ast.literal_eval(std_input)
+	# std_input = ast.literal_eval(std_input)
 	op_dir = std_input['corpus_loc']
 	model_loc = std_input['model']
 	# params = std_input['params']
