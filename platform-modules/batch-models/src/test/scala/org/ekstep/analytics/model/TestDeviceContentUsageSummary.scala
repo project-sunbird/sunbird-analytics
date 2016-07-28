@@ -56,7 +56,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         val rdd2 = DeviceContentUsageSummary.execute(rdd1, None);
         val events1 = rdd2.collect
 
-        events1.length should be(3)
+        events1.length should be(4)
         val event1 = events1(0);
 
         event1.eid should be("ME_DEVICE_CONTENT_USAGE_SUMMARY");
