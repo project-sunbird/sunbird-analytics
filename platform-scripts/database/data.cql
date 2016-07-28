@@ -188,12 +188,6 @@ CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	PRIMARY KEY (content_id)
 );
 
-CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
-	content_id text,
-	vector map<int, text>,
-	PRIMARY KEY (content_id)
-);
-
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
