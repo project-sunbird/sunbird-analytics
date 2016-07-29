@@ -28,18 +28,31 @@
   tags:
     - analytics
 
-- name: Copy Data Products
+- name: Copy GenieSearch
   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
   tags:
     - analytics
 
 
-- name: Copy Data Products
+- name: Copy VidyavaniCnQ
   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/scripts
   tags:
     - analytics
 
-- name: Copy Data Products
+- name: Copy Data vidyavaani
   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
   tags:
     - analytics
+
+- name: Create folder content_corpus
+  become: yes
+  file: path=/mnt/data/analytics/content_corpus state=directory 
+
+
+- name: Create folder model
+  become: yes
+  file: path=/mnt/data/analytics/content_corpus/model state=directory 
+
+- name: permissions
+  become: yes
+  file: path=/mnt/data/analytics/content_corpus mode=0755 owner=ec2-user group=ec2-user recurse=yes
