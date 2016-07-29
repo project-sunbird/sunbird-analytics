@@ -19,7 +19,7 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.util.JobLogger
 
-case class ContentUsageMetrics(content_id: String, is_group_user: Boolean, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String, dt_range: DtRange) extends AlgoOutput;
+case class ContentUsageMetrics(content_id: String, content_ver: String, is_group_user: Boolean, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String, dt_range: DtRange) extends AlgoOutput;
 case class ContentUsageSummaryInput(contentId: String, isGroupUser: Boolean, data: Buffer[DerivedEvent]) extends AlgoInput;
 
 object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsageSummaryInput, ContentUsageMetrics, MeasuredEvent] with Serializable {
@@ -48,13 +48,14 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsag
             val date_range = DtRange(firstEvent.syncts, lastEvent.syncts);
             val content_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentType").get.asInstanceOf[String]
             val mime_type = firstEvent.edata.eks.asInstanceOf[Map[String, AnyRef]].get("mimeType").get.asInstanceOf[String]
-
+            val content_ver = firstEvent.dimensions.gdata.get.ver
+            
             val total_ts = CommonUtil.roundDouble(cusEvent.data.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum, 2);
             val total_sessions = cusEvent.data.size
             val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
             val total_interactions = cusEvent.data.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int] }.sum
             val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-            ContentUsageMetrics(cusEvent.contentId, cusEvent.isGroupUser, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type, date_range)
+            ContentUsageMetrics(cusEvent.contentId, content_ver, cusEvent.isGroupUser, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, content_type, mime_type, date_range)
         }
     }
 
@@ -71,7 +72,7 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsag
                 "mime_type" -> cuMetrics.mime_type);
             MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, "1.0", mid, "", Option(cuMetrics.content_id), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
-                Dimensions(None, None, None, None, None, None, None, Option(cuMetrics.is_group_user)),
+                Dimensions(None, None, Option(new GData(cuMetrics.content_id, cuMetrics.content_ver)), None, None, None, None, Option(cuMetrics.is_group_user)),
                 MEEdata(measures));
         }
 
