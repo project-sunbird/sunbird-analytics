@@ -21,7 +21,6 @@ std_input = sys.stdin.read()
 std_input = ast.literal_eval(std_input)
 contentID = std_input['contentId']
 docs = std_input['document']
-#docs = ast.literal_eval(docs)
 inferFlag = std_input['infer_all']
 corpus_loc = std_input['corpus_loc']
 model_loc = std_input['model']
