@@ -18,8 +18,8 @@ config_file = os.path.join(resource,'config.properties')
 
 # inputs
 #std_input = json.loads(sys.stdin.read())
-std_input = sys.stdin.read()
-std_input = ast.literal_eval(std_input)
+std_input = sys.stdin.readline()
+std_input = json.loads(std_input)
 contentID = std_input['contentId']
 docs = std_input['document']
 inferFlag = std_input['infer_all']
@@ -60,6 +60,7 @@ if not os.path.exists(corpus_loc):
 if not os.path.exists(model_loc):
 	logging.info('model folder do not exist')
 
+response = {}
 all_vector = []
 if inferFlag == 'true':
 	op_dir = corpus_loc
@@ -93,7 +94,8 @@ if inferFlag == 'true':
 				vector_dict['tags_vec'] = vector_list
 			vector_dict['contentId'] = folder
 		all_vector.append(vector_dict)
-	print all_vector
+		response['content_vectors'] = all_vector
+	print(json.dumps(response))
 else:
 	for key in docs.keys():
 		vector_dict ={}
@@ -116,7 +118,8 @@ else:
 			vector_dict['tags_vec'] = vector_list
 		vector_dict['contentId'] = contentID
 	all_vector.append(vector_dict)
-	print all_vector
+	response['content_vectors'] = all_vector
+	print(json.dumps(response))
 
 #Infer search string from model
 #https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L499

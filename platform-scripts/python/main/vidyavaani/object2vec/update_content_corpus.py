@@ -108,14 +108,14 @@ def process_data(json_dictionary):
 		filename=key.split(',')[-2].split('/')[-1]
 		item_number=regex.sub('',key.split(',')[0])
 		if(item_number!=''):
-			data=(int(item_number),'\n'.join(json_dictionary[key]))
+			data=(int(item_number),''.join(json_dictionary[key]))
 			if(filename in processed):
 				processed[filename].append(data)
 			else:
 				processed[filename]=[data]
 	for k in processed.keys():
 		processed[k]=sorted(processed[k],key=itemgetter(0))
-		processed[k]='\n'.join([unicode(item[1]) for item in processed[k]])
+		processed[k]=''.join([unicode(item[1]) for item in processed[k]])
 	return(processed)
 
 def uniqfy_list(seq):
@@ -144,13 +144,13 @@ for data in sys.stdin:
 	# data_list=json.loads(''.join(data['data']),encoding='utf-8')
 	for key in data_list.keys():
 		x.add(''.join(process_data(get_lowest_key_value.flattenDict(data_list[key])).values()))
-	string='\n'.join(list(x))
+	string=''.join(list(x))
 	#mp3
 	mp3_string=''
 	dat=merge_strings(json_data['mp3Transcription']).values()
 	for item in dat:
 		if(len(item.split(' '))>max_tag_length):
-			mp3_string+='\n'+item
+			mp3_string+=item
 		else:
 			tags.append(item)
 	text=True
@@ -163,7 +163,7 @@ for data in sys.stdin:
 		# string_language=langdetect.detect(string)
 		# mp3_language=langdetect.detect(mp3_string)
 		if(string_language==mp3_language):#Both same langauges
-			string+='\n'+mp3_string
+			string+=mp3_string
 			with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
 				f.write(string)
 				corpus_dict[string_language] = string
@@ -203,7 +203,7 @@ for data in sys.stdin:
 		logging.info('Fail:%s'%(identifier))
 		print("False")
 	else:
-		print corpus_dict
+		print(json.dumps(corpus_dict))
 
 
 

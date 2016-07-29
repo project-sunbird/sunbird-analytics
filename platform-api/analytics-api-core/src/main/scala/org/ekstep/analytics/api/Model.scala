@@ -25,7 +25,8 @@ case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_group_
                                    m_last_sync_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long,
                                    m_avg_interactions_min: Double, m_avg_sessions_week: Option[Double], m_avg_ts_week: Option[Double])
 
-case class ContentToVector(content_id: String, text_vec: Option[List[String]] = Option(List()), tag_vec: Option[List[Double]] = Option(List()));
+case class ContentVectors(content_vectors: Array[ContentVector]);
+class ContentVector(val contentId: String,val text_vec: List[Double], val tag_vec: List[Double]);
 
 object Period extends Enumeration {
     type Period = Value

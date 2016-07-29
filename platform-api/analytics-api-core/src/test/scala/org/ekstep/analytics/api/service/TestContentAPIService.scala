@@ -297,5 +297,22 @@ class TestContentAPIService extends SparkSpec {
         summaries.get("cumulative").get.get("total_ts").get should be (51744);
         summaries.get("cumulative").get.get("avg_sessions_week").get should be (16.38095238095238);
     }
+    
+    it should "enrich content and create content vectors" in {
+        
+        val config = Map[String, String](
+                    "content2vec.content_service_url" -> "https://qa.ekstep.in/api/learning",
+                    "content2vec.scripts_path" -> "../../platform-scripts/python/main/vidyavaani",
+                    "content2vec.s3_bucket" -> "lpdev-ekstep",
+                    "content2vec.model_path" -> "content_corpus/model/",
+                    "content2vec.s3_key_prefix" -> "DataSciences/model/",
+                    "content2vec.corpus_path" -> "content_corpus",
+                    "content2vec.infer_all" -> "false",
+                    "python.home" -> "/usr/local/bin/",
+                    "content2vec.enrich_content" -> "false"
+                )
+        val resp = ContentAPIService.contentToVec("domain_9053")(sc, config)
+        println("### Response ###", resp);
+    }
   
 }
