@@ -16,10 +16,10 @@ from find_files import *
 resource = os.path.join((os.path.split(root)[0]),'resources')
 config_file = os.path.join(resource,'config.properties')
 
-#inputs
-std_input = sys.stdin.readline()
-# std_input = json.loads(std_input)
-std_input = ast.literal_eval(std_input)#remove
+# inputs
+#std_input = json.loads(sys.stdin.read())
+std_input = sys.stdin.read()
+std_input = ast.literal_eval(std_input)
 contentID = std_input['contentId']
 docs = std_input['document']
 inferFlag = std_input['infer_all']
