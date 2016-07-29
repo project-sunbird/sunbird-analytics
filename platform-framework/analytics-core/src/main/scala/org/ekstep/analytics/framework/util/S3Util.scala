@@ -29,6 +29,20 @@ object S3Util {
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
 
+    def uploadDirectory(bucketName: String, prefix: String, dir: String) {
+
+        val d = new File(dir)
+        val files = if (d.exists && d.isDirectory) {
+            d.listFiles.filter(_.isFile).toList;
+        } else {
+            List[File]();
+        }
+        for (f <- files) {
+            val key = prefix + f.getName.split("/").last
+            upload(bucketName, f.getAbsolutePath, key)
+        }
+    }
+
     def download(bucketName: String, prefix: String, localPath: String) {
 
         val bucket = s3Service.getBucket(bucketName);

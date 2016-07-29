@@ -1,7 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.IBatchModelTemplate
-import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -20,14 +20,18 @@ import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.GData
+import com.datastax.spark.connector._
+import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.updater.LearnerProfile
 
 case class ItemSummaryInput(uid: String, event: Event) extends AlgoInput
-case class ItemSummaryOutput(uid: String, itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef], ts: Long, syncts: Long, gameId: String, gameVer: String) extends AlgoOutput
+case class ItemDetails(uid: String, itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Array[String], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef], ts: Long, syncts: Long, gameId: String, gameVer: String, tags: Option[AnyRef], did: String)
+case class ItemSummaryOutput(uid: String, itemDetails: ItemDetails, groupInfo: Option[(Boolean, Boolean)]) extends AlgoOutput
 
 object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSummaryOutput, MeasuredEvent] with Serializable {
 
-    override def name() : String = "ItemSummarizer";
-    
+    override def name(): String = "ItemSummarizer";
+
     /**
      * Get item from broadcast item mapping variable
      */
@@ -78,6 +82,7 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
         val itemData = getItemData(contents, gameList, "v2");
         val itemMapping = sc.broadcast(itemData);
 
+        val groupInfoSummary = data.map(f => LearnerId(f.uid)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (x._1.learner_id, (x._2.group_user, x._2.anonymous_user)); }
         val itemRes = data.map { x =>
             val event = x.event
             val gameId = event.gdata.id
@@ -85,20 +90,24 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
             val telemetryVer = event.ver;
             val itemObj = getItem(itemMapping.value, event);
             val metadata = itemObj.metadata;
+            val tags = event.tags
             val res = telemetryVer match {
                 case "2.0" =>
                     if (null == event.edata.eks.resvalues) Array[String](); else event.edata.eks.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) };
                 case _ =>
                     event.edata.eks.res;
             }
-            ItemSummaryOutput(event.uid, event.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(event.edata.eks.length), metadata.get("ex_time_spent"), res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, event.edata.eks.score, Option(CommonUtil.getEventTS(event)), metadata.get("max_score"), metadata.get("domain"), CommonUtil.getTimestamp(event.ts), CommonUtil.getEventSyncTS(event), gameId, gameVer);
+            (event.uid, ItemDetails(event.uid, event.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(event.edata.eks.length), metadata.get("ex_time_spent"), res, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, event.edata.eks.score, Option(CommonUtil.getEventTS(event)), metadata.get("max_score"), metadata.get("domain"), CommonUtil.getTimestamp(event.ts), CommonUtil.getEventSyncTS(event), gameId, gameVer, Option(tags), event.did));
         }
-        itemRes;
+        val itemDetails = itemRes.leftOuterJoin(groupInfoSummary)
+        itemDetails.map { f => ItemSummaryOutput(f._1, f._2._1, f._2._2) }
     }
 
     override def postProcess(data: RDD[ItemSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
-        data.map { itemData =>
+        data.map { itemDetail =>
+            val itemData = itemDetail.itemDetails
+            val booleanTuple = itemDetail.groupInfo.getOrElse((false, false))
             val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", itemData.itemId, itemData.uid, itemData.ts);
             val measures = Map(
                 "itemId" -> itemData.itemId,
@@ -116,7 +125,7 @@ object ItemSummary extends IBatchModelTemplate[Event, ItemSummaryInput, ItemSumm
                 "domain" -> itemData.domain);
             MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), itemData.syncts, "1.0", mid, itemData.uid, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "EVENT", DtRange(itemData.ts, itemData.ts)),
-                Dimensions(None, None, Option(new GData(itemData.gameId, itemData.gameVer)), None, None, None), MEEdata(measures));
+                Dimensions(None, Option(itemData.did), Option(new GData(itemData.gameId, itemData.gameVer)), None, None, None, None, Option(booleanTuple._1), Option(booleanTuple._2)), MEEdata(measures), itemData.tags);
         };
     }
 }

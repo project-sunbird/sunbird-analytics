@@ -13,19 +13,19 @@ import context.Context
 object Application extends Controller {
 
     implicit val config = Map(
-        "base.url" -> play.Play.application.configuration.getString("base.url"),
-        "python.scripts.loc" -> play.Play.application.configuration.getString("python.scripts.loc"),
-        "enriched.json.flag" -> play.Play.application.configuration.getString("enriched.json.flag"),
-        "train.model" -> play.Play.application.configuration.getString("train.model"),
-        "content.to.corpus.flag" -> play.Play.application.configuration.getString("content.to.corpus.flag"),
-        "infer.query.flag" -> play.Play.application.configuration.getString("infer.query.flag"),
-        "s3.bucket" -> play.Play.application.configuration.getString("s3.bucket"),
-        "prefix" -> play.Play.application.configuration.getString("prefix"),
-        "model.file.path" -> play.Play.application.configuration.getString("model.file.path"),
-        "topic" -> play.Play.application.configuration.getString("topic"),
-        "broker.list" -> play.Play.application.configuration.getString("broker.list"),
-        "infer.all" -> play.Play.application.configuration.getString("infer.all"),
-        "corpus.loc" -> play.Play.application.configuration.getString("corpus.loc"));
+        "content2vec.content_service_url" -> play.Play.application.configuration.getString("content2vec.content_service_url"),
+        "content2vec.scripts_path" -> play.Play.application.configuration.getString("content2vec.scripts_path"),
+        "content2vec.enrich_content" -> play.Play.application.configuration.getString("content2vec.enrich_content"),
+        "content2vec.train_model" -> play.Play.application.configuration.getString("content2vec.train_model"),
+        "content2vec.content_corpus" -> play.Play.application.configuration.getString("content2vec.content_corpus"),
+        "content2vec.infer_query" -> play.Play.application.configuration.getString("content2vec.infer_query"),
+        "content2vec.s3_bucket" -> play.Play.application.configuration.getString("content2vec.s3_bucket"),
+        "content2vec.s3_key_prefix" -> play.Play.application.configuration.getString("content2vec.s3_key_prefix"),
+        "content2vec.model_path" -> play.Play.application.configuration.getString("content2vec.model_path"),
+        "content2vec.kafka_topic" -> play.Play.application.configuration.getString("content2vec.kafka_topic"),
+        "content2vec.kafka_broker_list" -> play.Play.application.configuration.getString("content2vec.kafka_broker_list"),
+        "content2vec.infer_all" -> play.Play.application.configuration.getString("content2vec.infer_all"),
+        "content2vec.corpus_path" -> play.Play.application.configuration.getString("content2vec.corpus_path"));
 
     def contentUsageMetrics(contentId: String) = Action { implicit request =>
 

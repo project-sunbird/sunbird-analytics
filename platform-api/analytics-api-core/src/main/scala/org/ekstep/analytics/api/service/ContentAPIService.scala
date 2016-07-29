@@ -23,7 +23,7 @@ import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.ContentSummary
 import java.util.UUID
 import org.ekstep.analytics.api.Constants
-import org.ekstep.analytics.api.ContentToVector
+import org.ekstep.analytics.api.ContentVector
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.Context
@@ -34,6 +34,8 @@ import org.ekstep.analytics.framework.util.S3Util
 import java.io.File
 import org.ekstep.analytics.streaming.KafkaEventProducer
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
+import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.api.ContentVectors
 
 /**
  * @author Santhosh
@@ -43,40 +45,75 @@ object ContentAPIService {
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
-        try {
-            val baseUrl = config.get("base.url").get;
-            val scriptLoc = config.get("python.scripts.loc").get;
-            val contentArr = Array(s"$baseUrl/learning/v2/content/$contentId")
-            val enrichedJson = sc.makeRDD(contentArr).pipe(s"python $scriptLoc/content/enrich_content.py").cache
+        val baseUrl = config.get("content2vec.content_service_url").get;
+        val contentArr = Array(s"$baseUrl/v2/content/$contentId")
+        implicit val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
+        implicit val pythonExec = config.getOrElse("python.home", "") + "python";
+        val contentRDD = sc.parallelize(contentArr, 1);
 
-            val corpus = enrichedJson.pipe(s"python $scriptLoc/object2vec/update_content_corpus.py");
+        val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec).cache();
 
-            val bucket = config.get("s3.bucket").get
-            val modelPath = config.get("model.file.path").get
-            val prefix = config.get("prefix").get
+        val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
 
-            if ("true".equals(config.get("train.model").get)) {
-                //Training ....  
-                ScriptDispatcher.dispatch(Array(), Map("script" -> s"python $scriptLoc/object2vec/corpus_to_vec.py", "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath))
-                //upload model file
-                uploadModel(bucket, prefix, modelPath)
-            }
-            //download model
-            S3Util.download(bucket, prefix, modelPath)
-            val vectorRDD = corpus.map { x =>
-                JSONUtils.serialize(Map("contentId" -> contentId, "document" -> x, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));
-            }.pipe(s"python $scriptLoc/object2vec/infer_query.py")
-            
-            vectorRDD.map { x => JSONUtils.deserialize[ContentToVector](x);}.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
+        _doTrainContent2VecModel(scriptLoc, pythonExec);
+        val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId);
 
-            val enrichedJsonMap = enrichedJson.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
-            val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
-            //KafkaEventProducer.sendEvents(Array(me), config.get("topic").get, config.get("broker.list").get)
-            me;
-        } catch {
-            case ex: Exception =>
-                JSONUtils.serialize(Map("status" -> "FAILED", "Message" -> ex.getMessage, "stackTrace" -> ex.printStackTrace()));
+        vectors.first();
+    }
+
+    private def printRDD(rdd: RDD[String]) = {
+        rdd.collect().foreach(println);
+    }
+
+    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]): RDD[String] = {
+
+        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.enrich_content", "true"))) {
+            contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py")
+        } else {
+            contentRDD
         }
+    }
+
+    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]): RDD[String] = {
+
+        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.content_corpus", "true"))) {
+            contentRDD.pipe(s"$pythonExec $scriptLoc/object2vec/update_content_corpus.py");
+        } else {
+            contentRDD
+        }
+    }
+
+    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]) = {
+
+        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.train_model", "false"))) {
+            val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
+            val modelPath = config.getOrElse("content2vec.model_path", "model");
+            val prefix = config.getOrElse("content2vec.s3_key_prefix", "model");
+            ScriptDispatcher.dispatch(Array(), Map("script" -> s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py",
+                "corpus_loc" -> config.getOrElse("content2vec.corpus_path", ""), "model" -> modelPath))
+            S3Util.uploadDirectory(bucket, prefix, modelPath);
+        }
+    }
+
+    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String)(implicit config: Map[String, String]): RDD[String] = {
+
+        val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
+        val modelPath = config.getOrElse("content2vec.model_path", "model");
+        val prefix = config.getOrElse("content2vec.s3_key_prefix", "model");
+        S3Util.download(bucket, prefix, modelPath)
+        val vectorRDD = contentRDD.map { x =>
+            Map("contentId" -> contentId, "document" -> JSONUtils.deserialize[Map[String, AnyRef]](x), "infer_all" -> config.getOrElse("content2vec.infer_all", "false"),
+                "corpus_loc" -> config.getOrElse("content2vec.corpus_path", ""), "model" -> modelPath);
+        }.map(JSONUtils.serialize).pipe(s"$pythonExec $scriptLoc/object2vec/infer_query.py");
+
+        val x = vectorRDD.map { x => JSONUtils.deserialize[ContentVectors](x) }.flatMap { x => x.content_vectors.map { y => y } }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC)
+        vectorRDD;
+    }
+
+    private def _publishEnrichedContent(contentRDD: RDD[String], contentId: String) {
+        val enrichedJsonMap = contentRDD.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }.collect.last
+        val me = JSONUtils.serialize(getME(enrichedJsonMap, contentId))
+        //KafkaEventProducer.sendEvents(Array(me), config.get("topic").get, config.get("broker.list").get)
     }
 
     def getContentUsageMetrics(contentId: String, requestBody: String)(implicit sc: SparkContext): String = {
@@ -192,17 +229,4 @@ object ContentAPIService {
         MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data)));
     }
 
-    private def uploadModel(bucket: String, prefix: String, modelPath: String) {
-
-        val d = new File(modelPath)
-        val files = if (d.exists && d.isDirectory) {
-            d.listFiles.filter(_.isFile).toList;
-        } else {
-            List[File]();
-        }
-        for (f <- files) {
-            val key = prefix + f.getName.split("/").last
-            S3Util.upload(bucket, f.getAbsolutePath, key)
-        }
-    }
 }
