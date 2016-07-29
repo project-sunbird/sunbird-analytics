@@ -29,17 +29,17 @@
     - analytics
 
 - name: Copy Data Products
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/DS_scripts
+  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
   tags:
     - analytics
 
 
 - name: Copy Data Products
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/DS_scripts
+  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/scripts
   tags:
     - analytics
 
 - name: Copy Data Products
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/DS_scripts
+  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
   tags:
     - analytics
