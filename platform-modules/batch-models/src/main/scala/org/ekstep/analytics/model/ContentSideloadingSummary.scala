@@ -91,7 +91,7 @@ object ContentSideloadingSummary extends IBatchModelTemplate[Event, ContentSidel
                 "avg_depth" -> csSummary.summary.avg_depth);
             MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), csSummary.synts, "1.0", mid, "", Option(csSummary.summary.content_id), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentSideloadingSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", csSummary.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, None),
+                Dimensions(None, None, Option(new GData(csSummary.summary.content_id, "")), None, None, None, None, None, None),
                 MEEdata(measures));
         }
     }
