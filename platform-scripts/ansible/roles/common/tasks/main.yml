@@ -1,6 +1,7 @@
 - name: Install Java8
   become: yes
   yum: name=java-1.8.0 state=latest
+  ignore_errors: yes 
   register: result1
   tags:
     - always
