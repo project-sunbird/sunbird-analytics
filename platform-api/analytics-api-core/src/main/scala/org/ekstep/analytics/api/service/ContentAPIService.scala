@@ -64,7 +64,7 @@ object ContentAPIService {
             //download model
             S3Util.download(bucket, prefix, modelPath)
             val vectorRDD = corpus.map { x =>
-                JSONUtils.serialize(Map("contentId" -> contentId, "document" -> x, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));
+                JSONUtils.serialize(Map("contentId" -> contentId, "document" -> x.getBytes, "infer_all" -> config.get("infer.all").get, "corpus_loc" -> config.get("corpus.loc").get, "model" -> modelPath));//.replace("\"document\":\"","\"document\":").replace("'}\"", "'}").replace("'","\"");
             }.pipe(s"python $scriptLoc/object2vec/infer_query.py")
             
             vectorRDD.map { x => JSONUtils.deserialize[ContentToVector](x);}.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC);
