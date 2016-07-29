@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.util.RestUtil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.broadcast.Broadcast
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 
 /**
  * @author mahesh
@@ -17,7 +19,8 @@ import org.apache.spark.broadcast.Broadcast
 object RecommendationAPIService {
 
     var contentRDD: RDD[(String, Map[String, AnyRef])] = null;
-    var contentBroadcastMap : Broadcast[Map[String, Map[String, AnyRef]]] = null; 
+    var contentBroadcastMap : Broadcast[Map[String, Map[String, AnyRef]]] = null;
+    var cacheTimestamp: Long = 0L;
 
     def initCache()(implicit sc: SparkContext, config: Map[String, String]) {
 
@@ -29,9 +32,22 @@ object RecommendationAPIService {
         //contentRDD = sc.parallelize(contentList, 4).map(f => (f.get("identifier").get.asInstanceOf[String], f)).cache();
         val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
         contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
+        cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
+    }
+    
+    def validateCache()(implicit sc: SparkContext, config: Map[String, String]) {
+        
+        val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
+        if(cacheTimestamp < timeAtStartOfDay) {
+            println("cacheTimestamp:" + cacheTimestamp, "timeAtStartOfDay:" + timeAtStartOfDay, " ### Resetting content cache...### ");
+            if(null != contentBroadcastMap) contentBroadcastMap.destroy();
+            initCache();
+        }
     }
 
     def recommendations(requestBody: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
+        
+        validateCache();
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
         val context = reqBody.request.context;
         val did = context.get("did").asInstanceOf[String];
@@ -43,17 +59,20 @@ object RecommendationAPIService {
         }
 
         val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
-        val result = if (deviceRecos.count() > 0) {
+        val recoContent = if (deviceRecos.count() > 0) {
             /** The below code joins the data with content RDD but the order is removed from it - so the results require re-ordering of data */
-            //val deviceRDD = sc.parallelize(deviceRecos.first.take(limit), 4);
-            //val contentRecos = deviceRDD.join(contentRDD).map(f => f._2._2 ++ Map("reco_score" -> f._2._1));
-            //val rec = contentRecos.collect();
-            val rec = deviceRecos.first.take(limit).map(f => contentBroadcastMap.value.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
-            Map[String, AnyRef]("content" -> rec);
+            /** 
+            val deviceRDD = sc.parallelize(deviceRecos.first.take(limit), 4);
+            val contentRecos = deviceRDD.join(contentRDD).map(f => f._2._2 ++ Map("reco_score" -> f._2._1));
+            val rec = contentRecos.collect();
+            */
+            
+            deviceRecos.first.take(limit).map(f => contentBroadcastMap.value.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2)).filter(p => p.get("identifier").isDefined);
         } else {
-            Map[String, AnyRef]("content" -> Array());
+            Array();
         }
 
+        val result = Map[String, AnyRef]("content" -> recoContent);
         JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", result));
     }
 }

@@ -71,61 +71,9 @@ CREATE TABLE IF NOT EXISTS learner_db.learnerprofile (
 	PRIMARY KEY (learner_id)
 );
 
-CREATE TABLE IF NOT EXISTS learner_db.devicespecification (
-	device_id text, 
-	device_name text, 
-	device_local_name text,
-	os text, 
-	make text, 
-	memory double,
-	internal_disk double,
-	external_disk double,
-	screen_size double,
-	primary_secondary_camera text,
-	cpu text,
-	num_sims double,
-	capabilities list<text>,
-	PRIMARY KEY (device_id,os,screen_size)
-);
-
-CREATE TABLE IF NOT EXISTS learner_db.device_usage_summary (
-    device_id text,
-    start_time timestamp,
-    end_time timestamp,
-    num_days bigint,
-    total_launches bigint,
-    total_timespent double,
-    avg_num_launches double,
-    avg_time double,
-    PRIMARY KEY (device_id)
-);
-
-ALTER TABLE learner_db.device_usage_summary ADD num_contents bigint;
-ALTER TABLE learner_db.device_usage_summary ADD play_start_time timestamp;
-ALTER TABLE learner_db.device_usage_summary ADD last_played_on timestamp;
-ALTER TABLE learner_db.device_usage_summary ADD total_play_time double;
-ALTER TABLE learner_db.device_usage_summary ADD num_sessions bigint;
-ALTER TABLE learner_db.device_usage_summary ADD mean_play_time double;
-ALTER TABLE learner_db.device_usage_summary ADD mean_play_time_interval double; 
-ALTER TABLE learner_db.device_usage_summary ADD last_played_content text;
-
-CREATE TABLE IF NOT EXISTS learner_db.device_content_summary_fact (
-    device_id text,
-    content_id text,
-    game_ver text,
-    num_sessions bigint,
-    total_interactions bigint, 
-    avg_interactions_min double,
-    total_timespent double,
-    last_played_on timestamp,
-    start_time timestamp,
-    mean_play_time_interval double,
-    downloaded boolean,
-    download_date timestamp,
-    num_group_user bigint,
-    num_individual_user bigint,
-    PRIMARY KEY (device_id, content_id)
-);
+DROP TABLE IF EXISTS learner_db.devicespecification;
+DROP TABLE IF EXISTS learner_db.device_usage_summary;
+DROP TABLE IF EXISTS learner_db.device_content_summary_fact;
 
 CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
   'class': 'SimpleStrategy',
@@ -184,9 +132,9 @@ CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
 
 CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	content_id text,
-	category text,
-	vector map<int, text>,
-	PRIMARY KEY (content_id, category)
+	text_vec list<double>,
+	tag_vec list<double>,
+	PRIMARY KEY (content_id)
 );
 
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
@@ -198,4 +146,59 @@ CREATE TABLE IF NOT EXISTS device_db.device_recos(
 	device_id text,
 	scores list<frozen <tuple<text, double>>>,
 	PRIMARY KEY (device_id)
+);
+
+CREATE TABLE IF NOT EXISTS device_db.device_specification (
+	device_id text, 
+	device_name text, 
+	device_local_name text,
+	os text, 
+	make text, 
+	memory double,
+	internal_disk double,
+	external_disk double,
+	screen_size double,
+	primary_secondary_camera text,
+	cpu text,
+	num_sims double,
+	capabilities list<text>,
+	PRIMARY KEY (device_id,os,screen_size)
+);
+
+CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (
+    device_id text,
+    start_time timestamp,
+    end_time timestamp,
+    num_days bigint,
+    total_launches bigint,
+    total_timespent double,
+    avg_num_launches double,
+    avg_time double,
+    num_contents bigint,
+    play_start_time timestamp,
+    last_played_on timestamp,
+    total_play_time double,
+    num_sessions bigint,
+    mean_play_time double,
+    mean_play_time_interval double,
+    last_played_content text,
+    PRIMARY KEY (device_id)
+);
+
+CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
+    device_id text,
+    content_id text,
+    game_ver text,
+    num_sessions bigint,
+    total_interactions bigint, 
+    avg_interactions_min double,
+    total_timespent double,
+    last_played_on timestamp,
+    start_time timestamp,
+    mean_play_time_interval double,
+    downloaded boolean,
+    download_date timestamp,
+    num_group_user bigint,
+    num_individual_user bigint,
+    PRIMARY KEY (device_id, content_id)
 );

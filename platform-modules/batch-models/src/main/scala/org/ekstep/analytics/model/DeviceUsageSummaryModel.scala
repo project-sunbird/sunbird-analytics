@@ -32,7 +32,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
         val newGroupedEvents = filteredEvents.map(event => (event.dimensions.did.get, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
-        val prevDeviceSummary = newGroupedEvents.map(f => DeviceId(f._1)).joinWithCassandraTable[DeviceUsageSummary](Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
+        val prevDeviceSummary = newGroupedEvents.map(f => DeviceId(f._1)).joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
         val deviceData = newGroupedEvents.leftOuterJoin(prevDeviceSummary);
         deviceData.map { x => DeviceUsageInput(x._1, x._2._1, x._2._2) }
     }
@@ -63,7 +63,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
     }
 
     override def postProcess(data: RDD[DeviceUsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE);
+        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE);
         data.map { usageSummary =>
             val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, null, DtRange(0l, 0l));
             val measures = Map(

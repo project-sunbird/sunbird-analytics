@@ -11,15 +11,17 @@ object Constants {
     val LEARNER_CONTENT_SUMMARY_TABLE = "learnercontentsummary";
     val LEARNER_CONCEPT_RELEVANCE_TABLE = "learnerconceptrelevance";
     val CONCEPT_SIMILARITY_TABLE = "conceptsimilaritymatrix";
-    val DEVICE_SPECIFICATION_TABLE = "devicespecification";
-    val DEVICE_USAGE_SUMMARY_TABLE = "device_usage_summary"
+    val LEARNER_PROFILE_TABLE = "learnerprofile";
+    val DEVICE_KEY_SPACE_NAME = "device_db";
+    val DEVICE_SPECIFICATION_TABLE = "device_specification";
+    val DEVICE_USAGE_SUMMARY_TABLE = "device_usage_summary";
+    val DEVICE_CONTENT_SUMMARY_FACT = "device_content_summary_fact";
     val CONTENT_KEY_SPACE_NAME = "content_db";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";
-    val LEARNER_PROFILE_TABLE = "learnerprofile";
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
-    val DEVICE_CONTENT_SUMMARY_FACT = "device_content_summary_fact";
+    
     val LP_URL = AppConf.getConfig("lp.url");
 
     def getContentList(): String = {
