@@ -44,21 +44,4 @@
   tags:
     - analytics
 
-- name: Create folder content_corpus
-  become: yes
-  file: path=/mnt/data/analytics/content_corpus state=directory 
-  tags:
-    - analytics
 
-
-- name: Create folder model
-  become: yes
-  file: path=/mnt/data/analytics/content_corpus/model state=directory 
-  tags:
-    - analytics
-
-- name: permissions
-  become: yes
-  file: path=/mnt/data/analytics/content_corpus mode=0755 owner=ec2-user group=ec2-user recurse=yes
-  tags:
-    - analytics
