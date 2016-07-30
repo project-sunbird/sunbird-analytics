@@ -47,7 +47,7 @@ object RecommendationAPIService {
 
     def recommendations(requestBody: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
         
-        validateCache();
+        //validateCache();
         val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
         val context = reqBody.request.context;
         val did = context.get("did").asInstanceOf[String];
