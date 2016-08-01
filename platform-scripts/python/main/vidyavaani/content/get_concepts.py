@@ -14,10 +14,12 @@ config.read(config_file)
 op_dir = config.get('FilePath', 'temp_path')
 conceptListFile = os.path.join(op_dir,'conceptList.txt')
 
-def getConcepts(URL="https://api.ekstep.in/learning/v2/domains/numeracy/concepts"):
-	# https://dev.ekstep.in/api/learning/v2//analytics/domain/map
+def getConcepts(baseURL):
+	
+	url = baseURL + "/v2/domains/numeracy/concepts"
 	try:
-		resp=requests.get(URL).json()
+		resp=requests.get(url)
+		resp=json.loads(resp.text)
 		conceptList=[]
 		for i in resp['result']['concepts']:
 			try:
