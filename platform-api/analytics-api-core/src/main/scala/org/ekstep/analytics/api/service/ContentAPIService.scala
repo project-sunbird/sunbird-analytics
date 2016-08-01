@@ -53,7 +53,7 @@ object ContentAPIService {
         
         println("Calling _doContentEnrichment......")
         val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec).cache();
-
+        printRDD(enrichedContentRDD);
         println("Calling _doContentToCorpus......")
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
 
