@@ -9,6 +9,10 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import context.Context
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.duration._
+import scala.concurrent.Future
+
 
 object Application extends Controller {
 
@@ -47,17 +51,24 @@ object Application extends Controller {
         Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
     }
 
-    def contentToVec(contentId: String) = Action {
-
-        try {
-            val response = ContentAPIService.contentToVec(contentId)(Context.sc, config);
-            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
-
-        } catch {
-            case ex: Exception =>
-                ex.printStackTrace();
-                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentToVec", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
-        }
+//    def contentToVec(contentId: String) = Action {
+//
+//        try {
+//            val response = ContentAPIService.contentToVec(contentId)(Context.sc, config);
+//            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+//
+//        } catch {
+//            case ex: Exception =>
+//                ex.printStackTrace();
+//                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentToVec", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
+//        }
+//    }
+    
+    
+    def contentToVec(contentId: String) = Action.async {
+        val futureRes = Future { ContentAPIService.contentToVec(contentId)(Context.sc, config) }
+        val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Rquest Accepted... Thank you ", 30.second)
+        Future.firstCompletedOf(Seq(futureRes, timeoutFuture)).map { res => Ok(res);}
     }
 
     def recommendations() = Action { implicit request =>
