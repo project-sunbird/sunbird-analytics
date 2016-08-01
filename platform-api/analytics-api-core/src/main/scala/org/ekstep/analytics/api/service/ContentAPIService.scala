@@ -50,12 +50,16 @@ object ContentAPIService {
         implicit val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
         implicit val pythonExec = config.getOrElse("python.home", "") + "python";
         val contentRDD = sc.parallelize(contentArr, 1);
-
+        
+        println("Calling _doContentEnrichment......")
         val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec).cache();
 
+        println("Calling _doContentToCorpus......")
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
 
+        println("Calling _doTrainContent2VecModel......")
         _doTrainContent2VecModel(scriptLoc, pythonExec);
+        println("Calling _doUpdateContentVectors......")
         val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId);
 
         vectors.first();
