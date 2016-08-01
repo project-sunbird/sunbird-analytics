@@ -54,6 +54,14 @@
 - name: install test
   command: /usr/local/bin/pip install simplejson
 
+
+- name: install modules
+  pip: name={{ item }} state=latest
+  with_items: 
+            - matplotlib
+            - scipy
+            - nltk.corpus
+
 - name: install modules
   pip: name={{ item.name }} version={{ item.version }} state=present
   with_items: 
@@ -68,11 +76,4 @@
              - { name: 'SpeechRecognition', version: '3.4.6' }
              - { name: 'jsonschema', version: '2.5.1' }
 
-- name: install modules
-  become: yes
-  pip: name={{ item }} state=latest
-  with_items: 
-            - matplotlib
-            - scipy
-            - nltk.corpus
 
