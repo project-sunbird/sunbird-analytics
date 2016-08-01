@@ -32,7 +32,7 @@
 
 - name: Unarchive python
   become: yes
-  unarchive: src=/mnt/data/analytics/Python-2.7.12.tgz dest=/usr/src/ copy=no  creates=/mnt/data/analytics/Python-2.7.12
+  unarchive: src=/mnt/data/analytics/Python-2.7.12.tgz dest=/mnt/data/analytics copy=no  creates=/mnt/data/analytics/Python-2.7.12
 
 - name: move directory
   become: yes
