@@ -27,23 +27,25 @@
   yum: name=gcc state=present
 
 - name: install python
-  get_url: url=https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz dest=/usr/src/Python-2.7.102tgz timeout=1000 force=no 
+  become: yes
+  get_url: url=https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz dest=/mnt/data/analytics/Python-2.7.12.tgz timeout=1000 force=no 
 
 - name: Unarchive python
-  unarchive: src=/usr/src/Python-2.7.12.tgz dest=/usr/src/ copy=no  creates=/usr/src/Python-2.7.12
+  become: yes
+  unarchive: src=/mnt/data/analytics/Python-2.7.12.tgz dest=/usr/src/ copy=no  creates=/mnt/data/analytics/Python-2.7.12
 
 - name: move directory
   become: yes
-  shell: chdir=/usr/src/Python-2.7.12 ./configure
+  shell: chdir=/mnt/data/analytics/Python-2.7.12 ./configure
 
 
 - name: move directory
   become: yes
-  shell: chdir=/usr/src/Python-2.7.12 make 
+  shell: chdir=/mnt/data/analytics/Python-2.7.12 make 
 
 - name: move directory
   become: yes
-  shell: chdir=/usr/src/Python-2.7.12 make install        
+  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install        
 
 - name: install pip
   become: yes
