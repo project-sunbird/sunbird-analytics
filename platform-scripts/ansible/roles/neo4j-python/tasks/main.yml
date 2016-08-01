@@ -54,9 +54,7 @@
 - name: install test
   command: /usr/local/bin/pip install {{ item }}
   with_items: 
-            - matplotlib
-            - scipy
-            - nltk.corpus
+            - nltk
             - py2neo
             - requests
             - numpy
@@ -67,4 +65,6 @@
             - signalslot
             - SpeechRecognition
             - jsonschema
+            - matplotlib
+            - scipy
 
