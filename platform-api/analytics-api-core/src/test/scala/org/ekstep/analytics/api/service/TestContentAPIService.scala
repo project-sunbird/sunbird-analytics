@@ -301,7 +301,7 @@ class TestContentAPIService extends SparkSpec {
     ignore should "enrich content and create content vectors" in {
         
         val config = Map[String, String](
-                    "content2vec.content_service_url" -> "https://qa.ekstep.in/api/learning",
+                    "content2vec.content_service_url" -> "https://dev.ekstep.in/api/learning",
                     "content2vec.scripts_path" -> "../../platform-scripts/python/main/vidyavaani",
                     "content2vec.s3_bucket" -> "lpdev-ekstep",
                     "content2vec.model_path" -> "content_corpus/model/",
@@ -309,9 +309,9 @@ class TestContentAPIService extends SparkSpec {
                     "content2vec.corpus_path" -> "content_corpus",
                     "content2vec.infer_all" -> "false",
                     "python.home" -> "/usr/local/bin/",
-                    "content2vec.enrich_content" -> "false"
+                    "content2vec.enrich_content" -> "true"
                 )
-        val resp = ContentAPIService.contentToVec("domain_9053")(sc, config)
+        val resp = ContentAPIService.contentToVec("domain_38527")(sc, config)
         println("### Response ###", resp);
     }
   

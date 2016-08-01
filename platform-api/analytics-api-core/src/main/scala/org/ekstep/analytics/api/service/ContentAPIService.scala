@@ -45,24 +45,25 @@ object ContentAPIService {
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
-        println("### Config ###", config);
         val baseUrl = config.get("content2vec.content_service_url").get;
         val contentArr = Array(s"$baseUrl/v2/content/$contentId")
-        implicit val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
-        implicit val pythonExec = config.getOrElse("python.home", "") + "python";
-        val contentRDD = sc.parallelize(contentArr, 1);
+        val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
+        val pythonExec = config.getOrElse("python.home", "") + "python";
+        val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
+        
+        val contentRDD = sc.parallelize(contentArr, 1).map { x => JSONUtils.serialize(Map("content_url" -> x, "base_url" -> baseUrl)) };
         
         println("Calling _doContentEnrichment......")
-        val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec).cache();
+        val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec, env).cache();
         printRDD(enrichedContentRDD);
         println("Calling _doContentToCorpus......")
-        val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
+        val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
 
         println("Calling _doTrainContent2VecModel......")
-        _doTrainContent2VecModel(scriptLoc, pythonExec);
+        _doTrainContent2VecModel(scriptLoc, pythonExec, env);
         println("Calling _doUpdateContentVectors......")
         printRDD(corpusRDD);
-        val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId);
+        val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId, env);
 
         vectors.first();
     }
@@ -71,25 +72,25 @@ object ContentAPIService {
         rdd.collect().foreach(println);
     }
 
-    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]): RDD[String] = {
+    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
 
         if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.enrich_content", "true"))) {
-            contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py")
+            contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py", env)
         } else {
             contentRDD
         }
     }
 
-    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]): RDD[String] = {
+    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
 
         if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.content_corpus", "true"))) {
-            contentRDD.pipe(s"$pythonExec $scriptLoc/object2vec/update_content_corpus.py");
+            contentRDD.pipe(s"$pythonExec $scriptLoc/object2vec/update_content_corpus.py", env);
         } else {
             contentRDD
         }
     }
 
-    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]) = {
+    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]) = {
 
         if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.train_model", "false"))) {
             val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
@@ -101,7 +102,7 @@ object ContentAPIService {
         }
     }
 
-    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String)(implicit config: Map[String, String]): RDD[String] = {
+    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
 
         val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
         val modelPath = config.getOrElse("content2vec.model_path", "model");
