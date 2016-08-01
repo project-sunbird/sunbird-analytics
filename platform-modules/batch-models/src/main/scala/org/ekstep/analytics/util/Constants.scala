@@ -21,6 +21,7 @@ object Constants {
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
+    val CONTENT_TO_VEC = "content_to_vector";
     
     val LP_URL = AppConf.getConfig("lp.url");
 
