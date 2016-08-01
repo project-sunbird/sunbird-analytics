@@ -5,6 +5,11 @@
   tags:
     - api
 
+- name: Copy Vidyavaani Python Scripts
+  copy: src=/home/jenkins/workspace/LPA_Deploy_API_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
+  tags:
+    - api    
+
 - name: Status of the api service
   command: "{{ sbin_path }}/api-service status"
   register: api_status
