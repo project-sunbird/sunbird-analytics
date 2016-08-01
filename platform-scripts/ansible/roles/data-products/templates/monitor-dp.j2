@@ -70,7 +70,8 @@ if [ "$failed_jobs" != "" ]; then
 	done <<< "$failed_jobs"
 fi
 
-echo -e $file_content > dp-monitor-$today.csv
+echo -e $file_content > /mnt/data/analytics/scripts/monitor-data/dp-monitor-$today.csv
+
 
 echo "-------- Status Report --------"
 echo "Number of Completed Jobs: $comp_num"
