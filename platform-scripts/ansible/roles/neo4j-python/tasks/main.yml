@@ -53,7 +53,7 @@
 
 - name: install modules
   become: yes
-  pip: name={{ item.name }}  state=latest
+  pip: name={{ item }}  state=latest
   with_items: 
              - py2neo 
              - requests
