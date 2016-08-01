@@ -52,28 +52,19 @@
 #  easy_install: name=pip state=latest
 
 - name: install test
-  command: /usr/local/bin/pip install simplejson
-
-
-- name: install modules
-  pip: name={{ item }} state=latest
+  command: /usr/local/bin/pip install {{ item }}
   with_items: 
             - matplotlib
             - scipy
             - nltk.corpus
-
-- name: install modules
-  pip: name={{ item.name }} version={{ item.version }} state=present
-  with_items: 
-             - { name: 'py2neo', version: '2.0.8' }
-             - { name: 'requests', version: '2.10.0' }
-             - { name: 'numpy', version: '1.8.0' }
-             - { name: 'langdetect', version: '1.0.6' }
-             - { name: 'simplejson', version: '3.8.2' }
-             - { name: 'mutagen', version: '1.33.1' }
-             - { name: 'pydub', version: '0.16.4' }
-             - { name: 'signalslot', version: '0.1.1' }
-             - { name: 'SpeechRecognition', version: '3.4.6' }
-             - { name: 'jsonschema', version: '2.5.1' }
-
+            - py2neo
+            - requests
+            - numpy
+            - langdetect
+            - simplejson
+            - mutagen
+            - pydub
+            - signalslot
+            - SpeechRecognition
+            - jsonschema
 
