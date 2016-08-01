@@ -26,30 +26,30 @@
   become: yes
   yum: name=gcc state=present
 
-- name: install python
-  become: yes
-  get_url: url=https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz dest=/mnt/data/analytics/Python-2.7.12.tgz timeout=1000 force=no 
+#- name: install python
+#  become: yes
+#  get_url: url=https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz dest=/mnt/data/analytics/Python-2.7.12.tgz timeout=1000 force=no 
 
-- name: Unarchive python
-  become: yes
-  unarchive: src=/mnt/data/analytics/Python-2.7.12.tgz dest=/mnt/data/analytics copy=no  creates=/mnt/data/analytics/Python-2.7.12
+#- name: Unarchive python
+#  become: yes
+#  unarchive: src=/mnt/data/analytics/Python-2.7.12.tgz dest=/mnt/data/analytics copy=no  creates=/mnt/data/analytics/Python-2.7.12
 
-- name: move directory
-  become: yes
-  shell: chdir=/mnt/data/analytics/Python-2.7.12 ./configure
+#- name: move directory
+#  become: yes
+#  shell: chdir=/mnt/data/analytics/Python-2.7.12 ./configure
 
 
-- name: move directory
-  become: yes
-  shell: chdir=/mnt/data/analytics/Python-2.7.12 make 
+#- name: move directory
+#  become: yes
+#  shell: chdir=/mnt/data/analytics/Python-2.7.12 make 
 
-- name: move directory
-  become: yes
-  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install        
+#- name: move directory
+#  become: yes
+#  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install        
 
-- name: install pip
-  become: yes
-  easy_install: name=pip state=latest
+#- name: install pip
+#  become: yes
+#  easy_install: name=pip state=latest
 
 - name: install modules
   become: yes
