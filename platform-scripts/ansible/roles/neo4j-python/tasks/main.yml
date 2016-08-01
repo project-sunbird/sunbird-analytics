@@ -65,6 +65,5 @@
             - signalslot
             - SpeechRecognition
             - jsonschema
-            - matplotlib
             - scipy
 
