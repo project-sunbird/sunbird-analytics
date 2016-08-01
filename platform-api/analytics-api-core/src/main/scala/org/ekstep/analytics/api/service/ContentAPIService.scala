@@ -53,14 +53,14 @@ object ContentAPIService {
         
         println("Calling _doContentEnrichment......")
         val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec).cache();
-        printRDD("enrichedContentRDD", enrichedContentRDD);
+        printRDD(enrichedContentRDD);
         println("Calling _doContentToCorpus......")
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
 
         println("Calling _doTrainContent2VecModel......")
         _doTrainContent2VecModel(scriptLoc, pythonExec);
         println("Calling _doUpdateContentVectors......")
-        printRDD("corpusRDD",corpusRDD);
+        printRDD(corpusRDD);
         val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId);
 
         vectors.first();
