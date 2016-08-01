@@ -45,6 +45,7 @@ object ContentAPIService {
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
+        println("### Config ###", config);
         val baseUrl = config.get("content2vec.content_service_url").get;
         val contentArr = Array(s"$baseUrl/v2/content/$contentId")
         implicit val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
@@ -53,7 +54,7 @@ object ContentAPIService {
         
         println("Calling _doContentEnrichment......")
         val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec).cache();
-
+        printRDD(enrichedContentRDD);
         println("Calling _doContentToCorpus......")
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
 
