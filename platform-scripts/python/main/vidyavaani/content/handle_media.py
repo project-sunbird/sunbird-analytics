@@ -7,6 +7,7 @@ import signal
 import speech_recognition as sr
 import json
 import codecs
+import traceback
 import re #For image names
 #Pass as a commandline argument later on
 root=os.path.dirname(os.path.abspath(__file__))
@@ -66,10 +67,11 @@ def speech_recogniser(mp3_file_names,language='en-IN'):
 			with sr.AudioFile(AUDIO_FILE) as source:
 				audio = r.record(source) # read the entire audio file
 			#Recognize speech using Google Speech Recognition
-			mp3_dct[temp]=r.recognize_google(audio,show_all=True,language="en-IN")
+			mp3_dct[temp]=r.recognize_google(audio,key="AIzaSyCZhrh8FXctpN1SXqXKXx17zn8ydDG8HZE",show_all=True,language="en-IN")
 			os.remove('%s.wav'%(temp))
 			signal.alarm(0)#Alarm disabled
 		except:
+			traceback.print_exc()
 			#Bad mp3 files
 			try:
 				os.remove('%s.wav'%(temp))
