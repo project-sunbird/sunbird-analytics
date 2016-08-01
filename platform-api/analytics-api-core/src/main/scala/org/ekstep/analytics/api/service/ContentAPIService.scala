@@ -60,6 +60,7 @@ object ContentAPIService {
         println("Calling _doTrainContent2VecModel......")
         _doTrainContent2VecModel(scriptLoc, pythonExec);
         println("Calling _doUpdateContentVectors......")
+        printRDD(corpusRDD);
         val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId);
 
         vectors.first();
