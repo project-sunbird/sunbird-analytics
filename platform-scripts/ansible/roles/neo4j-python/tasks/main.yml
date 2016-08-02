@@ -47,9 +47,8 @@
 #  become: yes
 #  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install        
 
-#- name: install pip
-#  become: yes
-#  easy_install: name=pip state=latest
+- name: install pip
+  easy_install: name=pip state=latest
 
 - name: install test
   command: /usr/local/bin/pip install {{ item }}
@@ -66,4 +65,7 @@
             - SpeechRecognition
             - jsonschema
             - scipy
+
+- name: install pip
+  easy_install: name=pandas state=latest
 
