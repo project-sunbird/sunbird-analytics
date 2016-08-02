@@ -50,7 +50,7 @@
 - name: install pip
   easy_install: name=pip state=latest
 
-- name: install test
+- name: install modules
   command: /usr/local/bin/pip install {{ item }}
   with_items: 
             - nltk
@@ -66,10 +66,9 @@
             - jsonschema
             - scipy
 
-- name: install pip
-  easy_install: name=pandas state=latest
-
-
-- name: install pip
-  easy_install: name=matplotlib state=latest
+- name: install pip modules
+  easy_install: name={{ item }} state=latest
+  with_items:
+             - pandas
+             - matplotlib
 
