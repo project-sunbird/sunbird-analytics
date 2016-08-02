@@ -43,11 +43,12 @@
             - signalslot
             - SpeechRecognition
             - jsonschema
-#            - scipy
-#           - pandas
-#            - matplotlib
+ #            - matplotlib
 
 
-#- name: install pip modules
-#  easy_install: name={{ item }} state=latest
-#  with_items
+- name: install pip modules
+  easy_install: name={{ item }} state=latest
+  with_items:
+             - scipy
+             - pandas
+#
