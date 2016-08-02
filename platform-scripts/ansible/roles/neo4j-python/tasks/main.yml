@@ -32,6 +32,16 @@
   with_items:
              - libpng-devel
 
+
+- name: install gcc
+  become: yes
+  yum: name=pip state=latest
+
+
+- name: add link
+  become: yes
+  command: ln -s /usr/local/bin/pip usr/bin/pip
+
 - name: install modules
   become: yes
   pip: chdir=/usr/bin name={{ item }} state=present
