@@ -48,6 +48,7 @@
 #  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install    
 
 - name: install modules
+  become: yes
   pip: name={{ item }} state=present
   with_items: 
             - nltk
