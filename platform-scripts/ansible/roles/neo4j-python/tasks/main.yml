@@ -69,3 +69,7 @@
 - name: install pip
   easy_install: name=pandas state=latest
 
+
+- name: install pip
+  easy_install: name=matplotlib state=latest
+
