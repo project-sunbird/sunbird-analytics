@@ -107,6 +107,8 @@ case class LearnerId(learner_id: String)
 case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
+case class Empty() extends Input
+
 object Period extends Enumeration {
     type Period = Value
     val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
