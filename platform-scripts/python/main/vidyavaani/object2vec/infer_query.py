@@ -48,7 +48,8 @@ config = ConfigParser.RawConfigParser()
 config.read(config_file)
 
 #Set up logging
-logging.basicConfig(filename=os.path.join(corpus_loc,'inferQuery.log'),level=logging.DEBUG)
+infer_log_file = os.path.join(corpus_loc,'inferQuery.log')
+logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
 logging.info('Corpus to Vectors')
 
 
@@ -60,8 +61,24 @@ if not os.path.exists(corpus_loc):
 if not os.path.exists(model_loc):
 	logging.info('model folder do not exist')
 
+def get_vector_dimension():
+	try:
+		all_models = findFiles(model_loc,['text','tags'])
+		any_model = all_models[0]
+		model_path = os.path.join(model_loc,any_model)
+		query = 'test'
+		model=gs.models.doc2vec.Doc2Vec.load(model_path)
+		q_vec=model.infer_vector(query)
+		test_vector_list = np.array(q_vec).tolist()
+		n_dim = len(test_vector_list)
+	except:
+		n_dim = 50#default value
+	return n_dim
+
 response = {}
 all_vector = []
+n_dim = get_vector_dimension()
+
 if inferFlag == 'true':
 	op_dir = corpus_loc
 	lst_folder = get_immediate_subdirectories(op_dir)
@@ -92,13 +109,20 @@ if inferFlag == 'true':
 				vector_dict['text_vec'] = vector_list
 			else:
 				vector_dict['tags_vec'] = vector_list
-			vector_dict['contentId'] = folder
+		vector_dict['contentId'] = folder
+		if not 'tags_vec' in vector_dict:
+			logging.info('no tags data, so adding zero vectors')
+			vector_dict['tags_vec'] = np.array(np.zeros(n_dim)).tolist()
+		if not 'text_vec' in vector_dict:
+			logging.info('no text data, so adding zero vectors')
+			vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
 		all_vector.append(vector_dict)
 		response['content_vectors'] = all_vector
 	print(json.dumps(response))
 else:
+	vector_dict ={}
+	#defining default values
 	for key in docs.keys():
-		vector_dict ={}
 		if not key == 'tags':
 			model = '%s-text'%(key)
 		query = docs[key]
@@ -114,9 +138,17 @@ else:
 		vector_list = np.array(q_vec).tolist()
 		if not key == 'tags':
 			vector_dict['text_vec'] = vector_list
+			logging.info('Vectors for text retrieved')
 		else:
 			vector_dict['tags_vec'] = vector_list
-		vector_dict['contentId'] = contentID
+			logging.info('Vectors for text retrieved')
+	vector_dict['contentId'] = contentID
+	if not 'tags_vec' in vector_dict:
+		logging.info('no tags data, so adding zero vectors')
+		vector_dict['tags_vec'] = np.array(np.zeros(n_dim)).tolist()
+	if not 'text_vec' in vector_dict:
+		logging.info('no text data, so adding zero vectors')
+		vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
 	all_vector.append(vector_dict)
 	response['content_vectors'] = all_vector
 	print(json.dumps(response))
