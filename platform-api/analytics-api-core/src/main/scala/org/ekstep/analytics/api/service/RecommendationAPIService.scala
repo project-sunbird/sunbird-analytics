@@ -19,7 +19,6 @@ import scala.util.control.Breaks
 
 object RecommendationAPIService {
 
-    var contentRDD: RDD[(String, Map[String, AnyRef])] = null;
     var contentBroadcastMap : Broadcast[Map[String, Map[String, AnyRef]]] = null;
     var cacheTimestamp: Long = 0L;
 
@@ -30,7 +29,6 @@ object RecommendationAPIService {
         val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000));
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        //contentRDD = sc.parallelize(contentList, 4).map(f => (f.get("identifier").get.asInstanceOf[String], f)).cache();
         val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
         contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
         cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
@@ -51,7 +49,7 @@ object RecommendationAPIService {
         validateCache()(sc, config);
 	    val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
 	    val context = reqBody.request.context.get;
-	    val did = context.get("did").get.asInstanceOf[String];
+	    val did = context.getOrElse("did", "").asInstanceOf[String];
 	    val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
 	    val reqFilters = reqBody.request.filters.getOrElse(Map());
 	    val filters: Array[(String, String, String)] 
