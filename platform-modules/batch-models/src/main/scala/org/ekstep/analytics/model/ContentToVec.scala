@@ -19,12 +19,12 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.Input
 import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.AlgoOutput
+import org.ekstep.analytics.framework.Empty
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String,val text_vec: List[Double], val tag_vec: List[Double]);
-case class Empty() extends Input
 case class ContentURL(contentUrl: String) extends AlgoInput
 case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef]) extends AlgoOutput
 
