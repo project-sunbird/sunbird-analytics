@@ -44,6 +44,13 @@ class ApplicationSpec extends Specification {
             status(home) must equalTo(OK)
        }
        
+       "return error response on invalid request - error response" in new WithApplication {
+    		val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """))
+			val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
+			contentType(home) must beSome.which(_ == "application/json")
+			println("Response:"+contentAsString(home));
+       }
+       
        "return the recommendations - successful response" in new WithApplication {
 			val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}, "filters": {"contentType": "Story"}}} """))
 			val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
