@@ -14,15 +14,14 @@ import org.ekstep.analytics.framework._
 
 case class DeviceDetails(device_id: String, device_usage: DeviceUsageSummary, device_spec: Option[DeviceSpec], device_content: Option[Iterable[DeviceContentSummary]]) extends AlgoInput
 case class ContentToVector(content_id: String, text_vec: List[Double], tag_vec: List[Double])
-case class EmptyClass() extends Input
 case class LabeledPointRDD() extends AlgoOutput with Output
 
-object REContext extends IBatchModelTemplate[EmptyClass, DeviceDetails, LabeledPointRDD, LabeledPointRDD] with Serializable {
+object REContext extends IBatchModelTemplate[Empty, DeviceDetails, LabeledPointRDD, LabeledPointRDD] with Serializable {
 
     val className = "org.ekstep.analytics.model.REContext"
-    override def name(): String = "REContext"
+    override def name(): String = "REContext" 
 
-    override def preProcess(data: RDD[EmptyClass], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceDetails] = {
+    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceDetails] = {
 
         val device_usage = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x.device_id, x) }
         val allDevices = device_usage.map(x => DeviceId(x._1)).distinct;
@@ -30,26 +29,32 @@ object REContext extends IBatchModelTemplate[EmptyClass, DeviceDetails, LabeledP
         val device_info = device_usage.leftOuterJoin(device_spec)
         val device_content_usage = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).groupBy(f => f._1.device_id).mapValues(f => f.map(x => x._2));
         val device_data = device_info.leftOuterJoin(device_content_usage)
-
         device_data.map { x =>
             DeviceDetails(x._1, x._2._1._1, x._2._1._2, x._2._2)
-        }
-
+        };
     }
 
     override def algorithm(data: RDD[DeviceDetails], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LabeledPointRDD] = {
-
-        val content_vec = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.content_id, x) }
+        
+        val content_vec = sc.broadcast(sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.content_id, x) })
+        
         data.map { data =>
-            //            val target_variable = data.device_content.get.device_content.total_timespent.getOrElse(0.0)
-            //            var vec_arr : Array[Double] = new Array[Double](285)
-            //            val text_vec = data.device_content.get.content_to_vec.get.text_vec.toArray
-            //            val tag_vec = data.device_content.get.content_to_vec.get.tag_vec
-            //            val content_attributes = data.device_content.get.device_content
-            //            val device_attributes = data.device_usage.get
-            //            val device_spec = data.device_spec
-            //            LabeledPoint(target_variable, Vectors.dense(1.0, 0.0, 3.0))
-
+            content_vec.value.map{ contentVec =>
+                val device_id = data.device_id
+                val content_id = contentVec._1
+                println(device_id + " " + content_id)
+                val available_contents_info = data.device_content.get.map{x => (x.content_id, x)}.toMap
+                val device_content_details = available_contents_info.getOrElse(content_id, DeviceContentSummary(device_id, content_id, None, None, None, None, None, None, None, None, None, None, None, None))
+                
+            }
+//            val target_variable = data.device_content.get.device_content.total_timespent.getOrElse(0.0)
+//            var vec_arr: Array[Double] = new Array[Double](285)
+//            val text_vec = data.device_content.get.content_to_vec.get.text_vec.toArray
+//            val tag_vec = data.device_content.get.content_to_vec.get.tag_vec
+//            val content_attributes = data.device_content.get.device_content
+//            val device_attributes = data.device_usage.get
+//            val device_spec = data.device_spec
+//            LabeledPoint(target_variable, Vectors.dense(1.0, 0.0, 3.0))
             null
         }
     }

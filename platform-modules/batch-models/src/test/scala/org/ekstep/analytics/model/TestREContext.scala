@@ -1,12 +1,12 @@
 package org.ekstep.analytics.model
 
 import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework._
 
 class TestREContext extends SparkSpec(null) {
   
     "REContext" should "generate libsvm files" in {
-        val ec = List(new EmptyClass())
-        val rdd = ec.map(x => x)
-        //val me = REContext.execute(rdd, None);
+
+        val me = REContext.execute(null, None);
     }
 }
