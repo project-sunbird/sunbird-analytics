@@ -99,9 +99,9 @@
   pip: chdir=/usr/bin name=jsonschema state=present
 
 
-- name: install modules
-  become: yes
-  pip: chdir=/usr/bin name=scipy state=present
+#- name: install modules
+#  become: yes
+#  pip: chdir=/usr/bin name=scipy state=present
 
 - name: install modules
   become: yes
