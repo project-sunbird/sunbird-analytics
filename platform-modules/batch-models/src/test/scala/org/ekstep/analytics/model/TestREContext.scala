@@ -5,7 +5,7 @@ import org.ekstep.analytics.framework._
 
 class TestREContext extends SparkSpec(null) {
   
-    "REContext" should "generate libsvm files" in {
+    ignore should "generate libsvm files" in {
 
         val me = REContext.execute(null, None);
     }
