@@ -24,7 +24,7 @@
 
 - name: install gcc
   become: yes
-  yum: name='Development Tools' state=present
+  yum: name="@Development tools" state=present
 
 - name: install gcc
   become: yes
