@@ -68,6 +68,10 @@ object ContentAPIService {
         vectors.first();
     }
 
+    def trainContentToVec()(implicit sc: SparkContext, config: Map[String, String]): String = {
+    	JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.train-content-to-vec", Map("status" -> "successful")));
+    }
+    
     private def printRDD(rdd: RDD[String]) = {
         rdd.collect().foreach(println);
     }

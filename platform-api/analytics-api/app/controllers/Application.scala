@@ -71,6 +71,17 @@ object Application extends Controller {
         val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Rquest Accepted... Thank you ", 30.second)
         Future.firstCompletedOf(Seq(futureRes, timeoutFuture)).map { res => Ok(res);}
     }
+    
+    def trainContentToVec() = Action {
+    	try {
+    		val response = ContentAPIService.trainContentToVec()(Context.sc, config);
+            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+    	} catch {
+            case ex: Throwable =>
+                ex.printStackTrace();
+                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.content-to-vec-training", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
 
     def recommendations() = Action { implicit request =>
         try {
