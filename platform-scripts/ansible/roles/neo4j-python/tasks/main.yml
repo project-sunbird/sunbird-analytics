@@ -46,12 +46,6 @@
 #- name: move directory
 #  become: yes
 #  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install    
-- stat: path=/usr/local/bin/pip state=latest
-  register: check_pip
-
-- name: install pip
-  easy_install: name=pip state=latest
-  when: check_pip.stat.exists == False
 
 - name: install modules
   pip: name={{ item }}
