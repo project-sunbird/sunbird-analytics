@@ -12,9 +12,9 @@
   changed_when: false
   ignore_errors: true 
 
-- name: Run neo4j
-  command: chdir=/mnt/data/analytics/neo4j-community-2.3.3/bin ./neo4j start
-  when: "neo4j_process.stdout == '0'"
+#- name: Run neo4j
+#  command: chdir=/mnt/data/analytics/neo4j-community-2.3.3/bin ./neo4j start
+#  when: "neo4j_process.stdout == '0'"
 
 - name: install julia
   get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
