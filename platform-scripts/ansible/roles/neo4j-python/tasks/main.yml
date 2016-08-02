@@ -35,12 +35,12 @@
 
 - name: install gcc
   become: yes
-  command:  pip install --upgrade pip 
+  command: pip install --upgrade pip 
 
 
 - name: add link
   become: yes
-  file: src=/usr/local/bin/pip dest=usr/bin/pip state=link
+  file: src=/usr/local/bin/pip dest=/usr/bin/pip state=link
 
 - name: install modules
   become: yes
