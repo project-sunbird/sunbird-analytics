@@ -12,11 +12,22 @@ import context.Context
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import scala.concurrent.Future
+import javax.inject.Singleton
+import javax.inject.Inject
+import akka.actor.ActorSystem
+import actors.HelloActor
+import akka.pattern._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 
-object Application extends Controller {
-
-    implicit val config = Map(
+@Singleton
+class Application @Inject() (system: ActorSystem) extends Controller {
+	implicit val timeout: Timeout = 20 seconds;
+    val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
+    
+	implicit val config = Map(
         "content2vec.content_service_url" -> play.Play.application.configuration.getString("content2vec.content_service_url"),
         "content2vec.scripts_path" -> play.Play.application.configuration.getString("content2vec.scripts_path"),
         "content2vec.enrich_content" -> play.Play.application.configuration.getString("content2vec.enrich_content"),
@@ -66,21 +77,19 @@ object Application extends Controller {
 //    }
     
     
-    def contentToVec(contentId: String) = Action.async {
-        val futureRes = Future { ContentAPIService.contentToVec(contentId)(Context.sc, config) }
-        val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Rquest Accepted... Thank you ", 30.second)
-        Future.firstCompletedOf(Seq(futureRes, timeoutFuture)).map { res => Ok(res);}
+    def contentToVec(contentId: String) = Action {
+    	(contentAPIActor ! ContentAPIService.ContentToVec(contentId, Context.sc, config))
+    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec", Map("status" -> "successful")));
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+//        val futureRes = Future { ContentAPIService.contentToVec(contentId)(Context.sc, config) }
+//        val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Rquest Accepted... Thank you ", 30.second)
+//        Future.firstCompletedOf(Seq(futureRes, timeoutFuture)).map { res => Ok(res);}
     }
     
     def trainContentToVec() = Action {
-    	try {
-    		val response = ContentAPIService.trainContentToVec()(Context.sc, config);
-            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
-    	} catch {
-            case ex: Throwable =>
-                ex.printStackTrace();
-                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.content-to-vec-training", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
-        }
+//    	(contentAPIActor ! ContentAPIService.trainContentToVec());
+		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.train-content-to-vec", Map("status" -> "successful")));
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
     }
 
     def recommendations() = Action { implicit request =>
