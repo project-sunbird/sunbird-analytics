@@ -48,7 +48,7 @@
 #  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install    
 
 - name: install modules
-  pip: name={{ item }}
+  pip: name={{ item }} state=forcereinstall
   with_items: 
             - nltk
             - py2neo
