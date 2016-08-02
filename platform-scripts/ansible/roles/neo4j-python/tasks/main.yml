@@ -54,22 +54,78 @@
 
 - name: install modules
   become: yes
-  pip: chdir=/usr/bin name={{ item }} state=present
-  with_items: 
-            - nltk
-            - py2neo
-            - requests
-            - numpy
-            - langdetect
-            - simplejson
-            - mutagen
-            - pydub
-            - signalslot
-            - SpeechRecognition
-            - jsonschema
-            - scipy
-            - pandas
-            - matplotlib
+  pip: chdir=/usr/bin name=nltk state=present
+
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=py2neo state=present
+
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=numpy state=present
+
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=langdetect state=present
+
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=simplejson state=present
+
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=mutagen state=present
+
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=pydub state=present
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=signalslot state=present
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=SpeechRecognition state=present
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=jsonschema state=present
+
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=scipy state=present
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name=pandas state=present
+
+
+#- name: install modules
+#  become: yes
+#  pip: chdir=/usr/bin name={{ item }} state=present
+#  with_items: 
+#            - nltk
+#            - py2neo
+#            - requests
+#            - numpy
+#            - langdetect
+#            - simplejson
+#            - mutagen
+#            - pydub
+#            - signalslot
+#            - SpeechRecognition
+#            - jsonschema
+#            - scipy
+#           - pandas
+#            - matplotlib
 
 
 #- name: install pip modules
