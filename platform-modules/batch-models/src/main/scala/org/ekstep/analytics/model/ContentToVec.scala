@@ -26,7 +26,7 @@ import com.datastax.spark.connector.toRDDFunctions
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
 case class ContentVectors(content_vectors: Array[ContentVector]);
-class ContentVector(val contentId: String, val text_vec: List[Double], val tag_vec: List[Double]);
+case class ContentVector(contentId: String, text_vec: List[Double], tag_vec: List[Double]);
 case class ContentURL(content_url: String, base_url: String) extends AlgoInput
 case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef]) extends AlgoOutput
 
