@@ -25,7 +25,7 @@ case class Params(resmsgid: String, msgid: String, err: String, status: String, 
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String,val text_vec: List[Double], val tag_vec: List[Double]);
-case class ContentURL(contentUrl: String) extends AlgoInput
+case class ContentURL(content_url: String, base_url: String) extends AlgoInput
 case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef]) extends AlgoOutput
 
 
@@ -37,21 +37,25 @@ object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrich
         val baseUrl = AppConf.getConfig("service.search.url");
         val searchUrl = s"$baseUrl/v2/search";
         println(searchUrl)
-        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 100));
+        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1));
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        val contents = contentList.map(f => f.get("identifier").get.asInstanceOf[String]).map { x => ContentURL(s"$contentUrl/v2/content/$x") }
-        sc.parallelize(contents);
+        val contents = contentList.map(f => f.get("identifier").get.asInstanceOf[String]).map { x => s"$contentUrl/v2/content/$x" }
+        //sc.parallelize(contents);
+        sc.parallelize(contents, 1).map { x => ContentURL(x, contentUrl) };
     }
     
     override def algorithm(data: RDD[ContentURL], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
         
          println(data.collect.size+"   all content url size ")
+         printRDD(data.map{x => JSONUtils.serialize(x)})
          val scriptLoc = AppConf.getConfig("content2vec.scripts_path");
          val pythonExec = AppConf.getConfig("python.home") + "python";
+         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
          println("Python home:"+ pythonExec)
          println("Runncing _doContentEnrichment.......")
-         val enrichedContentRDD = _doContentEnrichment(data.map { x => x.contentUrl }, scriptLoc, pythonExec).cache();
+         val enrichedContentRDD = _doContentEnrichment(data.map { x => JSONUtils.serialize(x) }, scriptLoc, pythonExec, env).cache();
+         printRDD(enrichedContentRDD)
          val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
          println("Running _doContentToCorpus........")
 
@@ -68,10 +72,10 @@ object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrich
         data.map { x => getME(x) };
     }
     
-    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String): RDD[String] = {
+    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String]): RDD[String] = {
 
         if (StringUtils.equalsIgnoreCase("true", AppConf.getConfig("content2vec.enrich_content"))) {
-            contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py")
+            contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py", env)
         } else {
             contentRDD
         }
@@ -86,6 +90,10 @@ object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrich
         }
     }
 
+    private def printRDD(rdd: RDD[String]) = {
+        println(rdd.collect().last);
+    }
+    
     private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String) = {
 
         if (StringUtils.equalsIgnoreCase("true", AppConf.getConfig("content2vec.train_model"))) {

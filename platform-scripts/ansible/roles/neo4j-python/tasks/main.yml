@@ -12,9 +12,9 @@
   changed_when: false
   ignore_errors: true 
 
-- name: Run neo4j
-  command: chdir=/mnt/data/analytics/neo4j-community-2.3.3/bin ./neo4j start
-  when: "neo4j_process.stdout == '0'"
+#- name: Run neo4j
+#  command: chdir=/mnt/data/analytics/neo4j-community-2.3.3/bin ./neo4j start
+#  when: "neo4j_process.stdout == '0'"
 
 - name: install julia
   get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
@@ -24,34 +24,17 @@
 
 - name: install gcc
   become: yes
-  yum: name=gcc state=present
+  yum: name="@Development tools" state=present
 
-#- name: install python
-#  become: yes
-#  get_url: url=https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz dest=/mnt/data/analytics/Python-2.7.12.tgz timeout=1000 force=no 
-
-#- name: Unarchive python
-#  become: yes
-#  unarchive: src=/mnt/data/analytics/Python-2.7.12.tgz dest=/mnt/data/analytics copy=no  creates=/mnt/data/analytics/Python-2.7.12
-
-#- name: move directory
-#  become: yes
-#  shell: chdir=/mnt/data/analytics/Python-2.7.12 ./configure
-
-
-#- name: move directory
-#  become: yes
-#  shell: chdir=/mnt/data/analytics/Python-2.7.12 make 
-
-#- name: move directory
-#  become: yes
-#  shell: chdir=/mnt/data/analytics/Python-2.7.12 make install        
-
-- name: install pip
-  easy_install: name=pip state=latest
+- name: install gcc
+  become: yes
+  yum: name={{ item }}  state=present
+  with_items:
+             - libpng-devel
 
 - name: install modules
-  command: /usr/local/bin/pip install {{ item }}
+  become: yes
+  pip: chdir=/usr/bin name={{ item }} state=present
   with_items: 
             - nltk
             - py2neo
@@ -65,10 +48,5 @@
             - SpeechRecognition
             - jsonschema
             - scipy
-
-- name: install pip modules
-  easy_install: name={{ item }} state=latest
-  with_items:
-             - pandas
-             - matplotlib
+            - pandas
 
