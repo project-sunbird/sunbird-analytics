@@ -45,4 +45,5 @@
             - pandas
             - validators
             - networkx
+            - gensim
 
