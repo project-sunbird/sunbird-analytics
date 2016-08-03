@@ -45,4 +45,6 @@
             - pandas
             - validators
             - networkx
+            - subprocess
+            - random
 
