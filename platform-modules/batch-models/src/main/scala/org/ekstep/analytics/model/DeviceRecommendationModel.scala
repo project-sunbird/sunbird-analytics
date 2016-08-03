@@ -234,12 +234,19 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         // CommonUtil.deleteDirectory("libsvm/");
         // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
+        val dim = config.getOrElse("dim", "1,1,10")
+        val iter = config.getOrElse("iter", 10)
+        val method = config.getOrElse("method", "sgd")
+        val task = config.getOrElse("task", "r")
+        val regular = config.getOrElse("regular", "1,1,1")
+        val learn_rate = config.getOrElse("learn_rate", 0.1)
+        val seed = config.getOrElse("seed", 100)
         // 1. Invoke training
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 10 -method sgd -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -save_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model fm.model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
         
         // 2. Invoke scoring
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 0 -method sgd -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -out score.txt -load_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out score.txt -load_model fm.model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
         // 3. Save model to S3
         //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
