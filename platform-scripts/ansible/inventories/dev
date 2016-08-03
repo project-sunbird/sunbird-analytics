@@ -20,6 +20,7 @@
 secor
 
 [analytics:children]
+data-products
 spark
 
 [api:children]
