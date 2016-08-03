@@ -46,7 +46,7 @@
     - always
 
 - name: Clone libfm from github
-  git:  repo=https://github.com/srendle/libfm.git dest={{ analytics.home }}
+  git:  repo=https://github.com/srendle/libfm.git dest={{ analytics.home }}/libfm
   tags:
      - always
 
