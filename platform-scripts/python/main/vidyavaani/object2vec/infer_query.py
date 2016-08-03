@@ -72,14 +72,16 @@ def get_vector_dimension():
 		test_vector_list = np.array(q_vec).tolist()
 		n_dim = len(test_vector_list)
 	except:
-		n_dim = 50#default value
+		n_dim = 50#default value ,should take it from stdin?
 	return n_dim
 
 response = {}
 all_vector = []
+#to get the dimension of vectors from model
 n_dim = get_vector_dimension()
 
 if inferFlag == 'true':
+	#if vectors for all the content are to be populated
 	op_dir = corpus_loc
 	lst_folder = get_immediate_subdirectories(op_dir)
 	lst_folder.remove('model')
@@ -93,6 +95,7 @@ if inferFlag == 'true':
 				logging.info('%s not found'%(file_path))
 				continue;
 			txt = open(file_path)
+			#reading the text from corpus
 			query = txt.read()	
 			model_path = os.path.join(model_loc,lang)
 			if not os.path.exists(model_path):
@@ -121,7 +124,6 @@ if inferFlag == 'true':
 	print(json.dumps(response))
 else:
 	vector_dict ={}
-	#defining default values
 	for key in docs.keys():
 		if not key == 'tags':
 			model = '%s-text'%(key)
