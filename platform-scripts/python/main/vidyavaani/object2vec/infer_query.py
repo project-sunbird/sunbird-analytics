@@ -19,11 +19,11 @@ config_file = os.path.join(resource,'config.properties')
 # inputs
 #std_input = json.loads(sys.stdin.read())
 std_input = sys.stdin.readline()
-print std_input
+# print std_input
 
 std_input = json.loads(std_input)
 contentID = std_input['contentId']
-print contentID
+# print contentID
 
 docs = std_input['document']
 
