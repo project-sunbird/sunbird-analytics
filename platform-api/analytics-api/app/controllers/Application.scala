@@ -15,7 +15,6 @@ import scala.concurrent.Future
 import javax.inject.Singleton
 import javax.inject.Inject
 import akka.actor.ActorSystem
-import actors.HelloActor
 import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import akka.util.Timeout
