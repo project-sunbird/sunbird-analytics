@@ -30,7 +30,7 @@ op_dir = config.get('FilePath','corpus_path')
 # added reference loc to rel path
 op_dir = os.path.join(root,op_dir)
 #inputs
-model_loc = op_dir
+model_loc = os.path.join(op_dir,'model')
 #model_loc = os.environ['model']
 
 # for std_input in sys.stdin:
