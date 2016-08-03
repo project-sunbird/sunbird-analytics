@@ -79,7 +79,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     
     def contentToVec(contentId: String) = Action {
     	(contentAPIActor ! ContentAPIService.ContentToVec(contentId, Context.sc, config))
-    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec", Map("status" -> "successful")));
+    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec", Map("message" -> "Request Accepted... Thank you.")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 //        val futureRes = Future { ContentAPIService.contentToVec(contentId)(Context.sc, config) }
 //        val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Rquest Accepted... Thank you ", 30.second)
