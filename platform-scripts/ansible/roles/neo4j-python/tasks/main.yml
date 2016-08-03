@@ -23,9 +23,9 @@
              - libpng-devel
 
 
-- name: install gcc
-  become: yes
-  command: pip install --upgrade pip 
+#- name: install gcc
+#  become: yes
+#  command: pip install --upgrade pip 
 
 
 - name: add link
