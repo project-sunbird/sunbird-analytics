@@ -281,7 +281,7 @@ else:
 
 # write text document
 corpus_dict = {}
-print path
+# print path
 with codecs.open(os.path.join(path,'%s-text'%(lang_code)),'w',encoding='utf-8') as f:
 	unwrapped_text = '.'.join(text)
 	f.write(unwrapped_text)
