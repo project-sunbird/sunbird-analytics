@@ -19,6 +19,8 @@ import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import akka.util.Timeout
 import scala.concurrent.duration._
+import org.ekstep.analytics.api.exception.ClientException
+import org.ekstep.analytics.api.ResponseCode
 
 
 @Singleton
@@ -52,7 +54,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
         } catch {
             case ex: Exception =>
                 ex.printStackTrace();
-                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
+                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.SERVER_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
         }
 
     }
@@ -78,7 +80,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     
     def contentToVec(contentId: String) = Action {
     	(contentAPIActor ! ContentAPIService.ContentToVec(contentId, Context.sc, config))
-    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec", Map("message" -> "Request Accepted... Thank you.")));
+    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec", Map("message" -> "Job submitted for content enrichment")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 //        val futureRes = Future { ContentAPIService.contentToVec(contentId)(Context.sc, config) }
 //        val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Rquest Accepted... Thank you ", 30.second)
@@ -98,9 +100,11 @@ class Application @Inject() (system: ActorSystem) extends Controller {
             play.Logger.info(request + " body - " + body + "\n\t => " + response)
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
         } catch {
+        	case ex: ClientException =>
+        		Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
             case ex: Throwable =>
                 ex.printStackTrace();
-                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
+                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.SERVER_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
         }
     }
 }

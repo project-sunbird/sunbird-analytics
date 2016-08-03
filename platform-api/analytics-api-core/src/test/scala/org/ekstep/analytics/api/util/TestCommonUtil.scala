@@ -10,6 +10,7 @@ import scala.collection.mutable.ListBuffer
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeUtils
 import org.ekstep.analytics.api.Range
+import org.ekstep.analytics.api.ResponseCode
 
 class TestCommonUtil extends BaseSpec {
 
@@ -18,11 +19,11 @@ class TestCommonUtil extends BaseSpec {
         DateTimeUtils.setCurrentMillisFixed(1454650400000L);
 
         CommonUtil.roundDouble(12.7345, 2) should be(12.73);
-        val resp1 = CommonUtil.errorResponse("com.test", "Test exception");
+        val resp1 = CommonUtil.errorResponse("com.test", "Test exception", ResponseCode.SERVER_ERROR.toString());
         resp1.params.err should be("SERVER_ERROR");
         resp1.params.errmsg should be("Test exception");
         resp1.id should be("com.test");
-        val resp2 = CommonUtil.errorResponseSerialized("com.test", "Test exception");
+        val resp2 = CommonUtil.errorResponseSerialized("com.test", "Test exception", ResponseCode.SERVER_ERROR.toString());
         resp2 should include("Test exception");
         val resp3 = CommonUtil.OK("com.test", Map("ttl" -> 24.asInstanceOf[AnyRef]));
         resp3.params.err should be(null);

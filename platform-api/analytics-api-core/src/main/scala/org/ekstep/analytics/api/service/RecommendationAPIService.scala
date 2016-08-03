@@ -12,6 +12,7 @@ import org.apache.spark.broadcast.Broadcast
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import scala.util.control.Breaks
+import org.ekstep.analytics.api.exception.ClientException
 
 /**
  * @author mahesh
@@ -63,7 +64,7 @@ object RecommendationAPIService {
 	    val limit = reqBody.request.limit.getOrElse(10);
 	
 	    if (StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
-	      throw new Exception("did or dlang is missing.");
+	      throw new ClientException("did or dlang is missing.");
 	    }
 	
 	    val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);

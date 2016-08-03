@@ -128,7 +128,9 @@ object CommonUtil {
 
     def deleteFile(file: String) {
         JobLogger.log("Deleting file ", Option(file))
-        Files.delete(get(file));
+        val path = get(file);
+        if(Files.exists(path))
+            Files.delete(path);
     }
 
     def datesBetween(from: LocalDate, to: LocalDate): IndexedSeq[LocalDate] = {
