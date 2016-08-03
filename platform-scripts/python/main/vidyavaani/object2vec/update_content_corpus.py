@@ -198,7 +198,7 @@ if contentPayload.has_key('tags'):
 
 # add "description" key to tex
 if contentPayload.has_key('description'):
-	val = str(contentPayload['description'])
+	val = contentPayload['description']
 	if val:
 		# string is not empty
 		text.append(val)
