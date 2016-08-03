@@ -32,9 +32,12 @@ case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef])
 
 object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrichedJson, MeasuredEvent] with Serializable {
 
+    implicit val className = "org.ekstep.analytics.model.ContentToVec"
+    override def name() : String = "ContentToVec";
+    
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentURL] = {
 
-        val content_limit = config.getOrElse("content_limit", 1000).asInstanceOf[Int]
+        val content_limit = config.getOrElse("content_limit", 10).asInstanceOf[Int]
         val contentUrl = AppConf.getConfig("content2vec.content_service_url");
         val baseUrl = AppConf.getConfig("service.search.url");
         val searchUrl = s"$baseUrl/v2/search";
