@@ -210,9 +210,16 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 }.toSeq.mkString(" ");
 
                 sb.mkString
-        }
-        CommonUtil.deleteFile("test.dat.libsvm");
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test.dat.libsvm")), dataStr);
+        }.cache();
+        CommonUtil.deleteFile("train.dat.libfm");
+        CommonUtil.deleteFile("test.dat.libfm");
+        CommonUtil.deleteFile("score.dat.libfm");
+        
+        val trainDataSet = dataStr.sample(false, 0.8, System.currentTimeMillis().toInt)
+        val testDataSet = dataStr.sample(false, 0.2, System.currentTimeMillis().toInt)
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "train.dat.libfm")), trainDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test.dat.libfm")), testDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "score.dat.libfm")), dataStr);
         
         // CommonUtil.deleteDirectory("libsvm/");
         // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
