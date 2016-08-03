@@ -14,6 +14,7 @@ import org.joda.time.Duration
 import org.ekstep.analytics.api.Range
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
+import org.ekstep.analytics.api.ResponseCode
 
 /**
  * @author Santhosh
@@ -80,18 +81,18 @@ object CommonUtil {
         }
     }
 
-    def errorResponse(apiId: String, err: String): Response = {
+    def errorResponse(apiId: String, err: String, responseCode: String): Response = {
         Response(apiId, "1.0", df.print(System.currentTimeMillis()),
-            Params(UUID.randomUUID().toString(), null, "SERVER_ERROR", "failed", err),
-            None);
+            Params(UUID.randomUUID().toString(), null, responseCode, "failed", err),
+            responseCode, None);
     }
 
-    def errorResponseSerialized(apiId: String, err: String): String = {
-        JSONUtils.serialize(errorResponse(apiId, err));
+    def errorResponseSerialized(apiId: String, err: String, responseCode: String): String = {
+        JSONUtils.serialize(errorResponse(apiId, err, responseCode));
     }
 
     def OK(apiId: String, result: Map[String, AnyRef]): Response = {
-        Response(apiId, "1.0", df.print(DateTime.now(DateTimeZone.UTC).getMillis), Params(UUID.randomUUID().toString(), null, null, "successful", null), Option(result));
+        Response(apiId, "1.0", df.print(DateTime.now(DateTimeZone.UTC).getMillis), Params(UUID.randomUUID().toString(), null, null, "successful", null), ResponseCode.OK.toString(), Option(result));
     }
 
     def getRemainingHours(): Long = {
