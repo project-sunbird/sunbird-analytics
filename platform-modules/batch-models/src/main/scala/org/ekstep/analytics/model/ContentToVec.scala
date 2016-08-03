@@ -51,10 +51,10 @@ object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrich
         val pythonExec = AppConf.getConfig("python.home") + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
         println("Runncing _doContentEnrichment.......")
+
         val enrichedContentRDD = _doContentEnrichment(data.map { x => JSONUtils.serialize(x) }, scriptLoc, pythonExec, env).cache();
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
         println("Running _doContentToCorpus........")
-
         _doTrainContent2VecModel(scriptLoc, pythonExec, env);
         val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, "", env);
         enrichedContentRDD.map { x =>
@@ -64,6 +64,7 @@ object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrich
     }
 
     override def postProcess(data: RDD[ContentEnrichedJson], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        data.collect.foreach { x => println(x.contentId) }
         data.map { x => getME(x) };
     }
 
@@ -83,10 +84,6 @@ object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrich
         } else {
             contentRDD
         }
-    }
-
-    private def printRDD(rdd: RDD[String]) = {
-        println(rdd.collect().last);
     }
 
     private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String]) = {

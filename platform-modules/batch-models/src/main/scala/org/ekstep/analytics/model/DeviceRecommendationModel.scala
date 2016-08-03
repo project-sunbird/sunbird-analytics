@@ -21,6 +21,9 @@ import scala.collection.mutable.ListBuffer
 import org.apache.spark.sql.types._
 import org.apache.spark.mllib.util.MLUtils
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.spark.mllib.linalg.Vectors
+import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
+import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
@@ -107,7 +110,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             } else {
                 _getZeros(50);
             })
-            
+
             // Add c2 context attributes
             seq ++= Seq(x.otherContentUsageSummary.total_timespent.getOrElse(0.0), x.otherContentUsageSummary.avg_interactions_min.getOrElse(0.0),
                 x.otherContentUsageSummary.download_date.getOrElse(0L), if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.otherContentUsageSummary.last_played_on.getOrElse(0L),
@@ -119,7 +122,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             } else {
                 Seq("Unknown", "Unknown", "Unknown")
             })
-            
+
             //println(x.did, "x.device_usage.total_launches", x.device_usage.total_launches, x.device_usage.total_launches.getOrElse(0L).isInstanceOf[Long]);
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
             // Device Context Attributes
@@ -154,15 +157,14 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         // Add c2 tag vectors
         seq ++= _getStructField("c2_tag", 50);
         // Add c2 context attributes
-        
+
         seq ++= Seq(new StructField("c2_total_ts", DoubleType, true), new StructField("c2_avg_interactions_min", DoubleType, true), new StructField("c2_download_date", LongType, true),
             new StructField("c2_downloaded", IntegerType, true), new StructField("c2_last_played_on", LongType, true), new StructField("c2_mean_play_time_interval", DoubleType, true),
             new StructField("c2_num_group_user", LongType, true), new StructField("c2_num_individual_user", LongType, true), new StructField("c2_num_sessions", LongType, true),
             new StructField("c2_start_time", LongType, true), new StructField("c2_total_interactions", LongType, true))
 
         seq ++= Seq(new StructField("c2_subject", StringType, true), new StructField("c2_contentType", StringType, true), new StructField("c2_language", StringType, true))
-		
-        
+
         // Device Context Attributes
         seq ++= Seq(new StructField("total_timespent", DoubleType, true), new StructField("total_launches", DoubleType, true), new StructField("total_play_time", DoubleType, true),
             new StructField("avg_num_launches", DoubleType, true), new StructField("avg_time", DoubleType, true), new StructField("end_time", DoubleType, true),
@@ -190,18 +192,52 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val sqlContext = new SQLContext(sc);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         //df.printSchema();
-        
+
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
             .setLabelCol("label")
         val output = formula.fit(df).transform(df)
         val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
-        MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
+        val dataStr = labeledRDD.map {
+            case LabeledPoint(label, features) =>
+
+                val sb = new StringBuilder(label.toString)
+                val sv = features.toSparse;
+                val indices = sv.indices;
+                val values = sv.values;
+                sb += ' '
+                sb ++= (0 until indices.length).map { x =>
+                    (indices(x) + 1).toString() + ":" + values(x).toString()
+                }.toSeq.mkString(" ");
+
+                sb.mkString
+        }.cache();
+        CommonUtil.deleteFile("train.dat.libfm");
+        CommonUtil.deleteFile("test.dat.libfm");
+        CommonUtil.deleteFile("score.dat.libfm");
+        
+        val trainDataSet = dataStr.sample(false, 0.8, System.currentTimeMillis().toInt)
+        val testDataSet = dataStr.sample(false, 0.2, System.currentTimeMillis().toInt)
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "train.dat.libfm")), trainDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test.dat.libfm")), testDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "score.dat.libfm")), dataStr);
+        
+        // CommonUtil.deleteDirectory("libsvm/");
+        // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
+        
         // 1. Invoke training
+        ScriptDispatcher.dispatch(Array(), Map("script" -> "libFM -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 10 -method 'sgd' -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -save_model fm.model",
+                "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
+        
         // 2. Invoke scoring
+        ScriptDispatcher.dispatch(Array(), Map("script" -> "libFM -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 0 -method 'sgd' -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -out score.txt -load_model fm.model",
+                "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
         // 3. Save model to S3
+        //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
+                
         // 4. Load libsvm output file and transform to DeviceRecos
+        // TODO: Read output file score.out and save the recommendations into device recos
         sc.makeRDD(Seq());
     }
 
