@@ -36,12 +36,17 @@ import org.ekstep.analytics.streaming.KafkaEventProducer
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.api.ContentVectors
+import akka.actor.Props
+import akka.actor.Actor
 
 /**
  * @author Santhosh
  */
 
 object ContentAPIService {
+	
+	def props = Props[ContentAPIService];
+	case class ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]);
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
@@ -66,10 +71,6 @@ object ContentAPIService {
         val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId, env);
 
         vectors.first();
-    }
-
-    def trainContentToVec()(implicit sc: SparkContext, config: Map[String, String]): String = {
-    	JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.train-content-to-vec", Map("status" -> "successful")));
     }
     
     private def printRDD(rdd: RDD[String]) = {
@@ -239,5 +240,17 @@ object ContentAPIService {
         val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId("AN_ENRICHED_CONTENT", null, null, dateRange, contentId);
         MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data)));
     }
+}
 
+class ContentAPIService extends Actor {
+	import ContentAPIService._
+	def receive = {
+		case ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]) =>
+			println("Content to Vec process started...");
+			println("sleeping for 5sec...");
+			Thread.sleep(5000);
+			contentToVec(contentId)(sc, config);
+			println("Content to Vec process completed...");
+			sender() ! "success"
+	}
 }

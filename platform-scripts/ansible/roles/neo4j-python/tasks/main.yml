@@ -6,16 +6,6 @@
 - name: Unarchive neo4j
   unarchive: src=/mnt/data/analytics/neo4j-community-2.3.3-unix.tar.gz dest=/mnt/data/analytics copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/neo4j-community-2.3.3
 
-- name: Check if neo4j is running
-  shell: ps -ef | grep neo4j | grep -v grep | wc -l
-  register: neo4j_process
-  changed_when: false
-  ignore_errors: true 
-
-#- name: Run neo4j
-#  command: chdir=/mnt/data/analytics/neo4j-community-2.3.3/bin ./neo4j start
-#  when: "neo4j_process.stdout == '0'"
-
 - name: install julia
   get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
 
@@ -31,6 +21,16 @@
   yum: name={{ item }}  state=present
   with_items:
              - libpng-devel
+
+
+- name: install gcc
+  become: yes
+  command: pip install --upgrade pip 
+
+
+- name: add link
+  become: yes
+  file: src=/usr/local/bin/pip dest=/usr/bin/pip state=link
 
 - name: install modules
   become: yes
