@@ -1,4 +1,5 @@
 import json
+#import simplejson as json
 import codecs
 import os
 import argparse #Accept commandline arguments
@@ -7,6 +8,7 @@ import re
 import langdetect
 import sys
 import ConfigParser
+
 langdetect.DetectorFactory.seed=0
 
 from math import fabs
@@ -19,6 +21,9 @@ config_file = os.path.join(resource,'config.properties')
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in 
 import find_files
 import get_lowest_key_value
+from get_lowest_key_value import flattenDict
+from get_all_values import getAllValues
+
 root=os.path.dirname(os.path.abspath(__file__))
 
 #getiing paths from config file
@@ -26,6 +31,13 @@ config = ConfigParser.RawConfigParser()
 config.read(config_file)
 corpus_dir = config.get('FilePath','corpus_path')
 log_dir = config.get('FilePath','log_path')
+
+# adding the log_dir to root
+log_dir = os.path.join(root,log_dir)
+corpus_dir = os.path.join(root,corpus_dir)
+
+# defualt language code (for creating corpus)
+DEFAULT_LANG_CODE = 'en'
 
 #check if paths exists
 if not os.path.exists(corpus_dir):
@@ -128,82 +140,213 @@ if not os.path.isdir(corpus_dir):
 
 #jsonFiles=findFiles.findFiles(json_dir,['.json'])
 # jsonFiles = sys.stdin
-for data in sys.stdin:
-	# data = ast.literal_eval(data)
-	json_data = json.loads(data)
-	identifier = json_data['identifier']
-	max_tag_length=5
+
+try:
+	stdin_input = sys.stdin.readline()
+	contentPayload = json.loads(stdin_input)
+except:
+	msg = 'Not able to read input json stream'
+	logging.info(msg)
+	sys.exit(1)
+
+#print contentPayload
+
+# get the key info
+try:
+	mustHavekeysFromContentModel=contentPayload['mustHavekeysFromContentModel'] # array
+	goodToHaveKeysFromContentModel=contentPayload['goodToHaveKeysFromContentModel']
+	enrichedKeysFromML=contentPayload['enrichedKeysFromML'] # array
+except:
+	msg = 'Not able to get minimum required fields from enriched content module'
+	logging.info(msg)
+	sys.exit(1)
+
+try:
+	identifier = contentPayload['identifier']
+	#print identifier
+except:
+	msg = 'Not able to identify the Content'
+	logging.info(msg)
+	sys.exit(1)
+
+max_tag_length=5
+
+try:
+	# create corpus dir
 	path=os.path.join(corpus_dir,identifier)
 	if not os.path.isdir(path):
 		os.makedirs(path)
+except:
+	msg = 'Could not find/create corpus_dir'
+	logging.info(msg)
+	sys.exit(1)
 
-	tags=[concept for concept in json_data['concepts']]
-	#Data	
+# append everything except text, and description into tags"
+# tags could be in multiple languages
+
+# get the minimal output
+text = []
+if contentPayload.has_key('text'):
+	val = contentPayload['text']
+	if val:
+		text = contentPayload['text']
+tags = []
+if contentPayload.has_key('tags'):
+	val = contentPayload['tags']
+	if val:
+		tags = contentPayload['tags']
+
+# add "description" key to tex
+if contentPayload.has_key('description'):
+	val = str(contentPayload['description'])
+	if val:
+		# string is not empty
+		text.append(val)
+
+# add concept to tags
+try:
+	if contentPayload.has_key('concepts'):
+		conceptList = [concept for concept in contentPayload['concepts']]
+		if conceptList:
+			tags.extend(conceptList)
+except:
+	msg = 'Could not add concept to tags'
+	logging.info(msg)
+
+# add everything under good2have keys and put it under tags
+try:
+	for key in goodToHaveKeysFromContentModel:
+		#print key
+		if contentPayload.has_key(key):
+			val = getAllValues(contentPayload[key])
+			if val:
+				#print val
+				tags.extend(val)	
+except:
+	msg = 'Could not add grade, language etc. to tags'
+	logging.info(msg)
+
+# handle data (text) json carefully
+try:
 	x=set()
-	data_list=json.loads(''.join(json_data['data']),encoding='utf-8')
-	# data_list=json.loads(''.join(data['data']),encoding='utf-8')
-	for key in data_list.keys():
-		x.add(''.join(process_data(get_lowest_key_value.flattenDict(data_list[key])).values()))
-	string=''.join(list(x))
-	#mp3
-	mp3_string=''
-	dat=merge_strings(json_data['mp3Transcription']).values()
-	for item in dat:
-		if(len(item.split(' '))>max_tag_length):
-			mp3_string+=item
-		else:
-			tags.append(item)
-	text=True
-	#taking the language defined in json instead of detetecting (WIP)
-	string_language=json_data['languageCode']
-	mp3_language=json_data['languageCode']
-	corpus_dict = {}
-	if(len(string)>0 and len(mp3_string)>0):#There exist both stories and mp3 transcription
-		#Detect language of string		
-		# string_language=langdetect.detect(string)
-		# mp3_language=langdetect.detect(mp3_string)
-		if(string_language==mp3_language):#Both same langauges
-			string+=mp3_string
-			with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
-				f.write(string)
-				corpus_dict[string_language] = string
-			f.close()
-		else:#If different languages, then create separate files
-			with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
-				f.write(string)
-				corpus_dict[string_language] = string
-			f.close()
-			with codecs.open(os.path.join(path,'%s-text'%(mp3_language)),'w',encoding='utf-8') as f:
-				f.write(mp3_string)
-				corpus_dict[string_language] = mp3_string
-			f.close()
-	elif(len(string)>0):#Only stories
-		# string_language=langdetect.detect(string)
-		with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
-			f.write(string)
-			corpus_dict[string_language] = string
-		f.close()
-	elif(len(mp3_string)>0):#Only mp3 transcription
-		# mp3_language=langdetect.detect(mp3_string)
-		with codecs.open(os.path.join(path,'%s-text'%(mp3_language)),'w',encoding='utf-8') as f:
-			f.write(mp3_string)
-			corpus_dict[string_language] = mp3_string
-		f.close()
-	else:
-		text=False
-	tags_data=True
-	if(len(tags)>0):#Non zero tags
-		with codecs.open(os.path.join(path,'tags'),'w',encoding='utf-8') as f:
-			f.write(','.join(tags))
-			corpus_dict[string_language] = ','.join(tags)
-		f.close()
-	else:
-		tags_data=False
-	if(not text and not tags_data):#No metadata
-		logging.info('Fail:%s'%(identifier))
-		print("False")
-	else:
-		print(json.dumps(corpus_dict))
+	if contentPayload.has_key('data'):
+		val = contentPayload['data']
+		if val:
+			data_list=json.loads(''.join(contentPayload['data']),encoding='utf-8')
+			# data_list=json.loads(''.join(data['data']),encoding='utf-8')
+			for key in data_list.keys():
+				x.add(''.join(process_data(get_lowest_key_value.flattenDict(data_list[key])).values()))
+			# add string to text
+		text.extend(list(x))
+except:
+	msg = 'Could not add derived text to text doc'
+	logging.info(msg)
+	
+try:
+	# process speech data
+	#mp3_string=''
+	if contentPayload.has_key('mp3Transcription'):
+		val = contentPayload['mp3Transcription']
+		if val:
+			dat=merge_strings(contentPayload['mp3Transcription']).values()
+			for item in dat:
+
+				if(len(item.split(' '))>max_tag_length):
+					text.extend(item)
+				else:
+					tags.extend(item)
+except:
+	msg = 'Could not add mp3 transcription to either text or tag'
+	logging.info(msg)
+
+try:
+	# process image label data
+	#mp3_string=''
+	if contentPayload.has_key('imageTags'):
+		val = contentPayload['imageTags']
+		if val:
+			dat=list(merge_strings(contentPayload['imageTags']).values())
+			tags.extend(dat)
+except:
+	msg = 'Could not add image labels to either text or tag'
+	logging.info(msg)
+	
+
+# taking the language defined in json instead of detetecting (WIP)
+# only one-lang per content (can change later)
+if contentPayload.has_key('languageCode'):
+	lang_code = contentPayload['languageCode']
+else:
+	lang_code = DEFAULT_LANG_CODE
+
+# write text document
+corpus_dict = {}
+print path
+with codecs.open(os.path.join(path,'%s-text'%(lang_code)),'w',encoding='utf-8') as f:
+	unwrapped_text = '.'.join(text)
+	f.write(unwrapped_text)
+corpus_dict[lang_code] = unwrapped_text
+f.close()
+
+
+with codecs.open(os.path.join(path,'tags'),'w',encoding='utf-8') as f:
+	unwrapped_tags = ','.join(tags)
+	f.write(unwrapped_tags)
+corpus_dict['tags'] = unwrapped_tags
+f.close()
+
+# print corpus_dic
+print(json.dumps(corpus_dict))
+
+# string_language=json_data['languageCode']
+# mp3_language=json_data['languageCode']
+
+# if(len(string)>0 and len(mp3_string)>0):#There exist both stories and mp3 transcription
+# 	#Detect language of string		
+# 	# string_language=langdetect.detect(string)
+# 	# mp3_language=langdetect.detect(mp3_string)
+# 	if(string_language==mp3_language):#Both same langauges
+# 		string+=mp3_string
+# 		with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
+# 			f.write(string)
+# 			corpus_dict[string_language] = string
+# 		f.close()
+# 	else:#If different languages, then create separate files
+# 		with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
+# 			f.write(string)
+# 			corpus_dict[string_language] = string
+# 		f.close()
+# 		with codecs.open(os.path.join(path,'%s-text'%(mp3_language)),'w',encoding='utf-8') as f:
+# 			f.write(mp3_string)
+# 			corpus_dict[string_language] = mp3_string
+# 		f.close()
+# elif(len(string)>0):#Only stories
+# 	# string_language=langdetect.detect(string)
+# 	with codecs.open(os.path.join(path,'%s-text'%(string_language)),'w',encoding='utf-8') as f:
+# 		f.write(string)
+# 		corpus_dict[string_language] = string
+# 	f.close()
+# elif(len(mp3_string)>0):#Only mp3 transcription
+# 	# mp3_language=langdetect.detect(mp3_string)
+# 	with codecs.open(os.path.join(path,'%s-text'%(mp3_language)),'w',encoding='utf-8') as f:
+# 		f.write(mp3_string)
+# 		corpus_dict[string_language] = mp3_string
+# 	f.close()
+# else:
+# 	text=False
+# tags_data=True
+# if(len(tags)>0):#Non zero tags
+# 	with codecs.open(os.path.join(path,'tags'),'w',encoding='utf-8') as f:
+# 		f.write(','.join(tags))
+# 		corpus_dict[string_language] = ','.join(tags)
+# 	f.close()
+# else:
+# 	tags_data=False
+# if(not text and not tags_data):#No metadata
+# 	logging.info('Fail:%s'%(identifier))
+# 	print("False")
+# else:
+# 	print(json.dumps(corpus_dict))
 
 
 

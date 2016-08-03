@@ -19,9 +19,14 @@ config_file = os.path.join(resource,'config.properties')
 # inputs
 #std_input = json.loads(sys.stdin.read())
 std_input = sys.stdin.readline()
+print std_input
+
 std_input = json.loads(std_input)
 contentID = std_input['contentId']
+print contentID
+
 docs = std_input['document']
+
 inferFlag = std_input['infer_all']
 corpus_loc = std_input['corpus_loc']
 model_loc = std_input['model']
@@ -49,8 +54,11 @@ config.read(config_file)
 
 #Set up logging
 infer_log_file = os.path.join(corpus_loc,'inferQuery.log')
-logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
-logging.info('Corpus to Vectors')
+
+# commented out (as giving errors)
+# test and remove the comments below
+#logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
+#logging.info('Corpus to Vectors')
 
 
 #check if paths existss
@@ -72,14 +80,16 @@ def get_vector_dimension():
 		test_vector_list = np.array(q_vec).tolist()
 		n_dim = len(test_vector_list)
 	except:
-		n_dim = 50#default value
+		n_dim = 50#default value ,should take it from stdin?
 	return n_dim
 
 response = {}
 all_vector = []
+#to get the dimension of vectors from model
 n_dim = get_vector_dimension()
 
 if inferFlag == 'true':
+	#if vectors for all the content are to be populated
 	op_dir = corpus_loc
 	lst_folder = get_immediate_subdirectories(op_dir)
 	lst_folder.remove('model')
@@ -93,6 +103,7 @@ if inferFlag == 'true':
 				logging.info('%s not found'%(file_path))
 				continue;
 			txt = open(file_path)
+			#reading the text from corpus
 			query = txt.read()	
 			model_path = os.path.join(model_loc,lang)
 			if not os.path.exists(model_path):
@@ -121,7 +132,6 @@ if inferFlag == 'true':
 	print(json.dumps(response))
 else:
 	vector_dict ={}
-	#defining default values
 	for key in docs.keys():
 		if not key == 'tags':
 			model = '%s-text'%(key)

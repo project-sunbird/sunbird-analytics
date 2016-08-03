@@ -24,6 +24,7 @@ object Constants {
     val CONTENT_TO_VEC = "content_to_vector";
     
     val LP_URL = AppConf.getConfig("lp.url");
+    val SEARCH_SERVICE_URL = AppConf.getConfig("search.service.url");
 
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
@@ -31,6 +32,10 @@ object Constants {
     
     def getDomainMap(): String = {
         s"$LP_URL/v2/analytics/domain/map";
+    }
+    
+    def getContentSearch(): String = {
+        s"$SEARCH_SERVICE_URL/v2/search";
     }
     
     def getContentItems(apiVersion: String, contentId: String): String = {
