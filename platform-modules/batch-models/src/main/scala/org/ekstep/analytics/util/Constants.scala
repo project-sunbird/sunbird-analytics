@@ -16,6 +16,7 @@ object Constants {
     val DEVICE_SPECIFICATION_TABLE = "device_specification";
     val DEVICE_USAGE_SUMMARY_TABLE = "device_usage_summary";
     val DEVICE_CONTENT_SUMMARY_FACT = "device_content_summary_fact";
+    val DEVICE_RECOS = "device_recos";
     val CONTENT_KEY_SPACE_NAME = "content_db";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";

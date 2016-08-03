@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
-case class DeviceRecos(did: String, contentId: String, score: Double) extends AlgoOutput with Output
+case class DeviceRecos(device_id: String, content_id: String, score: Double) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
 object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
@@ -253,10 +253,20 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 
         // 4. Load libsvm output file and transform to DeviceRecos
         // TODO: Read output file score.out and save the recommendations into device recos
-        sc.makeRDD(Seq());
+        val device_content = data.map{x => (x.did, x.contentInFocus)}.zipWithIndex()
+        val dcWithIndexKey = device_content.map{case (k,v) => (v,k)}
+        val scores = sc.textFile("score.txt").map{x => x.toDouble}.zipWithIndex()
+        val scoresWithIndexKey = sc.broadcast(scores.map{case (k,v) => (v,k)})
+        
+        dcWithIndexKey.map{ x =>
+            val scores = scoresWithIndexKey.value
+            DeviceRecos(x._2._1, x._2._2, scores.lookup(x._1).last)
+        }
     }
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
+
+        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
         data;
     }
 
