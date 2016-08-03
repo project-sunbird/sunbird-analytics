@@ -34,8 +34,8 @@ op_dir = config.get('FilePath', 'temp_path')
 log_dir = config.get('FilePath','log_path')
 
 # get a relative path 
-op_dir = os.path.join(root,op_dir)
-log_dir = os.path.join(root,log_dir)
+#op_dir = os.path.join(root,op_dir)
+#log_dir = os.path.join(root,log_dir)
 
 #print 'op_dir' + op_dir
 #print 'log_dir' + log_dir
