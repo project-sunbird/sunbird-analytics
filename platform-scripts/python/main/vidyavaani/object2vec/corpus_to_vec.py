@@ -127,7 +127,7 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 		if word_list:	
 			doc.append(gs.models.doc2vec.TaggedDocument(words=word_list,tags=[filename]))  
 		else:
-			print(filename+" failed to load in load_documents")
+			logging.info(filename+" failed to load in load_documents")
 	return doc
 
 def train_model_pvdm(directory,language):
