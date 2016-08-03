@@ -24,10 +24,13 @@ from find_files import findFiles
 #get file path from config file 
 config = ConfigParser.RawConfigParser()
 config.read(config_file)
-# op_dir = config.get('FilePath','corpus_path')
+
+op_dir = config.get('FilePath','corpus_path')
+op_dir = os.path.join(root,op_dir)
 #inputs
-op_dir = os.environ['corpus_loc']
-model_loc = os.environ['model']
+model_loc = op_dir
+#model_loc = os.environ['model']
+
 # for std_input in sys.stdin:
 	# std_input = ast.literal_eval(std_input)
 
@@ -115,10 +118,12 @@ def process_file(filename,language):#File processing
 		return
 
 def load_documents(filenames,language):#Creating TaggedDocuments
+	print 'in load docs'
 	doc=[]
 	for filename in filenames:
 		word_list=process_file(filename,language)
-		# print word_list
+		print word_list
+		print filename
 		if(word_list!=None):
 			doc.append(gs.models.doc2vec.TaggedDocument(words=word_list,tags=[filename]))  
 		else:
@@ -126,6 +131,9 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 	return doc
 
 def train_model_pvdm(directory,language):
+	print 'in pvdm'
+	print language
+
 	if language == ['tags']:
 		doc=load_documents(findFiles(directory,['tag']),"en-text")
 	else:
@@ -172,6 +180,9 @@ if not os.path.exists(os.path.join(op_dir,'model')):
 
 #building model for language
 if models_lang:
+	print models_lang
+	print 'here-1'
+	print 'calling: ' + 'train_model_%s'%language_model
 	for model in models_lang:
 		function = 'train_model_%s'%language_model
 		gensim_model = eval(function)(op_dir,model)

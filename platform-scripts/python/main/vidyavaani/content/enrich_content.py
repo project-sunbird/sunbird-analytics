@@ -59,6 +59,9 @@ contentPayload['concepts']=[] # array
 contentPayload['tags']=[] # array
 contentPayload['description']='' # string
 contentPayload['text']=[] # array
+contentPayload['goodToHaveKeysFromContentModel']=goodToHaveKeysFromContentModel # array
+contentPayload['mustHavekeysFromContentModel']=mustHavekeysFromContentModel # array
+contentPayload['enrichedKeysFromML']=enrichedKeysFromML # array
 
 # response object
 obj = {}
@@ -89,6 +92,7 @@ except:
 # check if the input is a valid URL
 try:
 	std_input = sys.stdin.readline()
+	#print std_input
 	std_input = json.loads(std_input)
 except:
 	msg = 'Exception: Not able to read json input stream'
@@ -248,7 +252,7 @@ if(ENRICH_MEDIA=='True'):
 
 		# optional (writing to a file)
 		with codecs.open(os.path.join(path,'mediaStats.json'),'w',encoding='utf-8') as f:
-			json.dump(mediaStats, f, sort_keys=True, indent=4)
+			json.dumps(mediaStats, f, sort_keys=True, indent=4)
 		f.close()
 		logging.info('Assets handled')
 
@@ -280,7 +284,7 @@ try:
 		
 		# (optional) write to a file
 		with codecs.open(os.path.join(path,'%s.json'%(subdir)),'w',encoding='utf-8') as f:
-			json.dump(extracted_json, f, sort_keys=True, indent=4)
+			json.dumps(extracted_json, f, sort_keys=True, indent=4)
 		f.close()
 		logging.info('%s JSON files handled and enriched'%(subdir))
 except:
@@ -308,10 +312,10 @@ try:
 	
 	if not contentPayload['concepts']:
 		# do a set addition
-		content['concepts']=enrichedConcepts
+		contentPayload['concepts']=enrichedConcepts
 	else:
 		originalConcept=list(content['concepts'])
-		content['concepts']=list(set(originalConcept+enrichedConcepts))
+		contentPayload['concepts']=list(set(originalConcept+enrichedConcepts))
 except:
 	#print 'processing 6.2'
 	logging.info('Unable to read and/or enrich concepts from domain model. Skipping this step')

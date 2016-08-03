@@ -19,9 +19,14 @@ config_file = os.path.join(resource,'config.properties')
 # inputs
 #std_input = json.loads(sys.stdin.read())
 std_input = sys.stdin.readline()
+print std_input
+
 std_input = json.loads(std_input)
 contentID = std_input['contentId']
+print contentID
+
 docs = std_input['document']
+
 inferFlag = std_input['infer_all']
 corpus_loc = std_input['corpus_loc']
 model_loc = std_input['model']
@@ -49,8 +54,9 @@ config.read(config_file)
 
 #Set up logging
 infer_log_file = os.path.join(corpus_loc,'inferQuery.log')
-logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
-logging.info('Corpus to Vectors')
+print infer_log_file
+#logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
+#logging.info('Corpus to Vectors')
 
 
 #check if paths existss
