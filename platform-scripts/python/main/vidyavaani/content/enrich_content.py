@@ -33,6 +33,7 @@ config.read(config_file)
 op_dir = config.get('FilePath', 'temp_path')
 log_dir = config.get('FilePath','log_path')
 
+# get a relative path 
 op_dir = os.path.join(root,op_dir)
 log_dir = os.path.join(root,log_dir)
 
@@ -87,7 +88,7 @@ try:
 except:
 	msg = 'Not able to find/create log and/or tmp dir'
 	logging.info(msg)
-	sys.exit(-1)
+	sys.exit(1)
 
 # check if the input is a valid URL
 try:
@@ -161,6 +162,7 @@ def get_content_metadata(contentPayload):
 				contentPayload[key]=', '.join(val)
 			else:
 				#print type(val)
+				# works only if it a dictionary
 				val = flattenDict(val)	
 			contentPayload[key]=val
 	except:

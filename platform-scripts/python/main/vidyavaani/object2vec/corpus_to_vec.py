@@ -26,6 +26,8 @@ config = ConfigParser.RawConfigParser()
 config.read(config_file)
 
 op_dir = config.get('FilePath','corpus_path')
+
+# added reference loc to rel path
 op_dir = os.path.join(root,op_dir)
 #inputs
 model_loc = op_dir
@@ -118,27 +120,22 @@ def process_file(filename,language):#File processing
 		return
 
 def load_documents(filenames,language):#Creating TaggedDocuments
-	print 'in load docs'
 	doc=[]
 	for filename in filenames:
 		word_list=process_file(filename,language)
-		print word_list
-		print filename
-		if(word_list!=None):
+		#if(word_list!=None):
+		if word_list:	
 			doc.append(gs.models.doc2vec.TaggedDocument(words=word_list,tags=[filename]))  
 		else:
 			print(filename+" failed to load in load_documents")
 	return doc
 
 def train_model_pvdm(directory,language):
-	print 'in pvdm'
-	print language
-
 	if language == ['tags']:
 		doc=load_documents(findFiles(directory,['tag']),"en-text")
 	else:
 		doc=load_documents(findFiles(directory,[language]),language)
-	if doc == []:
+	if not doc:
 		return 0
 	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdm_size, min_count=pvdm_min_count, window=pvdm_window, negative=pvdm_negative, workers=pvdm_workers, sample=pvdm_sample)
 	return model
@@ -148,7 +145,7 @@ def train_model_pvdbow(directory,language):
 		doc=load_documents(findFiles(directory,['tag']),"en-text")
 	else:
 		doc=load_documents(findFiles(directory,[language]),language)
-	if doc == []:
+	if not doc:
 		return 0
 	model=gs.models.doc2vec.Doc2Vec(doc, size=pvdbow_size, min_count=pvdbow_min_count, window=pvdbow_window, negative=pvdbow_negative, workers=pvdbow_workers, sample=pvdbow_sample, dm=pvdbow_dm) #Apply PV-DBOW
 	return model
@@ -180,9 +177,6 @@ if not os.path.exists(os.path.join(op_dir,'model')):
 
 #building model for language
 if models_lang:
-	print models_lang
-	print 'here-1'
-	print 'calling: ' + 'train_model_%s'%language_model
 	for model in models_lang:
 		function = 'train_model_%s'%language_model
 		gensim_model = eval(function)(op_dir,model)

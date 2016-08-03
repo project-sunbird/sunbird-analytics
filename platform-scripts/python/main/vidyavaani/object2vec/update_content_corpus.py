@@ -140,12 +140,15 @@ if not os.path.isdir(corpus_dir):
 
 #jsonFiles=findFiles.findFiles(json_dir,['.json'])
 # jsonFiles = sys.stdin
-print 'here-1'
 
-stdin_input = sys.stdin.readline()
-#print stdin_input
-#print type(stdin_input)
-contentPayload = json.loads(stdin_input)
+try:
+	stdin_input = sys.stdin.readline()
+	contentPayload = json.loads(stdin_input)
+except:
+	msg = 'Not able to read input json stream'
+	logging.info(msg)
+	sys.exit(1)
+
 #print contentPayload
 
 # get the key info
@@ -167,6 +170,7 @@ except:
 	sys.exit(1)
 
 max_tag_length=5
+
 try:
 	# create corpus dir
 	path=os.path.join(corpus_dir,identifier)
@@ -183,20 +187,21 @@ except:
 # get the minimal output
 text = []
 if contentPayload.has_key('text'):
-	text = contentPayload['text']
+	val = contentPayload['text']
+	if val:
+		text = contentPayload['text']
 tags = []
 if contentPayload.has_key('tags'):
-	tags = contentPayload['tags']
+	val = contentPayload['tags']
+	if val:
+		tags = contentPayload['tags']
 
-# add description to tex
-print text
+# add "description" key to tex
 if contentPayload.has_key('description'):
 	val = str(contentPayload['description'])
 	if val:
 		# string is not empty
 		text.append(val)
-print 'here-2'
-print text,tags
 
 # add concept to tags
 try:
@@ -207,11 +212,6 @@ try:
 except:
 	msg = 'Could not add concept to tags'
 	logging.info(msg)
-	print msg
-print 'here-3'
-print text,tags
-
-
 
 # add everything under good2have keys and put it under tags
 try:
@@ -219,14 +219,12 @@ try:
 		#print key
 		if contentPayload.has_key(key):
 			val = getAllValues(contentPayload[key])
-			#print val
-			tags.extend(val)	
+			if val:
+				#print val
+				tags.extend(val)	
 except:
 	msg = 'Could not add grade, language etc. to tags'
 	logging.info(msg)
-	print msg
-print 'here-4'
-print text,tags
 
 # handle data (text) json carefully
 try:
@@ -243,10 +241,7 @@ try:
 except:
 	msg = 'Could not add derived text to text doc'
 	logging.info(msg)
-	print msg
-print 'here-5'
-print text,tags
-
+	
 try:
 	# process speech data
 	#mp3_string=''
@@ -263,10 +258,6 @@ try:
 except:
 	msg = 'Could not add mp3 transcription to either text or tag'
 	logging.info(msg)
-	print msg
-
-print 'here-6'
-print text,tags
 
 try:
 	# process image label data
@@ -279,10 +270,7 @@ try:
 except:
 	msg = 'Could not add image labels to either text or tag'
 	logging.info(msg)
-	print msg
-print 'here-7'
-print text,tags
-
+	
 
 # taking the language defined in json instead of detetecting (WIP)
 # only one-lang per content (can change later)
@@ -297,10 +285,8 @@ print path
 with codecs.open(os.path.join(path,'%s-text'%(lang_code)),'w',encoding='utf-8') as f:
 	unwrapped_text = '.'.join(text)
 	f.write(unwrapped_text)
-	corpus_dict[lang_code] = unwrapped_text
+corpus_dict[lang_code] = unwrapped_text
 f.close()
-
-print 'here-8'
 
 
 with codecs.open(os.path.join(path,'tags'),'w',encoding='utf-8') as f:

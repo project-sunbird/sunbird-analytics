@@ -54,7 +54,9 @@ config.read(config_file)
 
 #Set up logging
 infer_log_file = os.path.join(corpus_loc,'inferQuery.log')
-print infer_log_file
+
+# commented out (as giving errors)
+# test and remove the comments below
 #logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
 #logging.info('Corpus to Vectors')
 
