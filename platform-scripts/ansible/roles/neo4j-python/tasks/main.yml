@@ -50,4 +50,5 @@
             - scipy
             - pandas
             - validators
+            - networkx
 
