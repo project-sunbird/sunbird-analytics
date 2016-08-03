@@ -33,8 +33,8 @@ corpus_dir = config.get('FilePath','corpus_path')
 log_dir = config.get('FilePath','log_path')
 
 # adding the log_dir to root
-log_dir = os.path.join(root,log_dir)
-corpus_dir = os.path.join(root,corpus_dir)
+#log_dir = os.path.join(root,log_dir)
+#corpus_dir = os.path.join(root,corpus_dir)
 
 # defualt language code (for creating corpus)
 DEFAULT_LANG_CODE = 'en'
