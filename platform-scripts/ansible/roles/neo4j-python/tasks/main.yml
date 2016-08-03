@@ -49,4 +49,5 @@
             - jsonschema
             - scipy
             - pandas
+            - validators
 
