@@ -23,6 +23,8 @@ secor
 spark
 data-products
 
+[cassandra:children]
+cassandra
 
 [api:children]
 analytics-api
