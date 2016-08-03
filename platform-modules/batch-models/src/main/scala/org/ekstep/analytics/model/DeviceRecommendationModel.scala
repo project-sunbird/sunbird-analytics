@@ -24,6 +24,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.spark.mllib.linalg.Vectors
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
+import org.apache.commons.lang3.StringUtils
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
@@ -133,7 +134,14 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 x.device_usage.start_time.getOrElse(0L))
             // Device Context Attributes
             seq ++= Seq(x.device_spec.make, x.device_spec.screen_size, x.device_spec.external_disk, x.device_spec.internal_disk)
-            seq ++= x.device_spec.primary_secondary_camera.split(",").map { x => x.toDouble }
+            val psc = x.device_spec.primary_secondary_camera.split(",");
+            if(psc.length == 0) {
+                seq ++= Seq(0.0, 0.0);    
+            } else if(psc.length == 1) {
+                seq ++= Seq(if(StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, 0.0);
+            } else {
+                seq ++= Seq(if(StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if(StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
+            }
             Row.fromSeq(seq);
         }
     }
@@ -225,13 +233,13 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         
         // CommonUtil.deleteDirectory("libsvm/");
         // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
-        
+        val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         // 1. Invoke training
-        ScriptDispatcher.dispatch(Array(), Map("script" -> "libFM -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 10 -method 'sgd' -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -save_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 10 -method sgd -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -save_model fm.model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
         
         // 2. Invoke scoring
-        ScriptDispatcher.dispatch(Array(), Map("script" -> "libFM -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 0 -method 'sgd' -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -out score.txt -load_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 0 -method sgd -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -out score.txt -load_model fm.model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
         // 3. Save model to S3
         //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
