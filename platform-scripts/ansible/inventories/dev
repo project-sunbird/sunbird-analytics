@@ -1,11 +1,5 @@
-[secor-raw]
+[secor]
 172.31.25.245 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
-
-[secor-me]
-172.31.25.245 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
-
-[data-products]
-172.31.25.29 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
 [spark]
 172.31.25.29 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
@@ -16,19 +10,17 @@
 [cassandra]
 172.31.25.29 ansible_ssh_user=ec2-user ansible_ssh_private_key_file=~/.ssh/ekstep/keys/learning-platform
 
+[secor:children]
+secor
+
+[analytics:children]
+spark
+
+[api:children]
+analytics-api
+
 [dev:children]
 secor
 analytics
 api
 cassandra
-
-[secor:children]
-secor-raw
-secor-me
-
-[analytics:children]
-spark
-data-products
-
-[api:children]
-analytics-api
