@@ -30,7 +30,7 @@ op_dir = config.get('FilePath','corpus_path')
 # added reference loc to rel path
 op_dir = os.path.join(root,op_dir)
 #inputs
-model_loc = op_dir
+model_loc = os.path.join(op_dir,'model')
 #model_loc = os.environ['model']
 
 # for std_input in sys.stdin:
@@ -127,7 +127,7 @@ def load_documents(filenames,language):#Creating TaggedDocuments
 		if word_list:	
 			doc.append(gs.models.doc2vec.TaggedDocument(words=word_list,tags=[filename]))  
 		else:
-			print(filename+" failed to load in load_documents")
+			logging.info(filename+" failed to load in load_documents")
 	return doc
 
 def train_model_pvdm(directory,language):
