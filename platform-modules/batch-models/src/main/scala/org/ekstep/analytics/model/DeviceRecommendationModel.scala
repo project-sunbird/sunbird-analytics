@@ -22,6 +22,8 @@ import org.apache.spark.sql.types._
 import org.apache.spark.mllib.util.MLUtils
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.spark.mllib.linalg.Vectors
+import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
+import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
@@ -225,9 +227,17 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
         
         // 1. Invoke training
+        ScriptDispatcher.dispatch(Array(), Map("script" -> "libFM -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 10 -method 'sgd' -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -save_model fm.model",
+                "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
+        
         // 2. Invoke scoring
+        ScriptDispatcher.dispatch(Array(), Map("script" -> "libFM -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 0 -method 'sgd' -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -out score.txt -load_model fm.model",
+                "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
         // 3. Save model to S3
+        //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
+                
         // 4. Load libsvm output file and transform to DeviceRecos
+        // TODO: Read output file score.out and save the recommendations into device recos
         sc.makeRDD(Seq());
     }
 
