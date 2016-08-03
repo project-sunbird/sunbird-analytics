@@ -19,11 +19,11 @@ config_file = os.path.join(resource,'config.properties')
 # inputs
 #std_input = json.loads(sys.stdin.read())
 std_input = sys.stdin.readline()
-print std_input
+# print std_input
 
 std_input = json.loads(std_input)
 contentID = std_input['contentId']
-print contentID
+# print contentID
 
 docs = std_input['document']
 
@@ -57,8 +57,8 @@ infer_log_file = os.path.join(corpus_loc,'inferQuery.log')
 
 # commented out (as giving errors)
 # test and remove the comments below
-#logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
-#logging.info('Corpus to Vectors')
+logging.basicConfig(filename=infer_log_file,level=logging.DEBUG)
+logging.info('Corpus to Vectors')
 
 
 #check if paths existss
@@ -135,6 +135,8 @@ else:
 	for key in docs.keys():
 		if not key == 'tags':
 			model = '%s-text'%(key)
+		else:
+			model = key
 		query = docs[key]
 		model_path = os.path.join(model_loc,model)
 		if not os.path.exists(model_path):
@@ -151,7 +153,7 @@ else:
 			logging.info('Vectors for text retrieved')
 		else:
 			vector_dict['tags_vec'] = vector_list
-			logging.info('Vectors for text retrieved')
+			logging.info('Vectors for tags retrieved')
 	vector_dict['contentId'] = contentID
 	if not 'tags_vec' in vector_dict:
 		logging.info('no tags data, so adding zero vectors')
