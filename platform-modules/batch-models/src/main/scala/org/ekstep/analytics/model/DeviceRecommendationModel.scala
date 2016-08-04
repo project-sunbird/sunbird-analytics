@@ -200,7 +200,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val sqlContext = new SQLContext(sc);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         //df.printSchema();
-
+        if(config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean])
+            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "libfm.input")), df.toJSON);
+        
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
@@ -227,13 +229,18 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val testDataFile = config.getOrElse("testDataFile", "test.dat.libfm").asInstanceOf[String]
         val outputFile = config.getOrElse("outputFile", "score.txt").asInstanceOf[String]
         val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
+        val usedDataFile = config.getOrElse("model", "fm.model").asInstanceOf[String]
         
         CommonUtil.deleteFile(libfmFile);
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
+        CommonUtil.deleteFile(usedDataFile);
         
-        val trainDataSet = dataStr.sample(false, 0.8, System.currentTimeMillis().toInt)
-        val testDataSet = dataStr.sample(false, 0.2, System.currentTimeMillis().toInt)
+        val usedDataSet = dataStr.filter { x => (!("0.0".equals(x.split(" ")(0)))) }
+        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt)
+        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt)
+        
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> usedDataFile)), usedDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
