@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.api.ContentVectors
 import akka.actor.Props
 import akka.actor.Actor
+import org.ekstep.analytics.api.exception.ClientException
 
 /**
  * @author Santhosh
@@ -138,7 +139,7 @@ object ContentAPIService {
     private def contentUsageMetrics(contentId: String, reqBody: RequestBody)(implicit sc: SparkContext): Response = {
         // Initialize to default values if not found from the request.
         if (reqBody.request == null) {
-            throw new Exception("Request cannot be blank");
+            throw new ClientException("Request cannot be blank");
         }
         val reqTrend: Trend = reqBody.request.trend.getOrElse(Trend(Option(7), Option(5), Option(12)));
         val trend = Map[String, (Period, Int)]("day" -> (DAY, reqTrend.day.getOrElse(0)), "week" -> (WEEK, reqTrend.week.getOrElse(0)), "month" -> (MONTH, reqTrend.month.getOrElse(0)));

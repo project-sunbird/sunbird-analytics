@@ -52,6 +52,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
             play.Logger.info(request + " body - " + body + "\n\t => " + response)
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
         } catch {
+        	case ex: ClientException => 
+        		Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
             case ex: Exception =>
                 ex.printStackTrace();
                 Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.SERVER_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
