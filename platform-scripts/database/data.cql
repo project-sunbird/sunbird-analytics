@@ -139,9 +139,9 @@ CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
 };
 
 CREATE TABLE IF NOT EXISTS device_db.device_recos(
-device_id text,
-scores list<frozen <tuple<text, double>>>,
-PRIMARY KEY (device_id)
+	device_id text,
+	scores list<frozen <tuple<text, double>>>,
+	PRIMARY KEY (device_id)
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_specification (
