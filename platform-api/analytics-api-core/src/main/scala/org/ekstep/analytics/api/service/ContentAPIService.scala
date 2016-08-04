@@ -47,6 +47,8 @@ object ContentAPIService {
 	
 	def props = Props[ContentAPIService];
 	case class ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]);
+	case class ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]);
+	case class RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]);
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
@@ -244,13 +246,24 @@ object ContentAPIService {
 
 class ContentAPIService extends Actor {
 	import ContentAPIService._
+	// TODO: update println with logger. **Important** 
 	def receive = {
 		case ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]) =>
-			println("Content to Vec process started...");
-			println("sleeping for 5sec...");
-			Thread.sleep(5000);
+			println("ContentToVec (content enrichment) process starting...");
 			contentToVec(contentId)(sc, config);
-			println("Content to Vec process completed...");
-			sender() ! "success"
+			println("ContentToVec (content enrichment) process completed...");
+			sender() ! "success";
+			
+		case ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]) =>
+			println("ContentToVec model training starting...");
+			// TODO: call actual API for ContentToVecTrainModel.
+			println("ContentToVec model training completed...");
+			sender() ! "success";
+		
+		case RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]) =>
+			println("Recommendations model training starting...");
+			// TODO: call actual API for RecommendationsTrainModel.
+			println("Recommendations model training completed...");
+			sender() ! "success";
 	}
 }

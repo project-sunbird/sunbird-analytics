@@ -82,14 +82,17 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     	(contentAPIActor ! ContentAPIService.ContentToVec(contentId, Context.sc, config))
     	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec", Map("message" -> "Job submitted for content enrichment")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
-//        val futureRes = Future { ContentAPIService.contentToVec(contentId)(Context.sc, config) }
-//        val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Rquest Accepted... Thank you ", 30.second)
-//        Future.firstCompletedOf(Seq(futureRes, timeoutFuture)).map { res => Ok(res);}
     }
     
-    def trainContentToVec() = Action {
-//    	(contentAPIActor ! ContentAPIService.trainContentToVec());
-		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.train-content-to-vec", Map("status" -> "successful")));
+    def contentToVecTrainModel() = Action {
+    	(contentAPIActor ! ContentAPIService.ContentToVecTrainModel(Context.sc, config))
+		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec.train.model", Map("message" -> "successful")));
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+    }
+    
+    def recommendationsTrainModel() = Action {
+    	(contentAPIActor ! ContentAPIService.RecommendationsTrainModel(Context.sc, config))
+    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations.train.model", Map("message" -> "successful")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
     }
 
