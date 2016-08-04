@@ -22,10 +22,6 @@ std_input = sys.stdin.readline()
 # print std_input
 
 std_input = json.loads(std_input)
-contentID = std_input['contentId']
-# print contentID
-
-docs = std_input['document']
 
 inferFlag = std_input['infer_all']
 corpus_loc = std_input['corpus_loc']
@@ -131,6 +127,8 @@ if inferFlag == 'true':
 		response['content_vectors'] = all_vector
 	print(json.dumps(response))
 else:
+	contentID = std_input['contentId']
+	docs = std_input['document']
 	vector_dict ={}
 	for key in docs.keys():
 		if not key == 'tags':

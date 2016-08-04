@@ -1,7 +1,5 @@
 package org.ekstep.analytics.model
 
-import scala.reflect.runtime.universe
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -22,6 +20,10 @@ import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.util.Constants
 
 import com.datastax.spark.connector.toRDDFunctions
+import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.Level
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
@@ -30,40 +32,54 @@ case class ContentVector(contentId: String, text_vec: List[Double], tag_vec: Lis
 case class ContentURL(content_url: String, base_url: String) extends AlgoInput
 case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef]) extends AlgoOutput
 
-object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrichedJson, MeasuredEvent] with Serializable {
+object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentURL, ContentEnrichedJson, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.ContentToVec"
-    override def name() : String = "ContentToVec";
-    
+    override def name(): String = "ContentToVec";
+
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentURL] = {
 
         val contentUrl = AppConf.getConfig("content2vec.content_service_url");
         val baseUrl = AppConf.getConfig("service.search.url");
         val searchUrl = s"$baseUrl/v2/search";
         val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000));
-        val request = config.getOrElse("content_search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
+        val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
         val contents = contentList.map(f => f.get("identifier").get.asInstanceOf[String]).map { x => s"$contentUrl/v2/content/$x" }
-        sc.parallelize(contents, contents.size).map { x => ContentURL(x, contentUrl) };
+        sc.parallelize(contents, 10).map { x => ContentURL(x, contentUrl) };
     }
 
     override def algorithm(data: RDD[ContentURL], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 
-        val scriptLoc = AppConf.getConfig("content2vec.scripts_path");
-        val pythonExec = AppConf.getConfig("python.home") + "python";
+        implicit val jobConfig = config;
+        val scriptLoc = jobConfig.getOrElse("content2vec.scripts_path", "").asInstanceOf[String];
+        val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
-        println("Runncing _doContentEnrichment.......")
 
+        JobLogger.log("Debug execution", Option("Running _doContentEnrichment......."), INFO);
+
+        println("data", data.count());
         val enrichedContentRDD = _doContentEnrichment(data.map { x => JSONUtils.serialize(x) }, scriptLoc, pythonExec, env).cache();
+        println("enrichedContentRDD", enrichedContentRDD.count());
+        printRDD(enrichedContentRDD);
+        JobLogger.log("Debug execution", Option("Running _doContentToCorpus........"), INFO);
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
-        println("Running _doContentToCorpus........")
+        printRDD(corpusRDD);
+        JobLogger.log("Debug execution", Option("Running _doTrainContent2VecModel........"), INFO);
         _doTrainContent2VecModel(scriptLoc, pythonExec, env);
-        val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, "", env);
+        JobLogger.log("Debug execution", Option("Running _doUpdateContentVectors........"), INFO);
+        val vectors = _doUpdateContentVectors(scriptLoc, pythonExec, "", env);
         enrichedContentRDD.map { x =>
             val jsonData = JSONUtils.deserialize[Map[String, AnyRef]](x)
             ContentEnrichedJson(jsonData.get("identifier").get.asInstanceOf[String], jsonData);
         };
+    }
+
+    private def printRDD(rdd: RDD[String]) = {
+        rdd.collect().foreach { x =>
+            JobLogger.log("Debug execution", Option(JSONUtils.deserialize[Map[String, AnyRef]](x)), INFO);
+        }
     }
 
     override def postProcess(data: RDD[ContentEnrichedJson], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
@@ -71,48 +87,52 @@ object ContentToVec extends IBatchModelTemplate[Empty, ContentURL, ContentEnrich
         data.map { x => getME(x) };
     }
 
-    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String]): RDD[String] = {
-
-        if (StringUtils.equalsIgnoreCase("true", AppConf.getConfig("content2vec.enrich_content"))) {
+    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, AnyRef]): RDD[String] = {
+        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.enrich_content", "true").asInstanceOf[String])) {
             contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py", env)
         } else {
             contentRDD
         }
     }
 
-    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String]): RDD[String] = {
+    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, AnyRef]): RDD[String] = {
 
-        if (StringUtils.equalsIgnoreCase("true", AppConf.getConfig("content2vec.content_corpus"))) {
+        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.content_corpus", "true").asInstanceOf[String])) {
             contentRDD.pipe(s"$pythonExec $scriptLoc/object2vec/update_content_corpus.py", env);
         } else {
             contentRDD
         }
     }
 
-    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String]) = {
+    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit sc: SparkContext, config: Map[String, AnyRef]) = {
 
-        if (StringUtils.equalsIgnoreCase("true", AppConf.getConfig("content2vec.train_model"))) {
-            val bucket = AppConf.getConfig("content2vec.s3_bucket");
-            val modelPath = AppConf.getConfig("content2vec.model_path");
-            val prefix = AppConf.getConfig("content2vec.s3_key_prefix");
-            ScriptDispatcher.dispatch(Array(), Map("script" -> s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py",
-                "corpus_loc" -> AppConf.getConfig("content2vec.corpus_path"), "model" -> modelPath))
+        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.train_model", "true").asInstanceOf[String])) {
+            val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store").asInstanceOf[String];
+            val modelPath = config.getOrElse("content2vec.model_path", "model").asInstanceOf[String];
+            val prefix = config.getOrElse("content2vec.s3_key_prefix", "model").asInstanceOf[String];
+
+            val scriptParams = Map(
+                "corpus_loc" -> config.getOrElse("content2vec.corpus_path", "").asInstanceOf[String],
+                "model" -> modelPath)
+
+            sc.makeRDD(Seq(JSONUtils.serialize(scriptParams)), 1).pipe(s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py", env);
             S3Util.uploadDirectory(bucket, prefix, modelPath);
         }
     }
 
-    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String, env: Map[String, String]): RDD[String] = {
+    private def _doUpdateContentVectors(scriptLoc: String, pythonExec: String, contentId: String, env: Map[String, String])(implicit sc: SparkContext, config: Map[String, AnyRef]): RDD[String] = {
 
-        val bucket = AppConf.getConfig("content2vec.s3_bucket");
-        val modelPath = AppConf.getConfig("content2vec.model_path");
-        val prefix = AppConf.getConfig("content2vec.s3_key_prefix");
+        val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store").asInstanceOf[String];
+        val modelPath = config.getOrElse("content2vec.model_path", "model").asInstanceOf[String];
+        val prefix = config.getOrElse("content2vec.s3_key_prefix", "model").asInstanceOf[String];
         S3Util.download(bucket, prefix, modelPath)
-        val vectorRDD = contentRDD.map { x =>
-            Map("contentId" -> contentId, "document" -> JSONUtils.deserialize[Map[String, AnyRef]](x), "infer_all" -> AppConf.getConfig("content2vec.infer_all"),
-                "corpus_loc" -> AppConf.getConfig("content2vec.corpus_path"), "model" -> modelPath);
-        }.map(JSONUtils.serialize).pipe(s"$pythonExec $scriptLoc/object2vec/infer_query.py");
-        val x = vectorRDD.map { x => JSONUtils.deserialize[ContentVectors](x) }.flatMap { x => x.content_vectors.map { y => y } }.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC)
-        vectorRDD;
+        val scriptParams = Map[String, AnyRef](
+            "infer_all" -> "true",
+            "corpus_loc" -> config.getOrElse("content2vec.corpus_path", "").asInstanceOf[String],
+            "model" -> modelPath)
+        val vectorRDD = sc.makeRDD(Seq(JSONUtils.serialize(scriptParams)), 1).pipe(s"$pythonExec $scriptLoc/object2vec/infer_query.py", env);
+        vectorRDD.map { x => JSONUtils.deserialize[ContentVectors](x) }.flatMap { x => x.content_vectors.map { y => y } }.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC)
+        vectorRDD
     }
 
     private def getME(data: ContentEnrichedJson): MeasuredEvent = {
