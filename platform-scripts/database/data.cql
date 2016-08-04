@@ -142,10 +142,13 @@ CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'replication_factor': '1'
 };
 
+DROP TABLE IF EXISTS device_db.device_recos;
+
 CREATE TABLE IF NOT EXISTS device_db.device_recos(
 	device_id text,
-	scores list<frozen <tuple<text, double>>>,
-	PRIMARY KEY (device_id)
+	content_id text,
+	score double,
+	PRIMARY KEY (device_id, content_id)
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_specification (

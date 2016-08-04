@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
-case class DeviceRecos(did: String, contentId: String, score: Double) extends AlgoOutput with Output
+case class DeviceRecos(device_id: String, content_id: String, score: Double) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
 object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
@@ -234,22 +234,39 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         // CommonUtil.deleteDirectory("libsvm/");
         // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
+        val dim = config.getOrElse("dim", "1,1,10")
+        val iter = config.getOrElse("iter", 10)
+        val method = config.getOrElse("method", "sgd")
+        val task = config.getOrElse("task", "r")
+        val regular = config.getOrElse("regular", "1,1,1")
+        val learn_rate = config.getOrElse("learn_rate", 0.1)
+        val seed = config.getOrElse("seed", 100)
         // 1. Invoke training
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 10 -method sgd -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -save_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model fm.model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
         
         // 2. Invoke scoring
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim '1,1,10' -iter 0 -method sgd -task r -regular '1,1,1' -learn_rate 0.1 -seed 100 -out score.txt -load_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out score.txt -load_model fm.model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
         // 3. Save model to S3
         //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
                 
         // 4. Load libsvm output file and transform to DeviceRecos
         // TODO: Read output file score.out and save the recommendations into device recos
-        sc.makeRDD(Seq());
+        val device_content = data.map{x => (x.did, x.contentInFocus)}.zipWithIndex()
+        val dcWithIndexKey = device_content.map{case (k,v) => (v,k)}
+        val scores = sc.textFile("score.txt").map{x => x.toDouble}.zipWithIndex()
+        val scoresWithIndexKey = sc.broadcast(scores.map{case (k,v) => (v,k)})
+        
+        dcWithIndexKey.map{ x =>
+            val scores = scoresWithIndexKey.value
+            DeviceRecos(x._2._1, x._2._2, scores.lookup(x._1).last)
+        }
     }
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
+
+        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
         data;
     }
 
