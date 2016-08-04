@@ -42,6 +42,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
         "content2vec.kafka_broker_list" -> play.Play.application.configuration.getString("content2vec.kafka_broker_list"),
         "content2vec.infer_all" -> play.Play.application.configuration.getString("content2vec.infer_all"),
         "content2vec.corpus_path" -> play.Play.application.configuration.getString("content2vec.corpus_path"),
+        "content2vec.train_model_job" -> play.Play.application.configuration.getString("content2vec.train_model_job"),
+        "recommendation.train_model_job" -> play.Play.application.configuration.getString("recommendation.train_model_job"),
         "service.search.url" -> play.Play.application.configuration.getString("service.search.url"));
 
     def contentUsageMetrics(contentId: String) = Action { implicit request =>

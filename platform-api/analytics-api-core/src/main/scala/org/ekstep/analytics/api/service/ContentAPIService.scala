@@ -257,13 +257,13 @@ class ContentAPIService extends Actor {
 			
 		case ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]) =>
 			println("ContentToVec model training starting...");
-			// TODO: call actual API for ContentToVecTrainModel.
+			ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("content2vec.train_model_job")));
 			println("ContentToVec model training completed...");
 			sender() ! "success";
 		
 		case RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]) =>
 			println("Recommendations model training starting...");
-			// TODO: call actual API for RecommendationsTrainModel.
+			ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("recommendation.train_model_job")));
 			println("Recommendations model training completed...");
 			sender() ! "success";
 	}
