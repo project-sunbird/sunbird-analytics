@@ -42,6 +42,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
         "content2vec.kafka_broker_list" -> play.Play.application.configuration.getString("content2vec.kafka_broker_list"),
         "content2vec.infer_all" -> play.Play.application.configuration.getString("content2vec.infer_all"),
         "content2vec.corpus_path" -> play.Play.application.configuration.getString("content2vec.corpus_path"),
+        "content2vec.train_model_job" -> play.Play.application.configuration.getString("content2vec.train_model_job"),
+        "recommendation.train_model_job" -> play.Play.application.configuration.getString("recommendation.train_model_job"),
         "service.search.url" -> play.Play.application.configuration.getString("service.search.url"));
 
     def contentUsageMetrics(contentId: String) = Action { implicit request =>
@@ -52,6 +54,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
             play.Logger.info(request + " body - " + body + "\n\t => " + response)
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
         } catch {
+        	case ex: ClientException => 
+        		Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
             case ex: Exception =>
                 ex.printStackTrace();
                 Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.SERVER_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
@@ -63,20 +67,6 @@ class Application @Inject() (system: ActorSystem) extends Controller {
         val response = HealthCheckAPIService.getHealthStatus()(Context.sc)
         Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
     }
-
-//    def contentToVec(contentId: String) = Action {
-//
-//        try {
-//            val response = ContentAPIService.contentToVec(contentId)(Context.sc, config);
-//            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
-//
-//        } catch {
-//            case ex: Exception =>
-//                ex.printStackTrace();
-//                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentToVec", ex.getMessage)).withHeaders(CONTENT_TYPE -> "application/json");
-//        }
-//    }
-    
     
     def contentToVec(contentId: String) = Action {
     	(contentAPIActor ! ContentAPIService.ContentToVec(contentId, Context.sc, config))
@@ -96,18 +86,21 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
     }
 
-    def recommendations() = Action { implicit request =>
-        try {
-            val body: String = Json.stringify(request.body.asJson.get);
-            val response = RecommendationAPIService.recommendations(body)(Context.sc, config);
-            play.Logger.info(request + " body - " + body + "\n\t => " + response)
-            Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
-        } catch {
-        	case ex: ClientException =>
-        		Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
-            case ex: Throwable =>
-                ex.printStackTrace();
-                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.SERVER_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
+    def recommendations() = Action.async { implicit request =>
+        val body: String = Json.stringify(request.body.asJson.get);
+        val futureRes = Future { RecommendationAPIService.recommendations(body)(Context.sc, config) };
+        val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
+        val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
+        val response: Future[String] = firstCompleted.recoverWith {
+        	case ex: ClientException => 
+        		Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) };
+        	case ex: Throwable =>
+	            ex.printStackTrace();
+	            Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.SERVER_ERROR.toString()) }; 
+        };
+        response.map { resp => 
+        	play.Logger.info(request + " body - " + body + "\n\t => " + resp);
+        	Ok(resp).withHeaders(CONTENT_TYPE -> "application/json");
         }
     }
 }

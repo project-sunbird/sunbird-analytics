@@ -31,7 +31,7 @@ class ContentVector(val contentId: String,val text_vec: List[Double], val tag_ve
 
 object ResponseCode extends Enumeration {
 	type Code = Value
-	val OK, CLIENT_ERROR, SERVER_ERROR, RESOURCE_NOT_FOUND = Value
+	val OK, CLIENT_ERROR, SERVER_ERROR, REQUEST_TIMEOUT, RESOURCE_NOT_FOUND = Value
 }
 
 object Period extends Enumeration {

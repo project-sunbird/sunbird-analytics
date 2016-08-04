@@ -36,7 +36,7 @@ class ApplicationSpec extends Specification {
             val home = route(FakeRequest(POST, "/content/metrics/usage/test123", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
             status(home) must equalTo(OK)
             contentType(home) must beSome.which(_ == "application/json")
-            contentAsString(home) must contain(""""err":"SERVER_ERROR","status":"failed","errmsg":"Request cannot be blank"""")
+            contentAsString(home) must contain(""""err":"CLIENT_ERROR","status":"failed","errmsg":"Request cannot be blank"""")
         }
 
        "return api health status report - successful response" in new WithApplication {
@@ -48,7 +48,7 @@ class ApplicationSpec extends Specification {
     		val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """))
 			val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
 			contentType(home) must beSome.which(_ == "application/json")
-			println("Response:"+contentAsString(home));
+			contentAsString(home) must contain(""""err":"CLIENT_ERROR","status":"failed","errmsg":"did or dlang is missing."}""")
        }
        
        "return the recommendations - successful response" in new WithApplication {

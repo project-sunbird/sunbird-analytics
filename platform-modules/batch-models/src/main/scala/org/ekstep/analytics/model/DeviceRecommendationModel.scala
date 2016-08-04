@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
-case class DeviceRecos(device_id: String, content_id: String, score: Double) extends AlgoOutput with Output
+case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
 object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
@@ -200,7 +200,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val sqlContext = new SQLContext(sc);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         //df.printSchema();
-
+        if(config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean])
+            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "libfm.input")), df.toJSON);
+        
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
@@ -221,15 +223,27 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
                 sb.mkString
         }.cache();
-        CommonUtil.deleteFile("train.dat.libfm");
-        CommonUtil.deleteFile("test.dat.libfm");
-        CommonUtil.deleteFile("score.dat.libfm");
         
-        val trainDataSet = dataStr.sample(false, 0.8, System.currentTimeMillis().toInt)
-        val testDataSet = dataStr.sample(false, 0.2, System.currentTimeMillis().toInt)
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "train.dat.libfm")), trainDataSet);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test.dat.libfm")), testDataSet);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "score.dat.libfm")), dataStr);
+        val libfmFile = config.getOrElse("dataFile", "score.dat.libfm").asInstanceOf[String]
+        val trainDataFile = config.getOrElse("trainDataFile", "train.dat.libfm").asInstanceOf[String]
+        val testDataFile = config.getOrElse("testDataFile", "test.dat.libfm").asInstanceOf[String]
+        val outputFile = config.getOrElse("outputFile", "score.txt").asInstanceOf[String]
+        val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
+        val usedDataFile = config.getOrElse("model", "fm.model").asInstanceOf[String]
+        
+        CommonUtil.deleteFile(libfmFile);
+        CommonUtil.deleteFile(trainDataFile);
+        CommonUtil.deleteFile(testDataFile);
+        CommonUtil.deleteFile(usedDataFile);
+        
+        val usedDataSet = dataStr.filter { x => (!("0.0".equals(x.split(" ")(0)))) }
+        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt)
+        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt)
+        
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> usedDataFile)), usedDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
         
         // CommonUtil.deleteDirectory("libsvm/");
         // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
@@ -242,11 +256,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val learn_rate = config.getOrElse("learn_rate", 0.1)
         val seed = config.getOrElse("seed", 100)
         // 1. Invoke training
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model $model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
         
         // 2. Invoke scoring
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out score.txt -load_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out $outputFile -load_model $model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
         // 3. Save model to S3
         //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
@@ -256,11 +270,10 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val device_content = data.map{x => (x.did, x.contentInFocus)}.zipWithIndex()
         val dcWithIndexKey = device_content.map{case (k,v) => (v,k)}
         val scores = sc.textFile("score.txt").map{x => x.toDouble}.zipWithIndex()
-        val scoresWithIndexKey = sc.broadcast(scores.map{case (k,v) => (v,k)})
-        
-        dcWithIndexKey.map{ x =>
-            val scores = scoresWithIndexKey.value
-            DeviceRecos(x._2._1, x._2._2, scores.lookup(x._1).last)
+        val scoresWithIndexKey = scores.map{case (k,v) => (v,k)}
+        val device_scores = dcWithIndexKey.leftOuterJoin(scoresWithIndexKey).map{x => x._2}.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2))
+        device_scores.map{ x =>
+                DeviceRecos(x._1, x._2)
         }
     }
 
