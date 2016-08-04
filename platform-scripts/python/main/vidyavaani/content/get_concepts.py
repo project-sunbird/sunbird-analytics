@@ -12,7 +12,7 @@ root=os.path.dirname(os.path.abspath(__file__))
 resource = os.path.join((os.path.split(root)[0]),'resources')
 config_file = os.path.join(resource,'config.properties')
 #getiing paths from config file
-config = ConfigParser.RawConfigParser()
+config = ConfigParser.SafeConfigParser()
 config.read(config_file)
 op_dir = config.get('FilePath', 'temp_path')
 

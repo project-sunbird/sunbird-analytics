@@ -29,28 +29,27 @@ case class Params(resmsgid: String, msgid: String, err: String, status: String, 
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
 case class ContentVectors(content_vectors: Array[ContentVector]);
 case class ContentVector(contentId: String, text_vec: List[Double], tag_vec: List[Double]);
-case class ContentURL(content_url: String, base_url: String) extends AlgoInput
+case class ContentAsString(content: String) extends AlgoInput
 case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef]) extends AlgoOutput
 
-object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentURL, ContentEnrichedJson, MeasuredEvent] with Serializable {
+object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, ContentEnrichedJson, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.ContentToVec"
     override def name(): String = "ContentToVec";
 
-    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentURL] = {
+    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentAsString] = {
 
         val contentUrl = AppConf.getConfig("content2vec.content_service_url");
         val baseUrl = AppConf.getConfig("service.search.url");
         val searchUrl = s"$baseUrl/v2/search";
-        val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000));
+        val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "limit" -> 1000));
         val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        val contents = contentList.map(f => f.get("identifier").get.asInstanceOf[String]).map { x => s"$contentUrl/v2/content/$x" }
-        sc.parallelize(contents, 10).map { x => ContentURL(x, contentUrl) };
+        sc.parallelize(contentList, 10).map(x => ContentAsString(JSONUtils.serialize(x)));
     }
 
-    override def algorithm(data: RDD[ContentURL], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
+    override def algorithm(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 
         implicit val jobConfig = config;
         val scriptLoc = jobConfig.getOrElse("content2vec.scripts_path", "").asInstanceOf[String];
@@ -59,9 +58,10 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentURL, Conten
 
         JobLogger.log("Debug execution", Option("Running _doContentEnrichment......."), INFO);
 
-        println("data", data.count());
-        val enrichedContentRDD = _doContentEnrichment(data.map { x => JSONUtils.serialize(x) }, scriptLoc, pythonExec, env).cache();
-        println("enrichedContentRDD", enrichedContentRDD.count());
+        data.collect().foreach { x =>
+            JobLogger.log("Debug execution", Option(x.content), INFO);
+        }
+        val enrichedContentRDD = _doContentEnrichment(data.map { x => x.content }, scriptLoc, pythonExec, env).cache();
         printRDD(enrichedContentRDD);
         JobLogger.log("Debug execution", Option("Running _doContentToCorpus........"), INFO);
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
@@ -70,6 +70,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentURL, Conten
         _doTrainContent2VecModel(scriptLoc, pythonExec, env);
         JobLogger.log("Debug execution", Option("Running _doUpdateContentVectors........"), INFO);
         val vectors = _doUpdateContentVectors(scriptLoc, pythonExec, "", env);
+        //printRDD(vectors);
         enrichedContentRDD.map { x =>
             val jsonData = JSONUtils.deserialize[Map[String, AnyRef]](x)
             ContentEnrichedJson(jsonData.get("identifier").get.asInstanceOf[String], jsonData);

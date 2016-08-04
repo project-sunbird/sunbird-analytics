@@ -39,6 +39,7 @@ import org.ekstep.analytics.api.ContentVectors
 import akka.actor.Props
 import akka.actor.Actor
 import org.ekstep.analytics.api.exception.ClientException
+import org.ekstep.analytics.framework.util.RestUtil
 
 /**
  * @author Santhosh
@@ -53,13 +54,16 @@ object ContentAPIService {
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
-        val baseUrl = config.get("content2vec.content_service_url").get;
-        val contentArr = Array(s"$baseUrl/v2/content/$contentId")
+        val searchBaseUrl = config.get("service.search.url").get;
+        val defRequest = Map("request" -> Map("filters" -> Map("identifier" -> contentId, "objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1));
+        val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
+        val resp = RestUtil.post[Response](s"$searchBaseUrl/v2/search", JSONUtils.serialize(request));
+        val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
         val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
         val pythonExec = config.getOrElse("python.home", "") + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
         
-        val contentRDD = sc.parallelize(contentArr, 1).map { x => JSONUtils.serialize(Map("content_url" -> x, "base_url" -> baseUrl)) };
+        val contentRDD = sc.parallelize(contentList, 1).map(JSONUtils.serialize);
         
         println("Calling _doContentEnrichment......")
         val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec, env).cache();

@@ -4,7 +4,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestContentToVec extends SparkSpec(null) {
 
-    "ContentToVec" should "update content_to_vec tabel and generates enriched json" in {
+    ignore should "update content_to_vec tabel and generates enriched json" in {
 
         val jobParams = Map(
             "content2vec.scripts_path" -> "../../platform-scripts/python/main/vidyavaani",
@@ -15,10 +15,10 @@ class TestContentToVec extends SparkSpec(null) {
             "content2vec.kafka_broker_list" -> "localhost:9092",
             "content2vec.corpus_path" -> "content_corpus",
             "python.home" -> "/usr/local/bin/",
-            "content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000)))
+            "content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 100)))
         val jsonRdd = ContentVectorsModel.execute(null, Option(jobParams));
         val jsons = jsonRdd.collect
-        jsons.size should be(5)
+        jsons.size should be (100)
         jsons.foreach {println};
     }
 }
