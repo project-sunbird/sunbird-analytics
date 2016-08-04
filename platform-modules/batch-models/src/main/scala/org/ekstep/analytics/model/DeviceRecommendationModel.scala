@@ -221,15 +221,22 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
                 sb.mkString
         }.cache();
-        CommonUtil.deleteFile("train.dat.libfm");
-        CommonUtil.deleteFile("test.dat.libfm");
-        CommonUtil.deleteFile("score.dat.libfm");
+        
+        val libfmFile = config.getOrElse("dataFile", "score.dat.libfm").asInstanceOf[String]
+        val trainDataFile = config.getOrElse("trainDataFile", "train.dat.libfm").asInstanceOf[String]
+        val testDataFile = config.getOrElse("testDataFile", "test.dat.libfm").asInstanceOf[String]
+        val outputFile = config.getOrElse("outputFile", "score.txt").asInstanceOf[String]
+        val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
+        
+        CommonUtil.deleteFile(libfmFile);
+        CommonUtil.deleteFile(trainDataFile);
+        CommonUtil.deleteFile(testDataFile);
         
         val trainDataSet = dataStr.sample(false, 0.8, System.currentTimeMillis().toInt)
         val testDataSet = dataStr.sample(false, 0.2, System.currentTimeMillis().toInt)
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "train.dat.libfm")), trainDataSet);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test.dat.libfm")), testDataSet);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "score.dat.libfm")), dataStr);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
         
         // CommonUtil.deleteDirectory("libsvm/");
         // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
@@ -242,11 +249,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val learn_rate = config.getOrElse("learn_rate", 0.1)
         val seed = config.getOrElse("seed", 100)
         // 1. Invoke training
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model $model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
         
         // 2. Invoke scoring
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train train.dat.libfm -test score.dat.libfm -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out score.txt -load_model fm.model",
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out $outputFile -load_model $model",
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
         // 3. Save model to S3
         //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
