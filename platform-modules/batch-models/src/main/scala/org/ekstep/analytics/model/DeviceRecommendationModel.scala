@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
-case class DeviceRecos(device_id: String, content_id: String, score: Double) extends AlgoOutput with Output
+case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
 object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
@@ -256,11 +256,10 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val device_content = data.map{x => (x.did, x.contentInFocus)}.zipWithIndex()
         val dcWithIndexKey = device_content.map{case (k,v) => (v,k)}
         val scores = sc.textFile("score.txt").map{x => x.toDouble}.zipWithIndex()
-        val scoresWithIndexKey = sc.broadcast(scores.map{case (k,v) => (v,k)})
-        
-        dcWithIndexKey.map{ x =>
-            val scores = scoresWithIndexKey.value
-            DeviceRecos(x._2._1, x._2._2, scores.lookup(x._1).last)
+        val scoresWithIndexKey = scores.map{case (k,v) => (v,k)}
+        val device_scores = dcWithIndexKey.leftOuterJoin(scoresWithIndexKey).map{x => x._2}.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)))
+        device_scores.map{ x =>
+                DeviceRecos(x._1, x._2.toList)
         }
     }
 
