@@ -62,7 +62,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         }
         println("Time taken to download files(in secs):", (downloadTime._1 / 1000));
         println("### Ecar files download complete. ###");
-        
+
         contentRDD.map(x => ContentAsString(JSONUtils.serialize(x)))
     }
 
@@ -81,10 +81,10 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val scriptLoc = jobConfig.getOrElse("content2vec.scripts_path", "").asInstanceOf[String];
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
-        
+
         val contentServiceUrl = config.get("content2vec.content_service_url").get.asInstanceOf[String];
         sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").foreach(println);
-        
+
         println("### Downloading concepts ###");
 
         JobLogger.log("Debug execution", Option("Running _doContentEnrichment......."), INFO);
@@ -112,9 +112,9 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
     override def postProcess(data: RDD[ContentEnrichedJson], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
-        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
-        //CommonUtil.deleteDirectory(downloadPath);
-        data.collect.foreach { x => println(x.contentId) }
+        // TODO: Data science needs the temp working directories for debugging
+        // val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
+        // CommonUtil.deleteDirectory(downloadPath);
         data.map { x => getME(x) };
     }
 

@@ -27,11 +27,12 @@ config = ConfigParser.SafeConfigParser()
 config.read(config_file)
 
 op_dir = config.get('FilePath', 'corpus_path')
+log_dir = config.get('FilePath', 'log_path')
 
 # added reference loc to rel path
 #op_dir = os.path.join(root,op_dir)
 # inputs
-model_loc = os.path.join(op_dir, 'model')
+model_loc = config.get('FilePath', 'model_path')
 #model_loc = os.environ['model']
 
 # for std_input in sys.stdin:
@@ -85,9 +86,13 @@ if not os.path.exists(op_dir):
     logging.info('Corpus folder do not exist')
     os.makedirs(op_dir)
 
+if not os.path.exists(model_loc):
+    logging.info('Model folder do not exist')
+    os.makedirs(model_loc)    
+
 # Set up logging
-logging.basicConfig(filename=os.path.join(
-    op_dir, 'corpus2Vec.log'), level=logging.DEBUG)
+logfile_name = os.path.join(log_dir, 'corpus_to_vec.log')
+logging.basicConfig(filename=logfile_name, level=logging.DEBUG)
 logging.info('Corpus to Vectors')
 
 # get parameters from config file

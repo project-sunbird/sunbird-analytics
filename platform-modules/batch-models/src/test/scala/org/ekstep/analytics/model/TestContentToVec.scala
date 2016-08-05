@@ -7,6 +7,7 @@ class TestContentToVec extends SparkSpec(null) {
     ignore should "update content_to_vec tabel and generates enriched json" in {
 
         val jobParams = Map(
+            "content2vec.content_service_url" -> "https://dev.ekstep.in/api/learning",
             "content2vec.scripts_path" -> "../../platform-scripts/python/main/vidyavaani",
             "content2vec.s3_bucket" -> "sandbox-data-store",
             "content2vec.s3_key_prefix" -> "model/",
@@ -15,10 +16,9 @@ class TestContentToVec extends SparkSpec(null) {
             "content2vec.kafka_broker_list" -> "localhost:9092",
             "content2vec.corpus_path" -> "content_corpus",
             "python.home" -> "/usr/local/bin/",
-            "content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 100)))
+            "content2vec.download_path" -> "/Users/santhosh/ekStep/content2vec/tmp/temp",
+            "content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000)))
         val jsonRdd = ContentVectorsModel.execute(null, Option(jobParams));
-        val jsons = jsonRdd.collect
-        jsons.size should be (100)
-        jsons.foreach {println};
+        println("Total vectors produced", jsonRdd.count);
     }
 }
