@@ -20,85 +20,120 @@ import org.ekstep.analytics.api.exception.ClientException
 
 object RecommendationAPIService {
 
-    var contentBroadcastMap : Broadcast[Map[String, Map[String, AnyRef]]] = null;
-    var cacheTimestamp: Long = 0L;
+	var contentBroadcastMap: Broadcast[Map[String, Map[String, AnyRef]]] = null;
+	var cacheTimestamp: Long = 0L;
 
-    def initCache()(implicit sc: SparkContext, config: Map[String, String]) {
+	def initCache()(implicit sc: SparkContext, config: Map[String, String]) {
 
-        val baseUrl = config.get("service.search.url").get;
-        val searchUrl = s"$baseUrl/v2/search";
-        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000));
-        val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
-        val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
-        contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
-        cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
-    }
-    
-    def validateCache()(implicit sc: SparkContext, config: Map[String, String]) {
-        
-        val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
-        if(cacheTimestamp < timeAtStartOfDay) {
-            println("cacheTimestamp:" + cacheTimestamp, "timeAtStartOfDay:" + timeAtStartOfDay, " ### Resetting content cache...### ");
-            if(null != contentBroadcastMap) contentBroadcastMap.destroy();
-            initCache();
-        }
-    }
+		val baseUrl = config.get("service.search.url").get;
+		val searchUrl = s"$baseUrl/v2/search";
+		val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000));
+		val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
+		val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
+		val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
+		contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
+		cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
+	}
 
-    def recommendations(requestBody: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
-        
-        validateCache()(sc, config);
-	    val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
-	    val context = reqBody.request.context.get;
-	    val did = context.getOrElse("did", "").asInstanceOf[String];
-	    val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
-	    val reqFilters = reqBody.request.filters.getOrElse(Map());
-	    val filters: Array[(String, String, String)] 
-	    	= Array(("language", reqFilters.getOrElse("language", "").asInstanceOf[String], "LIST"), 
-	    			("domain", reqFilters.getOrElse("subject", "").asInstanceOf[String], "LIST"), 
-	    			("contentType", reqFilters.getOrElse("contentType", "").asInstanceOf[String], "STRING"), 
-	    			("gradeLevel", reqFilters.getOrElse("gradeLevel", "").asInstanceOf[String], "LIST"), 
-	    			("ageGroup", reqFilters.getOrElse("ageGroup", "").asInstanceOf[String], "LIST"))
-	    			.filter(p => !StringUtils.isBlank(p._2));
-	
-	    val limit = reqBody.request.limit.getOrElse(10);
-	
-	    if (StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
-	      throw new ClientException("did or dlang is missing.");
-	    }
-	
-	    val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
-	    val recoContent = if (deviceRecos.count() > 0) {
-	      /** The below code joins the data with content RDD but the order is removed from it - so the results require re-ordering of data */
-	      /**
-	       * val deviceRDD = sc.parallelize(deviceRecos.first.take(limit), 4);
-	       * val contentRecos = deviceRDD.join(contentRDD).map(f => f._2._2 ++ Map("reco_score" -> f._2._1));
-	       * val rec = contentRecos.collect();
-	       */
-	      deviceRecos.first.map(f => contentBroadcastMap.value.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
-	      	.filter(p => p.get("identifier").isDefined)
-	      	.filter(p => {
-	      		var valid = true;
-	      		Breaks.breakable {
-	      			filters.foreach { filter =>
-                        valid = recoFilter(p, filter);
-                        if (!valid) Breaks.break;
-                    }
-	      		}
-	      		valid;
-	      	}).take(limit);
-	    } else {
-	      Array();
-	    }
+	def validateCache()(implicit sc: SparkContext, config: Map[String, String]) {
 
-        val result = Map[String, AnyRef]("content" -> recoContent);
+		val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
+		if (cacheTimestamp < timeAtStartOfDay) {
+			println("cacheTimestamp:" + cacheTimestamp, "timeAtStartOfDay:" + timeAtStartOfDay, " ### Resetting content cache...### ");
+			if (null != contentBroadcastMap) contentBroadcastMap.destroy();
+			initCache();
+		}
+	}
+
+	def recommendations(requestBody: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
+
+		validateCache()(sc, config);
+		val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
+		val context = reqBody.request.context.get;
+		val did = context.getOrElse("did", "").asInstanceOf[String];
+		val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
+		val contentId = context.getOrElse("contentId", "").asInstanceOf[String];
+		val reqFilters = reqBody.request.filters.getOrElse(Map());
+
+		val filters: Array[(String, List[String], String)] = 
+			Array(("language", getValueAsList(reqFilters, "language"), "LIST"),
+			("domain", getValueAsList(reqFilters, "subject"), "LIST"),
+			("contentType", getValueAsList(reqFilters, "contentType"), "STRING"),
+			("gradeLevel", getValueAsList(reqFilters, "gradeLevel"), "LIST"),
+			("ageGroup", getValueAsList(reqFilters, "ageGroup"), "LIST"))
+			.filter(p => !p._2.isEmpty) ++ getContentFilter(contentId);
+
+		val limit = reqBody.request.limit.getOrElse(10);
+
+		if (StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
+			throw new ClientException("did or dlang is missing.");
+		}
+
+		val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
+		val recoContent = if (deviceRecos.count() > 0) {
+			deviceRecos.first.map(f => contentBroadcastMap.value.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
+				.filter(p => p.get("identifier").isDefined)
+				.filter(p => {
+					var valid = true;
+					Breaks.breakable {
+						filters.foreach { filter =>
+							valid = recoFilter(p, filter);
+							if (!valid) Breaks.break;
+						}
+					}
+					valid;
+				}).take(limit);
+		} else {
+			List();
+		}
+
+		val result = Map[String, AnyRef]("content" -> recoContent);
         JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", result));
-    }
-    
-    private def recoFilter(map: Map[String, Any], filter: (String, String, String)) : Boolean = {
-    	if ("LIST".equals(filter._3))
-    			map.getOrElse(filter._1, List()).asInstanceOf[List[String]].contains(filter._2.trim());
-    		else 
-    			map.getOrElse(filter._1, "").asInstanceOf[String].equals(filter._2.trim());
-    }
+	}
+
+	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {
+		if ("LIST".equals(filter._3)) {
+			val valueList = map.getOrElse(filter._1, List()).asInstanceOf[List[String]];
+			filter._2.isEmpty || !filter._2.filter { x => valueList.contains(x) }.isEmpty
+		} else {
+			val value = map.getOrElse(filter._1, "").asInstanceOf[String];
+			filter._2.isEmpty || (!value.isEmpty() && filter._2.contains(value));
+		}
+	}
+
+	private def getValueAsList(filter: Map[String, AnyRef], key: String): List[String] = {
+		val value = filter.get(key);
+		if (value.isEmpty) {
+			List();
+		} else {
+			if (value.get.isInstanceOf[String]) {
+				List(value.get.asInstanceOf[String]);
+			} else {
+				value.get.asInstanceOf[List[String]];
+			}
+		}
+	}
+	
+	private def getContent(id: String): Map[String, AnyRef] = {
+		if(StringUtils.isBlank(id))
+			Map();
+		else
+			contentBroadcastMap.value.getOrElse(id, Map());
+	}
+	
+	private def getContentFilter(id: String): Array[(String, List[String], String)] = {
+		val content: Map[String, AnyRef] = contentBroadcastMap.value.getOrElse(id, Map());
+		if (content.isEmpty) {
+			Array();
+		} else {
+			Array(("language", getValueAsList(content, "language"), "LIST"),
+				("domain", getValueAsList(content, "domain"), "LIST"),
+				("contentType", getValueAsList(content, "contentType"), "STRING"),
+				("gradeLevel", getValueAsList(content, "gradeLevel"), "LIST"),
+				("ageGroup", getValueAsList(content, "ageGroup"), "LIST"))
+				.filter(p => !p._2.isEmpty);
+		}
+	}
+	
+	
 }
