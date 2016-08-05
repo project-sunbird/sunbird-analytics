@@ -21,10 +21,13 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.ResponseCode
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 
 @Singleton
 class Application @Inject() (system: ActorSystem) extends Controller {
+	implicit val className = "controllers.Application";
 	implicit val timeout: Timeout = 20 seconds;
     val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
     
@@ -100,6 +103,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 	            Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.SERVER_ERROR.toString()) }; 
         };
         response.map { resp => 
+        	JobLogger.log("ekstep.analytics.recommendations", Option(Map("request" -> body, "response" -> resp)), INFO);
         	play.Logger.info(request + " body - " + body + "\n\t => " + resp);
         	Ok(resp).withHeaders(CONTENT_TYPE -> "application/json");
         }
