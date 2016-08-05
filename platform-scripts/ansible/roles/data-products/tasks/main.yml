@@ -45,3 +45,17 @@
     - analytics
 
 
+- name: Replace Working directory line
+  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='working_dir=' state=absent
+  tags:
+    - analytics
+
+
+- name: Replace Working directory line
+  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties insertafter='[FilePath]' line='working_dir=/mnt/data/analytics/content2vec' state=present
+  tags:
+    - analytics
+
+
+
+
