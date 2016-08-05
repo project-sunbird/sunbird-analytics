@@ -42,6 +42,7 @@ config.read(config_file)
 
 op_dir = config.get('FilePath', 'temp_path')
 log_dir = config.get('FilePath', 'log_path')
+concepts_dir = config.get('FilePath', 'concepts_path')
 
 # get a relative path
 #op_dir = os.path.join(root,op_dir)
@@ -70,31 +71,32 @@ out = sys.stdout
 # #logging.info('Converting to enriched JSON: %s'%(op_dir))
 # # this function does write the json to stdout upon exit
 # def writePayLoadToStreamOnExit():
-#     print "Exiting the Content Enriching Module"
+#    print "Exiting the Content Enriching Module"
 #     print(json.dumps(content))
-# atexit.register(writePayLoadToStreamOnExit())
+# atexit.register(writePayLoadToStreamOnExit()) 
 
-# check if paths exists
-try:
-    if not os.path.exists(op_dir):
-        os.makedirs(op_dir)
+def createDirectory(dir):
+	try:
+	    if not os.path.exists(dir):
+	        os.makedirs(dir)
+	except OSError, e:
+	    if e.errno != 17:
+	        traceback.print_exc()
+	        sys.exit(1)
+	except:
+	    traceback.print_exc()
+	    msg = 'Not able to find/create log and/or tmp dir'
+	    logging.warn(msg)
+	    sys.exit(1)
 
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-except OSError, e:
-    if e.errno != 17:
-        traceback.print_exc()
-        sys.exit(1)
-except:
-    traceback.print_exc()
-    msg = 'Not able to find/create log and/or tmp dir'
-    logging.warn(msg)
-    sys.exit(1)
+# Create all required directories
+createDirectory(op_dir);
+createDirectory(log_dir);
+createDirectory(concepts_dir);
 
 logfile_name = os.path.join(log_dir, 'enrich_content.log')
 logging.basicConfig(filename=logfile_name, level=logging.INFO)
 logging.info('### Enriching content ###')
-
 
 def enrichContent(contentJson):
     # create the default payload
@@ -118,8 +120,8 @@ def enrichContent(contentJson):
         traceback.print_exc()
         msg = 'Exception: Not able to read json input stream'
         logging.warn(msg)
-        # print(msg)
-        sys.exit(1)
+        print(contentJson)
+        return 1
 
     # get minimal data available from the content-model and update
     # the output json bucket (content)
@@ -144,33 +146,17 @@ def enrichContent(contentJson):
     path = os.path.join(op_dir, identifier)
     logging.info('Name:%s' % (identifier))
 
-    # To download zipfiles
-    try:
-        # print 'processing 2.1'
-        downloadZipFile(contentPayload['downloadUrl'], os.path.join(
-            op_dir, 'temp' + identifier))
-        logging.info('%s:Content Downloaded' % (identifier))
-    except:
-        # print 'processing 2.2'
-        logging.warn('Exception:Unable to download content')
-        logging.warn('Writing whatever is available from Content-Model')
-        print(json.dumps(contentPayload))
-        sys.exit(0)
-
-    # print 'processing 3'
     # Import and use downloadContent
     try:
-        # print 'processing 3.1'
         unzip_files(os.path.join(op_dir, 'temp' + identifier))
         copy_main_folders(op_dir, identifier)
         add_manifest(std_input, os.path.join(op_dir, identifier))
         logging.info('%s:Pre-Processing Complete' % (identifier))
     except:
-        # print 'processing 3.2'
         logging.warn('Could not process the ecar files')
         logging.warn('Writing whatever is available from Content-Model')
         print(json.dumps(contentPayload))
-        sys.exit(0)
+        return 1
 
     # print 'processing 4'
     # Handle Media if the flag is on
@@ -242,13 +228,8 @@ def enrichContent(contentJson):
     # Get Concepts
     # print 'processing 6'
     try:
-        # print 'processing 6.1'
-        # Download concept list if necessary
-        # if (not os.path.isfile(os.path.join(op_dir, 'conceptList.txt'))):
-            # getConcepts(BASE_URL)
-
         # Load concept list
-        with codecs.open(os.path.join(op_dir, 'conceptList.txt'), 'r', encoding='utf-8') as f:
+        with codecs.open(os.path.join(concepts_dir, 'conceptList.txt'), 'r', encoding='utf-8') as f:
             conceptList = f.readlines()
         conceptList = conceptList[0].split(',')
         # Filter to get Concepts
