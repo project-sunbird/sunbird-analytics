@@ -44,6 +44,10 @@
   tags:
     - analytics
 
+- name: Replace Working directory line
+  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='[FilePath]' state=absent
+  tags:
+    - analytics
 
 - name: Replace Working directory line
   lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='working_dir=' state=absent
@@ -52,7 +56,13 @@
 
 
 - name: Replace Working directory line
-  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties insertafter='[FilePath]' line='working_dir=/mnt/data/analytics/content2vec' state=present
+  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties insertafter=BOF line='working_dir=/mnt/data/analytics/content2vec' state=present
+  tags:
+    - analytics
+
+
+- name: Replace Working directory line
+  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties insertafter=BOF line='[FilePath]' state=present
   tags:
     - analytics
 
