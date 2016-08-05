@@ -61,8 +61,7 @@ object RecommendationAPIService {
 			("contentType", getValueAsList(reqFilters, "contentType"), "STRING"),
 			("gradeLevel", getValueAsList(reqFilters, "gradeLevel"), "LIST"),
 			("ageGroup", getValueAsList(reqFilters, "ageGroup"), "LIST"))
-			.filter(p => !p._2.isEmpty) ++ getContentFilter(contentId);
-
+			.filter(p => !p._2.isEmpty);
 		val limit = reqBody.request.limit.getOrElse(10);
 
 		if (StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
@@ -82,13 +81,28 @@ object RecommendationAPIService {
 						}
 					}
 					valid;
-				}).take(limit);
+				});
 		} else {
 			List();
 		}
-
-		val result = Map[String, AnyRef]("content" -> recoContent);
-        JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", result));
+		
+		val contentFilters = getContentFilter(contentId);
+		val result = if (contentFilters.isEmpty) {
+			recoContent;
+		} else {
+			recoContent.map(p => {
+				val filterScoreList = for (filter <- contentFilters) yield {
+					val valid = recoFilter(p, filter);
+					if (valid) 1 else 0;
+				};
+				val filterscore = filterScoreList.toList.sum;
+				(filterscore, p.getOrElse("reco_score", 0).asInstanceOf[Double], p)
+			})
+			.sortBy(- _._1)
+			.sortBy(- _._2)
+			.map(x => x._3);
+		}
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> result.take(limit), "count" -> Int.box(result.size))));
 	}
 
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {
