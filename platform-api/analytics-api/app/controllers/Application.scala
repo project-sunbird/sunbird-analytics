@@ -44,7 +44,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
         "content2vec.corpus_path" -> play.Play.application.configuration.getString("content2vec.corpus_path"),
         "content2vec.train_model_job" -> play.Play.application.configuration.getString("content2vec.train_model_job"),
         "recommendation.train_model_job" -> play.Play.application.configuration.getString("recommendation.train_model_job"),
-        "service.search.url" -> play.Play.application.configuration.getString("service.search.url"));
+        "service.search.url" -> play.Play.application.configuration.getString("service.search.url"),
+        "content2vec.download_path" -> play.Play.application.configuration.getString("content2vec.download_path"));
 
     def contentUsageMetrics(contentId: String) = Action { implicit request =>
 

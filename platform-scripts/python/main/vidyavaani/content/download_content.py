@@ -33,12 +33,12 @@ def unzip_files(directory):
 
 
 #Transfer the files in assets,data,items and the ecml files
-def copy_main_folders(root,identifier):
+def copy_main_folders(downloadPath, identifier, downloadedFile):
 	assert type(identifier)==unicode or type(identifier)==str
-	assert type(root)==unicode or type(root)==str
+	assert type(downloadPath)==unicode or type(downloadPath)==str
 	#List of files to be copied (To flatten directory structure)
-	file_list=findFiles(os.path.join(root,'temp'+identifier),['asset','data','item','ecml'])
-	path=os.path.join(root,identifier)
+	file_list=findFiles(os.path.join(downloadPath, downloadedFile),['asset','data','item','ecml'])
+	path=os.path.join(downloadPath, identifier)
 	#To make the new directory in which files will be eventually stored
 	if not os.path.exists(path):
 		os.makedirs(path)
@@ -58,7 +58,6 @@ def copy_main_folders(root,identifier):
 		else:
 			shutil.copy(f,path)
 	#Delete the messy download directory
-	shutil.rmtree(os.path.join(root,'temp'+identifier))
 
 #Adds a manifest.json file for the given piece of content
 def add_manifest(obj,directory):

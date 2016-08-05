@@ -24,6 +24,8 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.Level
 import org.ekstep.analytics.framework.util.JobLogger
+import java.net.URL
+import org.apache.commons.lang3.StringEscapeUtils
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
@@ -46,21 +48,46 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        sc.parallelize(contentList, 10).map(x => ContentAsString(JSONUtils.serialize(x)));
+        val contentRDD = sc.parallelize(contentList, 10).cache();
+
+        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
+        val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_").asInstanceOf[String];
+        val downloadTime = CommonUtil.time {
+            val downloadRDD = contentRDD.map { x => x.getOrElse("downloadUrl", "").asInstanceOf[String] }.filter { x => StringUtils.isNotBlank(x) }.distinct;
+            println("Total download files:", downloadRDD.count());
+            downloadRDD.map { downloadUrl =>
+                val key = StringUtils.stripStart(CommonUtil.getPathFromURL(downloadUrl), "/");
+                S3Util.downloadFile("ekstep-public", key, downloadPath, downloadFilePrefix);
+            }.collect; // Invoke the download
+        }
+        println("Time taken to download files(in secs):", (downloadTime._1 / 1000));
+        println("### Ecar files download complete. ###");
+        
+        contentRDD.map(x => ContentAsString(JSONUtils.serialize(x)))
     }
 
     override def algorithm(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
+        contentToVec(data, config);
+        //contentToVecDummy(data, config);
+    }
+
+    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
+        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
+    }
+
+    def contentToVec(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 
         implicit val jobConfig = config;
         val scriptLoc = jobConfig.getOrElse("content2vec.scripts_path", "").asInstanceOf[String];
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
+        
+        val contentServiceUrl = config.get("content2vec.content_service_url").get.asInstanceOf[String];
+        sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").foreach(println);
+        
+        println("### Downloading concepts ###");
 
         JobLogger.log("Debug execution", Option("Running _doContentEnrichment......."), INFO);
-
-        data.collect().foreach { x =>
-            JobLogger.log("Debug execution", Option(x.content), INFO);
-        }
         val enrichedContentRDD = _doContentEnrichment(data.map { x => x.content }, scriptLoc, pythonExec, env).cache();
         printRDD(enrichedContentRDD);
         JobLogger.log("Debug execution", Option("Running _doContentToCorpus........"), INFO);
@@ -84,6 +111,9 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
     }
 
     override def postProcess(data: RDD[ContentEnrichedJson], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+
+        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
+        //CommonUtil.deleteDirectory(downloadPath);
         data.collect.foreach { x => println(x.contentId) }
         data.map { x => getME(x) };
     }

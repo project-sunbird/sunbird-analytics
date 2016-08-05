@@ -40,20 +40,22 @@ import akka.actor.Props
 import akka.actor.Actor
 import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.framework.util.RestUtil
+import java.net.URL
 
 /**
  * @author Santhosh
  */
 
 object ContentAPIService {
-	
-	def props = Props[ContentAPIService];
-	case class ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]);
-	case class ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]);
-	case class RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]);
 
+    def props = Props[ContentAPIService];
+    case class ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]);
+    case class ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]);
+    case class RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]);
+    
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
+        println("Config", config);
         val searchBaseUrl = config.get("service.search.url").get;
         val defRequest = Map("request" -> Map("filters" -> Map("identifier" -> contentId, "objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1));
         val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
@@ -62,11 +64,25 @@ object ContentAPIService {
         val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
         val pythonExec = config.getOrElse("python.home", "") + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
-        
-        val contentRDD = sc.parallelize(contentList, 1).map(JSONUtils.serialize);
+
+        val contentRDD = sc.parallelize(contentList, 1);
+
+        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp");
+        val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_");
+        val downloadRDD = contentRDD.map { x => x.getOrElse("downloadUrl", "").asInstanceOf[String] }.filter { x => StringUtils.isNotBlank(x) }.distinct;
+        println("Dowload ecars", downloadRDD.collect().mkString);
+        downloadRDD.map { downloadUrl =>
+            val key = StringUtils.stripStart(org.ekstep.analytics.framework.util.CommonUtil.getPathFromURL(downloadUrl), "/");
+            S3Util.downloadFile("ekstep-public", key, downloadPath, downloadFilePrefix);
+        }.collect; // Invoke the download
+
+        println("### Ecar file downloaded. Fetching concepts... ###");
+        val contentServiceUrl = config.get("content2vec.content_service_url").get;
+        println("$contentServiceUrl", contentServiceUrl);
+        sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").foreach(println);
         
         println("Calling _doContentEnrichment......")
-        val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec, env).cache();
+        val enrichedContentRDD = _doContentEnrichment(contentRDD.map(JSONUtils.serialize), scriptLoc, pythonExec, env).cache();
         printRDD(enrichedContentRDD);
         println("Calling _doContentToCorpus......")
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
@@ -76,10 +92,10 @@ object ContentAPIService {
         println("Calling _doUpdateContentVectors......")
         printRDD(corpusRDD);
         val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId, env);
-
+        org.ekstep.analytics.framework.util.CommonUtil.deleteDirectory(downloadPath);
         vectors.first();
     }
-    
+
     private def printRDD(rdd: RDD[String]) = {
         rdd.collect().foreach(println);
     }
@@ -250,25 +266,25 @@ object ContentAPIService {
 }
 
 class ContentAPIService extends Actor {
-	import ContentAPIService._
-	// TODO: update println with logger. **Important** 
-	def receive = {
-		case ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]) =>
-			println("ContentToVec (content enrichment) process starting...");
-			contentToVec(contentId)(sc, config);
-			println("ContentToVec (content enrichment) process completed...");
-			sender() ! "success";
-			
-		case ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]) =>
-			println("ContentToVec model training starting...");
-			ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("content2vec.train_model_job")));
-			println("ContentToVec model training completed...");
-			sender() ! "success";
-		
-		case RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]) =>
-			println("Recommendations model training starting...");
-			ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("recommendation.train_model_job")));
-			println("Recommendations model training completed...");
-			sender() ! "success";
-	}
+    import ContentAPIService._
+    // TODO: update println with logger. **Important** 
+    def receive = {
+        case ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]) =>
+            println("ContentToVec (content enrichment) process starting...");
+            contentToVec(contentId)(sc, config);
+            println("ContentToVec (content enrichment) process completed...");
+            sender() ! "success";
+
+        case ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]) =>
+            println("ContentToVec model training starting...");
+            ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("content2vec.train_model_job")));
+            println("ContentToVec model training completed...");
+            sender() ! "success";
+
+        case RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]) =>
+            println("Recommendations model training starting...");
+            ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("recommendation.train_model_job")));
+            println("Recommendations model training completed...");
+            sender() ! "success";
+    }
 }

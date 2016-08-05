@@ -45,6 +45,7 @@ def getConcepts(baseURL):
         for i in resp['result']['concepts']:
             conceptSet.add(i['identifier'])
         conceptList = list(conceptSet)
+        print("Concepts downloaded");
     except:
         traceback.print_exc()
         print("Bad internet")

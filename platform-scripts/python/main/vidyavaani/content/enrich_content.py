@@ -33,7 +33,6 @@ from download_content import *
 from get_lowest_key_value import flattenDict
 from handle_media import *
 from parse_json import *
-from get_concepts import *
 from concept_filter import *
 
 # getiing paths from config file
@@ -43,6 +42,7 @@ config.read(config_file)
 op_dir = config.get('FilePath', 'temp_path')
 log_dir = config.get('FilePath', 'log_path')
 concepts_dir = config.get('FilePath', 'concepts_path')
+download_file_prefix = config.get('FilePath', 'download_file_prefix')
 
 # get a relative path
 #op_dir = os.path.join(root,op_dir)
@@ -148,8 +148,9 @@ def enrichContent(contentJson):
 
     # Import and use downloadContent
     try:
-        unzip_files(os.path.join(op_dir, 'temp' + identifier))
-        copy_main_folders(op_dir, identifier)
+    	downloaded_file = os.path.split(contentPayload['downloadUrl'])[-1]
+        unzip_files(os.path.join(op_dir, download_file_prefix + downloaded_file))
+        copy_main_folders(op_dir, identifier, download_file_prefix + downloaded_file)
         add_manifest(std_input, os.path.join(op_dir, identifier))
         logging.info('%s:Pre-Processing Complete' % (identifier))
     except:
