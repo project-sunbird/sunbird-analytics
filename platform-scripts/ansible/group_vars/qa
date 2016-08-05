@@ -7,7 +7,6 @@ user_home: /home/ec2-user
 sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
-  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports']
   paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/scripts/vidyavaani']
   scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-2.2.6"
