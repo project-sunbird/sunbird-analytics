@@ -36,6 +36,11 @@ import org.ekstep.analytics.streaming.KafkaEventProducer
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.api.ContentVectors
+import akka.actor.Props
+import akka.actor.Actor
+import org.ekstep.analytics.api.exception.ClientException
+import org.ekstep.analytics.framework.util.RestUtil
+import java.net.URL
 
 /**
  * @author Santhosh
@@ -43,21 +48,51 @@ import org.ekstep.analytics.api.ContentVectors
 
 object ContentAPIService {
 
+    def props = Props[ContentAPIService];
+    case class ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]);
+    case class ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]);
+    case class RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]);
+    
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
 
-        val baseUrl = config.get("content2vec.content_service_url").get;
-        val contentArr = Array(s"$baseUrl/v2/content/$contentId")
-        implicit val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
-        implicit val pythonExec = config.getOrElse("python.home", "") + "python";
-        val contentRDD = sc.parallelize(contentArr, 1);
+        println("Config", config);
+        val searchBaseUrl = config.get("service.search.url").get;
+        val defRequest = Map("request" -> Map("filters" -> Map("identifier" -> contentId, "objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1));
+        val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
+        val resp = RestUtil.post[Response](s"$searchBaseUrl/v2/search", JSONUtils.serialize(request));
+        val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
+        val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
+        val pythonExec = config.getOrElse("python.home", "") + "python";
+        val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
 
-        val enrichedContentRDD = _doContentEnrichment(contentRDD, scriptLoc, pythonExec).cache();
+        val contentRDD = sc.parallelize(contentList, 1);
 
-        val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec);
+        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp");
+        val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_");
+        val downloadRDD = contentRDD.map { x => x.getOrElse("downloadUrl", "").asInstanceOf[String] }.filter { x => StringUtils.isNotBlank(x) }.distinct;
+        println("Dowload ecars", downloadRDD.collect().mkString);
+        downloadRDD.map { downloadUrl =>
+            val key = StringUtils.stripStart(org.ekstep.analytics.framework.util.CommonUtil.getPathFromURL(downloadUrl), "/");
+            S3Util.downloadFile("ekstep-public", key, downloadPath, downloadFilePrefix);
+        }.collect; // Invoke the download
 
-        _doTrainContent2VecModel(scriptLoc, pythonExec);
-        val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId);
+        println("### Ecar file downloaded. Fetching concepts... ###");
+        val contentServiceUrl = config.get("content2vec.content_service_url").get;
+        println("$contentServiceUrl", contentServiceUrl);
+        sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").foreach(println);
+        
+        println("Calling _doContentEnrichment......")
+        val enrichedContentRDD = _doContentEnrichment(contentRDD.map(JSONUtils.serialize), scriptLoc, pythonExec, env).cache();
+        printRDD(enrichedContentRDD);
+        println("Calling _doContentToCorpus......")
+        val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
 
+        println("Calling _doTrainContent2VecModel......")
+        _doTrainContent2VecModel(scriptLoc, pythonExec, env);
+        println("Calling _doUpdateContentVectors......")
+        printRDD(corpusRDD);
+        val vectors = _doUpdateContentVectors(corpusRDD, scriptLoc, pythonExec, contentId, env);
+        org.ekstep.analytics.framework.util.CommonUtil.deleteDirectory(downloadPath);
         vectors.first();
     }
 
@@ -65,25 +100,25 @@ object ContentAPIService {
         rdd.collect().foreach(println);
     }
 
-    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]): RDD[String] = {
+    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
 
         if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.enrich_content", "true"))) {
-            contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py")
+            contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py", env)
         } else {
             contentRDD
         }
     }
 
-    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]): RDD[String] = {
+    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
 
         if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.content_corpus", "true"))) {
-            contentRDD.pipe(s"$pythonExec $scriptLoc/object2vec/update_content_corpus.py");
+            contentRDD.pipe(s"$pythonExec $scriptLoc/object2vec/update_content_corpus.py", env);
         } else {
             contentRDD
         }
     }
 
-    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String)(implicit config: Map[String, String]) = {
+    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]) = {
 
         if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.train_model", "false"))) {
             val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
@@ -95,7 +130,7 @@ object ContentAPIService {
         }
     }
 
-    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String)(implicit config: Map[String, String]): RDD[String] = {
+    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
 
         val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
         val modelPath = config.getOrElse("content2vec.model_path", "model");
@@ -124,7 +159,7 @@ object ContentAPIService {
     private def contentUsageMetrics(contentId: String, reqBody: RequestBody)(implicit sc: SparkContext): Response = {
         // Initialize to default values if not found from the request.
         if (reqBody.request == null) {
-            throw new Exception("Request cannot be blank");
+            throw new ClientException("Request cannot be blank");
         }
         val reqTrend: Trend = reqBody.request.trend.getOrElse(Trend(Option(7), Option(5), Option(12)));
         val trend = Map[String, (Period, Int)]("day" -> (DAY, reqTrend.day.getOrElse(0)), "week" -> (WEEK, reqTrend.week.getOrElse(0)), "month" -> (MONTH, reqTrend.month.getOrElse(0)));
@@ -228,5 +263,28 @@ object ContentAPIService {
         val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId("AN_ENRICHED_CONTENT", null, null, dateRange, contentId);
         MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data)));
     }
+}
 
+class ContentAPIService extends Actor {
+    import ContentAPIService._
+    // TODO: update println with logger. **Important** 
+    def receive = {
+        case ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]) =>
+            println("ContentToVec (content enrichment) process starting...");
+            contentToVec(contentId)(sc, config);
+            println("ContentToVec (content enrichment) process completed...");
+            sender() ! "success";
+
+        case ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]) =>
+            println("ContentToVec model training starting...");
+            ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("content2vec.train_model_job")));
+            println("ContentToVec model training completed...");
+            sender() ! "success";
+
+        case RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]) =>
+            println("Recommendations model training starting...");
+            ScriptDispatcher.dispatch(Array(), Map("script" -> config.get("recommendation.train_model_job")));
+            println("Recommendations model training completed...");
+            sender() ! "success";
+    }
 }

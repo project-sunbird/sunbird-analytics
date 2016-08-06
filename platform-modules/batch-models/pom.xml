@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
+
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ekstep</groupId>
 	<artifactId>batch-models</artifactId>
@@ -9,13 +9,13 @@
 
 	<properties>
 		<scala.version>2.10.5</scala.version>
-		<spark.version>1.5.0</spark.version>
+		<spark.version>1.5.2</spark.version>
 		<scala.maj.version>2.10</scala.maj.version>
 		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
 
 	<dependencies>
-		
+
 		<dependency>
 			<groupId>org.ekstep</groupId>
 			<artifactId>analytics-job-driver</artifactId>
@@ -52,7 +52,7 @@
 			<version>2.2.4</version>
 			<scope>test</scope>
 		</dependency>
-		<!--  -->
+		<!-- -->
 		<dependency>
 			<groupId>optional</groupId>
 			<artifactId>optional_2.10.5</artifactId>
@@ -68,7 +68,12 @@
 			<artifactId>breeze_2.10</artifactId>
 			<version>0.11.2</version>
 		</dependency>
-				
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-mllib_2.10</artifactId>
+			<version>${spark.version}</version>
+		</dependency>
+		
 	</dependencies>
 
 	<build>
@@ -96,23 +101,23 @@
 				</executions>
 			</plugin>
 			<plugin>
-                <groupId>org.scalatest</groupId>
-                <artifactId>scalatest-maven-plugin</artifactId>
-                <version>1.0</version>
-                <executions>
-                    <execution>
-                        <id>test</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                	<argLine>-Xmx2048m -XX:MaxPermSize=512m</argLine>
-                </configuration>
-            </plugin>
-            <plugin>
+				<groupId>org.scalatest</groupId>
+				<artifactId>scalatest-maven-plugin</artifactId>
+				<version>1.0</version>
+				<executions>
+					<execution>
+						<id>test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<argLine>-Xmx2048m -XX:MaxPermSize=512m</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.scoverage</groupId>
 				<artifactId>scoverage-maven-plugin</artifactId>
 				<version>${scoverage.plugin.version}</version>

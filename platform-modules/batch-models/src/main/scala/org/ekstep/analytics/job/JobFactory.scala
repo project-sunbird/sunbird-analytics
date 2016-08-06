@@ -43,6 +43,8 @@ object JobFactory {
                 DeviceContentUsageSummarizer
             case "csv" => 
                 CSVDumpJob
+            case "ctv" =>
+                ContentToVecJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

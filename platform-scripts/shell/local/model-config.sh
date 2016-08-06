@@ -7,6 +7,12 @@ config() {
 	   	"ss") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.LearnerSessionSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":8,"appName":"Learner Session Summarizer","deviceMapping":true}'
 	   	;;
+	   	"is")
+	   	echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ItemSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":8,"appName":"Item Summarizer","deviceMapping":false}'
+	   	;;
+	   	"dcus") 
+		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceContentUsageSummary","output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"DeviceContentUsageSummary","deviceMapping":false}'
+		;;
 	   	"gls") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieLaunchSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":8,"appName":"Genie Launch Summarizer","deviceMapping":false}'
 		;;
@@ -39,6 +45,9 @@ config() {
 		;;
 		"lp") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ProficiencyUpdater","modelParams":{"alpha":1.0,"beta":1.0},"output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
+		;;
+		"dsu")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceSpecification","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Device Specification Updater","deviceMapping":false}'
 		;;
 		"lcr") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.RecommendationEngine","output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'

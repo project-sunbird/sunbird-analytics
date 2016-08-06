@@ -2,7 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-POST   /content/metrics/usage/:contentId   controllers.Application.contentUsageMetrics(contentId: String)
-GET   /health   controllers.Application.checkAPIhealth
-POST   /content-to-vec/:contentId   controllers.Application.contentToVec(contentId: String)
-POST /recommendations controllers.Application.recommendations
+POST   /content/metrics/usage/:contentId   @controllers.Application.contentUsageMetrics(contentId: String)
+GET   /health   @controllers.Application.checkAPIhealth
+POST   /content-to-vec/:contentId   @controllers.Application.contentToVec(contentId: String)
+POST /recommendations @controllers.Application.recommendations
+POST /content-to-vec/train/model @controllers.Application.contentToVecTrainModel
+POST /recommendations/train/model @controllers.Application.recommendationsTrainModel

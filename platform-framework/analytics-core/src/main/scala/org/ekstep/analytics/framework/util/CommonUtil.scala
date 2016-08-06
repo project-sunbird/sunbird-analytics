@@ -42,6 +42,7 @@ import org.joda.time.Weeks
 import org.ekstep.analytics.framework.Level._
 import java.io.InputStream
 import java.nio.file.CopyOption
+import java.net.URL
 
 object CommonUtil {
 
@@ -128,7 +129,9 @@ object CommonUtil {
 
     def deleteFile(file: String) {
         JobLogger.log("Deleting file ", Option(file))
-        Files.delete(get(file));
+        val path = get(file);
+        if(Files.exists(path))
+            Files.delete(path);
     }
 
     def datesBetween(from: LocalDate, to: LocalDate): IndexedSeq[LocalDate] = {
@@ -364,6 +367,11 @@ object CommonUtil {
         val result = block // call-by-name
         val t1 = System.currentTimeMillis()
         ((t1 - t0), result)
+    }
+    
+    def getPathFromURL(absUrl: String) : String = {
+        val url = new URL(absUrl);
+        url.getPath
     }
 
 }

@@ -17,7 +17,7 @@ case class RequestBody(id: String, ver: String, ts: String, request: Request, pa
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, avg_sessions_week: Option[Double], avg_ts_week: Option[Double])
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
-case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
+case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Option[Map[String, AnyRef]]);
 
 case class Range(start: Int, end: Int);
 case class ContentId(d_content_id: String);
@@ -25,8 +25,14 @@ case class ContentUsageSummaryFact(d_content_id: String, d_period: Int, d_group_
                                    m_last_sync_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long,
                                    m_avg_interactions_min: Double, m_avg_sessions_week: Option[Double], m_avg_ts_week: Option[Double])
 
+case class RecommendationContent(device_id: String, scores: List[(String, Double)])
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String,val text_vec: List[Double], val tag_vec: List[Double]);
+
+object ResponseCode extends Enumeration {
+	type Code = Value
+	val OK, CLIENT_ERROR, SERVER_ERROR, REQUEST_TIMEOUT, RESOURCE_NOT_FOUND = Value
+}
 
 object Period extends Enumeration {
     type Period = Value

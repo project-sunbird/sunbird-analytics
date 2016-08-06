@@ -16,13 +16,16 @@ object Constants {
     val DEVICE_SPECIFICATION_TABLE = "device_specification";
     val DEVICE_USAGE_SUMMARY_TABLE = "device_usage_summary";
     val DEVICE_CONTENT_SUMMARY_FACT = "device_content_summary_fact";
+    val DEVICE_RECOS = "device_recos";
     val CONTENT_KEY_SPACE_NAME = "content_db";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
+    val CONTENT_TO_VEC = "content_to_vector";
     
     val LP_URL = AppConf.getConfig("lp.url");
+    val SEARCH_SERVICE_URL = AppConf.getConfig("search.service.url");
 
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
@@ -30,6 +33,10 @@ object Constants {
     
     def getDomainMap(): String = {
         s"$LP_URL/v2/analytics/domain/map";
+    }
+    
+    def getContentSearch(): String = {
+        s"$SEARCH_SERVICE_URL/v2/search";
     }
     
     def getContentItems(apiVersion: String, contentId: String): String = {

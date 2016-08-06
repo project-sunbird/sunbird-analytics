@@ -6,6 +6,7 @@ import play.api.libs.json._
 import play.api.http._
 import play.api.test._
 import play.api.test.Helpers._
+import org.ekstep.analytics.api.util.JSONUtils
 
 /**
  * Add your spec here.
@@ -35,7 +36,7 @@ class ApplicationSpec extends Specification {
             val home = route(FakeRequest(POST, "/content/metrics/usage/test123", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
             status(home) must equalTo(OK)
             contentType(home) must beSome.which(_ == "application/json")
-            contentAsString(home) must contain(""""err":"SERVER_ERROR","status":"failed","errmsg":"Request cannot be blank"""")
+            contentAsString(home) must contain(""""err":"CLIENT_ERROR","status":"failed","errmsg":"Request cannot be blank"""")
         }
 
        "return api health status report - successful response" in new WithApplication {
@@ -43,10 +44,19 @@ class ApplicationSpec extends Specification {
             status(home) must equalTo(OK)
        }
        
+       "return error response on invalid request - error response" in new WithApplication {
+    		val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """))
+			val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
+			contentType(home) must beSome.which(_ == "application/json")
+			contentAsString(home) must contain(""""err":"CLIENT_ERROR","status":"failed","errmsg":"did or dlang is missing."}""")
+       }
+       
        "return the recommendations - successful response" in new WithApplication {
-           val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3c8c2","dlang":"hi","uid":"","contentId":""},"query":"elephant","filters":{"contentType":"Story"},"limit":10}} """))
-           val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
-           status(home) must equalTo(OK)
+			val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}, "filters": {"contentType": "Story"}}} """))
+			val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
+			val content = JSONUtils.deserialize[Map[String, AnyRef]](contentAsString(home)).getOrElse("result", Map("content" -> List())).asInstanceOf[Map[String, AnyRef]].get("content").get.asInstanceOf[List[AnyRef]];
+			status(home) must equalTo(OK)
+			contentType(home) must beSome.which(_ == "application/json")
        }
        
     }

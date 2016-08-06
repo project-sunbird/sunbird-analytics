@@ -71,10 +71,6 @@ CREATE TABLE IF NOT EXISTS learner_db.learnerprofile (
 	PRIMARY KEY (learner_id)
 );
 
-DROP TABLE IF EXISTS learner_db.devicespecification;
-DROP TABLE IF EXISTS learner_db.device_usage_summary;
-DROP TABLE IF EXISTS learner_db.device_content_summary_fact;
-
 CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'

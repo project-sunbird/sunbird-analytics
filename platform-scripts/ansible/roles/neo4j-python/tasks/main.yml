@@ -6,9 +6,6 @@
 - name: Unarchive neo4j
   unarchive: src=/mnt/data/analytics/neo4j-community-2.3.3-unix.tar.gz dest=/mnt/data/analytics copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/neo4j-community-2.3.3
 
-- name: Run neo4j
-  command: chdir=/mant/data/analytics/neo4j-community-2.3.3/bin ./neo4j start
-
 - name: install julia
   get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
 
@@ -17,46 +14,36 @@
 
 - name: install gcc
   become: yes
-  yum: name=gcc state=present
+  yum: name="@Development tools" state=present
 
-- name: install python
-  get_url: url=https://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz dest=/usr/src/Python-2.7.10.tgz timeout=1000 force=no 
 
-- name: Unarchive python
-  unarchive: src=/usr/src/Python-2.7.10.tgz dest=/usr/src/ copy=no  creates=/usr/src/Python-2.7.10
-
-- name: move directory
+- name: install gcc
   become: yes
-  shell: chdir=/usr/src/Python-2.7.10 ./configure
+  command: pip install --upgrade pip 
 
-- name: move directory
-  become: yes
-  shell: chdir=/usr/src/Python-2.7.10 make altinstall        
 
-- name: install pip
+- name: add link
   become: yes
-  easy_install: name=pip state=latest
+  file: src=/usr/local/bin/pip dest=/usr/bin/pip state=link
 
 - name: install modules
   become: yes
-  pip: name={{ item.name }} version={{ item.version }} state=present
+  pip: chdir=/usr/bin name={{ item }} state=present
   with_items: 
-             - { name: 'py2neo', version: '2.0.8' }
-             - { name: 'requests', version: '2.10.0' }
-             - { name: 'numpy', version: '1.8.0' }
-             - { name: 'langdetect', version: '1.0.6' }
-             - { name: 'simplejson', version: '3.8.2' }
-             - { name: 'mutagen', version: '1.33.1' }
-             - { name: 'pydub', version: '0.16.4' }
-             - { name: 'signalslot', version: '0.1.1' }
-             - { name: 'SpeechRecognition', version: '3.4.6' }
-             - { name: 'jsonschema', version: '2.5.1' }
-
-- name: install modules
-  become: yes
-  pip: name= {{ item }} state=latest 
-  with_items: 
-            - matplotlib
+            - nltk
+            - py2neo
+            - requests
+            - numpy
+            - langdetect
+            - simplejson
+            - mutagen
+            - pydub
+            - signalslot
+            - SpeechRecognition
+            - jsonschema
             - scipy
-            - nltk.corpus
-            - pandas 
+            - pandas
+            - validators
+            - networkx
+            - gensim
+

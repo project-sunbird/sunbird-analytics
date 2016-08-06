@@ -17,3 +17,4 @@ platform-modules/batch-models/logs
 **/content_corpus/*
 **/log/*
 **/tmp/*
+platform-framework/analytics-core/files
