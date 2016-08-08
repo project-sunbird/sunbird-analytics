@@ -46,4 +46,14 @@
             - validators
             - networkx
             - gensim
+- name: git clone Libfm
+  git: repo=https://github.com/srendle/libfm.git dest=/mnt/data/analytics
+
+- name: change directory and run make
+  command: chdir=/mnt/data/analytics/libfm make all
+
+- name: create link
+  become: yes
+  file: src=/mnt/data/analytics/libfm/bin/libFM dest=/usr/local/bin/libFM state=link
+
 
