@@ -276,7 +276,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val dcWithIndexKey = device_content.map { case (k, v) => (v, k) }
         val scores = sc.textFile(outputFile).map { x => x.toDouble }.zipWithIndex()
         val scoresWithIndexKey = scores.map { case (k, v) => (v, k) }
-        val device_scores = dcWithIndexKey.leftOuterJoin(scoresWithIndexKey).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2))
+        val device_scores = dcWithIndexKey.leftOuterJoin(scoresWithIndexKey).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
         device_scores.map { x =>
             DeviceRecos(x._1, x._2)
         }
