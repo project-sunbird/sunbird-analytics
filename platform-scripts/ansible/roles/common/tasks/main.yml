@@ -1,16 +1,16 @@
-- name: Install Java8
-  become: yes
-  yum: name=java-1.8.0 state=latest
-  ignore_errors: yes 
-  register: result1
-  tags:
-    - always
+#- name: Install Java8
+#  become: yes
+#  yum: name=java-1.8.0 state=latest
+#  ignore_errors: yes 
+#  register: result1
+#  tags:
+#    - always
 
-- name: Remove Java7
-  become: yes
-  yum: name=java-1.7.0-openjdk state=absent
-  tags:
-    - always
+#- name: Remove Java7
+#  become: yes
+#  yum: name=java-1.7.0-openjdk state=absent
+#  tags:
+#    - always
 
 - name: update /etc/environment
   become: yes
