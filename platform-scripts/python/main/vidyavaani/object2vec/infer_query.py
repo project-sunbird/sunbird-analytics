@@ -129,7 +129,7 @@ if inferFlag == 'true':
             vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
         all_vector.append(vector_dict)
         response['content_vectors'] = all_vector
-    logging.info(json.dumps(response))
+    # logging.info(json.dumps(response))
     print(json.dumps(response))
 
 else:
