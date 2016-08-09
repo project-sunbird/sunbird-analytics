@@ -48,11 +48,11 @@ def get_all_lang(directory, string):
     return lst_lang
 
 # geting paths from config file
-# config = ConfigParser.SafeConfigParser()
-# config.read(config_file)
+config = ConfigParser.SafeConfigParser()
+config.read(config_file)
 
 # op_dir = config.get('FilePath', 'corpus_path')
-# log_dir = config.get('FilePath', 'log_path')
+log_dir = config.get('FilePath', 'log_path')
 
 if not os.path.exists(model_loc):
     logging.info('model folder do not exist')
