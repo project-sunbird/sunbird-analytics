@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-#export SPARK_HOME=/home/ec2-user/spark-1.5.2-bin-hadoop2.3
-export MODELS_HOME=$SPARK_HOME/models
 
-#cd /mnt/data/analytics/scripts
+cd $PROJECT_HOME/platform-scripts/shell/local
 source model-config.sh
 source replay-utils.sh
 
@@ -15,7 +13,7 @@ if [ $? == 0 ]
  	then
   	echo "Backup completed Successfully..."
   	echo "Running the $1 job replay..."
-  	$SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-1.0.jar --class org.ekstep.analytics.job.ReplaySupervisor $MODELS_HOME/batch-models-1.0.jar --model "$1" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-$1-replay.log"
+  	$SPARK_HOME/bin/spark-submit --master local[*] --jars $PROJECT_HOME/platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar --class org.ekstep.analytics.job.ReplaySupervisor $PROJECT_HOME/platform-modules/batch-models/target/batch-models-1.0.jar --model "$1" --fromDate "$start_date" --toDate "$end_date" --config "$job_config" > "logs/$end_date-$1-replay.log"
 else
   	echo "Unable to take backup"
 fi
