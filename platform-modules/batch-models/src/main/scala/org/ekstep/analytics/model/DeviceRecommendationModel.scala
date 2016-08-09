@@ -39,9 +39,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     implicit val className = "org.ekstep.analytics.model.DeviceRecommendationEngine"
     override def name(): String = "DeviceRecommendationEngine"
 
-    val defaultDSpec = DeviceSpec(null, "Other", "Other", "Android", "Other", -1, 0.0, 0.0, 0, "0,0", "Other", 0, null)
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
-
+    val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+    
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -55,15 +55,15 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
         val contentVectorsB = sc.broadcast(contentVectors);
-        val device_usage = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (DeviceId(x.device_id), x) }
-        val allDevices = device_usage.map(x => x._1).distinct; // TODO: Do we need distinct here???
-        val device_spec = allDevices.joinWithCassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (x._1, x._2) }
+        val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
+        val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x._1, x._2) }
 
         val device_content_usage = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).groupBy(f => f._1).mapValues(f => f.map(x => x._2));
 
-        device_usage.leftOuterJoin(device_spec).leftOuterJoin(device_content_usage).map { x =>
+        device_spec.leftOuterJoin(device_usage).leftOuterJoin(device_content_usage).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
-            DeviceMetrics(x._1, contentModelB.value, x._2._1._1, x._2._1._2.getOrElse(defaultDSpec), dc)
+            DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc)
         }.map { x =>
             val rand = new Random(System.currentTimeMillis());
             x.content_list.map { y =>
