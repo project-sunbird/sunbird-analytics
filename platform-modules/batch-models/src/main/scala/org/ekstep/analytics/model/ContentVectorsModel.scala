@@ -147,7 +147,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
                 "corpus_loc" -> config.getOrElse("content2vec.corpus_path", "").asInstanceOf[String],
                 "model" -> modelPath)
 
-            sc.makeRDD(Seq(JSONUtils.serialize(scriptParams)), 1).pipe(s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py", env);
+            sc.makeRDD(Seq(JSONUtils.serialize(scriptParams)), 1).pipe(s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py", env).collect();
             S3Util.uploadDirectory(bucket, prefix, modelPath);
         }
     }
