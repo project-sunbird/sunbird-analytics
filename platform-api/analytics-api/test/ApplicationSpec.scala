@@ -48,13 +48,34 @@ class ApplicationSpec extends Specification {
     		val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """))
 			val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
 			contentType(home) must beSome.which(_ == "application/json")
-			contentAsString(home) must contain(""""err":"CLIENT_ERROR","status":"failed","errmsg":"did or dlang is missing."}""")
+			contentAsString(home) must contain(""""err":"CLIENT_ERROR","status":"failed","errmsg":"context required data is missing."""")
        }
        
        "return the recommendations - successful response" in new WithApplication {
 			val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}, "filters": {"contentType": "Story"}}} """))
 			val home = route(FakeRequest(POST, "/recommendations", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
 			val content = JSONUtils.deserialize[Map[String, AnyRef]](contentAsString(home)).getOrElse("result", Map("content" -> List())).asInstanceOf[Map[String, AnyRef]].get("content").get.asInstanceOf[List[AnyRef]];
+			status(home) must equalTo(OK)
+			contentType(home) must beSome.which(_ == "application/json")
+       }
+       
+       "invoke content to vec on a content" in new WithApplication {
+    	   val req = Json.toJson(Json.parse(""" {"id":"ekstep.analytics.content-to-vec","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{}} """))
+    	   val home = route(FakeRequest(POST, "/content-to-vec/domain_63844", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
+			status(home) must equalTo(OK)
+			contentType(home) must beSome.which(_ == "application/json")
+       }
+       
+       "invoke content to vec train model" in new WithApplication {
+			val req = Json.toJson(Json.parse(""" {} """))
+			val home = route(FakeRequest(POST, "/content-to-vec/train/model", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
+			status(home) must equalTo(OK)
+			contentType(home) must beSome.which(_ == "application/json")
+       }
+       
+       "invoke recommendations model training" in new WithApplication {
+			val req = Json.toJson(Json.parse(""" {} """))
+			val home = route(FakeRequest(POST, "/recommendations/train/model", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
 			status(home) must equalTo(OK)
 			contentType(home) must beSome.which(_ == "application/json")
        }

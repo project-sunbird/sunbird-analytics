@@ -39,9 +39,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     implicit val className = "org.ekstep.analytics.model.DeviceRecommendationEngine"
     override def name(): String = "DeviceRecommendationEngine"
 
-    val defaultDSpec = DeviceSpec(null, "Other", "Other", "Android", "Other", -1, 0.0, 0.0, 0, "0,0", "Other", 0, null)
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
-
+    val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+    
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -55,15 +55,15 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
         val contentVectorsB = sc.broadcast(contentVectors);
-        val device_usage = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (DeviceId(x.device_id), x) }
-        val allDevices = device_usage.map(x => x._1).distinct; // TODO: Do we need distinct here???
-        val device_spec = allDevices.joinWithCassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (x._1, x._2) }
+        val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
+        val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x._1, x._2) }
 
         val device_content_usage = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).groupBy(f => f._1).mapValues(f => f.map(x => x._2));
 
-        device_usage.leftOuterJoin(device_spec).leftOuterJoin(device_content_usage).map { x =>
+        device_spec.leftOuterJoin(device_usage).leftOuterJoin(device_content_usage).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
-            DeviceMetrics(x._1, contentModelB.value, x._2._1._1, x._2._1._2.getOrElse(defaultDSpec), dc)
+            DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc)
         }.map { x =>
             val rand = new Random(System.currentTimeMillis());
             x.content_list.map { y =>
@@ -210,14 +210,15 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
-        val key = config.getOrElse("bucket", "model/fm.model").asInstanceOf[String];
+        val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
         val dim = config.getOrElse("dim", "1,1,10")
-        val iter = config.getOrElse("iter", 10)
+        val iter = config.getOrElse("iter", 1000)
         val method = config.getOrElse("method", "sgd")
         val task = config.getOrElse("task", "r")
-        val regular = config.getOrElse("regular", "1,1,1")
+        val regular = config.getOrElse("regular", "0,0,0.01")
         val learn_rate = config.getOrElse("learn_rate", 0.1)
         val seed = config.getOrElse("seed", 100)
+        val init_stdev = config.getOrElse("init_stdev", 0.1)
 
         CommonUtil.deleteFile(libfmFile);
         CommonUtil.deleteFile(trainDataFile);
@@ -260,13 +261,13 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -init_stdev $init_stdev -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
 
         JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out $outputFile -load_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -init_stdev $init_stdev -out $outputFile -load_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Save the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))

@@ -49,7 +49,7 @@ object RecommendationAPIService {
 
 		validateCache()(sc, config);
 		val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
-		val context = reqBody.request.context.get;
+		val context = reqBody.request.context.getOrElse(Map());
 		val did = context.getOrElse("did", "").asInstanceOf[String];
 		val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
 		val contentId = context.getOrElse("contentId", "").asInstanceOf[String];
@@ -64,8 +64,8 @@ object RecommendationAPIService {
 			.filter(p => !p._2.isEmpty);
 		val limit = reqBody.request.limit.getOrElse(10);
 
-		if (StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
-			throw new ClientException("did or dlang is missing.");
+		if (context.isEmpty || StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
+			throw new ClientException("context required data is missing.");
 		}
 
 		val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
@@ -126,13 +126,6 @@ object RecommendationAPIService {
 				value.get.asInstanceOf[List[String]];
 			}
 		}
-	}
-	
-	private def getContent(id: String): Map[String, AnyRef] = {
-		if(StringUtils.isBlank(id))
-			Map();
-		else
-			contentBroadcastMap.value.getOrElse(id, Map());
 	}
 	
 	private def getContentFilter(id: String): Array[(String, List[String], String)] = {
