@@ -41,15 +41,24 @@ log_dir = config.get('FilePath', 'log_path')
 # defualt language code (for creating corpus)
 DEFAULT_LANG_CODE = 'en'
 
+def createDirectory(dir):
+    try:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+    except OSError, e:
+        if e.errno != 17:
+            traceback.print_exc()
+            sys.exit(1)
+    except:
+        traceback.print_exc()
+        msg = 'Not able to find/create log and/or tmp dir'
+        logging.warn(msg)
+        sys.exit(1)
+
 # check if paths exists
-if not os.path.exists(corpus_dir):
-    os.makedirs(corpus_dir)
-
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
-
-if not os.path.isdir(corpus_dir):
-    os.makedirs(corpus_dir)
+createDirectory(corpus_dir)
+createDirectory(log_dir)
+createDirectory(corpus_dir)
 
 max_tag_length = 5
 
