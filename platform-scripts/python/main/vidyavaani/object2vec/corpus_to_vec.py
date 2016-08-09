@@ -156,12 +156,8 @@ models_tags = get_all_lang(op_dir, "tags")
 
 # remove existing models
 for f in models_lang:
-    if(os.path.isfile(os.path.join(op_dir, 'model', f))):
-        os.remove(os.path.join(op_dir, 'model', f))
-
-# creating model folder
-if not os.path.exists(os.path.join(op_dir, 'model')):
-    os.makedirs(os.path.join(op_dir, 'model'))
+    if(os.path.isfile(os.path.join(model_loc, f))):
+        os.remove(os.path.join(model_loc, f))
 
 # building model for language
 if models_lang:

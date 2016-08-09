@@ -25,7 +25,7 @@ std_input = sys.stdin.readline()
 std_input = json.loads(std_input)
 
 inferFlag = std_input['infer_all']
-corpus_loc = std_input['corpus_loc']
+op_dir = std_input['corpus_loc']
 model_loc = std_input['model']
 
 def get_immediate_subdirectories(a_dir):
@@ -48,11 +48,11 @@ def get_all_lang(directory, string):
     return lst_lang
 
 # geting paths from config file
-config = ConfigParser.SafeConfigParser()
-config.read(config_file)
+# config = ConfigParser.SafeConfigParser()
+# config.read(config_file)
 
-op_dir = config.get('FilePath', 'corpus_path')
-log_dir = config.get('FilePath', 'log_path')
+# op_dir = config.get('FilePath', 'corpus_path')
+# log_dir = config.get('FilePath', 'log_path')
 
 if not os.path.exists(model_loc):
     logging.info('model folder do not exist')

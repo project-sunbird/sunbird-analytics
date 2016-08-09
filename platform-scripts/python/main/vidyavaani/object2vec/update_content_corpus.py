@@ -179,7 +179,7 @@ def updateContentCorpus(reqJson):
     except:
         msg = 'Not able to read input json stream'
         logging.info(msg)
-        sys.exit(1)
+        return(1)
 
     # get the key info
     try:
@@ -192,7 +192,7 @@ def updateContentCorpus(reqJson):
         traceback.print_exc()
         msg = 'Not able to get minimum required fields from enriched content module'
         logging.info(msg)
-        sys.exit(1)
+        return(1)
     try:
         identifier = contentPayload['identifier']
         # print identifier
@@ -200,7 +200,7 @@ def updateContentCorpus(reqJson):
         traceback.print_exc()
         msg = 'Not able to identify the Content'
         logging.info(msg)
-        sys.exit(1)
+        return(1)
     try:
         # create corpus dir
         path = os.path.join(corpus_dir, identifier)
@@ -210,7 +210,7 @@ def updateContentCorpus(reqJson):
         traceback.print_exc()
         msg = 'Could not find/create corpus_dir'
         logging.info(msg)
-        sys.exit(1)
+        return(1)
 
     # get the minimal output
     text = []
