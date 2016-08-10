@@ -30,7 +30,7 @@
 
 - name: Remove file 
   become: yes
-  file: src={{ analytics.home }}/scripts/{{ item }} state=absent
+  file: path={{ analytics.home }}/scripts/{{ item }} state=absent
   with_items:
              - GenieSearch
              - vidyavaani
