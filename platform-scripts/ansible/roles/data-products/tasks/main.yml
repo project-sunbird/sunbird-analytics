@@ -37,7 +37,6 @@
              - VidyavaniCnQ
   tags:
     - analytics
-           
 
 - name: Copy GenieSearch
   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
@@ -50,10 +49,10 @@
   tags:
     - analytics
 
-- name: Copy Data vidyavaani
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
-  tags:
-    - analytics
+#- name: Copy Data vidyavaani
+#  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
+#  tags:
+#    - analytics
 
 - name: Replace Working directory line
   lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
