@@ -50,7 +50,7 @@ class TestRecommendationAPIService extends SparkSpec {
         } should have message "context required data is missing."
     }
     
-    it should "retun only 2 contents" in {
+    it should "retun only 3 contents" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"},"limit":3}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);

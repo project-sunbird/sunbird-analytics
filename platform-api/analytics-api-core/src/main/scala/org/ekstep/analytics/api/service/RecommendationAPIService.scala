@@ -96,7 +96,7 @@ object RecommendationAPIService {
 					if (valid) 1 else 0;
 				};
 				val filterscore = filterScoreList.toList.sum;
-				(filterscore, p.getOrElse("reco_score", 0).asInstanceOf[Double], p)
+				(filterscore, p.get("reco_score").get.asInstanceOf[Double], p)
 			})
 			.sortBy(- _._1)
 			.sortBy(- _._2)
