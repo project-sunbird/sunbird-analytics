@@ -30,12 +30,12 @@
 
 - name: Remove file 
   become: yes
-  file: src={{ analytics.home }}/scripts/{ item } state=present
+  file: src={{ analytics.home }}/scripts/{{ item }} state=present
   with_items:
              - GenieSearch
              - vidyavaani
              - VidyavaniCnQ
-             
+
 - name: Copy GenieSearch
   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
   tags:
