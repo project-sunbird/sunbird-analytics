@@ -35,6 +35,9 @@
              - GenieSearch
              - vidyavaani
              - VidyavaniCnQ
+  tags:
+    - analytics
+           
 
 - name: Copy GenieSearch
   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
