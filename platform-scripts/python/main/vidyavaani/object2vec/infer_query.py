@@ -7,6 +7,9 @@ import ConfigParser
 import json
 import ast  # remove
 import langdetect
+import re
+from nltk.corpus import stopwords
+stopword = set(stopwords.words("english"))
 langdetect.DetectorFactory.seed = 0
 
 root = os.path.dirname(os.path.abspath(__file__))
@@ -79,6 +82,23 @@ def get_vector_dimension():
         n_dim = 50  # default value ,should take it from stdin?
     return n_dim
 
+def process_query(line,language):
+    word_list = []
+    if(language == 'en' or language == 'en-text'):
+        line = re.sub("[^a-zA-Z]", " ", line)
+        for word in line.split(' '):
+            if word not in stopword and len(word) > 1:
+                word_list.append(word.lower())
+    elif(language == 'tags'):
+        pre_query = line.split(",")
+        word_list = []
+        for str_word in pre_query:
+            word_list.append("".join(str_word.split()).lower())     
+    else:
+        for word in line.split(' '):
+            word_list.append(word.lower())
+    return word_list
+
 response = {}
 all_vector = []
 # to get the dimension of vectors from model
@@ -99,6 +119,9 @@ if inferFlag == 'true':
             txt = open(file_path)
             # reading the text from corpus
             query = txt.read()
+            query = process_query(query,lang)
+            if lang == "tags":
+                query = uniqfy_list(query)
             model_path = os.path.join(model_loc, lang)
             # logging.info("model_path:"+model_path)
             if not os.path.exists(model_path):
@@ -142,6 +165,9 @@ else:
         else:
             model = key
         query = docs[key]
+        query = process_query(query,key)
+        if key == 'tags':
+            query = uniqfy_list(query)
         model_path = os.path.join(model_loc, model)
         if not os.path.exists(model_path):
             logging.info('%s model not found, using default model' % (model))

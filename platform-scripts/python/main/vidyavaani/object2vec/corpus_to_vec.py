@@ -81,10 +81,13 @@ def process_text(lines, language):  # Text processing
             for word in line.split(' '):
                 if word not in stopword and len(word) > 1:
                     word_list.append(word.lower())
-        else:  # Any language using unicode characters goes here
-            # line=' '.join([i for i in line if ord(i)>127 or ord(i)==32])
-            # Remove ASCII Characters since the language is not english(This
-            # will remove punctuation as well)
+        elif(language == 'tags'):
+            pre_query = line.split(",")
+            word_list = []
+            for str_word in pre_query:
+                word_list.append("".join(str_word.split()).lower())
+                word_list = uniqfy_list(word_list)  
+        else:
             for word in line.split(' '):
                 word_list.append(word.lower())
     return word_list
