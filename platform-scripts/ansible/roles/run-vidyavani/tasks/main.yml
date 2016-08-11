@@ -1,24 +1,29 @@
 ---
 # tasks file for run-vidyavani
-- name: copy files
-  become: yes
-  file: name=/mnt/data/analytics/VidyavaniCnQ state=directory mode=755 owner=ec2-user group=ec2-user
+- name: copy the zip file
+  copy: src=script.zip dest={{ analytics.home }}
+  tags:
+    - analytics
 
-- name: copy
-  become: yes
-  copy: src=/home/jenkins/workspace/Datascience_Createtables/platform-scripts/VidyaVani/VidyavaniCnQ/{{ item }} dest=/mnt/data/analytics/VidyavaniCnQ/
+- name: extarct 
+  unarchive: src={{ analytics.home }}/script.zip  dest={{ analytics.home }} copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/script
+  tags:
+    - analytics
+
+- name: copy to the paths
+  become: yes 
+  command: mv /mnt/data/analytics/script/{{ item }} /mnt/data/analytics/scripts
   with_items:
-             - queries.txt
-             - VidyavaniCnQ_dp_script.sh
-             - VidyavaniCnQPopulateGragph.py
-             - RunLP.scala
+             - VidyavaniCnQ
+             - GenieSearch
+             - vidyavaani
+  tags:
+    - analytics
 
-- name: copy files
-  become: yes
-  file: name=/mnt/data/analytics/VidyavaniCnQ  mode=755 owner=ec2-user group=ec2-user recurse=yes
-
-- name: run script
-  command: sh /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQ_dp_script.sh true
-
-#- name: run script
- # command: python /mnt/data/analytics/VidyavaniCnQ/VidyavaniCnQPopulateGragph.py 
+- name: remove script 
+  file: path={{ analytics.home }}/{{ item }} state=absent
+  with_items:
+             - script 
+             - script.zip
+  tags:
+    - analytics

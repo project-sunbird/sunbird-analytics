@@ -211,15 +211,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
-        val dim = config.getOrElse("dim", "1,1,10")
-        val iter = config.getOrElse("iter", 1000)
-        val method = config.getOrElse("method", "sgd")
-        val task = config.getOrElse("task", "r")
-        val regular = config.getOrElse("regular", "0,0,0.01")
-        val learn_rate = config.getOrElse("learn_rate", 0.1)
-        val seed = config.getOrElse("seed", 100)
-        val init_stdev = config.getOrElse("init_stdev", 0.1)
-
+        val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,8 -iter 100 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
+        val libFMScoreConfig = config.getOrElse("libFMScoreConfig", "-dim 1,1,8 -iter 0 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
+        
         CommonUtil.deleteFile(libfmFile);
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
@@ -230,7 +224,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val rdd: RDD[Row] = _createDF(data);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean])
-            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "libfm.input")), df.toJSON);
+            df.write.format("com.databricks.spark.csv").option("header", "true").save("libfm.input")
 
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
@@ -261,13 +255,13 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -init_stdev $init_stdev -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
 
         JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -init_stdev $init_stdev -out $outputFile -load_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile $libFMScoreConfig -out $outputFile -load_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Save the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))
