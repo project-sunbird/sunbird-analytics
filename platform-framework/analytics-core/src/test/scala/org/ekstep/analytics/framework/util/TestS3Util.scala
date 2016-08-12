@@ -21,4 +21,15 @@ class TestS3Util extends BaseSpec {
         S3Util.download("lpdev-ekstep", "output/", "files/");
     }
   
+    it should "upload multiple files into S3 bucket" in {
+        S3Util.uploadDirectory("lpdev-ekstep", "testUpload/", "src/test/resources/session-batch-model")
+        val keys = S3Util.search("lpdev-ekstep", "testUpload/", None, None, None);
+        keys.length should be > 0;
+        S3Util.uploadDirectory("lpdev-ekstep", "testUpload/", "src/test/resources/test")
+    }
+    
+    it should "download multiple files from a directory in S3 bucket" in {
+         S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/session-batch-model", "testUpload/")
+         S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/testDir", "testUpload/")
+    }
 }

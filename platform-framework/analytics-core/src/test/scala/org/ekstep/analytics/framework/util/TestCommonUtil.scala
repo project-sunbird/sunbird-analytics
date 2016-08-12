@@ -36,10 +36,12 @@ class TestCommonUtil extends BaseSpec {
 
         //deleteFile
         val filePath = "delete-this.txt";
+        val noFile = "no-file.txt"
         val file = new File(filePath);
         val created = file.createNewFile();
         created should be(true);
         CommonUtil.deleteFile(filePath)
+        CommonUtil.deleteFile(noFile)
         file.isFile() should be(false);
 
         //getAge
@@ -169,6 +171,7 @@ class TestCommonUtil extends BaseSpec {
         } catch {
             case ex: Exception => ex.printStackTrace();
         }
-
+        
+        CommonUtil.getPathFromURL("https://ekstep-public.s3-ap-southeast-1.amazonaws.com/ecar_files/domain_38527_1460631037666.ecar") should be ("/ecar_files/domain_38527_1460631037666.ecar")
     }
 }
