@@ -50,7 +50,7 @@ object BatchJobDriver {
             JobContext.jobName = model.name
             JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config)));
             try {
-                val result = if (count > 0) _processModel(config, data, model) else (0L, 0L);
+                val result = _processModel(config, data, model);
                 JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
             } catch {
                 case ex: Exception =>

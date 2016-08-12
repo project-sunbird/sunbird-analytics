@@ -27,7 +27,7 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<id>typesafe-releases-plugins</id>
-			<url>http://repo.typesafe.com/typesafe/releases/</url>
+			<url>https://repo.typesafe.com/typesafe/releases/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>

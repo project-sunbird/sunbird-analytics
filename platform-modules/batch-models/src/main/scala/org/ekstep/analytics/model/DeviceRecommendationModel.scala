@@ -25,6 +25,9 @@ import org.apache.spark.mllib.linalg.Vectors
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
 import org.apache.commons.lang3.StringUtils
+import org.apache.spark.storage.StorageLevel
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
@@ -33,12 +36,12 @@ case class ContentToVector(contentId: String, text_vec: Option[List[Double]], ta
 
 object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
 
-    val className = "org.ekstep.analytics.model.DeviceRecommendationEngine"
+    implicit val className = "org.ekstep.analytics.model.DeviceRecommendationEngine"
     override def name(): String = "DeviceRecommendationEngine"
 
-    val defaultDSpec = DeviceSpec(null, "Other", "Other", "Android", "Other", -1, 0.0, 0.0, 0, "0,0", "Other", 0, null)
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
-
+    val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+    
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -47,18 +50,20 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
         val contentModel = ContentAdapter.getLiveContent().map { x => (x.id, x) }.toMap;
+        JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO);
+
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
         val contentVectorsB = sc.broadcast(contentVectors);
-        val device_usage = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (DeviceId(x.device_id), x) }
-        val allDevices = device_usage.map(x => x._1).distinct; // TODO: Do we need distinct here???
-        val device_spec = allDevices.joinWithCassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (x._1, x._2) }
+        val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
+        val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x._1, x._2) }
 
         val device_content_usage = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).groupBy(f => f._1).mapValues(f => f.map(x => x._2));
 
-        device_usage.leftOuterJoin(device_spec).leftOuterJoin(device_content_usage).map { x =>
+        device_spec.leftOuterJoin(device_usage).leftOuterJoin(device_content_usage).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
-            DeviceMetrics(x._1, contentModelB.value, x._2._1._1, x._2._1._2.getOrElse(defaultDSpec), dc)
+            DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc)
         }.map { x =>
             val rand = new Random(System.currentTimeMillis());
             x.content_list.map { y =>
@@ -135,12 +140,12 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             // Device Context Attributes
             seq ++= Seq(x.device_spec.make, x.device_spec.screen_size, x.device_spec.external_disk, x.device_spec.internal_disk)
             val psc = x.device_spec.primary_secondary_camera.split(",");
-            if(psc.length == 0) {
-                seq ++= Seq(0.0, 0.0);    
-            } else if(psc.length == 1) {
-                seq ++= Seq(if(StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, 0.0);
+            if (psc.length == 0) {
+                seq ++= Seq(0.0, 0.0);
+            } else if (psc.length == 1) {
+                seq ++= Seq(if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, 0.0);
             } else {
-                seq ++= Seq(if(StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if(StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
+                seq ++= Seq(if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if (StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
             }
             Row.fromSeq(seq);
         }
@@ -196,13 +201,31 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
-        val rdd: RDD[Row] = _createDF(data);
-        val sqlContext = new SQLContext(sc);
-        val df = sqlContext.createDataFrame(rdd, _getStructType);
-        //df.printSchema();
-        if(config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean])
-            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "libfm.input")), df.toJSON);
+        JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        implicit val sqlContext = new SQLContext(sc);
+        val libfmFile = config.getOrElse("dataFile", "/tmp/score.dat.libfm").asInstanceOf[String]
+        val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
+        val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
+        val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
+        val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
+        val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
+        val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
+        val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
+        val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,8 -iter 100 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
+        val libFMScoreConfig = config.getOrElse("libFMScoreConfig", "-dim 1,1,8 -iter 0 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
         
+        CommonUtil.deleteFile(libfmFile);
+        CommonUtil.deleteFile(trainDataFile);
+        CommonUtil.deleteFile(testDataFile);
+        CommonUtil.deleteFile(outputFile);
+        CommonUtil.deleteFile(model);
+
+        JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val rdd: RDD[Row] = _createDF(data);
+        val df = sqlContext.createDataFrame(rdd, _getStructType);
+        if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean])
+            df.write.format("com.databricks.spark.csv").option("header", "true").save("libfm.input")
+
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
@@ -222,60 +245,41 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 }.toSeq.mkString(" ");
 
                 sb.mkString
-        }.cache();
-        
-        val libfmFile = config.getOrElse("dataFile", "score.dat.libfm").asInstanceOf[String]
-        val trainDataFile = config.getOrElse("trainDataFile", "train.dat.libfm").asInstanceOf[String]
-        val testDataFile = config.getOrElse("testDataFile", "test.dat.libfm").asInstanceOf[String]
-        val outputFile = config.getOrElse("outputFile", "score.txt").asInstanceOf[String]
-        val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
-        
-        CommonUtil.deleteFile(libfmFile);
-        CommonUtil.deleteFile(trainDataFile);
-        CommonUtil.deleteFile(testDataFile);
-        
-        val usedDataSet = dataStr.filter { x => (!("0.0".equals(x.substring(0, x.indexOf(' '))))) }
-        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt)
-        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt)
-        
+        }.cache;
+
+        JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
+        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
+        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
+
+        JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+
+        JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
-        
-        // CommonUtil.deleteDirectory("libsvm/");
-        // MLUtils.saveAsLibSVMFile(labeledRDD, "libsvm/");
-        val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
-        val dim = config.getOrElse("dim", "1,1,10")
-        val iter = config.getOrElse("iter", 10)
-        val method = config.getOrElse("method", "sgd")
-        val task = config.getOrElse("task", "r")
-        val regular = config.getOrElse("regular", "1,1,1")
-        val learn_rate = config.getOrElse("learn_rate", 0.1)
-        val seed = config.getOrElse("seed", 100)
-        // 1. Invoke training
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -save_model $model",
-                "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))
-        
-        // 2. Invoke scoring
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile -dim $dim -iter $iter -method $method -task $task -regular $regular -learn_rate $learn_rate -seed $seed -out $outputFile -load_model $model",
-                "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")))                
-        // 3. Save model to S3
-        //S3Dispatcher.dispatch(null, Map("filepath" -> "fm.model", "bucket" -> "sandbox-data-store", "key" -> "model/fm.model"))
-                
-        // 4. Load libsvm output file and transform to DeviceRecos
-        // TODO: Read output file score.out and save the recommendations into device recos
-        val device_content = data.map{x => (x.did, x.contentInFocus)}.zipWithIndex()
-        val dcWithIndexKey = device_content.map{case (k,v) => (v,k)}
-        val scores = sc.textFile("score.txt").map{x => x.toDouble}.zipWithIndex()
-        val scoresWithIndexKey = scores.map{case (k,v) => (v,k)}
-        val device_scores = dcWithIndexKey.leftOuterJoin(scoresWithIndexKey).map{x => x._2}.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2))
-        device_scores.map{ x =>
-                DeviceRecos(x._1, x._2)
+
+        JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile $libFMScoreConfig -out $outputFile -load_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+
+        JobLogger.log("Save the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))
+
+        JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex()
+        val dcWithIndexKey = device_content.map { case (k, v) => (v, k) }
+        val scores = sc.textFile(outputFile).map { x => x.toDouble }.zipWithIndex()
+        val scoresWithIndexKey = scores.map { case (k, v) => (v, k) }
+        val device_scores = dcWithIndexKey.leftOuterJoin(scoresWithIndexKey).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
+        device_scores.map { x =>
+            DeviceRecos(x._1, x._2)
         }
     }
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
+        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
         data;
     }

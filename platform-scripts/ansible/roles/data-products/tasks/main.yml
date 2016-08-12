@@ -28,19 +28,29 @@
   tags:
     - analytics
 
+- name: Remove file 
+  become: yes
+  file: path={{ analytics.home }}/scripts/{{ item }} state=absent
+  with_items:
+             - GenieSearch
+             - vidyavaani
+             - VidyavaniCnQ
+  tags:
+    - analytics
+
 - name: Copy GenieSearch
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
+  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
   tags:
     - analytics
 
 
 - name: Copy VidyavaniCnQ
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/scripts
+  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/scripts
   tags:
     - analytics
 
 - name: Copy Data vidyavaani
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
+  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
   tags:
     - analytics
 

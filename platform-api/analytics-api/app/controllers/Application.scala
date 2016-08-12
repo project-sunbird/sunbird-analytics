@@ -58,11 +58,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
             play.Logger.info(request + " body - " + body + "\n\t => " + response)
             Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
         } catch {
-        	case ex: ClientException => 
+        	case ex: ClientException =>
         		Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
-            case ex: Exception =>
-                ex.printStackTrace();
-                Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.SERVER_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
         }
 
     }
@@ -96,11 +93,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
         val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
         val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
         val response: Future[String] = firstCompleted.recoverWith {
-        	case ex: ClientException => 
+        	case ex: ClientException =>
         		Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) };
-        	case ex: Throwable =>
-	            ex.printStackTrace();
-	            Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.SERVER_ERROR.toString()) }; 
         };
         response.map { resp => 
         	JobLogger.log("ekstep.analytics.recommendations", Option(Map("request" -> body, "response" -> resp)), INFO);

@@ -7,7 +7,7 @@ user_home: /home/ec2-user
 sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
-  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports']
+  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/tmp', '/mnt/data/analytics/scripts/monitor-data']
   scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-2.2.6"
 cql_path: cqlsh
@@ -24,7 +24,7 @@ brokerlist: 10.10.1.207:9092
 topic: production.telemetry.derived
 spark:
   home: "{{ user_home }}/spark-1.5.2-bin-hadoop2.3"
-  driver_memory: 5g
+  driver_memory: 12g
   executor_extraJavaOptions: -Denv=prod
   driver_extraJavaOptions: -Denv=prod
   executor_memory: 3g

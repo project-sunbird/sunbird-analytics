@@ -45,6 +45,8 @@ object JobFactory {
                 CSVDumpJob
             case "ctv" =>
                 ContentToVecJob
+            case "device-recos" =>
+                DeviceRecommendationJob    
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

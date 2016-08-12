@@ -41,7 +41,6 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentAsString] = {
 
-        val contentUrl = AppConf.getConfig("content2vec.content_service_url");
         val baseUrl = AppConf.getConfig("service.search.url");
         val searchUrl = s"$baseUrl/v2/search";
         val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "limit" -> 1000));
@@ -78,26 +77,28 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
     def contentToVec(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 
         implicit val jobConfig = config;
-        val scriptLoc = jobConfig.getOrElse("content2vec.scripts_path", "").asInstanceOf[String];
+        val scriptLoc = AppConf.getConfig("content2vec_scripts_path");
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
 
-        val contentServiceUrl = config.get("content2vec.content_service_url").get.asInstanceOf[String];
-        sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").foreach(println);
+        JobLogger.log("Downloading concepts", None, INFO);
+        val contentServiceUrl = AppConf.getConfig("lp.url"); ;
+        sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").collect();
 
-        println("### Downloading concepts ###");
-
-        JobLogger.log("Debug execution", Option("Running _doContentEnrichment......."), INFO);
+        JobLogger.log("Running content enrichment", None, INFO);
         val enrichedContentRDD = _doContentEnrichment(data.map { x => x.content }, scriptLoc, pythonExec, env).cache();
         printRDD(enrichedContentRDD);
-        JobLogger.log("Debug execution", Option("Running _doContentToCorpus........"), INFO);
+
+        JobLogger.log("Content enrichment done. Running content to corpus", None, INFO);
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
         printRDD(corpusRDD);
-        JobLogger.log("Debug execution", Option("Running _doTrainContent2VecModel........"), INFO);
+
+        JobLogger.log("Corpus creation completed. Running content to vec model training", None, INFO);
         _doTrainContent2VecModel(scriptLoc, pythonExec, env);
-        JobLogger.log("Debug execution", Option("Running _doUpdateContentVectors........"), INFO);
+
+        JobLogger.log("Model training completed. Running content to vec", None, INFO);
         val vectors = _doUpdateContentVectors(scriptLoc, pythonExec, "", env);
-        //printRDD(vectors);
+
         enrichedContentRDD.map { x =>
             val jsonData = JSONUtils.deserialize[Map[String, AnyRef]](x)
             ContentEnrichedJson(jsonData.get("identifier").get.asInstanceOf[String], jsonData);
@@ -106,15 +107,15 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
     private def printRDD(rdd: RDD[String]) = {
         rdd.collect().foreach { x =>
-            JobLogger.log("Debug execution", Option(JSONUtils.deserialize[Map[String, AnyRef]](x)), INFO);
+            JobLogger.log("Debug execution", Option(JSONUtils.deserialize[Map[String, AnyRef]](x)), DEBUG);
         }
     }
 
     override def postProcess(data: RDD[ContentEnrichedJson], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         // TODO: Data science needs the temp working directories for debugging
-        // val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
-        // CommonUtil.deleteDirectory(downloadPath);
+        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
+        CommonUtil.deleteDirectory(downloadPath);
         data.map { x => getME(x) };
     }
 
@@ -146,7 +147,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
                 "corpus_loc" -> config.getOrElse("content2vec.corpus_path", "").asInstanceOf[String],
                 "model" -> modelPath)
 
-            sc.makeRDD(Seq(JSONUtils.serialize(scriptParams)), 1).pipe(s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py", env);
+            sc.makeRDD(Seq(JSONUtils.serialize(scriptParams)), 1).pipe(s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py", env).collect();
             S3Util.uploadDirectory(bucket, prefix, modelPath);
         }
     }

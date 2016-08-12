@@ -28,37 +28,8 @@ config.read(config_file)
 
 op_dir = config.get('FilePath', 'corpus_path')
 log_dir = config.get('FilePath', 'log_path')
-
-# added reference loc to rel path
-#op_dir = os.path.join(root,op_dir)
-# inputs
 model_loc = config.get('FilePath', 'model_path')
-#model_loc = os.environ['model']
 
-# for std_input in sys.stdin:
-# std_input = ast.literal_eval(std_input)
-
-# params = std_input['params']
-# training = params['training']
-# language_model=training['language_model']
-# tags_model=training['tags_model']
-# #pvdm params
-# pvdm = params['pvdm']
-# pvdm_size=int(pvdm['size'])
-# pvdm_min_count=int(pvdm['min_count'])
-# pvdm_window=int(pvdm['window'])
-# pvdm_negative=int(pvdm['negative'])
-# pvdm_workers=int(pvdm['workers'])
-# pvdm_sample=float(pvdm['sample'])
-# #pvdbow params
-# pvdbow = params['pvdbow']
-# pvdbow_size=int(pvdbow['size'])
-# pvdbow_min_count=int(pvdbow['min_count'])
-# pvdbow_window=int(pvdbow['window'])
-# pvdbow_negative=int(pvdbow['negative'])
-# pvdbow_workers=int(pvdbow['workers'])
-# pvdbow_dm=int(pvdbow['dm'])
-# pvdbow_sample=float(pvdbow['sample'])
 
 # get parameters from config file
 language_model = config.get('Training', 'language_model')
@@ -81,6 +52,11 @@ pvdbow_workers = int(config.get('pvdbow', 'workers'))
 pvdbow_sample = float(config.get('pvdbow', 'sample'))
 pvdbow_dm = int(config.get('pvdbow', 'dm'))
 
+# Set up logging
+logfile_name = os.path.join(log_dir, 'corpus_to_vec.log')
+logging.basicConfig(filename=logfile_name, level=logging.INFO)
+logging.info('Corpus to Vectors')
+
 # check if paths existss
 if not os.path.exists(op_dir):
     logging.info('Corpus folder do not exist')
@@ -90,10 +66,6 @@ if not os.path.exists(model_loc):
     logging.info('Model folder do not exist')
     os.makedirs(model_loc)    
 
-# Set up logging
-logfile_name = os.path.join(log_dir, 'corpus_to_vec.log')
-logging.basicConfig(filename=logfile_name, level=logging.DEBUG)
-logging.info('Corpus to Vectors')
 
 # get parameters from config file
 
@@ -109,10 +81,13 @@ def process_text(lines, language):  # Text processing
             for word in line.split(' '):
                 if word not in stopword and len(word) > 1:
                     word_list.append(word.lower())
-        else:  # Any language using unicode characters goes here
-            # line=' '.join([i for i in line if ord(i)>127 or ord(i)==32])
-            # Remove ASCII Characters since the language is not english(This
-            # will remove punctuation as well)
+        elif(language == 'tags'):
+            pre_query = line.split(",")
+            word_list = []
+            for str_word in pre_query:
+                word_list.append("".join(str_word.split()).lower())
+                word_list = uniqfy_list(word_list)  
+        else:
             for word in line.split(' '):
                 word_list.append(word.lower())
     return word_list
@@ -184,12 +159,8 @@ models_tags = get_all_lang(op_dir, "tags")
 
 # remove existing models
 for f in models_lang:
-    if(os.path.isfile(os.path.join(op_dir, 'model', f))):
-        os.remove(os.path.join(op_dir, 'model', f))
-
-# creating model folder
-if not os.path.exists(os.path.join(op_dir, 'model')):
-    os.makedirs(os.path.join(op_dir, 'model'))
+    if(os.path.isfile(os.path.join(model_loc, f))):
+        os.remove(os.path.join(model_loc, f))
 
 # building model for language
 if models_lang:
