@@ -209,6 +209,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
         val libfmInputFile = config.getOrElse("libfmInputFile", "/tmp/libfm_input.csv").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
+        val libfmLogFile = config.getOrElse("libfmLogFile", "/tmp/logFile").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
@@ -221,6 +222,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         CommonUtil.deleteFile(outputFile);
         CommonUtil.deleteFile(model);
         CommonUtil.deleteFile(libfmInputFile);
+        CommonUtil.deleteFile(libfmLogFile);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
@@ -267,9 +269,13 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
         JobLogger.log("Training dataset created", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "totalRecords" -> usedDataSet.count(), "numOfTrainRecords" -> trainDataSet.count(), "numOfTestRecords" -> testDataSet.count())), INFO);
-        
+
         JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog /tmp/logFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $libfmLogFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+
+        val logLastLine = sc.textFile(libfmLogFile).collect().last
+        val rmse = StringUtils.substring(logLastLine, 0, logLastLine.indexOf("\t"))
+        JobLogger.log("The model is trained and reporting RMSE.", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "RMSE" -> rmse)), INFO);
 
         JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
