@@ -41,7 +41,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-    
+
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -207,24 +207,30 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
         val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
         val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
+        val libfmInputFile = config.getOrElse("libfmInputFile", "/tmp/libfm_input.csv").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
         val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,8 -iter 100 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
         val libFMScoreConfig = config.getOrElse("libFMScoreConfig", "-dim 1,1,8 -iter 0 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
-        
+
         CommonUtil.deleteFile(libfmFile);
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(outputFile);
         CommonUtil.deleteFile(model);
+        CommonUtil.deleteFile(libfmInputFile);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
-        if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean])
-            df.write.format("com.databricks.spark.csv").option("header", "true").save("libfm.input")
+
+        if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
+            val columnNames = df.columns.mkString(",")
+            val rdd = df.map { x => x.mkString(",") }
+            OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
+        }
 
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
@@ -249,13 +255,21 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
-        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
+        var trainDataSet: RDD[String] = null
+        var testDataSet: RDD[String] = null
+        if (usedDataSet.count() < 100) {
+            trainDataSet = usedDataSet
+            testDataSet = usedDataSet
+        } else {
+            trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
+            testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
+        }
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
-        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
-
+        JobLogger.log("Training dataset created", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "totalRecords" -> usedDataSet.count(), "numOfTrainRecords" -> trainDataSet.count(), "numOfTestRecords" -> testDataSet.count())), INFO);
+        
         JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog /tmp/logFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);

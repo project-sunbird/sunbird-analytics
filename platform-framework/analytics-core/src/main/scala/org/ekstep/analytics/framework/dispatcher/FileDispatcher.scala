@@ -19,5 +19,18 @@ object FileDispatcher extends IDispatcher {
         fw.close();
         events;
     }
+    
+    @throws(classOf[DispatcherException])
+    def dispatchDF(events: Array[String], config: Map[String, AnyRef], header: String): Array[String] = {
+        val filePath = config.getOrElse("file", null).asInstanceOf[String];
+        if (null == filePath) {
+            throw new DispatcherException("'file' parameter is required to send output to file");
+        }
+        val fw = new FileWriter(filePath, true);
+        fw.write(header + "\n")
+        events.foreach { x => { fw.write(x + "\n"); } };
+        fw.close();
+        events;
+    }
 
 }
