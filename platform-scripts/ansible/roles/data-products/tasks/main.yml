@@ -22,14 +22,23 @@
 
 - name: move files
   become: yes
-  command: mv {{ analytics.home }}/script/{{ item.name }}  {{ analytics.home }}/scripts/{{ item.groups }}
-  with_items:
-    - { name: 'GenieSearch', groups: 'GenieSearch' }
-    - { name: 'VidyavaniCnQ', groups: 'VidyavaniCnQ' }
-    - { name: 'vidyavaani', groups: 'vidyavaani' }
+  command: mv {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/GenieSearch
   tags:
    - analytics
 
+
+- name: move files
+  become: yes
+  command: mv {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/VidyavaniCnQ
+  tags:
+   - analytics
+
+
+- name: move files
+  become: yes
+  command: mv {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/vidyavaani
+  tags:
+   - analytics   
 
 
 - name: Copy Scripts
