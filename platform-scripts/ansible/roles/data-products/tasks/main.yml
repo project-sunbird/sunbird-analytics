@@ -16,7 +16,7 @@
     - analytics
 
 - name: Unarchive script
-  unarchive: src=script.zip dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/script
+  unarchive: src={{ analytics.home }}/script.zip dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/script
   tags:
    - analytics
 
