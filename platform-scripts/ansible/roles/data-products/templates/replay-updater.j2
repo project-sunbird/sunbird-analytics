@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export SPARK_HOME=/home/ec2-user/spark-1.6.2-bin-hadoop2.3
+export SPARK_HOME={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3
 export MODELS_HOME=/mnt/data/analytics/models
 cd /mnt/data/analytics/scripts
 source model-config.sh
