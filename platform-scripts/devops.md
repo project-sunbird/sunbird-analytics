@@ -3,9 +3,9 @@
 ### Setup ###
 
 1. Install JDK 8
-2. Download Apache Spark pre-built with hadoop 2.3 - `http://mirror.fibergrid.in/apache/spark/spark-1.5.2/spark-1.5.2-bin-hadoop2.3.tgz`
-3. Extract Spark in the $USER_HOME directory - `/home/ec2-user/spark-1.5.2-bin-hadoop2.3`
-4. Setup SPARK_HOME to as `/home/ec2-user/spark-1.5.2-bin-hadoop2.3`
+2. Download Apache Spark pre-built with hadoop 2.3 - `http://mirror.fibergrid.in/apache/spark/spark-1.6.2/spark-1.6.2-bin-hadoop2.3.tgz`
+3. Extract Spark in the $USER_HOME directory - `/home/ec2-user/spark-1.6.2-bin-hadoop2.3`
+4. Setup SPARK_HOME to as `/home/ec2-user/spark-1.6.2-bin-hadoop2.3`
 5. Add `$SPARK_HOME/bin` to the `$PATH`
 6. Add the aws keys to the `/etc/environment`. Key names are `aws_key` and `aws_secret`.
 7. Create directory `/mnt/data/analytics/api` - Access should be to the home user
