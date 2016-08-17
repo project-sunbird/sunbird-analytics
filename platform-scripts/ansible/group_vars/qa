@@ -23,7 +23,7 @@ bucket: qa-data-store
 brokerlist: 172.31.1.92:9092
 topic: new-qa.telemetry.derived
 spark:
-  home: "{{ user_home }}/spark-1.6.2-bin-hadoop2.3"
+  home: "{{ analytics.home }}/spark-1.6.2-bin-hadoop2.3"
   driver_memory: 7g
   executor_extraJavaOptions: -Denv=qa
   driver_extraJavaOptions: -Denv=qa
