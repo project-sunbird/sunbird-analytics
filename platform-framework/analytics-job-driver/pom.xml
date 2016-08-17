@@ -31,12 +31,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-core_${scala.maj.version}</artifactId>
-			<version>${spark.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming_${scala.maj.version}</artifactId>
 			<version>${spark.version}</version>
 			<scope>provided</scope>
