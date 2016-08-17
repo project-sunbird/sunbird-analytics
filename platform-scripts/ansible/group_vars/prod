@@ -23,7 +23,7 @@ bucket: prod-data-store
 brokerlist: 10.10.1.207:9092
 topic: production.telemetry.derived
 spark:
-  home: "{{ user_home }}/spark-1.6.2-bin-hadoop2.3"
+  home: "{{ user_home }}/spark-1.5.2-bin-hadoop2.3"
   driver_memory: 12g
   executor_extraJavaOptions: -Denv=prod
   driver_extraJavaOptions: -Denv=prod
