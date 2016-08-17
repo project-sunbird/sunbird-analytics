@@ -48,19 +48,19 @@
 
 		<dependency>
 			<groupId>com.typesafe.play</groupId>
-			<artifactId>play_${scala.dependencies.version}</artifactId>
+			<artifactId>play_${scala.maj.version}</artifactId>
 			<version>${play2.version}</version>
 		</dependency>
 		<dependency>
             <groupId>com.typesafe.play</groupId>
-            <artifactId>play-netty-server_${scala.dependencies.version}</artifactId>
+            <artifactId>play-netty-server_${scala.maj.version}</artifactId>
             <version>${play2.version}</version>
             <scope>runtime</scope>
         </dependency>
 
 		<dependency>
 			<groupId>com.typesafe.play</groupId>
-			<artifactId>play-specs2_${scala.dependencies.version}</artifactId>
+			<artifactId>play-specs2_${scala.maj.version}</artifactId>
 			<version>${play2.version}</version>
 			<scope>test</scope>
 		</dependency>

@@ -7,13 +7,16 @@
 	<version>1.0</version>
 	<name>Analytics Job Driver - Batch and Streaming</name>
 
+	<parent>
+		<groupId>org.ekstep</groupId>
+		<artifactId>platform-framework</artifactId>
+		<version>1.0</version>
+	</parent>
+
 	<properties>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 		<encoding>UTF-8</encoding>
-		<scala.version>2.10.5</scala.version>
-		<spark.version>1.5.0</spark.version>
-		<scala.maj.version>2.10</scala.maj.version>
 		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
 
