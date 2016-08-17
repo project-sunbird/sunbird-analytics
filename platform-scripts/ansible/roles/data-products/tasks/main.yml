@@ -22,23 +22,23 @@
 
 - name: move files
   become: yes
-  command: mv {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/GenieSearch
+  command: cp -r {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/GenieSearch
   tags:
    - analytics
 
 
 - name: move files
   become: yes
-  command: mv {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/VidyavaniCnQ
+  command: cp -r {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/VidyavaniCnQ
   tags:
    - analytics
 
 
 - name: move files
   become: yes
-  command: mv {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/vidyavaani
+  command: cp -r {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/vidyavaani
   tags:
-   - analytics
+   - analytics   
 
 
 - name: Copy Scripts
@@ -59,31 +59,14 @@
   tags:
     - analytics
 
-#- name: Remove file 
-#  become: yes
-#  file: path={{ analytics.home }}/scripts/{{ item }} state=absent
-#  with_items:
-#              - GenieSearch
-#              - vidyavaani
-#              - VidyavaniCnQ
-#   tags:
-#     - analytics
-
-# - name: Copy GenieSearch
-#   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
-#   tags:
-#     - analytics
-
-
-# - name: Copy VidyavaniCnQ
-#   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/scripts
-#   tags:
-#     - analytics
-
-# - name: Copy Data vidyavaani
-#   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
-#   tags:
-#     - analytics
+- name: Remove file 
+  become: yes
+  file: path={{ analytics.home }}/{{ item }} state=absent
+  with_items:
+              - script
+              - script.zip
+  tags:
+    - analytics
 
 - name: Replace Working directory line
   lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
