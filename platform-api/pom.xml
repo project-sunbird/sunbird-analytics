@@ -18,7 +18,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <scala.version>2.10.5</scala.version>
         <scala.dependencies.version>2.10</scala.dependencies.version>
-        <spark.version>1.5.2</spark.version>
+        <spark.version>1.6.2</spark.version>
         <scoverage.plugin.version>1.1.1</scoverage.plugin.version>
     </properties>
 
