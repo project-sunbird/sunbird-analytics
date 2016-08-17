@@ -22,11 +22,21 @@
 
 - name: move files
   become: yes
-  command: mv {{ analytics.home }}/script/{{ item }}  {{ analytics.home }}/scripts
-  with_items:
-             - GenieSearch
-             - VidyavaniCnQ
-             - vidyavaani
+  command: mv {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/GenieSearch
+  tags:
+   - analytics
+
+
+- name: move files
+  become: yes
+  command: mv {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/VidyavaniCnQ
+  tags:
+   - analytics
+
+
+- name: move files
+  become: yes
+  command: mv {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/vidyavaani
   tags:
    - analytics
 
