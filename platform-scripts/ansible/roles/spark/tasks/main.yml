@@ -1,16 +1,16 @@
 ---
 - name: Download Apache Spark
-  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-1.5.2/spark-1.5.2-bin-hadoop2.3.tgz dest={{ user_home }}/spark-1.5.2-bin-hadoop2.3.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
+  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-1.6.2/spark-1.6.2-bin-hadoop2.3.tgz dest={{ analytics_home }}/spark-1.6.2-bin-hadoop2.3.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
   tags:
     - analytics
 
 - name: Unarchive Spark
-  unarchive: src={{ user_home }}/spark-1.5.2-bin-hadoop2.3.tgz dest={{ user_home }}/ copy=no group=ec2-user owner=ec2-user creates={{ user_home }}/spark-1.5.2-bin-hadoop2.3
+  unarchive: src={{ analytics_home }}/spark-1.6.2-bin-hadoop2.3.tgz dest={{ analytics_home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics_home }}/spark-1.6.2-bin-hadoop2.3
   tags:
     - analytics
 
 - name: Update bashrc for SPARK_HOME
-  lineinfile: dest=.bash_profile line='SPARK_HOME=$HOME/spark-1.5.2-bin-hadoop2.3' state=present insertafter=EOF create=yes
+  lineinfile: dest=.bash_profile line='SPARK_HOME=$HOME/spark-1.6.2-bin-hadoop2.3' state=present insertafter=EOF create=yes
   tags:
     - analytics
 
