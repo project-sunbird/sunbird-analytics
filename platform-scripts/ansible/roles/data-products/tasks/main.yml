@@ -21,6 +21,7 @@
    - analytics
 
 - name: move files
+  become: yes
   command: mv {{ analytics.home }}/script/{{ item }}  {{ analytics.home }}/scripts
   with_items:
              - GenieSearch
