@@ -10,6 +10,26 @@
   tags:
     - analytics
 
+- name: Copy Python Library
+  copy: src=script.zip dest={{ analytics.home }}
+  tags:
+    - analytics
+
+- name: Unarchive script
+  unarchive: src=script.zip dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/script
+  tags:
+   - analytics
+
+- name: move files
+  command: mv {{ analytics.home }}/script/{{ item }}  {{ analytics.home }}/scripts
+  with_items:
+             - GenieSearch
+             - VidyavaniCnQ
+             - vidyavaani
+  tags:
+   - analytics
+
+
 - name: Copy Scripts
   template: src={{ item }}.j2 dest={{ analytics.home }}/scripts/{{ item }}.sh mode=755 owner=ec2-user group=ec2-user
   with_items: "{{ analytics.scripts }}"
@@ -28,35 +48,35 @@
   tags:
     - analytics
 
-- name: Remove file 
-  become: yes
-  file: path={{ analytics.home }}/scripts/{{ item }} state=absent
-  with_items:
-             - GenieSearch
-             - vidyavaani
-             - VidyavaniCnQ
-  tags:
-    - analytics
+#- name: Remove file 
+#  become: yes
+#  file: path={{ analytics.home }}/scripts/{{ item }} state=absent
+#  with_items:
+#              - GenieSearch
+#              - vidyavaani
+#              - VidyavaniCnQ
+#   tags:
+#     - analytics
 
-- name: Copy GenieSearch
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
-  tags:
-    - analytics
+# - name: Copy GenieSearch
+#   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/GenieSearch dest={{ analytics.home }}/scripts
+#   tags:
+#     - analytics
 
 
-- name: Copy VidyavaniCnQ
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/scripts
-  tags:
-    - analytics
+# - name: Copy VidyavaniCnQ
+#   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/VidyaVani/VidyavaniCnQ dest={{ analytics.home }}/scripts
+#   tags:
+#     - analytics
 
-- name: Copy Data vidyavaani
-  copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
-  tags:
-    - analytics
+# - name: Copy Data vidyavaani
+#   copy: src=/home/jenkins/workspace/LPA_Deploy_Dataproducts_Dev_Release/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
+#   tags:
+#     - analytics
 
-- name: Replace Working directory line
-  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
-  tags:
-    - analytics
+ - name: Replace Working directory line
+   lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
+   tags:
+     - analytics
 
 
