@@ -28,9 +28,11 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.spark.storage.StorageLevel
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.updater.ContentUsageSummaryFact
+import org.joda.time.DateTime
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
-case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
+case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
 case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
@@ -41,6 +43,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+    val defaultCUS = ContentUsageSummaryFact(null, 0, false, null, "Unknown", new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, None, None)
 
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
@@ -55,6 +58,8 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
         val contentVectorsB = sc.broadcast(contentVectors);
+        val contentUsage = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=?", 0).map { x => (x.d_content_id, x) }.collect().toMap;
+        val contentUsageB = sc.broadcast(contentUsage);
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x._1, x._2) }
@@ -74,7 +79,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                     val contentInFocusVec = contentVectorsB.value.getOrElse(y._1, null);
                     val otherContentModelVec = if (null != otherContentId) contentVectorsB.value.getOrElse(randomContent.content_id, null) else null;
                     val contentInFocusUsageSummary = x.device_content.getOrElse(y._1, defaultDCUS);
-                    DeviceContext(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, x.device_usage, x.device_spec);
+                    val contentInFocusSummary = contentUsageB.value.getOrElse(y._1, defaultCUS)
+                    val otherContentSummary = if (null != otherContentId) contentUsageB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
+                    DeviceContext(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec);
                 }
             }
         }.flatMap { x => x.map { f => f } }
@@ -104,6 +111,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 x.contentInFocusUsageSummary.num_sessions.getOrElse(0L), x.contentInFocusUsageSummary.start_time.getOrElse(0L), x.contentInFocusUsageSummary.total_interactions.getOrElse(0L))
             seq ++= Seq(x.contentInFocusModel.subject.mkString(","), x.contentInFocusModel.contentType, x.contentInFocusModel.languageCode.mkString(","))
 
+            // Add c1 usage metrics
+            seq ++= Seq(if (x.contentInFocusSummary.d_group_user) 1 else 0, x.contentInFocusSummary.d_mime_type, x.contentInFocusSummary.m_publish_date.getMillis, x.contentInFocusSummary.m_last_sync_date.getMillis, x.contentInFocusSummary.m_total_ts,
+                x.contentInFocusSummary.m_total_sessions, x.contentInFocusSummary.m_avg_ts_session, x.contentInFocusSummary.m_total_interactions, x.contentInFocusSummary.m_avg_interactions_min,
+                x.contentInFocusSummary.m_avg_sessions_week.getOrElse(0.0), x.contentInFocusSummary.m_avg_ts_week.getOrElse(0.0))
+
             // Add c2 text vectors
             seq ++= (if (null != x.otherContentModelVec && x.otherContentModelVec.text_vec.isDefined) {
                 x.otherContentModelVec.text_vec.get.toSeq
@@ -128,6 +140,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             } else {
                 Seq("Unknown", "Unknown", "Unknown")
             })
+
+            // Add c2 usage metrics
+            seq ++= Seq(if (x.otherContentSummary.d_group_user) 1 else 0, x.otherContentSummary.d_mime_type, x.otherContentSummary.m_publish_date.getMillis, x.otherContentSummary.m_last_sync_date.getMillis, x.otherContentSummary.m_total_ts,
+                x.otherContentSummary.m_total_sessions, x.otherContentSummary.m_avg_ts_session, x.otherContentSummary.m_total_interactions, x.otherContentSummary.m_avg_interactions_min,
+                x.otherContentSummary.m_avg_sessions_week.getOrElse(0.0), x.otherContentSummary.m_avg_ts_week.getOrElse(0.0))
 
             //println(x.did, "x.device_usage.total_launches", x.device_usage.total_launches, x.device_usage.total_launches.getOrElse(0L).isInstanceOf[Long]);
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
@@ -165,6 +182,12 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             new StructField("c1_start_time", LongType, true), new StructField("c1_total_interactions", LongType, true));
         seq ++= Seq(new StructField("c1_subject", StringType, true), new StructField("c1_contentType", StringType, true), new StructField("c1_language", StringType, true));
 
+        // Add c1 usage metrics
+        seq ++= Seq(new StructField("c1_group_user", IntegerType, true), new StructField("c1_mime_type", StringType, true), new StructField("c1_publish_date", LongType, true),
+            new StructField("c1_last_sync_date", LongType, true), new StructField("c1_total_timespent", DoubleType, true), new StructField("c1_total_sessions", LongType, true),
+            new StructField("c1_avg_ts_session", DoubleType, true), new StructField("c1_num_interactions", LongType, true), new StructField("c1_mean_interactions_min", DoubleType, true),
+            new StructField("c1_avg_sessions_week", DoubleType, true), new StructField("c1_avg_ts_week", DoubleType, true));
+
         // Add c2 text vectors
         seq ++= _getStructField("c2_text", 50);
         // Add c2 tag vectors
@@ -177,6 +200,12 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             new StructField("c2_start_time", LongType, true), new StructField("c2_total_interactions", LongType, true))
 
         seq ++= Seq(new StructField("c2_subject", StringType, true), new StructField("c2_contentType", StringType, true), new StructField("c2_language", StringType, true))
+
+        // Add c2 usage metrics
+        seq ++= Seq(new StructField("c2_group_user", IntegerType, true), new StructField("c2_mime_type", StringType, true), new StructField("c2_publish_date", LongType, true),
+            new StructField("c2_last_sync_date", LongType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", LongType, true),
+            new StructField("c2_avg_ts_session", DoubleType, true), new StructField("c2_num_interactions", LongType, true), new StructField("c2_mean_interactions_min", DoubleType, true),
+            new StructField("c2_avg_sessions_week", DoubleType, true), new StructField("c2_avg_ts_week", DoubleType, true));
 
         // Device Context Attributes
         seq ++= Seq(new StructField("total_timespent", DoubleType, true), new StructField("total_launches", DoubleType, true), new StructField("total_play_time", DoubleType, true),
@@ -233,7 +262,6 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             val rdd = df.map { x => x.mkString(",") }
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
         }
-
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
