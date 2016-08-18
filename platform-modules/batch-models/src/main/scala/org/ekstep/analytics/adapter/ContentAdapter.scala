@@ -29,9 +29,9 @@ object ContentAdapter extends BaseAdapter {
         })
     }
 
-    def getLiveContent(): Array[ContentModel] = {
+    def getLiveContent(limit: Int): Array[ContentModel] = {
         val searchUrl = Constants.getContentSearch();
-        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 10000));
+        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> limit));
         val cr = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
         checkResponse(cr);
         cr.result.content.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))
