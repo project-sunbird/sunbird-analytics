@@ -10,7 +10,7 @@
     - analytics
 
 - name: Update bashrc for SPARK_HOME
-  lineinfile: dest=.bash_profile line='SPARK_HOME=$HOME/spark-1.6.2-bin-hadoop2.3' state=present insertafter=EOF create=yes
+  lineinfile: dest=.bash_profile line='SPARK_HOME=/mnt/data/analytics/spark-1.6.2-bin-hadoop2.3' state=present insertafter=EOF create=yes
   tags:
     - analytics
 

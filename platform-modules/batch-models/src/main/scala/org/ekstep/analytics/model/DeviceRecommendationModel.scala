@@ -52,7 +52,8 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
-        val contentModel = ContentAdapter.getLiveContent().map { x => (x.id, x) }.toMap;
+        val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
+        val contentModel = ContentAdapter.getLiveContent(limit).map { x => (x.id, x) }.toMap;
         JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO);
 
         val contentModelB = sc.broadcast(contentModel);
