@@ -23,6 +23,7 @@ import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.ResponseCode
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import com.typesafe.config.Config
 
 
 @Singleton
@@ -30,7 +31,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 	implicit val className = "controllers.Application";
 	implicit val timeout: Timeout = 20 seconds;
     val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
-    
+    implicit val config1: Config = play.Play.application.configuration.underlying();
 	implicit val config = Map(
         "content2vec.content_service_url" -> play.Play.application.configuration.getString("content2vec.content_service_url"),
         "content2vec.scripts_path" -> play.Play.application.configuration.getString("content2vec.scripts_path"),
@@ -92,7 +93,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
     def recommendations() = Action.async { implicit request =>
         val body: String = Json.stringify(request.body.asJson.get);
-        val futureRes = Future { RecommendationAPIService.recommendations(body)(Context.sc, config) };
+        val futureRes = Future { RecommendationAPIService.recommendations(body)(Context.sc, config1) };
         val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
         val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
         val response: Future[String] = firstCompleted.recoverWith {

@@ -13,6 +13,7 @@ import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import scala.util.control.Breaks
 import org.ekstep.analytics.api.exception.ClientException
+import com.typesafe.config.Config
 
 /**
  * @author mahesh
@@ -23,12 +24,12 @@ object RecommendationAPIService {
 	var contentBroadcastMap: Broadcast[Map[String, Map[String, AnyRef]]] = null;
 	var cacheTimestamp: Long = 0L;
 
-	def initCache()(implicit sc: SparkContext, config: Map[String, String]) {
+	def initCache()(implicit sc: SparkContext, config: Config) {
 
-		val baseUrl = config.get("service.search.url").get;
-		val searchPath = config.get("service.search.path").get;
+		val baseUrl = config.getString("service.search.url");
+		val searchPath = config.getString("service.search.path");
 		val searchUrl = s"$baseUrl$searchPath";
-		val request = config.get("service.search.requestbody").get;
+		val request = config.getString("service.search.requestbody");
 		val resp = RestUtil.post[Response](searchUrl, request);
 		val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
 		val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
@@ -36,7 +37,7 @@ object RecommendationAPIService {
 		cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
 	}
 
-	def validateCache()(implicit sc: SparkContext, config: Map[String, String]) {
+	def validateCache()(implicit sc: SparkContext, config: Config) {
 
 		val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
 		if (cacheTimestamp < timeAtStartOfDay) {
@@ -46,7 +47,7 @@ object RecommendationAPIService {
 		}
 	}
 
-	def recommendations(requestBody: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
+	def recommendations(requestBody: String)(implicit sc: SparkContext, config: Config): String = {
 
 		validateCache()(sc, config);
 		val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
