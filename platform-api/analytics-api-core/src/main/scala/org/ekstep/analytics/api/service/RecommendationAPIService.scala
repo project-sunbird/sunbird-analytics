@@ -26,9 +26,10 @@ object RecommendationAPIService {
 	def initCache()(implicit sc: SparkContext, config: Map[String, String]) {
 
 		val baseUrl = config.get("service.search.url").get;
-		val searchUrl = s"$baseUrl/v2/search";
-		val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1000));
-		val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
+		val searchPath = config.get("service.search.path").get;
+		val searchUrl = s"$baseUrl$searchPath";
+		val request = config.get("service.search.requestbody").get;
+		val resp = RestUtil.post[Response](searchUrl, request);
 		val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
 		val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
 		contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);

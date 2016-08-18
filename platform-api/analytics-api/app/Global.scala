@@ -12,7 +12,11 @@ object Global extends WithFilters(RequestInterceptor) {
     override def beforeStart(app: Application) {
         Context.setSparkContext();
         Logger.info("Caching content")
-        RecommendationAPIService.initCache()(Context.sc, Map("service.search.url" -> play.Play.application.configuration.getString("service.search.url")));
+        val config = Map("service.search.url" -> play.Play.application.configuration.getString("service.search.url"),
+        				"service.search.path" -> play.Play.application.configuration.getString("service.search.path"),
+        				"service.search.requestbody" -> play.Play.application.configuration.getString("service.search.requestbody"),
+        				"service.search.limit" -> play.Play.application.configuration.getString("service.search.limit"));
+        RecommendationAPIService.initCache()(Context.sc, config);
         Logger.info("Application has started...")
     }
 
