@@ -58,7 +58,6 @@ object ContentAPIService {
     case class RecommendationsTrainModel(sc: SparkContext, config: Config);
 
     def contentToVec(contentId: String)(implicit sc: SparkContext, config: Config): String = {
-        println("Config", config);
         val searchBaseUrl = config.getString("service.search.url");
         val defRequest = Map("request" -> Map("filters" -> Map("identifier" -> contentId, "objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1));
         val request = defRequest;
