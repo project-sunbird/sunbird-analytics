@@ -8,6 +8,8 @@ import org.ekstep.analytics.api.ContentUsageSummaryFact
 import com.datastax.spark.connector._
 import org.ekstep.analytics.api.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
+import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConverters._
 
 class TestContentAPIService extends SparkSpec {
     
@@ -300,7 +302,7 @@ class TestContentAPIService extends SparkSpec {
     
     ignore should "enrich content and create content vectors" in {
         
-        val config = Map[String, String](
+        val config = ConfigFactory.parseMap(Map[String, String](
                     "content2vec.content_service_url" -> "https://dev.ekstep.in/api/learning",
                     "content2vec.scripts_path" -> "../../platform-scripts/python/main/vidyavaani",
                     "content2vec.s3_bucket" -> "lpdev-ekstep",
@@ -310,7 +312,7 @@ class TestContentAPIService extends SparkSpec {
                     "content2vec.infer_all" -> "false",
                     "python.home" -> "/usr/local/bin/",
                     "content2vec.enrich_content" -> "true"
-                )
+                ).asJava);
         val resp = ContentAPIService.contentToVec("domain_38527")(sc, config)
         println("### Response ###", resp);
     }

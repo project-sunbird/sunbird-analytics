@@ -42,6 +42,9 @@ import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.framework.util.RestUtil
 import java.net.URL
 import org.ekstep.analytics.framework.conf.AppConf
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+
 
 /**
  * @author Santhosh
@@ -50,26 +53,25 @@ import org.ekstep.analytics.framework.conf.AppConf
 object ContentAPIService {
 
     def props = Props[ContentAPIService];
-    case class ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]);
-    case class ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]);
-    case class RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]);
+    case class ContentToVec(contentId: String, sc: SparkContext, config: Config);
+    case class ContentToVecTrainModel(sc: SparkContext, config: Config);
+    case class RecommendationsTrainModel(sc: SparkContext, config: Config);
 
-    def contentToVec(contentId: String)(implicit sc: SparkContext, config: Map[String, String]): String = {
-
+    def contentToVec(contentId: String)(implicit sc: SparkContext, config: Config): String = {
         println("Config", config);
-        val searchBaseUrl = config.get("service.search.url").get;
+        val searchBaseUrl = config.getString("service.search.url");
         val defRequest = Map("request" -> Map("filters" -> Map("identifier" -> contentId, "objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1));
-        val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
+        val request = defRequest;
         val resp = RestUtil.post[Response](s"$searchBaseUrl/v2/search", JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        val scriptLoc = config.getOrElse("content2vec.scripts_path", "");
-        val pythonExec = config.getOrElse("python.home", "") + "python";
+        val scriptLoc = config.getString("content2vec.scripts_path");
+        val pythonExec = config.getString("python.home") + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
 
         val contentRDD = sc.parallelize(contentList, 1);
 
-        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp");
-        val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_");
+        val downloadPath = config.getString("content2vec.download_path");
+        val downloadFilePrefix = config.getString("content2vec.download_file_prefix");
         val downloadRDD = contentRDD.map { x => x.getOrElse("downloadUrl", "").asInstanceOf[String] }.filter { x => StringUtils.isNotBlank(x) }.distinct;
         println("Dowload ecars", downloadRDD.collect().mkString);
         downloadRDD.map { downloadUrl =>
@@ -78,7 +80,7 @@ object ContentAPIService {
         }.collect; // Invoke the download
 
         println("### Ecar file downloaded. Fetching concepts... ###");
-        val contentServiceUrl = config.get("content2vec.content_service_url").get;
+        val contentServiceUrl = config.getString("content2vec.content_service_url");
         println("$contentServiceUrl", contentServiceUrl);
         sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").foreach(println);
 
@@ -101,45 +103,49 @@ object ContentAPIService {
         rdd.collect().foreach(println);
     }
 
-    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
+    private def _setDefaultConfig(config: Config) = {
+    	
+    }
+    
+    private def _doContentEnrichment(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Config): RDD[String] = {
 
-        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.enrich_content", "true"))) {
+        if (config.getBoolean("content2vec.enrich_content")) {
             contentRDD.pipe(s"$pythonExec $scriptLoc/content/enrich_content.py", env)
         } else {
             contentRDD
         }
     }
 
-    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
+    private def _doContentToCorpus(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Config): RDD[String] = {
 
-        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.content_corpus", "true"))) {
+        if (config.getBoolean("content2vec.content_corpus")) {
             contentRDD.pipe(s"$pythonExec $scriptLoc/object2vec/update_content_corpus.py", env);
         } else {
             contentRDD
         }
     }
 
-    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Map[String, String]) = {
+    private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit config: Config) = {
 
-        if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.train_model", "false"))) {
-            val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
-            val modelPath = config.getOrElse("content2vec.model_path", "model");
-            val prefix = config.getOrElse("content2vec.s3_key_prefix", "model");
+        if (config.getBoolean("content2vec.train_model")) {
+            val bucket = config.getString("content2vec.s3_bucket");
+            val modelPath = config.getString("content2vec.model_path");
+            val prefix = config.getString("content2vec.s3_key_prefix");
             ScriptDispatcher.dispatch(Array(), Map("script" -> s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py",
-                "corpus_loc" -> config.getOrElse("content2vec.corpus_path", ""), "model" -> modelPath))
+                "corpus_loc" -> config.getString("content2vec.corpus_path"), "model" -> modelPath))
             S3Util.uploadDirectory(bucket, prefix, modelPath);
         }
     }
 
-    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String, env: Map[String, String])(implicit config: Map[String, String]): RDD[String] = {
+    private def _doUpdateContentVectors(contentRDD: RDD[String], scriptLoc: String, pythonExec: String, contentId: String, env: Map[String, String])(implicit config: Config): RDD[String] = {
 
-        val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store");
-        val modelPath = config.getOrElse("content2vec.model_path", "model");
-        val prefix = config.getOrElse("content2vec.s3_key_prefix", "model");
+        val bucket = config.getString("content2vec.s3_bucket");
+        val modelPath = config.getString("content2vec.model_path");
+        val prefix = config.getString("content2vec.s3_key_prefix");
         S3Util.download(bucket, prefix, modelPath)
         val vectorRDD = contentRDD.map { x =>
-            Map("contentId" -> contentId, "document" -> JSONUtils.deserialize[Map[String, AnyRef]](x), "infer_all" -> config.getOrElse("content2vec.infer_all", "false"),
-                "corpus_loc" -> config.getOrElse("content2vec.corpus_path", ""), "model" -> modelPath);
+            Map("contentId" -> contentId, "document" -> JSONUtils.deserialize[Map[String, AnyRef]](x), "infer_all" -> config.getString("content2vec.infer_all"),
+                "corpus_loc" -> config.getString("content2vec.corpus_path"), "model" -> modelPath);
         }.map(JSONUtils.serialize).pipe(s"$pythonExec $scriptLoc/object2vec/infer_query.py");
 
         val x = vectorRDD.map { x => JSONUtils.deserialize[ContentVectors](x) }.flatMap { x => x.content_vectors.map { y => y } }.saveToCassandra(Constants.CONTENT_DB, Constants.CONTENT_TO_VEC)
@@ -270,28 +276,28 @@ class ContentAPIService extends Actor {
     import ContentAPIService._
     // TODO: update println with logger. **Important** 
     def receive = {
-        case ContentToVec(contentId: String, sc: SparkContext, config: Map[String, String]) =>
+        case ContentToVec(contentId: String, sc: SparkContext, config: Config) =>
             println("ContentToVec (content enrichment) process starting...");
             contentToVec(contentId)(sc, config);
             println("ContentToVec (content enrichment) process completed...");
             sender() ! "success";
 
-        case ContentToVecTrainModel(sc: SparkContext, config: Map[String, String]) =>
+        case ContentToVecTrainModel(sc: SparkContext, config: Config) =>
             println("ContentToVec model training starting...");
             val scriptParams = Map(
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"),
-                "script" -> config.get("content2vec.train_model_job").get,
+                "script" -> config.getString("content2vec.train_model_job"),
                 "aws_key" -> AppConf.getAwsKey(),
                 "aws_secret" -> AppConf.getAwsSecret());
             ScriptDispatcher.dispatch(Array(), scriptParams).foreach(println);
             println("ContentToVec model training completed...");
             sender() ! "success";
 
-        case RecommendationsTrainModel(sc: SparkContext, config: Map[String, String]) =>
+        case RecommendationsTrainModel(sc: SparkContext, config: Config) =>
             println("Recommendations model training starting...");
             val scriptParams = Map(
                 "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"),
-                "script" -> config.get("recommendation.train_model_job").get,
+                "script" -> config.getString("recommendation.train_model_job"),
                 "aws_key" -> AppConf.getAwsKey(),
                 "aws_secret" -> AppConf.getAwsSecret());
             ScriptDispatcher.dispatch(Array(), scriptParams).foreach(println);
