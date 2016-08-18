@@ -49,7 +49,7 @@ object Context {
     def resetSparkContext() {
         closeSparkContext();
         setSparkContext();
-        RecommendationAPIService.initCache()(Context.sc, Map("service.search.url" -> play.Play.application.configuration.getString("service.search.url")));
+        RecommendationAPIService.initCache()(Context.sc, play.Play.application.configuration.underlying());
     }
 
 }

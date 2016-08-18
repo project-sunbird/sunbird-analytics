@@ -11,10 +11,11 @@ import org.joda.time.DateTimeUtils
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.util.concurrent.TimeUnit
+import com.typesafe.config.ConfigFactory
 
 
 class TestRecommendationAPIService extends SparkSpec {
-	val config = Map("service.search.url" -> "https://dev.ekstep.in/api/search");
+	val config = ConfigFactory.load();
 	override def beforeAll() {
         super.beforeAll()
         // Load test data
