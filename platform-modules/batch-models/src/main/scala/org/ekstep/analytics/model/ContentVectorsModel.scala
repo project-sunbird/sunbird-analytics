@@ -70,9 +70,9 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         //contentToVecDummy(data, config);
     }
 
-    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
-        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
-    }
+//    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
+//        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
+//    }
 
     def contentToVec(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 

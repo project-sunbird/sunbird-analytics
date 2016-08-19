@@ -5,7 +5,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestContentToVec extends SparkSpec(null) {
 
-    ignore should "update content_to_vec tabel and generates enriched json for 10 contents" in {
+    it should "update content_to_vec tabel and generates enriched json for 10 contents" in {
 
         val jobParams = Map(
             "content2vec.s3_bucket" -> "sandbox-data-store",
