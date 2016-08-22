@@ -1,4 +1,4 @@
-
+import sys
 for line in sys.stdin:
     str_line = line.rstrip('\n')
     if str_line:

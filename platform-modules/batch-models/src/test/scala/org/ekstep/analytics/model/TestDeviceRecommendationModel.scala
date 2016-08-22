@@ -25,7 +25,19 @@ class TestDeviceRecommendationModel extends SparkSpec(null) {
             session.execute("INSERT INTO content_db.content_usage_summary_fact(d_content_id, d_period, d_group_user, d_content_type, d_mime_type, m_avg_interactions_min, m_avg_sessions_week, m_avg_ts_session, m_avg_ts_week, m_last_sync_date, m_publish_date, m_total_interactions, m_total_sessions, m_total_ts) VALUES ('domain_63844', 0, true, 'Worksheet', 'application/vnd.ekstep.ecml-archive1', 25.62, 2, 65.12, 651.18, 1459641600, 1459641600, 139, 10, 65.12);");
         }
         
-        val me = DeviceRecommendationModel.execute(null, None)
+        
+        val jobParams = Map(
+            "dataFile" -> "src/test/resources/device-reco/score.dat.libfm",
+            "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm",
+            "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm",
+            "outputFile" -> "src/test/resources/device-reco/score.txt",
+            "libfmInputFile" -> "src/test/resources/device-reco/libfm_input.csv",
+            "model" -> "src/test/resources/device-reco/fm.model",
+            "libfmLogFile" -> "src/test/resources/device-reco/logFile",
+            "libfm.executable_path" -> "src/test/resources/device-reco/",
+            "live_content_limit" -> Int.box(50))
+        
+        val me = DeviceRecommendationModel.execute(null, Option(jobParams))
         val res = me.collect()
         res.length should be(3)
         
