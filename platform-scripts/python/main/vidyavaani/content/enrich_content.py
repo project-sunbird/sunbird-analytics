@@ -34,7 +34,6 @@ from get_lowest_key_value import flattenDict
 from handle_media import *
 from parse_json import *
 from concept_filter import *
-from extract_text_ecml import *
 
 # getiing paths from config file
 config = ConfigParser.SafeConfigParser()
