@@ -13,10 +13,10 @@ sys.path.insert(0, utils)#Insert at front of list ensuring that our util is exec
 from find_files import findFiles
 
 #Extracts all zipfiles into the download directory of that piece of content and deletes the zip files after extraction
-def unzip_files(directory):
+def unzip_files(directory,file_type=['.zip']):
 	assert type(directory)==unicode or type(directory)==str
 	#Finds all files in a directory that are of type .zip
-	zip_list=findFiles(directory,['.zip'])
+	zip_list=findFiles(directory,file_type)
 	bugs={}
 	for zip_file in zip_list:
 		#In case zipfile is bad
@@ -29,8 +29,6 @@ def unzip_files(directory):
 		except:
 			#Can return bugs if you want list of buggy zip files
 			bugs.append(zip_file)
-			{}
-
 
 #Transfer the files in assets,data,items and the ecml files
 def copy_main_folders(downloadPath, identifier, downloadedFile):
