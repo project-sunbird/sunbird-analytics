@@ -35,7 +35,7 @@ class TestDeviceRecommendationModel extends SparkSpec(null) {
             "model" -> "src/test/resources/device-reco/fm.model",
             "libfmLogFile" -> "src/test/resources/device-reco/logFile",
             "libfm.executable_path" -> "src/test/resources/device-reco/",
-            "live_content_limit" -> Int.box(50))
+            "live_content_limit" -> Int.box(1000))
         
         val me = DeviceRecommendationModel.execute(null, Option(jobParams))
         val res = me.collect()
