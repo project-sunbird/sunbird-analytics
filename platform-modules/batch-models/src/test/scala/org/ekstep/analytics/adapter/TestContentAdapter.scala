@@ -38,4 +38,8 @@ class TestContentAdapter extends BaseSpec {
         ContentAdapter.getContentWrapper(Map[String, AnyRef]("identifier" -> "c123"));
         ContentAdapter.getItemWrapper(Map[String, AnyRef]("identifier" -> "i123"));
     }
+    
+    it should "get live contents form content model" in {
+        ContentAdapter.getLiveContent(5).length should be (5)
+    }
 }

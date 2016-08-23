@@ -46,27 +46,6 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 																				"content2vec.s3_key_prefix" -> "model",
 																				"content2vec.infer_all" -> "false",
 																				"content2vec.corpus_path" -> "").asJava));
-//	implicit val config = Map(
-//        "content2vec.content_service_url" -> play.Play.application.configuration.getString("content2vec.content_service_url"),
-//        "content2vec.scripts_path" -> play.Play.application.configuration.getString("content2vec.scripts_path"),
-//        "content2vec.enrich_content" -> play.Play.application.configuration.getString("content2vec.enrich_content"),
-//        "content2vec.train_model" -> play.Play.application.configuration.getString("content2vec.train_model"),
-//        "content2vec.content_corpus" -> play.Play.application.configuration.getString("content2vec.content_corpus"),
-//        "content2vec.infer_query" -> play.Play.application.configuration.getString("content2vec.infer_query"),
-//        "content2vec.s3_bucket" -> play.Play.application.configuration.getString("content2vec.s3_bucket"),
-//        "content2vec.s3_key_prefix" -> play.Play.application.configuration.getString("content2vec.s3_key_prefix"),
-//        "content2vec.model_path" -> play.Play.application.configuration.getString("content2vec.model_path"),
-//        "content2vec.kafka_topic" -> play.Play.application.configuration.getString("content2vec.kafka_topic"),
-//        "content2vec.kafka_broker_list" -> play.Play.application.configuration.getString("content2vec.kafka_broker_list"),
-//        "content2vec.infer_all" -> play.Play.application.configuration.getString("content2vec.infer_all"),
-//        "content2vec.corpus_path" -> play.Play.application.configuration.getString("content2vec.corpus_path"),
-//        "content2vec.train_model_job" -> play.Play.application.configuration.getString("content2vec.train_model_job"),
-//        "recommendation.train_model_job" -> play.Play.application.configuration.getString("recommendation.train_model_job"),
-//        "service.search.url" -> play.Play.application.configuration.getString("service.search.url"),
-//        "service.search.path" -> play.Play.application.configuration.getString("service.search.path"),
-//        "service.search.requestbody" -> play.Play.application.configuration.getString("service.search.requestbody"),
-//        "service.search.limit" -> play.Play.application.configuration.getString("service.search.limit"),
-//        "content2vec.download_path" -> play.Play.application.configuration.getString("content2vec.download_path"));
 
     def contentUsageMetrics(contentId: String) = Action { implicit request =>
 

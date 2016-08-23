@@ -300,20 +300,11 @@ class TestContentAPIService extends SparkSpec {
         summaries.get("cumulative").get.get("avg_sessions_week").get should be (16.38095238095238);
     }
     
-    ignore should "enrich content and create content vectors" in {
-        
-        val config = ConfigFactory.parseMap(Map[String, String](
-                    "content2vec.content_service_url" -> "https://dev.ekstep.in/api/learning",
-                    "content2vec.scripts_path" -> "../../platform-scripts/python/main/vidyavaani",
-                    "content2vec.s3_bucket" -> "lpdev-ekstep",
-                    "content2vec.model_path" -> "content_corpus/model/",
-                    "content2vec.s3_key_prefix" -> "DataSciences/model/",
-                    "content2vec.corpus_path" -> "content_corpus",
-                    "content2vec.infer_all" -> "false",
-                    "python.home" -> "/usr/local/bin/",
-                    "content2vec.enrich_content" -> "true"
-                ).asJava);
-        val resp = ContentAPIService.contentToVec("domain_38527")(sc, config)
+    it should "enrich content and create content vectors" in {
+        val config = ConfigFactory.parseMap(Map("python.home" -> "",
+        			"content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani").asJava)
+        				.withFallback(ConfigFactory.load());
+        val resp = ContentAPIService.contentToVec("domain_14433")(sc, config)
         println("### Response ###", resp);
     }
   

@@ -40,11 +40,11 @@ object EventFieldExtractor extends IBatchModel[Event, String] with FieldExtracto
         serializeToCSV[Event](events, jobParams);
     }
     
-    def main(args: Array[String]): Unit = {
-        val str = """[{"survey_codes":"aser007"},{"activation_keys":"ptm007"},{"partnerid":"org.ekstep.partner.pratham"}]""";
-        println(JSONUtils.serialize(StringEscapeUtils.escapeCsv(str)));
-        println(StringEscapeUtils.escapeJson(str));
-    }
+//    def main(args: Array[String]): Unit = {
+//        val str = """[{"survey_codes":"aser007"},{"activation_keys":"ptm007"},{"partnerid":"org.ekstep.partner.pratham"}]""";
+//        println(JSONUtils.serialize(StringEscapeUtils.escapeCsv(str)));
+//        println(StringEscapeUtils.escapeJson(str));
+//    }
     
 }
 

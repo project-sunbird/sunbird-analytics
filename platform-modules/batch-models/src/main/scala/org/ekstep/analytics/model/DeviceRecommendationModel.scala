@@ -52,7 +52,8 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
-        val contentModel = ContentAdapter.getLiveContent().map { x => (x.id, x) }.toMap;
+        val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
+        val contentModel = ContentAdapter.getLiveContent(limit).map { x => (x.id, x) }.toMap;
         JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO);
 
         val contentModelB = sc.broadcast(contentModel);
@@ -245,13 +246,13 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,8 -iter 100 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
         val libFMScoreConfig = config.getOrElse("libFMScoreConfig", "-dim 1,1,8 -iter 0 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
 
-        CommonUtil.deleteFile(libfmFile);
-        CommonUtil.deleteFile(trainDataFile);
-        CommonUtil.deleteFile(testDataFile);
-        CommonUtil.deleteFile(outputFile);
-        CommonUtil.deleteFile(model);
-        CommonUtil.deleteFile(libfmInputFile);
-        CommonUtil.deleteFile(libfmLogFile);
+//        CommonUtil.deleteFile(libfmFile);
+//        CommonUtil.deleteFile(trainDataFile);
+//        CommonUtil.deleteFile(testDataFile);
+//        CommonUtil.deleteFile(outputFile);
+//        CommonUtil.deleteFile(model);
+//        CommonUtil.deleteFile(libfmInputFile);
+//        CommonUtil.deleteFile(libfmLogFile);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);

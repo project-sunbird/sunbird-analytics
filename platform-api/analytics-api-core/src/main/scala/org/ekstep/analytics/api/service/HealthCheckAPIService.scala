@@ -35,15 +35,21 @@ object HealthCheckAPIService {
                 sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_DB, Constants.CONTENT_SUMMARY_FACT_TABLE).where("d_content_id = ?", "org.ekstep.delta").count
                 cassReport = ServiceHealthReport("Cassandra Database", true);
             } catch {
+            	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
+            	// TODO: Need to get confirmation from amit.
                 case ex: Exception =>
                     cassReport = ServiceHealthReport("Cassandra Database", false, Option(ex.getMessage));
+                // $COVERAGE-ON$    
             }
             Array(sparkReport, cassReport);
         } catch {
+        	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
+        	// TODO: Need to get confirmation from amit.
             case ex: Exception =>
                 val sparkReport = ServiceHealthReport("Spark Cluster", false, Option(ex.getMessage));
                 val cassReport = ServiceHealthReport("Cassandra Database", false, Option("Unknown.... because of Spark Cluster is not up"));
                 Array(sparkReport, cassReport);
+           // $COVERAGE-ON$
         }
     }
 }

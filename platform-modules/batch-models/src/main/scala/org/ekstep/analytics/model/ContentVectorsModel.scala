@@ -70,14 +70,15 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         //contentToVecDummy(data, config);
     }
 
-    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
-        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
-    }
+//    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
+//        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
+//    }
 
     def contentToVec(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 
         implicit val jobConfig = config;
-        val scriptLoc = AppConf.getConfig("content2vec_scripts_path");
+        //val scriptLoc = AppConf.getConfig("content2vec_scripts_path");
+        val scriptLoc = jobConfig.getOrElse("content2vec_scripts_path","").asInstanceOf[String];
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
 
