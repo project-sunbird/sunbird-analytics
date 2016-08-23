@@ -9,12 +9,27 @@ import json
 import codecs
 import traceback
 import re #For image names
+from xml.dom import minidom 
 #Pass as a commandline argument later on
 root=os.path.dirname(os.path.abspath(__file__))
 utils=os.path.join((os.path.split(root)[0]),'utils')
 import sys
 sys.path.insert(0, utils)#Insert at front of list ensuring that our util is executed first in #To find files with a particular substring
 from find_files import findFiles
+
+# to get all the text in ecml file
+
+def get_text(ecml_file):
+    all_text = ''
+    xmldoc = minidom.parse(ecml_file)
+    plist = xmldoc.getElementsByTagName("text") 
+    for p in plist:
+        try:
+            text = p.firstChild.data
+            all_text+=text
+        except:
+            text=""
+    return all_text
 
 #This counts the length of mp3 files in a directory 
 def count_MP3_length_directory(mp3_filelist):
@@ -100,12 +115,16 @@ def imageNames(directory):
 
 #add confidence score if it dosen't exist
 def add_confidence(mp3_dict):
-	for key, value in mp3_dict.iteritems():
-		# print key
-		# print value
-		if not value == []:
-			dict1 = value.get('alternative')[0]
-			if not dict1.has_key('confidence'):
-				dict1['confidence'] = 0.8
-	return mp3_dict
+	try:
+		for key, value in mp3_dict.iteritems():
+			# print key
+			# print value
+			if not value == []:
+				dict1 = value.get('alternative')[0]
+				if not dict1.has_key('confidence'):
+					dict1['confidence'] = 0.8
+		return mp3_dict
+	except:
+		return mp3_dict
+	
 				

@@ -1,0 +1,59 @@
+
+
+- name: Status of the cassandra service
+  command: "{{ sbin_path }}/cassandra-service status"
+  register: cassandra_status
+  tags:
+    - cassandra
+
+- name: Start the cassandra service
+  command: "{{ sbin_path }}/cassandra-service stop"
+  when: "cassandra_status.stdout.find('RUNNING') != -1"
+  async: 20
+  poll: 5
+  tags:
+    - cassandra
+
+- name: Remove cassandra
+  file: path={ analytics.home }}/apache-cassandra-2.2.6 state=absent 
+  tags:
+    - cassandra
+
+- name: Download cassandra
+  get_url: url=https://archive.apache.org/dist/cassandra/3.0.2/apache-cassandra-3.0.2-bin.tar.gz dest={{ user_home }}/apache-cassandra-3.0.2-bin.tar.gz timeout=1000 force=no owner=ec2-user
+  tags:
+    - cassandra
+
+- name: Unarchive cassandra
+  unarchive: src={{ user_home }}/apache-cassandra-3.0.2-bin.tar.gz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-cassandra-3.0.2
+  tags:
+    - cassandra
+
+- name: Update bash_profile for CASSANDRA_HOME
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME={{ analytics.home }}/apache-cassandra-3.0.2' state=present insertafter=EOF create=yes
+  tags:
+    - cassandra
+
+- name: Export CASSANDRA_HOME
+  lineinfile: dest=.bash_profile  line='export CASSANDRA_HOME' state=present insertafter=EOF create=yes
+  tags:
+    - cassandra
+
+- name: Add CASSANDRA_HOME to the PATH
+  lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=present insertafter=EOF create=yes
+  tags:
+    - cassandra
+
+- name: Status of the cassandra service
+  command: "{{ sbin_path }}/cassandra-service status"
+  register: cassandra_status
+  tags:
+    - cassandra
+
+- name: Start the cassandra service
+  command: "{{ sbin_path }}/cassandra-service start"
+  when: "cassandra_status.stdout.find('RUNNING') == -1"
+  async: 20
+  poll: 5
+  tags:
+    - cassandra

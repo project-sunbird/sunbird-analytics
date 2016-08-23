@@ -11,7 +11,7 @@ import sys
 import requests
 import ConfigParser
 import json
-
+import zipfile
 # new additions
 import atexit
 import validators
@@ -147,10 +147,17 @@ def enrichContent(contentJson):
     logging.info('Name:%s' % (identifier))
 
     # Import and use downloadContent
+
     try:
     	downloaded_file = os.path.split(contentPayload['downloadUrl'])[-1]
-        unzip_files(os.path.join(op_dir, download_file_prefix + downloaded_file))
-        copy_main_folders(op_dir, identifier, download_file_prefix + downloaded_file)
+        directory = os.path.join(op_dir, download_file_prefix + identifier)
+        zip_file = os.path.join(op_dir, download_file_prefix + downloaded_file)
+        with zipfile.ZipFile(zip_file, 'r') as z:
+            z.extractall(directory)
+        unzip_files(os.path.join(op_dir, download_file_prefix + identifier))
+        logging.info('Unzipped file')
+        copy_main_folders(op_dir, identifier, download_file_prefix + identifier)
+        logging.info("files copied")
         add_manifest(std_input, os.path.join(op_dir, identifier))
         logging.info('%s:Pre-Processing Complete' % (identifier))
     except:
@@ -173,9 +180,11 @@ def enrichContent(contentJson):
                 'Counted mp3 length of all files except for these: %s' % (','.join(bad_mp3)))
             mp3Files = findFiles(path, ['mp3'])
             (transcribed, bad_mp3) = speech_recogniser(mp3Files)
+            msg = 'transcribed : '+transcribed
             logging.info(
                 'Transcribed all mp3 files except for these: %s' % (','.join(bad_mp3)))
-            transcribed = add_confidence(transcribed)
+            # transcribed = add_confidence(transcribed)
+            logging.info(msg)
             logging.info(
                 'Default confidence score added for empty confidence score')
             images = imageNames(path)
@@ -249,9 +258,21 @@ def enrichContent(contentJson):
         # print 'processing 6.2'
         logging.warn(
             'Unable to read and/or enrich concepts from domain model. Skipping this step')
-
+    #read ecml file
+    # logging.info("before ecml contentPayload"+str(contentPayload['text']))
+    try:
+        ecml_file = os.path.join(os.path.join(op_dir, identifier),'index.ecml')
+        ecml_text = get_text(ecml_file)
+        logging.info("reading ecml for "+identifier)
+        p_text= str(contentPayload['text'])
+        all_text = ecml_text+p_text
+        all_text_list = []
+        all_text_list.append(all_text)
+        contentPayload['text'] = all_text_list
+    except:
+        logging.warn('Unable to read ecml file. Skipping this step')
     print(json.dumps(contentPayload))
-    shutil.rmtree(path)
+    # shutil.rmtree(path)
 
 for line in sys.stdin:
     str_line = line.rstrip('\n')
