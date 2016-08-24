@@ -26,6 +26,8 @@ import org.ekstep.analytics.framework.Level._
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
+import org.ekstep.analytics.api.service.DataProductManagementAPIService
+import org.ekstep.analytics.api.service.DataProductManagementAPIService
 
 
 @Singleton
@@ -33,6 +35,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 	implicit val className = "controllers.Application";
 	implicit val timeout: Timeout = 20 seconds;
     val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
+    val dpmgmtAPIActor = system.actorOf(DataProductManagementAPIService.props, "dpmgmt-api-service-actor");
     implicit val config: Config = play.Play.application.configuration.underlying()
     								.withFallback(ConfigFactory.parseMap(Map("content2vec.scripts_path" -> "",
 																				"python.home" -> "",
@@ -98,5 +101,17 @@ class Application @Inject() (system: ActorSystem) extends Controller {
         	play.Logger.info(request + " body - " + body + "\n\t => " + resp);
         	Ok(resp).withHeaders(CONTENT_TYPE -> "application/json");
         }
+    }
+    
+    def runJob(job: String) = Action { implicit request => 
+    	(dpmgmtAPIActor ! DataProductManagementAPIService.RunJob(job))
+    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.runjob", Map("message" -> "Job submitted")));
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+    }
+    
+    def replyJob(job: String, from: String, to: String) = Action { implicit request => 
+    	(dpmgmtAPIActor ! DataProductManagementAPIService.ReplyJob(job, from, to))
+    	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.runjob", Map("message" -> "Job submitted")));
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");    		
     }
 }
