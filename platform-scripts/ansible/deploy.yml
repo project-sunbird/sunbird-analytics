@@ -15,7 +15,6 @@
 - hosts: analytics
   roles:
     - data-products
-    #- run-vidyavani
 
 - hosts: api
   roles:
