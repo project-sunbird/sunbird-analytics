@@ -15,7 +15,7 @@
     - cassandra
 
 - name: Remove cassandra
-  file: path={ analytics.home }}/apache-cassandra-2.2.6 state=absent 
+  file: path={{ analytics.home }}/apache-cassandra-2.2.6 state=absent 
   tags:
     - cassandra
 
