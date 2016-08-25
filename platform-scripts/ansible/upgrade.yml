@@ -1,5 +1,5 @@
 ---
 - hosts: spark
   roles:
-    - cassandra_upgrade
+        - cassandra_upgrade
 
