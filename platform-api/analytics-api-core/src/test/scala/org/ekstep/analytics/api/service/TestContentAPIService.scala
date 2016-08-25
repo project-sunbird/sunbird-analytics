@@ -304,7 +304,7 @@ class TestContentAPIService extends SparkSpec {
         val config = ConfigFactory.parseMap(Map("python.home" -> "",
         			"content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani").asJava)
         				.withFallback(ConfigFactory.load());
-        val resp = ContentAPIService.contentToVec("domain_14433")(sc, config)
+        val resp = ContentAPIService.contentToVec("domain_66036")(sc, config)
         println("### Response ###", resp);
     }
   

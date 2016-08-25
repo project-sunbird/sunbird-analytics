@@ -269,7 +269,8 @@ object ContentAPIService {
 
 class ContentAPIService extends Actor {
     import ContentAPIService._
-    // TODO: update println with logger. **Important** 
+    // TODO: update println with logger. **Important**
+	// $COVERAGE-OFF$ Disabling scoverage - because actor calls are Async.
     def receive = {
         case ContentToVec(contentId: String, sc: SparkContext, config: Config) =>
             println("ContentToVec (content enrichment) process starting...");
@@ -299,4 +300,5 @@ class ContentAPIService extends Actor {
             println("Recommendations model training completed...");
             sender() ! "success";
     }
+    // $COVERAGE-OFF$
 }
