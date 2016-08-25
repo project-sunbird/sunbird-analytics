@@ -58,7 +58,8 @@
 		<dependency>
 			<groupId>com.datastax.spark</groupId>
 			<artifactId>spark-cassandra-connector_2.10</artifactId>
-			<version>1.5.0-M1</version>
+<!-- 			<version>1.5.0-M1</version> -->
+			<version>1.6.0-M1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.scalanlp</groupId>
@@ -75,7 +76,7 @@
 			<artifactId>spark-csv_${scala.maj.version}</artifactId>
 			<version>1.4.0</version>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>

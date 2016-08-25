@@ -6,7 +6,7 @@
 	<artifactId>analytics-core</artifactId>
 	<version>1.0</version>
 	<name>analytics-core</name>
-	
+
 	<parent>
 		<groupId>org.ekstep</groupId>
 		<artifactId>platform-framework</artifactId>
@@ -33,6 +33,12 @@
 			<version>${spark.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>16.0.1</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming_${scala.maj.version}</artifactId>
