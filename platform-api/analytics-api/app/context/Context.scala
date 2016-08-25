@@ -39,7 +39,6 @@ object Context {
             rdd.sortBy(f => f).collect
         } catch {
         	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
-        	// TODO: Need to get confirmation from amit.
             case ex: SparkException =>
                 Context.resetSparkContext();
             case ex: Exception =>
@@ -51,7 +50,6 @@ object Context {
     
     def resetSparkContext() {
     	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
-    	// TODO: Need to get confirmation from amit.
         closeSparkContext();
         setSparkContext();
         RecommendationAPIService.initCache()(Context.sc, play.Play.application.configuration.underlying());

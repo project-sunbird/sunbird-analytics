@@ -15,6 +15,7 @@ object DataProductManagementAPIService {
 class DataProductManagementAPIService extends Actor {
 	import DataProductManagementAPIService._
 	def receive = {
+		// $COVERAGE-OFF$ Disabling scoverage - because actor calls are Async.
 		case RunJob(job: String, config: Config) =>
 			println("Run Job started for "+job);
 			val script = config.getString("dataproduct.scripts_path") + "/run-job.sh "+job;
@@ -38,5 +39,6 @@ class DataProductManagementAPIService extends Actor {
             ScriptDispatcher.dispatch(Array(), scriptParams).foreach(println);
             println("Reply Job completed for '"+job+"' from:"+from+" to:"+to);
 			sender() ! "success";
-	}
+		// $COVERAGE-ON$
+	}	
 }

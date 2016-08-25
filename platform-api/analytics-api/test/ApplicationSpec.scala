@@ -80,5 +80,19 @@ class ApplicationSpec extends Specification {
 			contentType(home) must beSome.which(_ == "application/json")
        }
        
+       "invoke run job" in new WithApplication {
+			val req = Json.toJson(Json.parse(""" {} """))
+			val home = route(FakeRequest(POST, "/run-job/ss", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
+			status(home) must equalTo(OK)
+			contentType(home) must beSome.which(_ == "application/json")
+       }
+       
+       "invoke replay-job" in new WithApplication {
+			val req = Json.toJson(Json.parse(""" {} """))
+			val home = route(FakeRequest(POST, "/reply-job/ss/2016-04-01/2016-04-03", FakeHeaders(Seq(("content-type", "application/json"))), req)).get
+			status(home) must equalTo(OK)
+			contentType(home) must beSome.which(_ == "application/json")
+       }
+       
     }
 }
