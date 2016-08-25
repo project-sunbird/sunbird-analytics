@@ -39,11 +39,11 @@
   tags:
     - always
 
-- name: install Development tools
-  become: yes
-  yum: name="@Development tools" state=present
-  tags:
-    - always
+# - name: install Development tools
+#   become: yes
+#   yum: name="@Development tools" state=present
+#   tags:
+#     - always
 
 - name: Clone libfm from github
   git:  repo=https://github.com/srendle/libfm.git dest={{ analytics.home }}/libfm
