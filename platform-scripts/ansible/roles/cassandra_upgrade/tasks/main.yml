@@ -20,7 +20,7 @@
     - cassandra
 
 - name: Download cassandra
-  get_url: url=https://archive.apache.org/dist/cassandra/3.0.8/apache-cassandra-3.0.8-bin.tar.gz dest={{ user_home }}/apache-cassandra-3.0.2-bin.tar.gz timeout=1000 force=no owner=ec2-user
+  get_url: url=https://archive.apache.org/dist/cassandra/3.0.8/apache-cassandra-3.0.8-bin.tar.gz dest={{ user_home }}/apache-cassandra-3.0.8-bin.tar.gz timeout=1000 force=no owner=ec2-user
   tags:
     - cassandra
 
