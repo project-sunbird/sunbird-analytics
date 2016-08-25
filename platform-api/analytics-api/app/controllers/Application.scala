@@ -104,13 +104,13 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     }
     
     def runJob(job: String) = Action { implicit request => 
-    	(dpmgmtAPIActor ! DataProductManagementAPIService.RunJob(job))
+    	(dpmgmtAPIActor ! DataProductManagementAPIService.RunJob(job, config))
     	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.runjob", Map("message" -> "Job submitted")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
     }
     
     def replyJob(job: String, from: String, to: String) = Action { implicit request => 
-    	(dpmgmtAPIActor ! DataProductManagementAPIService.ReplyJob(job, from, to))
+    	(dpmgmtAPIActor ! DataProductManagementAPIService.ReplyJob(job, from, to, config))
     	val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.runjob", Map("message" -> "Job submitted")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");    		
     }
