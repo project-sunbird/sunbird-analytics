@@ -7,7 +7,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestDeviceRecommendationModel extends SparkSpec(null) {
   
-    //"DeviceRecommendationModel" should "generate libsvm files and generate scores" in {
+//    "DeviceRecommendationModel" should "generate libsvm files and generate scores" in {
     ignore should "generate libsvm files and generate scores" in {    
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
@@ -36,7 +36,7 @@ class TestDeviceRecommendationModel extends SparkSpec(null) {
             "model" -> "src/test/resources/device-reco/fm.model",
             "libfmLogFile" -> "src/test/resources/device-reco/logFile",
             "libfm.executable_path" -> "src/test/resources/device-reco/",
-            "live_content_limit" -> Int.box(1000))
+            "live_content_limit" -> Int.box(100))
         
         val me = DeviceRecommendationModel.execute(null, Option(jobParams))
         val res = me.collect()
