@@ -1,6 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.apache.spark.ml.feature.{ OneHotEncoder, StringIndexer, RFormula }
+import org.apache.spark.ml.feature.QuantileDiscretizer
 import org.apache.spark.mllib.linalg.Vector
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
@@ -17,6 +18,9 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.apache.spark.sql.SQLContext
 import scala.util.Random
 import org.apache.spark.sql.Row
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.DataFrameStatFunctions
+import org.apache.spark.sql.execution.stat.StatFunctions
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.sql.types._
 import org.apache.spark.mllib.util.MLUtils
@@ -30,6 +34,8 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.updater.ContentUsageSummaryFact
 import org.joda.time.DateTime
+import org.apache.spark.ml.feature.VectorIndexer
+import org.apache.spark.sql.functions._
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
@@ -48,6 +54,28 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
+    }
+
+    def binning(inDF: DataFrame, columnName: String, numBuckets: Int)(implicit sc: SparkContext): DataFrame = {
+
+        val df2 = inDF.withColumn("t" + columnName, inDF.col(columnName).cast(DoubleType)).drop(columnName)
+        val discretizer = new QuantileDiscretizer()
+            .setInputCol("t" + columnName)
+            .setOutputCol("n_" + columnName)
+            .setNumBuckets(numBuckets)
+
+        val result = discretizer.fit(df2).transform(df2).drop("t" + columnName)
+        val df3 = result.withColumn("t_" + columnName, result.col("n_" + columnName).cast(StringType)).drop("n_" + columnName)
+        df3
+    }
+
+    def binning(inDF: DataFrame, columnName: Array[String], numBuckets: Int)(implicit sc: SparkContext): DataFrame = {
+        
+        var tempDF = inDF
+        columnName.foreach { columnName =>
+            tempDF = binning(tempDF, columnName, numBuckets)
+        }
+        tempDF
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
@@ -106,10 +134,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 _getZeros(50);
             })
             // Add c1 context attributes
-            seq ++= Seq(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0), x.contentInFocusUsageSummary.avg_interactions_min.getOrElse(0.0),
-                x.contentInFocusUsageSummary.download_date.getOrElse(0L), if (x.contentInFocusUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.contentInFocusUsageSummary.last_played_on.getOrElse(0L),
-                x.contentInFocusUsageSummary.mean_play_time_interval.getOrElse(0.0), x.contentInFocusUsageSummary.num_group_user.getOrElse(0L), x.contentInFocusUsageSummary.num_individual_user.getOrElse(0L),
-                x.contentInFocusUsageSummary.num_sessions.getOrElse(0L), x.contentInFocusUsageSummary.start_time.getOrElse(0L), x.contentInFocusUsageSummary.total_interactions.getOrElse(0L))
+            seq ++= Seq(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0))
+            //            seq ++= Seq(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0), x.contentInFocusUsageSummary.avg_interactions_min.getOrElse(0.0),
+            //                x.contentInFocusUsageSummary.download_date.getOrElse(0L), if (x.contentInFocusUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.contentInFocusUsageSummary.last_played_on.getOrElse(0L),
+            //                x.contentInFocusUsageSummary.mean_play_time_interval.getOrElse(0.0), x.contentInFocusUsageSummary.num_group_user.getOrElse(0L), x.contentInFocusUsageSummary.num_individual_user.getOrElse(0L),
+            //                x.contentInFocusUsageSummary.num_sessions.getOrElse(0L), x.contentInFocusUsageSummary.start_time.getOrElse(0L), x.contentInFocusUsageSummary.total_interactions.getOrElse(0L))
             seq ++= Seq(x.contentInFocusModel.subject.mkString(","), x.contentInFocusModel.contentType, x.contentInFocusModel.languageCode.mkString(","))
 
             // Add c1 usage metrics
@@ -177,10 +206,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         // Add c1 tag vectors
         seq ++= _getStructField("c1_tag", 50);
         // Add c1 context attributes
-        seq ++= Seq(new StructField("c1_total_ts", DoubleType, true), new StructField("c1_avg_interactions_min", DoubleType, true), new StructField("c1_download_date", LongType, true),
-            new StructField("c1_downloaded", IntegerType, true), new StructField("c1_last_played_on", LongType, true), new StructField("c1_mean_play_time_interval", DoubleType, true),
-            new StructField("c1_num_group_user", LongType, true), new StructField("c1_num_individual_user", LongType, true), new StructField("c1_num_sessions", LongType, true),
-            new StructField("c1_start_time", LongType, true), new StructField("c1_total_interactions", LongType, true));
+        seq ++= Seq(new StructField("c1_total_ts", DoubleType, true))
+        //        seq ++= Seq(new StructField("c1_total_ts", DoubleType, true), new StructField("c1_avg_interactions_min", DoubleType, true), new StructField("c1_download_date", LongType, true),
+        //            new StructField("c1_downloaded", IntegerType, true), new StructField("c1_last_played_on", LongType, true), new StructField("c1_mean_play_time_interval", DoubleType, true),
+        //            new StructField("c1_num_group_user", LongType, true), new StructField("c1_num_individual_user", LongType, true), new StructField("c1_num_sessions", LongType, true),
+        //            new StructField("c1_start_time", LongType, true), new StructField("c1_total_interactions", LongType, true));
         seq ++= Seq(new StructField("c1_subject", StringType, true), new StructField("c1_contentType", StringType, true), new StructField("c1_language", StringType, true));
 
         // Add c1 usage metrics
@@ -235,7 +265,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         implicit val sqlContext = new SQLContext(sc);
         val libfmFile = config.getOrElse("dataFile", "/tmp/score.dat.libfm").asInstanceOf[String]
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
-        val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
+        //        val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
         val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
         val libfmInputFile = config.getOrElse("libfmInputFile", "/tmp/libfm_input.csv").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
@@ -243,12 +273,12 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
-        val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,8 -iter 100 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
-        val libFMScoreConfig = config.getOrElse("libFMScoreConfig", "-dim 1,1,8 -iter 0 -method sgd -task r -regular 0,0,0.01 -learn_rate 0.1 -seed 100 -init_stdev 0.1")
+        //        val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,10,175 -iter 100 -method mcmc -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 0.1")
+        val libFMScoreConfig = config.getOrElse("libFMScoreConfig", "-dim 1,1,0 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100")
 
         CommonUtil.deleteFile(libfmFile);
         CommonUtil.deleteFile(trainDataFile);
-        CommonUtil.deleteFile(testDataFile);
+        //        CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(outputFile);
         CommonUtil.deleteFile(model);
         CommonUtil.deleteFile(libfmInputFile);
@@ -258,16 +288,19 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val rdd: RDD[Row] = _createDF(data);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
 
+        val columns = Array("c2_download_date", "c2_last_played_on", "c2_start_time", "c2_publish_date", "c2_last_sync_date", "end_time", "last_played_on", "mean_play_time", "play_start_time")
+        val resultDF = binning(df, columns, 3)
+
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
-            val columnNames = df.columns.mkString(",")
-            val rdd = df.map { x => x.mkString(",") }
+            val columnNames = resultDF.columns.mkString(",")
+            val rdd = resultDF.map { x => x.mkString(",") }
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
         }
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
             .setLabelCol("label")
-        val output = formula.fit(df).transform(df)
+        val output = formula.fit(resultDF).transform(resultDF)
         val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
         val dataStr = labeledRDD.map {
             case LabeledPoint(label, features) =>
@@ -286,31 +319,33 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
-        var trainDataSet: RDD[String] = null
-        var testDataSet: RDD[String] = null
-        if (usedDataSet.count() < 100) {
-            trainDataSet = usedDataSet
-            testDataSet = usedDataSet
-        } else {
-            trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
-            testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
-        }
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
-        JobLogger.log("Training dataset created", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "totalRecords" -> usedDataSet.count(), "numOfTrainRecords" -> trainDataSet.count(), "numOfTestRecords" -> testDataSet.count())), INFO);
+        //        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
+        //        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
+        //        var trainDataSet: RDD[String] = null
+        //        var testDataSet: RDD[String] = null
+        //        if (usedDataSet.count() < 100) {
+        //            trainDataSet = usedDataSet
+        //            testDataSet = usedDataSet
+        //        } else {
+        //            trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
+        //            testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
+        //        }
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), usedDataSet);
+        //        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
+        //        JobLogger.log("Training dataset created", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "totalRecords" -> usedDataSet.count(), "numOfTrainRecords" -> trainDataSet.count(), "numOfTestRecords" -> testDataSet.count())), INFO);
 
-        JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $libfmLogFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        //        JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        //        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $libfmLogFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
-        val logLastLine = sc.textFile(libfmLogFile).collect().last
-        val rmse = StringUtils.substring(logLastLine, 0, logLastLine.indexOf("\t"))
-        JobLogger.log("The model is trained and reporting RMSE.", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "RMSE" -> rmse)), INFO);
+        //        val logLastLine = sc.textFile(libfmLogFile).collect().last
+        //        val rmse = StringUtils.substring(logLastLine, 0, logLastLine.indexOf("\t"))
+        //        JobLogger.log("The model is trained and reporting RMSE.", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "RMSE" -> rmse)), INFO);
 
         JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
 
         JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile $libFMScoreConfig -out $outputFile -load_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile $libFMScoreConfig -out $outputFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Save the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))
