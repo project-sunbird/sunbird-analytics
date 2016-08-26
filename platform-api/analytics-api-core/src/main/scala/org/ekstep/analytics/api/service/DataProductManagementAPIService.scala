@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 object DataProductManagementAPIService {
 	def props = Props[DataProductManagementAPIService];
 	case class RunJob(job: String, config: Config);
-	case class ReplyJob(job: String, from: String, to: String, config: Config);
+	case class ReplayJob(job: String, from: String, to: String, config: Config);
 }
 
 class DataProductManagementAPIService extends Actor {
@@ -28,7 +28,7 @@ class DataProductManagementAPIService extends Actor {
             println("Run Job completed for "+job);
 			sender() ! "success";
 		
-		case ReplyJob(job: String, from: String, to: String, config: Config) =>
+		case ReplayJob(job: String, from: String, to: String, config: Config) =>
 			println("Reply Job started for '"+job+"' from:"+from+" to:"+to);
 			val script = config.getString("dataproduct.scripts_path") + "/replay-job.sh "+job+" "+from+" "+to;
 			val scriptParams = Map(
