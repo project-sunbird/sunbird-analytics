@@ -2,19 +2,19 @@
 # tasks file for cassandra
 
 - name: Download cassandra
-  get_url: url=http://mirror.fibergrid.in/apache/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz dest={{ user_home }}/apache-cassandra-2.2.6-bin.tar.gz timeout=1000 force=no owner=ec2-user
+  get_url: url=https://archive.apache.org/dist/cassandra/3.0.8/apache-cassandra-3.0.8-bin.tar.gz dest={{ user_home }}/apache-cassandra-3.0.8-bin.tar.gz timeout=1000 force=no owner=ec2-user
   tags:
     - analytics
     - cassandra
 
 - name: Unarchive cassandra
-  unarchive: src={{ user_home }}/apache-cassandra-2.2.6-bin.tar.gz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-cassandra-2.2.6
+  unarchive: src={{ user_home }}/apache-cassandra-3.0.8-bin.tar.gz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-cassandra-3.0.8
   tags:
     - analytics
     - cassandra
 
 - name: Update bash_profile for CASSANDRA_HOME
-  lineinfile: dest=.bash_profile line='CASSANDRA_HOME={{ analytics.home }}/apache-cassandra-2.2.6' state=present insertafter=EOF create=yes
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME={{ analytics.home }}/apache-cassandra-3.0.8' state=present insertafter=EOF create=yes
   tags:
     - analytics
     - cassandra
