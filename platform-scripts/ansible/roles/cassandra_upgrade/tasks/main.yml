@@ -30,7 +30,12 @@
     - cassandra
 
 - name: Update bash_profile for CASSANDRA_HOME
-  lineinfile: dest=.bash_profile line='CASSANDRA_HOME={{ analytics.home }}/apache-cassandra-3.0.8' state=present insertafter=EOF create=yes
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6' state=absent 
+  tags:
+    - cassandra
+
+- name: Update bash_profile for CASSANDRA_HOME
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-3.0.8' state=present insertafter=EOF create=yes
   tags:
     - cassandra
 
@@ -43,6 +48,11 @@
   lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=present insertafter=EOF create=yes
   tags:
     - cassandra
+
+- name: Replace Working directory line
+  lineinfile: dest={{ sbin_path }}/cassandra-service  regexp='^DAEMON=/mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra' insertafter='^DAEMON=/mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra=' line='DAEMON=/mnt/data/analytics/apache-cassandra-3.0.8/bin/cassandra' state=present
+  tags:
+    - analytics
 
 - name: Status of the cassandra service
   command: "{{ sbin_path }}/cassandra-service status"
