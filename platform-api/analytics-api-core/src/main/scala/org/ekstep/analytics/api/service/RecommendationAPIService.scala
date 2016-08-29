@@ -64,7 +64,7 @@ object RecommendationAPIService {
 			("gradeLevel", getValueAsList(reqFilters, "gradeLevel"), "LIST"),
 			("ageGroup", getValueAsList(reqFilters, "ageGroup"), "LIST"))
 			.filter(p => !p._2.isEmpty);
-		val limit = reqBody.request.limit.getOrElse(10);
+		val limit = reqBody.request.limit.getOrElse(config.getInt("service.search.limit"));
 
 		if (context.isEmpty || StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
 			throw new ClientException("context required data is missing.");
