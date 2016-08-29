@@ -105,13 +105,15 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 	}
 
 	def runJob(job: String) = Action { implicit request =>
-		(dpmgmtAPIActor ! DataProductManagementAPIService.RunJob(job, config))
+		val body: String = Json.stringify(request.body.asJson.get);
+		(dpmgmtAPIActor ! DataProductManagementAPIService.RunJob(job, body, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.runjob", Map("message" -> "Job submitted")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 	}
 
 	def replayJob(job: String, from: String, to: String) = Action { implicit request =>
-		(dpmgmtAPIActor ! DataProductManagementAPIService.ReplayJob(job, from, to, config))
+		val body: String = Json.stringify(request.body.asJson.get);
+		(dpmgmtAPIActor ! DataProductManagementAPIService.ReplayJob(job, from, to, body, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.replay-job", Map("message" -> "Job submitted")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 	}
