@@ -21,7 +21,7 @@
 	<modules>
 		<module>platform-framework</module>
 		<module>platform-modules</module>
-		<!-- <module>platform-api</module> -->
+		<module>platform-api</module>
 	</modules>
 
 	<dependencies>
