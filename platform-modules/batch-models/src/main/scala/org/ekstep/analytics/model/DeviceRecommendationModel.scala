@@ -7,6 +7,7 @@ import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.spark.connector.cql.CassandraConnector._
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import scala.collection.mutable.Buffer
@@ -36,6 +37,8 @@ import org.ekstep.analytics.updater.ContentUsageSummaryFact
 import org.joda.time.DateTime
 import org.apache.spark.ml.feature.VectorIndexer
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.SparkSession
+
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
@@ -260,9 +263,10 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     }
 
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
-
+    	
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
+        import sqlContext.implicits._;
         val libfmFile = config.getOrElse("dataFile", "/tmp/score.dat.libfm").asInstanceOf[String]
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
         //        val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
@@ -287,13 +291,13 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
-
+        
         val columns = Array("c2_download_date", "c2_last_played_on", "c2_start_time", "c2_publish_date", "c2_last_sync_date", "end_time", "last_played_on", "mean_play_time", "play_start_time")
         val resultDF = binning(df, columns, 3)
 
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
             val columnNames = resultDF.columns.mkString(",")
-            val rdd = resultDF.map { x => x.mkString(",") }
+            val rdd = resultDF.map(x => x.mkString(",")).rdd;
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
         }
         val formula = new RFormula()
@@ -301,7 +305,8 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             .setFeaturesCol("features")
             .setLabelCol("label")
         val output = formula.fit(resultDF).transform(resultDF)
-        val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
+        val outputDF = output.select("features", "label");
+        val labeledRDD = outputDF.map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) }.rdd;
         val dataStr = labeledRDD.map {
             case LabeledPoint(label, features) =>
 

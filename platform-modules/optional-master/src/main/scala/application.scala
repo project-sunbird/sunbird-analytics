@@ -143,9 +143,13 @@ trait Application
       )
   }
   
+  	def map2[A,B,C](left: List[A], right: List[B])(f: (A, B) => C): List[C] = {
+		(left zip right).map(t => f(t._1, t._2))
+	}
+  
   private lazy val parameterTypes   = mainMethod.getGenericParameterTypes.toList
   private lazy val argumentNames    = (new BytecodeReadingParanamer lookupParameterNames mainMethod map (_.replaceAll("\\$.+", ""))).toList
-  private lazy val mainArgs         = List.map2(argumentNames, parameterTypes)(MainArg(_, _))
+  private lazy val mainArgs         = map2(argumentNames, parameterTypes)(MainArg(_, _))
   private lazy val reqArgs          = mainArgs filter (x => !x.isOptional)
   private def posArgCount           = mainArgs filter (_.isPositional) size
 
