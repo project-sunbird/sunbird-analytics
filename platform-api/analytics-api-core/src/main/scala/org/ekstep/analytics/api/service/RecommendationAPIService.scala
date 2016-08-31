@@ -38,6 +38,7 @@ object RecommendationAPIService {
 		} catch {
 			case ex: Throwable =>
 				println("Error at RecommendationAPIService.initCache:" +ex.getMessage);
+				ex.printStackTrace();
 				contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](Map());
 		}
 	}
