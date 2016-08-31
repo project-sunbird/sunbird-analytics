@@ -22,7 +22,6 @@ class DataProductManagementAPIService extends Actor {
 		case RunJob(job: String, body: String, config: Config) =>
 			println("Run Job started for "+job);
 			val script = config.getString("dataproduct.scripts_path") + "/run-job.sh "+job;
-			println("script: "+ script);
 			val scriptParams = Map(
 					"PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"),
 					"script" -> script,
@@ -36,7 +35,6 @@ class DataProductManagementAPIService extends Actor {
 		case ReplayJob(job: String, from: String, to: String, body: String, config: Config) =>
 			println("Reply Job started for '"+job+"' from:"+from+" to:"+to);
 			val script = config.getString("dataproduct.scripts_path") + "/replay-job.sh "+job+" "+from+" "+to;
-			println("script: "+ script);
 			val scriptParams = Map(
 					"PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"),
 					"script" -> script,
