@@ -38,9 +38,13 @@ import org.apache.spark.ml.feature.VectorIndexer
 import org.apache.spark.sql.functions._
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
-case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec) extends AlgoInput;
+case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf) extends AlgoInput;
 case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
+
+case class cus_t(c2_publish_date: Double, c2_last_sync_date: Double);
+case class dus_tf(end_time: Double, last_played_on: Double, play_start_time: Double);
+
 
 object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
 
@@ -77,6 +81,42 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         }
         tempDF
     }
+    
+    private def _getContentUsageTransformations(rdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[(String, cus_t)] = {
+        implicit val sqlContext = new SQLContext(sc);
+        val f1 = rdd.map { x => (x.d_content_id, x.m_publish_date.getMillis.toDouble) };
+        val f1_t = transformByBinning(f1, 3);
+        val f2 = rdd.map { x => (x.d_content_id, x.m_last_sync_date.getMillis.toDouble) };
+        val f2_t = transformByBinning(f2, 3);
+        f1_t.join(f2_t).mapValues(f => cus_t(f._1, f._2));
+    }
+    
+    private def _getDeviceUsageTransformations(rdd: RDD[DeviceUsageSummary])(implicit sc: SparkContext): RDD[(String, dus_tf)] = {
+        
+        case class dus_t(end_time: Double, last_played_on: Double, mean_play_time: Double, play_start_time: Double);
+        implicit val sqlContext = new SQLContext(sc);
+        val f1 = rdd.map { x => (x.device_id, x.end_time.getOrElse(0L).toDouble) };
+        val f1_t = transformByBinning(f1, 3);
+        val f2 = rdd.map { x => (x.device_id, x.last_played_on.getOrElse(0L).toDouble) };
+        val f2_t = transformByBinning(f2, 3);
+        val f3 = rdd.map { x => (x.device_id, x.play_start_time.getOrElse(0L).toDouble) };
+        val f3_t = transformByBinning(f3, 3);
+        f1_t.join(f2_t).join(f3_t).mapValues(f => dus_tf(f._1._1, f._1._2, f._2));
+    }
+    
+    def transformByBinning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, Double)] = {
+
+        val rows = rdd.map(f => Row.fromSeq(Seq(f._1, f._2)));
+        val structs = new StructType(Array(new StructField("key", DoubleType, true), new StructField("value", DoubleType, true)));
+        val df = sqlContext.createDataFrame(rows, structs);
+        val discretizer = new QuantileDiscretizer()
+            .setInputCol("value")
+            .setOutputCol("n_value")
+            .setNumBuckets(numBuckets)
+
+        val result = discretizer.fit(df).transform(df).drop("value").rdd;
+        result.map { x => (x.getString(0), x.getDouble(1)) };
+    }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
@@ -87,10 +127,24 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
         val contentVectorsB = sc.broadcast(contentVectors);
-        val contentUsage = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=?", 0).map { x => (x.d_content_id, x) }.collect().toMap;
+        
+        // Content Usage Summaries
+        val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=?", 0).cache();
+        val contentUsageTransformations = _getContentUsageTransformations(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;
+        val contentUsageTB = sc.broadcast(contentUsageTransformations);
+        val contentUsage = contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap;
         val contentUsageB = sc.broadcast(contentUsage);
+        contentUsageSummaries.unpersist(true);
+        
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
+        
+        // Device Usage Summaries data transformations
+        val dus = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).cache();
+        val dusTransformations = _getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
+        val dusTB = sc.broadcast(dusTransformations);
+        dus.unpersist(true);
+        
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x._1, x._2) }
 
         val device_content_usage = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).groupBy(f => f._1).mapValues(f => f.map(x => x._2));
@@ -110,7 +164,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                     val contentInFocusUsageSummary = x.device_content.getOrElse(y._1, defaultDCUS);
                     val contentInFocusSummary = contentUsageB.value.getOrElse(y._1, defaultCUS)
                     val otherContentSummary = if (null != otherContentId) contentUsageB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
-                    DeviceContext(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec);
+                    val otherContentSummaryT = if (null != otherContentId) contentUsageTB.value.getOrElse(otherContentId, cus_t(0,0)) else cus_t(0,0);
+                    val dusT = dusTB.value.getOrElse(x.did.device_id, dus_tf(0, 0, 0));
+                    DeviceContext(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec, otherContentSummaryT, dusT);
                 }
             }
         }.flatMap { x => x.map { f => f } }
@@ -172,7 +228,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             })
 
             // Add c2 usage metrics
-            seq ++= Seq(if (x.otherContentSummary.d_group_user) 1 else 0, x.otherContentSummary.d_mime_type, x.otherContentSummary.m_publish_date.getMillis, x.otherContentSummary.m_last_sync_date.getMillis, x.otherContentSummary.m_total_ts,
+            seq ++= Seq(if (x.otherContentSummary.d_group_user) 1 else 0, x.otherContentSummary.d_mime_type, x.otherContentSummaryT.c2_publish_date, x.otherContentSummaryT.c2_last_sync_date, x.otherContentSummary.m_total_ts,
                 x.otherContentSummary.m_total_sessions, x.otherContentSummary.m_avg_ts_session, x.otherContentSummary.m_total_interactions, x.otherContentSummary.m_avg_interactions_min,
                 x.otherContentSummary.m_avg_sessions_week.getOrElse(0.0), x.otherContentSummary.m_avg_ts_week.getOrElse(0.0))
 
@@ -180,9 +236,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
             // Device Context Attributes
             seq ++= Seq(x.device_usage.total_timespent.getOrElse(0.0), x.device_usage.total_launches.getOrElse(0L), x.device_usage.total_play_time.getOrElse(0.0),
-                x.device_usage.avg_num_launches.getOrElse(0.0), x.device_usage.avg_time.getOrElse(0.0), x.device_usage.end_time.getOrElse(0L),
-                x.device_usage.last_played_on.getOrElse(0L), x.device_usage.mean_play_time.getOrElse(0.0), x.device_usage.mean_play_time_interval.getOrElse(0.0),
-                x.device_usage.num_contents.getOrElse(0L), x.device_usage.num_days.getOrElse(0L), x.device_usage.num_sessions.getOrElse(0L), x.device_usage.play_start_time.getOrElse(0L),
+                x.device_usage.avg_num_launches.getOrElse(0.0), x.device_usage.avg_time.getOrElse(0.0), x.dusT.end_time,
+                x.dusT.last_played_on, x.device_usage.mean_play_time.getOrElse(0.0), x.device_usage.mean_play_time_interval.getOrElse(0.0),
+                x.device_usage.num_contents.getOrElse(0L), x.device_usage.num_days.getOrElse(0L), x.device_usage.num_sessions.getOrElse(0L), x.dusT.play_start_time,
                 x.device_usage.start_time.getOrElse(0L))
             // Device Context Attributes
             seq ++= Seq(x.device_spec.make, x.device_spec.screen_size, x.device_spec.external_disk, x.device_spec.internal_disk)
@@ -290,14 +346,21 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
+        // c2_publish_date, c2_last_sync_date - CUS
+        // c2_download_date, c2_last_played_on, c2_start_time - DCUS 
+        // end_time, last_played_on, mean_play_time, play_start_time - DUS
+        
+        /*
         val columns = Array("c2_download_date", "c2_last_played_on", "c2_start_time", "c2_publish_date", "c2_last_sync_date", "end_time", "last_played_on", "mean_play_time", "play_start_time")
         JobLogger.log("calling binning method", None, INFO);
         val resultDF = binning(df, columns, 3)
         JobLogger.log("completed binning operation", None, INFO);
+        *
+        */
         
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
-            val columnNames = resultDF.columns.mkString(",")
-            val rdd = resultDF.map { x => x.mkString(",") }.persist(StorageLevel.MEMORY_AND_DISK)
+            val columnNames = df.columns.mkString(",")
+            val rdd = df.map { x => x.mkString(",") }.persist(StorageLevel.MEMORY_AND_DISK)
             JobLogger.log("save DF to libfmInputFile", None, INFO);
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
         }
@@ -308,7 +371,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             .setFeaturesCol("features")
             .setLabelCol("label")
         JobLogger.log("applied the formula", None, INFO);    
-        val output = formula.fit(resultDF).transform(resultDF)
+        val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
         
         val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
@@ -343,6 +406,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         //            testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
         //        }
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), usedDataSet);
+        
         //        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
         //        JobLogger.log("Training dataset created", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "totalRecords" -> usedDataSet.count(), "numOfTrainRecords" -> trainDataSet.count(), "numOfTestRecords" -> testDataSet.count())), INFO);
 
