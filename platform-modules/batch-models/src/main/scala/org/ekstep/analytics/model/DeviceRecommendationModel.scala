@@ -107,7 +107,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     def transformByBinning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, Double)] = {
 
         val rows = rdd.map(f => Row.fromSeq(Seq(f._1, f._2)));
-        val structs = new StructType(Array(new StructField("key", DoubleType, true), new StructField("value", DoubleType, true)));
+        val structs = new StructType(Array(new StructField("key", StringType, true), new StructField("value", DoubleType, true)));
         val df = sqlContext.createDataFrame(rows, structs);
         val discretizer = new QuantileDiscretizer()
             .setInputCol("value")
@@ -289,8 +289,8 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         seq ++= Seq(new StructField("c2_subject", StringType, true), new StructField("c2_contentType", StringType, true), new StructField("c2_language", StringType, true))
 
         // Add c2 usage metrics
-        seq ++= Seq(new StructField("c2_group_user", IntegerType, true), new StructField("c2_mime_type", StringType, true), new StructField("c2_publish_date", LongType, true),
-            new StructField("c2_last_sync_date", LongType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", LongType, true),
+        seq ++= Seq(new StructField("c2_group_user", IntegerType, true), new StructField("c2_mime_type", StringType, true), new StructField("c2_publish_date", DoubleType, true),
+            new StructField("c2_last_sync_date", DoubleType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", LongType, true),
             new StructField("c2_avg_ts_session", DoubleType, true), new StructField("c2_num_interactions", LongType, true), new StructField("c2_mean_interactions_min", DoubleType, true),
             new StructField("c2_avg_sessions_week", DoubleType, true), new StructField("c2_avg_ts_week", DoubleType, true));
 
@@ -394,6 +394,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
+        JobLogger.log("Completed training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         //        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
         //        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
         //        var trainDataSet: RDD[String] = null
