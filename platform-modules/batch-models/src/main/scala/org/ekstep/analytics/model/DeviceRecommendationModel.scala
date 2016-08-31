@@ -291,19 +291,28 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
         val columns = Array("c2_download_date", "c2_last_played_on", "c2_start_time", "c2_publish_date", "c2_last_sync_date", "end_time", "last_played_on", "mean_play_time", "play_start_time")
+        JobLogger.log("calling binning method", None, INFO);
         val resultDF = binning(df, columns, 3)
-
+        JobLogger.log("completed binning operation", None, INFO);
+        
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
             val columnNames = resultDF.columns.mkString(",")
             val rdd = resultDF.map { x => x.mkString(",") }
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
         }
+        JobLogger.log("save DF to libfmInputFile", None, INFO);
+        
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
             .setLabelCol("label")
+        JobLogger.log("applied the formula", None, INFO);    
         val output = formula.fit(resultDF).transform(resultDF)
+        JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
+        
         val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
+        JobLogger.log("created labeledRDD", None, INFO);
+        
         val dataStr = labeledRDD.map {
             case LabeledPoint(label, features) =>
 
