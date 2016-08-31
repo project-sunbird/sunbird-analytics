@@ -286,7 +286,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
+        JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
+        JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
         val columns = Array("c2_download_date", "c2_last_played_on", "c2_start_time", "c2_publish_date", "c2_last_sync_date", "end_time", "last_played_on", "mean_play_time", "play_start_time")
         val resultDF = binning(df, columns, 3)
