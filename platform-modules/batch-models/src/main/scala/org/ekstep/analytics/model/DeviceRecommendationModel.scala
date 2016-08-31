@@ -297,10 +297,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
             val columnNames = resultDF.columns.mkString(",")
-            val rdd = resultDF.map { x => x.mkString(",") }
+            val rdd = resultDF.map { x => x.mkString(",") }.persist(StorageLevel.MEMORY_AND_DISK)
+            JobLogger.log("save DF to libfmInputFile", None, INFO);
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
         }
-        JobLogger.log("save DF to libfmInputFile", None, INFO);
+        JobLogger.log("save DF to libfmInputFile completed", None, INFO);
         
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
