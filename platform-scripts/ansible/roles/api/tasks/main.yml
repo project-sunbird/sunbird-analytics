@@ -4,15 +4,15 @@
   tags:
     - api
 
-- name: Copy Vidyavaani Python Scripts
-  copy: src=/home/jenkins/workspace/LPA_Deploy_API_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
-  tags:
-    - api    
+# - name: Copy Vidyavaani Python Scripts
+#   copy: src=/home/jenkins/workspace/LPA_Deploy_API_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
+#   tags:
+#     - api    
 
-- name: Replace Working directory line
-  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
-  tags:
-    - api
+# - name: Replace Working directory line
+#   lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
+#   tags:
+#     - api
 
 - name: Status of the api service
   command: "{{ sbin_path }}/api-service status"
