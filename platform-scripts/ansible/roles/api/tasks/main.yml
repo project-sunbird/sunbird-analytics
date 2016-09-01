@@ -18,13 +18,6 @@
   tags:
     - api
 
-- name: Copy API artifact
-  file: path={{ api_root }}/analytics-api-1.0 state=absent
-  tags:
-    - api
-
-
-
 # - name: Copy Vidyavaani Python Scripts
 #   copy: src=/home/jenkins/workspace/LPA_Deploy_API_Dev/platform-scripts/python/main/vidyavaani dest={{ analytics.home }}/scripts
 #   tags:
