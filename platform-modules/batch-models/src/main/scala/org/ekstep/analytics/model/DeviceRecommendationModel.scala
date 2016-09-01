@@ -36,6 +36,7 @@ import org.ekstep.analytics.updater.ContentUsageSummaryFact
 import org.joda.time.DateTime
 import org.apache.spark.ml.feature.VectorIndexer
 import org.apache.spark.sql.functions._
+import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf) extends AlgoInput;
@@ -390,37 +391,22 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 }.toSeq.mkString(" ");
 
                 sb.mkString
-        }.cache;
-
-        JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
-        JobLogger.log("Completed training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        //        val trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
-        //        val testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
-        //        var trainDataSet: RDD[String] = null
-        //        var testDataSet: RDD[String] = null
-        //        if (usedDataSet.count() < 100) {
-        //            trainDataSet = usedDataSet
-        //            testDataSet = usedDataSet
-        //        } else {
-        //            trainDataSet = usedDataSet.sample(false, 0.8, System.currentTimeMillis().toInt);
-        //            testDataSet = usedDataSet.sample(false, 0.2, System.currentTimeMillis().toInt);
-        //        }
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), usedDataSet);
+        }
         
-        //        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
-        //        JobLogger.log("Training dataset created", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "totalRecords" -> usedDataSet.count(), "numOfTrainRecords" -> trainDataSet.count(), "numOfTestRecords" -> testDataSet.count())), INFO);
 
-        //        JobLogger.log("Training the model", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        //        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $libfmLogFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        
+        JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        //val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
+        
+        
+        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), usedDataSet);
+        
+        
+        //JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
 
-        //        val logLastLine = sc.textFile(libfmLogFile).collect().last
-        //        val rmse = StringUtils.substring(logLastLine, 0, logLastLine.indexOf("\t"))
-        //        JobLogger.log("The model is trained and reporting RMSE.", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus, "RMSE" -> rmse)), INFO);
-
-        JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
-
+        FileDispatcher.dispatchRETrainingFile(Map("file1" -> trainDataFile, "file2" -> libfmFile), dataStr);
+        
         JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile $libFMScoreConfig -out $outputFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
