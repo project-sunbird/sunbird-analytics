@@ -69,7 +69,9 @@ object RecommendationAPIService {
 			("gradeLevel", getValueAsList(reqFilters, "gradeLevel"), "LIST"),
 			("ageGroup", getValueAsList(reqFilters, "ageGroup"), "LIST"))
 			.filter(p => !p._2.isEmpty);
-		val limit = reqBody.request.limit.getOrElse(config.getInt("service.search.limit"));
+		// TODO: for now we are logging the response to a file so, always return server config limit. #RE_INTERNAL_REVIEW
+//		val limit = reqBody.request.limit.getOrElse(config.getInt("service.search.limit"));
+		val limit = config.getInt("service.search.limit");
 
 		if (context.isEmpty || StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
 			throw new ClientException("context required data is missing.");
@@ -109,7 +111,11 @@ object RecommendationAPIService {
 			.sortBy(- _._2)
 			.map(x => x._3);
 		}
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> result.take(limit), "count" -> Int.box(result.size))));
+		// TODO: we are creating logResult for now. We should remove this and send actual result. #RE_INTERNAL_REVIEW
+		val logResult = result.take(limit)
+						.map(f => Map("identifier" -> f.get("identifier"), "name" -> f.get("name"), "reco_score" -> f.get("reco_score")));
+		println("Result: "+ JSONUtils.serialize(logResult));
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> logResult, "count" -> Int.box(result.size))));
 	}
 
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {
