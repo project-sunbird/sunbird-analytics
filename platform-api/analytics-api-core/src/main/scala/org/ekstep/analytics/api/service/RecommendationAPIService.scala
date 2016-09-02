@@ -114,7 +114,6 @@ object RecommendationAPIService {
 		// TODO: we are creating logResult for now. We should remove this and send actual result. #RE_INTERNAL_REVIEW
 		val logResult = result.take(limit)
 						.map(f => Map("identifier" -> f.get("identifier"), "name" -> f.get("name"), "reco_score" -> f.get("reco_score")));
-		println("Result: "+ JSONUtils.serialize(logResult));
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> logResult, "count" -> Int.box(result.size))));
 	}
 
