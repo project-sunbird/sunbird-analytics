@@ -50,9 +50,9 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 			"content2vec.corpus_path" -> "").asJava));
 
 	def contentUsageMetrics(contentId: String) = Action { implicit request =>
-
 		try {
 			val body: String = Json.stringify(request.body.asJson.get);
+			JobLogger.log("ekstep.analytics.contentusagesummary", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
 			val response = ContentAPIService.getContentUsageMetrics(contentId, body)(Context.sc);
 			play.Logger.info(request + " body - " + body + "\n\t => " + response)
 			Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
@@ -63,24 +63,28 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
 	}
 
-	def checkAPIhealth() = Action {
+	def checkAPIhealth() = Action { implicit request =>
+		JobLogger.log("ekstep.analytics-api.health", Option(Map("requestHeaders" -> request.headers.toSimpleMap)), INFO);
 		val response = HealthCheckAPIService.getHealthStatus()(Context.sc)
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 	}
 
-	def contentToVec(contentId: String) = Action {
+	def contentToVec(contentId: String) = Action { implicit request =>
+		JobLogger.log("ekstep.analytics.content-to-vec", Option(Map("requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
 		(contentAPIActor ! ContentAPIService.ContentToVec(contentId, Context.sc, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec", Map("message" -> "Job submitted for content enrichment")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 	}
 
-	def contentToVecTrainModel() = Action {
+	def contentToVecTrainModel() = Action { implicit request =>
+		JobLogger.log("ekstep.analytics.content-to-vec.train.model", Option(Map("requestHeaders" -> request.headers.toSimpleMap)), INFO);
 		(contentAPIActor ! ContentAPIService.ContentToVecTrainModel(Context.sc, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-to-vec.train.model", Map("message" -> "successful")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 	}
 
-	def recommendationsTrainModel() = Action {
+	def recommendationsTrainModel() = Action { implicit request =>
+		JobLogger.log("ekstep.analytics.recommendations.train.model", Option(Map("requestHeaders" -> request.headers.toSimpleMap)), INFO);
 		(contentAPIActor ! ContentAPIService.RecommendationsTrainModel(Context.sc, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations.train.model", Map("message" -> "successful")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
@@ -88,6 +92,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
 	def recommendations() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
+		JobLogger.log("ekstep.analytics.recommendations", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap)), INFO);
 		val futureRes = Future { RecommendationAPIService.recommendations(body)(Context.sc, config) };
 		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
 		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
@@ -106,6 +111,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
 	def runJob(job: String) = Action { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
+		JobLogger.log("ekstep.analytics.runjob", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
 		(dpmgmtAPIActor ! DataProductManagementAPIService.RunJob(job, body, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.runjob", Map("message" -> "Job submitted")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
@@ -113,6 +119,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
 	def replayJob(job: String, from: String, to: String) = Action { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
+		JobLogger.log("ekstep.analytics.replay-job", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
 		(dpmgmtAPIActor ! DataProductManagementAPIService.ReplayJob(job, from, to, body, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.replay-job", Map("message" -> "Job submitted")));
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
