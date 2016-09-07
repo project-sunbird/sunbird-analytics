@@ -25,16 +25,21 @@ object RecommendationAPIService {
 	var cacheTimestamp: Long = 0L;
 
 	def initCache()(implicit sc: SparkContext, config: Config) {
-
-		val baseUrl = config.getString("service.search.url");
-		val searchPath = config.getString("service.search.path");
-		val searchUrl = s"$baseUrl$searchPath";
-		val request = config.getString("service.search.requestbody");
-		val resp = RestUtil.post[Response](searchUrl, request);
-		val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-		val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
-		contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
-		cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
+		try {
+			val baseUrl = config.getString("service.search.url");
+			val searchPath = config.getString("service.search.path");
+			val searchUrl = s"$baseUrl$searchPath";
+			val request = config.getString("service.search.requestbody");
+			val resp = RestUtil.post[Response](searchUrl, request);
+			val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
+			val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
+			contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
+			cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
+		} catch {
+			case ex: Throwable =>
+				println("Error at RecommendationAPIService.initCache:" +ex.getMessage);
+				contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](Map());
+		}
 	}
 
 	def validateCache()(implicit sc: SparkContext, config: Config) {
@@ -64,7 +69,9 @@ object RecommendationAPIService {
 			("gradeLevel", getValueAsList(reqFilters, "gradeLevel"), "LIST"),
 			("ageGroup", getValueAsList(reqFilters, "ageGroup"), "LIST"))
 			.filter(p => !p._2.isEmpty);
-		val limit = reqBody.request.limit.getOrElse(10);
+		// TODO: for now we are logging the response to a file so, always return server config limit. #RE_INTERNAL_REVIEW
+//		val limit = reqBody.request.limit.getOrElse(config.getInt("service.search.limit"));
+		val limit = config.getInt("service.search.limit");
 
 		if (context.isEmpty || StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
 			throw new ClientException("context required data is missing.");
@@ -104,7 +111,10 @@ object RecommendationAPIService {
 			.sortBy(- _._2)
 			.map(x => x._3);
 		}
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> result.take(limit), "count" -> Int.box(result.size))));
+		// TODO: we are creating logResult for now. We should remove this and send actual result. #RE_INTERNAL_REVIEW
+		val logResult = result.take(limit)
+						.map(f => Map("identifier" -> f.get("identifier"), "name" -> f.get("name"), "reco_score" -> f.get("reco_score")));
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> logResult, "count" -> Int.box(result.size))));
 	}
 
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {

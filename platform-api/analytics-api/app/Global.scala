@@ -14,10 +14,6 @@ object Global extends WithFilters(RequestInterceptor) {
         Context.setSparkContext();
         Logger.info("Caching content")
         val config: Config = play.Play.application.configuration.underlying();
-//        val config = Map("service.search.url" -> play.Play.application.configuration.getString("service.search.url"),
-//        				"service.search.path" -> play.Play.application.configuration.getString("service.search.path"),
-//        				"service.search.requestbody" -> play.Play.application.configuration.getString("service.search.requestbody"),
-//        				"service.search.limit" -> play.Play.application.configuration.getString("service.search.limit"));
         RecommendationAPIService.initCache()(Context.sc, config);
         Logger.info("Application has started...")
     }

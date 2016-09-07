@@ -9,4 +9,4 @@ POST /recommendations @controllers.Application.recommendations
 POST /content-to-vec/train/model @controllers.Application.contentToVecTrainModel
 POST /recommendations/train/model @controllers.Application.recommendationsTrainModel
 POST /run-job/:job @controllers.Application.runJob(job: String)
-POST /reply-job/:job/:from/:to @controllers.Application.replayJob(job: String, from: String, to: String)
+POST /replay-job/:job/:from/:to @controllers.Application.replayJob(job: String, from: String, to: String)
