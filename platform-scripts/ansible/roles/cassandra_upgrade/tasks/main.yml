@@ -1,5 +1,4 @@
 
-
 - name: Status of the cassandra service
   command: "{{ sbin_path }}/cassandra-service status"
   register: cassandra_status
@@ -15,27 +14,40 @@
     - cassandra
 
 - name: Remove cassandra
-  file: path={{ analytics.home }}/apache-cassandra-2.2.6 state=absent 
+  file: path={{ analytics.home }}/apache-cassandra-3.0.8 state=absent 
   tags:
     - cassandra
 
 - name: Download cassandra
-  get_url: url=https://archive.apache.org/dist/cassandra/3.0.8/apache-cassandra-3.0.8-bin.tar.gz dest={{ user_home }}/apache-cassandra-3.0.8-bin.tar.gz timeout=1000 force=no owner=ec2-user
+  get_url: url=http://mirror.fibergrid.in/apache/cassandra/3.7/apache-cassandra-3.7-bin.tar.gz dest={{ user_home }}/apache-cassandra-3.7-bin.tar.gz timeout=1000 force=no owner=ec2-user
   tags:
     - cassandra
 
 - name: Unarchive cassandra
-  unarchive: src={{ user_home }}/apache-cassandra-3.0.8-bin.tar.gz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-cassandra-3.0.8
+  unarchive: src={{ user_home }}/apache-cassandra-3.7-bin.tar.gz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-cassandra-3.7
   tags:
     - cassandra
 
+
 - name: Update bash_profile for CASSANDRA_HOME
-  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6' state=absent 
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-3.0.8' state=absent 
   tags:
     - cassandra
 
+
+- name: Export CASSANDRA_HOME
+  lineinfile: dest=.bash_profile  line='export CASSANDRA_HOME' state=absent insertafter=EOF create=yes
+  tags:
+    - cassandra
+
+- name: Add CASSANDRA_HOME to the PATH
+  lineinfile: dest=.bash_profile line='PATH=$PATH:$CASSANDRA_HOME/bin' state=absent insertafter=EOF create=yes
+  tags:
+    - cassandra
+
+
 - name: Update bash_profile for CASSANDRA_HOME
-  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-3.0.8' state=present insertafter=EOF create=yes
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-3.7' state=present insertafter=EOF create=yes
   tags:
     - cassandra
 
@@ -49,10 +61,15 @@
   tags:
     - cassandra
 
-- name: Replace Working directory line
-  lineinfile: dest={{ sbin_path }}/cassandra-service  regexp='^DAEMON=/mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra' insertafter='^DAEMON=/mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra=' line='DAEMON=/mnt/data/analytics/apache-cassandra-3.0.8/bin/cassandra' state=present
+- name: Add CASSANDRA_HOME to the PATH
+  lineinfile: dest=.bash_profile line='export PATH' state=present insertafter=EOF create=yes
   tags:
-    - analytics
+    - cassandra
+
+- name: Replace Working directory line
+  lineinfile: dest={{ sbin_path }}/cassandra-service  regexp='^DAEMON=/mnt/data/analytics/apache-cassandra-3.0.8/bin/cassandra' insertafter='^DAEMON=/mnt/data/analytics/apache-cassandra-3.0.8/bin/cassandra=' line='DAEMON=/mnt/data/analytics/apache-cassandra-3.7/bin/cassandra' state=present
+  tags:
+    - cassandra
 
 - name: Status of the cassandra service
   command: "{{ sbin_path }}/cassandra-service status"
