@@ -14,7 +14,7 @@
     - cassandra
 
 - name: Remove cassandra
-  file: path={{ analytics.home }}/apache-cassandra-2.2.6 state=absent 
+  file: path={{ analytics.home }}/apache-cassandra-3.0.8 state=absent 
   tags:
     - cassandra
 
@@ -30,7 +30,7 @@
 
 
 - name: Update bash_profile for CASSANDRA_HOME
-  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-2.2.6' state=absent 
+  lineinfile: dest=.bash_profile line='CASSANDRA_HOME=/mnt/data/analytics/apache-cassandra-3.0.8' state=absent 
   tags:
     - cassandra
 
@@ -67,7 +67,7 @@
     - cassandra
 
 - name: Replace Working directory line
-  lineinfile: dest={{ sbin_path }}/cassandra-service  regexp='^DAEMON=/mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra' insertafter='^DAEMON=/mnt/data/analytics/apache-cassandra-2.2.6/bin/cassandra=' line='DAEMON=/mnt/data/analytics/apache-cassandra-3.7/bin/cassandra' state=present
+  lineinfile: dest={{ sbin_path }}/cassandra-service  regexp='^DAEMON=/mnt/data/analytics/apache-cassandra-3.0.8/bin/cassandra' insertafter='^DAEMON=/mnt/data/analytics/apache-cassandra-3.0.8/bin/cassandra=' line='DAEMON=/mnt/data/analytics/apache-cassandra-3.7/bin/cassandra' state=present
   tags:
     - cassandra
 
