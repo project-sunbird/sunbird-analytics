@@ -6,7 +6,7 @@
     - cassandra
 
 - name: run cql
-  become_user: ec2-user
+  become_user: ubuntu
   become: yes
   command: "{{ cql_path }} -f /home/{{ cassandra_user }}/data.cql"
   ignore_errors: yes
