@@ -37,9 +37,11 @@ import org.joda.time.DateTime
 import org.apache.spark.ml.feature.VectorIndexer
 import org.apache.spark.sql.functions._
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
+import org.apache.spark.ml.feature.{ HashingTF, IDF, Tokenizer, RegexTokenizer, CountVectorizer, CountVectorizerModel }
+import org.apache.spark.ml.feature.SQLTransformer
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
-case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput;
+case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput with AlgoOutput with Output;
 case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
@@ -47,8 +49,7 @@ case class cus_t(c2_publish_date: Option[String], c2_last_sync_date: Option[Stri
 case class dus_tf(end_time: Option[String], last_played_on: Option[String], play_start_time: Option[String], start_time: Option[String]);
 case class dcus_tf(contentId: String, download_date: Option[String], last_played_on: Option[String], start_time: Option[String]);
 
-
-object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
+object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceContext, DeviceContext] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.DeviceRecommendationEngine"
     override def name(): String = "DeviceRecommendationEngine"
@@ -56,7 +57,95 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(null, 0, false, null, "Unknown", new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, None, None)
-    
+
+    def computePercentile(data: RDD[Double], tile: Double): Double = {
+        val sortedRDD = data.sortBy(x => x)
+        val count = sortedRDD.count()
+        if (count == 1) sortedRDD.first()
+        else {
+            val n = (tile / 100d) * (count + 1d)
+            val k = math.floor(n).toLong
+            val d = n - k
+            if (k <= 0) sortedRDD.first()
+            else {
+                val indexedRDD = sortedRDD.zipWithIndex().map(_.swap)
+                if (k >= count) {
+                    indexedRDD.lookup(count - 1).head
+                } else {
+                    indexedRDD.lookup(k - 1).head + d * (indexedRDD.lookup(k).head - indexedRDD.lookup(k - 1).head)
+                }
+            }
+        }
+    }
+
+    def removeOutliers(rdd: RDD[(String, Double)]): RDD[(String, Double)] = {
+        val valueRDD = rdd.map { x => x._2 }
+        val q1 = computePercentile(valueRDD, 25)
+        //        val q2 = computePercentile(valueRDD, 50)
+        val q3 = computePercentile(valueRDD, 75)
+        val iqr = q3 - q1
+        val lowerLimit = q1 - (1.5 * iqr)
+        val upperLimit = q3 + (1.5 * iqr)
+        println(lowerLimit + " " + upperLimit)
+        rdd.map { x =>
+            if (x._2 < lowerLimit) (x._1, lowerLimit)
+            else if (x._2 > upperLimit) (x._1, upperLimit)
+            else x
+        }
+    }
+
+//    def main(args: Array[String]): Unit = {
+//
+//        val sc = CommonUtil.getSparkContext(2, "test")
+//        val sqlContext = new SQLContext(sc)
+//        import sqlContext.implicits._
+//
+//        // Outlier treatment
+//        val input = Map("1" -> 1, "2" -> 2, "3" -> 3, "4" -> 4, "5" -> 5, "6" -> 6, "7" -> 7, "8" -> 8, "9" -> 9, "10" -> 10, "11" -> 1000, "12" -> -25, "13" -> 100).map(x => (x._1, x._2.toDouble)).toArray
+//        val inRDD = sc.parallelize(input)
+//        val output = removeOutliers(inRDD)
+//        //        val df = sqlContext.createDataFrame(inRDD).toDF("label", "value")
+//        output.foreach { x => println(x) }
+//        //        df.registerTempTable("newtable")
+//        //        sqlContext.sql("SELECT PERCENTILE_DISC(value, 0.5) FROM newtable").show()
+//
+//        // Count Vectorizer(one hot encoding)
+//        val sentenceData = sqlContext.createDataFrame(Seq(
+//            (0, "numeracy"),
+//            (1, "literacy numeracy"),
+//            (2, "literacy"),
+//            (3, "literacy,numeracy"),
+//            (4, "numeracy"),
+//            (5, "unknown"),
+//            (6, "numeracy,literacy"))).toDF("label", "sentence")
+//
+//        val tokenizer = new RegexTokenizer().setInputCol("sentence").setOutputCol("words").setPattern("\\w+").setGaps(false)
+//        val wordsData = tokenizer.transform(sentenceData)
+//        val cvModel: CountVectorizerModel = new CountVectorizer()
+//            .setInputCol("words")
+//            .setOutputCol("features")
+//            .fit(wordsData)
+//
+//        val possibleValues = cvModel.vocabulary
+//        val out = cvModel.transform(wordsData)
+//        val asArray = udf((v: Vector) => v.toArray)
+//        val outDF = out.withColumn("featureArray", asArray(out.col("features"))).drop("features")
+//        val finalDF = outDF.select($"label", $"featureArray".getItem(0).cast("double").as(possibleValues(0)), $"featureArray".getItem(1).cast("double").as(possibleValues(1)), $"featureArray".getItem(2).cast("double").as(possibleValues(2)))
+//        //        outDF.select(expr("featureArray[0]").cast("double").as("numeracy"), expr("featureArray[1]").cast("double").as("literacy")).show
+//
+//        val finalTransformedDF = outDF.join(finalDF, "label").drop("featureArray").drop("sentence")
+//        finalTransformedDF.show()
+//
+//        // Combining one or more to produce new features (SQLTransformer)
+//        //        val df1 = sqlContext.createDataFrame(
+//        //            Seq((0, 1.0, 3.0), (2, 2.0, 5.0))).toDF("id", "v1", "v2")
+//        //
+//        //        val sqlTrans = new SQLTransformer().setStatement(
+//        //            "SELECT *, (v1 + v2) AS v3, (v1 - v2) AS v4 FROM __THIS__")
+//        //
+//        //        sqlTrans.transform(df1).show()
+//    }
+
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -70,9 +159,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val f2_t = transformByBinning(f2, 3);
         f1_t.join(f2_t).mapValues(f => cus_t(Option(f._1), Option(f._2)));
     }
-    
+
     private def _getDeviceUsageTransformations(rdd: RDD[DeviceUsageSummary])(implicit sc: SparkContext): RDD[(String, dus_tf)] = {
-        
+
         implicit val sqlContext = new SQLContext(sc);
         val f1 = rdd.map { x => (x.device_id, x.end_time.getOrElse(0L).toDouble) };
         val f1_t = transformByBinning(f1, 3);
@@ -84,9 +173,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val f4_t = transformByBinning(f4, 3);
         f1_t.join(f2_t).join(f3_t).join(f4_t).mapValues(f => dus_tf(Option(f._1._1._1), Option(f._1._1._2), Option(f._1._2), Option(f._2)));
     }
-    
+
     private def _getDeviceContentUsageTransformations(rdd: RDD[DeviceContentSummary])(implicit sc: SparkContext): RDD[(String, dcus_tf)] = {
-        
+
         val indexedRDD = rdd.zipWithIndex().map { case (k, v) => (v, k) }.map(x => (x._1.toString(), x._2))
         implicit val sqlContext = new SQLContext(sc);
         val f1 = indexedRDD.map { x => (x._1, x._2.download_date.getOrElse(0L).toDouble) };
@@ -95,10 +184,10 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val f2_t = transformByBinning(f2, 3);
         val f3 = indexedRDD.map { x => (x._1, x._2.start_time.getOrElse(0L).toDouble) };
         val f3_t = transformByBinning(f3, 3);
-        val x = f1_t.join(f2_t).join(f3_t)//.mapValues(f => dcus_tf(f._1._1, f._1._2, f._2));
-        indexedRDD.leftOuterJoin(x).map(f => (f._2._1.device_id,dcus_tf(f._2._1.content_id,Option(f._2._2.get._1._1), Option(f._2._2.get._1._2), Option(f._2._2.get._2))));
+        val x = f1_t.join(f2_t).join(f3_t) //.mapValues(f => dcus_tf(f._1._1, f._1._2, f._2));
+        indexedRDD.leftOuterJoin(x).map(f => (f._2._1.device_id, dcus_tf(f._2._1.content_id, Option(f._2._2.get._1._1), Option(f._2._2.get._1._2), Option(f._2._2.get._2))));
     }
-    
+
     def transformByBinning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, String)] = {
 
         val rows = rdd.map(f => Row.fromSeq(Seq(f._1, f._2)));
@@ -110,7 +199,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             .setNumBuckets(numBuckets)
 
         val result = discretizer.fit(df).transform(df).drop("value").rdd;
-        result.map { x => (x.getString(0), x.getDouble(1).toString())};
+        result.map { x => (x.getString(0), x.getDouble(1).toString()) };
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
@@ -122,7 +211,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
         val contentVectorsB = sc.broadcast(contentVectors);
-        
+
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=?", 0).cache();
         val contentUsageTransformations = _getContentUsageTransformations(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;
@@ -130,16 +219,16 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val contentUsage = contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap;
         val contentUsageB = sc.broadcast(contentUsage);
         contentUsageSummaries.unpersist(true);
-        
+
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
-        
+
         // Device Usage Summaries data transformations
         val dus = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).cache();
         val dusTransformations = _getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
         val dusTB = sc.broadcast(dusTransformations);
         dus.unpersist(true);
-        
+
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x._1, x._2) }
 
         val dcus = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
@@ -147,7 +236,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val dcusTransformations = _getDeviceContentUsageTransformations(dcus.map(x => x._2)).map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusTB = sc.broadcast(dcusTransformations);
         dcus.unpersist(true);
-        
+
         device_spec.leftOuterJoin(device_usage).leftOuterJoin(device_content_usage).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusTB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.contentId, x) }.toMap;
@@ -165,7 +254,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                     val contentInFocusUsageSummary = x.device_content.getOrElse(y._1, defaultDCUS);
                     val contentInFocusSummary = contentUsageB.value.getOrElse(y._1, defaultCUS)
                     val otherContentSummary = if (null != otherContentId) contentUsageB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
-                    val otherContentSummaryT = if (null != otherContentId) contentUsageTB.value.getOrElse(otherContentId, cus_t(None,None)) else cus_t(None,None);
+                    val otherContentSummaryT = if (null != otherContentId) contentUsageTB.value.getOrElse(otherContentId, cus_t(None, None)) else cus_t(None, None);
                     val dusT = dusTB.value.getOrElse(x.did.device_id, dus_tf(None, None, None, None));
                     DeviceContext(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec, otherContentSummaryT, dusT, dcusT);
                 }
@@ -316,27 +405,26 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         (0 until max toList).map { x => new StructField(prefix + x, DoubleType, true) }.toSeq
     }
 
-    override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
+    override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
-        val libfmFile = config.getOrElse("dataFile", "/tmp/score.dat.libfm").asInstanceOf[String]
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
-        //        val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
-        val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
+        val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
         val libfmInputFile = config.getOrElse("libfmInputFile", "/tmp/libfm_input.csv").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
         val libfmLogFile = config.getOrElse("libfmLogFile", "/tmp/logFile").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
-        //        val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,10,175 -iter 100 -method mcmc -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 0.1")
-        val libFMScoreConfig = config.getOrElse("libFMScoreConfig", "-dim 1,1,0 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100")
+        val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,0 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100")
+        val trainSampleRatio = config.getOrElse("trainSampleRatio", 1.0).asInstanceOf[Double];
+        val trainDataLimit = config.getOrElse("trainDataLimit", -1).asInstanceOf[Int];
+        val testSampleRatio = config.getOrElse("testSampleRatio", 1.0).asInstanceOf[Double];
+        val testDataLimit = config.getOrElse("testDataLimit", -1).asInstanceOf[Int];
 
-        CommonUtil.deleteFile(libfmFile);
         CommonUtil.deleteFile(trainDataFile);
-        //        CommonUtil.deleteFile(testDataFile);
-        CommonUtil.deleteFile(outputFile);
+        CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(model);
         CommonUtil.deleteFile(libfmInputFile);
         CommonUtil.deleteFile(libfmLogFile);
@@ -347,37 +435,25 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
-        // c2_publish_date, c2_last_sync_date - CUS
-        // c2_download_date, c2_last_played_on, c2_start_time - DCUS 
-        // end_time, last_played_on, mean_play_time, play_start_time - DUS
-        
-        /*
-        val columns = Array("c2_download_date", "c2_last_played_on", "c2_start_time", "c2_publish_date", "c2_last_sync_date", "end_time", "last_played_on", "mean_play_time", "play_start_time")
-        JobLogger.log("calling binning method", None, INFO);
-        val resultDF = binning(df, columns, 3)
-        JobLogger.log("completed binning operation", None, INFO);
-        *
-        */
-        
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
             val columnNames = df.columns.mkString(",")
-            val rdd = df.map { x => x.mkString(",") }.persist(StorageLevel.MEMORY_AND_DISK)
+            val rdd = df.map { x => x.mkString(",") } //.persist(StorageLevel.MEMORY_AND_DISK)
             JobLogger.log("save DF to libfmInputFile", None, INFO);
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
         }
         JobLogger.log("save DF to libfmInputFile completed", None, INFO);
-        
+
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
             .setLabelCol("label")
-        JobLogger.log("applied the formula", None, INFO);    
+        JobLogger.log("applied the formula", None, INFO);
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
-        
+
         val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
         JobLogger.log("created labeledRDD", None, INFO);
-        
+
         val dataStr = labeledRDD.map {
             case LabeledPoint(label, features) =>
 
@@ -392,42 +468,36 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
                 sb.mkString
         }
-        
 
-        
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        //val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
-        
-        
-        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), usedDataSet);
-        
-        
-        //JobLogger.log("Creating scoring dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> libfmFile)), dataStr);
+        val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
+        val numRecords = usedDataSet.count()
+        val numTrainSampleRecords = (numRecords * trainSampleRatio).toInt
+        val numTestSampleRecords = (numRecords * testSampleRatio).toInt
+        var trainDataSet: RDD[String] = null
+        var testDataSet: RDD[String] = null
+        if (trainDataLimit == -1)
+            trainDataSet = sc.parallelize(usedDataSet.take(numTrainSampleRecords))
+        else
+            trainDataSet = sc.parallelize((usedDataSet.take(numTrainSampleRecords)).take(trainDataLimit))
+        if (testDataLimit == -1)
+            testDataSet = sc.parallelize(usedDataSet.take(numTestSampleRecords))
+        else
+            testDataSet = sc.parallelize((usedDataSet.take(numTestSampleRecords)).take(testDataLimit))
 
-        FileDispatcher.dispatchRETrainingFile(Map("file1" -> trainDataFile, "file2" -> libfmFile), dataStr);
-        
-        JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $libfmFile $libFMScoreConfig -out $outputFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
+
+        JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Save the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))
 
-        JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex()
-        val dcWithIndexKey = device_content.map { case (k, v) => (v, k) }
-        val scores = sc.textFile(outputFile).map { x => x.toDouble }.zipWithIndex()
-        val scoresWithIndexKey = scores.map { case (k, v) => (v, k) }
-        val device_scores = dcWithIndexKey.leftOuterJoin(scoresWithIndexKey).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
-        device_scores.map { x =>
-            DeviceRecos(x._1, x._2)
-        }
+        data
     }
 
-    override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
-
-        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
+    override def postProcess(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
         data;
     }
 
