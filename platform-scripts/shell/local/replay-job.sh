@@ -4,7 +4,7 @@ cd $PROJECT_HOME/platform-scripts/shell/local
 source model-config.sh
 source replay-utils.sh
 
-job_config=$(config $1 '__endDate__')
+if [ -z "$job_config" ]; then job_config=$(config $1 '__endDate__'); fi
 start_date=$2
 end_date=$3
 

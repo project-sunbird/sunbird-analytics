@@ -107,7 +107,7 @@ object DeviceContentUsageSummary extends IBatchModelTemplate[DerivedEvent, Devic
                 "install_date" -> dcuSummary.download_date,
                 "num_group_user" -> dcuSummary.num_group_user,
                 "num_individual_user" -> dcuSummary.num_individual_user);
-            MeasuredEvent("ME_DEVICE_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), dcuSummary.last_played_on.get, "1.0", mid, null, Option(dcuSummary.content_id), None,
+            MeasuredEvent("ME_DEVICE_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), dcuSummary.last_played_on.get, "1.0", mid, "", Option(dcuSummary.content_id), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", DtRange(dcuSummary.start_time.get, dcuSummary.last_played_on.get)),
                 Dimensions(None, Option(dcuSummary.device_id), Option(new GData(dcuSummary.content_id, dcuSummary.game_ver.get)), None, None, None, None, None),
                 MEEdata(measures));
