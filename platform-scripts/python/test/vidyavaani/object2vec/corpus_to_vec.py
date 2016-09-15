@@ -5,6 +5,7 @@ import os
 import numpy as np
 import codecs
 import re
+import numpy as np
 import logging  # Log the data given
 import sys
 import ast
