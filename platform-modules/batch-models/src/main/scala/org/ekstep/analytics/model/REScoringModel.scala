@@ -40,6 +40,8 @@ import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 import org.apache.spark.ml.feature.{ HashingTF, IDF, Tokenizer, RegexTokenizer, CountVectorizer, CountVectorizerModel }
 import org.apache.spark.ml.feature.SQLTransformer
 import breeze.linalg._
+import breeze.numerics._
+import org.apache.spark.mllib.linalg.distributed.RowMatrix
 import org.ekstep.analytics.framework.util.S3Util
 
 object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
@@ -345,19 +347,17 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
     private def _getStructField(prefix: String, max: Int): Seq[StructField] = {
         (0 until max toList).map { x => new StructField(prefix + x, DoubleType, true) }.toSeq
     }
-
+    
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
 
-        val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
+        val localPath = config.getOrElse("localPath", "/tmp/").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
-
-        CommonUtil.deleteFile(outputFile);
-        CommonUtil.deleteFile(model);
+        CommonUtil.deleteFile(localPath+key.split("/").last);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
@@ -373,7 +373,17 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
 
-        S3Util.downloadFile(bucket, key, "/tmp/")
+        val featureVector = output.select("features").map { x => x.getAs[Vector](0) }.map(y => y.toDense);
+        JobLogger.log("created featureVector", None, INFO);
+        
+        val row = featureVector.count().toInt
+        val col = featureVector.first().size
+        println("col " + col)
+        val x = featureVector.map(x => x.toArray).flatMap { x => x }.collect()
+        val xMat = DenseMatrix.create(col, row, x).t
+        println(xMat)
+        
+        S3Util.downloadFile(bucket, key, localPath)
         val modelData = sc.textFile(model).collect()
         
         val W0_indStart = modelData.indexOf("#global bias W0")+1
@@ -381,11 +391,11 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         val v_indStart = modelData.indexOf("#pairwise interactions Vj,f")+1
         
         val w0 = if(modelData(W0_indStart).isEmpty()) 0.0 else modelData(W0_indStart).toDouble
-//        println(w0)
+        println(w0)
         
         val features = modelData.slice(W_indStart, v_indStart-1).map(x => x.toDouble)
         val w = new DenseVector(features)
-//        println(w)
+        println(w)
         
         val interactions = if(v_indStart == modelData.length) Array(" ") else modelData.slice(v_indStart, modelData.length)
         val v = if(interactions.isEmpty) 0.0
@@ -399,7 +409,9 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
             val data = test.flatMap { x => x }
             DenseMatrix.create(col, features.length, data).t
         }
-//        println(v)
+        println(v)
+        val yhatW = xMat * w
+        println(yhatW)
 
         JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
@@ -417,8 +429,8 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
-        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
+//        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+//        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
         data;
     }
 }
