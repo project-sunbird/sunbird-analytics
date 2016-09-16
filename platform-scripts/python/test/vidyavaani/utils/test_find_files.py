@@ -1,7 +1,18 @@
-from find_files import findFiles
-from nose.tools import *
 import os 
 import pytest
+
+root = os.path.dirname(os.path.abspath(__file__))
+
+def rec_dir(path, times):
+    if times > 0:
+        path = rec_dir(os.path.split(path)[0], times-1)
+    return path
+
+python_dir = rec_dir(root,3)
+src_code_utils = os.path.join(python_dir, 'main', 'vidyavaani', 'utils')
+sys.path.insert(0, src_code_utils)
+from find_files import findFiles
+#change to s3 loc
 dir_path = '/Users/ajitbarik/Ilimi/testing/nose'
 
 def test_good_find_files():

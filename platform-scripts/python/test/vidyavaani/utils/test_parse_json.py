@@ -1,7 +1,18 @@
-from parse_json import extract_json
 import pytest
 import os 
 import ast
+#adding source utils file 
+root = os.path.dirname(os.path.abspath(__file__))
+
+def rec_dir(path, times):
+    if times > 0:
+        path = rec_dir(os.path.split(path)[0], times-1)
+    return path
+
+python_dir = rec_dir(root,3)
+src_code_utils = os.path.join(python_dir, 'main', 'vidyavaani', 'utils')
+sys.path.insert(0, src_code_utils)
+from parse_json import extract_json
 
 # test if file exist and is a good json file
 def test_good_extract_json_case1():
