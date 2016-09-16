@@ -14,21 +14,24 @@ src_code_utils = os.path.join(python_dir, 'main', 'vidyavaani', 'utils')
 sys.path.insert(0, src_code_utils)
 from parse_json import extract_json
 
+#location of data for test
+data_loc = '/Users/ajitbarik/Ilimi/testing/nose/Data/parse_json'
+
 # test if file exist and is a good json file
 def test_good_extract_json_case1():
 	json_files = []
-	data_path = '/Users/ajitbarik/Ilimi/testing/nose/Data/parse_json/gcase1'
+	data_path = os.path.join(data_loc, 'gcase1')
 	file = 'test.json'
 	json_files.append(os.path.join(data_path, file))
 	result = extract_json(json_files)
-	f_expected = open('/Users/ajitbarik/Ilimi/testing/nose/Data/parse_json/gcase1/expected.txt', 'r')
+	f_expected = open(os.path.join(data_path, 'expected.txt'), 'r')
 	expected = ast.literal_eval(f_expected.read())
 	assert result == expected
 
 # if file is json backup file
 def test_good_extract_json_case2():
 	json_files = []
-	data_path = '/Users/ajitbarik/Ilimi/testing/nose/Data/parse_json/bcase1'
+	data_path = os.path.join(data_loc, 'bcase1')
 	file = 'test.json.bk'
 	json_files.append(os.path.join(data_path, file))
 	result = extract_json(json_files)
@@ -38,7 +41,7 @@ def test_good_extract_json_case2():
 # if file is bad json file
 def test_good_extract_json_case3():
 	json_files = []
-	data_path = '/Users/ajitbarik/Ilimi/testing/nose/Data/parse_json/bcase2'
+	data_path = os.path.join(data_loc, 'bcase2')
 	file = 'test.json'
 	json_files.append(os.path.join(data_path, file))
 	result = extract_json(json_files)
@@ -47,7 +50,7 @@ def test_good_extract_json_case3():
 
 # if 'json_files' is not string instead of being a list
 def test_good_extract_json_case4():
-	json_files = '/Users/ajitbarik/Ilimi/testing/nose/Data/parse_json/bcase2/test.json'
+	json_files = os.path.join(data_loc, 'bcase2', 'test.json')
 	result = extract_json(json_files)
 	expected = {}
 	assert result == expected

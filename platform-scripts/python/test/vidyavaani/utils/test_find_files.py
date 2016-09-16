@@ -13,16 +13,16 @@ src_code_utils = os.path.join(python_dir, 'main', 'vidyavaani', 'utils')
 sys.path.insert(0, src_code_utils)
 from find_files import findFiles
 #change to s3 loc
-dir_path = '/Users/ajitbarik/Ilimi/testing/nose'
+dir_path = '/Users/ajitbarik/Ilimi/testing/nose/Data/find_files'
 
 def test_good_find_files():
 	# directory is string and it exists
     # dir_path = os.path.dirname(os.path.realpath(__file__))
-    data_path = os.path.join(dir_path, 'Data')
+    data_path = dir_path
     # files is a list
     files = ['.csv']
     result = findFiles(data_path,files)
-    assert result == ['/Users/ajitbarik/Ilimi/testing/nose/Data/vectors.csv', '/Users/ajitbarik/Ilimi/testing/nose/Data/vectors_after.csv']
+    assert result == [os.path.join(data_path, 'vectors.csv'), os.path.join(data_path, 'vectors_after.csv')]
 
 
 def test_bad_find_files_dir_not_exist():
