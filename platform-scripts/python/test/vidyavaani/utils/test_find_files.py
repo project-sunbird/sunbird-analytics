@@ -12,8 +12,8 @@ python_dir = rec_dir(root,3)
 src_code_utils = os.path.join(python_dir, 'main', 'vidyavaani', 'utils')
 sys.path.insert(0, src_code_utils)
 from find_files import findFiles
-#change to s3 loc
-dir_path = '/Users/ajitbarik/Ilimi/testing/nose/Data/find_files'
+
+dir_path = s.path.join(rec_dir(root,1), 'test_resources', 'find_files')
 
 def test_good_find_files():
 	# directory is string and it exists

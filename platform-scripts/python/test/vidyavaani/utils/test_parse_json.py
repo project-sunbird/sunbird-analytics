@@ -11,11 +11,9 @@ def rec_dir(path, times):
 
 python_dir = rec_dir(root,3)
 src_code_utils = os.path.join(python_dir, 'main', 'vidyavaani', 'utils')
+data_loc = s.path.join(rec_dir(root,1), 'test_resources', 'parse_json')
 sys.path.insert(0, src_code_utils)
 from parse_json import extract_json
-
-#location of data for test
-data_loc = '/Users/ajitbarik/Ilimi/testing/nose/Data/parse_json'
 
 # test if file exist and is a good json file
 def test_good_extract_json_case1():
