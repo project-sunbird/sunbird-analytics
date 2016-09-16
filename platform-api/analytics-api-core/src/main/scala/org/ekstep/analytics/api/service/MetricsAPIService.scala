@@ -27,12 +27,12 @@ object MetricsAPIService {
 		val metrics = if (count > 0) {
 			for (i <- 1 to count) yield {
 				val period = _getPeriod(i, count);
-				ContentUsageMetrics(Option(period), 12, 123.34, 123.0, 6, 34, 102.35, 2, None)
+				ContentUsageMetrics(Option(period), 12, 123.34, 123.0, 6, 34, 102.35, 2)
 			}
 		} else {
 			Array();
 		}
-		val summary = ContentUsageMetrics(None, 12*count, 123.34*count, 123.0*count, 6*count, 34*count, 102.35*count, 2*count, None);
+		val summary = ContentUsageMetrics(None, 12*count, 123.34*count, 123.0*count, 6*count, 34*count, 102.35*count, 2*count);
 		val result = Map[String, AnyRef](
 			"ttl" -> CommonUtil.getRemainingHours.asInstanceOf[AnyRef],
             "metrics" -> metrics,
@@ -63,6 +63,35 @@ object MetricsAPIService {
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.content-popularity", result));
 	}
 
+	def itemUsage(requestBody: MetricsRequestBody)(implicit sc: SparkContext): String = {
+		if (StringUtils.isEmpty(requestBody.request.period) || periods.indexOf(requestBody.request.period) == -1) {
+				throw new ClientException("period is missing or invalid.");
+		}
+		val count = periodMap.getOrElse(requestBody.request.period, 0);
+		val dateTime = new DateTime(new Date());
+		val metrics = if (count > 0) {
+			for (i <- 1 to count) yield {
+				val period = _getPeriod(i, count);
+				val items = for (t <- 1 to Random.nextInt(10)) yield {
+					ItemMetrics("Q_"+Random.nextInt(100), 144.00, 10, 4, 6, Array("Fourteen", "Twelve", "Sixteen", "Seventeen"), 101.00);
+				};
+				Map[String, AnyRef]("period" -> period, "items" -> items);
+			}
+		} else {
+			Array();
+		}
+		
+		val items = for (t <- 1 to 10) yield {
+			ItemMetrics("Q_"+Random.nextInt(100), 144.00*count, 10*count, 4*count, 6*count, Array("Fourteen", "Twelve", "Sixteen", "Seventeen"), 101.00*count);
+		};
+		val summary = Map("items" -> items);
+		val result = Map[String, AnyRef](
+			"ttl" -> CommonUtil.getRemainingHours.asInstanceOf[AnyRef],
+            "metrics" -> metrics,
+            "summary" -> summary);
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.item-usage", result));
+	}
+	
 	def genieUsage(requestBody: MetricsRequestBody)(implicit sc: SparkContext): String = {
 		if (StringUtils.isEmpty(requestBody.request.period) || periods.indexOf(requestBody.request.period) == -1) {
 				throw new ClientException("period is missing or invalid.");
