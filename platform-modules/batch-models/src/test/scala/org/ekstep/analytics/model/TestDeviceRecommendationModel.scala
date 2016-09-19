@@ -7,8 +7,8 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestDeviceRecommendationModel extends SparkSpec(null) {
   
-    "DeviceRecommendationModel" should "generate libsvm files and generate scores" in {
-//    it should "generate libsvm files and generate scores" in {    
+//    "DeviceRecommendationModel" should "generate libsvm files and generate scores" in {
+    ignore should "generate libsvm files and generate scores" in {    
 
 //        CassandraConnector(sc.getConf).withSessionDo { session =>
 //            session.execute("TRUNCATE device_db.device_usage_summary;");
