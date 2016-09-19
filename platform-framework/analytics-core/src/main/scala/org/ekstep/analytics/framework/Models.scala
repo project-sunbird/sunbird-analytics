@@ -107,7 +107,7 @@ case class LearnerId(learner_id: String)
 case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
-case class Empty() extends Input
+case class Empty() extends Input with AlgoOutput with Output
 
 object Period extends Enumeration {
     type Period = Value

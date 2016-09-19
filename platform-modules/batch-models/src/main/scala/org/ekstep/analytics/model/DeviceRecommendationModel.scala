@@ -49,7 +49,7 @@ case class cus_t(c2_publish_date: Option[String], c2_last_sync_date: Option[Stri
 case class dus_tf(end_time: Option[String], last_played_on: Option[String], play_start_time: Option[String], start_time: Option[String]);
 case class dcus_tf(contentId: String, download_date: Option[String], last_played_on: Option[String], start_time: Option[String]);
 
-object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceContext, DeviceContext] with Serializable {
+object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, Empty, Empty] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.DeviceRecommendationEngine"
     override def name(): String = "DeviceRecommendationEngine"
@@ -406,7 +406,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         (0 until max toList).map { x => new StructField(prefix + x, DoubleType, true) }.toSeq
     }
 
-    override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
+    override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
@@ -421,7 +421,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,0 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100")
         val trainSampleRatio = config.getOrElse("trainSampleRatio", 1.0).asInstanceOf[Double];
         val trainDataLimit = config.getOrElse("trainDataLimit", -1).asInstanceOf[Int];
-        val testSampleRatio = config.getOrElse("testSampleRatio", 1.0).asInstanceOf[Double];
+        val testSampleRatio = config.getOrElse("testSampleRatio", 0.5).asInstanceOf[Double];
         val testDataLimit = config.getOrElse("testDataLimit", -1).asInstanceOf[Int];
 
         CommonUtil.deleteFile(trainDataFile);
@@ -438,11 +438,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
             val columnNames = df.columns.mkString(",")
-            val rdd = df.map { x => x.mkString(",") }//.persist(StorageLevel.MEMORY_AND_DISK)
+            val rdd = df.map { x => x.mkString(",") }.persist(StorageLevel.MEMORY_AND_DISK)
             JobLogger.log("save DF to libfmInputFile", None, INFO);
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
+            JobLogger.log("save DF to libfmInputFile completed", None, INFO);
         }
-        JobLogger.log("save DF to libfmInputFile completed", None, INFO);
 
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
@@ -479,7 +479,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         val trainDataSet = if (trainDataLimit == -1) sc.parallelize(usedDataSet.take(numTrainSampleRecords)) else sc.parallelize((usedDataSet.take(numTrainSampleRecords)).take(trainDataLimit))
         val testDataSet = if (testDataLimit == -1) sc.parallelize(usedDataSet.take(numTestSampleRecords)) else sc.parallelize((usedDataSet.take(numTestSampleRecords)).take(testDataLimit))
-
+        
         JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
@@ -487,13 +487,13 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
-        JobLogger.log("Save the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))
-
-        data
+        JobLogger.log("Saved the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        sc.makeRDD(List(Empty()));
     }
 
-    override def postProcess(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
+    override def postProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
         data;
     }
 
