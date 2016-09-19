@@ -47,7 +47,7 @@
             - networkx
             - gensim
 - name: type command
-  command: python -c "import nltk; nltk.download('stopwords')"`
+  command: python -c "import nltk; nltk.download('stopwords')"
 
 
 

@@ -6,8 +6,8 @@
     - cassandra
 
 - name: run cql
-  become_user: ec2-user
-  become: yes
+  #become_user: {{ cassandra_user }}
+  #become: yes
   command: "{{ cql_path }} -f /home/{{ cassandra_user }}/data.cql"
   ignore_errors: yes
   tags:

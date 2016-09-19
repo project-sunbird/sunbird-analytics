@@ -13,8 +13,15 @@ case class Filter(partner_id: Option[String], group_user: Option[Boolean]);
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
 case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int]);
 case class RequestBody(id: String, ver: String, ts: String, request: Request, param: Option[Params]);
+case class MetricsRequest(period: String, filter: Option[Filter]);
+case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, avg_sessions_week: Option[Double], avg_ts_week: Option[Double])
+case class ItemMetrics(item_id: String, total_ts: Double, total_count: Integer, correct_res_count: Integer, inc_res_count: Integer, top5_incorrect_res: Array[String], avg_ts: Double)
+case class ContentUsageMetrics(period: Option[Int], total_sessions: Long, total_ts: Double, total_interactions: Double, total_devices: Long, avg_sessions: Long, avg_ts: Double, avg_interactions_min: Double)
+case class Comment(comment: String, date: Int);
+case class ContentPopularityMetrics(period: Option[Int], downloads: Long, side_loads: Long, comments: Option[Array[Comment]], avg_rating: Double); 
+case class GenieUsageMetrics(period: Option[Int], total_sessions: Long, total_ts: Double, total_devices: Long, avg_sessions: Long, avg_ts: Double)
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Option[Map[String, AnyRef]]);
@@ -37,6 +44,11 @@ object ResponseCode extends Enumeration {
 object Period extends Enumeration {
     type Period = Value
     val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
+}
+
+object MetricsPeriod extends Enumeration {
+    type MetricsPeriod = Value
+    val LAST_7_DAYS, LAST_5_WEEKS, LAST_12_MONTHS, CUMULATIVE = Value
 }
 
 object Constants {

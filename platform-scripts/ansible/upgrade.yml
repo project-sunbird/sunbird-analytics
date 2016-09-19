@@ -3,3 +3,7 @@
   roles:
         - cassandra_upgrade
 
+- hosts: data-products
+  roles:
+        - spark_upgrade
+

@@ -28,7 +28,7 @@ config_file = os.path.join(resource, 'config.properties')
 sys.path.insert(0, utils)
 root = os.path.dirname(os.path.abspath(__file__))
 
-from download_zip_file import downloadZipFile
+# from download_zip_file import downloadZipFile
 from download_content import *
 from get_lowest_key_value import flattenDict
 from handle_media import *
