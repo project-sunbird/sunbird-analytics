@@ -47,6 +47,17 @@ class Metrics @Inject() (system: ActorSystem) extends Controller {
 		}
 	}
 	
+	def itemUsage() = Action { implicit request =>
+		try {
+			val body = _getMetricsRequest(request);
+			val result = MetricsAPIService.itemUsage(body)(Context.sc);
+			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
+		} catch {
+			case ex: ClientException =>
+				Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.metrics.item-usage", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
+		}
+	}
+	
 	def genieUsage() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);

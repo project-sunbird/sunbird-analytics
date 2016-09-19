@@ -15,5 +15,6 @@ POST /dataproduct/replay/:job/:from/:to @controllers.Application.replayJob(job: 
 
 POST /metrics/content-usage @controllers.Metrics.contentUsage
 POST /metrics/content-popularity @controllers.Metrics.contentPopularity
+POST /metrics/item-usage @controllers.Metrics.itemUsage
 POST /metrics/genie-usage @controllers.Metrics.genieUsage
 POST /list/content @controllers.Metrics.contentList
