@@ -394,7 +394,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         val features = if (W_indStart == -1) Array[Double]() else modelData.slice(W_indStart + 1, v_indStart - 1).map(x => x.toDouble)
         val w = if (features.isEmpty) 0.0 else DenseMatrix.create(1, features.length, features)
 
-        val interactions = if (v_indStart == modelData.length) Array[String]() else modelData.slice(v_indStart, modelData.length)
+        val interactions = if (v_indStart == modelData.length) Array[String]() else modelData.slice(v_indStart, modelData.length).filter(!_.isEmpty())
         val v = if (interactions.isEmpty) 0.0
         else {
             var col = 0
