@@ -355,7 +355,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
 
         val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
         val localPath = config.getOrElse("localPath", "/tmp/").asInstanceOf[String]
-        val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
+        val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
         CommonUtil.deleteFile(localPath + key.split("/").last);
@@ -383,7 +383,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         val xMat = DenseMatrix.create(col, row, x).t
 
         S3Util.downloadFile(bucket, key, localPath)
-        val modelData = sc.textFile(model).collect()
+        val modelData = sc.textFile(localPath + model).collect()
 
         JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val W0_indStart = modelData.indexOf("#global bias W0")
@@ -404,7 +404,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
                 arr
             }
             val data = test.flatMap { x => x }
-            DenseMatrix.create(col, features.length, data).t
+            DenseMatrix.create(col, test.length, data).t
         }
 
         val yhatW = if (w != 0.0) {
