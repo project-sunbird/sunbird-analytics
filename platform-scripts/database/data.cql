@@ -133,6 +133,13 @@ CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	PRIMARY KEY (content_id)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.registered_tags(
+	tag_id text,
+	last_updated timestamp,
+	active boolean,
+	PRIMARY KEY (tag_id)
+);
+
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'

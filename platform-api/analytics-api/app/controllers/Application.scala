@@ -3,6 +3,7 @@ package controllers
 import org.ekstep.analytics.api.service.ContentAPIService
 import org.ekstep.analytics.api.service.HealthCheckAPIService
 import org.ekstep.analytics.api.service.RecommendationAPIService
+import org.ekstep.analytics.api.service.TagService
 import org.ekstep.analytics.api.util._
 import play.api._
 import play.api.mvc._
@@ -122,6 +123,18 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 		JobLogger.log("ekstep.analytics.replay-job", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
 		(dpmgmtAPIActor ! DataProductManagementAPIService.ReplayJob(job, from, to, body, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.replay-job", Map("message" -> "Job submitted")));
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+	}
+	
+	def registerTag(tagId: String) = Action { implicit request =>
+		JobLogger.log("ekstep.analytics.registerTag", Option(Map("requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
+		val response = TagService.registerTag(tagId)(Context.sc);
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+	}
+
+	def deleteTag(tagId: String) = Action { implicit request =>
+		JobLogger.log("ekstep.analytics.deleteTag", Option(Map("requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
+		val response = TagService.deleteTag(tagId)(Context.sc);
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 	}
 }
