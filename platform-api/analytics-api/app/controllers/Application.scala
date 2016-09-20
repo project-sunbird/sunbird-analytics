@@ -31,24 +31,10 @@ import org.ekstep.analytics.api.service.DataProductManagementAPIService
 import org.ekstep.analytics.api.service.DataProductManagementAPIService
 
 @Singleton
-class Application @Inject() (system: ActorSystem) extends Controller {
+class Application @Inject() (system: ActorSystem) extends BaseController {
 	implicit val className = "controllers.Application";
-	implicit val timeout: Timeout = 20 seconds;
 	val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
 	val dpmgmtAPIActor = system.actorOf(DataProductManagementAPIService.props, "dpmgmt-api-service-actor");
-	implicit val config: Config = play.Play.application.configuration.underlying()
-		.withFallback(ConfigFactory.parseMap(Map("content2vec.scripts_path" -> "",
-			"python.home" -> "",
-			"content2vec.download_path" -> "/tmp",
-			"content2vec.download_file_prefix" -> "temp_",
-			"content2vec.enrich_content" -> "true",
-			"content2vec.content_corpus" -> "true",
-			"content2vec.train_model" -> "false",
-			"content2vec.s3_bucket" -> "sandbox-data-store",
-			"content2vec.model_path" -> "model",
-			"content2vec.s3_key_prefix" -> "model",
-			"content2vec.infer_all" -> "false",
-			"content2vec.corpus_path" -> "").asJava));
 
 	def contentUsageMetrics(contentId: String) = Action { implicit request =>
 		try {
