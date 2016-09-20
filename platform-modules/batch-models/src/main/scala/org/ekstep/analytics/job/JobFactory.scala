@@ -46,7 +46,9 @@ object JobFactory {
             case "ctv" =>
                 ContentToVecJob
             case "device-recos" =>
-                DeviceRecommendationJob    
+                DeviceRecommendationJob  
+            case "re-scoring" =>
+                REScoringJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

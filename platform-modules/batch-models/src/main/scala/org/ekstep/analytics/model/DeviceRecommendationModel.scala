@@ -39,6 +39,7 @@ import org.apache.spark.sql.functions._
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 import org.apache.spark.ml.feature.{ HashingTF, IDF, Tokenizer, RegexTokenizer, CountVectorizer, CountVectorizerModel }
 import org.apache.spark.ml.feature.SQLTransformer
+import breeze.stats._
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput with AlgoOutput with Output;
@@ -94,58 +95,64 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         }
     }
 
-    //        def main(args: Array[String]): Unit = {
-    //    
-    //            val sc = CommonUtil.getSparkContext(2, "test")
-    //            val sqlContext = new SQLContext(sc)
-    //            import sqlContext.implicits._
-    //    
-    //            // Outlier treatment
-    //            val input = Map("1" -> 1, "2" -> 2, "3" -> 3, "4" -> 4, "5" -> 5, "6" -> 6, "7" -> 7, "8" -> 8, "9" -> 9, "10" -> 10, "11" -> 1000, "12" -> -25, "13" -> 100).map(x => (x._1, x._2.toDouble)).toArray
-    //            val inRDD = sc.parallelize(input)
-    //            val output = removeOutliers(inRDD)
-    //            //        val df = sqlContext.createDataFrame(inRDD).toDF("label", "value")
-    //            output.foreach { x => println(x) }
-    //            //        df.registerTempTable("newtable")
-    //            //        sqlContext.sql("SELECT PERCENTILE_DISC(value, 0.5) FROM newtable").show()
-    //    
-    //            // Count Vectorizer(one hot encoding)
-    //            val sentenceData = sqlContext.createDataFrame(Seq(
-    //                (0, "numeracy"),
-    //                (1, "literacy numeracy"),
-    //                (2, "literacy"),
-    //                (3, "literacy,numeracy"),
-    //                (4, "numeracy"),
-    //                (5, "unknown"),
-    //                (6, "numeracy,literacy"))).toDF("label", "sentence")
-    //    
-    //            val tokenizer = new RegexTokenizer().setInputCol("sentence").setOutputCol("words").setPattern("\\w+").setGaps(false)
-    //            val wordsData = tokenizer.transform(sentenceData)
-    //            val cvModel: CountVectorizerModel = new CountVectorizer()
-    //                .setInputCol("words")
-    //                .setOutputCol("features")
-    //                .fit(wordsData)
-    //    
-    //            val possibleValues = cvModel.vocabulary
-    //            val out = cvModel.transform(wordsData)
-    //            val asArray = udf((v: Vector) => v.toArray)
-    //            val outDF = out.withColumn("featureArray", asArray(out.col("features"))).drop("features")
-    //            outDF.show()
-    //            val finalDF = outDF.select($"label", $"featureArray".getItem(0).cast("double").as(possibleValues(0)), $"featureArray".getItem(1).cast("double").as(possibleValues(1)), $"featureArray".getItem(2).cast("double").as(possibleValues(2)))
-    //            //        outDF.select(expr("featureArray[0]").cast("double").as("numeracy"), expr("featureArray[1]").cast("double").as("literacy")).show
-    //    
-    //            val finalTransformedDF = outDF.join(finalDF, "label").drop("featureArray").drop("sentence")
-    //            finalTransformedDF.show()
-    //    
-    //            // Combining one or more to produce new features (SQLTransformer)
-    //            //        val df1 = sqlContext.createDataFrame(
-    //            //            Seq((0, 1.0, 3.0), (2, 2.0, 5.0))).toDF("id", "v1", "v2")
-    //            //
-    //            //        val sqlTrans = new SQLTransformer().setStatement(
-    //            //            "SELECT *, (v1 + v2) AS v3, (v1 - v2) AS v4 FROM __THIS__")
-    //            //
-    //            //        sqlTrans.transform(df1).show()
-    //        }
+    //            def main(args: Array[String]): Unit = {
+    //        
+    //                val sc = CommonUtil.getSparkContext(2, "test")
+    //                val sqlContext = new SQLContext(sc)
+    //                import sqlContext.implicits._
+    //        
+    //                // Outlier treatment
+    //                val input = Map("1" -> 1, "2" -> 2, "3" -> 3, "4" -> 4, "5" -> 5, "6" -> 6, "7" -> 7, "8" -> 8, "9" -> 9, "10" -> 10, "11" -> 1000, "12" -> -25, "13" -> 100).map(x => (x._1, x._2.toDouble)).toArray
+    //                val it = input.map(x => x._2)
+    //                val q1 = DescriptiveStats.percentile(it, 0.25)
+    //                println("q1 (from breeze)" + q1)
+    //                val q3 = DescriptiveStats.percentile(it, 0.75)
+    //                println("q3 (from breeze)" + q3)
+    //                
+    //                val inRDD = sc.parallelize(input)
+    //                val output = removeOutliers(inRDD)
+    //                //        val df = sqlContext.createDataFrame(inRDD).toDF("label", "value")
+    //                output.foreach { x => println(x) }
+    //                //        df.registerTempTable("newtable")
+    //                //        sqlContext.sql("SELECT PERCENTILE_DISC(value, 0.5) FROM newtable").show()
+    //        
+    //                // Count Vectorizer(one hot encoding)
+    //                val sentenceData = sqlContext.createDataFrame(Seq(
+    //                    (0, "numeracy"),
+    //                    (1, "literacy numeracy"),
+    //                    (2, "literacy"),
+    //                    (3, "literacy,numeracy"),
+    //                    (4, "numeracy"),
+    //                    (5, "unknown"),
+    //                    (6, "numeracy,literacy"))).toDF("label", "sentence")
+    //        
+    //                val tokenizer = new RegexTokenizer().setInputCol("sentence").setOutputCol("words").setPattern("\\w+").setGaps(false)
+    //                val wordsData = tokenizer.transform(sentenceData)
+    //                val cvModel: CountVectorizerModel = new CountVectorizer()
+    //                    .setInputCol("words")
+    //                    .setOutputCol("features")
+    //                    .fit(wordsData)
+    //        
+    //                val possibleValues = cvModel.vocabulary
+    //                val out = cvModel.transform(wordsData)
+    //                val asArray = udf((v: Vector) => v.toArray)
+    //                val outDF = out.withColumn("featureArray", asArray(out.col("features"))).drop("features")
+    //                outDF.show()
+    //                val finalDF = outDF.select($"label", $"featureArray".getItem(0).cast("double").as(possibleValues(0)), $"featureArray".getItem(1).cast("double").as(possibleValues(1)), $"featureArray".getItem(2).cast("double").as(possibleValues(2)))
+    //                //        outDF.select(expr("featureArray[0]").cast("double").as("numeracy"), expr("featureArray[1]").cast("double").as("literacy")).show
+    //        
+    //                val finalTransformedDF = outDF.join(finalDF, "label").drop("featureArray").drop("sentence")
+    //                finalTransformedDF.show()
+    //        
+    //                // Combining one or more to produce new features (SQLTransformer)
+    //                //        val df1 = sqlContext.createDataFrame(
+    //                //            Seq((0, 1.0, 3.0), (2, 2.0, 5.0))).toDF("id", "v1", "v2")
+    //                //
+    //                //        val sqlTrans = new SQLTransformer().setStatement(
+    //                //            "SELECT *, (v1 + v2) AS v3, (v1 - v2) AS v4 FROM __THIS__")
+    //                //
+    //                //        sqlTrans.transform(df1).show()
+    //            }
 
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
@@ -439,9 +446,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
             val columnNames = df.columns.mkString(",")
             val rdd = df.map { x => x.mkString(",") }.persist(StorageLevel.MEMORY_AND_DISK)
-            JobLogger.log("save DF to libfmInputFile", None, INFO);
+            JobLogger.log("saving DF to libfmInputFile", None, INFO);
             OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
-            JobLogger.log("save DF to libfmInputFile completed", None, INFO);
+            JobLogger.log("saved DF to libfmInputFile", None, INFO);
         }
 
         val formula = new RFormula()
@@ -479,7 +486,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         val trainDataSet = if (trainDataLimit == -1) sc.parallelize(usedDataSet.take(numTrainSampleRecords)) else sc.parallelize((usedDataSet.take(numTrainSampleRecords)).take(trainDataLimit))
         val testDataSet = if (testDataLimit == -1) sc.parallelize(usedDataSet.take(numTestSampleRecords)) else sc.parallelize((usedDataSet.take(numTestSampleRecords)).take(testDataLimit))
-        
+
         JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);

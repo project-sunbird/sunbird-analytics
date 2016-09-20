@@ -377,22 +377,19 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         val featureVector = output.select("features").map { x => x.getAs[Vector](0) }.map(y => y.toDense);
         JobLogger.log("created featureVector", None, INFO);
 
-        val row = featureVector.count().toInt
-        val col = featureVector.first().size
-        val x = featureVector.map(x => x.toArray).flatMap { x => x }.collect()
-        val xMat = DenseMatrix.create(col, row, x).t
-
+        JobLogger.log("Downloading model from s3", None, INFO);
         S3Util.downloadFile(bucket, key, localPath)
         val modelData = sc.textFile(localPath + model).collect()
 
-        JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val W0_indStart = modelData.indexOf("#global bias W0")
         val W_indStart = modelData.indexOf("#unary interactions Wj")
         val v_indStart = modelData.indexOf("#pairwise interactions Vj,f") + 1
+
         val w0 = if (W0_indStart == -1) 0.0 else modelData(W0_indStart + 1).toDouble
 
         val features = if (W_indStart == -1) Array[Double]() else modelData.slice(W_indStart + 1, v_indStart - 1).map(x => x.toDouble)
-        val w = if (features.isEmpty) 0.0 else DenseMatrix.create(1, features.length, features)
+        val w = if (features.isEmpty) 0.0 else DenseMatrix.create(features.length, 1, features)
 
         val interactions = if (v_indStart == modelData.length) Array[String]() else modelData.slice(v_indStart, modelData.length).filter(!_.isEmpty())
         val v = if (interactions.isEmpty) 0.0
@@ -407,37 +404,35 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
             DenseMatrix.create(col, test.length, data).t
         }
 
-        val yhatW = if (w != 0.0) {
-            val wi = w.asInstanceOf[DenseMatrix[Double]]
-            xMat * (wi.t)
-        } else 0.0;
+        JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val scores = featureVector.map { vect =>
+            val x = DenseMatrix.create(1, vect.size, vect.toArray)
+            val yhatW = if (w != 0.0) {
+                val wi = w.asInstanceOf[DenseMatrix[Double]]
+                val yhatw = (x * wi)
+                yhatw.valueAt(0, 0)
+            } else 0.0
+            val xsq = x.:*(x)
+            val yhatV = if (v != 0.0) {
+                val vi = v.asInstanceOf[DenseMatrix[Double]]
+                val vsq = vi.:*(vi)
+                val v1 = x * vi
+                val v1sq = v1.:*(v1)
+                val v2 = xsq * vsq
+                val vdiff = v1sq - v2
+                0.5 * (breeze.linalg.sum(vdiff));
+            } else 0.0
 
-        val yhatV = if (v != 0.0) {
-            val vi = v.asInstanceOf[DenseMatrix[Double]]
-            val xsq = xMat.:*(xMat)
-            val vsq = vi.:*(vi)
-            val v1 = xMat * vi
-            val v1sq = v1.:*(v1)
-            val v2 = xsq * vsq
-            val vdiff = v1sq - v2
-            val onesMat = DenseMatrix.ones[Double](vdiff.cols, 1)
-            val yhatv = vdiff * onesMat
-            0.5 * yhatv;
-        } else v;
+            CommonUtil.roundDouble((w0 + yhatW + yhatV), 2)
+        }
 
-        val scoresMat = if (yhatW.isInstanceOf[DenseMatrix[Double]] && yhatV.isInstanceOf[Double]) {
-            yhatW.asInstanceOf[DenseMatrix[Double]] + yhatV.asInstanceOf[Double] + w0;
-        } else if (yhatV.isInstanceOf[DenseMatrix[Double]] && yhatW.isInstanceOf[Double])
-            yhatV.asInstanceOf[DenseMatrix[Double]] + yhatW.asInstanceOf[Double] + w0;
-        else yhatW.asInstanceOf[DenseMatrix[Double]] + yhatV.asInstanceOf[DenseMatrix[Double]] + w0
-
-        val scoresRDD = sc.parallelize(scoresMat.toArray)
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scoresRDD);
+        JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
 
         JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
-        val scores = scoresRDD.zipWithIndex().map { case (k, v) => (v, k) }
-        val device_scores = device_content.leftOuterJoin(scores).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, Option(CommonUtil.roundDouble(x._2.get, 2)))).toList.sortBy(y => y._2).reverse)
+        val scoresIndexed = scores.zipWithIndex().map { case (k, v) => (v, k) }
+        val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
         device_scores.map { x =>
             DeviceRecos(x._1, x._2)
         }
