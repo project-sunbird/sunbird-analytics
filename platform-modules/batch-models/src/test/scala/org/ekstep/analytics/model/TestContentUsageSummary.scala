@@ -4,6 +4,7 @@ import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestContentUsageSummary extends SparkSpec(null) {
 
@@ -43,6 +44,22 @@ class TestContentUsageSummary extends SparkSpec(null) {
         perContentEksMap.get("total_interactions").get.asInstanceOf[Long] should be(1722L)
         perContentEksMap.get("total_ts").get.asInstanceOf[Double] should be(4703.13)
 
+    }
+    
+    it should "generate content summary events for (all, per content, per tag, per tag & per content) dimensions" in {
+        val rdd = loadFile[DerivedEvent]("/Users/santhosh/Downloads/2016-09-20-20160921.json");
+        rdd.collect();
+        val amitCodeTime = CommonUtil.time {
+            val rdd2 = ContentUsageSummary.execute(rdd, None);
+            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "amit_output.log")), rdd2)
+        }
+        println("Time taken by amit's code", amitCodeTime._1);
+        val svCodeTime = CommonUtil.time {
+            val rdd3 = ContentUsageSummaryModel.execute(rdd, None);
+            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "sv_output.log")), rdd3);
+        }
+        
+        println("Time taken by sv's code", svCodeTime._1);
     }
 
     //    it should "generate content summary from input events with zero timeSpent and non-zero noOfInteractEvents for multiple content_id" in {
