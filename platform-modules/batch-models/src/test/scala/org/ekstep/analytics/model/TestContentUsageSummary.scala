@@ -44,6 +44,11 @@ class TestContentUsageSummary extends SparkSpec(null) {
         perContentEksMap.get("total_interactions").get.asInstanceOf[Long] should be(1722L)
         perContentEksMap.get("total_ts").get.asInstanceOf[Double] should be(4703.13)
 
+        // per tag, per content summary
+        
+        val perTagContentSum = events.filter { x => (x.dimensions.gdata != None) && (x.dimensions.tag != None) }
+        //perTagContentSum.length should be(48)
+        
     }
     
     it should "generate content summary events for (all, per content, per tag, per tag & per content) dimensions" in {
