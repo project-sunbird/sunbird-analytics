@@ -23,6 +23,8 @@ object JobFactory {
                 RecommendationEngineJob;
             case "cus" =>
                 ContentUsageSummarizer
+            case "cps" =>
+            	ContentPopularitySummarizer
             case "cuu" =>
                 ContentUsageUpdaterJob
             case "gss" =>
