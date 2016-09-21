@@ -60,11 +60,12 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, InputEvents
 
         val inputs = data.cache()
 
+        // all summary
         val allSummary = inputs.map { x =>
             _computeMetrics(x.events);
         }
 
-        // per content
+        // per content summary
         val contentSummary = inputs.map { x =>
             x.events.map { x => (x.dimensions.gdata.get.id, x) }.groupBy(f => f._1).map { f =>
                 val content_id = f._1
@@ -73,17 +74,21 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, InputEvents
             };
         }.flatMap { x => x }
 
+        val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).select("tag_id").where("active = ?", true).map { x => x.tag_id }.collect
+        val registeredTags = if (tags.nonEmpty) tags; else config.getOrElse("tagList", Array()).asInstanceOf[Array[String]]
 
-        val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).select("tag_id").map { x => x.tag_id }.collect
-
-        // (per tag) & (per tag,per content)
+        // (per tag) & (per tag,per content) summary
         val tagSummary_tagContentSummary = inputs.map { x =>
+
             val tagEvent = x.events.map { x =>
-                val tagList = x.tags.asInstanceOf[List[Map[String, List[String]]]]
-                val genieTagList = tagList.filter(f => f.contains("genie")).last.get("genie").get
-                genieTagList.intersect(tags).map { t => (t, Buffer(x)) };
-            }.flatMap(f => f).groupBy(f => f._1)
-            
+                val tagList = x.tags.getOrElse(List()).asInstanceOf[List[Map[String, List[String]]]]
+                val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
+                val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
+                //println(JSONUtils.serialize(tempList))
+                val genieTagList = tempList.filter { x => registeredTags.contains(x) }
+                (genieTagList, Buffer(x));
+            }.map { x => x._1.map { f => (f, x._2) }; }.flatMap(f => f).groupBy(f => f._1)
+
             // per tag Summary
             val tagSum = tagEvent.map { f =>
                 val tag = f._1
@@ -91,7 +96,7 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, InputEvents
                     _computeMetrics(x, None, Option(tag));
                 }
             }.flatMap { x => x }
-            
+
             // per tag per content Summary
             val tagContentSum = tagEvent.map { tagEvents =>
                 val tag = tagEvents._1
@@ -103,11 +108,12 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, InputEvents
                     }
                 }.flatMap { x => x };
             }.flatMap { x => x };
-            
+
             (tagSum ++ tagContentSum);
 
         }.flatMap { x => x }
 
+        inputs.unpersist(true)
         val rdd1 = contentSummary.union(allSummary)
         rdd1.union(tagSummary_tagContentSummary);
     }
@@ -122,9 +128,11 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, InputEvents
                 "total_interactions" -> cuMetrics.total_interactions,
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min)
 
+            val gdata = if (cuMetrics.content_id != None) Option(new GData(cuMetrics.content_id.get, cuMetrics.content_ver.get)) else None
+
             MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
-                Dimensions(None, None, Option(new GData(cuMetrics.content_id.getOrElse("NA"), cuMetrics.content_ver.getOrElse("NA"))), None, None, None, None, None, None, cuMetrics.tag),
+                Dimensions(None, None, gdata, None, None, None, None, None, None, cuMetrics.tag),
                 MEEdata(measures));
         }
 
