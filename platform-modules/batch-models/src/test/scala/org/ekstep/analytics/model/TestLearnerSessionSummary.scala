@@ -11,6 +11,10 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.Event
 import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.Query
+import org.ekstep.analytics.util.DerivedEvent
+import org.ekstep.analytics.framework.DataFetcher
+import org.ekstep.analytics.framework.Fetcher
 
 /**
  * @author Santhosh
@@ -245,17 +249,34 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         rdd2.head.dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
         rdd2.last.dimensions.group_user.get.asInstanceOf[Boolean] should be(false)
     }
-    
+
     it should "generate non-empty res array in itemResponse" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
         val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
-        oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be (10)
-        
+        oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be(10)
+
         val event = LearnerSessionSummary.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+
+        itemRes.res.get.asInstanceOf[Array[String]].last should be("ans1:10")
+        itemRes.resValues.get.asInstanceOf[Array[AnyRef]].last.asInstanceOf[Map[String, AnyRef]].get("ans1").get.asInstanceOf[Int] should be(10)
+    }
+    
+    ignore should "generate send events to a file" in {
         
-        itemRes.res.get.asInstanceOf[Array[String]].last should be ("ans1:10")
-        itemRes.resValues.get.asInstanceOf[Array[AnyRef]].last.asInstanceOf[Map[String,AnyRef]].get("ans1").get.asInstanceOf[Int] should be (10)
+        val queries = Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-08-21"), Option("2016-09-22"))));
+        val rdd = DataFetcher.fetchBatchData[DerivedEvent](Fetcher("S3", None, queries));
+        val userContentEvents = DataFilter.filter(rdd, Filter("dimensions.gdata.id", "EQ", Option("do_30070866")));
+        
+        val screenSummaries = userContentEvents.map { x =>
+            x.edata.eks.screenSummary.map { x => x.asInstanceOf[Map[String, AnyRef]] };
+        }.reduce((a, b) => a ++ b);
+        val ssRDD = sc.makeRDD(screenSummaries.map(f => (f.get("id").get.asInstanceOf[String], f.get("timeSpent").get.asInstanceOf[Double])));
+        val result = ssRDD.groupBy(f => f._1).mapValues(f => {
+            val values = f.map(f => f._2);
+            (values.size, CommonUtil.roundDouble((values.sum / values.size), 2))
+        }).map(f => f._1 + "," + f._2._2 + "," + f._2._1);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "screen_summaries.csv")), result);
     }
 
     ignore should "extract timespent from takeoff summaries" in {
@@ -270,9 +291,4 @@ class TestLearnerSessionSummary extends SparkSpec(null) {
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output.log")), rdd3);
     }
 
-    ignore should "generate send events to a file" in {
-        val rdd = loadFile[Event]("/Users/Santhosh/ekStep/telemetry_dump/87f90da2-31a4-41e9-ad83-5042f9a82da7.log");
-        val rdd2 = LearnerSessionSummary.execute(rdd, None);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output2.log")), rdd2);
-    }
 }

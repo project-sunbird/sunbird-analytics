@@ -5,7 +5,7 @@ import org.ekstep.analytics.framework.Event
 import optional.Application
 import org.ekstep.analytics.framework.IJob
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.model.ItemSummary
+import org.ekstep.analytics.model.ItemUsageSummaryModel
 
 
 object ItemSummarizer extends Application with IJob {
@@ -14,6 +14,6 @@ object ItemSummarizer extends Application with IJob {
       
       def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run("batch", config, ItemSummary);
+        JobDriver.run("batch", config, ItemUsageSummaryModel);
     }
 }

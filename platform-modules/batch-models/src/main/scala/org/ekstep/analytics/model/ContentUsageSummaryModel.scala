@@ -23,6 +23,7 @@ import org.ekstep.analytics.util.Constants
 import org.joda.time.DateTime
 import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
+import org.ekstep.analytics.util.DerivedEvent
 
 
 case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
@@ -54,17 +55,17 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
 
         val ck = ContentKey(period, contentId, tagId);
         val gdata = event.dimensions.gdata;
-        val total_ts = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double];
+        val total_ts = event.edata.eks.timeSpent;
         val total_sessions = 1;
         val avg_ts_session = total_ts;
-        val total_interactions = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int];
+        val total_interactions = event.edata.eks.noOfInteractEvents;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, gdata);
+        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, Option(gdata));
     }
 
     private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
 
-        val tagList = event.tags.getOrElse(List()).asInstanceOf[List[Map[String, List[String]]]]
+        val tagList = event.tags.asInstanceOf[List[Map[String, List[String]]]]
         val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
         val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
         tempList.filter { x => registeredTags.contains(x) }.toArray;
@@ -73,7 +74,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentSummary] = {
 
         val configMapping = sc.broadcast(config);
-        val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).select("tag_id").where("active = ?", true).map { x => x.tag_id }.collect
+        val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter{x=> true==x.active}.map { x => x.tag_id }.collect
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
         val sessionEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
@@ -84,10 +85,10 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
             list += getContentUsageSummary(event, period, "all", "all");
-            list += getContentUsageSummary(event, period, event.dimensions.gdata.get.id, "all");
+            list += getContentUsageSummary(event, period, event.dimensions.gdata.id, "all");
             val tags = _getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += getContentUsageSummary(event, period, event.dimensions.gdata.get.id, tag);
+                list += getContentUsageSummary(event, period, event.dimensions.gdata.id, tag);
                 list += getContentUsageSummary(event, period, "all", tag);
             }
             list.toArray;
