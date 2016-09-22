@@ -385,14 +385,125 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     private def _getStructField(prefix: String, max: Int): Seq[StructField] = {
         (0 until max toList).map { x => new StructField(prefix + x, DoubleType, true) }.toSeq
     }
-    
+
+    def createJSON(data: RDD[DeviceContext]): RDD[String] = {
+
+        data.map { x =>
+            val c1_text = if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined)
+                x.contentInFocusVec.text_vec.get.toSeq
+            else _getZeros(50);
+
+            val c1_tag = if (null != x.contentInFocusVec && x.contentInFocusVec.tag_vec.isDefined)
+                x.contentInFocusVec.tag_vec.get.toSeq
+            else _getZeros(50);
+            val c2_text = if (null != x.otherContentModelVec && x.otherContentModelVec.text_vec.isDefined)
+                x.otherContentModelVec.text_vec.get.toSeq
+            else _getZeros(50);
+            val c2_tag = if (null != x.otherContentModelVec && x.otherContentModelVec.tag_vec.isDefined)
+                x.otherContentModelVec.tag_vec.get.toSeq
+            else _getZeros(50)
+            val c2_downloaded = if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0
+            val c2_subject = if (null != x.otherContentModel) x.otherContentModel.subject.mkString(",") else "Unknown"
+            val c2_contentType = if (null != x.otherContentModel) x.contentInFocusModel.contentType else "Unknown"
+            val c2_language = if (null != x.otherContentModel) x.contentInFocusModel.languageCode.mkString(",") else "Unknown"
+            val psc = x.device_spec.primary_secondary_camera.split(",");
+            val ps = if (psc.length == 0) {
+                (0.0, 0.0);
+            } else if (psc.length == 1) {
+                (if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, 0.0);
+            } else {
+                (if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if (StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
+            }
+            val primary_camera = ps._1
+            val secondary_camera = ps._2
+
+            val dataMap = Map(
+                "did" -> x.did,
+                "c1_content_id" -> x.contentInFocus,
+                "c2_content_id" -> x.otherContentId,
+                "c1_text" -> c1_text,
+                "c1_tag" -> c1_tag,
+                "c1_total_ts" -> x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0),
+                "c1_subject" -> x.contentInFocusModel.subject.mkString(","),
+                "c1_contentType" -> x.contentInFocusModel.contentType,
+                "c1_language" -> x.contentInFocusModel.languageCode.mkString(","),
+                "c1_mime_type" -> x.contentInFocusSummary.d_mime_type,
+                "c1_publish_date" -> x.contentInFocusSummary.m_publish_date.getMillis,
+                "c1_last_sync_date" -> x.contentInFocusSummary.m_last_sync_date.getMillis,
+                "c1_total_timespent" -> x.contentInFocusSummary.m_total_ts,
+                "c1_total_sessions" -> x.contentInFocusSummary.m_total_sessions,
+                "c1_avg_ts_session" -> x.contentInFocusSummary.m_avg_ts_session,
+                "c1_num_interactions" -> x.contentInFocusSummary.m_total_interactions,
+                "c1_mean_interactions_min" -> x.contentInFocusSummary.m_avg_interactions_min,
+                "c1_avg_sessions_week" -> x.contentInFocusSummary.m_avg_sessions_week.getOrElse(0.0),
+                "c1_avg_ts_week" -> x.contentInFocusSummary.m_avg_ts_week.getOrElse(0.0),
+                "c2_text" -> c2_text,
+                "c2_tag" -> c2_tag,
+                "c2_total_ts" -> x.otherContentUsageSummary.total_timespent.getOrElse(0.0),
+                "c2_avg_interactions_min" -> x.otherContentUsageSummary.avg_interactions_min.getOrElse(0.0),
+                "c2_download_date" -> x.otherContentUsageSummary.download_date.getOrElse(0L),
+                "c2_downloaded" -> c2_downloaded,
+                "c2_last_played_on" -> x.otherContentUsageSummary.last_played_on.getOrElse(0L),
+                "c2_mean_play_time_interval" -> x.otherContentUsageSummary.mean_play_time_interval.getOrElse(0.0),
+                "c2_num_group_user" -> x.otherContentUsageSummary.num_group_user.getOrElse(0L),
+                "c2_num_individual_user" -> x.otherContentUsageSummary.num_individual_user.getOrElse(0L),
+                "c2_num_sessions" -> x.otherContentUsageSummary.num_sessions.getOrElse(0L),
+                "c2_start_time" -> x.otherContentUsageSummary.start_time.getOrElse(0L),
+                "c2_total_interactions" -> x.otherContentUsageSummary.total_interactions.getOrElse(0L),
+                "c2_subject" -> c2_subject,
+                "c2_contentType" -> c2_contentType,
+                "c2_language" -> c2_language,
+                "c2_mime_type" -> x.otherContentSummary.d_mime_type,
+                "c2_publish_date" -> x.otherContentSummary.m_publish_date.getMillis,
+                "c2_last_sync_date" -> x.otherContentSummary.m_last_sync_date.getMillis,
+                "c2_total_timespent" -> x.otherContentSummary.m_total_ts,
+                "c2_total_sessions" -> x.otherContentSummary.m_total_sessions,
+                "c2_avg_ts_session" -> x.otherContentSummary.m_avg_ts_session,
+                "c2_num_interactions" -> x.otherContentSummary.m_total_interactions,
+                "c2_mean_interactions_min" -> x.otherContentSummary.m_avg_interactions_min,
+                "c2_avg_sessions_week" -> x.otherContentSummary.m_avg_sessions_week.getOrElse(0.0),
+                "c2_avg_ts_week" -> x.otherContentSummary.m_avg_ts_week.getOrElse(0.0),
+                "total_timespent" -> x.device_usage.total_timespent.getOrElse(0.0),
+                "total_launches" -> x.device_usage.total_launches.getOrElse(0L),
+                "total_play_time" -> x.device_usage.total_play_time.getOrElse(0.0),
+                "avg_num_launches" -> x.device_usage.avg_num_launches.getOrElse(0.0),
+                "avg_time" -> x.device_usage.avg_time.getOrElse(0.0),
+                "end_time" -> x.device_usage.end_time.getOrElse(0L),
+                "last_played_on" -> x.device_usage.last_played_on.getOrElse(0L),
+                "mean_play_time" -> x.device_usage.mean_play_time.getOrElse(0.0),
+                "mean_play_time_interval" -> x.device_usage.mean_play_time_interval.getOrElse(0.0),
+                "num_contents" -> x.device_usage.num_contents.getOrElse(0L),
+                "num_days" -> x.device_usage.num_days.getOrElse(0L),
+                "num_sessions" -> x.device_usage.num_sessions.getOrElse(0L),
+                "play_start_time" -> x.device_usage.play_start_time.getOrElse(0L),
+                "start_time" -> x.device_usage.start_time.getOrElse(0L),
+                "device_spec" -> x.device_spec.make,
+                "screen_size" -> x.device_spec.screen_size,
+                "external_disk" -> x.device_spec.external_disk,
+                "internal_disk" -> x.device_spec.internal_disk,
+                "primary_camera" -> primary_camera,
+                "secondary_camera" -> secondary_camera,
+                "c2_publish_date_t" -> x.otherContentSummaryT.c2_publish_date.getOrElse("Unknown"),
+                "c2_last_sync_date_t" -> x.otherContentSummaryT.c2_last_sync_date.getOrElse("Unknown"),
+                "end_time_t" -> x.dusT.end_time.getOrElse("Unknown"),
+                "last_played_on_t" -> x.dusT.last_played_on.getOrElse("Unknown"),
+                "play_start_time_t" -> x.dusT.play_start_time.getOrElse("Unknown"),
+                "start_time_t" -> x.dusT.start_time.getOrElse("Unknown"),
+                "c2_download_date_t" -> x.dcusT.download_date.getOrElse("Unknown"),
+                "c2_last_played_on_t" -> x.dcusT.last_played_on.getOrElse("Unknown"),
+                "c2_start_time_t" -> x.dcusT.start_time.getOrElse("Unknown"))
+
+            JSONUtils.serialize(dataMap)
+        } 
+    }
+
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
 
         JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val file = new File("/tmp/RE-input")
-        if(file.exists()) 
+        if (file.exists())
             CommonUtil.deleteDirectory("/tmp/RE-input")
-        val jsondata = data.map { x => JSONUtils.serialize(x) }
+        val jsondata = createJSON(data)//data.map { x => JSONUtils.serialize(x) }
         jsondata.saveAsTextFile("/tmp/RE-input")
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
@@ -450,7 +561,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
-        
+
         JobLogger.log("sampling used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val sampledUsedDataSet = if (dataLimit == -1) usedDataSet else sc.parallelize(usedDataSet.take(dataLimit))
         val trainDataSet = sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);

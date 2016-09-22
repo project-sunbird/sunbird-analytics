@@ -7,7 +7,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestREScoringModel extends SparkSpec(null) {
 
-    "REScoringModel" should "load model and generate scores" in {
+    ignore should "load model and generate scores" in {
 
         DeviceRecommendationModel.execute(null, None)
         REScoringModel.execute(null, None)   
