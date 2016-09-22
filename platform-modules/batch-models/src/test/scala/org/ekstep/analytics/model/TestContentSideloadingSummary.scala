@@ -23,7 +23,7 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
 
         event1.syncts should be(1459849146717l)
         event1.eid should be("ME_CONTENT_SIDELOADING_SUMMARY");
-        event1.mid should be("34A23E44E9864BD733C4DE6219C2328A");
+        event1.mid should be("56C7D87F4E861BD50E97076168607FBD");
         event1.context.pdata.model should be("ContentSideloadingSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("CUMULATIVE");
@@ -49,7 +49,7 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         val event1 = events1(0);
 
         event1.eid should be("ME_CONTENT_SIDELOADING_SUMMARY");
-        event1.mid should be("34A23E44E9864BD733C4DE6219C2328A");
+        event1.mid should be("56C7D87F4E861BD50E97076168607FBD");
         event1.context.pdata.model should be("ContentSideloadingSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("CUMULATIVE");
@@ -69,7 +69,7 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         val event2 = events2(0);
 
         event2.eid should be("ME_CONTENT_SIDELOADING_SUMMARY");
-        event2.mid should be("34A23E44E9864BD733C4DE6219C2328A");
+        event2.mid should be("56C7D87F4E861BD50E97076168607FBD");
         event2.context.pdata.model should be("ContentSideloadingSummary");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("CUMULATIVE");
