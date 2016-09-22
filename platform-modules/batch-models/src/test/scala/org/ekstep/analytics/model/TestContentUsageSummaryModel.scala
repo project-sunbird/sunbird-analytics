@@ -1,6 +1,5 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
@@ -9,6 +8,7 @@ import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.RegisteredTag
+import org.ekstep.analytics.util.DerivedEvent
 
 class TestContentUsageSummaryModel extends SparkSpec(null) {
     

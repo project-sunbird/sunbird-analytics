@@ -55,10 +55,10 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
 
         val ck = ContentKey(period, contentId, tagId);
         val gdata = event.dimensions.gdata;
-        val total_ts = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double];
+        val total_ts = event.edata.eks.timeSpent;
         val total_sessions = 1;
         val avg_ts_session = total_ts;
-        val total_interactions = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int];
+        val total_interactions = event.edata.eks.noOfInteractEvents;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
         ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, Option(gdata));
     }
