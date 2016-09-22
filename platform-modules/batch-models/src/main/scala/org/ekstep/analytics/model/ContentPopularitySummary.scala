@@ -98,7 +98,7 @@ object ContentPopularitySummary extends IBatchModelTemplate[Event, InputEventsCo
 
 	override def postProcess(data: RDD[ContentPopularitySummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 		data.map { cpMetrics =>  
-			val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", cpMetrics.ck.content_id + cpMetrics.ck.tag + cpMetrics.ck.period, "DAY", cpMetrics.syncts);
+			val mid = CommonUtil.getMessageId("ME_CONTENT_POPULARITY_SUMMARY", cpMetrics.ck.content_id + cpMetrics.ck.tag + cpMetrics.ck.period, "DAY", cpMetrics.syncts);
 			val measures = Map(
                 "downloads" -> cpMetrics.downloads,
                 "side_loads" -> cpMetrics.side_loads,
