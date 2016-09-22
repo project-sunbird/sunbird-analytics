@@ -40,6 +40,7 @@ import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 import org.apache.spark.ml.feature.{ HashingTF, IDF, Tokenizer, RegexTokenizer, CountVectorizer, CountVectorizerModel }
 import org.apache.spark.ml.feature.SQLTransformer
 import breeze.stats._
+import java.io.File
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput with AlgoOutput with Output;
@@ -59,31 +60,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(null, 0, false, null, "Unknown", new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, None, None)
 
-    def computePercentile(data: RDD[Double], tile: Double): Double = {
-        val sortedRDD = data.sortBy(x => x)
-        val count = sortedRDD.count()
-        if (count == 1) sortedRDD.first()
-        else {
-            val n = (tile / 100d) * (count + 1d)
-            val k = math.floor(n).toLong
-            val d = n - k
-            if (k <= 0) sortedRDD.first()
-            else {
-                val indexedRDD = sortedRDD.zipWithIndex().map(_.swap)
-                if (k >= count) {
-                    indexedRDD.lookup(count - 1).head
-                } else {
-                    indexedRDD.lookup(k - 1).head + d * (indexedRDD.lookup(k).head - indexedRDD.lookup(k - 1).head)
-                }
-            }
-        }
-    }
-
     def removeOutliers(rdd: RDD[(String, Double)]): RDD[(String, Double)] = {
-        val valueRDD = rdd.map { x => x._2 }
-        val q1 = computePercentile(valueRDD, 25)
-        //        val q2 = computePercentile(valueRDD, 50)
-        val q3 = computePercentile(valueRDD, 75)
+        val valueRDD = rdd.map { x => x._2 }.collect()
+        val q1 = DescriptiveStats.percentile(valueRDD, 0.25)
+        //        val q2 = DescriptiveStats.percentile(valueRDD, 0.5)
+        val q3 = DescriptiveStats.percentile(valueRDD, 0.75)
         val iqr = q3 - q1
         val lowerLimit = q1 - (1.5 * iqr)
         val upperLimit = q3 + (1.5 * iqr)
@@ -95,64 +76,56 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         }
     }
 
-    //            def main(args: Array[String]): Unit = {
-    //        
-    //                val sc = CommonUtil.getSparkContext(2, "test")
-    //                val sqlContext = new SQLContext(sc)
-    //                import sqlContext.implicits._
-    //        
-    //                // Outlier treatment
-    //                val input = Map("1" -> 1, "2" -> 2, "3" -> 3, "4" -> 4, "5" -> 5, "6" -> 6, "7" -> 7, "8" -> 8, "9" -> 9, "10" -> 10, "11" -> 1000, "12" -> -25, "13" -> 100).map(x => (x._1, x._2.toDouble)).toArray
-    //                val it = input.map(x => x._2)
-    //                val q1 = DescriptiveStats.percentile(it, 0.25)
-    //                println("q1 (from breeze)" + q1)
-    //                val q3 = DescriptiveStats.percentile(it, 0.75)
-    //                println("q3 (from breeze)" + q3)
-    //                
-    //                val inRDD = sc.parallelize(input)
-    //                val output = removeOutliers(inRDD)
-    //                //        val df = sqlContext.createDataFrame(inRDD).toDF("label", "value")
-    //                output.foreach { x => println(x) }
-    //                //        df.registerTempTable("newtable")
-    //                //        sqlContext.sql("SELECT PERCENTILE_DISC(value, 0.5) FROM newtable").show()
-    //        
-    //                // Count Vectorizer(one hot encoding)
-    //                val sentenceData = sqlContext.createDataFrame(Seq(
-    //                    (0, "numeracy"),
-    //                    (1, "literacy numeracy"),
-    //                    (2, "literacy"),
-    //                    (3, "literacy,numeracy"),
-    //                    (4, "numeracy"),
-    //                    (5, "unknown"),
-    //                    (6, "numeracy,literacy"))).toDF("label", "sentence")
-    //        
-    //                val tokenizer = new RegexTokenizer().setInputCol("sentence").setOutputCol("words").setPattern("\\w+").setGaps(false)
-    //                val wordsData = tokenizer.transform(sentenceData)
-    //                val cvModel: CountVectorizerModel = new CountVectorizer()
-    //                    .setInputCol("words")
-    //                    .setOutputCol("features")
-    //                    .fit(wordsData)
-    //        
-    //                val possibleValues = cvModel.vocabulary
-    //                val out = cvModel.transform(wordsData)
-    //                val asArray = udf((v: Vector) => v.toArray)
-    //                val outDF = out.withColumn("featureArray", asArray(out.col("features"))).drop("features")
-    //                outDF.show()
-    //                val finalDF = outDF.select($"label", $"featureArray".getItem(0).cast("double").as(possibleValues(0)), $"featureArray".getItem(1).cast("double").as(possibleValues(1)), $"featureArray".getItem(2).cast("double").as(possibleValues(2)))
-    //                //        outDF.select(expr("featureArray[0]").cast("double").as("numeracy"), expr("featureArray[1]").cast("double").as("literacy")).show
-    //        
-    //                val finalTransformedDF = outDF.join(finalDF, "label").drop("featureArray").drop("sentence")
-    //                finalTransformedDF.show()
-    //        
-    //                // Combining one or more to produce new features (SQLTransformer)
-    //                //        val df1 = sqlContext.createDataFrame(
-    //                //            Seq((0, 1.0, 3.0), (2, 2.0, 5.0))).toDF("id", "v1", "v2")
-    //                //
-    //                //        val sqlTrans = new SQLTransformer().setStatement(
-    //                //            "SELECT *, (v1 + v2) AS v3, (v1 - v2) AS v4 FROM __THIS__")
-    //                //
-    //                //        sqlTrans.transform(df1).show()
-    //            }
+    //    def main(args: Array[String]): Unit = {
+    //
+    //        val sc = CommonUtil.getSparkContext(2, "test")
+    //        val sqlContext = new SQLContext(sc)
+    //        import sqlContext.implicits._
+    //
+    //        // Outlier treatment
+    //        val input = Map("1" -> 1, "2" -> 2, "3" -> 3, "4" -> 4, "5" -> 5, "6" -> 6, "7" -> 7, "8" -> 8, "9" -> 9, "10" -> 10, "11" -> 1000, "12" -> -25, "13" -> 100).map(x => (x._1, x._2.toDouble)).toArray
+    //      
+    //        val inRDD = sc.parallelize(input)
+    //        val output = removeOutliers(inRDD)
+    //        output.foreach { x => println(x) }
+    //
+    //        // Count Vectorizer(one hot encoding)
+    //        val sentenceData = sqlContext.createDataFrame(Seq(
+    //            (0, "numeracy"),
+    //            (1, "literacy numeracy"),
+    //            (2, "literacy"),
+    //            (3, "literacy,numeracy"),
+    //            (4, "numeracy"),
+    //            (5, "unknown"),
+    //            (6, "numeracy,literacy"))).toDF("label", "sentence")
+    //
+    //        val tokenizer = new RegexTokenizer().setInputCol("sentence").setOutputCol("words").setPattern("\\w+").setGaps(false)
+    //        val wordsData = tokenizer.transform(sentenceData)
+    //        val cvModel: CountVectorizerModel = new CountVectorizer()
+    //            .setInputCol("words")
+    //            .setOutputCol("features")
+    //            .fit(wordsData)
+    //
+    //        val possibleValues = cvModel.vocabulary
+    //        val out = cvModel.transform(wordsData)
+    //        val asArray = udf((v: Vector) => v.toArray)
+    //        val outDF = out.withColumn("featureArray", asArray(out.col("features"))).drop("features")
+    //        outDF.show()
+    //        val finalDF = outDF.select($"label", $"featureArray".getItem(0).cast("double").as(possibleValues(0)), $"featureArray".getItem(1).cast("double").as(possibleValues(1)), $"featureArray".getItem(2).cast("double").as(possibleValues(2)))
+    //        //        outDF.select(expr("featureArray[0]").cast("double").as("numeracy"), expr("featureArray[1]").cast("double").as("literacy")).show
+    //
+    //        val finalTransformedDF = outDF.join(finalDF, "label").drop("featureArray").drop("sentence")
+    //        finalTransformedDF.show()
+    //
+    //        // Combining one or more to produce new features (SQLTransformer)
+    //        //        val df1 = sqlContext.createDataFrame(
+    //        //            Seq((0, 1.0, 3.0), (2, 2.0, 5.0))).toDF("id", "v1", "v2")
+    //        //
+    //        //        val sqlTrans = new SQLTransformer().setStatement(
+    //        //            "SELECT *, (v1 + v2) AS v3, (v1 - v2) AS v4 FROM __THIS__")
+    //        //
+    //        //        sqlTrans.transform(df1).show()
+    //    }
 
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
@@ -296,7 +269,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             seq ++= Seq(x.contentInFocusModel.subject.mkString(","), x.contentInFocusModel.contentType, x.contentInFocusModel.languageCode.mkString(","))
 
             // Add c1 usage metrics
-            seq ++= Seq(if (x.contentInFocusSummary.d_group_user) 1 else 0, x.contentInFocusSummary.d_mime_type, x.contentInFocusSummary.m_publish_date.getMillis, x.contentInFocusSummary.m_last_sync_date.getMillis, x.contentInFocusSummary.m_total_ts,
+            seq ++= Seq(x.contentInFocusSummary.d_mime_type, x.contentInFocusSummary.m_publish_date.getMillis, x.contentInFocusSummary.m_last_sync_date.getMillis, x.contentInFocusSummary.m_total_ts,
                 x.contentInFocusSummary.m_total_sessions, x.contentInFocusSummary.m_avg_ts_session, x.contentInFocusSummary.m_total_interactions, x.contentInFocusSummary.m_avg_interactions_min,
                 x.contentInFocusSummary.m_avg_sessions_week.getOrElse(0.0), x.contentInFocusSummary.m_avg_ts_week.getOrElse(0.0))
 
@@ -326,7 +299,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
             })
 
             // Add c2 usage metrics
-            seq ++= Seq(if (x.otherContentSummary.d_group_user) 1 else 0, x.otherContentSummary.d_mime_type, x.otherContentSummaryT.c2_publish_date.getOrElse("Unknown"), x.otherContentSummaryT.c2_last_sync_date.getOrElse("Unknown"), x.otherContentSummary.m_total_ts,
+            seq ++= Seq(x.otherContentSummary.d_mime_type, x.otherContentSummaryT.c2_publish_date.getOrElse("Unknown"), x.otherContentSummaryT.c2_last_sync_date.getOrElse("Unknown"), x.otherContentSummary.m_total_ts,
                 x.otherContentSummary.m_total_sessions, x.otherContentSummary.m_avg_ts_session, x.otherContentSummary.m_total_interactions, x.otherContentSummary.m_avg_interactions_min,
                 x.otherContentSummary.m_avg_sessions_week.getOrElse(0.0), x.otherContentSummary.m_avg_ts_week.getOrElse(0.0))
 
@@ -368,7 +341,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         seq ++= Seq(new StructField("c1_subject", StringType, true), new StructField("c1_contentType", StringType, true), new StructField("c1_language", StringType, true));
 
         // Add c1 usage metrics
-        seq ++= Seq(new StructField("c1_group_user", IntegerType, true), new StructField("c1_mime_type", StringType, true), new StructField("c1_publish_date", LongType, true),
+        seq ++= Seq(new StructField("c1_mime_type", StringType, true), new StructField("c1_publish_date", LongType, true),
             new StructField("c1_last_sync_date", LongType, true), new StructField("c1_total_timespent", DoubleType, true), new StructField("c1_total_sessions", LongType, true),
             new StructField("c1_avg_ts_session", DoubleType, true), new StructField("c1_num_interactions", LongType, true), new StructField("c1_mean_interactions_min", DoubleType, true),
             new StructField("c1_avg_sessions_week", DoubleType, true), new StructField("c1_avg_ts_week", DoubleType, true));
@@ -387,7 +360,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         seq ++= Seq(new StructField("c2_subject", StringType, true), new StructField("c2_contentType", StringType, true), new StructField("c2_language", StringType, true))
 
         // Add c2 usage metrics
-        seq ++= Seq(new StructField("c2_group_user", IntegerType, true), new StructField("c2_mime_type", StringType, true), new StructField("c2_publish_date", StringType, true),
+        seq ++= Seq(new StructField("c2_mime_type", StringType, true), new StructField("c2_publish_date", StringType, true),
             new StructField("c2_last_sync_date", StringType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", LongType, true),
             new StructField("c2_avg_ts_session", DoubleType, true), new StructField("c2_num_interactions", LongType, true), new StructField("c2_mean_interactions_min", DoubleType, true),
             new StructField("c2_avg_sessions_week", DoubleType, true), new StructField("c2_avg_ts_week", DoubleType, true));
@@ -412,8 +385,15 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     private def _getStructField(prefix: String, max: Int): Seq[StructField] = {
         (0 until max toList).map { x => new StructField(prefix + x, DoubleType, true) }.toSeq
     }
-
+    
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
+
+        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val file = new File("/tmp/RE-input")
+        if(file.exists()) 
+            CommonUtil.deleteDirectory("/tmp/RE-input")
+        val jsondata = data.map { x => JSONUtils.serialize(x) }
+        jsondata.saveAsTextFile("/tmp/RE-input")
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
@@ -426,10 +406,9 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
         val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,0 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100")
-        val trainSampleRatio = config.getOrElse("trainSampleRatio", 1.0).asInstanceOf[Double];
-        val trainDataLimit = config.getOrElse("trainDataLimit", -1).asInstanceOf[Int];
-        val testSampleRatio = config.getOrElse("testSampleRatio", 0.5).asInstanceOf[Double];
-        val testDataLimit = config.getOrElse("testDataLimit", -1).asInstanceOf[Int];
+        val trainRatio = config.getOrElse("trainRatio", 0.8).asInstanceOf[Double];
+        val testRatio = config.getOrElse("testRatio", 0.2).asInstanceOf[Double];
+        val dataLimit = config.getOrElse("dataLimit", -1).asInstanceOf[Int];
 
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
@@ -442,14 +421,6 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-
-        if (config.getOrElse("saveDataFrame", false).asInstanceOf[Boolean]) {
-            val columnNames = df.columns.mkString(",")
-            val rdd = df.map { x => x.mkString(",") }.persist(StorageLevel.MEMORY_AND_DISK)
-            JobLogger.log("saving DF to libfmInputFile", None, INFO);
-            OutputDispatcher.dispatchDF(Dispatcher("file", Map("file" -> libfmInputFile)), rdd, columnNames);
-            JobLogger.log("saved DF to libfmInputFile", None, INFO);
-        }
 
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
@@ -479,13 +450,11 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
-        val numRecords = usedDataSet.count()
-        val numTrainSampleRecords = (numRecords * trainSampleRatio).toInt
-        val numTestSampleRecords = (numRecords * testSampleRatio).toInt
-        JobLogger.log("sampled used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-
-        val trainDataSet = if (trainDataLimit == -1) sc.parallelize(usedDataSet.take(numTrainSampleRecords)) else sc.parallelize((usedDataSet.take(numTrainSampleRecords)).take(trainDataLimit))
-        val testDataSet = if (testDataLimit == -1) sc.parallelize(usedDataSet.take(numTestSampleRecords)) else sc.parallelize((usedDataSet.take(numTestSampleRecords)).take(testDataLimit))
+        
+        JobLogger.log("sampling used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val sampledUsedDataSet = if (dataLimit == -1) usedDataSet else sc.parallelize(usedDataSet.take(dataLimit))
+        val trainDataSet = sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);
+        val testDataSet = sampledUsedDataSet.sample(false, testRatio, System.currentTimeMillis().toInt);
 
         JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);

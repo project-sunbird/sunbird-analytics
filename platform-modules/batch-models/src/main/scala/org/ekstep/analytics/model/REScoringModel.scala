@@ -43,6 +43,7 @@ import breeze.linalg._
 import breeze.numerics._
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
 import org.ekstep.analytics.framework.util.S3Util
+import breeze.stats._
 
 object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
 
@@ -53,31 +54,11 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(null, 0, false, null, "Unknown", new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, None, None)
 
-    def computePercentile(data: RDD[Double], tile: Double): Double = {
-        val sortedRDD = data.sortBy(x => x)
-        val count = sortedRDD.count()
-        if (count == 1) sortedRDD.first()
-        else {
-            val n = (tile / 100d) * (count + 1d)
-            val k = math.floor(n).toLong
-            val d = n - k
-            if (k <= 0) sortedRDD.first()
-            else {
-                val indexedRDD = sortedRDD.zipWithIndex().map(_.swap)
-                if (k >= count) {
-                    indexedRDD.lookup(count - 1).head
-                } else {
-                    indexedRDD.lookup(k - 1).head + d * (indexedRDD.lookup(k).head - indexedRDD.lookup(k - 1).head)
-                }
-            }
-        }
-    }
-
     def removeOutliers(rdd: RDD[(String, Double)]): RDD[(String, Double)] = {
-        val valueRDD = rdd.map { x => x._2 }
-        val q1 = computePercentile(valueRDD, 25)
-        //        val q2 = computePercentile(valueRDD, 50)
-        val q3 = computePercentile(valueRDD, 75)
+        val valueRDD = rdd.map { x => x._2 }.collect()
+        val q1 = DescriptiveStats.percentile(valueRDD, 0.25)
+        //        val q2 = DescriptiveStats.percentile(valueRDD, 0.5)
+        val q3 = DescriptiveStats.percentile(valueRDD, 0.75)
         val iqr = q3 - q1
         val lowerLimit = q1 - (1.5 * iqr)
         val upperLimit = q3 + (1.5 * iqr)
@@ -231,7 +212,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
             seq ++= Seq(x.contentInFocusModel.subject.mkString(","), x.contentInFocusModel.contentType, x.contentInFocusModel.languageCode.mkString(","))
 
             // Add c1 usage metrics
-            seq ++= Seq(if (x.contentInFocusSummary.d_group_user) 1 else 0, x.contentInFocusSummary.d_mime_type, x.contentInFocusSummary.m_publish_date.getMillis, x.contentInFocusSummary.m_last_sync_date.getMillis, x.contentInFocusSummary.m_total_ts,
+            seq ++= Seq(x.contentInFocusSummary.d_mime_type, x.contentInFocusSummary.m_publish_date.getMillis, x.contentInFocusSummary.m_last_sync_date.getMillis, x.contentInFocusSummary.m_total_ts,
                 x.contentInFocusSummary.m_total_sessions, x.contentInFocusSummary.m_avg_ts_session, x.contentInFocusSummary.m_total_interactions, x.contentInFocusSummary.m_avg_interactions_min,
                 x.contentInFocusSummary.m_avg_sessions_week.getOrElse(0.0), x.contentInFocusSummary.m_avg_ts_week.getOrElse(0.0))
 
@@ -261,7 +242,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
             })
 
             // Add c2 usage metrics
-            seq ++= Seq(if (x.otherContentSummary.d_group_user) 1 else 0, x.otherContentSummary.d_mime_type, x.otherContentSummaryT.c2_publish_date.getOrElse("Unknown"), x.otherContentSummaryT.c2_last_sync_date.getOrElse("Unknown"), x.otherContentSummary.m_total_ts,
+            seq ++= Seq(x.otherContentSummary.d_mime_type, x.otherContentSummaryT.c2_publish_date.getOrElse("Unknown"), x.otherContentSummaryT.c2_last_sync_date.getOrElse("Unknown"), x.otherContentSummary.m_total_ts,
                 x.otherContentSummary.m_total_sessions, x.otherContentSummary.m_avg_ts_session, x.otherContentSummary.m_total_interactions, x.otherContentSummary.m_avg_interactions_min,
                 x.otherContentSummary.m_avg_sessions_week.getOrElse(0.0), x.otherContentSummary.m_avg_ts_week.getOrElse(0.0))
 
@@ -303,7 +284,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         seq ++= Seq(new StructField("c1_subject", StringType, true), new StructField("c1_contentType", StringType, true), new StructField("c1_language", StringType, true));
 
         // Add c1 usage metrics
-        seq ++= Seq(new StructField("c1_group_user", IntegerType, true), new StructField("c1_mime_type", StringType, true), new StructField("c1_publish_date", LongType, true),
+        seq ++= Seq(new StructField("c1_mime_type", StringType, true), new StructField("c1_publish_date", LongType, true),
             new StructField("c1_last_sync_date", LongType, true), new StructField("c1_total_timespent", DoubleType, true), new StructField("c1_total_sessions", LongType, true),
             new StructField("c1_avg_ts_session", DoubleType, true), new StructField("c1_num_interactions", LongType, true), new StructField("c1_mean_interactions_min", DoubleType, true),
             new StructField("c1_avg_sessions_week", DoubleType, true), new StructField("c1_avg_ts_week", DoubleType, true));
@@ -322,7 +303,7 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         seq ++= Seq(new StructField("c2_subject", StringType, true), new StructField("c2_contentType", StringType, true), new StructField("c2_language", StringType, true))
 
         // Add c2 usage metrics
-        seq ++= Seq(new StructField("c2_group_user", IntegerType, true), new StructField("c2_mime_type", StringType, true), new StructField("c2_publish_date", StringType, true),
+        seq ++= Seq(new StructField("c2_mime_type", StringType, true), new StructField("c2_publish_date", StringType, true),
             new StructField("c2_last_sync_date", StringType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", LongType, true),
             new StructField("c2_avg_ts_session", DoubleType, true), new StructField("c2_num_interactions", LongType, true), new StructField("c2_mean_interactions_min", DoubleType, true),
             new StructField("c2_avg_sessions_week", DoubleType, true), new StructField("c2_avg_ts_week", DoubleType, true));
@@ -348,8 +329,58 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         (0 until max toList).map { x => new StructField(prefix + x, DoubleType, true) }.toSeq
     }
 
-    override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
+    def scoringAlgo(data: RDD[org.apache.spark.mllib.linalg.DenseVector], localPath: String, model: String )(implicit sc: SparkContext): RDD[Double] ={
+        
+        val modelData = sc.textFile(localPath + model).collect()
 
+        JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val W0_indStart = modelData.indexOf("#global bias W0")
+        val W_indStart = modelData.indexOf("#unary interactions Wj")
+        val v_indStart = modelData.indexOf("#pairwise interactions Vj,f") + 1
+
+        val w0 = if (W0_indStart == -1) 0.0 else modelData(W0_indStart + 1).toDouble
+
+        val features = if (W_indStart == -1) Array[Double]() else modelData.slice(W_indStart + 1, v_indStart - 1).map(x => x.toDouble)
+        val w = if (features.isEmpty) 0.0 else DenseMatrix.create(features.length, 1, features)
+
+        val interactions = if (v_indStart == modelData.length) Array[String]() else modelData.slice(v_indStart, modelData.length).filter(!_.isEmpty())
+        val v = if (interactions.isEmpty) 0.0
+        else {
+            var col = 0
+            val test = interactions.map { x =>
+                val arr = x.split(" ").map(x => if (x.equals("-nan")) 0.0 else x.toDouble)
+                col = arr.length
+                arr
+            }
+            val data = test.flatMap { x => x }
+            DenseMatrix.create(col, test.length, data).t
+        }
+        
+        JobLogger.log("generating scores", None, INFO);
+        data.map { vect =>
+            val x = DenseMatrix.create(1, vect.size, vect.toArray)
+            val yhatW = if (w != 0.0) {
+                val wi = w.asInstanceOf[DenseMatrix[Double]]
+                val yhatw = (x * wi)
+                yhatw.valueAt(0, 0)
+            } else 0.0
+            val xsq = x.:*(x)
+            val yhatV = if (v != 0.0) {
+                val vi = v.asInstanceOf[DenseMatrix[Double]]
+                val vsq = vi.:*(vi)
+                val v1 = x * vi
+                val v1sq = v1.:*(v1)
+                val v2 = xsq * vsq
+                val vdiff = v1sq - v2
+                0.5 * (breeze.linalg.sum(vdiff));
+            } else 0.0
+
+            CommonUtil.roundDouble((w0 + yhatW + yhatV), 2)
+        }
+    }
+    
+    override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
+        
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
 
@@ -379,52 +410,9 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
 
         JobLogger.log("Downloading model from s3", None, INFO);
         S3Util.downloadFile(bucket, key, localPath)
-        val modelData = sc.textFile(localPath + model).collect()
-
-        JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val W0_indStart = modelData.indexOf("#global bias W0")
-        val W_indStart = modelData.indexOf("#unary interactions Wj")
-        val v_indStart = modelData.indexOf("#pairwise interactions Vj,f") + 1
-
-        val w0 = if (W0_indStart == -1) 0.0 else modelData(W0_indStart + 1).toDouble
-
-        val features = if (W_indStart == -1) Array[Double]() else modelData.slice(W_indStart + 1, v_indStart - 1).map(x => x.toDouble)
-        val w = if (features.isEmpty) 0.0 else DenseMatrix.create(features.length, 1, features)
-
-        val interactions = if (v_indStart == modelData.length) Array[String]() else modelData.slice(v_indStart, modelData.length).filter(!_.isEmpty())
-        val v = if (interactions.isEmpty) 0.0
-        else {
-            var col = 0
-            val test = interactions.map { x =>
-                val arr = x.split(" ").map(x => if (x.equals("-nan")) 0.0 else x.toDouble)
-                col = arr.length
-                arr
-            }
-            val data = test.flatMap { x => x }
-            DenseMatrix.create(col, test.length, data).t
-        }
-
-        JobLogger.log("Running the scoring algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val scores = featureVector.map { vect =>
-            val x = DenseMatrix.create(1, vect.size, vect.toArray)
-            val yhatW = if (w != 0.0) {
-                val wi = w.asInstanceOf[DenseMatrix[Double]]
-                val yhatw = (x * wi)
-                yhatw.valueAt(0, 0)
-            } else 0.0
-            val xsq = x.:*(x)
-            val yhatV = if (v != 0.0) {
-                val vi = v.asInstanceOf[DenseMatrix[Double]]
-                val vsq = vi.:*(vi)
-                val v1 = x * vi
-                val v1sq = v1.:*(v1)
-                val v2 = xsq * vsq
-                val vdiff = v1sq - v2
-                0.5 * (breeze.linalg.sum(vdiff));
-            } else 0.0
-
-            CommonUtil.roundDouble((w0 + yhatW + yhatV), 2)
-        }
+        
+        JobLogger.log("Running scoring algorithm", None, INFO);
+        val scores = scoringAlgo(featureVector, localPath, model)
 
         JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
