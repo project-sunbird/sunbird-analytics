@@ -14,6 +14,7 @@ import com.datastax.spark.connector._
 import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.ContentKey
 
 case class ContentPopularitySummary(ck: ContentKey, comments: Array[String], rating: Array[Double], avg_rating: Double, downloads: Int, side_loads: Int, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
 case class InputEventsContentPopularity(ck: ContentKey, events: Buffer[ContentPopularitySummary]) extends Input with AlgoInput
