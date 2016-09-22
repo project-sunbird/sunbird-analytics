@@ -8,15 +8,14 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.util.JSONUtils
-
-case class RegisteredTagTest(tag_id: String, last_updated: Long, active: Boolean)
+import org.ekstep.analytics.framework.RegisteredTag
 
 class TestContentUsageSummaryModel extends SparkSpec(null) {
     
     "ContentUsageSummaryModel" should "generate content summary events for (all, per content, per tag, per tag & per content) dimensions" in {
 
-        val tag1 = RegisteredTagTest("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
-        val tag2 = RegisteredTagTest("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
+        val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
+        val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
         
