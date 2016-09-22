@@ -58,22 +58,6 @@ class TestContentUsageSummary extends SparkSpec(null) {
             eksMap.get("avg_interactions_min").get should not be (0)
         }
     }
-    
-//    it should "generate content summary events for (all, per content, per tag, per tag & per content) dimensions" in {
-//        val rdd = loadFile[DerivedEvent]("/Users/santhosh/Downloads/2016-09-20-20160921.json");
-//        rdd.collect();
-//        val amitCodeTime = CommonUtil.time {
-//            val rdd2 = ContentUsageSummary.execute(rdd, None);
-//            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "amit_output.log")), rdd2)
-//        }
-//        println("Time taken by amit's code", amitCodeTime._1);
-//        val svCodeTime = CommonUtil.time {
-//            val rdd3 = ContentUsageSummaryModel.execute(rdd, None);
-//            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "sv_output.log")), rdd3);
-//        }
-//        
-//        println("Time taken by sv's code", svCodeTime._1);
-//    }
 
     it should "generate content summary from input events with non-zero timeSpent and non-zero noOfInteractEvents and groupUser = true" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-summary/test_data4.log");

@@ -112,7 +112,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
             val measures = Map(
                 "total_ts" -> cuMetrics.total_ts,
                 "total_sessions" -> cuMetrics.total_sessions,
-                "avg_ts" -> cuMetrics.avg_ts_session,
+                "avg_ts_session" -> cuMetrics.avg_ts_session,
                 "total_interactions" -> cuMetrics.total_interactions,
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min)
 
