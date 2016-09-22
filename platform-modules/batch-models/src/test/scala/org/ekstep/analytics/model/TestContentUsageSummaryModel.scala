@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.Dispatcher
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.util.JSONUtils
 
 case class RegisteredTagTest(tag_id: String, last_updated: Long, active: Boolean)
 
@@ -27,11 +28,10 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         val allSum = events.filter { x => "all".equals(x.dimensions.tag.getOrElse("")) && "all".equals(x.dimensions.content_id.getOrElse("")) }
         allSum.size should be(27)
         val event_20160909 = allSum.filter { x => 20160909==x.dimensions.period.get }.last
-        
         event_20160909.eid should be("ME_CONTENT_USAGE_SUMMARY")
         event_20160909.mid should be("AD5F4DA4D69C8145165873FAD5F9F6CA")
         val event_20160909EksMap = event_20160909.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event_20160909EksMap.get("avg_ts").get.asInstanceOf[Double] should be(273.25)
+        event_20160909EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(273.25)
         event_20160909EksMap.get("total_sessions").get.asInstanceOf[Long] should be(8L)
         event_20160909EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(13.26)
         event_20160909EksMap.get("total_interactions").get.asInstanceOf[Long] should be(483L)
@@ -50,7 +50,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         
         val do_30031115Sum_20160901EksMap = do_30031115Sum_20160901.edata.eks.asInstanceOf[Map[String, AnyRef]]
         
-        do_30031115Sum_20160901EksMap.get("avg_ts").get.asInstanceOf[Double] should be(1.48)
+        do_30031115Sum_20160901EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(1.48)
         do_30031115Sum_20160901EksMap.get("total_sessions").get.asInstanceOf[Long] should be(1L)
         do_30031115Sum_20160901EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(81.08)
         do_30031115Sum_20160901EksMap.get("total_interactions").get.asInstanceOf[Long] should be(2L)
@@ -69,7 +69,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         
         val tag1Sum_20160902EksMap = tag1Sum_20160902.edata.eks.asInstanceOf[Map[String, AnyRef]]
         
-        tag1Sum_20160902EksMap.get("avg_ts").get.asInstanceOf[Double] should be(109)
+        tag1Sum_20160902EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(109)
         tag1Sum_20160902EksMap.get("total_sessions").get.asInstanceOf[Long] should be(1L)
         tag1Sum_20160902EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(3.3)
         tag1Sum_20160902EksMap.get("total_interactions").get.asInstanceOf[Long] should be(6L)
@@ -97,7 +97,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         
         val tag1Sum_do_30031115EksMap = tag1Sum_do_30031115.edata.eks.asInstanceOf[Map[String, AnyRef]]
         
-        tag1Sum_do_30031115EksMap.get("avg_ts").get.asInstanceOf[Double] should be(26)
+        tag1Sum_do_30031115EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(26.68)
         tag1Sum_do_30031115EksMap.get("total_sessions").get.asInstanceOf[Long] should be(5L)
         tag1Sum_do_30031115EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(18.89)
         tag1Sum_do_30031115EksMap.get("total_interactions").get.asInstanceOf[Long] should be(42L)
