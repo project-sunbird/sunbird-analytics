@@ -324,8 +324,8 @@ object CommonUtil {
         BigDecimal(value).setScale(precision, BigDecimal.RoundingMode.HALF_UP).toDouble;
     }
 
-    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA", tag: String = "NA", period: Int = 0): String = {
-        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId, tag, period).mkString("|");
+    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA"): String = {
+        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
