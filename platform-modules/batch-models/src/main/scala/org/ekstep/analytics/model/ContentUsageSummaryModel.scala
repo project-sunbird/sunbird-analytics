@@ -24,12 +24,11 @@ import org.joda.time.DateTime
 import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
 
-case class ContentKey(period: Int, content_id: String, tag: String);
-case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
-case class RegisteredTag(tag_id: String)
-case class InputEvents(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
 
-object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents, ContentUsageMetricsSummary, MeasuredEvent] with Serializable {
+case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
+case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
+
+object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsContentSummary, ContentUsageMetricsSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentUsageSummary"
     override def name: String = "ContentUsageSummarizer"
@@ -71,7 +70,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
         tempList.filter { x => registeredTags.contains(x) }.toArray;
     }
 
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEvents] = {
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentSummary] = {
 
         val configMapping = sc.broadcast(config);
         val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).select("tag_id").where("active = ?", true).map { x => x.tag_id }.collect
@@ -96,10 +95,10 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
 
         normalizeEvents.map { x => (x.ck, Buffer(x)) }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).map { x => InputEvents(x._1, x._2) };
+            .reduceByKey((a, b) => a ++ b).map { x => InputEventsContentSummary(x._1, x._2) };
     }
 
-    override def algorithm(data: RDD[InputEvents], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentUsageMetricsSummary] = {
+    override def algorithm(data: RDD[InputEventsContentSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentUsageMetricsSummary] = {
 
         data.map { x =>
             _computeMetrics(x.events, x.ck);

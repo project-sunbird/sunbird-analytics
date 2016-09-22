@@ -15,13 +15,10 @@ import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
 import org.joda.time.DateTime
 
-
-case class ContentKey(period: Int, content_id: String, tag: String);
-case class RegisteredTag(tag_id: String, last_updated: DateTime, active: Boolean);
 case class ContentPopularitySummary(ck: ContentKey, comments: Array[String], rating: Array[Double], avg_rating: Double, downloads: Int, side_loads: Int, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
-case class InputEvents(ck: ContentKey, events: Buffer[ContentPopularitySummary]) extends Input with AlgoInput
+case class InputEventsContentPopularity(ck: ContentKey, events: Buffer[ContentPopularitySummary]) extends Input with AlgoInput
 
-object ContentPopularitySummary extends IBatchModelTemplate[Event, InputEvents, ContentPopularitySummary, MeasuredEvent] with Serializable {
+object ContentPopularitySummary extends IBatchModelTemplate[Event, InputEventsContentPopularity, ContentPopularitySummary, MeasuredEvent] with Serializable {
 
 	val className = "org.ekstep.analytics.model.ContentPopularitySummary"
 	override def name: String = "ContentPopularitySummarizer"
@@ -66,8 +63,8 @@ object ContentPopularitySummary extends IBatchModelTemplate[Event, InputEvents, 
 		}
 	}
 	
-	override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEvents] = {
-		val tags = sc.cassandraTable[registered_tag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).select("tag_id").where("active = ?", true).map { x => x.tag_id }.collect
+	override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentPopularity] = {
+		val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).select("tag_id").where("active = ?", true).map { x => x.tag_id }.collect
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 		
 		val transferEvents = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("GE_TRANSFER"))));
@@ -89,10 +86,10 @@ object ContentPopularitySummary extends IBatchModelTemplate[Event, InputEvents, 
 		
 		normalizeEvents.map { x => (x.ck, Buffer(x)) }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).map { x => InputEvents(x._1, x._2) };
+            .reduceByKey((a, b) => a ++ b).map { x => InputEventsContentPopularity(x._1, x._2) };
 	}
 
-	override def algorithm(data: RDD[InputEvents], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPopularitySummary] = {
+	override def algorithm(data: RDD[InputEventsContentPopularity], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPopularitySummary] = {
 		data.map { x =>
             _computeMetrics(x.events, x.ck);
         }

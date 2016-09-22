@@ -108,6 +108,9 @@ case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 case class Empty() extends Input
+case class ContentKey(period: Int, content_id: String, tag: String);
+case class RegisteredTag(tag_id: String);
+
 
 object Period extends Enumeration {
     type Period = Value
