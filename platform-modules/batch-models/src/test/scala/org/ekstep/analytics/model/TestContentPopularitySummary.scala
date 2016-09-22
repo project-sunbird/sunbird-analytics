@@ -10,6 +10,7 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 
+case class PreRegisteredTag(tag_id: String, last_updated: DateTime, active: Boolean)
 class TestContentPopularitySummary extends SparkSpec(null) with BeforeAndAfterEach {
 	
 	val tagList = Array(
@@ -30,7 +31,7 @@ class TestContentPopularitySummary extends SparkSpec(null) with BeforeAndAfterEa
 	
 	private def registerTags(tags: Array[String], active: Boolean = true) = {
 		val registeredTags = tags.map { x => 
-			RegisteredTag(x, DateTime.now(DateTimeZone.UTC), active)	
+			PreRegisteredTag(x, DateTime.now(DateTimeZone.UTC), active)	
 		}.toSeq;
 		val rdd = sc.makeRDD(registeredTags);
         rdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS);
