@@ -1,6 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import scala.collection.mutable.Buffer
@@ -22,25 +23,18 @@ import org.ekstep.analytics.util.Constants
 import org.joda.time.DateTime
 import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
-import org.ekstep.analytics.framework.IBatchModelTemplate
 import org.ekstep.analytics.util.DerivedEvent
-import org.ekstep.analytics.framework.Input
-import org.ekstep.analytics.framework.AlgoInput
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.AlgoOutput
-import org.ekstep.analytics.framework.Period._
 
-case class content_key(period: Int, content_id: String, tag: String);
-case class content_usage_summary(ck: content_key, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
-case class registered_tag(tag_id: String)
-case class input_events(ck: content_key, events: Buffer[content_usage_summary]) extends Input with AlgoInput
 
-object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, input_events, content_usage_summary, MeasuredEvent] with Serializable {
+case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
+case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
+
+object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsContentSummary, ContentUsageMetricsSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentUsageSummary"
     override def name: String = "ContentUsageSummarizer"
 
-    private def _computeMetrics(events: Buffer[content_usage_summary], ck: content_key): content_usage_summary = {
+    private def _computeMetrics(events: Buffer[ContentUsageMetricsSummary], ck: ContentKey): ContentUsageMetricsSummary = {
 
         val firstEvent = events.sortBy { x => x.dt_range.from }.head;
         val lastEvent = events.sortBy { x => x.dt_range.to }.last;
@@ -54,19 +48,19 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, input_
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
         val total_interactions = events.map { x => x.total_interactions }.sum;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        content_usage_summary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, date_range, lastEvent.syncts, gdata);
+        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, date_range, lastEvent.syncts, gdata);
     }
 
-    private def getContentUsageSummary(event: DerivedEvent, period: Int, contentId: String, tagId: String): content_usage_summary = {
+    private def getContentUsageSummary(event: DerivedEvent, period: Int, contentId: String, tagId: String): ContentUsageMetricsSummary = {
 
-        val ck = content_key(period, contentId, tagId);
+        val ck = ContentKey(period, contentId, tagId);
         val gdata = event.dimensions.gdata;
         val total_ts = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double];
         val total_sessions = 1;
         val avg_ts_session = total_ts;
         val total_interactions = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("noOfInteractEvents").get.asInstanceOf[Int];
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        content_usage_summary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, Option(gdata));
+        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, Option(gdata));
     }
 
     private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
@@ -77,41 +71,42 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, input_
         tempList.filter { x => registeredTags.contains(x) }.toArray;
     }
 
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[input_events] = {
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentSummary] = {
 
         val configMapping = sc.broadcast(config);
-        val tags = sc.cassandraTable[registered_tag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).select("tag_id").where("active = ?", true).map { x => x.tag_id }.collect
+        val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter{x=> true==x.active}.map { x => x.tag_id }.collect
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
         val sessionEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
 
         val normalizeEvents = sessionEvents.map { event =>
 
-            var list: ListBuffer[content_usage_summary] = ListBuffer[content_usage_summary]();
-            val period = CommonUtil.getPeriod(event.context.date_range.to, DAY);
+            var list: ListBuffer[ContentUsageMetricsSummary] = ListBuffer[ContentUsageMetricsSummary]();
+            val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
             list += getContentUsageSummary(event, period, "all", "all");
             list += getContentUsageSummary(event, period, event.dimensions.gdata.id, "all");
             val tags = _getValidTags(event, registeredTags);
             for (tag <- tags) {
                 list += getContentUsageSummary(event, period, event.dimensions.gdata.id, tag);
+                list += getContentUsageSummary(event, period, "all", tag);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };
 
         normalizeEvents.map { x => (x.ck, Buffer(x)) }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).map { x => input_events(x._1, x._2) };
+            .reduceByKey((a, b) => a ++ b).map { x => InputEventsContentSummary(x._1, x._2) };
     }
 
-    override def algorithm(data: RDD[input_events], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[content_usage_summary] = {
+    override def algorithm(data: RDD[InputEventsContentSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentUsageMetricsSummary] = {
 
         data.map { x =>
             _computeMetrics(x.events, x.ck);
         }
     }
 
-    override def postProcess(data: RDD[content_usage_summary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[ContentUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { cuMetrics =>
             val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts);
             val measures = Map(

@@ -15,7 +15,7 @@ class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
-          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]]) extends Serializable {}
+          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -108,6 +108,9 @@ case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 case class Empty() extends Input
+case class ContentKey(period: Int, content_id: String, tag: String);
+case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
+
 
 object Period extends Enumeration {
     type Period = Value
