@@ -5,7 +5,7 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.updater.UpdateConceptSimilarityDB
 
-object ConceptSimilarityUpdaterJob extends optional.Application {
+object ConceptSimilarityUpdater extends optional.Application {
 
     implicit val className = "org.ekstep.analytics.job.ConceptSimilarityUpdaterJob"
     

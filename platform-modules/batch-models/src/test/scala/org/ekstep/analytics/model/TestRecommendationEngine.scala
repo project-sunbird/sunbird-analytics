@@ -9,6 +9,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DerivedEvent
 
+@deprecated
 class TestRecommendationEngine extends SparkSpec(null) {
 
     "RecommendationEngine" should "run the recommendation for a push data to learner db" in {
