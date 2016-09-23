@@ -1,6 +1,7 @@
 import pytest
 import os 
 import ast
+import sys
 #adding source utils file 
 root = os.path.dirname(os.path.abspath(__file__))
 
@@ -11,7 +12,7 @@ def rec_dir(path, times):
 
 python_dir = rec_dir(root,3)
 src_code_utils = os.path.join(python_dir, 'main', 'vidyavaani', 'utils')
-data_loc = s.path.join(rec_dir(root,1), 'test_resources', 'parse_json')
+data_loc = os.path.join(rec_dir(root,1), 'test_resources', 'parse_json')
 sys.path.insert(0, src_code_utils)
 from parse_json import extract_json
 

@@ -11,7 +11,7 @@ import org.ekstep.analytics.job.summarizer.ContentUsageSummarizer
 class TestContentUsageSummarizer extends SparkSpec(null) {
     
     "ContentUsageSummarizer" should "execute the job and shouldn't throw any exception" in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/content-usage-summary/test_data1.log"))))), None, None, "org.ekstep.analytics.model.ContentUsageSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestContentUsageSummarizer"), Option(false))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/content-usage-summary-model/content_summary_test_data.log"))))), None, None, "org.ekstep.analytics.model.ContentUsageSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestContentUsageSummarizer"), Option(false))
         ContentUsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
   
