@@ -44,6 +44,7 @@ import breeze.numerics._
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
 import org.ekstep.analytics.framework.util.S3Util
 import breeze.stats._
+import org.ekstep.analytics.updater.DeviceSpec
 
 object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
 

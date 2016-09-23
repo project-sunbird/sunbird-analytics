@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.job.summarizer.AserScreenSummarizer
 
 class TestAserScreenSummarizer extends SparkSpec(null) {
 

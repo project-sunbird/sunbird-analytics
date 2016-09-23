@@ -16,7 +16,7 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         }
 
         val rdd = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_1.log");
-        val rdd2 = ContentSideloadingSummary.execute(rdd, None);
+        val rdd2 = ContentSideloadingSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.length should be(2)
         val event1 = events(0);
@@ -42,7 +42,7 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         }
 
         val rdd1 = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_2.log");
-        val rdd2 = ContentSideloadingSummary.execute(rdd1, None);
+        val rdd2 = ContentSideloadingSummaryModel.execute(rdd1, None);
         val events1 = rdd2.collect
         events1.length should be(1)
 
@@ -62,7 +62,7 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         eks1.get("avg_depth").get should be(3.5)
 
         val rdd3 = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_3.log");
-        val rdd4 = ContentSideloadingSummary.execute(rdd3, None);
+        val rdd4 = ContentSideloadingSummaryModel.execute(rdd3, None);
         val events2 = rdd4.collect
         events2.length should be(1)
 
@@ -85,7 +85,7 @@ class TestContentSideloadingSummary extends SparkSpec(null) {
         table1.origin_map.size should be(2)
 
         val rdd5 = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_4.log");
-        val rdd6 = ContentSideloadingSummary.execute(rdd5, None);
+        val rdd6 = ContentSideloadingSummaryModel.execute(rdd5, None);
         val events3 = rdd6.collect
 
         val table2 = sc.cassandraTable[ContentSideloading](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY).where("content_id=?", "org.ekstep.story.en.family").first

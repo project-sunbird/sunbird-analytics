@@ -45,9 +45,9 @@ class TestContentPopularitySummary extends SparkSpec(null) with BeforeAndAfterEa
 		registerTags(tagList, false);
 	}
 	
-	it should "not generate summaries for tags" in {
+	"ContentPopularitySummaryModel" should "not generate summaries for tags" in {
 		val rdd = loadFile[Event]("src/test/resources/content-popularity-summary/test_data.log");
-		val resultRDD = ContentPopularitySummary.execute(rdd, None);
+		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
 		val measuredEvents = resultRDD.collect();
 		tagEventsLength(measuredEvents, tagList(0)) should be(0);
 		tagEventsLength(measuredEvents, tagList(1)) should be(0);
@@ -59,7 +59,7 @@ class TestContentPopularitySummary extends SparkSpec(null) with BeforeAndAfterEa
 	it should "generate summaries only for two registered tags" in {
 		registerTags(Array("dff9175fa217e728d86bc1f4d8f818f6d2959303", "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb"));
 		val rdd = loadFile[Event]("src/test/resources/content-popularity-summary/test_data.log");
-		val resultRDD = ContentPopularitySummary.execute(rdd, None);
+		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
 		val measuredEvents = resultRDD.collect();
 		tagEventsLength(measuredEvents, tagList(0)) should be(116);
 		tagEventsLength(measuredEvents, tagList(1)) should be(14);
@@ -71,7 +71,7 @@ class TestContentPopularitySummary extends SparkSpec(null) with BeforeAndAfterEa
 	it should "generate summaries for all tags" in {
 		registerTags(tagList);
 		val rdd = loadFile[Event]("src/test/resources/content-popularity-summary/test_data.log");
-		val resultRDD = ContentPopularitySummary.execute(rdd, None);
+		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
 		val measuredEvents = resultRDD.collect();
 		tagEventsLength(measuredEvents, tagList(0)) should be(116);
 		tagEventsLength(measuredEvents, tagList(1)) should be(14);

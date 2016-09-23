@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.job.summarizer.LearnerSessionSummarizer
 
 class TestLearnerSessionSummarizer extends SparkSpec(null) {
 

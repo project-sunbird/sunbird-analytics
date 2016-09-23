@@ -17,7 +17,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         }
 
         val rdd = loadFile[Event]("src/test/resources/device-content-usage-summary/telemetry_test_data.log");
-        val me = ContentSideloadingSummary.execute(rdd, None);
+        val me = ContentSideloadingSummaryModel.execute(rdd, None);
 
         val table1 = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table1.avg_num_launches should be(None)
@@ -47,13 +47,13 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         table2.total_timespent should be(None)
 
         val rdd0 = loadFile[Event]("src/test/resources/device-content-usage-summary/telemetry_test_data2.log");
-        val me1 = ContentSideloadingSummary.execute(rdd0, None);
-        
+        val me1 = ContentSideloadingSummaryModel.execute(rdd0, None);
+
         val table = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
         table.num_contents.get should be(4)
-        
+
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-content-usage-summary/test_data1.log");
-        val rdd2 = DeviceContentUsageSummary.execute(rdd1, None);
+        val rdd2 = DeviceContentUsageSummaryModel.execute(rdd1, None);
         val events1 = rdd2.collect
 
         events1.length should be(4)
@@ -76,7 +76,7 @@ class TestDeviceContentUsageSummary extends SparkSpec(null) {
         eks1.get("num_individual_user").get should be(Some(1))
 
         val rdd3 = loadFile[DerivedEvent]("src/test/resources/device-content-usage-summary/test_data2.log");
-        val rdd4 = DeviceContentUsageSummary.execute(rdd3, None);
+        val rdd4 = DeviceContentUsageSummaryModel.execute(rdd3, None);
         val events2 = rdd4.collect
 
         events2.length should be(5)

@@ -6,7 +6,6 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.JobConfig
-import org.ekstep.analytics.model.LearnerProficiencySummary
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger

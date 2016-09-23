@@ -37,10 +37,9 @@ import org.joda.time.DateTime
 import org.apache.spark.ml.feature.VectorIndexer
 import org.apache.spark.sql.functions._
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
-import org.apache.spark.ml.feature.{ HashingTF, IDF, Tokenizer, RegexTokenizer, CountVectorizer, CountVectorizerModel }
-import org.apache.spark.ml.feature.SQLTransformer
 import breeze.stats._
 import java.io.File
+import org.ekstep.analytics.updater.DeviceSpec
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput with AlgoOutput with Output;
@@ -53,8 +52,8 @@ case class dcus_tf(contentId: String, download_date: Option[String], last_played
 
 object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, Empty, Empty] with Serializable {
 
-    implicit val className = "org.ekstep.analytics.model.DeviceRecommendationEngine"
-    override def name(): String = "DeviceRecommendationEngine"
+    implicit val className = "org.ekstep.analytics.model.DeviceRecommendationModel"
+    override def name(): String = "DeviceRecommendationModel"
 
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)

@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.job.updater.LearnerContentActivityUpdater
 
 class TestLearnerContentActivityUpdater extends SparkSpec(null) {
 
