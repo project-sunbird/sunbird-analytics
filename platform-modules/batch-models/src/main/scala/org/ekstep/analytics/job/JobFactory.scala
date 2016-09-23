@@ -26,6 +26,7 @@ import org.ekstep.analytics.job.summarizer.CSVDumpJob
 import org.ekstep.analytics.job.consolidated.RawTelemetryJobs
 import org.ekstep.analytics.job.consolidated.SessionSummaryJobs
 import org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters
+import org.ekstep.analytics.job.summarizer.REScoringJob
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])

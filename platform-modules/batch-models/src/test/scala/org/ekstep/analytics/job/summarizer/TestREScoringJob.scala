@@ -1,11 +1,11 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.summarizer
 
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.Fetcher
 import org.ekstep.analytics.framework.Query
-import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestREScoringJob extends SparkSpec(null) {
   

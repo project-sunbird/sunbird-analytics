@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.summarizer
 
 import org.ekstep.analytics.framework.IJob
 import optional.Application
