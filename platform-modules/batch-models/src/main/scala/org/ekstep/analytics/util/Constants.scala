@@ -24,6 +24,8 @@ object Constants {
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
     val CONTENT_TO_VEC = "content_to_vector";
     
+    val REGISTERED_TAGS = "registered_tags";
+    
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
 

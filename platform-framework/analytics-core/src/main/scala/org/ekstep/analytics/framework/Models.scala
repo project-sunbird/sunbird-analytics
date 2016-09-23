@@ -15,7 +15,7 @@ class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
-          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]]) extends Serializable {}
+          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double) extends Serializable {}
 
 @scala.reflect.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -35,7 +35,7 @@ case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: 
 @scala.reflect.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
 @scala.reflect.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None);
 @scala.reflect.BeanInfo
 case class PData(id: String, model: String, ver: String);
 @scala.reflect.BeanInfo
@@ -108,6 +108,9 @@ case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 case class Empty() extends Input with AlgoOutput with Output
+
+case class ContentKey(period: Int, content_id: String, tag: String);
+case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 
 object Period extends Enumeration {
     type Period = Value

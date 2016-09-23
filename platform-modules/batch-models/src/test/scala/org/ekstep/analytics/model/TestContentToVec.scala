@@ -17,7 +17,7 @@ class TestContentToVec extends SparkSpec(null) {
             //"python.home" -> "/usr/local/bin/",
             "content2vec.download_path" -> "/tmp/content2vec/download",
             "content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani",
-            "content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 5)))
+            "content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1)))
         val jsonRdd = ContentVectorsModel.execute(null, Option(jobParams));
         CommonUtil.deleteDirectory("/tmp/content2vec")
         //jsonRdd.collect.length should be(5)
