@@ -26,6 +26,7 @@ import org.ekstep.analytics.job.summarizer.CSVDumpJob
 import org.ekstep.analytics.job.consolidated.RawTelemetryJobs
 import org.ekstep.analytics.job.consolidated.SessionSummaryJobs
 import org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters
+import org.ekstep.analytics.job.summarizer.StageSummarizer
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -79,6 +80,8 @@ object JobFactory {
                 SessionSummaryJobs
             case "raw-telemetry-updaters" =>
                 RawTelemetryUpdaters
+            case "sts" =>
+                StageSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
