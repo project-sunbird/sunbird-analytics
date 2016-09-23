@@ -99,7 +99,7 @@ jobs:
    state: present
   ss-jobs: 
     hour: 1
-    minute: 52
+    minute: 42
     state: present
   dcus:
     hour: 2
@@ -107,11 +107,11 @@ jobs:
     state: present
   dus:
     hour: 2
-    minute: 08
+    minute: 07
     state: present
   cuu:
     hour: 2
-    minute: 11
+    minute: 09
     state: present
 monit_jobs:
   joblog.log:
