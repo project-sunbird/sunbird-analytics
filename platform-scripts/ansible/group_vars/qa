@@ -32,48 +32,87 @@ jobs:
   lpu:
     hour: 1
     minute: 20
+    state: absent
   gls:
     hour: 1
     minute: 22
+    state: absent
   gss:
     hour: 1
     minute: 24
+    state: absent
   ss:
     hour: 1
     minute: 26
+    state: absent
   css:
     hour: 1
     minute: 28
+    state: absent
   is:
      hour: 1
      minute: 30
+     state: absent
   dcus:
     hour: 1
     minute: 45
+    state: absent
   dus:
     hour: 1
     minute: 47
+    state: absent
   cus:
     hour: 1
     minute: 49
+    state: absent
   lp:
     hour: 1
     minute: 51
+    state: absent
   as:
     hour: 1
     minute: 53
+    state: absent
   las:
     hour: 1
     minute: 55
+    state: absent
   dsu:
     hour: 1
     minute: 57
+    state: absent
   lcas:
     hour: 1
     minute: 59
+    state: absent
   cuu:
     hour: 2
     minute: 10
+    state: absent
+  raw-telemetry-jobs:
+   hour: 1
+   minute: 20
+   state: present
+  raw-telemetry-updaters:
+   hour: 1
+   minute: 40
+   state: present
+  ss-jobs: 
+    hour: 1
+    minute: 50
+    state: present
+  dcus:
+    hour: 2
+    minute: 05
+    state: present
+  dus:
+    hour: 2
+    minute: 08
+    state: present
+  cuu:
+    hour: 2
+    minute: 11
+    state: present
 monit_jobs:
   joblog.log:
     hour: 2

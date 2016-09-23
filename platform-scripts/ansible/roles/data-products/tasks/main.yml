@@ -1,5 +1,4 @@
 ---
-
 - name: Copy Data Products
   copy: src=batch-models-1.0.jar dest={{ analytics.home }}/models
   tags:
@@ -48,7 +47,7 @@
     - analytics
 
 - name: Create cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh {{ item.key }}"
+  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh {{ item.key }}" state={{ item.state }}
   with_dict: "{{ jobs }}"
   tags:
     - analytics
