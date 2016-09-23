@@ -4,6 +4,7 @@ import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestContentUsageSummary extends SparkSpec(null) {
 

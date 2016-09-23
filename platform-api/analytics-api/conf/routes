@@ -18,3 +18,8 @@ POST /metrics/content-popularity @controllers.Metrics.contentPopularity
 POST /metrics/item-usage @controllers.Metrics.itemUsage
 POST /metrics/genie-usage @controllers.Metrics.genieUsage
 POST /list/content @controllers.Metrics.contentList
+
+# Tag APIs
+
+POST /tag/:tagId @controllers.Application.registerTag(tagId: String)
+DELETE /tag/:tagId @controllers.Application.deleteTag(tagId: String)

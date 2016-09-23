@@ -99,21 +99,56 @@ CREATE TABLE IF NOT EXISTS content_db.content_usage_metrics (
 );
 
 CREATE TABLE IF NOT EXISTS content_db.content_usage_summary_fact (
-    d_content_id text,
     d_period Int,
-    d_group_user boolean,
-    d_content_type text,
-    d_mime_type text,
+    d_tag text,
+    d_content_id text,
     m_publish_date timestamp,
     m_last_sync_date timestamp,
+    m_last_gen_date timestamp,
     m_total_ts double,
     m_total_sessions bigint,
     m_avg_ts_session double,
     m_total_interactions bigint,
     m_avg_interactions_min double,
-    m_avg_sessions_week double,
-    m_avg_ts_week double,
-    PRIMARY KEY (d_content_id, d_period, d_group_user)
+    PRIMARY KEY (d_period, d_tag, d_content_id)
+);
+
+CREATE TABLE IF NOT EXISTS content_db.content_popularity_summary_fact (
+	d_period int,
+	d_tag text,
+	d_content_id text,
+	m_downloads bigint,
+	m_side_loads bigint,
+	m_comments list<frozen <tuple<text, timestamp>>>,
+	m_ratings list<frozen <tuple<double, timestamp>>>,
+	m_avg_rating double,
+	PRIMARY KEY (d_period, d_tag, d_content_id)
+);
+
+CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
+	d_period int,
+	d_tag text,
+	d_content_id text,
+	d_item_id text,
+	m_total_ts double,
+	m_total_count int,
+	m_correct_res_count int,
+	m_inc_res_count int,
+	m_top5_incorrect_res list<text>,
+	m_avg_ts double,
+	PRIMARY KEY (d_period, d_tag, d_content_id)
+);
+
+CREATE TABLE IF NOT EXISTS content_db.genie_usage_summary_fact (
+	d_period int,
+	d_tag text,
+	m_total_sessions bigint,
+	m_total_ts double,
+	m_total_devices bigint,
+	m_avg_sessions bigint,
+	m_avg_ts double,
+	m_contents list<text>,
+	PRIMARY KEY (d_period, d_tag)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
@@ -131,6 +166,13 @@ CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	text_vec list<double>,
 	tag_vec list<double>,
 	PRIMARY KEY (content_id)
+);
+
+CREATE TABLE IF NOT EXISTS content_db.registered_tags(
+	tag_id text,
+	last_updated timestamp,
+	active boolean,
+	PRIMARY KEY (tag_id)
 );
 
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
