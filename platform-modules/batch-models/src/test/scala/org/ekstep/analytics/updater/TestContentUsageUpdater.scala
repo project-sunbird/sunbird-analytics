@@ -25,9 +25,8 @@ class TestContentUsageUpdater extends SparkSpec(null) {
             session.execute("TRUNCATE content_db.content_usage_summary_fact");
         }
 
-
         val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/content_usage_summaries.log");
-        val rdd2 = ContentUsageUpdater.execute(rdd, None);
+        val rdd2 = UpdateContentUsageDB.execute(rdd, None);
 
         // cumulative (period = 0)  
         val zeroPerContnetSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "do_30079035").where("d_period=?", 0).where("d_tag=?", "all").first

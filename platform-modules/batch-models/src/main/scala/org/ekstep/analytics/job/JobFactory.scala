@@ -2,6 +2,27 @@ package org.ekstep.analytics.job
 
 import org.ekstep.analytics.framework.exception.JobNotFoundException
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.job.summarizer.ContentUsageSummarizer
+import org.ekstep.analytics.job.summarizer.DeviceUsageSummarizer
+import org.ekstep.analytics.job.summarizer.LearnerActivitySummarizer
+import org.ekstep.analytics.job.summarizer.AserScreenSummarizer
+import org.ekstep.analytics.job.summarizer.ItemSummarizer
+import org.ekstep.analytics.job.summarizer.ContentSideloadingSummarizer
+import org.ekstep.analytics.job.summarizer.LearnerSessionSummarizer
+import org.ekstep.analytics.job.summarizer.DeviceRecommendationJob
+import org.ekstep.analytics.job.summarizer.GenieUsageSessionSummarizer
+import org.ekstep.analytics.job.summarizer.GenieLaunchSummarizer
+import org.ekstep.analytics.job.summarizer.RecommendationEngineJob
+import org.ekstep.analytics.job.summarizer.ContentPopularitySummarizer
+import org.ekstep.analytics.job.summarizer.DeviceContentUsageSummarizer
+import org.ekstep.analytics.job.updater.LearnerContentActivityUpdater
+import org.ekstep.analytics.job.updater.LearnerProfileUpdater
+import org.ekstep.analytics.job.updater.ContentUsageUpdaterJob
+import org.ekstep.analytics.job.updater.ProficiencyUpdater
+import org.ekstep.analytics.job.updater.LearnerSnapshotUpdater
+import org.ekstep.analytics.job.updater.DeviceSpecificationUpdater
+import org.ekstep.analytics.job.summarizer.ContentToVecJob
+import org.ekstep.analytics.job.summarizer.CSVDumpJob
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -36,7 +57,7 @@ object JobFactory {
             case "css" =>
                 ContentSideloadingSummarizer
             case "lpu" =>
-                LearnerProfileUpdaterJob
+                LearnerProfileUpdater
             case "dsu" =>
                 DeviceSpecificationUpdater
             case "is" =>

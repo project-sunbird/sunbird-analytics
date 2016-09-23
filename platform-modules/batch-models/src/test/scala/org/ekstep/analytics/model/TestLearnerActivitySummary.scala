@@ -16,13 +16,13 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
 
     "LearnerActivitySummarizer" should "generate LearnerActivitySummarizer events from a sample file " in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
-        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd2 = LearnerActivitySummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         rdd2.collect().length should be(2)
     }
 
     it should "generate Learner Activity Summary events from 'learner_activity_test_sample.log' and check for correctness" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample.log");
-        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd2 = LearnerActivitySummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be(2)
 
@@ -64,7 +64,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
 
     it should "check the correctness of the learner activity summary" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_summary_sample1.log");
-        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd2 = LearnerActivitySummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be(2)
 
@@ -94,14 +94,14 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
 
     it should "generate events with some special case in the input data (i.e missing activitySummary field, duplicate events / meanTimeBtwnGamePlays= -ve, etc..)" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_test_sample1.log");
-        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary", "topContent" -> Int.box(0))));
+        val rdd2 = LearnerActivitySummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary", "topContent" -> Int.box(0))));
         rdd2.collect().length should be(2)
     }
 
     //Test cases for all the field in Learner Activity Summary
     it should "check all the fields, for timeSpent=0" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/time_spent_zero.log");
-        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd2 = LearnerActivitySummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be(1)
 
@@ -117,7 +117,7 @@ class TestLearnerActivitySummary extends SparkSpec(null) {
 
     it should "check the event fields where activitySummary is empty but timeSpent is non-zero" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/empty_activity_summary_nonzero_timeSpent.log");
-        val rdd2 = LearnerActivitySummary.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
+        val rdd2 = LearnerActivitySummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "LearnerActivitySummary")));
         val me = rdd2.collect()
         me.length should be(1)
 

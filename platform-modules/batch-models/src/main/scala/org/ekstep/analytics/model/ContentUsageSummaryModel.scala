@@ -31,8 +31,8 @@ case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsage
 
 object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsContentSummary, ContentUsageMetricsSummary, MeasuredEvent] with Serializable {
 
-    val className = "org.ekstep.analytics.model.ContentUsageSummary"
-    override def name: String = "ContentUsageSummarizer"
+    val className = "org.ekstep.analytics.model.ContentUsageSummaryModel"
+    override def name: String = "ContentUsageSummaryModel"
 
     private def _computeMetrics(events: Buffer[ContentUsageMetricsSummary], ck: ContentKey): ContentUsageMetricsSummary = {
 

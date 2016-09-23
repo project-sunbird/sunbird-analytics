@@ -12,7 +12,7 @@ class TestLearnerProfileUpdater extends SparkSpec(null) {
     "LearnerProfileUpdater" should "update learner profile in learner db" in {
 
         val rdd = loadFile[ProfileEvent]("src/test/resources/learner-profile/2016-04-04-1459753547783.json");
-        LearnerProfileUpdater.execute(rdd, None);
+        UpdateLearnerProfileDB.execute(rdd, None);
         
         val profile1 = sc.cassandraTable[LearnerProfile]("learner_db", "learnerprofile").where("learner_id = ?", "18e2152f-b1a4-45b4-94f1-091ca1d6de9e").first();
         profile1.age should be (-1);

@@ -48,7 +48,7 @@ case class MEEdata(eks: AnyRef);
 // User profile event models
 
 @scala.reflect.BeanInfo
-class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err: String, val attrs: Array[AnyRef], val uid: String, val age: Int, val day: Int, val month: Int, val gender: String, val language: String, val standard: Int, val is_group_user: Boolean) extends Serializable {}
+class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err: String, val attrs: Array[AnyRef], val uid: String, val age: Int, val day: Int, val month: Int, val gender: String, val language: String, val standard: Int, val is_group_user: Boolean, val dspec: Map[String, AnyRef]) extends Serializable {}
 @scala.reflect.BeanInfo
 class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.reflect.BeanInfo
@@ -108,6 +108,7 @@ case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 case class Empty() extends Input
+case class UpdaterOutput(msg: String) extends Output
 case class ContentKey(period: Int, content_id: String, tag: String);
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 

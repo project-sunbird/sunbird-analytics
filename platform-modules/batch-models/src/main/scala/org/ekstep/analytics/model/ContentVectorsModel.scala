@@ -36,8 +36,8 @@ case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef])
 
 object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, ContentEnrichedJson, MeasuredEvent] with Serializable {
 
-    implicit val className = "org.ekstep.analytics.model.ContentToVec"
-    override def name(): String = "ContentToVec";
+    implicit val className = "org.ekstep.analytics.model.ContentVectorsModel"
+    override def name(): String = "ContentVectorsModel";
 
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentAsString] = {
 

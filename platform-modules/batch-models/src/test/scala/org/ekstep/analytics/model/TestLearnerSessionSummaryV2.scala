@@ -23,7 +23,7 @@ class TestLearnerSessionSummaryV2 extends SparkSpec(null) {
     "LearnerSessionSummary" should "generate session summary for v2 telemetry" in {
 
         val rdd = loadFile[Event]("src/test/resources/session-summary/v2_telemetry.json");
-        val rdd2 = LearnerSessionSummary.execute(rdd, Option(Map("modelId" -> "LearnerSessionSummary", "apiVersion" -> "v2")));
+        val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelId" -> "LearnerSessionSummary", "apiVersion" -> "v2")));
         val me = rdd2.collect();
         me.length should be(1);
 
