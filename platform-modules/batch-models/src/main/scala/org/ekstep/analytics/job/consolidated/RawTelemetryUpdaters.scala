@@ -1,13 +1,13 @@
 package org.ekstep.analytics.job.consolidated
 
-import optional.Application
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.model._
 import org.ekstep.analytics.framework.JobDriver
 import org.ekstep.analytics.updater.UpdateLearnerProfileDB
 import org.ekstep.analytics.updater.UpdateDeviceSpecificationDB
+import org.ekstep.analytics.framework.IJob
 
-object RawTelemetryUpdaters extends Application {
+object RawTelemetryUpdaters extends optional.Application with IJob {
 
     val className = "org.ekstep.analytics.job.RawTelemetryUpdaters"
 

@@ -17,12 +17,15 @@ import org.ekstep.analytics.job.summarizer.ContentPopularitySummarizer
 import org.ekstep.analytics.job.summarizer.DeviceContentUsageSummarizer
 import org.ekstep.analytics.job.updater.LearnerContentActivityUpdater
 import org.ekstep.analytics.job.updater.LearnerProfileUpdater
-import org.ekstep.analytics.job.updater.ContentUsageUpdaterJob
+import org.ekstep.analytics.job.updater.ContentUsageUpdater
 import org.ekstep.analytics.job.updater.ProficiencyUpdater
 import org.ekstep.analytics.job.updater.LearnerSnapshotUpdater
 import org.ekstep.analytics.job.updater.DeviceSpecificationUpdater
 import org.ekstep.analytics.job.summarizer.ContentToVecJob
 import org.ekstep.analytics.job.summarizer.CSVDumpJob
+import org.ekstep.analytics.job.consolidated.RawTelemetryJobs
+import org.ekstep.analytics.job.consolidated.SessionSummaryJobs
+import org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -47,7 +50,7 @@ object JobFactory {
             case "cps" =>
             	ContentPopularitySummarizer
             case "cuu" =>
-                ContentUsageUpdaterJob
+                ContentUsageUpdater
             case "gss" =>
                 GenieUsageSessionSummarizer
             case "gls" =>
@@ -69,7 +72,13 @@ object JobFactory {
             case "ctv" =>
                 ContentToVecJob
             case "device-recos" =>
-                DeviceRecommendationJob    
+                DeviceRecommendationJob
+            case "raw-telemetry-jobs" =>
+                RawTelemetryJobs
+            case "ss-jobs" =>
+                SessionSummaryJobs
+            case "raw-telemetry-updaters" =>
+                RawTelemetryUpdaters
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
