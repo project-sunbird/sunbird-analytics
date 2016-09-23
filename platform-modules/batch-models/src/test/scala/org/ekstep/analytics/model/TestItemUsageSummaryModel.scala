@@ -4,9 +4,9 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DerivedEvent
 
-class TestItemSummary extends SparkSpec(null) {
+class TestItemUsageSummaryModel extends SparkSpec(null) {
 
-    "ItemSummary" should "generate item summaries" in {
+    "ItemUsageSummaryModel" should "generate item summaries" in {
 
         val rdd = loadFile[org.ekstep.analytics.util.DerivedEvent]("src/test/resources/item-summary/test-data.log");
 

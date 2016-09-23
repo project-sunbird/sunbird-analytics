@@ -1,11 +1,11 @@
 package org.ekstep.analytics.job.consolidated
 
-import optional.Application
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.model._
 import org.ekstep.analytics.framework.JobDriver
+import org.ekstep.analytics.framework.IJob
 
-object SessionSummaryJobs extends Application {
+object SessionSummaryJobs extends optional.Application with IJob {
 
     val className = "org.ekstep.analytics.job.SessionSummaryJobs";
     
