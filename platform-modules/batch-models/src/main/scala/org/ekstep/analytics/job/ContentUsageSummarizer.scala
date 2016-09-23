@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.JobDriver
 import org.ekstep.analytics.model.ContentUsageSummary
 import org.ekstep.analytics.framework.IJob
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.model.ContentUsageSummaryModel
 
 object ContentUsageSummarizer extends Application with IJob {
 
@@ -15,7 +16,7 @@ object ContentUsageSummarizer extends Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run("batch", config, ContentUsageSummary);
+        JobDriver.run("batch", config, ContentUsageSummaryModel);
         JobLogger.log("Job Completed.")
     }
 }
