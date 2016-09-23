@@ -164,11 +164,11 @@ class TestContentUsageUpdater extends SparkSpec(null) {
         monthPerTagSumm.m_avg_ts_session should be(63.41)
 
         val monthPerTagContentSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "do_30031115").where("d_period=?", 201609).where("d_tag=?", "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb").first
-        weekPerTagContentSumm.m_total_ts should be(133.38)
-        weekPerTagContentSumm.m_avg_interactions_min should be(18.89)
-        weekPerTagContentSumm.m_total_interactions should be(42)
-        weekPerTagContentSumm.m_total_sessions should be(5)
-        weekPerTagContentSumm.m_avg_ts_session should be(26.68)
+        monthPerTagContentSumm.m_total_ts should be(133.38)
+        monthPerTagContentSumm.m_avg_interactions_min should be(18.89)
+        monthPerTagContentSumm.m_total_interactions should be(42)
+        monthPerTagContentSumm.m_total_sessions should be(5)
+        monthPerTagContentSumm.m_avg_ts_session should be(26.68)
     }
 
 }

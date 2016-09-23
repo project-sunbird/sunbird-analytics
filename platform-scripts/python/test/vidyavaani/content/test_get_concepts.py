@@ -1,5 +1,4 @@
 from concept_filter import *
-from nose.tools import *
 import os 
 
 def test_createDirectory():
