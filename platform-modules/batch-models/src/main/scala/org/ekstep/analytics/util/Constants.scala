@@ -21,6 +21,8 @@ object Constants {
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
+    val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact";
+    val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
     val CONTENT_TO_VEC = "content_to_vector";
     

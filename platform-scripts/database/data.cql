@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
 	PRIMARY KEY (d_period, d_tag, d_content_id)
 );
 
-CREATE TABLE IF NOT EXISTS content_db.genie_usage_summary_fact (
+CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
 	d_period int,
 	d_tag text,
 	m_total_sessions bigint,

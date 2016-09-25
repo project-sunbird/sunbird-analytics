@@ -111,6 +111,7 @@ case class Empty() extends Input
 case class UpdaterOutput(msg: String) extends Output
 case class ContentKey(period: Int, content_id: String, tag: String);
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
+trait CassandraTable extends AnyRef with Serializable;
 
 
 object Period extends Enumeration {
