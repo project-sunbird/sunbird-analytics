@@ -15,27 +15,27 @@ class TestMetricsAPIService extends SparkSpec {
 	}
 	
 	private def getContentUsageMetrics(request: String) : MetricsResponse = {
-		val result = MetricsAPIService.contentUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+		val result = MockMetricsAPIService.contentUsage(JSONUtils.deserialize[MetricsRequestBody](request));
 		JSONUtils.deserialize[MetricsResponse](result);
 	}
 	
 	private def getContentPopularityMetrics(request: String) : MetricsResponse = {
-		val result = MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request));
+		val result = MockMetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request));
 		JSONUtils.deserialize[MetricsResponse](result);	
 	}
 	
 	private def getItemUsageMetrics(request: String) : MetricsResponse = {
-		val result = MetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+		val result = MockMetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
 		JSONUtils.deserialize[MetricsResponse](result);
 	}
 	
 	private def getGenieLaunchMetrics(request: String) : MetricsResponse = {
-		val result = MetricsAPIService.genieLaunch(JSONUtils.deserialize[MetricsRequestBody](request));
+		val result = MockMetricsAPIService.genieLaunch(JSONUtils.deserialize[MetricsRequestBody](request));
 		JSONUtils.deserialize[MetricsResponse](result);
 	}
 	
 	private def getContentUsageListMetrics(request: String) : MetricsResponse = {
-		val result = MetricsAPIService.contentList(JSONUtils.deserialize[MetricsRequestBody](request));
+		val result = MockMetricsAPIService.contentList(JSONUtils.deserialize[MetricsRequestBody](request));
 		JSONUtils.deserialize[MetricsResponse](result);
 	}
 	

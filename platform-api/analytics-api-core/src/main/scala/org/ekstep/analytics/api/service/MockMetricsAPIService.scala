@@ -16,7 +16,7 @@ import scala.collection.JavaConversions._
  * @author mahesh
  */
 
-object MetricsAPIService {
+object MockMetricsAPIService {
 
 	val periodMap = Map[String, Int]("LAST_7_DAYS" -> 7, "LAST_5_WEEKS" -> 5, "LAST_12_MONTHS" -> 12, "CUMULATIVE" -> 0);
 	val periods = Array("LAST_7_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
