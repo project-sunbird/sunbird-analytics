@@ -78,7 +78,7 @@ object MetricsAPIService {
 				val items = for (t <- 1 to Random.nextInt(10)) yield {
 					ItemMetrics("Q_"+Random.nextInt(100), 144.00, 10, 4, 6, Array("Fourteen", "Twelve", "Sixteen", "Seventeen"), 101.00);
 				};
-				Map[String, AnyRef]("period" -> period, "items" -> items);
+				Map[String, AnyRef]("d_period" -> period, "items" -> items);
 			}
 		} else {
 			Array();
@@ -134,7 +134,7 @@ object MetricsAPIService {
 				}
 				val contents = contentList.map(f => if(!f.isEmpty) f)
 				val period = _getPeriod(i, count);
-				Map[String, AnyRef]("period" -> period, "content" -> contents, "count" -> Int.box(contents.length));
+				Map[String, AnyRef]("d_period" -> period, "content" -> contents, "count" -> Int.box(contents.length));
 			}
 		} else {
 			Array();
