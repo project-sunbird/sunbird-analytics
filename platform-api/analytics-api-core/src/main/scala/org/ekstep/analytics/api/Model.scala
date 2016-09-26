@@ -24,6 +24,8 @@ case class ContentPopularityMetrics(period: Option[Int], downloads: Long, side_l
 case class GenieUsageMetrics(period: Option[Int], total_sessions: Long, total_ts: Double, total_devices: Long, avg_sessions: Long, avg_ts: Double)
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
+case class Result(metrics: Array[Map[String, AnyRef]], summary: Map[String, AnyRef], ttl: Int);
+case class MetricsResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Option[Map[String, AnyRef]]);
 
 case class Range(start: Int, end: Int);

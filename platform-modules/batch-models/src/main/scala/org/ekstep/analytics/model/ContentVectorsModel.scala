@@ -83,7 +83,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
 
         JobLogger.log("Downloading concepts", None, INFO);
-        val contentServiceUrl = AppConf.getConfig("lp.url"); ;
+        val contentServiceUrl = AppConf.getConfig("lp.url");
         sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").collect();
 
         JobLogger.log("Running content enrichment", None, INFO);
