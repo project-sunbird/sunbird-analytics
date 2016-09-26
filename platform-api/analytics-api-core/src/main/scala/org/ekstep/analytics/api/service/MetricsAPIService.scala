@@ -115,7 +115,7 @@ object MetricsAPIService {
 			"ttl" -> CommonUtil.getRemainingHours.asInstanceOf[AnyRef],
             "metrics" -> metrics,
             "summary" -> summary);
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.genie-usage", result));
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.genie-launch", result));
 	}
 
 	def contentList(requestBody: MetricsRequestBody)(implicit sc: SparkContext): String = {

@@ -64,7 +64,7 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>
-				Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.metrics.genie-usage", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
+				Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.metrics.genie-launch", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
 		}
 	}
 
