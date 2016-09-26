@@ -12,6 +12,9 @@ import org.joda.time.DateTime
 import scala.util.Random
 import scala.collection.JavaConversions._
 
+/**
+ * @author mahesh
+ */
 
 object MetricsAPIService {
 
@@ -92,7 +95,7 @@ object MetricsAPIService {
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.item-usage", result));
 	}
 	
-	def genieUsage(requestBody: MetricsRequestBody)(implicit sc: SparkContext): String = {
+	def genieLaunch(requestBody: MetricsRequestBody)(implicit sc: SparkContext): String = {
 		if (StringUtils.isEmpty(requestBody.request.period) || periods.indexOf(requestBody.request.period) == -1) {
 				throw new ClientException("period is missing or invalid.");
 		}

@@ -16,6 +16,10 @@ import play.api.mvc.Action
 import play.api.mvc.AnyContent
 import play.api.mvc.Request
 
+/**
+ * @author mahesh
+ */
+
 @Singleton
 class Metrics @Inject() (system: ActorSystem) extends BaseController {
 	implicit val className = "controllers.Metrics";
@@ -53,10 +57,10 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 		}
 	}
 
-	def genieUsage() = Action { implicit request =>
+	def genieLaunch() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);
-			val result = MetricsAPIService.genieUsage(body)(Context.sc);
+			val result = MetricsAPIService.genieLaunch(body)(Context.sc);
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>
