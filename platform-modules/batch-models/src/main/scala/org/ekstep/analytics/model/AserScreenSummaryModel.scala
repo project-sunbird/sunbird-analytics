@@ -48,7 +48,7 @@ object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] wi
     
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AserScreenerInput] = {
         val configMapping = sc.broadcast(config);
-        val gameSessions = getGameSessions(data);
+        val gameSessions = getGameSessions(data.filter { x => "org.ekstep.aser.lite".equals(x.gdata.id) });
         gameSessions.map{x => AserScreenerInput(x._1,x._2)}
     }
     

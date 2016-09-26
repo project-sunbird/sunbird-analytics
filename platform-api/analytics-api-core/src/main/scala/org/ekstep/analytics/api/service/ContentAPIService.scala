@@ -201,25 +201,24 @@ object ContentAPIService {
     }
 
     private def transform(fact: ContentUsageSummaryFact): ContentSummary = {
-        ContentSummary(Option(fact.d_period), fact.m_total_ts, fact.m_total_sessions, fact.m_avg_ts_session, fact.m_total_interactions, fact.m_avg_interactions_min,
-            fact.m_avg_sessions_week, fact.m_avg_ts_week)
+        ContentSummary(Option(fact.d_period), fact.m_total_ts, fact.m_total_sessions, fact.m_avg_ts_session, fact.m_total_interactions, fact.m_avg_interactions_min)
     }
 
     private def transform(fact: Option[ContentUsageSummaryFact]): Option[ContentSummary] = {
         if (fact.isDefined)
             Option(ContentSummary(None, fact.get.m_total_ts, fact.get.m_total_sessions, fact.get.m_avg_ts_session, fact.get.m_total_interactions,
-                fact.get.m_avg_interactions_min, fact.get.m_avg_sessions_week, fact.get.m_avg_ts_week))
+                fact.get.m_avg_interactions_min))
         else None;
     }
 
     private def filterTrends(contentRDD: RDD[ContentUsageSummaryFact], periodRange: Range, period: Period, filter: Option[Filter]): Array[ContentUsageSummaryFact] = {
         val trends = contentRDD.filter { x => x.d_period > periodRange.start && x.d_period <= periodRange.end };
-        val filteredByDimensions = if (filter.isDefined) trends.filter { x =>
-            if (filter.get.group_user.isDefined) {
-                x.d_group_user == filter.get.group_user.get
-            } else {
-                true
-            }
+        val filteredByDimensions = if (filter.isDefined) trends.filter { x => true
+//            if (filter.get.group_user.isDefined) {
+//                x.d_group_user == filter.get.group_user.get
+//            } else {
+//                true
+//            }
         }
         else trends;
         filteredByDimensions.groupBy { x => x.d_period }
@@ -255,8 +254,8 @@ object ContentAPIService {
             case MONTH | CUMULATIVE => Option(if (numWeeks != 0) (total_ts) / numWeeks else total_ts)
             case _                  => None
         }
-        ContentUsageSummaryFact(fact1.d_content_id, fact1.d_period, fact1.d_group_user, fact1.d_content_type, fact1.d_mime_type, publish_date, sync_date,
-            total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, avg_sessions_week, avg_ts_week);
+        
+        ContentUsageSummaryFact(fact1.d_period, fact1.d_content_id, fact1.d_tag, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min);
     }
 
     private def getME(data: Map[String, AnyRef], contentId: String): MeasuredEvent = {
