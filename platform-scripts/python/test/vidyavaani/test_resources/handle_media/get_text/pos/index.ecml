@@ -1,0 +1,2992 @@
+<theme startStage="splash" id="theme" ver="0.2">
+    <manifest>
+		<media id="grey" src="grey.png" type="image" />
+		<media id="icon_home" src="icon_home.png" type="image" />
+		<media id="icon_reload" src="icon_reload.png" type="image" />
+	    <media id="level_band" src="level_band.png" type="image" />
+        <media id="publisher_logo" src="publisher_logo.jpg" type="image" />
+        <media id="previous" src="icon_previous.png" type="image" />
+        <media id="next" src="icon_next.png" type="image" />
+        <media id="icon_sound" src="icon_sound.png" type="image" />
+		<media id="end_screen" src="endScreen.png" type="image"/>
+		<media id="highlightbutton" src="touch.png" type="image"/>
+		<media id="retry" src="retry.png" type="image"/>
+		<media id="activitybg" src="activitypage/activitybg.png" type="image" />
+		<media id="literacyBG" src="activitypage/literacy.jpg" type="image" />
+		
+		<media id="page1" src="scenes_new/Image_1.jpg" type="image" />
+		
+		<media id="retryBg"     src="retryBg.png" type="image" />
+        <media id="retryButton" src="retryButton.png" type="image" />
+		<media id="nextButton" src="nextButton.png" type="image" />
+		<media id="goodjobBg" src="goodjobBg.png" type="image" />
+		<media id="teacher" src="Teacher.png" type="image" />
+		<media id="close_button" src="closeButton.png" type="image" />
+	    <media id="teacherPopupBg" src="teacherPopupBg.png" type="image" />
+	    
+		<media id="tick" src="tick.png" type="image" />
+		<media id="tickmark" src="tickMark.png" type="image"/>
+		
+	
+		<media id="yellowBox" src="activitypage/yellowBox.png" type="image" />
+		<media id="teacherBox" src="activitypage/teacherPopUp.png" type="image" />
+        <media id="greenBox" src="activitypage/greenBox.png" type="image" />
+        <media id="blueBox" src="activitypage/blueBox.png" type="image" />
+		
+		<media id="titleSound" src="" type="faudio"/>
+		
+		<media id="learn_options_sound" src="sounds/Learn.mp3" type="audio"/>
+		<media id="practice_options_sound" src="sounds/Practice.mp3" type="audio"/>
+		<media id="explore_options_sound" src="sounds/Explore.mp3" type="audio"/>
+		<media id="goodJobSound" src="sounds/goodjob.mp3" type="audio"/>
+		<media id="letstryagainsound" src="sounds/letstryagain.mp3" type="audio"/>
+		<media id="end" src="sounds/end.mp3" type="audio"/>
+		
+		<media id="play_audio" src="playAudio.png" type="image" />
+	
+		<media id="menuBG" src="pageSel_bg.png" type="image" />
+		<media id="yes" src="Yes.png" type="image" />
+		<media id="no" src="No.png" type="image" />
+		<media id="confirmDiag" src="confirmBG.png" type="image"/>
+		<media id="mic" src="mic.png" type="image"/>
+		<media id="blacktint" src="blacktint.png" type="image"/>
+		<media id="record" src="record.png" type="image"/>
+		<media id="stop_record" src="stop_record.png" type="image"/>
+		
+		<media id="frontpage" src="activitypage/frontPage.png" type="image"/>
+		
+		
+		<media id="image1" src="scenes_new/kahani_1.png" type="image"/>
+		<media id="image2" src="scenes_new/kahani_2.png" type="image"/>
+		<media id="image3" src="scenes_new/kahani_3.png" type="image"/>
+		<media id="image4" src="scenes_new/kahani_4.png" type="image"/>
+		<media id="image5" src="scenes_new/kahani_5.png" type="image"/>
+		<media id="image6" src="scenes_new/kahani_6.png" type="image"/>
+		<media id="image7" src="scenes_new/kahani_7.png" type="image"/>
+		<media id="image8" src="scenes_new/kahani_8.png" type="image"/>
+		<media id="image9" src="scenes_new/kahani_9.png" type="image"/>
+		<media id="image10" src="scenes_new/kahani_10.png" type="image"/>
+		<media id="image11" src="scenes_new/kahani_11.png" type="image"/>
+		<media id="image12" src="scenes_new/kahani_12.png" type="image"/>
+		
+		<media id="firstImage" src="scenes_new/storyImage.png" type="image"/>
+		<media id="secondImage" src="scenes_new/storyImage2.jpg" type="image"/>
+		<media id="thirdImage" src="scenes_new/storyImage3.png" type="image"/>
+		<media id="forthImage" src="scenes_new/storyImage4.png" type="image"/>
+		<media id="fifthImage" src="scenes_new/storyImage5.jpg" type="image"/>
+		<media id="sixthImage" src="scenes_new/storyImage6.png" type="image"/>
+		<media id="seventhImage" src="scenes_new/storyImage7.jpg" type="image"/>
+		<media id="eighthImage" src="scenes_new/storyImage8.png" type="image"/>
+		<media id="ninthImage" src="scenes_new/storyImage9.png" type="image"/>
+		<media id="tenthImage" src="scenes_new/storyImage10.png" type="image"/>
+		<media id="eleventhImage" src="scenes_new/storyImage11.png" type="image"/>
+		<media id="twelvethImage" src="scenes_new/storyImage12.png" type="image"/>
+		
+		<media id="story1" src="sounds/Stories/story 1.mp3" type="audio"/>
+		<media id="story2" src="sounds/Stories/story 2.mp3" type="audio"/>
+		<media id="story3" src="sounds/Stories/story 3.mp3" type="audio"/>
+		<media id="story4" src="sounds/Stories/story 4.mp3" type="audio"/>
+		<media id="story5" src="sounds/Stories/story 5.mp3" type="audio"/>
+		<media id="story6" src="sounds/Stories/story 6.mp3" type="audio"/>
+		<media id="story7" src="sounds/Stories/story 7.mp3" type="audio"/>
+		<media id="story8" src="sounds/Stories/story 8.mp3" type="audio"/>
+		<media id="story9" src="sounds/Stories/story 9.mp3" type="audio"/>
+		<media id="story10" src="sounds/Stories/story 10.mp3" type="audio"/>
+		<media id="story11" src="sounds/Stories/story 11.mp3" type="audio"/>
+		<media id="story12" src="sounds/Stories/story 12.mp3" type="audio"/>
+		
+		
+		
+    </manifest>
+    <controller name="assessment" type="items" id="assessment"/>
+	<controller name="assessment2" type="items" id="worksheet2"/>
+	<controller name="assessment3" type="items" id="worksheet3"/>
+	<controller name="assessment4" type="items" id="worksheet4"/>
+	<controller name="assessment5" type="items" id="worksheet5"/>
+	<controller name="assessment6" type="items" id="worksheet6"/>
+	<controller name="assessment7" type="items" id="worksheet7"/>
+	<controller name="assessment8" type="items" id="worksheet8"/>
+	<controller name="assessment9" type="items" id="worksheet9"/>
+	<controller name="assessment10" type="items" id="worksheet10"/>
+	<controller name="assessment11" type="items" id="worksheet11"/>
+	<controller name="assessment12" type="items" id="worksheet12"/>
+    
+	<stage id="baseStage" preload="true">
+     
+		<image asset = "literacyBG"/>
+		<image asset = "tickmark"/>
+		<image asset = "grey"/>
+		<image asset = "activitybg"/>
+		<image asset = "previous"/>
+		<image asset = "next"/>
+		<image asset = "retryBg"/>
+		<image asset = "retryButton"/>
+		<image asset = "nextButton"/>
+		<image asset = "goodjobBg"/>
+		<image asset = "yellowBox"/>
+		<image asset = "teacherBox"/>
+		<image asset = "greenBox"/>
+		<image asset = "blueBox"/>
+		<image asset = "teacherPopupBg"/>
+		<image asset = "end_screen"/>
+		<image asset = "highlightbutton"/>
+		<image asset = "menuBG"/>
+		<image asset = "yes"/>
+		<image asset = "no"/>
+		<image asset = "confirmDiag"/>
+		<image asset = "retry"/>
+		<image asset = "blacktint"/>
+		<image asset = "record"/>
+		<image asset = "stop_record"/>
+		<image asset = "mic"/>
+		<image asset = "frontpage"/>
+		
+		<image asset = "image1"/>
+		<image asset = "image2"/>
+		<image asset = "image3"/>
+		<image asset = "image4"/>
+		<image asset = "image5"/>
+		<image asset = "image6"/>
+		<image asset = "image7"/>
+		<image asset = "image8"/>
+		<image asset = "image9"/>
+		<image asset = "image10"/>
+		<image asset = "image11"/>
+		<image asset = "image12"/>
+		
+		<image asset = "firstImage"/>
+		<image asset = "secondImage"/>
+		<image asset = "thirdImage"/>
+		<image asset = "forthImage"/>
+		<image asset = "fifthImage"/>
+		<image asset = "sixthImage"/>
+		<image asset = "seventhImage"/>
+		<image asset = "eighthImage"/>
+		<image asset = "ninthImage"/>
+		<image asset = "tenthImage"/>
+		<image asset = "eleventhImage"/>
+		<image asset = "twelvethImage"/>
+		
+    </stage>
+	
+   <stage id="storyBaseStage" preload="true">
+       
+	   <image asset="next" x="91" y="5" w="7" h="12" id="next" visible="true"/>
+        <shape id="nextContainer" type="rect" x="91" y="5" w="7" h="11" visible="false" hitArea="true" >
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+      <image asset="previous" x="1" y="5" w="7" h="12" id="previous" visible="true"/>
+        <shape id="previousContainer" type="rect" x="1" y="5" w="7" h="11" visible="false" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+			<action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">: 
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":25,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+                <!--<action type="command" command="transitionTo" asset="theme" param="home_stage" effect="scroll" direction="right" ease="linear" duration="600" /> -->            
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button" >
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="home_stage" effect="scroll" direction="right" ease="linear" duration="600" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="71" w="57" h="27" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="46.5" h="100" id="teacherBG">
+				<event type="click">
+					<action type="command" command="toggleShow" asset="teacher_text"/>
+					<action type="command" command="toggleShow" asset="teacher_options"/>
+				</event>
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="11" y="60" w="60" h="60"  id="teacher_text" visible="false">	
+	     	<text x="0" y="23" w="40" h="80" font="Calibri" fontsize="75" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		<!--<image asset="mic" x="91" y="70" w="8" h="13" ev-if="app.mode == 'read'">
+			<event type="click">
+                <action type="command" command="show" asset="recorder" />
+            </event>
+		</image>-->
+
+        <g id="recorder" x="0" y="0" w="100" h="100" visible="false">
+        	<g x="0" y="0" w="100" h="100">
+                <image asset="blacktint" x="0" y="0" w="100" h="100">
+                    <event type="click">
+                    	<action type="command" command="hide" asset="recorder" />
+                    </event>
+                </image>
+            </g>
+            <g x="0" y="0" w="100" h="100" id="startrec">
+            	<shape type="roundrect" x="36" y="37" w="30" h="20" fill="gray"/>
+            	<shape type="roundrect" x="35" y="35" w="30" h="20" fill="#34e941">
+            		<event type="click">
+            			<action type="command" command="startRecord" asset="startrec" success="rec_started" failure="rec_start_fail"/>
+            		</event>
+            	</shape>
+            	<image asset="record" x="38" y="40" w="6" h="10"/>
+            	<text x="47" y="43" w="20" h="5" font="sans-serif" fontsize="50" color="darkgreen">Start</text>
+            </g>
+            <g x="0" y="0" w="100" h="100" id="stoprec" visible="false">
+            	<shape type="roundrect" x="36" y="37" w="30" h="20" fill="gray"/>
+            	<shape type="roundrect" x="35" y="35" w="30" h="20" fill="#e93441">
+	                <event type="click">
+	                    <action type="command" command="stopRecord" asset="stoprec" success="rec_stopped" failure="rec_stop_failed"/>
+	                </event>
+	            </shape>
+	            <shape id="mover" type="circle" x="47" y="45" w="2" h="2" fill="#e98888" visible="false"/>
+	            <image asset="stop_record" x="38" y="40" w="6" h="10"/>
+            </g>
+            <g x="0" y="0" w="100" h="100" id="welldone" visible="false">
+            	<shape type="roundrect" x="36" y="37" w="30" h="20" fill="gray"/>
+            	<shape type="roundrect" x="35" y="35" w="30" h="20" fill="#34e941">
+            		<event type="click">
+            			<action type="command" command="hide" asset="recorder" />
+            			<action type="command" command="hide" asset="welldone" />
+            			<action type="command" command="show" asset="startrec" />
+            		</event>
+            	</shape>
+            	<text x="47" y="43" w="20" h="5" font="sans-serif" fontsize="50" color="yellow">Well Done</text>
+            </g>
+            <g x="0" y="0" w="100" h="100" id="tryagain" visible="false">
+            	<shape type="roundrect" x="36" y="37" w="30" h="20" fill="gray"/>
+            	<shape type="roundrect" x="35" y="35" w="30" h="20" fill="#34e941">
+            		<event type="click">
+            			<action type="command" command="startRecord" asset="tryagain" success="rec_started" failure="rec_start_fail"/>
+            		</event>
+            	</shape>
+            	<image asset="record" x="38" y="40" w="6" h="10"/>
+            	<text x="47" y="43" w="20" h="5" font="sans-serif" fontsize="50" color="darkred">Try Again</text>
+            </g>
+        </g>
+
+        <!--<appEvents list="rec_started,rec_start_fail,rec_stopped,rec_stop_failed,rec_processed,rec_process_fail"/>-->
+
+      <!--  <events>
+        	<event type="rec_started">
+            	<action type="command" command="hide" asset="startrec" />
+            	<action type="command" command="hide" asset="tryagain" />
+            	<action type="command" command="show" asset="stoprec" />
+            	<action type="command" command="show" asset="mover" />
+    			<action type="animation" asset="mover">
+                    <tween id="mover" loop="true">
+                        <to ease="linear" duration="0">
+                            <![CDATA[{"x":47,"y":45}]]>
+                        </to>
+                        <to ease="sineInOut" duration="1000">
+                            <![CDATA[{"x":62,"y":45}]]>
+                        </to>
+                        <to ease="sineInOut" duration="1000">
+                            <![CDATA[{"x":47,"y":45}]]>
+                        </to>
+                    </tween>
+                </action>
+            </event>
+
+            <event type="rec_stopped">
+            	<action type="command" command="hide" asset="stoprec" />
+            	<action type="command" command="hide" asset="mover" />
+            	<action type="command" command="processRecord" asset="stoprec" success="rec_processed" failure="rec_process_fail" data-lineindex="${stage.lineindex}"/>
+            </event>
+            <event type="rec_processed">
+            	<action type="command" command="show" asset="welldone" />
+            </event>
+            <event type="rec_process_fail">
+            	<action type="command" command="show" asset="tryagain" />
+            </event>
+        </events>-->
+		
+		
+    </stage>
+	
+	
+	
+    <stage id="splash" x="0" y="0" w="100" h="100">															<!--SPLASH SCREEN-->
+        
+		<image asset="literacyBG" x="0" y="0" w="100" h="100" />
+		<param name="next" value="scene1"/>
+		<param name="next2" value="scene2"/>
+		<param name="next3" value="scene3"/>
+		<param name="next4" value="scene4"/>
+		<param name="next5" value="scene5"/>
+		<param name="next6" value="scene6"/>
+		<param name="next7" value="scene7"/>
+		<param name="next8" value="scene8"/>
+		<param name="next9" value="scene9"/>
+		<param name="next10" value="scene10"/>
+		<param name="next11" value="scene11"/>
+		<param name="next12" value="scene12"/>
+		
+		<audio asset="story1"/>
+		<audio asset="story2"/>
+		<audio asset="story3"/>
+		<audio asset="story4"/>
+		<audio asset="story5"/>
+		<audio asset="story6"/>
+		<audio asset="story7"/>
+		<audio asset="story8"/>
+		<audio asset="story9"/>
+		<audio asset="story10"/>
+		<audio asset="story11"/>
+		<audio asset="story12"/>
+		
+		
+		<!--<set id="appMode" param="mode" value="listen" scope="app" />-->
+		
+		
+		
+        <audio asset="titleSound" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="image1" x="8" y="28.5" w="15" h="10" id="day1_story1_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		 <image asset="image2" x="30" y="28.5" w="15" h="10" id="day1_story2_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next2" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		 <image asset="image3" x="53" y="28.5" w="15" h="10" id="day1_story3_button" >
+			<event type="click">
+			
+			 <action type="command" command="transitionTo" asset="theme" param="next3" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		 <image asset="image4" x="75" y="28.5" w="15" h="10" id="day1_story4_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next4" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image5" x="8" y="51" w="15" h="10" id="day1_story5_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next5" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image6" x="30" y="51" w="15" h="10" id="day1_story6_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next6" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image7" x="53" y="51" w="15" h="10" id="day1_story7_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next7" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image8" x="75" y="51" w="15" h="10" id="day1_story8_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next8" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image9" x="8" y="73" w="15" h="10" id="day1_story9_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next9" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image10" x="30" y="73" w="15" h="10" id="day1_story10_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next10" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image11" x="53" y="73" w="15" h="10" id="day1_story11_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next11" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+		
+		<image asset="image12" x="75" y="73" w="15" h="10" id="day1_story12_button">
+			<event type="click">
+			 <action type="command" command="transitionTo" asset="theme" param="next12" effect="scroll" direction="left" ease="linear" duration="600" />
+			</event>
+		</image>
+        
+       <!-- <image asset="next" x="90" y="2" w="8" h="13" id="next"/>-->
+		
+		<!--<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+       	<shape type="rect" x="91" y="86" w="8" h="13" hitArea="true">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="titleSound" />               
+            </event>
+        </shape>-->
+		
+		<image asset="previous" x="1" y="5" w="8" h="13"/>
+		<shape type="rect" x="1" y="5" w="8" h="13" hitArea="true" id="previousContainer">
+            <event type="click">
+               <action type="command" command="windowEvent" asset="theme" href="#/content/list"/>            
+            </event>
+        </shape>
+        <!--<shape id="nextContainer" type="rect" x="90" y="2" w="8" h="13" visible="false" hitArea="true" >
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>-->
+		
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+    <stage id="scene1" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene15" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="firstImage" x="33" y="57" w="35" h="39"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story1" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		मेरा नाम रूपा है । 
+		
+मुझे जलेबी बहुत पसंद है ।
+
+मेरे बाबा जलेबी लाते हैं । 
+		
+मैं मज़े से जलेबी खाती हूँ ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="0" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	  <stage id="scene2" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene16" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="secondImage" x="30" y="55" w="40" h="44"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story2" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		सूरज निकल आया है ।  
+		
+चारों ओर उजाला फैला है।
+
+अँधेरा मिट चुका है।
+		
+बच्चे स्कूल जा रहे हैं।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="1" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+<stage id="scene3" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene17" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="thirdImage" x="33" y="57" w="35" h="39"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story3" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		बरिश का मौसम आया है  ।  
+		
+ढेर सारी खुशियाँ लाया है ।
+
+पानी में हम बहुत खेलेंगे । 
+		
+गरम-गरम पकौड़ियाँ खाएँगे ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="2" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene4" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene18" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="forthImage" x="28" y="52" w="42" h="46"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story4" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		एक बहुत बड़ा बग़ीचा है  ।  
+		
+बग़ीचे में बहुत सारे पेड़ है ।
+
+पेड़ों में फल लगे हैं । 
+		
+कुछ फल मीठे कुछ खट्टे हैं।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="3" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene5" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene19" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="fifthImage" x="33" y="57" w="35" h="39"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story5" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		चारों ओर बहुत सारे पेड़ हैं।।  
+		
+पेड़ों पर चिड़ियाँ रहती हैं ।
+
+चिड़ियाँ दाना चुगती हैं । 
+		
+वे नदी में पानी पीती हैं ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="4" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene6" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene20" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="sixthImage" x="36" y="57" w="25" h="39"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story6" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		समीर नाम का एक लड़का है ।  
+		
+वह रोज़ अपने स्कूल जाता है ।
+
+रोज़ नई कहानियाँ पढ़ता है । 
+		
+वह सब को कहानियाँ सुनाता है ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="5" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene7" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene21" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="seventhImage" x="28" y="54" w="45" h="42"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story7" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		मंगल नाम का एक लड़का है ।  
+		
+नदी किनारे उसका घर है ।
+
+वह रोज़ नदी में नहाने जाता है । 
+		
+नदी में नहाना उसे अच्छा लगता है ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="6" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene8" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene22" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="eighthImage" x="25" y="57" w="50" h="39"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story8" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		मैं एक छोटी-सी तितली हूँ ।  
+		
+मुझे फूलों का रस पसंद है  ।
+
+बच्चे मुझे पकड़ना चाहते हैं  । 
+		
+मैं किसी के हाथ नहीं आती हूँ  ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="7" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene9" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene23" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="ninthImage" x="35" y="57" w="27" h="39"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story9" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		गाँव में बहुत सारे मोर हैं ।  
+		
+मोर के पंख बहुत सुंदर हैं  ।
+
+आकाश में जब बादल छाते हैं,
+		
+मोर पंख फैलाकर ख़ूब नाचते हैं ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="8" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene10" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene24" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="tenthImage" x="35" y="57" w="27" h="39"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story10" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		सुमन नाम की एक लड़की है ।  
+		
+सुबह उठकर मुँह धोती है।
+
+नाश्ता करके स्कूल जाती है । 
+		
+शाम में वह खेलती है  ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="9" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene11" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene25" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="eleventhImage" x="38" y="45" w="24" h="50"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story11" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		सोनी आँगन में खेल रही थी  ।  
+		
+ तभी एक परी आकाश से उतरी  ।
+
+सोनी को आकाश में ले गई  । 
+		
+दोनों आकाश में साथ-साथ खेलने लगे ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="10" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+	<stage id="scene12" x="0" y="0" w="100" h="100"  extends="storyBaseStage">							<!--SCENE 1-->
+        
+		<param name="next" value="scene26" />
+        <param name="previous" value="splash" />
+        <param name="home_stage" value="splash" />
+		
+        <image asset="menuBG" x="0" y="0" w="100" h="100" />
+		<image asset="twelvethImage" x="38" y="48" w="24" h="50"/>
+		
+		<image asset="icon_sound" x="91" y="86" w="8" h="13" />
+        <shape type="rect" x="91" y="86" w="8" h="13" hitArea="true" id="sound_button">
+            <event type="click">
+                <action type="command" command="togglePlay" asset="story12" />               
+            </event>
+        </shape>
+		
+		 <text x="25" y="7" w="50" h="20" align="center" font="Calibri" fontsize="60">
+		बहुत ही सुहाना मौसम है ।  
+		
+कोयल कुहू-कुहू कर रही है  ।
+
+उसका रंग काला है । 
+		
+ वह रोज़ गाना गाती है  ।
+
+
+		</text>
+		
+		
+	<!--<set param="lineindex" value="11" scope="stage"/>-->
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="" audio="true" loop="1" />
+            </event>
+        </events>
+    </stage>
+	
+   	<!-- Worksheet templates -->
+    
+	<template id="template_1">
+		
+        <!--<text model="item.title" x="15" y="5" w="86" h="4" font="Calibri" fontsize="50"/>
+		<text model="item.subtitleone" x="15" y="5" w="86" h="4" font="Calibri" fontsize="47"/>-->
+		
+		<text model="item.text1.asset" x="15" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text2.asset" x="50" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text3.asset" x="80" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text4.asset" x="35" y="35" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text5.asset" x="60" y="35" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text6.asset" x="15" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text7.asset" x="50" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text8.asset" x="80" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text9.asset" x="35" y="80" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text0.asset" x="60" y="80" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<!-- <text x="11" y="7" w="90" h="20" font="Calibri" fontsize="55">
+	yay
+
+
+		</text>-->
+		
+       
+	   <!--<mcq multi_select="false" model="item" shadow="#FF0000" highlight="#e9e053">
+            <options layout="table" x="16" y="40" w="70" h="35" cols="4" marginX="5" marginY="5" options="options" />
+		</mcq>-->
+		
+		<!--<image asset="play_audio" x="9.5" y="5" w="4" h="5">
+            <event type="click">
+                <action type="command" command="play" asset="" />
+            </event>
+        </image>
+		<image asset="play_audio" x="9.5" y="29" w="4" h="6">
+            <event type="click">
+                <action type="command" command="play" asset="" />
+            </event>
+        </image>-->
+		
+	</template>
+	
+	
+	<template id="template_2">
+		
+        <!--<text model="item.title" x="15" y="5" w="86" h="4" font="Calibri" fontsize="50"/>
+		
+		<text model="item.subtitleone" x="15" y="15" w="86" h="4" font="Calibri" fontsize="47"/>-->
+		
+		<text model="item.text5.asset" x="15" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text4.asset" x="50" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text3.asset" x="80" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text2.asset" x="35" y="35" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text6.asset" x="60" y="35" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text1.asset" x="15" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text0.asset" x="50" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text9.asset" x="80" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text7.asset" x="35" y="80" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text8.asset" x="60" y="80" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+       
+		
+	   
+	   <!--<mcq multi_select="false" model="item" shadow="#FF0000" highlight="#e9e053">
+            <options layout="table" x="16" y="40" w="70" h="35" cols="4" marginX="5" marginY="5" options="options" />
+		</mcq>-->
+		
+		<!--<image asset="play_audio" x="9.5" y="5" w="4" h="5">
+            <event type="click">
+                <action type="command" command="play" asset="" />
+            </event>
+        </image>
+		<image asset="play_audio" x="9.5" y="29" w="4" h="6">
+            <event type="click">
+                <action type="command" command="play" asset="" />
+            </event>
+        </image>-->
+		
+	</template>
+	
+	<template id="template_3">
+		
+        <!--<text model="item.title" x="15" y="5" w="86" h="4" font="Calibri" fontsize="50"/>
+		<text model="item.subtitleone" x="15" y="30" w="86" h="4" font="Calibri" fontsize="47"/>-->
+		
+		<text model="item.text1.asset" x="15" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text5.asset" x="50" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text2.asset" x="80" y="15" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text3.asset" x="35" y="35" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text6.asset" x="60" y="35" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text4.asset" x="15" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text8.asset" x="50" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text0.asset" x="80" y="60" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text9.asset" x="35" y="80" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+		<text model="item.text7.asset" x="60" y="80" w="80" h="4" font="Calibri" fontsize="100"/>
+		
+       
+	   <!--<mcq multi_select="false" model="item" shadow="#FF0000" highlight="#e9e053">
+            <options layout="table" x="16" y="40" w="70" h="35" cols="4" marginX="5" marginY="5" options="options" />
+		</mcq>-->
+		
+		<!--<image asset="play_audio" x="9.5" y="5" w="4" h="5">
+            <event type="click">
+                <action type="command" command="play" asset="" />
+            </event>
+        </image>
+		<image asset="play_audio" x="9.5" y="29" w="4" h="6">
+            <event type="click">
+                <action type="command" command="play" asset="" />
+            </event>
+        </image>-->
+		
+	</template>
+	
+	<stage id="scene15" x="0" y="0" w="100" h="100" iterate="assessment" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene1" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button" >
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene16" x="0" y="0" w="100" h="100" iterate="assessment2" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene2" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	<stage id="scene17" x="0" y="0" w="100" h="100" iterate="assessment3" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene3" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene18" x="0" y="0" w="100" h="100" iterate="assessment4" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene4" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+	
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	
+	<stage id="scene19" x="0" y="0" w="100" h="100" iterate="assessment5" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene5" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button" >
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene20" x="0" y="0" w="100" h="100" iterate="assessment6" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene6" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene21" x="0" y="0" w="100" h="100" iterate="assessment7" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene7" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+	
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene22" x="0" y="0" w="100" h="100" iterate="assessment8" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene8" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button" >
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene23" x="0" y="0" w="100" h="100" iterate="assessment9" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene9" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene24" x="0" y="0" w="100" h="100" iterate="assessment10" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene10" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button" >
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene25" x="0" y="0" w="100" h="100" iterate="assessment11" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene11" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button" >
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="scene26" x="0" y="0" w="100" h="100" iterate="assessment12" var="item">
+        <param name="next" value="splash" />
+        <param name="previous" value="scene12" />
+		 <param name="home_stage" value="splash" />
+		 <audio asset="goodJobSound"/>
+		 <audio asset="letstryagainsound"/>
+		
+		<image asset="menuBG" x="0" y="0" w="100" h="100" />
+        <image asset="next" x="91" y="3" w="7" h="11" id="next" visible="false"/>
+        <image asset="previous" x="1" y="3" w="7" h="11" id="previous" visible="false"/>
+		<embed template="item" var-item="item"/>
+		
+        <shape id="nextContainer" type="rect" x="91" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+			    <!--<action type="command" command="eval" asset="scene15" success="correct_response" failure="wrong_response"/>-->
+				<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+            </event>
+        </shape>
+        <shape id="previousContainer" type="rect" x="1" y="3" w="7" h="11" visible="true" hitArea="true">
+            <event type="click">
+                <action type="command" command="transitionTo" asset="theme" param="previous" effect="scroll" direction="right" ease="linear" duration="500" transitionType="previous"/>
+            </event>
+        </shape>
+		
+		<g x="30" y="-40" w="40" h="30" id="retryDialog" visible="false">
+			<image asset ="retryBg" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="retry" x="26" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="hide" asset="retryDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			<image asset ="next" x="52" y="46" w="20" h="40" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+		</g>
+		
+		<g x="35" y="-40" w="30" h="30" id="goodjobDialog" visible="false">
+			<image asset ="goodjobBg" x="0" y="0" w="100" h="100" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			<image asset ="next" x="37.5" y="46" w="26" h="42.5" visible="true" id="right">
+				<event type="click">
+					<action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" />
+				</event>
+			</image>
+			
+		</g>
+		
+		<image asset="icon_home" x="1" y="86" w="8" h="13"/>
+		<shape type="rect" x="1" y="86" w="8" h="13" hitArea="true" id="home_button">
+            <event type="click">
+              <action type="command" command="show" asset="confirmDialog" />
+				<action type="animation" asset="confirmDialog">
+                   <tween id="confirmShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+				   
+            </event>
+        </shape>
+		
+		<image asset="teacher" x="1" y="70" w="8" h="13" />
+		
+		<!-- word hint: Teacher  -->
+		<shape type="rect" x="1" y="70" w="8" h="13" hitArea="true" id="teacher_button">
+            <event type="click">
+				<action type="command" command="toggleShow" asset="teacher_options" />
+                <action type="command" command="toggleShow" asset="teacher_text" />
+		    </event>
+        </shape>
+		
+		
+		<g x="30" y="-40" w="40" h="60" id="confirmDialog" visible="false">
+			<image asset ="confirmDiag" x="0" y="0" w="100" h="100" visible="true" id="right"/>
+			
+			<image asset ="yes" x="25" y="63" w="16" h="20" visible="true" id="yes">
+				<event type="click">
+					<action type="command" command="restart" asset="theme"/>
+					<action type="animation" asset="retryDialog">
+					   <tween id="retryHideAnim">
+						   <to ease="bounceOut" duration="500"><![CDATA[{"x":30,"y":-40,"w":40,"h":30}]]></to>
+					   </tween>
+				   </action>
+				</event>
+			</image>
+			
+			<image asset ="no" x="57" y="63" w="15" h="20" visible="true" id="no">
+				<event type="click">
+					<action type="command" command="hide" asset="confirmDialog" />
+					<action type="command" command="hide" asset="teacherPopup" />
+				</event>
+			</image>
+		</g>
+		
+		<g  x="10" y="76" w="55" h="23" id="teacher_options" visible="false">
+			<!-- Part1  -->
+			<image asset="teacherBox" x="0" y="0" w="45" h="100" id="learn_option_8">
+				
+			</image>
+		</g>
+		
+		<!-- Teacher text -->
+		<g x="7.5" y="64.5" w="50" h="60"  id="teacher_text" visible="false">	
+	     	<text x="8" y="23" w="40" h="80" font="Calibri" fontsize="80" >
+			बच्चे कहानियाँ पढ़ें। वह कहानियाँ सुन भी सकते हैं।
+			</text>
+        </g>
+		
+		
+		<appEvents list="correct_response,wrong_response"/>
+        <events>
+            <event type="enter">
+                <action type="command" command="play" asset_model="item.title_audio.asset" loop="1" />
+            </event>
+            <event type="exit">
+               <action type="command" command="stop" asset_model="item.title_audio.asset" audio="true" loop="1" />
+            </event>
+			<event type="wrong_response">
+				<!-- <action type="command" command="transitionTo" asset="theme" param="next" effect="scroll" direction="left" ease="linear" duration="500" /> -->
+				<action type="command" command="play" asset="letstryagainsound" />
+				<action type="command" command="show" asset="retryDialog" />
+				<action type="animation" asset="retryDialog">
+                   <tween id="retryShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":30,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+            <event type="correct_response">
+				<action type="command" command="play" asset="goodJobSound" />
+				<action type="command" command="show" asset="goodjobDialog" />
+				<action type="animation" asset="goodjobDialog">
+                   <tween id="gjShowAnim">
+                       <to ease="bounceOut" duration="1500"><![CDATA[{"x":35,"y":40,"w":40,"h":30}]]></to>
+                   </tween>
+               </action>
+            </event>
+			
+        </events>
+		
+    </stage>
+	
+	<stage id="endScreen" x="0" y="0" w="100" h="100">
+        
+		<param name="nextPage" value="scene15" />
+		<image asset="end_screen" x="0" y="0" w="100" h="100" />
+		<image asset="next" x="45" y="50" w="12" h="20" />
+		<shape type="rect" x="45" y="50" w="12" h="20" hitArea="true">				<!--home-->
+            <event type="click">
+             <action type="command" command="restart" asset="theme"/>
+            </event>
+        </shape>
+		
+		<events>
+            <event type="enter">
+                <action type="command" command="play" asset="end" loop="1" />
+					
+
+            </event>
+            <event type="exit">
+                <action type="command" command="stop" asset="end" audio="true" loop="1" />
+            </event>
+        </events>
+		
+		
+    </stage>
+	
+</theme>
