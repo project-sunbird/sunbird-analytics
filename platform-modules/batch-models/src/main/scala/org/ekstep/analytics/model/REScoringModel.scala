@@ -86,12 +86,6 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
 
-//        // Device Usage Summaries data transformations
-//        val dus = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).cache();
-//        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(dus).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
-//        val dusTB = sc.broadcast(dusTransformations);
-//        dus.unpersist(true);
-
         // Device Usage Summaries
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map{ x => x._2}//.map { x => (x._1, x._2) }
         // dus binning
@@ -347,6 +341,12 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
+        //one hot encoding
+        JobLogger.log("applied one hot encoding", None, INFO);
+        val c1SubEncodedDF = ContentUsageTransformer.oneHotEncoding(df, "c1_subject")
+        c1SubEncodedDF.show()
+        JobLogger.log("completed one hot encoding", None, INFO);
+        
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")

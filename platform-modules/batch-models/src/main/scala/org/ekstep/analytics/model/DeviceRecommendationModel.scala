@@ -2,6 +2,7 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.ml.feature.{ OneHotEncoder, StringIndexer, RFormula }
 import org.apache.spark.ml.feature.QuantileDiscretizer
+import org.apache.spark.ml.feature.{ CountVectorizerModel, CountVectorizer, RegexTokenizer }
 import org.apache.spark.mllib.linalg.Vector
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
@@ -59,7 +60,73 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0);
-    
+
+    def flattenColumn(df: DataFrame, cols: Array[String])(implicit sc: SparkContext): DataFrame = {
+
+        val sqlContext = new SQLContext(sc)
+        import sqlContext.implicits._
+        
+        df.show()
+        if (cols.isEmpty) df
+        else {
+            var i = -1
+            flattenColumn(
+            df.select($"label",$"sentence", $"sentence".getItem(i+1).cast("double").as("sentence_"+cols.head)),
+            cols.tail)
+        }
+    }
+
+    def main(args: Array[String]): Unit = {
+
+        val sc = CommonUtil.getSparkContext(2, "test")
+        val sqlContext = new SQLContext(sc)
+        import sqlContext.implicits._
+
+        // Count Vectorizer(one hot encoding)
+        val sentenceData = sqlContext.createDataFrame(Seq(
+            (0, "numeracy"),
+            (1, "literacy numeracy"),
+            (2, "literacy"),
+            (3, "literacy,numeracy"),
+            (4, "numeracy"),
+            (5, "unknown"),
+            (6, "numeracy,literacy"))).toDF("label", "sentence")
+
+        //oneHotEncoding(sentenceData, "sentence")
+        val tokenizer = new RegexTokenizer().setInputCol("sentence").setOutputCol("words").setPattern("\\w+").setGaps(false)
+        val wordsData = tokenizer.transform(sentenceData)
+        val cvModel: CountVectorizerModel = new CountVectorizer()
+            .setInputCol("words")
+            .setOutputCol("features")
+            .fit(wordsData)
+
+        val possibleValues = cvModel.vocabulary
+        val out = cvModel.transform(wordsData)
+        val asArray = udf((v: Vector) => v.toArray)
+        val outDF = out.withColumn("sentence", asArray(out.col("features"))).drop("features")
+        //outDF.show()
+        val fdf = flattenColumn(outDF, possibleValues)(sc)
+        //fdf.show()
+
+        // Combining one or more to produce new features (SQLTransformer)
+        //        val df1 = sqlContext.createDataFrame(
+        //            Seq((0, 1.0, 3.0), (2, 2.0, 5.0))).toDF("id", "v1", "v2")
+        //
+        //        val sqlTrans = new SQLTransformer().setStatement(
+        //            "SELECT *, (v1 + v2) AS v3, (v1 - v2) AS v4 FROM __THIS__")
+        //
+        //        sqlTrans.transform(df1).show()
+    }
+
+    //    def oneHotEncoding(in: DataFrame, colNames: Array[String])(implicit sc: SparkContext): DataFrame = {
+    //        
+    //        var df = in
+    //        colNames.map{ x => 
+    //            df = ContentUsageTransformer.oneHotEncoding(df, x)
+    //        }
+    //        df
+    //    }
+
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -80,7 +147,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         // cus outlier-treatment
         val cusOutlierTreatment = ContentUsageTransformer.removeOutliers(contentUsageSummaries)
         // cus binning
-        val contentUsageTransformations = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;//_getContentUsageTransformations(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;
+        val contentUsageTransformations = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap; //_getContentUsageTransformations(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;
         val contentUsageTB = sc.broadcast(contentUsageTransformations);
         val contentUsage = cusOutlierTreatment.map { x => (x.d_content_id, x) }.collect().toMap;
         val contentUsageB = sc.broadcast(contentUsage);
@@ -90,20 +157,14 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
 
-//        // Device Usage Summaries data transformations
-//        val dus = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).cache();
-//        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(dus).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
-//        val dusTB = sc.broadcast(dusTransformations);
-//        dus.unpersist(true);
-
         // Device Usage Summaries
-        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map{ x => x._2}//.map { x => (x._1, x._2) }
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 } //.map { x => (x._1, x._2) }
         // dus binning
-        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(device_usage).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
+        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(device_usage).map { x => (x._1, x._2) }.collect().toMap; //_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
         val dusTB = sc.broadcast(dusTransformations);
         // dus outlier-treatment
         val dusOutlierTreatment = DeviceUsageTransformer.removeOutliers(device_usage).map { x => (DeviceId(x.device_id), x) }
-        
+
         // Device Content Usage Summaries
         val dcus = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
         //val device_content_usage = dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
@@ -111,10 +172,10 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val dcusOutlierTreatment = DeviceContentUsageTransformer.removeOutliers(dcus.map(x => x._2)).map { x => (DeviceId(x.device_id), x) }
         val device_content_usage = dcusOutlierTreatment.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
         // dcus binning
-        val dcusTransformations = DeviceContentUsageTransformer.getTransformationByBinning(dcus.map(x => x._2)).groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;//_getDeviceContentUsageTransformations(dcus.map(x => x._2)).map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
+        val dcusTransformations = DeviceContentUsageTransformer.getTransformationByBinning(dcus.map(x => x._2)).groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap; //_getDeviceContentUsageTransformations(dcus.map(x => x._2)).map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusTB = sc.broadcast(dcusTransformations);
         dcus.unpersist(true);
-        
+
         device_spec.leftOuterJoin(dusOutlierTreatment).leftOuterJoin(device_content_usage).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusTB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.contentId, x) }.toMap;
@@ -289,7 +350,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val file = new File("/tmp/RE-input")
         if (file.exists())
             CommonUtil.deleteDirectory("/tmp/RE-input")
-        val jsondata = createJSON(data)//data.map { x => JSONUtils.serialize(x) }
+        val jsondata = createJSON(data) //data.map { x => JSONUtils.serialize(x) }
         jsondata.saveAsTextFile("/tmp/RE-input")
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
@@ -312,13 +373,23 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         CommonUtil.deleteFile(model);
         CommonUtil.deleteFile(libfmInputFile);
         CommonUtil.deleteFile(libfmLogFile);
-        
+
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        
+
+        //one hot encoding
+        JobLogger.log("applied one hot encoding", None, INFO);
+        val c1SubEncodedDF = ContentUsageTransformer.oneHotEncoding(df, "c1_subject")
+        c1SubEncodedDF.show()
+//        val c2SubEncodedDF = ContentUsageTransformer.oneHotEncoding(c1SubEncodedDF, "c2_subject")
+//        c2SubEncodedDF.show()
+//        val c1ContentTypeEncodedDF = ContentUsageTransformer.oneHotEncoding(c2SubEncodedDF, "c1_contentType")
+//        c1ContentTypeEncodedDF.show()
+        JobLogger.log("completed one hot encoding", None, INFO);
+
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
@@ -326,7 +397,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         JobLogger.log("applied the formula", None, INFO);
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
-        
+
         val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
         JobLogger.log("created labeledRDD", None, INFO);
 
@@ -352,7 +423,7 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
         val sampledUsedDataSet = if (dataLimit == -1) usedDataSet else sc.parallelize(usedDataSet.take(dataLimit))
         val trainDataSet = sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);
         val testDataSet = sampledUsedDataSet.sample(false, testRatio, System.currentTimeMillis().toInt);
-        
+
         JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
@@ -472,6 +543,6 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
                 "c2_start_time_t" -> x.dcusT.start_time.getOrElse("Unknown"))
 
             JSONUtils.serialize(dataMap)
-        } 
+        }
     }
 }

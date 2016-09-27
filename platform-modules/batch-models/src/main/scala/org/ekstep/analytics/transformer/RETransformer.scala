@@ -8,6 +8,9 @@ import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types._
+import org.apache.spark.ml.feature.{ CountVectorizerModel, CountVectorizer, RegexTokenizer }
+import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.sql.functions._
 
 trait RETransformer[T, R] {
   
@@ -46,4 +49,32 @@ trait RETransformer[T, R] {
     def getTransformationByBinning(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String, R)]
     
     def removeOutliers(rdd: RDD[T])(implicit sc: SparkContext): RDD[T]
+    
+    def oneHotEncoding(in: DataFrame, colName: String)(implicit sc: SparkContext): DataFrame = {
+        
+        val sqlContext = new SQLContext(sc)
+        import sqlContext.implicits._
+        
+        val tokenizer = new RegexTokenizer().setInputCol(colName).setOutputCol("words").setPattern("\\w+").setGaps(false)
+        val wordsData = tokenizer.transform(in)
+        val cvModel: CountVectorizerModel = new CountVectorizer()
+            .setInputCol("words")
+            .setOutputCol("features")
+            .fit(wordsData)
+
+        val possibleValues = cvModel.vocabulary
+        val out = cvModel.transform(wordsData)
+        val asArray = udf((v: Vector) => v.toArray)
+        val outDF = out.withColumn("featureArray", asArray(out.col("features"))).drop("features")
+        val x = for(e <- possibleValues)
+            yield outDF.select($"c1_total_ts", $"featureArray".getItem(possibleValues.indexOf(e)).cast("double").as(colName+"_"+e))
+        
+        var fDF = outDF.select("c1_total_ts")
+        possibleValues.map{ x => 
+            val i = possibleValues.indexOf(x)
+            val temp = outDF.select($"c1_total_ts", $"featureArray".getItem(i).cast("double").as(colName+"_"+x))
+            fDF = fDF.join(temp, "c1_total_ts")//fDF.select($"label", $"featureArray".getItem(i).cast("double").as(x))
+        }
+        in.join(fDF, "c1_total_ts").drop(colName)
+    }
 }
