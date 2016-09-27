@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_usage_summary_fact (
     m_total_ts double,
     m_total_devices bigint,
     m_total_sessions bigint,
+    m_avg_sess_device double,
     m_avg_ts_session double,
     m_total_interactions bigint,
     m_avg_interactions_min double,
@@ -147,7 +148,7 @@ CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
 	m_total_sessions bigint,
 	m_total_ts double,
 	m_total_devices bigint,
-	m_avg_sessions bigint,
+	m_avg_sess_device bigint,
 	m_avg_ts_session double,
 	m_contents list<text>,
 	PRIMARY KEY (d_period, d_tag)
