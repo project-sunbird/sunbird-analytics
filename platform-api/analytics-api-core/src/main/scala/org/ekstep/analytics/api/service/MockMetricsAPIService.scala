@@ -30,12 +30,12 @@ object MockMetricsAPIService {
 		val metrics = if (count > 0) {
 			for (i <- 1 to count) yield {
 				val period = _getPeriod(i, count);
-				ContentUsageMetrics(Option(period), 12, 123.34, 123.0, 6, 34, 102.35, 2)
+				MockContentUsageMetrics(Option(period), 12, 123.34, 123.0, 6, 34, 102.35, 2)
 			}
 		} else {
 			Array();
 		}
-		val summary = ContentUsageMetrics(None, 12*count, 123.34*count, 123.0*count, 6*count, 34*count, 102.35*count, 2*count);
+		val summary = MockContentUsageMetrics(None, 12*count, 123.34*count, 123.0*count, 6*count, 34*count, 102.35*count, 2*count);
 		val result = Map[String, AnyRef](
 			"ttl" -> CommonUtil.getRemainingHours.asInstanceOf[AnyRef],
             "metrics" -> metrics,
@@ -52,13 +52,13 @@ object MockMetricsAPIService {
 		val metrics = if (count > 0) {
 			for (i <- 1 to count) yield {
 				val period = _getPeriod(i, count);
-				ContentPopularityMetrics(Option(period), 3, 5, None, 3.4);
+				MockContentPopularityMetrics(Option(period), 3, 5, None, 3.4);
 			}
 		} else {
 			Array();
 		}
 
-		val summary = ContentPopularityMetrics(None, 3*count, 5*count, None, 3.4);
+		val summary = MockContentPopularityMetrics(None, 3*count, 5*count, None, 3.4);
 		val result = Map[String, AnyRef](
 			"ttl" -> CommonUtil.getRemainingHours.asInstanceOf[AnyRef],
             "metrics" -> metrics,

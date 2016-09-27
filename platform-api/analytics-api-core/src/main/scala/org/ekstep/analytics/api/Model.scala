@@ -18,9 +18,9 @@ case class MetricsRequestBody(id: String, ver: String, ts: String, request: Metr
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
 case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Integer, m_correct_res_count: Integer, m_inc_res_count: Integer, m_top5_incorrect_res: Array[String], m_avg_ts: Double)
-case class ContentUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_interactions: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double, m_avg_interactions_min: Double)
+case class MockContentUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_interactions: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double, m_avg_interactions_min: Double)
 case class Comment(comment: String, date: Int);
-case class ContentPopularityMetrics(d_period: Option[Int], m_downloads: Long, m_side_loads: Long, m_comments: Option[Array[Comment]], m_avg_rating: Double); 
+case class MockContentPopularityMetrics(d_period: Option[Int], m_downloads: Long, m_side_loads: Long, m_comments: Option[Array[Comment]], m_avg_rating: Double); 
 case class GenieUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double)
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
@@ -33,8 +33,10 @@ case class ContentId(d_content_id: String);
 
 case class ContentUsageSummaryFact(d_period: Int, d_content_id: String, d_tag: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime,
                                       m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double)
-case class ContentUsageSummary(d_period: Int, var label: Option[String], m_publish_date: Option[Long], m_last_sync_date: Option[Long], m_last_gen_date: Option[Long], m_total_ts: Option[Double], m_total_sessions: Option[Long], m_avg_ts_session: Option[Double], m_total_interactions: Option[Long], m_avg_interactions_min: Option[Double])
-                                      
+case class ContentUsageMetrics(d_period: Int, var label: Option[String] = None, m_publish_date: Option[Long] = Option(0), m_last_sync_date: Option[Long] = Option(0), m_last_gen_date: Option[Long] = Option(0), m_total_ts: Option[Double] = Option(0.0), m_total_sessions: Option[Long] = Option(0), m_avg_ts_session: Option[Double] = Option(0.0), m_total_interactions: Option[Long] = Option(0), m_avg_interactions_min: Option[Double] = Option(0)) extends Metrics;
+case class ContentPopularityMetrics(d_period: Int, var label: Option[String] = None, m_downloads: Option[Long] = Option(0), m_side_loads: Option[Long] = Option(0), m_ratings: Option[List[(Double, DateTime)]] = Option(List()), m_avg_rating: Option[Double] = Option(0.0)) extends Metrics;
+case class GenieLaunchMetrics(d_period: Int, var label: Option[String] = None, m_total_sessions: Option[Long] = Option(0), m_total_ts: Option[Double] = Option(0.0), m_total_devices: Option[Long] = Option(0), m_avg_sessions: Option[Double] = Option(0.0), m_avg_ts: Option[Long] = Option(0)) extends Metrics;
+
 case class RecommendationContent(device_id: String, scores: List[(String, Double)])
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String,val text_vec: List[Double], val tag_vec: List[Double]);
