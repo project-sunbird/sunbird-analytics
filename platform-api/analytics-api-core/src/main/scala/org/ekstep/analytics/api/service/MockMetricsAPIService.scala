@@ -16,7 +16,7 @@ import scala.collection.JavaConversions._
  * @author mahesh
  */
 
-object MetricsAPIService {
+object MockMetricsAPIService {
 
 	val periodMap = Map[String, Int]("LAST_7_DAYS" -> 7, "LAST_5_WEEKS" -> 5, "LAST_12_MONTHS" -> 12, "CUMULATIVE" -> 0);
 	val periods = Array("LAST_7_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
@@ -78,7 +78,7 @@ object MetricsAPIService {
 				val items = for (t <- 1 to Random.nextInt(10)) yield {
 					ItemMetrics("Q_"+Random.nextInt(100), 144.00, 10, 4, 6, Array("Fourteen", "Twelve", "Sixteen", "Seventeen"), 101.00);
 				};
-				Map[String, AnyRef]("period" -> period, "items" -> items);
+				Map[String, AnyRef]("d_period" -> period, "items" -> items);
 			}
 		} else {
 			Array();
@@ -115,7 +115,7 @@ object MetricsAPIService {
 			"ttl" -> CommonUtil.getRemainingHours.asInstanceOf[AnyRef],
             "metrics" -> metrics,
             "summary" -> summary);
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.genie-usage", result));
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.genie-launch", result));
 	}
 
 	def contentList(requestBody: MetricsRequestBody)(implicit sc: SparkContext): String = {
@@ -134,7 +134,7 @@ object MetricsAPIService {
 				}
 				val contents = contentList.map(f => if(!f.isEmpty) f)
 				val period = _getPeriod(i, count);
-				Map[String, AnyRef]("period" -> period, "content" -> contents, "count" -> Int.box(contents.length));
+				Map[String, AnyRef]("d_period" -> period, "content" -> contents, "count" -> Int.box(contents.length));
 			}
 		} else {
 			Array();
