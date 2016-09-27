@@ -73,30 +73,45 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
 
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).cache();
+        // cus outlier-treatment
+        val cusOutlierTreatment = ContentUsageTransformer.removeOutliers(contentUsageSummaries)
+        // cus binning
         val contentUsageTransformations = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;//_getContentUsageTransformations(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;
         val contentUsageTB = sc.broadcast(contentUsageTransformations);
-        val contentUsage = contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap;
+        val contentUsage = cusOutlierTreatment.map { x => (x.d_content_id, x) }.collect().toMap;
         val contentUsageB = sc.broadcast(contentUsage);
         contentUsageSummaries.unpersist(true);
 
+        // device-specifications
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
 
-        // Device Usage Summaries data transformations
-        val dus = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).cache();
-        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(dus).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
+//        // Device Usage Summaries data transformations
+//        val dus = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).cache();
+//        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(dus).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
+//        val dusTB = sc.broadcast(dusTransformations);
+//        dus.unpersist(true);
+
+        // Device Usage Summaries
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map{ x => x._2}//.map { x => (x._1, x._2) }
+        // dus binning
+        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(device_usage).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
         val dusTB = sc.broadcast(dusTransformations);
-        dus.unpersist(true);
-
-        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => (x._1, x._2) }
-
+        // dus outlier-treatment
+        val dusOutlierTreatment = DeviceUsageTransformer.removeOutliers(device_usage).map { x => (DeviceId(x.device_id), x) }
+        
+        // Device Content Usage Summaries
         val dcus = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
-        val device_content_usage = dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
+        //val device_content_usage = dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
+        // dcus outlier-treatment
+        val dcusOutlierTreatment = DeviceContentUsageTransformer.removeOutliers(dcus.map(x => x._2)).map { x => (DeviceId(x.device_id), x) }
+        val device_content_usage = dcusOutlierTreatment.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
+        // dcus binning
         val dcusTransformations = DeviceContentUsageTransformer.getTransformationByBinning(dcus.map(x => x._2)).groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;//_getDeviceContentUsageTransformations(dcus.map(x => x._2)).map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusTB = sc.broadcast(dcusTransformations);
         dcus.unpersist(true);
         
-        device_spec.leftOuterJoin(device_usage).leftOuterJoin(device_content_usage).map { x =>
+        device_spec.leftOuterJoin(dusOutlierTreatment).leftOuterJoin(device_content_usage).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusTB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.contentId, x) }.toMap;
             DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, dcT)

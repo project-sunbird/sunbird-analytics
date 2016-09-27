@@ -35,7 +35,7 @@ trait RETransformer[T, R] {
         val iqr = q3 - q1
         val lowerLimit = q1 - (1.5 * iqr)
         val upperLimit = q3 + (1.5 * iqr)
-        println(lowerLimit + " " + upperLimit)
+        //println(lowerLimit + " " + upperLimit)
         rdd.map { x =>
             if (x._2 < lowerLimit) (x._1, lowerLimit)
             else if (x._2 > upperLimit) (x._1, upperLimit)

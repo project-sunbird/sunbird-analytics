@@ -24,6 +24,44 @@ object DeviceUsageTransformer extends RETransformer[DeviceUsageSummary, dus_tf] 
     
     override def removeOutliers(rdd: RDD[DeviceUsageSummary])(implicit sc: SparkContext): RDD[DeviceUsageSummary] = {
         
-        null
+        implicit val sqlContext = new SQLContext(sc);
+        
+        val inputRDD = rdd.map{ x => (x.device_id,x)}
+        val ts = rdd.map { x => (x.device_id, x.total_timespent.getOrElse(0.0)) };
+        val ts_t = outlierTreatment(ts);
+        val total_launches = rdd.map { x => (x.device_id, x.total_launches.getOrElse(0L).toDouble) };
+        val total_launches_t = outlierTreatment(total_launches);
+        val total_play_time = rdd.map { x => (x.device_id, x.total_play_time.getOrElse(0.0)) };
+        val total_play_time_t = outlierTreatment(total_play_time);
+        val avg_num_launches = rdd.map { x => (x.device_id, x.avg_num_launches.getOrElse(0.0)) };
+        val avg_num_launches_t = outlierTreatment(avg_num_launches);
+        val avg_time = rdd.map { x => (x.device_id, x.avg_time.getOrElse(0.0)) };
+        val avg_time_t = outlierTreatment(avg_time);
+        val mean_play_time = rdd.map { x => (x.device_id, x.mean_play_time.getOrElse(0.0)) };
+        val mean_play_time_t = outlierTreatment(mean_play_time);
+        val mean_play_time_interval = rdd.map { x => (x.device_id, x.mean_play_time_interval.getOrElse(0.0)) };
+        val mean_play_time_interval_t = outlierTreatment(mean_play_time_interval);
+        val num_contents = rdd.map { x => (x.device_id, x.num_contents.getOrElse(0L).toDouble) };
+        val num_contents_t = outlierTreatment(num_contents);
+        val num_days = rdd.map { x => (x.device_id, x.num_days.getOrElse(0L).toDouble) };
+        val num_days_t = outlierTreatment(num_days);
+        val num_sessions = rdd.map { x => (x.device_id, x.num_sessions.getOrElse(0L).toDouble) };
+        val num_sessions_t = outlierTreatment(num_sessions);
+        
+        val joinedData = inputRDD.join(ts_t).join(total_launches_t).join(total_play_time_t).join(avg_num_launches_t).join(avg_time_t).join(mean_play_time_t).join(mean_play_time_interval_t).join(num_contents_t).join(num_days_t).join(num_sessions_t)
+        joinedData.map{ x =>
+            val dus = x._2._1._1._1._1._1._1._1._1._1._1
+            val ts_t = x._2._1._1._1._1._1._1._1._1._1._2
+            val total_launches_t = x._2._1._1._1._1._1._1._1._1._2
+            val total_play_time_t = x._2._1._1._1._1._1._1._1._2
+            val avg_num_launches_t = x._2._1._1._1._1._1._1._2
+            val avg_time_t = x._2._1._1._1._1._1._2
+            val mean_play_time_t = x._2._1._1._1._1._2
+            val mean_play_time_interval_t = x._2._1._1._1._2
+            val num_contents_t = x._2._1._1._2
+            val num_days_t = x._2._1._2
+            val num_sessions_t = x._2._2
+            DeviceUsageSummary(dus.device_id, dus.start_time, dus.end_time, Option(num_days_t.toLong), Option(total_launches_t.toLong), Option(ts_t), Option(avg_num_launches_t), Option(avg_time_t), Option(num_contents_t.toLong), dus.play_start_time, dus.last_played_on, Option(total_play_time_t), Option(num_sessions_t.toLong), Option(mean_play_time_t), Option(mean_play_time_interval_t),dus.last_played_content)
+        } 
     }
 }
