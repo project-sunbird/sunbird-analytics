@@ -1,6 +1,7 @@
 import pytest
 import os
 import sys
+import ast
 root = os.path.dirname(os.path.abspath(__file__))
 
 def rec_dir(path, times):
@@ -82,7 +83,16 @@ def test_neg_imageNames():
 	assert result == expected
 
 def test_pos_add_confidence():
-	pass
+	input_file = os.path.join(handle_media_resources, 'add_confidence', 'pos', 'input.txt')
+	f = open(input_file, r)
+	input_dict = ast.literal_eval(f.read)
+	f.close()
+	output_file = os.path.join(handle_media_resources, 'add_confidence', 'pos', 'output.txt')
+	f = open(output_file, r)
+	output_dict = ast.literal_eval(f.read)
+	f.close()
+	result = add_confidence(input_dict)
+	assert result == output_dict
 
 def test_neg_add_confidence():
 	pass
