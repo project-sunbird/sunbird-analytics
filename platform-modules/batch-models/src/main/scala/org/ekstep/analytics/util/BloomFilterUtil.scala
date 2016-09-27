@@ -15,6 +15,10 @@ object BloomFilterUtil {
         }
     }
 
+    def getDefaultBytes(period: Period): Array[Byte] = {
+        serialize(getBloomFilter(period));
+    }
+
     def serialize(bf: BloomFilter[String]): Array[Byte] = {
         bf.bits.toByteArray();
     }
@@ -27,5 +31,16 @@ object BloomFilterUtil {
             case MONTH      => new BloomFilter[String](50000, 5, bits);
             case CUMULATIVE => new BloomFilter[String](100000, 5, bits);
         }
+    }
+
+    def countMissingValues(bf: BloomFilter[String], data: List[String]): Int = {
+        var index = 0;
+        data.foreach { x =>
+            if (!bf.contains(x)) {
+                bf += x;
+                index += 1;
+            }
+        }
+        index;
     }
 }
