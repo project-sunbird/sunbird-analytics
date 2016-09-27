@@ -9,7 +9,7 @@ object Model {
 
 }
 
-case class Filter(partner_id: Option[String], group_user: Option[Boolean]);
+case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None);
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
 case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int]);
 case class RequestBody(id: String, ver: String, ts: String, request: Request, param: Option[Params]);
@@ -33,7 +33,8 @@ case class ContentId(d_content_id: String);
 
 case class ContentUsageSummaryFact(d_period: Int, d_content_id: String, d_tag: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime,
                                       m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double)
-
+case class ContentUsageSummary(d_period: Int, var label: Option[String], m_publish_date: Option[Long], m_last_sync_date: Option[Long], m_last_gen_date: Option[Long], m_total_ts: Option[Double], m_total_sessions: Option[Long], m_avg_ts_session: Option[Double], m_total_interactions: Option[Long], m_avg_interactions_min: Option[Double])
+                                      
 case class RecommendationContent(device_id: String, scores: List[(String, Double)])
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String,val text_vec: List[Double], val tag_vec: List[Double]);

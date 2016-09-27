@@ -15,6 +15,7 @@ import org.ekstep.analytics.api.Range
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.ekstep.analytics.api.ResponseCode
+import com.typesafe.config.Config
 
 /**
  * @author Santhosh
@@ -98,6 +99,26 @@ object CommonUtil {
     def getRemainingHours(): Long = {
         val now = DateTime.now(DateTimeZone.UTC);
         new Duration(now, now.plusDays(1).withTimeAtStartOfDay()).getStandardHours;
+    }
+    
+    def getPeriodLabel(period: Int)(implicit config: Config) : String = {
+		val formatter = DateTimeFormat.forPattern("YYYYMMdd");
+    	val data = Integer.toString(period);
+    	 data.length match {
+    		 case 4 =>
+    			 val format = config.getString("metrics.period.format.year");
+    			 formatter.parseDateTime(data+"0101").toString(DateTimeFormat.forPattern(format))
+    		 case 6 => 
+    			 val format = config.getString("metrics.period.format.month");
+    			 formatter.parseDateTime(data+"01").toString(DateTimeFormat.forPattern(format))
+    		 case 7 =>
+    			 val format = config.getString("metrics.period.format.week");
+    			 data.substring(5, data.length) + format;
+    		 case 8 => 
+    			 val format = config.getString("metrics.period.format.day")
+    			 formatter.parseDateTime(data).toString(DateTimeFormat.forPattern(format))
+    		 case _ => data;
+    	 } 
     }
 
 }
