@@ -29,7 +29,8 @@ case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean,
 
 object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, StageSummary, MeasuredEvent] with Serializable {
 
-    override def name(): String = "ItemSummarizer";
+    implicit val className = "org.ekstep.analytics.model.StageSummaryModel"
+    override def name(): String = "StageSummaryModel";
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));

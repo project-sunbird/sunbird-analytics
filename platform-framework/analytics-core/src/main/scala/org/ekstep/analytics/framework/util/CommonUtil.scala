@@ -333,6 +333,10 @@ object CommonUtil {
         val key = Array(eventId, userId, dateFormat.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
+    
+    def getPeriod(date: DateTime, period: Period): Int = {
+        getPeriod(date.getMillis, period);
+    }
 
     def getPeriod(syncts: Long, period: Period): Int = {
         val d = new DateTime(syncts, DateTimeZone.UTC);

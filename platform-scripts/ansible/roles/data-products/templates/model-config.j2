@@ -63,8 +63,17 @@ config() {
 		"device-recos") 
         echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceRecommendationModel","modelParams":{"saveDataFrame":true,"dataFile":"/tmp/score.dat.libfm","trainDataFile":"/tmp/train.dat.libfm","testDataFile":"/tmp/test.dat.libfm","outputFile":"/tmp/score.txt","model":"/tmp/fm.model","libfm.executable_path":"/usr/local/bin/","bucket":"sandbox-data-store","key":"model/fm.model"},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"DeviceRecommendationModel","deviceMapping":false}'
         ;;
+        "raw-telemetry-jobs")
+        echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.job.consolidated.RawTelemetryJob","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Raw Telemetry Job","deviceMapping":false}'
+        ;;
+        "raw-telemetry-updaters")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Raw Telemetry Updater","deviceMapping":false}'
+		;;
+		"ss-jobs")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":6}]},"model":"org.ekstep.analytics.job.consolidated.SessionSummaryJobs","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"Session Summary Jobs","deviceMapping":false}'
+		;;
 		*)  
-		echo "Unknown model code" 
+		echo "Unknown model code"
       	exit 1 # Command to come out of the program with status 1
       	;;
 	esac

@@ -24,8 +24,8 @@ case class DeviceId(device_id: String)
 
 object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceUsageInput, DeviceUsageSummary, MeasuredEvent] with Serializable {
 
-    val className = "org.ekstep.analytics.model.DeviceUsageSummary"
-    override def name: String = "DeviceUsageSummarizer"
+    val className = "org.ekstep.analytics.model.DeviceUsageSummaryModel"
+    override def name: String = "DeviceUsageSummaryModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceUsageInput] = {
         val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")));

@@ -36,8 +36,8 @@ case class ContentEnrichedJson(contentId: String, jsonData: Map[String, AnyRef])
 
 object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, ContentEnrichedJson, MeasuredEvent] with Serializable {
 
-    implicit val className = "org.ekstep.analytics.model.ContentToVec"
-    override def name(): String = "ContentToVec";
+    implicit val className = "org.ekstep.analytics.model.ContentVectorsModel"
+    override def name(): String = "ContentVectorsModel";
 
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentAsString] = {
 
@@ -83,7 +83,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
 
         JobLogger.log("Downloading concepts", None, INFO);
-        val contentServiceUrl = AppConf.getConfig("lp.url"); ;
+        val contentServiceUrl = AppConf.getConfig("lp.url");
         sc.makeRDD(Array(contentServiceUrl), 1).pipe(s"$pythonExec $scriptLoc/content/get_concepts.py").collect();
 
         JobLogger.log("Running content enrichment", None, INFO);
