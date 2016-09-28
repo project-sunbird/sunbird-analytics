@@ -35,6 +35,10 @@ object Constants {
         s"$LP_URL/v2/analytics/content/list";
     }
     
+    def getContent(contentId: String): String = {
+        s"$LP_URL/v2/content/" + URLEncoder.encode(contentId, "UTF-8");
+    }
+    
     def getDomainMap(): String = {
         s"$LP_URL/v2/analytics/domain/map";
     }
