@@ -18,16 +18,14 @@ import org.joda.time.LocalDate
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.util.BloomFilterUtil
+import org.ekstep.analytics.util.ContentUsageSummaryFact
+import org.ekstep.analytics.util.ContentSummaryIndex
 
 case class ContentUsageSummaryFact_T(d_period: Int, d_content_id: String, d_tag: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime,
                                      m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double,
                                      m_device_ids: List[String]) extends AlgoOutput
-case class ContentUsageSummaryFact(d_period: Int, d_content_id: String, d_tag: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime,
-                                   m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double,
-                                   m_total_devices: Long, m_avg_sess_device: Double, m_device_ids: Array[Byte]) extends AlgoOutput
-case class ContentUsageSummaryIndex(d_period: Int, d_content_id: String, d_tag: String) extends Output
 
-object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentUsageSummaryFact, ContentUsageSummaryIndex] with Serializable {
+object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentUsageSummaryFact, ContentSummaryIndex] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateContentUsageDB"
     override def name: String = "UpdateContentUsageDB"
@@ -61,10 +59,10 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
         rollup(contentSummary, DAY).union(rollup(contentSummary, WEEK)).union(rollup(contentSummary, MONTH)).union(rollup(contentSummary, CUMULATIVE)).cache();
     }
 
-    override def postProcess(data: RDD[ContentUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentUsageSummaryIndex] = {
+    override def postProcess(data: RDD[ContentUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSummaryIndex] = {
         // Update the database
         data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
-        data.map { x => ContentUsageSummaryIndex(x.d_period, x.d_content_id, x.d_tag) };
+        data.map { x => ContentSummaryIndex(x.d_period, x.d_content_id, x.d_tag) };
     }
 
     /**
@@ -74,7 +72,7 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
 
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.m_last_gen_date.getMillis, period);
-            (ContentUsageSummaryIndex(d_period, x.d_content_id, x.d_tag), ContentUsageSummaryFact_T(d_period, x.d_content_id, x.d_tag, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_device_ids));
+            (ContentSummaryIndex(d_period, x.d_content_id, x.d_tag), ContentUsageSummaryFact_T(d_period, x.d_content_id, x.d_tag, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_device_ids));
         }.reduceByKey(reduceCUS);
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_content_id", "d_tag"));
         val joinedData = currentData.leftOuterJoin(prvData)
