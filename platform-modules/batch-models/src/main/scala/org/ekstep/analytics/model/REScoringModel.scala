@@ -340,12 +340,6 @@ object REScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, D
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val df = sqlContext.createDataFrame(rdd, _getStructType);
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-
-        //one hot encoding
-        JobLogger.log("applied one hot encoding", None, INFO);
-        val c1SubEncodedDF = ContentUsageTransformer.oneHotEncoding(df, "c1_subject")
-        c1SubEncodedDF.show()
-        JobLogger.log("completed one hot encoding", None, INFO);
         
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")

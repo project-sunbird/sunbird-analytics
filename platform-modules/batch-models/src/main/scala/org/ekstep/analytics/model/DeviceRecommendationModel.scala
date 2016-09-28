@@ -61,72 +61,6 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0);
 
-    def flattenColumn(df: DataFrame, cols: Array[String])(implicit sc: SparkContext): DataFrame = {
-
-        val sqlContext = new SQLContext(sc)
-        import sqlContext.implicits._
-        
-        df.show()
-        if (cols.isEmpty) df
-        else {
-            var i = -1
-            flattenColumn(
-            df.select($"label",$"sentence", $"sentence".getItem(i+1).cast("double").as("sentence_"+cols.head)),
-            cols.tail)
-        }
-    }
-
-    def main(args: Array[String]): Unit = {
-
-        val sc = CommonUtil.getSparkContext(2, "test")
-        val sqlContext = new SQLContext(sc)
-        import sqlContext.implicits._
-
-        // Count Vectorizer(one hot encoding)
-        val sentenceData = sqlContext.createDataFrame(Seq(
-            (0, "numeracy"),
-            (1, "literacy numeracy"),
-            (2, "literacy"),
-            (3, "literacy,numeracy"),
-            (4, "numeracy"),
-            (5, "unknown"),
-            (6, "numeracy,literacy"))).toDF("label", "sentence")
-
-        //oneHotEncoding(sentenceData, "sentence")
-        val tokenizer = new RegexTokenizer().setInputCol("sentence").setOutputCol("words").setPattern("\\w+").setGaps(false)
-        val wordsData = tokenizer.transform(sentenceData)
-        val cvModel: CountVectorizerModel = new CountVectorizer()
-            .setInputCol("words")
-            .setOutputCol("features")
-            .fit(wordsData)
-
-        val possibleValues = cvModel.vocabulary
-        val out = cvModel.transform(wordsData)
-        val asArray = udf((v: Vector) => v.toArray)
-        val outDF = out.withColumn("sentence", asArray(out.col("features"))).drop("features")
-        //outDF.show()
-        val fdf = flattenColumn(outDF, possibleValues)(sc)
-        //fdf.show()
-
-        // Combining one or more to produce new features (SQLTransformer)
-        //        val df1 = sqlContext.createDataFrame(
-        //            Seq((0, 1.0, 3.0), (2, 2.0, 5.0))).toDF("id", "v1", "v2")
-        //
-        //        val sqlTrans = new SQLTransformer().setStatement(
-        //            "SELECT *, (v1 + v2) AS v3, (v1 - v2) AS v4 FROM __THIS__")
-        //
-        //        sqlTrans.transform(df1).show()
-    }
-
-    //    def oneHotEncoding(in: DataFrame, colNames: Array[String])(implicit sc: SparkContext): DataFrame = {
-    //        
-    //        var df = in
-    //        colNames.map{ x => 
-    //            df = ContentUsageTransformer.oneHotEncoding(df, x)
-    //        }
-    //        df
-    //    }
-
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -382,14 +316,10 @@ object DeviceRecommendationModel extends IBatchModelTemplate[DerivedEvent, Devic
 
         //one hot encoding
         JobLogger.log("applied one hot encoding", None, INFO);
-        val c1SubEncodedDF = ContentUsageTransformer.oneHotEncoding(df, "c1_subject")
+        val c1SubEncodedDF = ContentUsageTransformer.oneHotEncoding(df.select("c1_total_ts", "c1_subject"), "c1_subject")
         c1SubEncodedDF.show()
-//        val c2SubEncodedDF = ContentUsageTransformer.oneHotEncoding(c1SubEncodedDF, "c2_subject")
-//        c2SubEncodedDF.show()
-//        val c1ContentTypeEncodedDF = ContentUsageTransformer.oneHotEncoding(c2SubEncodedDF, "c1_contentType")
-//        c1ContentTypeEncodedDF.show()
         JobLogger.log("completed one hot encoding", None, INFO);
-
+        
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
