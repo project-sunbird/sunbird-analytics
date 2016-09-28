@@ -11,7 +11,6 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 	override def metric : String = "cps";
 	
 	override def getMetrics(records: RDD[ContentPopularityMetrics], period: String)(implicit sc: SparkContext, config: Config): Array[ContentPopularityMetrics] = {
-	    
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.map { x => (x.d_period, x) };
