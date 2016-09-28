@@ -26,16 +26,15 @@ import scala.collection.mutable.ListBuffer
 import org.ekstep.analytics.util.DerivedEvent
 
 
-case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, did: String, gdata: Option[GData] = None) extends AlgoOutput;
+case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, device_ids: Array[String]) extends AlgoOutput;
 case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
-case class ContentUsageMetrics(ck: ContentKey, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, total_devices: Int, avg_sess_device: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
 
-object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsContentSummary, ContentUsageMetrics, MeasuredEvent] with Serializable {
+object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsContentSummary, ContentUsageMetricsSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentUsageSummaryModel"
     override def name: String = "ContentUsageSummaryModel"
 
-    private def _computeMetrics(events: Buffer[ContentUsageMetricsSummary], ck: ContentKey): ContentUsageMetrics = {
+    private def _computeMetrics(events: Buffer[ContentUsageMetricsSummary], ck: ContentKey): ContentUsageMetricsSummary = {
 
         val firstEvent = events.sortBy { x => x.dt_range.from }.head;
         val lastEvent = events.sortBy { x => x.dt_range.to }.last;
@@ -43,15 +42,14 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
 
         val gdata = if (StringUtils.equals(ck.content_id, "all")) None else Option(new GData(ck.content_id, firstEvent.gdata.get.ver));
 
-        val total_devices = events.map { x => x.did }.distinct.size
         val date_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.to);
         val total_ts = CommonUtil.roundDouble(events.map { x => x.total_ts }.sum, 2);
         val total_sessions = events.size
-        val avg_sess_device: Double = (total_sessions).toDouble / total_devices
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
         val total_interactions = events.map { x => x.total_interactions }.sum;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        ContentUsageMetrics(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_devices, CommonUtil.roundDouble(avg_sess_device, 2), date_range, lastEvent.syncts, gdata);
+        val device_ids = events.map { x => x.device_ids }.reduce((a,b) => a ++ b).distinct;
+        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, date_range, lastEvent.syncts, gdata, device_ids);
     }
 
     private def getContentUsageSummary(event: DerivedEvent, period: Int, contentId: String, tagId: String): ContentUsageMetricsSummary = {
@@ -63,7 +61,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
         val avg_ts_session = total_ts;
         val total_interactions = event.edata.eks.noOfInteractEvents;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, event.dimensions.did, Option(gdata));
+        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, Option(gdata), Array(event.dimensions.did));
     }
 
     private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
@@ -102,14 +100,14 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
             .reduceByKey((a, b) => a ++ b).map { x => InputEventsContentSummary(x._1, x._2) };
     }
 
-    override def algorithm(data: RDD[InputEventsContentSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentUsageMetrics] = {
+    override def algorithm(data: RDD[InputEventsContentSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentUsageMetricsSummary] = {
 
         data.map { x =>
             _computeMetrics(x.events, x.ck);
         }
     }
 
-    override def postProcess(data: RDD[ContentUsageMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[ContentUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { cuMetrics =>
             val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts);
             val measures = Map(
@@ -118,8 +116,8 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
                 "avg_ts_session" -> cuMetrics.avg_ts_session,
                 "total_interactions" -> cuMetrics.total_interactions,
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min,
-                "total_devices" -> cuMetrics.total_devices,
-                "avg_sess_device" -> cuMetrics.avg_sess_device)
+                "device_ids" -> cuMetrics.device_ids
+            )
 
             MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),

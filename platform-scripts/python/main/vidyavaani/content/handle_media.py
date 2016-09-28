@@ -115,16 +115,17 @@ def imageNames(directory):
 
 #add confidence score if it dosen't exist
 def add_confidence(mp3_dict):
+	t_dict = {}
 	try:
 		for key, value in mp3_dict.iteritems():
-			# print key
-			# print value
 			if not value == []:
 				dict1 = value.get('alternative')[0]
 				if not dict1.has_key('confidence'):
 					dict1['confidence'] = 0.8
-		return mp3_dict
+					t_dict[key] = {'alternative': dict1}
+                else:
+					t_dict[key] = value
+		return t_dict
 	except:
-		return mp3_dict
-	
-				
+		return t_dict
+				 

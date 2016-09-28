@@ -106,7 +106,10 @@ CREATE TABLE IF NOT EXISTS content_db.content_usage_summary_fact (
     m_last_sync_date timestamp,
     m_last_gen_date timestamp,
     m_total_ts double,
+    m_total_devices bigint,
+    m_device_ids blob,
     m_total_sessions bigint,
+    m_avg_sess_device double,
     m_avg_ts_session double,
     m_total_interactions bigint,
     m_avg_interactions_min double,
@@ -134,6 +137,7 @@ CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
 	m_total_count int,
 	m_correct_res_count int,
 	m_inc_res_count int,
+	m_correct_res list<text>,
 	m_top5_incorrect_res list<text>,
 	m_avg_ts double,
 	PRIMARY KEY (d_period, d_tag, d_content_id)
@@ -145,8 +149,9 @@ CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
 	m_total_sessions bigint,
 	m_total_ts double,
 	m_total_devices bigint,
-	m_avg_sessions bigint,
-	m_avg_ts double,
+	m_device_ids blob,
+	m_avg_sess_device bigint,
+	m_avg_ts_session double,
 	m_contents list<text>,
 	PRIMARY KEY (d_period, d_tag)
 );

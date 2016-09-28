@@ -12,9 +12,9 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.JSONUtils
 
 case class View(keyspace: String, table: String, periodUpTo: Int, periodType: String, filePrefix: String, fileSuffix: String, dispatchTo: String, dispatchParams: Map[String, AnyRef]);
-case class ContentUsageSummaryFact(d_period: Int, d_content_id: String, d_tag: String, m_publish_date: Long, m_last_sync_date: Long, m_last_gen_date: Long, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double) extends CassandraTable
+case class ContentUsageSummaryFact(d_period: Int, d_content_id: String, d_tag: String, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_total_devices: Long, m_avg_sess_device: Double) extends CassandraTable
 case class ContentPopularitySummaryFact(d_period: Int, d_content_id: String, d_tag: String, m_downloads: Long, m_side_loads: Long, m_comments: List[(String, DateTime)], m_ratings: List[(Double, DateTime)], m_avg_rating: Double) extends CassandraTable
-case class GenieLaunchSummaryFact(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sessions: Double, m_avg_ts: Long, m_contents: List[String]) extends CassandraTable
+case class GenieLaunchSummaryFact(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sess_device: Double, m_avg_ts_session: Long, m_contents: List[String]) extends CassandraTable
 
 object PrecomputedViews {
 

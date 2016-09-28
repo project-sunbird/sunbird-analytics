@@ -16,16 +16,29 @@ import org.ekstep.analytics.job.ReplaySupervisor
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import scala.collection.mutable.Buffer
+import org.ekstep.analytics.framework.RegisteredTag
 
 class TestUpdateContentUsageDB extends SparkSpec(null) {
 
-    "UpdateContentUsageDB" should "update the content usage updater db and check the updated fields" in {
-
+    override def beforeAll() {
+        super.beforeAll()
+        val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1872b98030cb7d9bacb", System.currentTimeMillis(), true)
+        sc.makeRDD(Seq(tag1)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_usage_summary_fact");
         }
+    }
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/content_usage_summaries.log");
+    override def afterAll() {
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1872b98030cb7d9bacb'");
+        }
+        super.afterAll();
+    }
+
+    "UpdateContentUsageDB" should "update the content usage updater db and check the updated fields" in {
+
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/cus_1.log");
         val rdd2 = UpdateContentUsageDB.execute(rdd, None);
 
         // cumulative (period = 0)  
@@ -168,6 +181,33 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         monthPerTagContentSumm.m_total_interactions should be(42)
         monthPerTagContentSumm.m_total_sessions should be(5)
         monthPerTagContentSumm.m_avg_ts_session should be(26.68)
+    }
+
+    it should "validate the bloom filter logic" in {
+
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/cus_3.log");
+        val rdd2 = UpdateContentUsageDB.execute(rdd, None);
+
+        val record1 = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "1375b1d70a66a0f2c22dd1872b98030cb7d9bacb").first
+        record1.m_total_ts should be(1222.53)
+        record1.m_avg_interactions_min should be(29.35)
+        record1.m_total_interactions should be(598)
+        record1.m_total_sessions should be(20)
+        record1.m_avg_ts_session should be(61.13)
+        record1.m_avg_sess_device should be(10)
+        record1.m_total_devices should be(2)
+
+        val rdd3 = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/cus_4.log");
+        val rdd4 = UpdateContentUsageDB.execute(rdd3, None);
+
+        val record2 = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "1375b1d70a66a0f2c22dd1872b98030cb7d9bacb").first
+        record2.m_total_ts should be(2445.06)
+        record2.m_avg_interactions_min should be(29.35)
+        record2.m_total_interactions should be(1196)
+        record2.m_total_sessions should be(40)
+        record2.m_avg_ts_session should be(61.13)
+        record2.m_avg_sess_device should be(13.33)
+        record2.m_total_devices should be(3)
     }
 
 }
