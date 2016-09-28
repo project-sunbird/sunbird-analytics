@@ -51,8 +51,6 @@ class ApplicationSpec extends BaseSpec {
 			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}, "filters": {"contentType": "Story"}}} """
 			val response = post("/recommendations", request);
 			isOK(response);
-//			val content = JSONUtils.deserialize[Map[String, AnyRef]](contentAsString(home)).getOrElse("result", Map("content" -> List())).asInstanceOf[Map[String, AnyRef]].get("content").get.asInstanceOf[List[AnyRef]];
-			
        }
        
        "invoke content to vec on a content" in new WithApplication {

@@ -16,7 +16,7 @@ class TestUpdateContentPopularityDB extends SparkSpec(null) {
 
     "UpdateContentPopularityDB" should "populate total sessions count as popularity on content" in {
 
-        val testContent = ContentUsageSummaryFact(0, "testcontent_1234", "all", DateTime.now, DateTime.now, DateTime.now , 450.0, 4, 112.5, 100, 23.56);
+        val testContent = ContentUsageSummaryFact(0, "testcontent_1234", "all", DateTime.now, DateTime.now, DateTime.now , 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null);
         val testRdd = sc.parallelize(Array(testContent));
         testRdd.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT);
         val rdd = DataFetcher.fetchBatchData[DerivedEvent](Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/content-popularity/test-data.json"))))));

@@ -14,6 +14,10 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
 
     "ContentUsageSummaryModel" should "generate content summary events for (all, per content, per tag, per tag & per content) dimensions" in {
 
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.registered_tags");
+        }
+
         val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
         val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
@@ -25,6 +29,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         // All Summary
         val allSum = events.filter { x => "all".equals(x.dimensions.tag.getOrElse("")) && "all".equals(x.dimensions.content_id.getOrElse("")) }
         allSum.size should be(27)
+
         val event_20160909 = allSum.filter { x => 20160909 == x.dimensions.period.get }.last
         event_20160909.eid should be("ME_CONTENT_USAGE_SUMMARY")
         event_20160909.mid should be("AD5F4DA4D69C8145165873FAD5F9F6CA")
@@ -101,14 +106,13 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
 
         //becb887fe82f24c644482eb30041da6d88bd8150 , c6ed6e6849303c77c0182a282ebf318aad28f8d1, 1375b1d70a66a0f2c22dd1096b98030cb7d9bacb, fd0a685649d43e543d9ccd22b3b341b42fb1f5c5
         //42d3b7edc2e9b59a286b1956e3cdbc492706ac21        
-
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1096b98030cb7d9bacb'");
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='c6ed6e6849303c77c0182a282ebf318aad28f8d1'");
-        }
     }
 
     it should "test the summary for one week ss data as input" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.registered_tags");
+        }
 
         val tag1 = RegisteredTag("42d3b7edc2e9b59a286b1956e3cdbc492706ac21", System.currentTimeMillis(), true)
         val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
@@ -157,13 +161,13 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         val tagOther = events.filter { x => "becb887fe82f24c644482eb30041da6d88bd8150".equals(x.dimensions.tag.get) || "fd0a685649d43e543d9ccd22b3b341b42fb1f5c5".equals(x.dimensions.tag.get) || "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb".equals(x.dimensions.tag.get) }
         tagOther.size should be(0)
 
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='42d3b7edc2e9b59a286b1956e3cdbc492706ac21'");
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='c6ed6e6849303c77c0182a282ebf318aad28f8d1'");
-        }
     }
 
     it should "test the summarizer where 1 week of data is missing in the input" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.registered_tags");
+        }
 
         val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
         val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
@@ -178,10 +182,5 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         val exceptLastWeek = events.filter { x => x.dimensions.period.get <= 20160924 }
         exceptLastWeek.size should be(events.size)
         events.size should be > (0)
-
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1096b98030cb7d9bacb'");
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='c6ed6e6849303c77c0182a282ebf318aad28f8d1'");
-        }
     }
 }
