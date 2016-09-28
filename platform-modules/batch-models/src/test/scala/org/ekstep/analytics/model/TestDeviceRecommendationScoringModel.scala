@@ -6,7 +6,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.mllib.linalg.DenseVector
 
-class TestREScoringModel extends SparkSpec(null) {
+class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
 
     //    "REScoringModel" should "load model and generate scores" in {
     //
@@ -42,7 +42,7 @@ class TestREScoringModel extends SparkSpec(null) {
         val sqlContext = new org.apache.spark.sql.SQLContext(sc)
         val x = List(new DenseVector(Array(0.0, 10.0, 0.0, 4.0, 1.0, 12.0)), new DenseVector(Array(1.0, 0.0, 4.0, 0.0, 3.0, 2.0)), new DenseVector(Array(0.0, 8.0, 0.0, 4.0, 1.0, 9.0)), new DenseVector(Array(1.0, 0.0, 0.0, 3.0, 1.0, 2.0)))
         val dataRDD = sc.parallelize(x)
-        val output = REScoringModel.scoringAlgo(dataRDD, "src/test/resources/re-scoring/", "fm1.model").collect()
+        val output = DeviceRecommendationScoringModel.scoringAlgo(dataRDD, "src/test/resources/re-scoring/", "fm1.model").collect()
         output.map(x => println(x))
     }
 }

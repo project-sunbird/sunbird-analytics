@@ -5,7 +5,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 
-class TestDeviceRecommendationModel extends SparkSpec(null) {
+class TestDeviceRecommendationTrainingModel extends SparkSpec(null) {
   
 //    "DeviceRecommendationModel" should "generate libsvm files and generate scores" in {
     ignore should "generate libsvm files and generate scores" in {    
@@ -38,7 +38,7 @@ class TestDeviceRecommendationModel extends SparkSpec(null) {
 //            "libfm.executable_path" -> "src/test/resources/device-reco/",
 //            "live_content_limit" -> Int.box(100))
         
-        val me = DeviceRecommendationModel.execute(null, None)
+        val me = DeviceRecommendationTrainingModel.execute(null, None)
         val res = me.collect()        
 
     }
