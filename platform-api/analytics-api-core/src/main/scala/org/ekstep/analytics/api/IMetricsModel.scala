@@ -10,10 +10,12 @@ import org.ekstep.analytics.api.util.DataFetcher
 import org.jets3t.service.S3ServiceException
 import scala.reflect.ClassTag
 import org.ekstep.analytics.api.util.CommonUtil
+import org.ekstep.analytics.framework.Period._
 
 trait Metrics extends AnyRef with Serializable
 trait IMetricsModel[T <: Metrics] {
-	val periodMap = Map[String, (String, Int)]("LAST_7_DAYS" -> ("DAY", 7), "LAST_5_WEEKS" -> ("WEEK", 5), "LAST_12_MONTHS" -> ("MONTH", 12), "CUMULATIVE" -> ("CUMULATIVE",0));
+    
+	val periodMap = Map[String, (Period, Int)]("LAST_7_DAYS" -> (DAY, 7), "LAST_5_WEEKS" -> (WEEK, 5), "LAST_12_MONTHS" -> (MONTH, 12), "CUMULATIVE" -> (CUMULATIVE, 0));
 	
 	def metric() : String = "metricName";
 	

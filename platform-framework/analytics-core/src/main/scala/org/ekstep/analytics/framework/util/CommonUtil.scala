@@ -115,13 +115,13 @@ object CommonUtil {
         JobLogger.log("Deleting directory", Option(path.toString()))
         Files.walkFileTree(path, new Visitor());
     }
-    
+
     def createDirectory(dir: String) {
         val path = get(dir);
         JobLogger.log("Creating directory", Option(path.toString()))
         Files.createDirectories(path);
     }
-    
+
     def copyFile(from: InputStream, path: String, fileName: String) = {
         createDirectory(path);
         Files.copy(from, Paths.get(path + fileName), StandardCopyOption.REPLACE_EXISTING);
@@ -130,7 +130,7 @@ object CommonUtil {
     def deleteFile(file: String) {
         JobLogger.log("Deleting file ", Option(file))
         val path = get(file);
-        if(Files.exists(path))
+        if (Files.exists(path))
             Files.delete(path);
     }
 
@@ -333,7 +333,7 @@ object CommonUtil {
         val key = Array(eventId, userId, dateFormat.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
-    
+
     def getPeriod(date: DateTime, period: Period): Int = {
         getPeriod(date.getMillis, period);
     }
@@ -372,19 +372,28 @@ object CommonUtil {
         val t1 = System.currentTimeMillis()
         ((t1 - t0), result)
     }
-    
-    def getPathFromURL(absUrl: String) : String = {
+
+    def getPathFromURL(absUrl: String): String = {
         val url = new URL(absUrl);
         url.getPath
     }
 
     @throws(classOf[Exception])
+    def getPeriods(period: Period, periodUpTo: Int): Array[Int] = {
+        period match {
+            case DAY        => getDayPeriods(periodUpTo);
+            case MONTH      => getMonthPeriods(periodUpTo);
+            case WEEK       => getWeekPeriods(periodUpTo);
+            case CUMULATIVE => Array(0);
+        }
+    }
+
     def getPeriods(periodType: String, periodUpTo: Int): Array[Int] = {
         Period.withName(periodType) match {
-            case DAY   => getDayPeriods(periodUpTo);
-            case MONTH => getMonthPeriods(periodUpTo);
-            case WEEK  => getWeekPeriods(periodUpTo);
-            case CUMULATIVE  => Array(0);
+            case DAY        => getDayPeriods(periodUpTo);
+            case MONTH      => getMonthPeriods(periodUpTo);
+            case WEEK       => getWeekPeriods(periodUpTo);
+            case CUMULATIVE => Array(0);
         }
     }
 
@@ -405,5 +414,5 @@ object CommonUtil {
         val x = for (i <- 0 to (count - 1)) yield getPeriod(endDate.minusWeeks(i), WEEK);
         x.toArray;
     }
-    
+
 }

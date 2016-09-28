@@ -16,6 +16,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.ekstep.analytics.api.ResponseCode
 import com.typesafe.config.Config
+import org.ekstep.analytics.framework.Period._
 
 /**
  * @author Santhosh
@@ -24,8 +25,9 @@ object CommonUtil {
 
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
+    @transient val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy'7'ww");
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
-    
+
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
         val conf = new SparkConf().setAppName(appName);
@@ -40,7 +42,7 @@ object CommonUtil {
         // $COVERAGE-ON$
         new SparkContext(conf);
     }
-    
+
     def closeSparkContext()(implicit sc: SparkContext) {
         sc.stop();
     }
@@ -100,25 +102,26 @@ object CommonUtil {
         val now = DateTime.now(DateTimeZone.UTC);
         new Duration(now, now.plusDays(1).withTimeAtStartOfDay()).getStandardHours;
     }
+
+    def getPeriodLabel(period: Period, date: Int)(implicit config: Config): String = {
+        val formatter = DateTimeFormat.forPattern("YYYYMMdd");
+        period match {
+            case MONTH =>
+                val format = config.getString("metrics.period.format.month");
+                formatter.parseDateTime(date + "01").toString(DateTimeFormat.forPattern(format))
+            case WEEK =>
+                val format = config.getString("metrics.period.format.week");
+                "";
+            case DAY =>
+                val format = config.getString("metrics.period.format.day")
+                formatter.parseDateTime(date.toString()).toString(DateTimeFormat.forPattern(format))
+            case _ => date.toString();
+        }
+    }
     
-    def getPeriodLabel(period: Int)(implicit config: Config) : String = {
-		val formatter = DateTimeFormat.forPattern("YYYYMMdd");
-    	val data = Integer.toString(period);
-    	 data.length match {
-    		 case 4 =>
-    			 val format = config.getString("metrics.period.format.year");
-    			 formatter.parseDateTime(data+"0101").toString(DateTimeFormat.forPattern(format))
-    		 case 6 => 
-    			 val format = config.getString("metrics.period.format.month");
-    			 formatter.parseDateTime(data+"01").toString(DateTimeFormat.forPattern(format))
-    		 case 7 =>
-    			 val format = config.getString("metrics.period.format.week");
-    			 data.substring(5, data.length) + format;
-    		 case 8 => 
-    			 val format = config.getString("metrics.period.format.day")
-    			 formatter.parseDateTime(data).toString(DateTimeFormat.forPattern(format))
-    		 case _ => data;
-    	 } 
+    def main(args: Array[String]): Unit = {
+        println("Week:" + weekPeriod.print(System.currentTimeMillis()));
+        
     }
 
 }
