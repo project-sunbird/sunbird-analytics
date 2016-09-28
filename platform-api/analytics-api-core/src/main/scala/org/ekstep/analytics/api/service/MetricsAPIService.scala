@@ -25,6 +25,7 @@ import org.ekstep.analytics.api.metrics.CotentUsageMetricsModel
 import org.ekstep.analytics.api.metrics.ContentPopularityMetricsModel
 import org.ekstep.analytics.api.metrics.ContentUsageListMetricsModel
 import org.ekstep.analytics.api.metrics.GenieLaunchMetricsModel
+import org.ekstep.analytics.api.metrics.ItemUsageMetricsModel
 
 /**
  * @author mahesh
@@ -79,6 +80,20 @@ object MetricsAPIService {
 		val tag = filter.tag.getOrElse("all");
 		val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period);
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.genie-launch", result));
+	}
+	
+	def itemUsage(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+		if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
+				throw new ClientException("period is missing or invalid.");
+		}
+		val filter = body.request.filter.getOrElse(Filter());
+		if (filter.content_id.isEmpty) {
+				throw new ClientException("filter.content_id is missing.");
+		}
+		val contentId = filter.content_id.get;
+		val tag = filter.tag.getOrElse("all");
+		val result = ItemUsageMetricsModel.fetch(contentId, tag, body.request.period);
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.item-usage", result));
 	}
 	
 }
