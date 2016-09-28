@@ -42,7 +42,7 @@ object ContentUsageTransformer extends RETransformer[ContentUsageSummaryFact, cu
             val avg_ts_session_t = x._2._1._1._2
             val num_interactions_t = x._2._1._2
             val mean_interactions_min_t = x._2._2
-            ContentUsageSummaryFact(cus.d_period, x._1, cus.d_tag, cus.m_publish_date, cus.m_last_sync_date, cus.m_last_gen_date, ts_t, total_sessions_t.toLong, avg_ts_session_t, num_interactions_t.toLong, mean_interactions_min_t)
+            ContentUsageSummaryFact(cus.d_period, x._1, cus.d_tag, cus.m_publish_date, cus.m_last_sync_date, cus.m_last_gen_date, ts_t, total_sessions_t.toLong, avg_ts_session_t, num_interactions_t.toLong, mean_interactions_min_t, cus.m_total_devices, cus.m_avg_sess_device, cus.m_device_ids)
         } 
     }
 }
