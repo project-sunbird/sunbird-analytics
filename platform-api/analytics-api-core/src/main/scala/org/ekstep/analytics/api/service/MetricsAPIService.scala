@@ -24,6 +24,7 @@ import org.apache.hadoop.mapred.InvalidInputException
 import org.ekstep.analytics.api.metrics.CotentUsageMetricsModel
 import org.ekstep.analytics.api.metrics.ContentPopularityMetricsModel
 import org.ekstep.analytics.api.metrics.ContentUsageListMetricsModel
+import org.ekstep.analytics.api.metrics.GenieLaunchMetricsModel
 
 /**
  * @author mahesh
@@ -67,6 +68,17 @@ object MetricsAPIService {
 		val tag = filter.tag.getOrElse("all");
 		val result = ContentUsageListMetricsModel.fetch(contentId, tag, body.request.period);
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-list", result));
+	}
+	
+	def genieLaunch(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+		if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
+				throw new ClientException("period is missing or invalid.");
+		}
+		val filter = body.request.filter.getOrElse(Filter());
+		val contentId = filter.content_id.getOrElse("all");
+		val tag = filter.tag.getOrElse("all");
+		val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period);
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.genie-launch", result));
 	}
 	
 }
