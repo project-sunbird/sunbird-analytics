@@ -110,6 +110,7 @@ case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_
 case class Empty() extends Input
 case class UpdaterOutput(msg: String) extends Output
 case class ContentKey(period: Int, content_id: String, tag: String);
+case class GenieKey(period: Int, tag: String);
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 trait CassandraTable extends AnyRef with Serializable;
 
