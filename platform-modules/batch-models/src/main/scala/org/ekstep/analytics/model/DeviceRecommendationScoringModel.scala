@@ -78,7 +78,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         // cus binning
         val contentUsageTransformations = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;//_getContentUsageTransformations(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;
         val contentUsageTB = sc.broadcast(contentUsageTransformations);
-        val contentUsage = cusOutlierTreatment.map { x => (x.d_content_id, x) }.collect().toMap;
+        val contentUsage = cusOutlierTreatment.map { x => (x._1, x._2) }.collect().toMap;
         val contentUsageB = sc.broadcast(contentUsage);
         contentUsageSummaries.unpersist(true);
 
@@ -92,13 +92,13 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(device_usage).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
         val dusTB = sc.broadcast(dusTransformations);
         // dus outlier-treatment
-        val dusOutlierTreatment = DeviceUsageTransformer.removeOutliers(device_usage).map { x => (DeviceId(x.device_id), x) }
+        val dusOutlierTreatment = DeviceUsageTransformer.removeOutliers(device_usage).map { x => (DeviceId(x._1), x._2) }
         
         // Device Content Usage Summaries
         val dcus = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
         //val device_content_usage = dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
         // dcus outlier-treatment
-        val dcusOutlierTreatment = DeviceContentUsageTransformer.removeOutliers(dcus.map(x => x._2)).map { x => (DeviceId(x.device_id), x) }
+        val dcusOutlierTreatment = DeviceContentUsageTransformer.removeOutliers(dcus.map(x => x._2)).map { x => (DeviceId(x._1), x._2) }
         val device_content_usage = dcusOutlierTreatment.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
         // dcus binning
         val dcusTransformations = DeviceContentUsageTransformer.getTransformationByBinning(dcus.map(x => x._2)).groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;//_getDeviceContentUsageTransformations(dcus.map(x => x._2)).map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;

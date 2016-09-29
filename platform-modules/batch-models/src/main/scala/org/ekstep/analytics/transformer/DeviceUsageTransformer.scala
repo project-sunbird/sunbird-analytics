@@ -22,7 +22,7 @@ object DeviceUsageTransformer extends RETransformer[DeviceUsageSummary, dus_tf] 
         f1_t.join(f2_t).join(f3_t).join(f4_t).mapValues(f => dus_tf(Option(f._1._1._1), Option(f._1._1._2), Option(f._1._2), Option(f._2)));
     }
     
-    override def removeOutliers(rdd: RDD[DeviceUsageSummary])(implicit sc: SparkContext): RDD[DeviceUsageSummary] = {
+    override def removeOutliers(rdd: RDD[DeviceUsageSummary])(implicit sc: SparkContext): RDD[(String, DeviceUsageSummary)] = {
         
         implicit val sqlContext = new SQLContext(sc);
         
@@ -61,7 +61,7 @@ object DeviceUsageTransformer extends RETransformer[DeviceUsageSummary, dus_tf] 
             val num_contents_t = x._2._1._1._2
             val num_days_t = x._2._1._2
             val num_sessions_t = x._2._2
-            DeviceUsageSummary(dus.device_id, dus.start_time, dus.end_time, Option(num_days_t.toLong), Option(total_launches_t.toLong), Option(ts_t), Option(avg_num_launches_t), Option(avg_time_t), Option(num_contents_t.toLong), dus.play_start_time, dus.last_played_on, Option(total_play_time_t), Option(num_sessions_t.toLong), Option(mean_play_time_t), Option(mean_play_time_interval_t),dus.last_played_content)
+            (x._1, DeviceUsageSummary(dus.device_id, dus.start_time, dus.end_time, Option(num_days_t.toLong), Option(total_launches_t.toLong), Option(ts_t), Option(avg_num_launches_t), Option(avg_time_t), Option(num_contents_t.toLong), dus.play_start_time, dus.last_played_on, Option(total_play_time_t), Option(num_sessions_t.toLong), Option(mean_play_time_t), Option(mean_play_time_interval_t),dus.last_played_content))
         } 
     }
 }
