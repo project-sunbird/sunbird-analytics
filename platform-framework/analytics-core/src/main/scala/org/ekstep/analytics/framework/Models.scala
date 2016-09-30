@@ -107,13 +107,12 @@ case class LearnerId(learner_id: String)
 case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
-case class Empty() extends Input
+case class Empty() extends Input with AlgoOutput with Output
 case class UpdaterOutput(msg: String) extends Output
 case class ContentKey(period: Int, content_id: String, tag: String);
 case class GenieKey(period: Int, tag: String);
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 trait CassandraTable extends AnyRef with Serializable;
-
 
 object Period extends Enumeration {
     type Period = Value
