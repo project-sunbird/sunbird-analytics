@@ -12,9 +12,9 @@ import org.apache.spark.ml.feature.{ CountVectorizerModel, CountVectorizer, Rege
 import org.apache.spark.mllib.linalg.Vector
 import org.apache.spark.sql.functions._
 
-trait RETransformer[T, R] {
+trait DeviceRecommendationTransformer[T, R] {
 
-    def name(): String = "RETransformer";
+    def name(): String = "DeviceRecommendationTransformer";
 
     def binning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, String)] = {
 

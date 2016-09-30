@@ -6,7 +6,7 @@ import org.apache.spark.sql.SQLContext
 import org.ekstep.analytics.model.DeviceContentSummary
 import org.ekstep.analytics.model.dcus_tf
 
-object DeviceContentUsageTransformer extends RETransformer[DeviceContentSummary, dcus_tf] {
+object DeviceContentUsageTransformer extends DeviceRecommendationTransformer[DeviceContentSummary, dcus_tf] {
  
     override def getTransformationByBinning(rdd: RDD[DeviceContentSummary])(implicit sc: SparkContext): RDD[(String, dcus_tf)] = {
         
