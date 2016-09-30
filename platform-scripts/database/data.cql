@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
 	m_correct_res list<text>,
 	m_top5_incorrect_res list<text>,
 	m_avg_ts double,
-	PRIMARY KEY (d_period, d_tag, d_content_id)
+	PRIMARY KEY (d_period, d_tag, d_content_id, d_item_id)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
