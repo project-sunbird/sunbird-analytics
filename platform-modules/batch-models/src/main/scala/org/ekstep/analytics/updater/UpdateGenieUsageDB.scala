@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.util.BloomFilterUtil
 
 case class GenieUsageSummaryFact_T(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_avg_ts_session: Double, m_last_gen_date: Long, m_contents: Array[String], m_device_ids: List[String]) extends AlgoOutput
-case class GenieUsageSummaryFact(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_avg_ts_session: Double, m_contents: Array[String], m_total_devices: Long, m_avg_sess_device: Double, m_device_ids: Array[Byte]) extends AlgoOutput
+case class GenieUsageSummaryFact(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_avg_ts_session: Double, m_contents: List[String], m_total_devices: Long, m_avg_sess_device: Double, m_device_ids: Array[Byte]) extends AlgoOutput
 case class GenieUsageSummaryIndex(d_period: Int, d_tag: String) extends Output
 
 object UpdateGenieUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, GenieUsageSummaryFact, GenieUsageSummaryIndex] with Serializable {
@@ -41,10 +41,10 @@ object UpdateGenieUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent
             val total_ts = eksMap.get("total_ts").get.asInstanceOf[Double]
             val total_sessions = eksMap.get("total_sessions").get.asInstanceOf[Int]
             val avg_ts_session = eksMap.get("avg_ts_session").get.asInstanceOf[Double]
-            val contents = eksMap.get("contents").get.asInstanceOf[Array[String]]
+            val contents = eksMap.get("contents").get.asInstanceOf[List[String]]
             val device_ids = eksMap.get("device_ids").get.asInstanceOf[List[String]]
 
-            GenieUsageSummaryFact_T(period, tag, total_sessions, total_ts, avg_ts_session, x.context.date_range.to, contents, device_ids);
+            GenieUsageSummaryFact_T(period, tag, total_sessions, total_ts, avg_ts_session, x.context.date_range.to, contents.toArray, device_ids);
         }.cache();
 
         // Roll up summaries
@@ -68,7 +68,7 @@ object UpdateGenieUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
             val newSumm = x._2._1
-            val prvSumm = x._2._2.getOrElse(GenieUsageSummaryFact(index.d_period, index.d_tag, 0L, 0.0, 0.0, Array(), 0L, 0.0, BloomFilterUtil.getDefaultBytes(period)));
+            val prvSumm = x._2._2.getOrElse(GenieUsageSummaryFact(index.d_period, index.d_tag, 0L, 0.0, 0.0, List(), 0L, 0.0, BloomFilterUtil.getDefaultBytes(period)));
             reduce(prvSumm, newSumm, period);
         }
         rollupSummaries;
@@ -94,7 +94,7 @@ object UpdateGenieUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent
         val total_devices = didCount + fact1.m_total_devices;
         val avg_sess_device = CommonUtil.roundDouble(total_sessions.toDouble / total_devices, 2);
         val device_ids = BloomFilterUtil.serialize(bf);
-        GenieUsageSummaryFact(fact1.d_period, fact1.d_tag, total_sessions, total_ts,avg_ts_session, contents, total_devices, avg_sess_device, device_ids);
+        GenieUsageSummaryFact(fact1.d_period, fact1.d_tag, total_sessions, total_ts,avg_ts_session, contents.toList, total_devices, avg_sess_device, device_ids);
     }
 
 }
