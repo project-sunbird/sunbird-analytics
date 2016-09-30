@@ -9,7 +9,7 @@ import org.ekstep.analytics.job.summarizer.AserScreenSummarizer
 import org.ekstep.analytics.job.summarizer.ItemSummarizer
 import org.ekstep.analytics.job.summarizer.ContentSideloadingSummarizer
 import org.ekstep.analytics.job.summarizer.LearnerSessionSummarizer
-import org.ekstep.analytics.job.summarizer.DeviceRecommendationJob
+import org.ekstep.analytics.job.summarizer.DeviceRecommendationTrainingJob
 import org.ekstep.analytics.job.summarizer.GenieUsageSessionSummarizer
 import org.ekstep.analytics.job.summarizer.GenieLaunchSummarizer
 import org.ekstep.analytics.job.summarizer.RecommendationEngineJob
@@ -26,6 +26,7 @@ import org.ekstep.analytics.job.summarizer.CSVDumpJob
 import org.ekstep.analytics.job.consolidated.RawTelemetryJobs
 import org.ekstep.analytics.job.consolidated.SessionSummaryJobs
 import org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters
+import org.ekstep.analytics.job.summarizer.DeviceRecommendationScoringJob
 import org.ekstep.analytics.job.summarizer.StageSummarizer
 
 object JobFactory {
@@ -72,8 +73,10 @@ object JobFactory {
                 CSVDumpJob
             case "ctv" =>
                 ContentToVecJob
-            case "device-recos" =>
-                DeviceRecommendationJob
+            case "device-recos-training" =>
+                DeviceRecommendationTrainingJob  
+            case "device-recos-scoring" =>
+                DeviceRecommendationScoringJob
             case "raw-telemetry-jobs" =>
                 RawTelemetryJobs
             case "ss-jobs" =>

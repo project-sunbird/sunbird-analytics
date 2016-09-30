@@ -13,23 +13,24 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 	
 	override def metric : String = "gls"; // Because content list is part of GLS.
 	
-	override def getMetrics(records: RDD[ContentUsageListMetrics], period: String)(implicit sc: SparkContext, config: Config): Array[ContentUsageListMetrics] = {
+	override def getMetrics(records: RDD[ContentUsageListMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[ContentUsageListMetrics] = {
 		val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
-		val recordsRDD = records.map { x => (x.d_period, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => (period, ContentUsageListMetrics(period)) });
+		val recordsRDD = records.map { x => (x.d_period.get, x) };
+		var periodsRDD = sc.parallelize(periods.map { period => (period, ContentUsageListMetrics(Option(period))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
 			if(f._2._2.isDefined) f._2._2.get else f._2._1 
 		}.map { x => 
-			x.label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period));
+			x.label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get));
 			val contents = for(id <- x.m_contents.getOrElse(List())) yield {
 				RecommendationAPIService.contentBroadcastMap.value.getOrElse(id.toString, Map())
 			}
 			x.m_contents = Option(contents);
-		 x }.collect();
+		 x };
 	}
 	
-	override def getSummary(metrics: Array[ContentUsageListMetrics]): Map[String, AnyRef] = {
-		Map();
-	} 
+	override def reduce(fact1: ContentUsageListMetrics, fact2: ContentUsageListMetrics): ContentUsageListMetrics = {
+		val contents = (fact2.m_contents.getOrElse(List()) ++ fact1.m_contents.getOrElse(List())).distinct;
+		ContentUsageListMetrics(None, None, Option(contents))
+	}
 }
