@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.spark.storage.StorageLevel
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
-import org.ekstep.analytics.updater.ContentUsageSummaryFact
+import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.joda.time.DateTime
 import org.apache.spark.ml.feature.VectorIndexer
 import org.apache.spark.sql.functions._

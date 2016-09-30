@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.spark.storage.StorageLevel
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
-import org.ekstep.analytics.updater.ContentUsageSummaryFact
 import org.joda.time.DateTime
 import org.apache.spark.ml.feature.VectorIndexer
 import org.apache.spark.sql.functions._
@@ -42,6 +41,7 @@ import breeze.stats._
 import java.io.File
 import org.ekstep.analytics.updater.DeviceSpec
 import org.ekstep.analytics.transformer._
+import org.ekstep.analytics.util.ContentUsageSummaryFact
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput with AlgoOutput with Output;
@@ -77,7 +77,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val contentVectorsB = sc.broadcast(contentVectors);
 
         // Content Usage Summaries
-        val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).cache();
+        val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map{ x => x}.cache();
         // cus transformations
         val cusT = ContentUsageTransformer.excecute(contentUsageSummaries)
         val contentUsageB = cusT.map{ x => (x._1, x._2._2)}.collect().toMap

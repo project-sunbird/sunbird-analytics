@@ -37,7 +37,8 @@ case class ContentUsageMetrics(d_period: Int, var label: Option[String] = None, 
 case class ContentUsageListMetrics(d_period: Int, var label: Option[String] = None, var m_contents: Option[List[AnyRef]] = Option(List())) extends Metrics;
 case class ContentPopularityMetrics(d_period: Int, var label: Option[String] = None, m_downloads: Option[Long] = Option(0), m_side_loads: Option[Long] = Option(0), m_ratings: Option[List[(Double, DateTime)]] = Option(List()), m_avg_rating: Option[Double] = Option(0.0)) extends Metrics;
 case class GenieLaunchMetrics(d_period: Int, var label: Option[String] = None, m_total_sessions: Option[Long] = Option(0), m_total_ts: Option[Double] = Option(0.0), m_total_devices: Option[Long] = Option(0), m_avg_sess_device: Option[Double] = Option(0.0), m_avg_ts_session: Option[Long] = Option(0)) extends Metrics;
-
+case class ItemUsageSummary( d_item_id: String, var d_content_id: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_count: Option[Long] = Option(0), m_correct_res_count: Option[Long] = Option(0), m_inc_res_count: Option[Long] = Option(0), m_correct_res: Option[List[AnyRef]] = Option(List()), m_top5_incorrect_res: Option[List[AnyRef]] = Option(List()), m_avg_ts: Option[Double] = Option(0.0))
+case class ItemUsageMetrics(d_period: Int, var label: Option[String] = None, items: Option[List[ItemUsageSummary]] = Option(List())) extends Metrics;
 
 case class RecommendationContent(device_id: String, scores: List[(String, Double)])
 case class ContentVectors(content_vectors: Array[ContentVector]);

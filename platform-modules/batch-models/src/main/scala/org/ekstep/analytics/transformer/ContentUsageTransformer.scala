@@ -3,7 +3,7 @@ package org.ekstep.analytics.transformer
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
-import org.ekstep.analytics.updater.ContentUsageSummaryFact
+import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.ekstep.analytics.model.cus_t
 
 object ContentUsageTransformer extends DeviceRecommendationTransformer[ContentUsageSummaryFact, cus_t]{

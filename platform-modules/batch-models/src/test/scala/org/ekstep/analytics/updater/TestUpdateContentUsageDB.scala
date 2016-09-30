@@ -17,6 +17,7 @@ import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.RegisteredTag
+import org.ekstep.analytics.util.ContentUsageSummaryFact
 
 class TestUpdateContentUsageDB extends SparkSpec(null) {
 
