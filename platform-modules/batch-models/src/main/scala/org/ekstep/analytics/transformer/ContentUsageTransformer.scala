@@ -45,4 +45,11 @@ object ContentUsageTransformer extends RETransformer[ContentUsageSummaryFact, cu
             (x._1, ContentUsageSummaryFact(cus.d_period, x._1, cus.d_tag, cus.m_publish_date, cus.m_last_sync_date, cus.m_last_gen_date, ts_t, total_sessions_t.toLong, avg_ts_session_t, num_interactions_t.toLong, mean_interactions_min_t, cus.m_total_devices, cus.m_avg_sess_device, cus.m_device_ids))
         } 
     }
+    
+    def excecute(rdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[(String,(ContentUsageSummaryFact, cus_t))] = {
+        
+        val binning = getTransformationByBinning(rdd)
+        val outlier = removeOutliers(rdd)
+        outlier.join(binning);
+    }
 }

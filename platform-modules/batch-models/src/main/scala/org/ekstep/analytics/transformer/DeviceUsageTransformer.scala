@@ -64,4 +64,11 @@ object DeviceUsageTransformer extends RETransformer[DeviceUsageSummary, dus_tf] 
             (x._1, DeviceUsageSummary(dus.device_id, dus.start_time, dus.end_time, Option(num_days_t.toLong), Option(total_launches_t.toLong), Option(ts_t), Option(avg_num_launches_t), Option(avg_time_t), Option(num_contents_t.toLong), dus.play_start_time, dus.last_played_on, Option(total_play_time_t), Option(num_sessions_t.toLong), Option(mean_play_time_t), Option(mean_play_time_interval_t),dus.last_played_content))
         } 
     }
+    
+    def excecute(rdd: RDD[DeviceUsageSummary])(implicit sc: SparkContext): RDD[(String,(DeviceUsageSummary, dus_tf))] = {
+        
+        val binning = getTransformationByBinning(rdd)
+        val outlier = removeOutliers(rdd)
+        outlier.join(binning);
+    }
 }

@@ -12,8 +12,6 @@ import org.apache.spark.ml.feature.{ CountVectorizerModel, CountVectorizer, Rege
 import org.apache.spark.mllib.linalg.Vector
 import org.apache.spark.sql.functions._
 
-case class id(id: String)
-
 trait RETransformer[T, R] {
 
     def name(): String = "RETransformer";
@@ -50,6 +48,8 @@ trait RETransformer[T, R] {
     def getTransformationByBinning(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String, R)]
 
     def removeOutliers(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String, T)]
+    
+    def excecute(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String,(T, R))]
 
     private def flattenColumn(df: DataFrame, colToSplit: String, cols: Array[String])(implicit sc: SparkContext): DataFrame = {
 
@@ -85,12 +85,5 @@ trait RETransformer[T, R] {
         flattenColumn(x, colName, possibleValues).drop("colToSplit").drop(colName).withColumnRenamed("label", "c1_total_ts")
         
     }
-    
-    def excecute(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String,T, R)] = {
-        
-        val binning = getTransformationByBinning(rdd).map{ x => (id(x._1), x._2)}
-        val outlier = removeOutliers(rdd).map{ x => (id(x._1), x._2)}
-        //val x = outlier.leftOuterJoin(binning)
-        null
-    }
+
 }

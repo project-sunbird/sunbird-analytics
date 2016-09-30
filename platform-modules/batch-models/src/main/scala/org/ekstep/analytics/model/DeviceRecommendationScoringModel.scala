@@ -73,13 +73,12 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).cache();
-        // cus outlier-treatment
-        val cusOutlierTreatment = ContentUsageTransformer.removeOutliers(contentUsageSummaries)
-        // cus binning
-        val contentUsageTransformations = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;//_getContentUsageTransformations(contentUsageSummaries).map { x => (x._1, x._2) }.collect().toMap;
-        val contentUsageTB = sc.broadcast(contentUsageTransformations);
-        val contentUsage = cusOutlierTreatment.map { x => (x._1, x._2) }.collect().toMap;
-        val contentUsageB = sc.broadcast(contentUsage);
+        // cus transformations
+        val cusT = ContentUsageTransformer.excecute(contentUsageSummaries)
+        val contentUsageB = cusT.map{ x => (x._1, x._2._2)}.collect().toMap
+        val contentUsageBB = sc.broadcast(contentUsageB);
+        val contentUsageO = cusT.map{ x => (x._1, x._2._1)}.collect().toMap
+        val contentUsageOB = sc.broadcast(contentUsageO);
         contentUsageSummaries.unpersist(true);
 
         // device-specifications
@@ -88,26 +87,25 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
         // Device Usage Summaries
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map{ x => x._2}//.map { x => (x._1, x._2) }
-        // dus binning
-        val dusTransformations = DeviceUsageTransformer.getTransformationByBinning(device_usage).map { x => (x._1, x._2) }.collect().toMap;//_getDeviceUsageTransformations(dus).map { x => (x._1, x._2) }.collect().toMap;
-        val dusTB = sc.broadcast(dusTransformations);
-        // dus outlier-treatment
-        val dusOutlierTreatment = DeviceUsageTransformer.removeOutliers(device_usage).map { x => (DeviceId(x._1), x._2) }
+        // dus transformations
+        val dusT = DeviceUsageTransformer.excecute(device_usage)
+        val dusB = dusT.map{x => (x._1, x._2._2)}.collect().toMap;
+        val dusBB = sc.broadcast(dusB);
+        val dusO = dusT.map{x => (DeviceId(x._1), x._2._1)}
         
         // Device Content Usage Summaries
         val dcus = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
-        //val device_content_usage = dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
-        // dcus outlier-treatment
-        val dcusOutlierTreatment = DeviceContentUsageTransformer.removeOutliers(dcus.map(x => x._2)).map { x => (DeviceId(x._1), x._2) }
-        val device_content_usage = dcusOutlierTreatment.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
-        // dcus binning
-        val dcusTransformations = DeviceContentUsageTransformer.getTransformationByBinning(dcus.map(x => x._2)).groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;//_getDeviceContentUsageTransformations(dcus.map(x => x._2)).map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
-        val dcusTB = sc.broadcast(dcusTransformations);
+        // dcus transformations
+        val dcusT = DeviceContentUsageTransformer.excecute(dcus.map(x => x._2))
+        val dcusB = dcusT.map{x => (x._1,x._2._2)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
+        val dcusBB = sc.broadcast(dcusB);
+        val dcusO = dcusT.map{x => (DeviceId(x._1),x._2._1)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
+        
         dcus.unpersist(true);
         
-        device_spec.leftOuterJoin(dusOutlierTreatment).leftOuterJoin(device_content_usage).map { x =>
+        device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
-            val dcT = dcusTB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.contentId, x) }.toMap;
+            val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.contentId, x) }.toMap;
             DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, dcT)
         }.map { x =>
             val rand = new Random(System.currentTimeMillis());
@@ -120,10 +118,10 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                     val contentInFocusVec = contentVectorsB.value.getOrElse(y._1, null);
                     val otherContentModelVec = if (null != otherContentId) contentVectorsB.value.getOrElse(randomContent.content_id, null) else null;
                     val contentInFocusUsageSummary = x.device_content.getOrElse(y._1, defaultDCUS);
-                    val contentInFocusSummary = contentUsageB.value.getOrElse(y._1, defaultCUS)
-                    val otherContentSummary = if (null != otherContentId) contentUsageB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
-                    val otherContentSummaryT = if (null != otherContentId) contentUsageTB.value.getOrElse(otherContentId, cus_t(None, None)) else cus_t(None, None);
-                    val dusT = dusTB.value.getOrElse(x.did.device_id, dus_tf(None, None, None, None));
+                    val contentInFocusSummary = contentUsageOB.value.getOrElse(y._1, defaultCUS)
+                    val otherContentSummary = if (null != otherContentId) contentUsageOB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
+                    val otherContentSummaryT = if (null != otherContentId) contentUsageBB.value.getOrElse(otherContentId, cus_t(None, None)) else cus_t(None, None);
+                    val dusT = dusBB.value.getOrElse(x.did.device_id, dus_tf(None, None, None, None));
                     DeviceContext(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec, otherContentSummaryT, dusT, dcusT);
                 }
             }
