@@ -62,14 +62,6 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
         GenieUsageMetricsSummary(gk, total_ts, total_sessions, avg_ts_session, event.context.date_range, event.syncts, contents, Array(event.dimensions.did.get));
     }
     
-    private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
-
-        val tagList = event.tags.get.asInstanceOf[List[Map[String, List[String]]]]
-        val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
-        val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
-        tempList.filter { x => registeredTags.contains(x) }.toArray;
-    }
-    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsGenieSummary] = {
         val configMapping = sc.broadcast(config);
         val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter{x=> true==x.active}.map { x => x.tag_id }.collect
@@ -83,7 +75,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
             list += getGenieUsageSummary(event, period, "all");
-            val tags = _getValidTags(event, registeredTags);
+            val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
                 list += getGenieUsageSummary(event, period, tag);
             }

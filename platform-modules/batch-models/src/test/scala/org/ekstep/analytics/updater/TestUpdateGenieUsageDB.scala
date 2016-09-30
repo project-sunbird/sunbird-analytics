@@ -11,7 +11,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestUpdateGenieUsageDB extends SparkSpec(null) {
 
-    "UpdateGenieUsageDB" should "update the genie usage updater db and check the updated fields" in {
+    "UpdateGenieUsageDB" should "update the genie usage db and check the fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.genie_launch_summary_fact");

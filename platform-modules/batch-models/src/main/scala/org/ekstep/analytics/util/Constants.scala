@@ -23,6 +23,7 @@ object Constants {
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
     val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact";
     val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact";
+    val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
     val CONTENT_TO_VEC = "content_to_vector";
     

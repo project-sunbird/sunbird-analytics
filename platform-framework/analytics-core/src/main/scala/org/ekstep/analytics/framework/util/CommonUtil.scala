@@ -415,4 +415,11 @@ object CommonUtil {
         x.toArray;
     }
 
+     def getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
+
+        val tagList = event.tags.get.asInstanceOf[List[Map[String, List[String]]]]
+        val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
+        val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
+        tempList.filter { x => registeredTags.contains(x) }.toArray;
+    }
 }

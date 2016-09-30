@@ -1,7 +1,5 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.OutputDispatcher
-import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.RegisteredTag
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
