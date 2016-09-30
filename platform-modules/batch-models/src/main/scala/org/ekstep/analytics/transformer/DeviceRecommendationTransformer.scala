@@ -33,14 +33,14 @@ trait DeviceRecommendationTransformer[T, R] {
     def outlierTreatment(rdd: RDD[(String, Double)]): RDD[(String, Double)] = {
         val valueArray = rdd.map { x => x._2 }.collect()
         val q1 = DescriptiveStats.percentile(valueArray, 0.25)
-        //val q2 = DescriptiveStats.percentile(valueRDD, 0.5)
+        val q2 = DescriptiveStats.percentile(valueArray, 0.5)
         val q3 = DescriptiveStats.percentile(valueArray, 0.75)
         val iqr = q3 - q1
         val lowerLimit = q1 - (1.5 * iqr)
         val upperLimit = q3 + (1.5 * iqr)
         rdd.map { x =>
-            if (x._2 < lowerLimit) (x._1, lowerLimit)
-            else if (x._2 > upperLimit) (x._1, upperLimit)
+            if (x._2 < lowerLimit) (x._1, q2)
+            else if (x._2 > upperLimit) (x._1, q2)
             else x
         }
     }

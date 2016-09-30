@@ -46,7 +46,7 @@ object ContentUsageTransformer extends DeviceRecommendationTransformer[ContentUs
         } 
     }
     
-    def excecute(rdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[(String,(ContentUsageSummaryFact, cus_t))] = {
+    override def excecute(rdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[(String,(ContentUsageSummaryFact, cus_t))] = {
         
         val binning = getTransformationByBinning(rdd)
         val outlier = removeOutliers(rdd)
