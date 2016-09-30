@@ -24,7 +24,7 @@ case class MockContentPopularityMetrics(d_period: Option[Int], m_downloads: Long
 case class GenieUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double)
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
-case class Result(metrics: Array[Map[String, AnyRef]], summary: Map[String, AnyRef], ttl: Int);
+case class Result(metrics: Array[Map[String, AnyRef]], summary: Map[String, AnyRef]);
 case class MetricsResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Option[Map[String, AnyRef]]);
 
