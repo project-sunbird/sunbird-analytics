@@ -15,8 +15,9 @@ import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.ContentKey
+import org.joda.time.DateTimeZone
 
-case class ContentPopularitySummary(ck: ContentKey, comments: Array[String], rating: Array[Double], avg_rating: Double, downloads: Int, side_loads: Int, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
+case class ContentPopularitySummary(ck: ContentKey, m_comments: List[Map[String, AnyRef]], m_ratings: List[Map[String, AnyRef]], m_avg_rating: Double, m_downloads: Int, m_side_loads: Int, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
 case class InputEventsContentPopularity(ck: ContentKey, events: Buffer[ContentPopularitySummary]) extends Input with AlgoInput
 
 object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEventsContentPopularity, ContentPopularitySummary, MeasuredEvent] with Serializable {
@@ -31,12 +32,15 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
         
         val gdata = if (StringUtils.equals(ck.content_id, "all")) None else Option(new GData(ck.content_id, firstEvent.gdata.get.ver));
         val dt_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.from);
-        val downloads = events.map { x => x.downloads }.sum;
-        val side_loads = events.map { x => x.side_loads }.sum;
-        val comments = events.map { x => x.comments }.flatMap { x => x }.filter { x => !StringUtils.isEmpty(x) }.toArray;
-        val rating = events.map { x => x.rating }.flatMap { x => x }.filter { x => x != 0.0 }.toArray;
-        val avg_rating = if (rating.length > 0) CommonUtil.roundDouble(rating.sum/rating.length, 2) else 0.0;
-        ContentPopularitySummary(ck, comments, rating, avg_rating, downloads, side_loads, dt_range, lastEvent.syncts, gdata);
+        val downloads = events.map { x => x.m_downloads }.sum;
+        val side_loads = events.map { x => x.m_side_loads }.sum;
+        val comments = events.map { x => x.m_comments }.flatMap { x => x }.filter { x => !StringUtils.isEmpty(x.getOrElse("comment", "").asInstanceOf[String]) }.toList;
+        val ratings = events.map { x => x.m_ratings }.flatMap { x => x }.filter { x => x.getOrElse("rating", 0.0).asInstanceOf[Double]  > 0.0 }.toList;
+        val avg_rating = if (ratings.length > 0) {
+        	val total_rating = ratings.map(f => f.getOrElse("rating", 0.0).asInstanceOf[Double]).sum;
+        	CommonUtil.roundDouble(total_rating/ratings.length, 2);
+        } else 0.0;
+        ContentPopularitySummary(ck, comments, ratings, avg_rating, downloads, side_loads, dt_range, lastEvent.syncts, gdata);
 	}
 	
 	private def getContentPopularitySummary(event: Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
@@ -44,10 +48,10 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 		if ("GE_FEEDBACK".equals(event.eid)) {
 			val ck = ContentKey(period, contentId, tagId);
 			val gdata = event.gdata;
-			val comments = event.edata.eks.comments;
-			val rating = event.edata.eks.rating;
-			val avg_rating = rating;
-			Array(ContentPopularitySummary(ck, Array(comments), Array(rating), avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), Option(gdata)));
+			val comments = List(Map("comment" -> event.edata.eks.comments,  "time" -> event.ets.asInstanceOf[AnyRef]));
+			val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef],  "time" -> event.ets.asInstanceOf[AnyRef]));
+			val avg_rating = event.edata.eks.rating;
+			Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), Option(gdata)));
 		} else if ("GE_TRANSFER".equals(event.eid)) {
 			val contents = event.edata.eks.contents;
 			contents.map { content => 
@@ -57,7 +61,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 				val transferCount = content.get("transferCount").get.asInstanceOf[Double];
 				val downloads = if (transferCount == 0.0) 1 else 0;
 				val side_loads = if (transferCount >= 1.0) 1 else 0;
-				ContentPopularitySummary(ck, Array(), Array(), 0.0, downloads, side_loads, dt_range, CommonUtil.getEventSyncTS(event), gdata);
+				ContentPopularitySummary(ck, List(), List(), 0.0, downloads, side_loads, dt_range, CommonUtil.getEventSyncTS(event), gdata);
 			}
 		} else {
 			Array();
@@ -100,11 +104,12 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 		data.map { cpMetrics =>  
 			val mid = CommonUtil.getMessageId("ME_CONTENT_POPULARITY_SUMMARY", cpMetrics.ck.content_id + cpMetrics.ck.tag + cpMetrics.ck.period, "DAY", cpMetrics.syncts);
 			val measures = Map(
-                "downloads" -> cpMetrics.downloads,
-                "side_loads" -> cpMetrics.side_loads,
-                "avg_rating" -> cpMetrics.avg_rating,
-                "rating" -> cpMetrics.rating,
-                "comments" -> cpMetrics.comments)
+                "m_downloads" -> cpMetrics.m_downloads,
+                "m_side_loads" -> cpMetrics.m_side_loads,
+                "m_avg_rating" -> cpMetrics.m_avg_rating,
+                "m_ratings" -> cpMetrics.m_ratings,
+                "m_comments" -> cpMetrics.m_comments,
+                "m_avg_rating" -> cpMetrics.m_avg_rating)
 			
             MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.dt_range.to, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentPopularitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cpMetrics.dt_range),
