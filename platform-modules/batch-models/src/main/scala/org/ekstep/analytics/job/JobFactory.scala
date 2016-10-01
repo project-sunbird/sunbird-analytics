@@ -6,7 +6,6 @@ import org.ekstep.analytics.job.summarizer.ContentUsageSummarizer
 import org.ekstep.analytics.job.summarizer.DeviceUsageSummarizer
 import org.ekstep.analytics.job.summarizer.LearnerActivitySummarizer
 import org.ekstep.analytics.job.summarizer.AserScreenSummarizer
-import org.ekstep.analytics.job.summarizer.ItemSummarizer
 import org.ekstep.analytics.job.summarizer.ContentSideloadingSummarizer
 import org.ekstep.analytics.job.summarizer.LearnerSessionSummarizer
 import org.ekstep.analytics.job.summarizer.DeviceRecommendationTrainingJob
@@ -28,6 +27,7 @@ import org.ekstep.analytics.job.consolidated.SessionSummaryJobs
 import org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters
 import org.ekstep.analytics.job.summarizer.DeviceRecommendationScoringJob
 import org.ekstep.analytics.job.summarizer.StageSummarizer
+import org.ekstep.analytics.job.summarizer.ItemUsageSummarizer
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -66,7 +66,7 @@ object JobFactory {
             case "dsu" =>
                 DeviceSpecificationUpdater
             case "is" =>
-                ItemSummarizer
+                ItemUsageSummarizer
             case "dcus" =>
                 DeviceContentUsageSummarizer
             case "csv" => 

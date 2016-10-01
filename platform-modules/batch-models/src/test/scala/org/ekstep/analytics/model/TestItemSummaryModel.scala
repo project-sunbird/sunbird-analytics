@@ -21,7 +21,7 @@ class TestItemSummaryModel extends SparkSpec(null) {
         val tag2 = RegisteredTag("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", System.currentTimeMillis(), true)
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/item-usage-summary-model/item_summary_1.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-model/item_summary_1.log");
         val out = ItemSummaryModel.execute(rdd, None);
         val events = out.collect()
         
@@ -42,7 +42,7 @@ class TestItemSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate item summary from the input data having one pre-registered tag" in {
-        val rdd = loadFile[DerivedEvent]("src/test/resources/item-usage-summary-model/item_summary_2.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-model/item_summary_2.log");
         val out = ItemSummaryModel.execute(rdd, None);
         val events = out.collect()
         

@@ -9,7 +9,7 @@ import org.ekstep.analytics.updater.UpdateContentUsageDB
 
 object ContentUsageUpdater extends Application with IJob {
     
-    implicit val className = "org.ekstep.analytics.job.ContentUsageUpdaterJob"
+    implicit val className = "org.ekstep.analytics.job.updater.ContentUsageUpdater"
   
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.log("Started executing Job")

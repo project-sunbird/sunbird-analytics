@@ -18,7 +18,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
             session.execute("TRUNCATE content_db.item_usage_summary_fact");
         }
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/item-usage-updater/ius_1.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-updater/ius_1.log");
         val rdd2 = UpdateItemSummaryDB.execute(rdd, None);
 
         val cummAlldo_20043159ItemSumm = sc.cassandraTable[ItemUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.ITEM_USAGE_SUMMARY_FACT).where("d_period=?", 0).where("d_tag=?", "all").where("d_content_id=?", "do_20043159").collect
