@@ -72,6 +72,18 @@ config() {
 		"ss-jobs")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":6}]},"model":"org.ekstep.analytics.job.consolidated.SessionSummaryJobs","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"Session Summary Jobs","deviceMapping":false}'
 		;;
+		"gusm")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gls/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieUsageSummaryModel","output":[{"to":"console","params":{"printEvent":false}}, {"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"GenieUsageSummarizer","deviceMapping":false}'
+		;;
+		"gusmu")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gusm/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.updater.UpdateGenieUsageDB","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"GenieUsageUpdater","deviceMapping":false}'
+		;;
+		"ism")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"is/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ItemSummaryModel","output":[{"to":"console","params":{"printEvent":false}}, {"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"Item Summarizer","deviceMapping":false}'
+		;;
+		"ismu")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ism/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.updater.UpdateItemSummaryDB","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Item Summary Updater","deviceMapping":false}'
+		;;
 		*)  
 		echo "Unknown model code"
       	exit 1 # Command to come out of the program with status 1

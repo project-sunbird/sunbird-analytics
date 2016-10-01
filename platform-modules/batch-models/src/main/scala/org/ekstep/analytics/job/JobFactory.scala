@@ -89,10 +89,6 @@ object JobFactory {
                 RawTelemetryUpdaters
             case "sts" =>
                 StageSummarizer
-            case "cusm" =>
-                ContentUsageSummarizer
-            case "cusmu" =>
-                ContentUsageUpdater
             case "gusm" =>
                 GenieUsageSummarizer
             case "gusmu" =>
