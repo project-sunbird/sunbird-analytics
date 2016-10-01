@@ -32,7 +32,6 @@ object UpdateContentPopularityDB extends IBatchModelTemplate[DerivedEvent, Deriv
 	
 	override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPopularitySummaryFact2] = {
 
-		println("length:", data.collect().length);
         val contentSummary = data.map { x =>
 
             val period = x.dimensions.period.get;
@@ -56,7 +55,6 @@ object UpdateContentPopularityDB extends IBatchModelTemplate[DerivedEvent, Deriv
 
 	override def postProcess(data: RDD[ContentPopularitySummaryFact2], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSummaryIndex] = {
         // Update the database
-		println("PostP:",JSONUtils.serialize(data.collect()));
         data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT)
         data.map { x => ContentSummaryIndex(x.d_period, x.d_content_id, x.d_tag) };
     }
