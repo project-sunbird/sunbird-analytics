@@ -25,7 +25,7 @@ object PrecomputedViewsJob extends Application {
 		} catch {
             case ex: Exception =>
                 JobLogger.log(ex.getMessage, None, ERROR);
-                JobLogger.end("Replay Supervisor failed", "FAILED")
+                JobLogger.end("Precomputed Views Job failed", "FAILED")
                 throw ex
         } finally {
             CommonUtil.closeSparkContext()(sc);
