@@ -32,6 +32,7 @@ import org.ekstep.analytics.job.summarizer.GenieUsageSummarizer
 import org.ekstep.analytics.job.updater.GenieUsageUpdater
 import org.ekstep.analytics.job.summarizer.ItemSummarizer
 import org.ekstep.analytics.job.updater.ItemSummaryUpdater
+import org.ekstep.analytics.job.updater.ContentPopularityUpdater
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -55,6 +56,8 @@ object JobFactory {
                 ContentUsageSummarizer
             case "cps" =>
                 ContentPopularitySummarizer
+            case "cpu" =>
+                ContentPopularityUpdater
             case "cuu" =>
                 ContentUsageUpdater
             case "gss" =>

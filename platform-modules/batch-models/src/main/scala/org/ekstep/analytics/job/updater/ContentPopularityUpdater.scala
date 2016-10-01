@@ -9,7 +9,7 @@ import org.ekstep.analytics.updater.UpdateContentPopularityDB
 
 object ContentPopularityUpdater extends Application with IJob {
 
-	implicit val className = "org.ekstep.analytics.job.ContentPopularityUpdaterJob"
+	implicit val className = "org.ekstep.analytics.job.ContentPopularityUpdater"
 	
 	def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.log("Started executing Job")
