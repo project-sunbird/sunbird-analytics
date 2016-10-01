@@ -28,6 +28,10 @@ import org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters
 import org.ekstep.analytics.job.summarizer.DeviceRecommendationScoringJob
 import org.ekstep.analytics.job.summarizer.StageSummarizer
 import org.ekstep.analytics.job.summarizer.ItemUsageSummarizer
+import org.ekstep.analytics.job.summarizer.GenieUsageSummarizer
+import org.ekstep.analytics.job.updater.GenieUsageUpdater
+import org.ekstep.analytics.job.summarizer.ItemSummarizer
+import org.ekstep.analytics.job.updater.ItemSummaryUpdater
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -50,7 +54,7 @@ object JobFactory {
             case "cus" =>
                 ContentUsageSummarizer
             case "cps" =>
-            	ContentPopularitySummarizer
+                ContentPopularitySummarizer
             case "cuu" =>
                 ContentUsageUpdater
             case "gss" =>
@@ -69,12 +73,12 @@ object JobFactory {
                 ItemUsageSummarizer
             case "dcus" =>
                 DeviceContentUsageSummarizer
-            case "csv" => 
+            case "csv" =>
                 CSVDumpJob
             case "ctv" =>
                 ContentToVecJob
             case "device-recos-training" =>
-                DeviceRecommendationTrainingJob  
+                DeviceRecommendationTrainingJob
             case "device-recos-scoring" =>
                 DeviceRecommendationScoringJob
             case "raw-telemetry-jobs" =>
@@ -85,6 +89,18 @@ object JobFactory {
                 RawTelemetryUpdaters
             case "sts" =>
                 StageSummarizer
+            case "cusm" =>
+                ContentUsageSummarizer
+            case "cusmu" =>
+                ContentUsageUpdater
+            case "gusm" =>
+                GenieUsageSummarizer
+            case "gusmu" =>
+                GenieUsageUpdater
+            case "ism" =>
+                ItemSummarizer
+            case "ismu" =>
+                ItemSummaryUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
