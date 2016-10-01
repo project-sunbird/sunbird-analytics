@@ -101,6 +101,10 @@ jobs:
     hour: 1
     minute: 42
     state: present
+  cpu:
+    hour: 2
+    minute: 03
+    state: present
   dcus:
     hour: 2
     minute: 05
@@ -113,10 +117,26 @@ jobs:
     hour: 2
     minute: 09
     state: present
+  gusm:
+    hour: 2
+    minute: 10
+    state: present
+  ism:
+    hour: 2
+    minute: 11
+    state: present
+  gusmu:
+    hour: 2
+    minute: 25
+    state: present
+  ismu:
+    hour: 2
+    minute: 26
+    state: present
 monit_jobs:
   joblog.log:
     hour: 2
-    minute: 15
+    minute: 27
 secor_raw_job:
   secor_raw:
     hour: 23
