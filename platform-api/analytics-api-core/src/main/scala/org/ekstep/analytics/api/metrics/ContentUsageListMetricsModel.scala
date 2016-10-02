@@ -9,7 +9,7 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.framework.util.JSONUtils
 
-object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetrics]  with Serializable {
+object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetrics, ContentUsageListMetrics]  with Serializable {
 	
 	override def metric : String = "gls"; // Because content list is part of GLS.
 	

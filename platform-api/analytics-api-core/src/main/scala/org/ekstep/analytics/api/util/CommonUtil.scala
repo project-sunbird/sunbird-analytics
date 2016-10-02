@@ -111,7 +111,8 @@ object CommonUtil {
                 formatter.parseDateTime(date + "01").toString(DateTimeFormat.forPattern(format))
             case WEEK =>
                 val format = config.getString("metrics.period.format.week");
-                "";
+                val datestr = Integer.toString(date);
+                datestr.substring(5, datestr.length) + format;
             case DAY =>
                 val format = config.getString("metrics.period.format.day")
                 formatter.parseDateTime(date.toString()).toString(DateTimeFormat.forPattern(format))

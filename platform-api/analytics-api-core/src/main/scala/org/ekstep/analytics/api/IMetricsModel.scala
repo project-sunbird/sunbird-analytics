@@ -13,7 +13,7 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.framework.Period._
 
 trait Metrics extends AnyRef with Serializable
-trait IMetricsModel[T <: Metrics] {
+trait IMetricsModel[T <: Metrics, R <: Metrics] {
     
 	val periodMap = Map[String, (Period, Int)]("LAST_7_DAYS" -> (DAY, 7), "LAST_5_WEEKS" -> (WEEK, 5), "LAST_12_MONTHS" -> (MONTH, 12), "CUMULATIVE" -> (CUMULATIVE, 0));
 	
@@ -30,6 +30,7 @@ trait IMetricsModel[T <: Metrics] {
 	            "summary" -> summary);
 		} catch {
 			case ex: S3ServiceException =>
+				ex.printStackTrace();
 				println("Data fetch Error:", ex.getMessage);
 				Map();
 			case ex: org.apache.hadoop.mapred.InvalidInputException =>
@@ -40,13 +41,13 @@ trait IMetricsModel[T <: Metrics] {
 		}
 	}
 	
-	def getMetrics(records: RDD[T], period: String)(implicit sc: SparkContext, config: Config): RDD[T]
+	def getMetrics(records: RDD[T], period: String)(implicit sc: SparkContext, config: Config): RDD[R]
 	
-	def getSummary(metrics: RDD[T]): T = {
+	def getSummary(metrics: RDD[R]): R = {
 		metrics.reduce(reduce);
 	}
 	
-	def reduce(fact1: T, fact2: T): T
+	def reduce(fact1: R, fact2: R): R
 	
 	private def getData[T](contentId: String, tag: String, period: String)(implicit mf: Manifest[T], sc: SparkContext, config: Config): RDD[T] = {
 		val basePath = config.getString("metrics.search.params.path");

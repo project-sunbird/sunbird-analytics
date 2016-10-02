@@ -8,14 +8,22 @@ import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.ItemUsageSummary
 import scala.collection.JavaConversions._
+import org.ekstep.analytics.api.ItemUsageSummaryView
 
-object ItemUsageMetricsModel extends IMetricsModel[ItemUsageMetrics]  with Serializable {
+object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
   	override def metric : String = "ius";
   	
-  	override def getMetrics(records: RDD[ItemUsageMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[ItemUsageMetrics] = {
+  	override def getMetrics(records: RDD[ItemUsageSummaryView], period: String)(implicit sc: SparkContext, config: Config): RDD[ItemUsageMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
-		val recordsRDD = records.map { x => (x.d_period.get, x) };
+		val recordsRDD = records.groupBy { x => x.d_period + "-" + x.d_content_id }.map{ f => 
+			val items = f._2.map { x => 
+				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(x.m_top5_incorrect_res), Option(x.m_avg_ts)) 
+			}.toList;
+			val first = f._2.head;
+			ItemUsageMetrics(Option(first.d_period), None, Option(items));
+		}.map { x => (x.d_period.get, x) };
+//		val recordsRDD = records.map { x => (x.d_period, x) };
 		var periodsRDD = sc.parallelize(periods.map { period => (period, ItemUsageMetrics(Option(period))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
 			if(f._2._2.isDefined) f._2._2.get else f._2._1 

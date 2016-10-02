@@ -7,7 +7,7 @@ import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CommonUtil
 
-object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics]  with Serializable {
+object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLaunchMetrics]  with Serializable {
   	override def metric : String = "gls";
 	
 	override def getMetrics(records: RDD[GenieLaunchMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[GenieLaunchMetrics] = {
