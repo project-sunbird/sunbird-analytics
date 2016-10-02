@@ -5,6 +5,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkException
 import org.ekstep.analytics.api.service.RecommendationAPIService
+import org.ekstep.analytics.framework.conf.AppConf
 
 object Context {
 
@@ -24,7 +25,14 @@ object Context {
         }
         // $COVERAGE-ON$
         sc = new SparkContext(conf);
+        setS3Conf(sc);
         Logger.info("Spark context started")
+    }
+    
+    def setS3Conf(sc: SparkContext) = {
+        Logger.info("Configuring S3 AccessKey& SecrateKey to SparkContext")
+        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
+        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
 
     def closeSparkContext() = {
