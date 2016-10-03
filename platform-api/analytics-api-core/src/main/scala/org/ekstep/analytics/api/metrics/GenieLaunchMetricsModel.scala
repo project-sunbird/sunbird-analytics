@@ -22,7 +22,7 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
 	
 	override def reduce(fact1: GenieLaunchMetrics, fact2: GenieLaunchMetrics): GenieLaunchMetrics = {
 		val total_sessions = fact2.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue;
-		val total_ts = fact2.m_total_ts.getOrElse(0.0).asInstanceOf[Number].doubleValue + fact1.m_total_ts.getOrElse(0.0).asInstanceOf[Number].doubleValue;
+		val total_ts = CommonUtil.roundDouble((fact2.m_total_ts.getOrElse(0.0).asInstanceOf[Number].doubleValue + fact1.m_total_ts.getOrElse(0.0).asInstanceOf[Number].doubleValue), 2);
 		val total_devices = fact2.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue;
 		val avg_sess_device = if (total_devices > 0) CommonUtil.roundDouble(total_sessions.toDouble / total_devices, 2) else 0.0;
 		val avg_ts_session = if (total_sessions > 0) CommonUtil.roundDouble((total_ts / total_sessions), 2) else 0.0;
