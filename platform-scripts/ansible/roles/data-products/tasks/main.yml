@@ -53,7 +53,7 @@
     - analytics
 
 - name: Create pre cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/pre-comp-job.sh " state={{ item.value.state }}
+  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/pre-comp-job.sh" state={{ item.value.state }}
   with_dict: "{{ pre_jobs }}"
   tags:
     - analytics
