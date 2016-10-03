@@ -33,6 +33,7 @@ import org.ekstep.analytics.job.updater.GenieUsageUpdater
 import org.ekstep.analytics.job.summarizer.ItemSummarizer
 import org.ekstep.analytics.job.updater.ItemSummaryUpdater
 import org.ekstep.analytics.job.updater.ContentPopularityUpdater
+import org.ekstep.analytics.job.updater.ContentModelUpdater
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -70,6 +71,8 @@ object JobFactory {
                 ContentSideloadingSummarizer
             case "lpu" =>
                 LearnerProfileUpdater
+            case "cmu" =>
+                ContentModelUpdater
             case "dsu" =>
                 DeviceSpecificationUpdater
             case "is" =>
@@ -92,13 +95,13 @@ object JobFactory {
                 RawTelemetryUpdaters
             case "sts" =>
                 StageSummarizer
-            case "gusm" =>
+            case "genie-launch-summ" =>
                 GenieUsageSummarizer
-            case "gusmu" =>
+            case "genie-launch-metrics" =>
                 GenieUsageUpdater
-            case "ism" =>
+            case "item-usage-summ" =>
                 ItemSummarizer
-            case "ismu" =>
+            case "item-usage-metrics" =>
                 ItemSummaryUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
