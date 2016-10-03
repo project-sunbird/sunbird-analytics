@@ -35,19 +35,15 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
                 records;
             });    
             println(s"Timetaken to fetch data from S3 ($contentId, $tag, $period):", dataFetch._1);
-            val metrics = getMetrics(dataFetch._2, period);
-            val summary = getSummary(metrics);
-            Map[String, AnyRef](
-                "metrics" -> metrics.collect(),
-                "summary" -> summary);
+            getResult(dataFetch._2, period);
         } catch {
             case ex: S3ServiceException =>
                 ex.printStackTrace();
-                println("Data fetch Error:", ex.getMessage);
-                Map();
+                println("Data fetch Error(S3ServiceException):", ex.getMessage);
+                getResult(sc.emptyRDD[T], period);
             case ex: org.apache.hadoop.mapred.InvalidInputException =>
-                println("Data fetch Error:", ex.getMessage);
-                Map();
+                println("Data fetch Error(InvalidInputException):", ex.getMessage);
+                getResult(sc.emptyRDD[T], period);
             case ex: Exception =>
                 throw ex;
         }
@@ -60,6 +56,14 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
     }
 
     def reduce(fact1: R, fact2: R): R
+    
+    private def getResult(records: RDD[T], period: String)(implicit sc: SparkContext, config: Config) : Map[String, AnyRef] = {
+    	val metrics = getMetrics(records, period);
+            val summary = getSummary(metrics);
+            Map[String, AnyRef](
+                "metrics" -> metrics.collect(),
+                "summary" -> summary);
+    }
 
     private def getData[T](contentId: String, tag: String, period: String)(implicit mf: Manifest[T], sc: SparkContext, config: Config): RDD[T] = {
         val basePath = config.getString("metrics.search.params.path");
