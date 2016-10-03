@@ -8,7 +8,7 @@ sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
   paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/tmp', '/mnt/data/analytics/scripts/monitor-data']
-  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
+  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp','pre-comp-job']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-3.7"
 cql_path: cqlsh
 api_root: "{{ analytics.home }}/api"
