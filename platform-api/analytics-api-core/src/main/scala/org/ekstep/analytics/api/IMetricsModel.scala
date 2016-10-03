@@ -23,14 +23,19 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
         val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
             _fetch(contentId, tag, period);
         });
-        println(s"Timetaken to fetch data($contentId, $tag, $period):", timeTaken._1);
+        println(s"Timetaken to fetch API data ($contentId, $tag, $period):", timeTaken._1);
         timeTaken._2;
     }
 
     private def _fetch(contentId: String, tag: String, period: String)(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         try {
-            val records = getData[T](contentId, tag, period.replace("LAST_", "").replace("_", "")).cache();
-            val metrics = getMetrics(records, period);
+            val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
+                val records = getData[T](contentId, tag, period.replace("LAST_", "").replace("_", "")).cache();
+                records.collect();
+                records;
+            });    
+            println(s"Timetaken to fetch data from S3 ($contentId, $tag, $period):", dataFetch._1);
+            val metrics = getMetrics(dataFetch._2, period);
             val summary = getSummary(metrics);
             Map[String, AnyRef](
                 "metrics" -> metrics.collect(),
