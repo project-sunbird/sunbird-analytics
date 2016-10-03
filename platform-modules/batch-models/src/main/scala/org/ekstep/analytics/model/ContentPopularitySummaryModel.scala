@@ -111,7 +111,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
                 "m_comments" -> cpMetrics.m_comments,
                 "m_avg_rating" -> cpMetrics.m_avg_rating)
 			
-            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.dt_range.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentPopularitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cpMetrics.dt_range),
                 Dimensions(None, None, cpMetrics.gdata, None, None, None, None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id)),
                 MEEdata(measures));

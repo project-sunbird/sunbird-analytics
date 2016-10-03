@@ -120,7 +120,7 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
                 "top5_incorrect_res" -> itSumm.top5_incorrect_res,
                 "correct_res" -> itSumm.correct_res)
 
-            MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.dt_range.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummaryModel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], itSumm.dt_range),
                 Dimensions(None, None, None, None, None, None, None, None, None, Option(itSumm.ik.tag), Option(itSumm.ik.period), Option(itSumm.ik.content_id), None, Option(itSumm.ik.item_id)),
                 MEEdata(measures));
