@@ -133,6 +133,12 @@ jobs:
     hour: 2
     minute: 26
     state: present
+
+pre_jobs:
+    hour: 2
+    minute: 30
+    state: present
+
 monit_jobs:
   joblog.log:
     hour: 2
