@@ -5,8 +5,9 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.updater.UpdateContentModel
+import org.ekstep.analytics.framework.IJob
 
-object ContentModelUpdater extends optional.Application {
+object ContentModelUpdater extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.ContentPopularityUpdater"
   

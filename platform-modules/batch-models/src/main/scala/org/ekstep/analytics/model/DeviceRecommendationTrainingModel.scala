@@ -313,11 +313,11 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
         //one hot encoding
-        JobLogger.log("applied one hot encoding", None, INFO);
+        /*JobLogger.log("applied one hot encoding", None, INFO);
         val c1SubEncodedDF = ContentUsageTransformer.oneHotEncoding(df.select("c1_total_ts", "c1_subject"), "c1_subject")
         c1SubEncodedDF.show()
         JobLogger.log("completed one hot encoding", None, INFO);
-        
+        */
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
