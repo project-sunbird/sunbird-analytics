@@ -25,7 +25,7 @@ object CommonUtil {
 
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
-    @transient val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy'7'ww");
+    @transient val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww");
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
@@ -110,9 +110,8 @@ object CommonUtil {
                 val format = config.getString("metrics.period.format.month");
                 formatter.parseDateTime(date + "01").toString(DateTimeFormat.forPattern(format))
             case WEEK =>
-                val format = config.getString("metrics.period.format.week");
                 val datestr = Integer.toString(date);
-                datestr.substring(5, datestr.length) + format;
+                getWeekPeriodLabel(datestr);
             case DAY =>
                 val format = config.getString("metrics.period.format.day")
                 formatter.parseDateTime(date.toString()).toString(DateTimeFormat.forPattern(format))
@@ -120,9 +119,21 @@ object CommonUtil {
         }
     }
     
+    def getWeekPeriodLabel(date: String): String = {
+    	val week = date.substring(0,4)+"-"+date.substring(5,date.length);
+    	val firstDay = weekPeriod.parseDateTime(week);
+        val lastDay = firstDay.plusDays(6);
+        val first = firstDay.toString(DateTimeFormat.forPattern("MMM dd"));
+        val last = if (firstDay.getMonthOfYear == lastDay.getMonthOfYear) 
+        	lastDay.toString(DateTimeFormat.forPattern("dd"))
+        else
+        	lastDay.toString(DateTimeFormat.forPattern("MMM dd"))
+        s"$first - $last";
+    }
+    
     def main(args: Array[String]): Unit = {
-        println("Week:" + weekPeriod.print(System.currentTimeMillis()));
-        
+    	val date = "2016739";
+    	println(getWeekPeriodLabel(date));
     }
 
 }
