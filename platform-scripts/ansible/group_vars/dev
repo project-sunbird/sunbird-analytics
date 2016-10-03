@@ -79,6 +79,7 @@ jobs:
     state: present
 
 pre_jobs:
+  pre_job
     hour: 2
     minute: 30
   #state: present
