@@ -59,17 +59,17 @@ object S3Util {
         }
     }
 
-    def getObject(bucketName: String, key: String): Iterator[String] = {
+    def getObject(bucketName: String, key: String): Array[String] = {
 
         val bucket = s3Service.getBucket(bucketName);
         try {
             val fileObj = s3Service.getObject(bucket, key);
-            scala.io.Source.fromInputStream(fileObj.getDataInputStream()).getLines()
+            scala.io.Source.fromInputStream(fileObj.getDataInputStream()).getLines().toArray
         } catch {
             case ex: S3ServiceException =>
                 println("Key not found in the given bucket", bucketName, key);
                 JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
-                null;
+                Array();
         }
     }
 
