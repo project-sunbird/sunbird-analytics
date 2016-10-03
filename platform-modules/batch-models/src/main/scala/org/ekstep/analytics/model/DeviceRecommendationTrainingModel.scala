@@ -108,6 +108,15 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         
         dcus.unpersist(true);
         
+        // creating DeviceContext without transformations
+        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map{x => (DeviceId(x.device_id), x)}, dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map{ x => (x.d_content_id, x)}.collect().toMap, contentModel)
+        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        val file = new File("/tmp/RE-input")
+        if (file.exists())
+            CommonUtil.deleteDirectory("/tmp/RE-input")
+        val jsondata = createJSON(deviceContext) //data.map { x => JSONUtils.serialize(x) }
+        jsondata.saveAsTextFile("/tmp/RE-input")
+        
         device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.contentId, x) }.toMap;
@@ -131,9 +140,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 }
             }
         }.flatMap { x => x.map { f => f } }
-
+        
     }
-
+    
     private def _createDF(data: RDD[DeviceContext]): RDD[Row] = {
         data.map { x =>
             val seq = ListBuffer[Any]();
@@ -278,13 +287,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
 
-        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val file = new File("/tmp/RE-input")
-        if (file.exists())
-            CommonUtil.deleteDirectory("/tmp/RE-input")
-        val jsondata = createJSON(data) //data.map { x => JSONUtils.serialize(x) }
-        jsondata.saveAsTextFile("/tmp/RE-input")
-
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
@@ -313,11 +315,11 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
         //one hot encoding
-        JobLogger.log("applied one hot encoding", None, INFO);
+        /*JobLogger.log("applied one hot encoding", None, INFO);
         val c1SubEncodedDF = ContentUsageTransformer.oneHotEncoding(df.select("c1_total_ts", "c1_subject"), "c1_subject")
         c1SubEncodedDF.show()
         JobLogger.log("completed one hot encoding", None, INFO);
-        
+        */
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
@@ -369,8 +371,35 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         data;
     }
 
-    def createJSON(data: RDD[DeviceContext]): RDD[String] = {
-
+    def createDeviceContextWithoutTransformation(device_spec:  RDD[(DeviceId, DeviceSpec)], dus: RDD[(DeviceId, DeviceUsageSummary)], dcus: RDD[(DeviceId, Iterable[DeviceContentSummary])], contentVectors: Map[String, ContentToVector], contentUsage: Map[String, ContentUsageSummaryFact], contentModel: Map[String, ContentModel])(implicit sc: SparkContext): RDD[DeviceContext] = {
+        
+        val contentModelB = sc.broadcast(contentModel)
+        val contentVectorsB = sc.broadcast(contentVectors)
+        val contentUsageB = sc.broadcast(contentUsage)
+        
+        device_spec.leftOuterJoin(dus).leftOuterJoin(dcus).map { x =>
+            val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
+            DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, null)
+        }.map { x =>
+            val rand = new Random(System.currentTimeMillis());
+            x.content_list.map { y =>
+                {
+                    val randomContent: DeviceContentSummary = if (x.device_content.isEmpty) defaultDCUS else choose[(String, DeviceContentSummary)](x.device_content.toBuffer, rand)._2;
+                    val otherContentId: String = randomContent.content_id;
+                    val otherContentModel: ContentModel = if (null != otherContentId) contentModelB.value.getOrElse(otherContentId, null) else null;
+                    val contentInFocusVec = contentVectorsB.value.getOrElse(y._1, null);
+                    val otherContentModelVec = if (null != otherContentId) contentVectorsB.value.getOrElse(randomContent.content_id, null) else null;
+                    val contentInFocusUsageSummary = x.device_content.getOrElse(y._1, defaultDCUS);
+                    val contentInFocusSummary = contentUsageB.value.getOrElse(y._1, defaultCUS)
+                    val otherContentSummary = if (null != otherContentId) contentUsageB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
+                    DeviceContext(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec, null, null, null);
+                }
+            }
+        }.flatMap { x => x.map { f => f } }
+    }
+    
+    def createJSON(data: RDD[DeviceContext])(implicit sc: SparkContext): RDD[String] = {
+        
         data.map { x =>
             val c1_text = if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined)
                 x.contentInFocusVec.text_vec.get.toSeq
@@ -398,8 +427,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 (if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if (StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
             }
             val primary_camera = ps._1
-            val secondary_camera = ps._2
-
+            val secondary_camera = ps._2            
+            
             val dataMap = Map(
                 "did" -> x.did,
                 "c1_content_id" -> x.contentInFocus,
@@ -459,16 +488,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 "external_disk" -> x.device_spec.external_disk,
                 "internal_disk" -> x.device_spec.internal_disk,
                 "primary_camera" -> primary_camera,
-                "secondary_camera" -> secondary_camera,
-                "c2_publish_date_t" -> x.otherContentSummaryT.c2_publish_date.getOrElse("Unknown"),
-                "c2_last_sync_date_t" -> x.otherContentSummaryT.c2_last_sync_date.getOrElse("Unknown"),
-                "end_time_t" -> x.dusT.end_time.getOrElse("Unknown"),
-                "last_played_on_t" -> x.dusT.last_played_on.getOrElse("Unknown"),
-                "play_start_time_t" -> x.dusT.play_start_time.getOrElse("Unknown"),
-                "start_time_t" -> x.dusT.start_time.getOrElse("Unknown"),
-                "c2_download_date_t" -> x.dcusT.download_date.getOrElse("Unknown"),
-                "c2_last_played_on_t" -> x.dcusT.last_played_on.getOrElse("Unknown"),
-                "c2_start_time_t" -> x.dcusT.start_time.getOrElse("Unknown"))
+                "secondary_camera" -> secondary_camera)
 
             JSONUtils.serialize(dataMap)
         }

@@ -1,7 +1,6 @@
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.updater.UpdateDeviceSpecificationDB
 import org.ekstep.analytics.model.SparkSpec
 
 class TestUpdateDeviceSpecificationDB extends SparkSpec(null) {

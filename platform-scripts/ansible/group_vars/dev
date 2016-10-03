@@ -8,7 +8,7 @@ sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
   paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/tmp', '/mnt/data/analytics/scripts/monitor-data']
-  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
+  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp','pre-comp-job']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-3.7"
 cql_path: "{{ analytics.home }}/apache-cassandra-3.7/bin/cqlsh"
 api_root: "{{ analytics.home }}/api"
@@ -29,94 +29,58 @@ spark:
   driver_extraJavaOptions: -Denv=dev
   executor_memory: 2g
 jobs:
-  lpu:
-    hour: 1
-    minute: 20
-    state: absent
-  gls:
+  raw-telemetry-jobs:
     hour: 1
     minute: 22
-    state: absent
-  gss:
-    hour: 1
-    minute: 24
-    state: absent
-  ss:
-    hour: 1
-    minute: 26
-    state: absent
-  css:
-    hour: 1
-    minute: 28
-    state: absent
-  is:
-     hour: 1
-     minute: 30
-     state: absent
-  dcus:
-    hour: 1
-    minute: 45
-    state: absent
-  dus:
-    hour: 1
-    minute: 47
-    state: absent
-  cus:
-    hour: 1
-    minute: 49
-    state: absent
-  lp:
-    hour: 1
-    minute: 51
-    state: absent
-  as:
-    hour: 1
-    minute: 53
-    state: absent
-  las:
-    hour: 1
-    minute: 55
-    state: absent
-  dsu:
-    hour: 1
-    minute: 57
-    state: absent
-  lcas:
-    hour: 1
-    minute: 59
-    state: absent
-  cuu:
-    hour: 2
-    minute: 10
-    state: absent
-  raw-telemetry-jobs:
-   hour: 1
-   minute: 20
-   state: present
+    state: present
   raw-telemetry-updaters:
-   hour: 1
-   minute: 40
-   state: present
+    hour: 1
+    minute: 20
+    state: present
   ss-jobs: 
     hour: 1
     minute: 42
     state: present
   dcus:
-    hour: 2
-    minute: 05
+    hour: 1
+    minute: 48
+    state: present
+  cpu:
+    hour: 1
+    minute: 50
+    state: present
+  genie-launch-summ:
+    hour: 1
+    minute: 52
     state: present
   dus:
+    hour: 1
+    minute: 54
+    state: present
+  item-usage-summ:
     hour: 2
-    minute: 07
+    minute: 0
     state: present
   cuu:
     hour: 2
-    minute: 09
+    minute: 02
+    state: present
+  genie-launch-metrics:
+    hour: 2
+    minute: 20
+    state: present
+  item-usage-metrics:
+    hour: 2
+    minute: 22
+    state: present
+  cmu:
+    hour: 2
+    minute: 24
     state: present
 monit_jobs:
   joblog.log:
     hour: 2
-    minute: 15
+    minute: 27
 secor_raw_job:
   secor_raw:
     hour: 23

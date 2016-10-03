@@ -9,7 +9,7 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.framework.util.JSONUtils
 
-object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetrics]  with Serializable {
+object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetrics, ContentUsageListMetrics]  with Serializable {
 	
 	override def metric : String = "gls"; // Because content list is part of GLS.
 	
@@ -25,7 +25,7 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 			val contents = for(id <- x.m_contents.getOrElse(List())) yield {
 				RecommendationAPIService.contentBroadcastMap.value.getOrElse(id.toString, Map())
 			}
-			x.m_contents = Option(contents);
+			x.m_contents = Option(contents.filter(f => !f.isEmpty));
 		 x };
 	}
 	

@@ -9,7 +9,7 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.IMetricsModel
 import org.ekstep.analytics.framework.util.JSONUtils
 
-object CotentUsageMetricsModel extends IMetricsModel[ContentUsageMetrics]  with Serializable {
+object CotentUsageMetricsModel extends IMetricsModel[ContentUsageMetrics, ContentUsageMetrics]  with Serializable {
 	
 	override def metric : String = "cus";
 	

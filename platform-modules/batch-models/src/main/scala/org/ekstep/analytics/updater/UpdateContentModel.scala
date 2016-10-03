@@ -47,22 +47,22 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             val url = Constants.getContentUpdateAPIUrl(x.contentId);
             val usageMap = if (x.contentSummary.isDefined) {
                 Map("popularity" -> x.contentSummary.get.m_total_ts,
-                    "me:totalSessionsCount" -> x.contentSummary.get.m_total_sessions,
-                    "me:totalTimespent" -> x.contentSummary.get.m_total_ts,
-                    "me:totalInteractions" -> x.contentSummary.get.m_total_interactions,
-                    "me:averageInteractionsPerMin" -> x.contentSummary.get.m_avg_interactions_min,
-                    "me:averageSessionsPerDevice" -> x.contentSummary.get.m_avg_sess_device,
-                    "me:totalDevices" -> x.contentSummary.get.m_total_devices,
-                    "me:averageTimespentPerSession" -> x.contentSummary.get.m_avg_ts_session)
+                    "me_totalSessionsCount" -> x.contentSummary.get.m_total_sessions,
+                    "me_totalTimespent" -> x.contentSummary.get.m_total_ts,
+                    "me_totalInteractions" -> x.contentSummary.get.m_total_interactions,
+                    "me_averageInteractionsPerMin" -> x.contentSummary.get.m_avg_interactions_min,
+                    "me_averageSessionsPerDevice" -> x.contentSummary.get.m_avg_sess_device,
+                    "me_totalDevices" -> x.contentSummary.get.m_total_devices,
+                    "me_averageTimespentPerSession" -> x.contentSummary.get.m_avg_ts_session)
             } else {
                 Map();
             }
             val popularityMap = if (x.popularitySummary.isDefined) {
-                Map("me:averageRating" -> x.popularitySummary.get.m_avg_rating,
-                    "me:totalDownloads" -> x.popularitySummary.get.m_downloads,
-                    "me:totalSideloads" -> x.popularitySummary.get.m_side_loads,
-                    "me:totalRatings" -> x.popularitySummary.get.m_ratings.size,
-                    "me:totalComments" -> x.popularitySummary.get.m_comments.size)
+                Map("me_averageRating" -> x.popularitySummary.get.m_avg_rating,
+                    "me_totalDownloads" -> x.popularitySummary.get.m_downloads,
+                    "me_totalSideloads" -> x.popularitySummary.get.m_side_loads,
+                    "me_totalRatings" -> x.popularitySummary.get.m_ratings.size,
+                    "me_totalComments" -> x.popularitySummary.get.m_comments.size)
             } else {
                 Map();
             }

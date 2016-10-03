@@ -7,7 +7,7 @@ import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.api.util.CommonUtil
 
-object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics]  with Serializable {
+object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics, ContentPopularityMetrics]  with Serializable {
 	override def metric : String = "cps";
 	
 	override def getMetrics(records: RDD[ContentPopularityMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[ContentPopularityMetrics] = {

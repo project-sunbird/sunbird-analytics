@@ -30,6 +30,9 @@ config() {
 		"cuu") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"cus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.updater.ContentUsageUpdater","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Content Usage Updater","deviceMapping":false}'
 		;;
+		"cmu") 
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"cus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.updater.ContentModelUpdater","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Content Model Updater","deviceMapping":false}'
+		;;
 		"as") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"filters":[{"name":"ver","operator":"EQ","value":"1.0"}],"model":"org.ekstep.analytics.model.AserScreenSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Aser Screen Summarizer","deviceMapping":true}'
 		;;
@@ -72,16 +75,16 @@ config() {
 		"ss-jobs")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":6}]},"model":"org.ekstep.analytics.job.consolidated.SessionSummaryJobs","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"Session Summary Jobs","deviceMapping":false}'
 		;;
-		"gusm")
+		"genie-launch-summ")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gls/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieUsageSummaryModel","output":[{"to":"console","params":{"printEvent":false}}, {"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"GenieUsageSummarizer","deviceMapping":false}'
 		;;
-		"gusmu")
+		"genie-launch-metrics")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gusm/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.updater.UpdateGenieUsageDB","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"GenieUsageUpdater","deviceMapping":false}'
 		;;
-		"ism")
+		"item-usage-summ")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"is/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ItemSummaryModel","output":[{"to":"console","params":{"printEvent":false}}, {"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"Item Summarizer","deviceMapping":false}'
 		;;
-		"ismu")
+		"item-usage-metrics")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ism/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.updater.UpdateItemSummaryDB","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"Item Summary Updater","deviceMapping":false}'
 		;;
 		"cps")
