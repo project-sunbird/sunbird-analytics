@@ -11,8 +11,6 @@ import org.jets3t.service.S3ServiceException
 import scala.reflect.ClassTag
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.framework.Period._
-import org.ekstep.analytics.framework.util.S3Util
-import org.ekstep.analytics.api.util.JSONUtils
 
 trait Metrics extends AnyRef with Serializable
 trait IMetricsModel[T <: Metrics, R <: Metrics] {
@@ -31,10 +29,11 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
 
     private def _fetch(contentId: String, tag: String, period: String)(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         try {
-
             val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
-                getData[T](contentId, tag, period.replace("LAST_", "").replace("_", ""));
-            });
+                val records = getData[T](contentId, tag, period.replace("LAST_", "").replace("_", "")).cache();
+                records.collect();
+                records;
+            });    
             println(s"Timetaken to fetch data from S3 ($contentId, $tag, $period):", dataFetch._1);
             val metrics = getMetrics(dataFetch._2, period);
             val summary = getSummary(metrics);
@@ -71,14 +70,12 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
         }
 
         println("filePath:", filePath);
-        config.getString("metrics.search.type") match {
-            case "local" =>
-                val fetch = Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option(filePath)))));
-                DataFetcher.fetchBatchData[T](fetch);
-            case "s3" =>
-                sc.makeRDD(S3Util.getObject(config.getString("metrics.search.params.bucket"), filePath).map { x => JSONUtils.deserialize[T](x) }.toSeq);
-            case _ => throw new DataFetcherException("Unknown fetcher type found");
+        val search = config.getString("metrics.search.type") match {
+            case "local" => Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option(filePath)))));
+            case "s3"    => Fetcher("s3", None, Option(Array(Query(Option(config.getString("metrics.search.params.bucket")), Option(filePath)))));
+            case _       => throw new DataFetcherException("Unknown fetcher type found");
         }
+        DataFetcher.fetchBatchData[T](search);
     }
 
     protected def _getPeriods(period: String): Array[Int] = {
