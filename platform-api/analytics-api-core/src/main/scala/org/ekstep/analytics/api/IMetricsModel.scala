@@ -58,7 +58,12 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
 
     private def getData[T](contentId: String, tag: String, period: String)(implicit mf: Manifest[T], sc: SparkContext, config: Config): RDD[T] = {
         val basePath = config.getString("metrics.search.params.path");
-        val filePath = s"$basePath$metric-$tag-$contentId-$period.json";
+        val filePath = if ("gls".equals(metric)) {
+            s"$basePath$metric-$tag-$period.json";
+        } else {
+            s"$basePath$metric-$tag-$contentId-$period.json";
+        }
+
         println("filePath:", filePath);
         val search = config.getString("metrics.search.type") match {
             case "local" => Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option(filePath)))));
