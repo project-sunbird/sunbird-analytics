@@ -17,20 +17,22 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 		val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => (period, ContentUsageListMetrics(Option(period))) });
+		val periodsRDD = sc.parallelize(periods.map { period => (period, ContentUsageListMetrics(Option(period))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
 			if(f._2._2.isDefined) f._2._2.get else f._2._1 
 		}.map { x => 
-			x.label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get));
+		    
+			val label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get));
 			val contents = for(id <- x.m_contents.getOrElse(List())) yield {
 				RecommendationAPIService.contentBroadcastMap.value.getOrElse(id.toString, Map())
 			}
-			x.m_contents = Option(contents.filter(f => !f.isEmpty));
-		 x };
+			ContentUsageListMetrics(x.d_period, label, x.m_contents, Option(contents.filter(f => !f.isEmpty)));
+		};
 	}
 	
 	override def reduce(fact1: ContentUsageListMetrics, fact2: ContentUsageListMetrics): ContentUsageListMetrics = {
-		val contents = (fact2.m_contents.getOrElse(List()) ++ fact1.m_contents.getOrElse(List())).distinct;
-		ContentUsageListMetrics(None, None, Option(contents))
+	    val m_contents = (fact2.m_contents.getOrElse(List()) ++ fact1.m_contents.getOrElse(List())).distinct;
+		val contents = (fact2.content.getOrElse(List()) ++ fact1.content.getOrElse(List())).distinct;
+		ContentUsageListMetrics(None, None, Option(m_contents), Option(contents))
 	}
 }
