@@ -293,9 +293,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         implicit val sqlContext = new SQLContext(sc);
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
         val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
-        val libfmInputFile = config.getOrElse("libfmInputFile", "/tmp/libfm_input.csv").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
-        val libfmLogFile = config.getOrElse("libfmLogFile", "/tmp/logFile").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
@@ -307,8 +305,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(model);
-        CommonUtil.deleteFile(libfmInputFile);
-        CommonUtil.deleteFile(libfmLogFile);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
