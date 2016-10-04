@@ -110,13 +110,14 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         dcus.unpersist(true);
         
         // creating DeviceContext without transformations
+        val inputDataPath = config.getOrElse("inputDataPath", "/tmp/RE-input").asInstanceOf[String]
         val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map{x => (DeviceId(x.device_id), x)}, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map{ x => (x.d_content_id, x)}.collect().toMap, contentModel)
         JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val file = new File("/tmp/RE-input")
+        val file = new File(inputDataPath)
         if (file.exists())
-            CommonUtil.deleteDirectory("/tmp/RE-input")
+            CommonUtil.deleteDirectory(inputDataPath)
         val jsondata = createJSON(deviceContext) //data.map { x => JSONUtils.serialize(x) }
-        jsondata.saveAsTextFile("/tmp/RE-input")
+        jsondata.saveAsTextFile(inputDataPath)
         
         device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
