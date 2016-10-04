@@ -18,7 +18,7 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 		val periods = _getPeriods(period);
 		val recordsRDD = records.groupBy { x => x.d_period + "-" + x.d_content_id }.map{ f => 
 			val items = f._2.map { x => 
-				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(x.m_top5_incorrect_res), Option(x.m_avg_ts)) 
+				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(x.m_incorrect_res), Option(x.m_top5_incorrect_res), Option(x.m_avg_ts)) 
 			}.toList;
 			val first = f._2.head;
 			ItemUsageMetrics(Option(first.d_period), None, Option(items));
@@ -45,9 +45,10 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 		val m_correct_res_count = fact2.m_correct_res_count.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_correct_res_count.getOrElse(0l).asInstanceOf[Number].longValue;
 		val m_inc_res_count = fact2.m_inc_res_count.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_inc_res_count.getOrElse(0l).asInstanceOf[Number].longValue;
 		val m_correct_res = (fact2.m_correct_res.getOrElse(List()) ++ fact1.m_correct_res.getOrElse(List())).distinct;
-		val m_top5_incorrect_res = (fact2.m_top5_incorrect_res.getOrElse(List()) ++ fact1.m_top5_incorrect_res.getOrElse(List())).distinct;
+		val m_incorrect_res = (fact1.m_incorrect_res.getOrElse(List()) ++ fact2.m_incorrect_res.getOrElse(List())).groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
+		val m_top5_incorrect_res = m_incorrect_res.sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => x._1 }.toList;
 		val m_avg_ts = if (m_total_count > 0) CommonUtil.roundDouble(m_total_ts/m_total_count, 2) else 0;
-  		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
+  		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_incorrect_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
   	}
 	
   
