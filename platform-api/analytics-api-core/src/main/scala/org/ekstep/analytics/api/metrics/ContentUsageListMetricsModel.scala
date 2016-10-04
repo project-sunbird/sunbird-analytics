@@ -21,7 +21,6 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
 			if(f._2._2.isDefined) f._2._2.get else f._2._1 
 		}.map { x => 
-		    
 			val label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get));
 			val contents = for(id <- x.m_contents.getOrElse(List())) yield {
 				RecommendationAPIService.contentBroadcastMap.value.getOrElse(id.toString, Map())

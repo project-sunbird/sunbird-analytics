@@ -23,12 +23,15 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 			val first = f._2.head;
 			ItemUsageMetrics(Option(first.d_period), None, Option(items));
 		}.map { x => (x.d_period.get, x) };
-//		val recordsRDD = records.map { x => (x.d_period, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => (period, ItemUsageMetrics(Option(period))) });
+		val periodsRDD = sc.parallelize(periods.map { period => (period, ItemUsageMetrics(Option(period),  Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
-			if(f._2._2.isDefined) f._2._2.get else f._2._1 
-		}.map { x => x.label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get)); x };
+			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1) else f._2._1 
+		};
 	}
+  	
+  	private def _merge(obj: ItemUsageMetrics, dummy: ItemUsageMetrics): ItemUsageMetrics = {
+        ItemUsageMetrics(dummy.d_period, dummy.label, obj.items)
+    }
   	
   	override def reduce(fact1: ItemUsageMetrics, fact2: ItemUsageMetrics): ItemUsageMetrics = {
 		val items = (fact1.items ++ fact2.items).flatMap { x => x }

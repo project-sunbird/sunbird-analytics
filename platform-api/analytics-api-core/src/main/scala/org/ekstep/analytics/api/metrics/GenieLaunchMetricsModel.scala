@@ -14,11 +14,16 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => (period, GenieLaunchMetrics(Option(period))) });
+		var periodsRDD = sc.parallelize(periods.map { period => (period, GenieLaunchMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
-			if(f._2._2.isDefined) f._2._2.get else f._2._1 
-		}.map { x => x.label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get)); x };
+			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1) else f._2._1
+		};
 	}
+	
+	private def _merge(obj: GenieLaunchMetrics, dummy: GenieLaunchMetrics): GenieLaunchMetrics = {
+        GenieLaunchMetrics(dummy.d_period, dummy.label, obj.m_total_sessions, obj.m_total_ts, obj.m_total_devices, 
+        		obj.m_avg_sess_device, obj.m_avg_ts_session);
+    }
 	
 	override def reduce(fact1: GenieLaunchMetrics, fact2: GenieLaunchMetrics): GenieLaunchMetrics = {
 		val total_sessions = fact2.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue;
