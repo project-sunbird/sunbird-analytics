@@ -26,12 +26,13 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 	override def name: String = "ContentPopularitySummaryModel"
 	
 	private def _computeMetrics(events: Buffer[ContentPopularitySummary], ck: ContentKey): ContentPopularitySummary = {
-		val firstEvent = events.sortBy { x => x.dt_range.from }.head;
-        val lastEvent = events.sortBy { x => x.dt_range.from }.last;
+		val sortedEvents =  events.sortBy { x => x.dt_range.from };
+		val firstEvent = sortedEvents.head;
+        val lastEvent = sortedEvents.last;
         val ck = firstEvent.ck;
         
         val gdata = if (StringUtils.equals(ck.content_id, "all")) None else Option(new GData(ck.content_id, firstEvent.gdata.get.ver));
-        val dt_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.from);
+        val dt_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.to);
         val downloads = events.map { x => x.m_downloads }.sum;
         val side_loads = events.map { x => x.m_side_loads }.sum;
         val comments = events.map { x => x.m_comments }.flatMap { x => x }.filter { x => !StringUtils.isEmpty(x.getOrElse("comment", "").asInstanceOf[String]) }.toList;
