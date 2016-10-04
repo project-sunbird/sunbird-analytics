@@ -12,7 +12,7 @@ import org.ekstep.analytics.framework.OutputDispatcher
 
 class TestItemSummaryModel extends SparkSpec(null) {
 
-    it should "generates item summary and test all the fields" in {
+    "ItemSummaryModel" should "generates item summary and test all the fields" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.registered_tags");
         }
