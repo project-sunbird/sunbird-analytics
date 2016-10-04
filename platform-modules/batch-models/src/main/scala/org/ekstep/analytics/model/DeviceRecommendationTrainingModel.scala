@@ -48,9 +48,9 @@ case class DeviceContext(did: String, contentInFocus: String, contentInFocusMode
 case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
-case class cus_t(c2_publish_date: Option[String], c2_last_sync_date: Option[String]);
-case class dus_tf(end_time: Option[String], last_played_on: Option[String], play_start_time: Option[String], start_time: Option[String]);
-case class dcus_tf(contentId: String, download_date: Option[String], last_played_on: Option[String], start_time: Option[String]);
+case class cus_t(c2_publish_date: Option[Double], c2_last_sync_date: Option[Double]);
+case class dus_tf(end_time: Option[Double], last_played_on: Option[Double], play_start_time: Option[Double], start_time: Option[Double]);
+case class dcus_tf(contentId: String, download_date: Option[Double], last_played_on: Option[Double], start_time: Option[Double]);
 
 object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, Empty, Empty] with Serializable {
 
@@ -62,8 +62,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     
     def choose[A](it: Buffer[A], r: Random): A = {
-        val random_index = r.nextInt(it.size);
-        it(random_index);
+//        val random_index = r.nextInt(it.size);
+//        it(random_index);
+        Random.shuffle(it).head
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
@@ -99,9 +100,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val dusO = dusT.map{x => (DeviceId(x._1), x._2._1)}
         
         // Device Content Usage Summaries
-        val dcus = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
+        val dcus = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
         // dcus transformations
-        val dcusT = DeviceContentUsageTransformer.excecute(dcus.map(x => x._2))
+        val dcusT = DeviceContentUsageTransformer.excecute(dcus)
         val dcusB = dcusT.map{x => (x._1,x._2._2)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusBB = sc.broadcast(dcusB);
         val dcusO = dcusT.map{x => (DeviceId(x._1),x._2._1)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
@@ -109,7 +110,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         dcus.unpersist(true);
         
         // creating DeviceContext without transformations
-        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map{x => (DeviceId(x.device_id), x)}, dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map{ x => (x.d_content_id, x)}.collect().toMap, contentModel)
+        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map{x => (DeviceId(x.device_id), x)}, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map{ x => (x.d_content_id, x)}.collect().toMap, contentModel)
         JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val file = new File("/tmp/RE-input")
         if (file.exists())
@@ -187,9 +188,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
             // Add c2 context attributes
             seq ++= Seq(x.otherContentUsageSummary.total_timespent.getOrElse(0.0), x.otherContentUsageSummary.avg_interactions_min.getOrElse(0.0),
-                x.dcusT.download_date.getOrElse("Unknown"), if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.dcusT.last_played_on.getOrElse("Unknown"),
+                x.dcusT.download_date.getOrElse(0.0), if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.dcusT.last_played_on.getOrElse(0.0),
                 x.otherContentUsageSummary.mean_play_time_interval.getOrElse(0.0), x.otherContentUsageSummary.num_group_user.getOrElse(0L).toDouble, x.otherContentUsageSummary.num_individual_user.getOrElse(0L).toDouble,
-                x.otherContentUsageSummary.num_sessions.getOrElse(0L).toDouble, x.dcusT.start_time.getOrElse("Unknown"), x.otherContentUsageSummary.total_interactions.getOrElse(0L).toDouble)
+                x.otherContentUsageSummary.num_sessions.getOrElse(0L).toDouble, x.dcusT.start_time.getOrElse(0.0), x.otherContentUsageSummary.total_interactions.getOrElse(0L).toDouble)
 
             seq ++= (if (null != x.otherContentModel) {
                 Seq(x.otherContentModel.subject.mkString(","), x.contentInFocusModel.contentType, x.contentInFocusModel.languageCode.mkString(","))
@@ -199,17 +200,17 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
             // Add c2 usage metrics
 
-            seq ++= Seq(x.otherContentSummaryT.c2_publish_date.getOrElse("Unknown"), x.otherContentSummaryT.c2_last_sync_date.getOrElse("Unknown"), x.otherContentSummary.m_total_ts,
+            seq ++= Seq(x.otherContentSummaryT.c2_publish_date.getOrElse(0.0), x.otherContentSummaryT.c2_last_sync_date.getOrElse(0.0), x.otherContentSummary.m_total_ts,
                 x.otherContentSummary.m_total_sessions.toDouble, x.otherContentSummary.m_avg_ts_session, x.otherContentSummary.m_total_interactions.toDouble, x.otherContentSummary.m_avg_interactions_min)
 
             //println(x.did, "x.device_usage.total_launches", x.device_usage.total_launches, x.device_usage.total_launches.getOrElse(0L).isInstanceOf[Long]);
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
             // Device Context Attributes
             seq ++= Seq(x.device_usage.total_timespent.getOrElse(0.0), x.device_usage.total_launches.getOrElse(0L).toDouble, x.device_usage.total_play_time.getOrElse(0.0),
-                x.device_usage.avg_num_launches.getOrElse(0.0), x.device_usage.avg_time.getOrElse(0.0), x.dusT.end_time.getOrElse("Unknown"),
-                x.dusT.last_played_on.getOrElse("Unknown"), x.device_usage.mean_play_time.getOrElse(0.0), x.device_usage.mean_play_time_interval.getOrElse(0.0),
-                x.device_usage.num_contents.getOrElse(0L).toDouble, x.device_usage.num_days.getOrElse(0L).toDouble, x.device_usage.num_sessions.getOrElse(0L).toDouble, x.dusT.play_start_time.getOrElse("Unknown"),
-                x.dusT.start_time.getOrElse("Unknown"))
+                x.device_usage.avg_num_launches.getOrElse(0.0), x.device_usage.avg_time.getOrElse(0.0), x.dusT.end_time.getOrElse(0.0),
+                x.dusT.last_played_on.getOrElse(0.0), x.device_usage.mean_play_time.getOrElse(0.0), x.device_usage.mean_play_time_interval.getOrElse(0.0),
+                x.device_usage.num_contents.getOrElse(0L).toDouble, x.device_usage.num_days.getOrElse(0L).toDouble, x.device_usage.num_sessions.getOrElse(0L).toDouble, x.dusT.play_start_time.getOrElse(0.0),
+                x.dusT.start_time.getOrElse(0.0))
             // Device Context Attributes
             seq ++= Seq(x.device_spec.make, x.device_spec.screen_size, x.device_spec.external_disk, x.device_spec.internal_disk)
             val psc = x.device_spec.primary_secondary_camera.split(",");
@@ -251,25 +252,25 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         seq ++= _getStructField("c2_tag", 50);
         // Add c2 context attributes
 
-        seq ++= Seq(new StructField("c2_total_ts", DoubleType, true), new StructField("c2_avg_interactions_min", DoubleType, true), new StructField("c2_download_date", StringType, true),
-            new StructField("c2_downloaded", IntegerType, true), new StructField("c2_last_played_on", StringType, true), new StructField("c2_mean_play_time_interval", DoubleType, true),
+        seq ++= Seq(new StructField("c2_total_ts", DoubleType, true), new StructField("c2_avg_interactions_min", DoubleType, true), new StructField("c2_download_date", DoubleType, true),
+            new StructField("c2_downloaded", IntegerType, true), new StructField("c2_last_played_on", DoubleType, true), new StructField("c2_mean_play_time_interval", DoubleType, true),
             new StructField("c2_num_group_user", DoubleType, true), new StructField("c2_num_individual_user", DoubleType, true), new StructField("c2_num_sessions", DoubleType, true),
-            new StructField("c2_start_time", StringType, true), new StructField("c2_total_interactions", DoubleType, true))
+            new StructField("c2_start_time", DoubleType, true), new StructField("c2_total_interactions", DoubleType, true))
 
         seq ++= Seq(new StructField("c2_subject", StringType, true), new StructField("c2_contentType", StringType, true), new StructField("c2_language", StringType, true))
 
         // Add c2 usage metrics
 
-        seq ++= Seq(new StructField("c2_publish_date", StringType, true),
-            new StructField("c2_last_sync_date", StringType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", DoubleType, true),
+        seq ++= Seq(new StructField("c2_publish_date", DoubleType, true),
+            new StructField("c2_last_sync_date", DoubleType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", DoubleType, true),
             new StructField("c2_avg_ts_session", DoubleType, true), new StructField("c2_num_interactions", DoubleType, true), new StructField("c2_mean_interactions_min", DoubleType, true));
 
         // Device Context Attributes
         seq ++= Seq(new StructField("total_timespent", DoubleType, true), new StructField("total_launches", DoubleType, true), new StructField("total_play_time", DoubleType, true),
-            new StructField("avg_num_launches", DoubleType, true), new StructField("avg_time", DoubleType, true), new StructField("end_time", StringType, true),
-            new StructField("last_played_on", StringType, true), new StructField("mean_play_time", DoubleType, true), new StructField("mean_play_time_interval", DoubleType, true),
+            new StructField("avg_num_launches", DoubleType, true), new StructField("avg_time", DoubleType, true), new StructField("end_time", DoubleType, true),
+            new StructField("last_played_on", DoubleType, true), new StructField("mean_play_time", DoubleType, true), new StructField("mean_play_time_interval", DoubleType, true),
             new StructField("num_contents", DoubleType, true), new StructField("num_days", DoubleType, true), new StructField("num_sessions", DoubleType, true),
-            new StructField("play_start_time", StringType, true), new StructField("start_time", StringType, true))
+            new StructField("play_start_time", DoubleType, true), new StructField("start_time", DoubleType, true))
 
         // Device Specification
         seq ++= Seq(new StructField("device_spec", StringType, true), new StructField("screen_size", DoubleType, true), new StructField("external_disk", DoubleType, true), new StructField("internal_disk", DoubleType, true), new StructField("primary_camera", DoubleType, true), new StructField("secondary_camera", DoubleType, true))

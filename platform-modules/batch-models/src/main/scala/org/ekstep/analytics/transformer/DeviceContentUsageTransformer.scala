@@ -52,7 +52,7 @@ object DeviceContentUsageTransformer extends DeviceRecommendationTransformer[Dev
             val num_individual_user_t = x._2._1._1._2
             val num_sessions_t = x._2._1._2
             val total_interactions_t = x._2._2
-            (x._1, DeviceContentSummary(dcus.device_id, dcus.content_id, dcus.game_ver, Option(num_sessions_t.toLong), Option(total_interactions_t.toLong), Option(avg_interactions_min_t), Option(ts_t), dcus.last_played_on, dcus.start_time, Option(mean_play_time_interval_t), dcus.downloaded, dcus.download_date, Option(num_group_user_t.toLong), Option(num_individual_user_t.toLong)))
+            (dcus.device_id, DeviceContentSummary(dcus.device_id, dcus.content_id, dcus.game_ver, Option(num_sessions_t.toLong), Option(total_interactions_t.toLong), Option(avg_interactions_min_t), Option(ts_t), dcus.last_played_on, dcus.start_time, Option(mean_play_time_interval_t), dcus.downloaded, dcus.download_date, Option(num_group_user_t.toLong), Option(num_individual_user_t.toLong)))
         } 
     }
     
