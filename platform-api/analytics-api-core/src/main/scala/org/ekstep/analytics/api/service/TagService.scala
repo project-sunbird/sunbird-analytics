@@ -16,13 +16,13 @@ object TagService {
     def registerTag(tagId: String)(implicit sc: SparkContext) : String = {
         val rdd = sc.makeRDD(Seq(RegisteredTag(tagId, DateTime.now(DateTimeZone.UTC), true)));
         rdd.saveToCassandra(Constants.CONTENT_DB, Constants.REGISTERED_TAGS);
-        JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.contentusagesummary", Map("message" -> "Tag registered successfully")));
+        JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.tag-register", Map("message" -> "Tag registered successfully")));
     }
     
     def deleteTag(tagId: String)(implicit sc: SparkContext) : String = {
         
         val rdd = sc.makeRDD(Seq(RegisteredTag(tagId, DateTime.now(DateTimeZone.UTC), false)));
         rdd.saveToCassandra(Constants.CONTENT_DB, Constants.REGISTERED_TAGS);
-        JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.contentusagesummary", Map("message" -> "Tag deleted successfully")));
+        JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.tag-delete", Map("message" -> "Tag deleted successfully")));
     }
 }
