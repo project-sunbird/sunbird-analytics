@@ -29,66 +29,6 @@ spark:
   driver_extraJavaOptions: -Denv=prod
   executor_memory: 3g
 jobs:
-  lpu:
-    hour: 6
-    minute: 20
-    state: absent
-  gls:
-    hour: 6
-    minute: 22
-    state: absent
-  gss:
-    hour: 6
-    minute: 24
-    state: absent
-  ss:
-    hour: 6
-    minute: 26
-    state: absent
-  css:
-    hour: 6
-    minute: 28
-    state: absent
-  is:
-     hour: 6
-     minute: 30
-     state: absent
-  dcus:
-    hour: 6
-    minute: 45
-    state: absent
-  dus:
-    hour: 6
-    minute: 47
-    state: absent
-  cus:
-    hour: 6
-    minute: 49
-    state: absent
-  lp:
-    hour: 6
-    minute: 51
-    state: absent
-  as:
-    hour: 6
-    minute: 53
-    state: absent
-  las:
-    hour: 6
-    minute: 55
-    state: absent
-  dsu:
-    hour: 6
-    minute: 57
-    state: absent
-  lcas:
-    hour: 6
-    minute: 59
-    state: absent
-  cuu:
-    hour: 7
-    minute: 10
-    state: absent
   raw-telemetry-jobs:
    hour: 6
    minute: 20
@@ -101,17 +41,42 @@ jobs:
     hour: 6
     minute: 50
     state: present
-  dcus:
+
+  cpu:
     hour: 7
     minute: 05
+    state: present 
+  dcus:
+    hour: 7
+    minute: 06
     state: present
   dus:
     hour: 7
-    minute: 08
+    minute: 07
     state: present
+  genie-launch-summ:
+    hour: 7
+    minute: 08
+    state: present  
   cuu:
     hour: 7
-    minute: 11
+    minute: 12
+    state: present
+  item-usage-summ:
+    hour: 7
+    minute: 13
+    state: present
+  genie-launch-metrics:
+    hour: 7
+    minute: 20
+    state: present
+  item-usage-metrics:
+    hour: 7
+    minute: 25
+    state: present
+  cmu:
+    hour: 7
+    minute: 26
     state: present
 
 
