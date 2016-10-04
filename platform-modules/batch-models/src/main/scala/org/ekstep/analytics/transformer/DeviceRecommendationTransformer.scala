@@ -16,7 +16,7 @@ trait DeviceRecommendationTransformer[T, R] {
 
     def name(): String = "DeviceRecommendationTransformer";
 
-    def binning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, String)] = {
+    def binning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, Double)] = {
 
         val rows = rdd.map(f => Row.fromSeq(Seq(f._1, f._2)));
         val structs = new StructType(Array(new StructField("key", StringType, true), new StructField("value", DoubleType, true)));
@@ -27,7 +27,7 @@ trait DeviceRecommendationTransformer[T, R] {
             .setNumBuckets(numBuckets)
 
         val result = discretizer.fit(df).transform(df).drop("value").rdd;
-        result.map { x => (x.getString(0), x.getDouble(1).toString()) };
+        result.map { x => (x.getString(0), x.getDouble(1)) };
     }
 
     def outlierTreatment(rdd: RDD[(String, Double)]): RDD[(String, Double)] = {

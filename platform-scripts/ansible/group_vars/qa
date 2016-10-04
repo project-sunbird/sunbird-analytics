@@ -79,9 +79,11 @@ jobs:
     state: present
 
 pre_jobs:
+  pre_job:
     hour: 2
     minute: 30
-    state: present    
+  #state: present
+    
 monit_jobs:
   joblog.log:
     hour: 2
