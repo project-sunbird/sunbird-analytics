@@ -45,12 +45,12 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 	}
 	
 	private def getContentPopularitySummary(event: Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
-		val dt_range = DtRange(event.ets, event.ets);
+		val dt_range = DtRange(CommonUtil.getEventTS(event), CommonUtil.getEventTS(event));
 		if ("GE_FEEDBACK".equals(event.eid)) {
 			val ck = ContentKey(period, contentId, tagId);
 			val gdata = event.gdata;
-			val comments = List(Map("comment" -> event.edata.eks.comments,  "time" -> event.ets.asInstanceOf[AnyRef]));
-			val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef],  "time" -> event.ets.asInstanceOf[AnyRef]));
+			val comments = List(Map("comment" -> event.edata.eks.comments,  "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
+			val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef],  "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
 			val avg_rating = event.edata.eks.rating;
 			Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), Option(gdata)));
 		} else if ("GE_TRANSFER".equals(event.eid)) {
@@ -78,7 +78,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 		val feedbackEvents = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("GE_FEEDBACK"))));
 		val normalizeEvents = importEvents.union(feedbackEvents).map { event => 
 			var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
-            val period = CommonUtil.getPeriod(event.ets, Period.DAY);
+            val period = CommonUtil.getPeriod(CommonUtil.getEventTS(event), Period.DAY);
             
             list ++= getContentPopularitySummary(event, period, "all", "all");
             list ++= getContentPopularitySummary(event, period, event.gdata.id, "all");
