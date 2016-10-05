@@ -73,6 +73,13 @@ class TestMetricsAPIService extends SparkSpec {
         val response = getContentUsageMetrics(request);
         //    response.result should be (Result(null, null));
     }
+    
+    it should "return error response on invalid request" in {
+    	val request = """{"id":"ekstep.analytics.metrics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
+    	the[Exception] thrownBy {
+    		MetricsAPIService.contentUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+        } should have message "period is missing or invalid."
+    }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
         val request = """{"id":"ekstep.analytics.metrics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb","content_id":"do_1day"}}}""";
@@ -114,6 +121,20 @@ class TestMetricsAPIService extends SparkSpec {
         val response = getContentPopularityMetrics(request);
         //    response.result should be (Result(null, null));
     }
+    
+    it should "return error response on invalid request (without period)" in {
+    	val request = """{"id":"ekstep.analytics.metrics.content-popularity","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
+    	the[Exception] thrownBy {
+    		MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request));
+        } should have message "period is missing or invalid."
+    }
+    
+    it should "return error response on invalid request (without content_id)" in {
+    	val request = """{"id":"ekstep.analytics.metrics.content-popularity","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
+    	the[Exception] thrownBy {
+    		MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request));
+        } should have message "filter.content_id is missing."
+    }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
         val request = """{"id":"ekstep.analytics.metrics.content-popularity","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb","content_id":"do_1day"}}}""";
@@ -153,6 +174,20 @@ class TestMetricsAPIService extends SparkSpec {
         val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341","content_id":"do_435543"}}}""";
         val response = getItemUsageMetrics(request);
         //    response.result should be (Result(null, null));
+    }
+    
+    it should "return error response on invalid request(without period)" in {
+    	val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
+    	the[Exception] thrownBy {
+    		MetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+        } should have message "period is missing or invalid."
+    }
+    
+    it should "return error response on invalid request(without content_id)" in {
+    	val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
+    	the[Exception] thrownBy {
+    		MetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+        } should have message "filter.content_id is missing."
     }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
@@ -194,7 +229,14 @@ class TestMetricsAPIService extends SparkSpec {
         val response = getGenieLaunchMetrics(request);
         //	response.result should be (Result(null, null));
     }
-    //  
+    
+    it should "return error response on invalid request" in {
+    	val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
+    	the[Exception] thrownBy {
+    		MetricsAPIService.genieLaunch(JSONUtils.deserialize[MetricsRequestBody](request));
+        } should have message "period is missing or invalid."
+    }
+    
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
         val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1475b1d70a66a0f2c22dd1096b98030cb7d9bacb"}}}""";
         val response = getGenieLaunchMetrics(request);
@@ -233,6 +275,13 @@ class TestMetricsAPIService extends SparkSpec {
         val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
         val response = getContentUsageListMetrics(request);
         //    response.result should be (Result(null, null));
+    }
+    
+    it should "return error response on invalid request" in {
+    	val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
+    	the[Exception] thrownBy {
+    		MetricsAPIService.contentList(JSONUtils.deserialize[MetricsRequestBody](request));
+        } should have message "period is missing or invalid."
     }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
