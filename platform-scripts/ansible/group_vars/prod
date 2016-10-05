@@ -41,7 +41,6 @@ jobs:
     hour: 6
     minute: 50
     state: present
-
   cpu:
     hour: 7
     minute: 05
