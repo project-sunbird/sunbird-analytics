@@ -87,7 +87,7 @@ pre_jobs:
 monit_jobs:
   joblog.log:
     hour: 2
-    minute: 15
+    minute: 27
 secor_raw_job:
   secor_raw:
     hour: 23
