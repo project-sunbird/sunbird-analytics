@@ -62,9 +62,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     
     def choose[A](it: Buffer[A], r: Random): A = {
-//        val random_index = r.nextInt(it.size);
-//        it(random_index);
-        Random.shuffle(it).head
+        val random_index = r.nextInt(it.size);
+        it(random_index);
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
