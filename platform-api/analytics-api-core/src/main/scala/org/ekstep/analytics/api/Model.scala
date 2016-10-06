@@ -51,16 +51,6 @@ object ResponseCode extends Enumeration {
 	val OK, CLIENT_ERROR, SERVER_ERROR, REQUEST_TIMEOUT, RESOURCE_NOT_FOUND = Value
 }
 
-object Period extends Enumeration {
-    type Period = Value
-    val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
-}
-
-object MetricsPeriod extends Enumeration {
-    type MetricsPeriod = Value
-    val LAST_7_DAYS, LAST_5_WEEKS, LAST_12_MONTHS, CUMULATIVE = Value
-}
-
 object Constants {
     val CONTENT_DB = "content_db";
     val DEVICE_DB = "device_db";

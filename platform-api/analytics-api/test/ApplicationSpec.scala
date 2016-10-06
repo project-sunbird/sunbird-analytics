@@ -22,20 +22,6 @@ class ApplicationSpec extends BaseSpec {
             route(FakeRequest(GET, "/boum")) must beSome.which (status(_) == NOT_FOUND)
         }
 
-        "return the content usage metrics - successful response" in new WithApplication {
-            val request = """ {"id": "ekstep.analytics.contentusagesummary", "ver": "1.0", "ts": "YYYY-MM-DDThh:mm:ssZ+/-nn.nn", "request": {"filter": {"partner_id": "org.ekstep.partner.pratham", "group_user": true }, "summaries": ["day","week","month","cumulative"], "trend": {"day": 7, "week": 5, "month": 12 } } } """
-            val response = post("/content/metrics/usage/test123", request);
-            isOK(response)
-            contentAsString(response) must contain(""""trend":{"day":[],"week":[],"month":[]},"summaries":{}}}""")
-        }
-
-        "return the content usage metrics - error response" in new WithApplication {
-            val request = """ {"id": "ekstep.analytics.contentusagesummary", "ver": "1.0", "ts": "YYYY-MM-DDThh:mm:ssZ+/-nn.nn" } """
-            val response = post("/content/metrics/usage/test123", request);
-            hasClientError(response);
-            contentAsString(response) must contain(""""err":"CLIENT_ERROR","status":"failed","errmsg":"Request cannot be blank"""")
-        }
-
        "return api health status report - successful response" in new WithApplication {
            val response = route(FakeRequest(GET, "/health")).get
             status(response) must equalTo(OK)

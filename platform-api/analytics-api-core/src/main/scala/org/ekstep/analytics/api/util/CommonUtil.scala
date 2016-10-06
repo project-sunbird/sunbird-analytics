@@ -130,10 +130,5 @@ object CommonUtil {
         	lastDay.toString(DateTimeFormat.forPattern("MMM dd"))
         s"$first - $last";
     }
-    
-    def main(args: Array[String]): Unit = {
-    	val date = "2016739";
-    	println(getWeekPeriodLabel(date));
-    }
 
 }

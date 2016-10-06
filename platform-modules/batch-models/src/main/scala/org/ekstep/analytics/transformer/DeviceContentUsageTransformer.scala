@@ -19,7 +19,7 @@ object DeviceContentUsageTransformer extends DeviceRecommendationTransformer[Dev
         val f3 = indexedRDD.map { x => (x._1, x._2.start_time.getOrElse(0L).toDouble) };
         val f3_t = binning(f3, 3);
         val x = f1_t.join(f2_t).join(f3_t) //.mapValues(f => dcus_tf(f._1._1, f._1._2, f._2));
-        indexedRDD.leftOuterJoin(x).map(f => (f._2._1.device_id, dcus_tf(f._2._1.content_id, Option(f._2._2.get._1._1), Option(f._2._2.get._1._2), Option(f._2._2.get._2))));
+        indexedRDD.leftOuterJoin(x).map(f => (f._1, dcus_tf(f._2._1.content_id, Option(f._2._2.get._1._1), Option(f._2._2.get._1._2), Option(f._2._2.get._2))));
     }
     
     override def removeOutliers(rdd: RDD[DeviceContentSummary])(implicit sc: SparkContext): RDD[(String, DeviceContentSummary)] = {
@@ -52,7 +52,7 @@ object DeviceContentUsageTransformer extends DeviceRecommendationTransformer[Dev
             val num_individual_user_t = x._2._1._1._2
             val num_sessions_t = x._2._1._2
             val total_interactions_t = x._2._2
-            (dcus.device_id, DeviceContentSummary(dcus.device_id, dcus.content_id, dcus.game_ver, Option(num_sessions_t.toLong), Option(total_interactions_t.toLong), Option(avg_interactions_min_t), Option(ts_t), dcus.last_played_on, dcus.start_time, Option(mean_play_time_interval_t), dcus.downloaded, dcus.download_date, Option(num_group_user_t.toLong), Option(num_individual_user_t.toLong)))
+            (x._1, DeviceContentSummary(dcus.device_id, dcus.content_id, dcus.game_ver, Option(num_sessions_t.toLong), Option(total_interactions_t.toLong), Option(avg_interactions_min_t), Option(ts_t), dcus.last_played_on, dcus.start_time, Option(mean_play_time_interval_t), dcus.downloaded, dcus.download_date, Option(num_group_user_t.toLong), Option(num_individual_user_t.toLong)))
         } 
     }
     
@@ -60,6 +60,6 @@ object DeviceContentUsageTransformer extends DeviceRecommendationTransformer[Dev
         
         val binning = getTransformationByBinning(rdd)
         val outlier = removeOutliers(rdd)
-        outlier.join(binning);
+        outlier.join(binning).map{f => (f._2._1.device_id, (f._2._1, f._2._2))};
     }
 }
