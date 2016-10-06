@@ -13,7 +13,7 @@ import org.ekstep.analytics.api.ItemUsageSummaryView
 object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
   	override def metric : String = "ius";
   	
-  	override def getMetrics(records: RDD[ItemUsageSummaryView], period: String)(implicit sc: SparkContext, config: Config): RDD[ItemUsageMetrics] = {
+  	override def getMetrics(records: RDD[ItemUsageSummaryView], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ItemUsageMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.groupBy { x => x.d_period + "-" + x.d_content_id }.map{ f => 
@@ -33,7 +33,7 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
         ItemUsageMetrics(dummy.d_period, dummy.label, obj.items)
     }
   	
-  	override def reduce(fact1: ItemUsageMetrics, fact2: ItemUsageMetrics): ItemUsageMetrics = {
+  	override def reduce(fact1: ItemUsageMetrics, fact2: ItemUsageMetrics, fields: Array[String] = Array()): ItemUsageMetrics = {
 		val items = (fact1.items ++ fact2.items).flatMap { x => x }
   		val summaryItems = items.groupBy { x => x.d_item_id }.map { f => f._2.reduce(reduceItemSummary) }.toList;
   		ItemUsageMetrics(None, None, Option(summaryItems));

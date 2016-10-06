@@ -46,7 +46,7 @@ object MetricsAPIService {
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.content-usage", result));
 	}
 	
-	def contentPopularity(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+	def contentPopularity(body: MetricsRequestBody, fields: Array[String])(implicit sc: SparkContext, config: Config): String = {
 		if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
 				throw new ClientException("period is missing or invalid.");
 		}
@@ -56,7 +56,7 @@ object MetricsAPIService {
 		}
 		val contentId = filter.content_id.get;
 		val tag = filter.tag.getOrElse("all");
-		val result = ContentPopularityMetricsModel.fetch(contentId, tag, body.request.period);
+		val result = ContentPopularityMetricsModel.fetch(contentId, tag, body.request.period, fields);
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.content-popularity", result));
 	}
 	

@@ -38,7 +38,8 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 	def contentPopularity() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);
-			val result = MetricsAPIService.contentPopularity(body)(Context.sc, config);
+			val fields = request.getQueryString("fields").getOrElse("NA").split(",");
+			val result = MetricsAPIService.contentPopularity(body, fields)(Context.sc, config);
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>

@@ -13,7 +13,7 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 	
 	override def metric : String = "gls"; // Because content list is part of GLS.
 	
-	override def getMetrics(records: RDD[ContentUsageListMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[ContentUsageListMetrics] = {
+	override def getMetrics(records: RDD[ContentUsageListMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ContentUsageListMetrics] = {
 		val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
@@ -29,7 +29,7 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 		};
 	}
 	
-	override def reduce(fact1: ContentUsageListMetrics, fact2: ContentUsageListMetrics): ContentUsageListMetrics = {
+	override def reduce(fact1: ContentUsageListMetrics, fact2: ContentUsageListMetrics, fields: Array[String] = Array()): ContentUsageListMetrics = {
 	    val m_contents = (fact2.m_contents.getOrElse(List()) ++ fact1.m_contents.getOrElse(List())).distinct;
 		val contents = (fact2.content.getOrElse(List()) ++ fact1.content.getOrElse(List())).distinct;
 		ContentUsageListMetrics(None, None, Option(m_contents), Option(contents))

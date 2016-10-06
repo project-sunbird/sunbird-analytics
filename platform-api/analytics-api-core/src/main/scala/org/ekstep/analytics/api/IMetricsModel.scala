@@ -19,15 +19,15 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
 
     def metric(): String = "metricName";
 
-    def fetch(contentId: String, tag: String, period: String)(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
+    def fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
-            _fetch(contentId, tag, period);
+            _fetch(contentId, tag, period, fields);
         });
         println(s"Timetaken to fetch API data ($contentId, $tag, $period):", timeTaken._1);
         timeTaken._2;
     }
 
-    private def _fetch(contentId: String, tag: String, period: String)(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
+    private def _fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         try {
             val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
                 val records = getData[T](contentId, tag, period.replace("LAST_", "").replace("_", "")).cache();
@@ -35,31 +35,31 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
                 records;
             });    
             println(s"Timetaken to fetch data from S3 ($contentId, $tag, $period):", dataFetch._1);
-            getResult(dataFetch._2, period);
+            getResult(dataFetch._2, period, fields);
         } catch {
             case ex: S3ServiceException =>
                 ex.printStackTrace();
                 println("Data fetch Error(S3ServiceException):", ex.getMessage);
-                getResult(sc.emptyRDD[T], period);
+                getResult(sc.emptyRDD[T], period, fields);
             case ex: org.apache.hadoop.mapred.InvalidInputException =>
                 println("Data fetch Error(InvalidInputException):", ex.getMessage);
-                getResult(sc.emptyRDD[T], period);
+                getResult(sc.emptyRDD[T], period, fields);
             case ex: Exception =>
                 throw ex;
         }
     }
 
-    def getMetrics(records: RDD[T], period: String)(implicit sc: SparkContext, config: Config): RDD[R]
+    def getMetrics(records: RDD[T], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[R]
 
-    def getSummary(metrics: RDD[R]): R = {
-        metrics.reduce(reduce);
+    def getSummary(metrics: RDD[R],  fields: Array[String] = Array()): R = {
+        metrics.reduce((a, b) => reduce(a, b, fields));
     }
 
-    def reduce(fact1: R, fact2: R): R
+    def reduce(fact1: R, fact2: R, fields: Array[String] = Array()): R
     
-    private def getResult(records: RDD[T], period: String)(implicit sc: SparkContext, config: Config) : Map[String, AnyRef] = {
-    	val metrics = getMetrics(records, period);
-            val summary = getSummary(metrics);
+    private def getResult(records: RDD[T], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config) : Map[String, AnyRef] = {
+    	val metrics = getMetrics(records, period, fields);
+            val summary = getSummary(metrics, fields);
             Map[String, AnyRef](
                 "metrics" -> metrics.collect(),
                 "summary" -> summary);

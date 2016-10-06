@@ -13,7 +13,7 @@ object CotentUsageMetricsModel extends IMetricsModel[ContentUsageMetrics, Conten
 
     override def metric: String = "cus";
 
-    override def getMetrics(records: RDD[ContentUsageMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[ContentUsageMetrics] = {
+    override def getMetrics(records: RDD[ContentUsageMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ContentUsageMetrics] = {
 
         val periodEnum = periodMap.get(period).get._1;
         val periods = _getPeriods(period);
@@ -29,7 +29,7 @@ object CotentUsageMetricsModel extends IMetricsModel[ContentUsageMetrics, Conten
             obj.m_avg_interactions_min, obj.m_total_devices, obj.m_avg_sess_device)
     }
 
-    override def reduce(fact1: ContentUsageMetrics, fact2: ContentUsageMetrics): ContentUsageMetrics = {
+    override def reduce(fact1: ContentUsageMetrics, fact2: ContentUsageMetrics, fields: Array[String] = Array()): ContentUsageMetrics = {
         val total_ts = CommonUtil.roundDouble(fact2.m_total_ts.get + fact1.m_total_ts.get, 2);
         val total_sessions = fact2.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue() + fact1.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue()
         val avg_ts_session = if (total_sessions > 0) CommonUtil.roundDouble((total_ts / total_sessions), 2) else 0.0;

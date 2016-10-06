@@ -10,21 +10,34 @@ import org.ekstep.analytics.api.util.CommonUtil
 object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics, ContentPopularityMetrics]  with Serializable {
 	override def metric : String = "cps";
 	
-	override def getMetrics(records: RDD[ContentPopularityMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[ContentPopularityMetrics] = {
+	override def getMetrics(records: RDD[ContentPopularityMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ContentPopularityMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
+		val addComments = returnComments(fields);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => (period, ContentPopularityMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
+		var periodsRDD = sc.parallelize(periods.map { period => 
+			if(addComments) 
+				(period, ContentPopularityMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)), Option(List())))
+			else
+				(period, ContentPopularityMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period))))
+			});
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
-			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1) else f._2._1 
+			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1, addComments) else f._2._1 
 		};
 	}
 
-	private def _merge(obj: ContentPopularityMetrics, dummy: ContentPopularityMetrics): ContentPopularityMetrics = {
-        ContentPopularityMetrics(dummy.d_period, dummy.label, obj.m_downloads, obj.m_side_loads, obj.m_ratings, obj.m_avg_rating)
+	private def _merge(obj: ContentPopularityMetrics, dummy: ContentPopularityMetrics, addComments: Boolean): ContentPopularityMetrics = {
+        if (addComments)
+        	ContentPopularityMetrics(dummy.d_period, dummy.label, obj.m_comments, obj.m_downloads, obj.m_side_loads, obj.m_ratings, obj.m_avg_rating)
+        else
+        	ContentPopularityMetrics(dummy.d_period, dummy.label, None, obj.m_downloads, obj.m_side_loads, obj.m_ratings, obj.m_avg_rating)
     }
 	
-	override def reduce(fact1: ContentPopularityMetrics, fact2: ContentPopularityMetrics): ContentPopularityMetrics = {
+	private def returnComments(fields: Array[String] = Array()) : Boolean = {
+		fields.contains("m_comments");
+	}
+	
+	override def reduce(fact1: ContentPopularityMetrics, fact2: ContentPopularityMetrics, fields: Array[String] = Array()): ContentPopularityMetrics = {
 		val m_downloads = fact2.m_downloads.getOrElse(0l).asInstanceOf[Number].longValue() + fact1.m_downloads.getOrElse(0l).asInstanceOf[Number].longValue();
 		val m_side_loads = fact2.m_side_loads.getOrElse(0l).asInstanceOf[Number].longValue() + fact1.m_side_loads.getOrElse(0l).asInstanceOf[Number].longValue();
 		val m_ratings = (fact2.m_ratings.getOrElse(List()) ++ fact1.m_ratings.getOrElse(List())).distinct;
@@ -32,6 +45,13 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 			val total_rating = m_ratings.map(_._1).sum;
 			if (total_rating > 0) CommonUtil.roundDouble(total_rating/m_ratings.length, 2) else 0.0;
 		} else 0.0;
-		ContentPopularityMetrics(None, None, Option(m_downloads), Option(m_side_loads), Option(m_ratings), Option(m_avg_rating));
+		if(returnComments(fields)) {
+			val m_comments = (fact2.m_comments.getOrElse(List()) ++ fact1.m_comments.getOrElse(List())).distinct;
+			ContentPopularityMetrics(None, None, Option(m_comments), Option(m_downloads), Option(m_side_loads), Option(m_ratings), Option(m_avg_rating));
+		} else {
+			ContentPopularityMetrics(None, None, None, Option(m_downloads), Option(m_side_loads), Option(m_ratings), Option(m_avg_rating));
+		}
+			
+		
 	}
 }

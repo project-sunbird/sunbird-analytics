@@ -10,7 +10,7 @@ import org.ekstep.analytics.api.util.CommonUtil
 object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLaunchMetrics]  with Serializable {
   	override def metric : String = "gls";
 	
-	override def getMetrics(records: RDD[GenieLaunchMetrics], period: String)(implicit sc: SparkContext, config: Config): RDD[GenieLaunchMetrics] = {
+	override def getMetrics(records: RDD[GenieLaunchMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[GenieLaunchMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
@@ -25,7 +25,7 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
         		obj.m_avg_sess_device, obj.m_avg_ts_session);
     }
 	
-	override def reduce(fact1: GenieLaunchMetrics, fact2: GenieLaunchMetrics): GenieLaunchMetrics = {
+	override def reduce(fact1: GenieLaunchMetrics, fact2: GenieLaunchMetrics, fields: Array[String] = Array()): GenieLaunchMetrics = {
 		val total_sessions = fact2.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_total_sessions.getOrElse(0l).asInstanceOf[Number].longValue;
 		val total_ts = CommonUtil.roundDouble((fact2.m_total_ts.getOrElse(0.0).asInstanceOf[Number].doubleValue + fact1.m_total_ts.getOrElse(0.0).asInstanceOf[Number].doubleValue), 2);
 		val total_devices = fact2.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue;
