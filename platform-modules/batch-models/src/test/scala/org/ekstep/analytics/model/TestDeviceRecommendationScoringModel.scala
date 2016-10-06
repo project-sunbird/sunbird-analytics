@@ -11,7 +11,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     "DeviceRecommendationScoringModel" should "load model and generate scores" in {
 
         populateCassandra();
-        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-reco/")))
+        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-recos-training/")))
         DeviceRecommendationScoringModel.execute(null, None)
 
     }
@@ -19,7 +19,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "load model with zero pairwise interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-reco/")
+        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-recos-training/")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams2))
         val jobParams1 = Map("model" -> "fm.model", "localPath" -> "/tmp/")
         val me2 = DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
@@ -28,7 +28,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "load model with zero W0 and generate scores" in {
 
         populateCassandra();
-        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-reco/")
+        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-recos-training/")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams3))
         val me3 = DeviceRecommendationScoringModel.execute(null, None)
     }
@@ -36,7 +36,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "load model with zero unary interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-reco/")
+        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(0.5), "testRatio" -> Double.box(0.5), "libfm.executable_path" -> "src/test/resources/device-recos-training/")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams4))
         val me4 = DeviceRecommendationScoringModel.execute(null, None)
     }
