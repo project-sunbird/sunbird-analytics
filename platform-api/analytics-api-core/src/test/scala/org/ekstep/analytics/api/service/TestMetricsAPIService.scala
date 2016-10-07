@@ -25,7 +25,6 @@ class TestMetricsAPIService extends SparkSpec {
 
     private def getContentPopularityMetrics(request: String): MetricsResponse = {
         val result = MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request), Array("m_comments"));
-        println("PopularityMetrics:", result);
         JSONUtils.deserialize[MetricsResponse](result);
     }
 

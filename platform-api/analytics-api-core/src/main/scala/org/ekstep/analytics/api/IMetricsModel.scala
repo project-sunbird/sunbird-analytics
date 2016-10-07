@@ -19,8 +19,11 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
 
     def metric(): String = "metricName";
 
+    def preProcess()(implicit sc: SparkContext, config: Config) = {}
+    
     def fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
-        val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
+        preProcess();
+    	val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
             _fetch(contentId, tag, period, fields);
         });
         println(s"Timetaken to fetch API data ($contentId, $tag, $period):", timeTaken._1);

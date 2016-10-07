@@ -13,6 +13,10 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 	
 	override def metric : String = "gls"; // Because content list is part of GLS.
 	
+	override def preProcess()(implicit sc: SparkContext, config: Config) = {
+		RecommendationAPIService.validateCache()(sc, config);
+	}
+	
 	override def getMetrics(records: RDD[ContentUsageListMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ContentUsageListMetrics] = {
 		val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
