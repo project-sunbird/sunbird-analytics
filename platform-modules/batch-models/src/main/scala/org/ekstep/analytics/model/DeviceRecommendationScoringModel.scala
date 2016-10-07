@@ -273,19 +273,19 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     def scoringAlgo(data: RDD[org.apache.spark.mllib.linalg.DenseVector], localPath: String, model: String )(implicit sc: SparkContext): RDD[Double] ={
         
-        val modelData = sc.textFile(localPath + model).collect()
-
+        val modelData = sc.textFile(localPath + model).filter(!_.isEmpty()).collect()
+        
         JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val W0_indStart = modelData.indexOf("#global bias W0")
         val W_indStart = modelData.indexOf("#unary interactions Wj")
         val v_indStart = modelData.indexOf("#pairwise interactions Vj,f") + 1
-
+        
         val w0 = if (W0_indStart == -1) 0.0 else modelData(W0_indStart + 1).toDouble
 
         val features = if (W_indStart == -1) Array[Double]() else modelData.slice(W_indStart + 1, v_indStart - 1).map(x => x.toDouble)
         val w = if (features.isEmpty) 0.0 else DenseMatrix.create(features.length, 1, features)
 
-        val interactions = if (v_indStart == modelData.length) Array[String]() else modelData.slice(v_indStart, modelData.length).filter(!_.isEmpty())
+        val interactions = if (v_indStart == modelData.length) Array[String]() else modelData.slice(v_indStart, modelData.length)
         val v = if (interactions.isEmpty) 0.0
         else {
             var col = 0
