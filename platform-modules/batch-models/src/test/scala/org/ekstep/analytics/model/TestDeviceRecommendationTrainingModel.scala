@@ -7,7 +7,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestDeviceRecommendationTrainingModel extends SparkSpec(null) {
 
-    "DeviceRecommendationTrainingModel" should "generate libsvm files and save model to s3" in {
+    ignore should "generate libsvm files and save model to s3" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE device_db.device_usage_summary;");

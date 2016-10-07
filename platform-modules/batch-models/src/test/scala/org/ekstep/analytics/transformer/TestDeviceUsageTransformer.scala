@@ -7,6 +7,10 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.ekstep.analytics.updater.DeviceSpec
+import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types._
 
 class TestDeviceUsageTransformer extends SparkSpec(null) {
   
@@ -25,4 +29,24 @@ class TestDeviceUsageTransformer extends SparkSpec(null) {
         out.count() should be(table.count())
     }
     
+    it should "perform one-hot-encoding on device-spec" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            
+            session.execute("TRUNCATE device_db.device_specification;");
+            session.execute("INSERT INTO device_db.device_specification(device_id, os, screen_size, capabilities, cpu, device_local_name, device_name, external_disk, internal_disk, make, memory, num_sims, primary_secondary_camera) VALUES ('9ea6702483ff7d4fcf9cb886d0ff0e1ebc25a036', 'Android 4.4.2', 3.89, [''], 'abi: armeabi-v7a  ARMv7 Processor rev 4 (v7l)', '', '', 1.13, 835.78, 'MicromaxA065', -1, 1, '5.0,1.0');");
+            session.execute("INSERT INTO device_db.device_specification(device_id, os, screen_size, capabilities, cpu, device_local_name, device_name, external_disk, internal_disk, make, memory, num_sims, primary_secondary_camera) VALUES ('9ea6702483ff7d4fcf9cb886d0ff0e1ebc25a043', 'Android 5.0.1', 5.7, [''], 'abi: armeabi-v7a  ARMv7 Processor rev 4 (v7l)', '', '', 1.13, 835.78, 'SamsungS685', -1, 1, ' ');");
+            session.execute("INSERT INTO device_db.device_specification(device_id, os, screen_size, capabilities, cpu, device_local_name, device_name, external_disk, internal_disk, make, memory, num_sims, primary_secondary_camera) VALUES ('9ea6702483ff7d4fcf9cb886d0ff0e1ebc25a044', 'Android 5.0.1', 5.7, [''], 'abi: armeabi-v7a  ARMv7 Processor rev 4 (v7l)', '', '', 1.13, 835.78, 'SamsungS685', -1, 1, '5.0');");
+            session.execute("INSERT INTO device_db.device_specification(device_id, os, screen_size, capabilities, cpu, device_local_name, device_name, external_disk, internal_disk, make, memory, num_sims, primary_secondary_camera) VALUES ('8ea6702483ff7d4fcf9cb886d0ff0e1ebc25a044', 'Android 5.0.1', 5.7, [''], 'abi: armeabi-v7a  ARMv7 Processor rev 4 (v7l)', '', '', 1.13, 835.78, 'SamsungS685', -1, 1, ' , ');");
+        }
+        
+        implicit val sqlContext = new SQLContext(sc);
+        
+        val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (x.device_id, x.make) }
+        val rows = device_spec.map(f => Row.fromSeq(Seq(f._1, f._2)));
+        val structs = new StructType(Array(new StructField("label", StringType, true), new StructField("value", StringType, true)));
+        val df = sqlContext.createDataFrame(rows, structs);
+        val out = ContentUsageTransformer.oneHotEncoding(df, "value")
+        out.columns.length should be (3)
+    }
 }
