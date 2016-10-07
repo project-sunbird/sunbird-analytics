@@ -8,13 +8,14 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.api.util.ContentCacheUtil
 
 object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetrics, ContentUsageListMetrics]  with Serializable {
 	
 	override def metric : String = "gls"; // Because content list is part of GLS.
 	
 	override def preProcess()(implicit sc: SparkContext, config: Config) = {
-		RecommendationAPIService.validateCache()(sc, config);
+		ContentCacheUtil.validateCache()(sc, config);
 	}
 	
 	override def getMetrics(records: RDD[ContentUsageListMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ContentUsageListMetrics] = {
@@ -27,7 +28,7 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 		}.map { x => 
 			val label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get));
 			val contents = for(id <- x.m_contents.getOrElse(List())) yield {
-				RecommendationAPIService.contentBroadcastMap.value.getOrElse(id.toString, Map())
+				ContentCacheUtil.get.getOrElse(id.toString, Map())
 			}
 			ContentUsageListMetrics(x.d_period, label, x.m_contents, Option(contents.filter(f => !f.isEmpty)));
 		};

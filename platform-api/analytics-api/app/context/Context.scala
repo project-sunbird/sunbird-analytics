@@ -6,6 +6,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkException
 import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.api.util.ContentCacheUtil
 
 object Context {
 
@@ -60,7 +61,7 @@ object Context {
     	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
         closeSparkContext();
         setSparkContext();
-        RecommendationAPIService.initCache()(Context.sc, play.Play.application.configuration.underlying());
+        ContentCacheUtil.initCache()(Context.sc, play.Play.application.configuration.underlying());
         // $COVERAGE-ON$
     }
 
