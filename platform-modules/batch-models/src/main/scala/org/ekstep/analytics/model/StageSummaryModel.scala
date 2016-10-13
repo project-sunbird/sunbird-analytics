@@ -42,8 +42,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
             if (null != screenSummaries && screenSummaries.size > 0) {
                 screenSummaries.map { x =>
                     val ss = JSONUtils.deserialize[ScreenSummary](JSONUtils.serialize(x));
-                    //val ir = JSONUtils.deserialize[ItemResponse](JSONUtils.serialize(x));
-                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount)//ss.get("id").get.asInstanceOf[String], ss.get("timeSpent").get.asInstanceOf[Double], ss.get("visitCount").get.asInstanceOf[Long]);
+                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount)
                 }
             } else {
                 Array[StageSummary]();
