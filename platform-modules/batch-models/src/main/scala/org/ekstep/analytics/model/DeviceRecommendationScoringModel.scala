@@ -347,7 +347,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
 
-        val featureVector = output.select("features").map { x => x.getAs[Vector](0) }.map(y => y.toDense);
+        val featureVector = output.select("features").rdd.map { x => x.asInstanceOf[org.apache.spark.mllib.linalg.DenseVector] };
         JobLogger.log("created featureVector", None, INFO);
 
         JobLogger.log("Downloading model from s3", None, INFO);

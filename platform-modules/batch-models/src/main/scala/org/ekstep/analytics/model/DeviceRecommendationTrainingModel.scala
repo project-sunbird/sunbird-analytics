@@ -290,6 +290,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
+        import sqlContext.implicits._
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
         val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
@@ -325,7 +326,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
 
-        val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
+        val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) }.rdd;
         JobLogger.log("created labeledRDD", None, INFO);
 
         val dataStr = labeledRDD.map {
