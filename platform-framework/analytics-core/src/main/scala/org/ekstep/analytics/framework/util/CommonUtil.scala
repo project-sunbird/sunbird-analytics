@@ -115,13 +115,13 @@ object CommonUtil {
         JobLogger.log("Deleting directory", Option(path.toString()))
         Files.walkFileTree(path, new Visitor());
     }
-    
+
     def createDirectory(dir: String) {
         val path = get(dir);
         JobLogger.log("Creating directory", Option(path.toString()))
         Files.createDirectories(path);
     }
-    
+
     def copyFile(from: InputStream, path: String, fileName: String) = {
         createDirectory(path);
         Files.copy(from, Paths.get(path + fileName), StandardCopyOption.REPLACE_EXISTING);
@@ -130,7 +130,7 @@ object CommonUtil {
     def deleteFile(file: String) {
         JobLogger.log("Deleting file ", Option(file))
         val path = get(file);
-        if(Files.exists(path))
+        if (Files.exists(path))
             Files.delete(path);
     }
 
@@ -334,6 +334,10 @@ object CommonUtil {
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
+    def getPeriod(date: DateTime, period: Period): Int = {
+        getPeriod(date.getMillis, period);
+    }
+
     def getPeriod(syncts: Long, period: Period): Int = {
         val d = new DateTime(syncts, DateTimeZone.UTC);
         period match {
@@ -368,10 +372,54 @@ object CommonUtil {
         val t1 = System.currentTimeMillis()
         ((t1 - t0), result)
     }
-    
-    def getPathFromURL(absUrl: String) : String = {
+
+    def getPathFromURL(absUrl: String): String = {
         val url = new URL(absUrl);
         url.getPath
     }
 
+    @throws(classOf[Exception])
+    def getPeriods(period: Period, periodUpTo: Int): Array[Int] = {
+        period match {
+            case DAY        => getDayPeriods(periodUpTo);
+            case MONTH      => getMonthPeriods(periodUpTo);
+            case WEEK       => getWeekPeriods(periodUpTo);
+            case CUMULATIVE => Array(0);
+        }
+    }
+
+    def getPeriods(periodType: String, periodUpTo: Int): Array[Int] = {
+        Period.withName(periodType) match {
+            case DAY        => getDayPeriods(periodUpTo);
+            case MONTH      => getMonthPeriods(periodUpTo);
+            case WEEK       => getWeekPeriods(periodUpTo);
+            case CUMULATIVE => Array(0);
+        }
+    }
+
+    private def getDayPeriods(count: Int): Array[Int] = {
+        val endDate = DateTime.now(DateTimeZone.UTC);
+        val x = for (i <- 1 to count) yield getPeriod(endDate.minusDays(i), DAY);
+        x.toArray;
+    }
+
+    private def getMonthPeriods(count: Int): Array[Int] = {
+        val endDate = DateTime.now(DateTimeZone.UTC);
+        val x = for (i <- 0 to (count - 1)) yield getPeriod(endDate.minusMonths(i), MONTH);
+        x.toArray;
+    }
+
+    private def getWeekPeriods(count: Int): Array[Int] = {
+        val endDate = DateTime.now(DateTimeZone.UTC);
+        val x = for (i <- 0 to (count - 1)) yield getPeriod(endDate.minusWeeks(i), WEEK);
+        x.toArray;
+    }
+
+     def getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
+
+        val tagList = event.tags.get.asInstanceOf[List[Map[String, List[String]]]]
+        val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
+        val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
+        tempList.filter { x => registeredTags.contains(x) }.toArray;
+    }
 }

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+export SPARK_HOME={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3
+export MODELS_HOME=/mnt/data/analytics/models
+
+## Job to run daily
+cd /mnt/data/analytics/scripts
+today=$(date "+%Y-%m-%d")
+
+echo "Starting the job - PrecomputedViewsJob" >> "logs/$today-pre-computed-job.log"
+nohup $SPARK_HOME/bin/spark-submit --master local[*] --jars $MODELS_HOME/analytics-framework-1.0.jar --class org.ekstep.analytics.job.PrecomputedViewsJob $MODELS_HOME/batch-models-1.0.jar >> "logs/$today-pre-computed-job.log" 2>&1
+echo "Pre-computed Views Job is completed" >> "logs/$today-pre-computed-job.log"

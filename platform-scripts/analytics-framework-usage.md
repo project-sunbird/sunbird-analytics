@@ -520,3 +520,23 @@ val takeOffSessions = DataFilter.filter(oeEndEvents, Filter("gdata.id", "EQ", Op
 val timeSpent = takeOffSessions.map(e => CommonUtil.getTimeSpent(e.edata.eks.length).get);
 timeSpent.mean(); // = 685.88
 ```
+
+### Examples
+
+> Compute per screen average time 
+
+```scala
+val queries = Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-08-21"), Option("2016-09-22"))));
+val rdd = DataFetcher.fetchBatchData[DerivedEvent](Fetcher("S3", None, queries));
+val userContentEvents = DataFilter.filter(rdd, Filter("dimensions.gdata.id", "EQ", Option("do_30070866")));
+
+val screenSummaries = userContentEvents.map { x =>
+    x.edata.eks.screenSummary.map { x => x.asInstanceOf[Map[String, AnyRef]] };
+}.reduce((a, b) => a ++ b);
+val ssRDD = sc.makeRDD(screenSummaries.map(f => (f.get("id").get.asInstanceOf[String], f.get("timeSpent").get.asInstanceOf[Double])));
+val result = ssRDD.groupBy(f => f._1).mapValues(f => {
+    val values = f.map(f => f._2);
+    (values.size, CommonUtil.roundDouble((values.sum / values.size), 2))
+}).map(f => f._1 + "," + f._2._2 + "," + f._2._1);
+OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "screen_summaries.csv")), result);
+```

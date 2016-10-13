@@ -76,11 +76,6 @@
 			<artifactId>spark-mllib_${scala.maj.version}</artifactId>
 			<version>${spark.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.databricks</groupId>
-			<artifactId>spark-csv_${scala.maj.version}</artifactId>
-			<version>1.4.0</version>
-		</dependency>
 
 	</dependencies>
 

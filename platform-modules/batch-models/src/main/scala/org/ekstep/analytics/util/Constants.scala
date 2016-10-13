@@ -21,14 +21,23 @@ object Constants {
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
+    val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact";
+    val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact";
+    val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
     val CONTENT_TO_VEC = "content_to_vector";
+    
+    val REGISTERED_TAGS = "registered_tags";
     
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
 
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
+    }
+    
+    def getContent(contentId: String): String = {
+        s"$LP_URL/v2/content/" + URLEncoder.encode(contentId, "UTF-8");
     }
     
     def getDomainMap(): String = {

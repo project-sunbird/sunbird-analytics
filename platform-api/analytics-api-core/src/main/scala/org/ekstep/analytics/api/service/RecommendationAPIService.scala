@@ -6,14 +6,13 @@ import org.ekstep.analytics.api._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.api.util.CommonUtil
 import org.apache.commons.lang3.StringUtils
-import org.ekstep.analytics.framework.util.RestUtil
 import org.apache.spark.rdd.RDD
-import org.apache.spark.broadcast.Broadcast
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import scala.util.control.Breaks
 import org.ekstep.analytics.api.exception.ClientException
 import com.typesafe.config.Config
+import org.ekstep.analytics.api.util.ContentCacheUtil
 
 /**
  * @author mahesh
@@ -21,41 +20,9 @@ import com.typesafe.config.Config
 
 object RecommendationAPIService {
 
-	var contentBroadcastMap: Broadcast[Map[String, Map[String, AnyRef]]] = null;
-	var cacheTimestamp: Long = 0L;
-
-	def initCache()(implicit sc: SparkContext, config: Config) {
-		try {
-			val baseUrl = config.getString("service.search.url");
-			val searchPath = config.getString("service.search.path");
-			val searchUrl = s"$baseUrl$searchPath";
-			val request = config.getString("service.search.requestbody");
-			val resp = RestUtil.post[Response](searchUrl, request);
-			val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-			val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
-			contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](contentMap);
-			cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
-		} catch {
-			case ex: Throwable =>
-				println("Error at RecommendationAPIService.initCache:" +ex.getMessage);
-				ex.printStackTrace();
-				contentBroadcastMap = sc.broadcast[Map[String, Map[String, AnyRef]]](Map());
-		}
-	}
-
-	def validateCache()(implicit sc: SparkContext, config: Config) {
-
-		val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
-		if (cacheTimestamp < timeAtStartOfDay) {
-			println("cacheTimestamp:" + cacheTimestamp, "timeAtStartOfDay:" + timeAtStartOfDay, " ### Resetting content cache...### ");
-			if (null != contentBroadcastMap) contentBroadcastMap.destroy();
-			initCache();
-		}
-	}
-
 	def recommendations(requestBody: String)(implicit sc: SparkContext, config: Config): String = {
 
-		validateCache()(sc, config);
+		ContentCacheUtil.validateCache()(sc, config);
 		val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
 		val context = reqBody.request.context.getOrElse(Map());
 		val did = context.getOrElse("did", "").asInstanceOf[String];
@@ -80,7 +47,7 @@ object RecommendationAPIService {
 
 		val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
 		val recoContent = if (deviceRecos.count() > 0) {
-			deviceRecos.first.map(f => contentBroadcastMap.value.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
+			deviceRecos.first.map(f => ContentCacheUtil.get.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
 				.filter(p => p.get("identifier").isDefined)
 				.filter(p => {
 					var valid = true;
@@ -142,7 +109,7 @@ object RecommendationAPIService {
 	}
 	
 	private def getContentFilter(id: String): Array[(String, List[String], String)] = {
-		val content: Map[String, AnyRef] = contentBroadcastMap.value.getOrElse(id, Map());
+		val content: Map[String, AnyRef] = ContentCacheUtil.get.getOrElse(id, Map());
 		if (content.isEmpty) {
 			Array();
 		} else {

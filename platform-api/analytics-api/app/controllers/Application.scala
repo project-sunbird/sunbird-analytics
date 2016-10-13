@@ -3,6 +3,7 @@ package controllers
 import org.ekstep.analytics.api.service.ContentAPIService
 import org.ekstep.analytics.api.service.HealthCheckAPIService
 import org.ekstep.analytics.api.service.RecommendationAPIService
+import org.ekstep.analytics.api.service.TagService
 import org.ekstep.analytics.api.util._
 import play.api._
 import play.api.mvc._
@@ -30,38 +31,10 @@ import org.ekstep.analytics.api.service.DataProductManagementAPIService
 import org.ekstep.analytics.api.service.DataProductManagementAPIService
 
 @Singleton
-class Application @Inject() (system: ActorSystem) extends Controller {
+class Application @Inject() (system: ActorSystem) extends BaseController {
 	implicit val className = "controllers.Application";
-	implicit val timeout: Timeout = 20 seconds;
 	val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
 	val dpmgmtAPIActor = system.actorOf(DataProductManagementAPIService.props, "dpmgmt-api-service-actor");
-	implicit val config: Config = play.Play.application.configuration.underlying()
-		.withFallback(ConfigFactory.parseMap(Map("content2vec.scripts_path" -> "",
-			"python.home" -> "",
-			"content2vec.download_path" -> "/tmp",
-			"content2vec.download_file_prefix" -> "temp_",
-			"content2vec.enrich_content" -> "true",
-			"content2vec.content_corpus" -> "true",
-			"content2vec.train_model" -> "false",
-			"content2vec.s3_bucket" -> "sandbox-data-store",
-			"content2vec.model_path" -> "model",
-			"content2vec.s3_key_prefix" -> "model",
-			"content2vec.infer_all" -> "false",
-			"content2vec.corpus_path" -> "").asJava));
-
-	def contentUsageMetrics(contentId: String) = Action { implicit request =>
-		try {
-			val body: String = Json.stringify(request.body.asJson.get);
-			JobLogger.log("ekstep.analytics.contentusagesummary", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
-			val response = ContentAPIService.getContentUsageMetrics(contentId, body)(Context.sc);
-			play.Logger.info(request + " body - " + body + "\n\t => " + response)
-			Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
-		} catch {
-			case ex: ClientException =>
-				Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
-		}
-
-	}
 
 	def checkAPIhealth() = Action { implicit request =>
 		JobLogger.log("ekstep.analytics-api.health", Option(Map("requestHeaders" -> request.headers.toSimpleMap)), INFO);
@@ -122,6 +95,18 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 		JobLogger.log("ekstep.analytics.replay-job", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
 		(dpmgmtAPIActor ! DataProductManagementAPIService.ReplayJob(job, from, to, body, config))
 		val response = JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.replay-job", Map("message" -> "Job submitted")));
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+	}
+	
+	def registerTag(tagId: String) = Action { implicit request =>
+		JobLogger.log("ekstep.analytics.registerTag", Option(Map("requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
+		val response = TagService.registerTag(tagId)(Context.sc);
+		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+	}
+
+	def deleteTag(tagId: String) = Action { implicit request =>
+		JobLogger.log("ekstep.analytics.deleteTag", Option(Map("requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
+		val response = TagService.deleteTag(tagId)(Context.sc);
 		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
 	}
 }

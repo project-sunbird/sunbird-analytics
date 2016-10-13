@@ -8,7 +8,7 @@ sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
   paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/tmp', '/mnt/data/analytics/scripts/monitor-data']
-  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
+  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp','pre-comp-job']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-3.7"
 cql_path: cqlsh
 api_root: "{{ analytics.home }}/api"
@@ -29,51 +29,62 @@ spark:
   driver_extraJavaOptions: -Denv=prod
   executor_memory: 3g
 jobs:
-  lpu:
+  raw-telemetry-jobs:
+   hour: 6
+   minute: 20
+   state: present
+  raw-telemetry-updaters:
+   hour: 6
+   minute: 40
+   state: present
+  ss-jobs: 
     hour: 6
-    minute: 20
-  gls:
-    hour: 6
-    minute: 22
-  gss:
-    hour: 6
-    minute: 24
-  ss:
-    hour: 6
-    minute: 26
-  css:
-    hour: 6
-    minute: 28
-  is:
-     hour: 6
-     minute: 30
+    minute: 50
+    state: present
+  cpu:
+    hour: 7
+    minute: 05
+    state: present 
   dcus:
-    hour: 6
-    minute: 45
+    hour: 7
+    minute: 06
+    state: present
   dus:
-    hour: 6
-    minute: 47
-  cus:
-    hour: 6
-    minute: 49
-  lp:
-    hour: 6
-    minute: 51
-  as:
-    hour: 6
-    minute: 53
-  las:
-    hour: 6
-    minute: 55
-  dsu:
-    hour: 6
-    minute: 57
-  lcas:
-    hour: 6
-    minute: 59
+    hour: 7
+    minute: 07
+    state: present
+  genie-launch-summ:
+    hour: 7
+    minute: 08
+    state: present  
   cuu:
     hour: 7
-    minute: 10
+    minute: 12
+    state: present
+  item-usage-summ:
+    hour: 7
+    minute: 13
+    state: present
+  genie-launch-metrics:
+    hour: 7
+    minute: 20
+    state: present
+  item-usage-metrics:
+    hour: 7
+    minute: 25
+    state: present
+  cmu:
+    hour: 7
+    minute: 26
+    state: present
+
+
+pre_jobs:
+  pre_job:
+    hour: 2
+    minute: 30
+  #state: present
+
 monit_jobs:
   joblog.log:
     hour: 7
@@ -86,3 +97,5 @@ secor_me_job:
   secor_me:
     hour: 23
     minute: 58
+
+

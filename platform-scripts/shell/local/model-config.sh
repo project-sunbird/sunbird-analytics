@@ -22,6 +22,9 @@ config() {
 		"cus") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ContentUsageSummary","output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"TestReplaySupervisor","deviceMapping":false}'
 		;;
+		"cps")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ContentPopularitySummary","output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"Content Popularity Summarizer","deviceMapping":false}'
+		;;
 		"css") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ContentSideloadingSummarizer","output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"ContentSideloadingSummarizer","deviceMapping":false}'
 		;;

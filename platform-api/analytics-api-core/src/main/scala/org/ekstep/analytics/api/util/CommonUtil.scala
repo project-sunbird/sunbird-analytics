@@ -15,6 +15,8 @@ import org.ekstep.analytics.api.Range
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.ekstep.analytics.api.ResponseCode
+import com.typesafe.config.Config
+import org.ekstep.analytics.framework.Period._
 
 /**
  * @author Santhosh
@@ -23,8 +25,9 @@ object CommonUtil {
 
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
+    @transient val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww");
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
-    
+
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
         val conf = new SparkConf().setAppName(appName);
@@ -39,7 +42,7 @@ object CommonUtil {
         // $COVERAGE-ON$
         new SparkContext(conf);
     }
-    
+
     def closeSparkContext()(implicit sc: SparkContext) {
         sc.stop();
     }
@@ -98,6 +101,34 @@ object CommonUtil {
     def getRemainingHours(): Long = {
         val now = DateTime.now(DateTimeZone.UTC);
         new Duration(now, now.plusDays(1).withTimeAtStartOfDay()).getStandardHours;
+    }
+
+    def getPeriodLabel(period: Period, date: Int)(implicit config: Config): String = {
+        val formatter = DateTimeFormat.forPattern("YYYYMMdd");
+        period match {
+            case MONTH =>
+                val format = config.getString("metrics.period.format.month");
+                formatter.parseDateTime(date + "01").toString(DateTimeFormat.forPattern(format))
+            case WEEK =>
+                val datestr = Integer.toString(date);
+                getWeekPeriodLabel(datestr);
+            case DAY =>
+                val format = config.getString("metrics.period.format.day")
+                formatter.parseDateTime(date.toString()).toString(DateTimeFormat.forPattern(format))
+            case _ => date.toString();
+        }
+    }
+    
+    def getWeekPeriodLabel(date: String): String = {
+    	val week = date.substring(0,4)+"-"+date.substring(5,date.length);
+    	val firstDay = weekPeriod.parseDateTime(week);
+        val lastDay = firstDay.plusDays(6);
+        val first = firstDay.toString(DateTimeFormat.forPattern("MMM dd"));
+        val last = if (firstDay.getMonthOfYear == lastDay.getMonthOfYear) 
+        	lastDay.toString(DateTimeFormat.forPattern("dd"))
+        else
+        	lastDay.toString(DateTimeFormat.forPattern("MMM dd"))
+        s"$first - $last";
     }
 
 }
