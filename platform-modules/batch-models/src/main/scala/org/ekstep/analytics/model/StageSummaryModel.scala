@@ -25,7 +25,7 @@ import org.ekstep.analytics.updater.LearnerProfile
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
 
-case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, dt_range: DtRange, stageId: String, timeSpent: Double) extends AlgoOutput
+case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long) extends AlgoOutput
 
 object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, StageSummary, MeasuredEvent] with Serializable {
 
@@ -41,9 +41,9 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
             val screenSummaries = event.edata.eks.screenSummary;
             if (null != screenSummaries && screenSummaries.size > 0) {
                 screenSummaries.map { x =>
-                    val ss = x.asInstanceOf[Map[String, AnyRef]];
-                    val ir = JSONUtils.deserialize[ItemResponse](JSONUtils.serialize(x));
-                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.get("id").get.asInstanceOf[String], ss.get("timeSpent").get.asInstanceOf[Double]);
+                    val ss = JSONUtils.deserialize[ScreenSummary](JSONUtils.serialize(x));
+                    //val ir = JSONUtils.deserialize[ItemResponse](JSONUtils.serialize(x));
+                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount)//ss.get("id").get.asInstanceOf[String], ss.get("timeSpent").get.asInstanceOf[Double], ss.get("visitCount").get.asInstanceOf[Long]);
                 }
             } else {
                 Array[StageSummary]();
@@ -57,7 +57,8 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
             val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to);
             val measures = Map(
                 "stageId" -> summary.stageId,
-                "timeSpent" -> summary.timeSpent);
+                "timeSpent" -> summary.timeSpent,
+                "visitCount" -> summary.visitCount);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ScreenSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", summary.dt_range),
