@@ -8,7 +8,7 @@ class TestStageSummaryModel extends SparkSpec(null) {
 
     "StageSummaryModel" should "generate stage summaries" in {
 
-        val rdd = loadFile[org.ekstep.analytics.util.DerivedEvent]("src/test/resources/item-usage-summary/test-data.log");
+        val rdd = loadFile[org.ekstep.analytics.util.DerivedEvent]("src/test/resources/stage-summary/test-data.log");
 
         val rdd2 = StageSummaryModel.execute(rdd, None);
         val me = rdd2.map { x => JSONUtils.serialize(x) }.collect();
