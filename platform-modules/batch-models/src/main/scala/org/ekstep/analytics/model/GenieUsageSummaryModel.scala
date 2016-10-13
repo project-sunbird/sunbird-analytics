@@ -102,7 +102,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
                 "contents" -> guMetrics.contents,
                 "device_ids" -> guMetrics.device_ids)
 
-            MeasuredEvent("ME_GENIE_USAGE_SUMMARY", System.currentTimeMillis(), guMetrics.dt_range.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_GENIE_USAGE_SUMMARY", System.currentTimeMillis(), guMetrics.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummaryModel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], guMetrics.dt_range),
                 Dimensions(None, None, None, None, None, None, None, None, None, Option(guMetrics.gk.tag), Option(guMetrics.gk.period)),
                 MEEdata(measures));

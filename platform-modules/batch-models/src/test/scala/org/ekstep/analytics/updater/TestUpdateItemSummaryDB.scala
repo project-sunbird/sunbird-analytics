@@ -7,12 +7,13 @@ import org.ekstep.analytics.framework.DerivedEvent
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.util.ItemUsageSummaryFact
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.commons.lang3.StringUtils
 
 class TestUpdateItemSummaryDB extends SparkSpec(null) {
 
-    it should "update the item usage summary db and check the all fields" in {
+    "UpdateItemSummaryDB" should "update the item usage summary db and check the all fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.item_usage_summary_fact");

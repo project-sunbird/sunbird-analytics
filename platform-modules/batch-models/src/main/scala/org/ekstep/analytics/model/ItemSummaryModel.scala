@@ -31,7 +31,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.immutable.Nil
 
 case class InputEventsItemSummary(ik: ItemKey, events: Buffer[ItemUsageMetricsSummary]) extends Input with AlgoInput
-case class ItemUsageMetricsSummary(ik: ItemKey, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, top5_incorrect_res: Array[Map[String, String]], dt_range: DtRange, syncts: Long) extends AlgoOutput;
+case class ItemUsageMetricsSummary(ik: ItemKey, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, m_incorrect_res: List[(String, Int)], dt_range: DtRange, syncts: Long) extends AlgoOutput;
 
 object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsItemSummary, ItemUsageMetricsSummary, MeasuredEvent] with Serializable {
 
@@ -51,11 +51,8 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
         val correct_res = firstEvent.correct_res
         val correct_res_count = events.map { x => x.correct_res_count }.sum
         val inc_res_count = events.map { x => x.inc_res_count }.sum
-        val top5_incorrect_res = events.flatMap { x => x.top5_incorrect_res }.map { y => JSONUtils.serialize(y) }.groupBy(x => x)
-        .map { x => (x._2.size, x._1 ) }.toArray.sorted(Ordering.by((_: (Int, String))._1).reverse).take(5).
-        map{x=>JSONUtils.deserialize[Map[String, String]](x._2)};
-        
-        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, top5_incorrect_res, date_range, lastEvent.syncts);
+        val m_incorrect_res = events.flatMap { x => x.m_incorrect_res }.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
+        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, date_range, lastEvent.syncts);
     }
 
     private def _getItemUsageSummary(event: DerivedEvent, period: Int, tagId: String, content_id: String, item_id: String): ItemUsageMetricsSummary = {
@@ -66,12 +63,13 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
         val total_count = 1;
         val avg_ts = total_ts;
         val pass = eksMap.get("pass").get.asInstanceOf[String]
-        val res = eksMap.get("res").get
-        val correct_res = if (StringUtils.equals("Yes", pass) && Nil != res ) res.asInstanceOf[List[String]] else List[String]()
+        val res = if (eksMap.get("res").isDefined) eksMap.get("res").get.asInstanceOf[List[String]] else List[String]();
+        val correct_res = if (StringUtils.equals("Yes", pass) && Nil != res) res.asInstanceOf[List[String]] else List[String]()
         val correct_res_count: Int = if (StringUtils.equals("Yes", pass)) 1 else 0
-        val inc_res_count: Int = if (StringUtils.equals("No", pass)) 1 else 0
-        val top5_incorrect_res = if (inc_res_count == 1) eksMap.get("resValues").get.asInstanceOf[List[Map[String, String]]] else List()
-        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count,correct_res, inc_res_count, top5_incorrect_res.toArray, event.context.date_range, event.syncts);
+        val inc_res_count: Int = if (StringUtils.equals("No", pass)) 1 else 0;
+
+        val m_incorrect_res = if (inc_res_count == 1) res.map { x => (x, 1) } else List[(String, Int)]();
+        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, event.context.date_range, event.syncts);
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsItemSummary] = {
@@ -117,10 +115,10 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
                 "avg_ts" -> itSumm.avg_ts,
                 "correct_res_count" -> itSumm.correct_res_count,
                 "inc_res_count" -> itSumm.inc_res_count,
-                "top5_incorrect_res" -> itSumm.top5_incorrect_res,
+                "incorrect_res" -> itSumm.m_incorrect_res.toMap,
                 "correct_res" -> itSumm.correct_res)
 
-            MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.dt_range.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummaryModel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], itSumm.dt_range),
                 Dimensions(None, None, None, None, None, None, None, None, None, Option(itSumm.ik.tag), Option(itSumm.ik.period), Option(itSumm.ik.content_id), None, Option(itSumm.ik.item_id)),
                 MEEdata(measures));

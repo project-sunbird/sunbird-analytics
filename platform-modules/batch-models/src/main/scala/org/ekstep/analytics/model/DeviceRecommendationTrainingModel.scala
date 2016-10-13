@@ -99,9 +99,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val dusO = dusT.map{x => (DeviceId(x._1), x._2._1)}
         
         // Device Content Usage Summaries
-        val dcus = allDevices.joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
+        val dcus = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
         // dcus transformations
-        val dcusT = DeviceContentUsageTransformer.excecute(dcus.map(x => x._2))
+        val dcusT = DeviceContentUsageTransformer.excecute(dcus)
         val dcusB = dcusT.map{x => (x._1,x._2._2)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusBB = sc.broadcast(dcusB);
         val dcusO = dcusT.map{x => (DeviceId(x._1),x._2._1)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
@@ -109,13 +109,14 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         dcus.unpersist(true);
         
         // creating DeviceContext without transformations
-        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map{x => (DeviceId(x.device_id), x)}, dcus.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map{ x => (x.d_content_id, x)}.collect().toMap, contentModel)
+        val inputDataPath = config.getOrElse("inputDataPath", "/tmp/RE-input").asInstanceOf[String]
+        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map{x => (DeviceId(x.device_id), x)}, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map{ x => (x.d_content_id, x)}.collect().toMap, contentModel)
         JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val file = new File("/tmp/RE-input")
+        val file = new File(inputDataPath)
         if (file.exists())
-            CommonUtil.deleteDirectory("/tmp/RE-input")
+            CommonUtil.deleteDirectory(inputDataPath)
         val jsondata = createJSON(deviceContext) //data.map { x => JSONUtils.serialize(x) }
-        jsondata.saveAsTextFile("/tmp/RE-input")
+        jsondata.saveAsTextFile(inputDataPath)
         
         device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
@@ -291,9 +292,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         implicit val sqlContext = new SQLContext(sc);
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
         val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
-        val libfmInputFile = config.getOrElse("libfmInputFile", "/tmp/libfm_input.csv").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
-        val libfmLogFile = config.getOrElse("libfmLogFile", "/tmp/logFile").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
@@ -305,8 +304,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(model);
-        CommonUtil.deleteFile(libfmInputFile);
-        CommonUtil.deleteFile(libfmLogFile);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);

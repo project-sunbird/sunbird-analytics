@@ -26,12 +26,13 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 	override def name: String = "ContentPopularitySummaryModel"
 	
 	private def _computeMetrics(events: Buffer[ContentPopularitySummary], ck: ContentKey): ContentPopularitySummary = {
-		val firstEvent = events.sortBy { x => x.dt_range.from }.head;
-        val lastEvent = events.sortBy { x => x.dt_range.from }.last;
+		val sortedEvents =  events.sortBy { x => x.dt_range.from };
+		val firstEvent = sortedEvents.head;
+        val lastEvent = sortedEvents.last;
         val ck = firstEvent.ck;
         
         val gdata = if (StringUtils.equals(ck.content_id, "all")) None else Option(new GData(ck.content_id, firstEvent.gdata.get.ver));
-        val dt_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.from);
+        val dt_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.to);
         val downloads = events.map { x => x.m_downloads }.sum;
         val side_loads = events.map { x => x.m_side_loads }.sum;
         val comments = events.map { x => x.m_comments }.flatMap { x => x }.filter { x => !StringUtils.isEmpty(x.getOrElse("comment", "").asInstanceOf[String]) }.toList;
@@ -44,12 +45,12 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 	}
 	
 	private def getContentPopularitySummary(event: Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
-		val dt_range = DtRange(event.ets, event.ets);
+		val dt_range = DtRange(CommonUtil.getEventTS(event), CommonUtil.getEventTS(event));
 		if ("GE_FEEDBACK".equals(event.eid)) {
 			val ck = ContentKey(period, contentId, tagId);
 			val gdata = event.gdata;
-			val comments = List(Map("comment" -> event.edata.eks.comments,  "time" -> event.ets.asInstanceOf[AnyRef]));
-			val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef],  "time" -> event.ets.asInstanceOf[AnyRef]));
+			val comments = List(Map("comment" -> event.edata.eks.comments,  "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
+			val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef],  "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
 			val avg_rating = event.edata.eks.rating;
 			Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), Option(gdata)));
 		} else if ("GE_TRANSFER".equals(event.eid)) {
@@ -77,7 +78,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 		val feedbackEvents = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("GE_FEEDBACK"))));
 		val normalizeEvents = importEvents.union(feedbackEvents).map { event => 
 			var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
-            val period = CommonUtil.getPeriod(event.ets, Period.DAY);
+            val period = CommonUtil.getPeriod(CommonUtil.getEventTS(event), Period.DAY);
             
             list ++= getContentPopularitySummary(event, period, "all", "all");
             list ++= getContentPopularitySummary(event, period, event.gdata.id, "all");
@@ -111,7 +112,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
                 "m_comments" -> cpMetrics.m_comments,
                 "m_avg_rating" -> cpMetrics.m_avg_rating)
 			
-            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.dt_range.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentPopularitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cpMetrics.dt_range),
                 Dimensions(None, None, cpMetrics.gdata, None, None, None, None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id)),
                 MEEdata(measures));

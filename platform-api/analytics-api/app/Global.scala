@@ -5,8 +5,8 @@ import scala.concurrent.Future
 import filter.RequestInterceptor
 import context.Context
 import org.ekstep.analytics.framework.util.RestUtil
-import org.ekstep.analytics.api.service.RecommendationAPIService
 import com.typesafe.config.Config
+import org.ekstep.analytics.api.util.ContentCacheUtil
 
 object Global extends WithFilters(RequestInterceptor) {
 
@@ -14,7 +14,7 @@ object Global extends WithFilters(RequestInterceptor) {
         Context.setSparkContext();
         Logger.info("Caching content")
         val config: Config = play.Play.application.configuration.underlying();
-        RecommendationAPIService.initCache()(Context.sc, config);
+        ContentCacheUtil.initCache()(Context.sc, config);
         Logger.info("Application has started...")
     }
 

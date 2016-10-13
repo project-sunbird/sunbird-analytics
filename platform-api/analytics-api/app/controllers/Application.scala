@@ -36,20 +36,6 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
 	val dpmgmtAPIActor = system.actorOf(DataProductManagementAPIService.props, "dpmgmt-api-service-actor");
 
-	def contentUsageMetrics(contentId: String) = Action { implicit request =>
-		try {
-			val body: String = Json.stringify(request.body.asJson.get);
-			JobLogger.log("ekstep.analytics.contentusagesummary", Option(Map("requestBody" -> body, "requestHeaders" -> request.headers.toSimpleMap, "path" -> request.path)), INFO);
-			val response = ContentAPIService.getContentUsageMetrics(contentId, body)(Context.sc);
-			play.Logger.info(request + " body - " + body + "\n\t => " + response)
-			Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
-		} catch {
-			case ex: ClientException =>
-				Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.contentusagesummary", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
-		}
-
-	}
-
 	def checkAPIhealth() = Action { implicit request =>
 		JobLogger.log("ekstep.analytics-api.health", Option(Map("requestHeaders" -> request.headers.toSimpleMap)), INFO);
 		val response = HealthCheckAPIService.getHealthStatus()(Context.sc)

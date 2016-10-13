@@ -4,6 +4,7 @@ export SPARK_HOME={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3
 export MODELS_HOME=/mnt/data/analytics/models
 
 ## Job to run daily
+cd /mnt/data/analytics/scripts
 today=$(date "+%Y-%m-%d")
 
 echo "Starting the job - PrecomputedViewsJob" >> "logs/$today-pre-computed-job.log"
