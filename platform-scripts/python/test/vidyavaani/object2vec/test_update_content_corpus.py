@@ -2,9 +2,6 @@ import pytest
 import os
 import sys
 import json
-from subprocess import Popen, PIPE
-from tempfile import SpooledTemporaryFile as tempfile
-import shlex
 root = os.path.dirname(os.path.abspath(__file__))
 
 def rec_dir(path, times):
@@ -13,38 +10,56 @@ def rec_dir(path, times):
     return path
 
 python_dir = rec_dir(root,3)
-src_code = os.path.join(python_dir, 'main', 'vidyavaani', 'object2vec', 'update_content_corpus.py')
-# sys.path.insert(0, src_code_utils)
-# from update_content_corpus import updateContentCorpus, process_data, merge_strings, createDirectory
+src_code = os.path.join(python_dir, 'main', 'vidyavaani', 'object2vec')
+sys.path.insert(0, src_code)
+from update_content_corpus_functions import updateContentCorpus, process_data, merge_strings, createDirectory, uniqfy_list
 
 #test resources 
 dir_path = os.path.join(rec_dir(root,1), 'test_resources', 'update_content_corpus')
 
-# def test_updateContentCorpus():
-# 	chcek = 0
-# 	input_path = os.path.join(dir_path, 'input.json')
+def test_merge_strings_pos():
+	input_dict =  {'first': {'alternative': [{'transcript': "select this"}, {'transcript': 'not this one'}]}}
+	result = merge_strings(input_dict)
+	expected = {'first': 'select this'}
+	assert result == expected
 
-# 	with open(input_path) as data_file:
-# 		input_text = json.loads(data_file.read())
+def test_merge_strings_neg():
+	input_dict =  {'first': ''}
+	result = merge_strings(input_dict)
+	expected = input_dict
+	assert result == expected
 
-# 	result = updateContentCorpus(input_text)
-# 	if 'tag' in result and 'text' in result:
-# 		check = 1
-# 	assert check == 1
+def test_process_data_pos():
+	pass
 
-def test_update_content_corpus():
+def test_process_data_neg():
+	pass
 
-	# myinput = open(os.path.join(dir_path, 'input.in'))
-	myoutput = open(os.path.join(dir_path, 'output.out'), 'w')
-	myinput = {"languageCode": "en", "mediaCount": {"gif": 0, "ogg": 0, "png": 12, "mp3": 1, "jpg": 0}, "contentType": "Worksheet", "description": "PRW Item Template", "language": ["English"], "items": ["{}"], "imageTags": ["icon validate", "greenbox", "icon home", "icon submit", "ekstep placeholder blue eye", "icon hint", "speech bubble", "yellowbox", "icon reload", "background", "icon next", "icon previous"], "mp3Transcription": {"tmp/domain_38527/assets/q1_1460133785285": {"alternative": [{"confidence": 0.86655092, "transcript": "Ek gajar Ki Keemat kya hai"}, {"transcript": "gajar Ki Keemat kya hai"}, {"transcript": "IIT gajar Ki Keemat kya hai"}, {"transcript": "Ik gajar Ki Keemat kya hai"}, {"transcript": "EC gajar Ki Keemat kya hai"}], "final": true}}, "mp3Length": 2.914104308390023, "concepts": [], "owner": "EkStep", "identifier": "domain_38527", "data": ["{}"], "developer": "EkStep"}
-	f = tempfile()
-	f.write(myinput)
-	f.seek(0)
-	# command_line = 'echo %s | python %s' %(myinput,src_code)
-	# args = shlex.split(command_line)
-	# p = subprocess.Popen(args)
-	p = subprocess.Popen(["python",src_code],stdin=f, stdout=PIPE)
-	f.close()
-	# p.wait()
-	# myoutput.flush()
+@pytest.mark.skip(reason="need to check the actual input and output")
+def test_updateContentCorpus_pos():
+	# input_file = os.path.join(dir_path, 'pos', 'input.txt')
+	# input_text = open(input_file, 'r')
+	# input_text = input_text.read()
+	# print input_text
+	# result = updateContentCorpus(input_text)
+	# expected = {'text': 'Ek gajar Ki Keemat kya hai', 'tags': ''}
+	# assert result == expected
+	pass
+
+def test_updateContentCorpus_neg():
+	input_file = os.path.join(dir_path, 'neg', 'input.txt')
+	input_text = open(input_file, 'r')
+	input_text = input_text.read()
+	result = updateContentCorpus(input_text)
+	expected = 1
+	assert result == expected
+
+
+def test_uniqfy_list_pos():
+	sample_list = ['1', '2', '3', '1', '4', '0']
+	result = uniqfy_list(sample_list)
+	expected = ['1', '2', '3', '4', '0']
+	assert result == expected
+
+def test_uniqfy_list_neg():
 	pass
