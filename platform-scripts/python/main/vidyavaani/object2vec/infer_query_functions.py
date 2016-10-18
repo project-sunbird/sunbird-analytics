@@ -183,7 +183,6 @@ def infer_query():
 # Infer search string from model
 # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L499
 
-
 def inference(query, model):
     model.sg = 1  # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L721
     q_vec = model.infer_vector(query.split(

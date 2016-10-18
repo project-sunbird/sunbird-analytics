@@ -3,8 +3,6 @@ import sys
 import logging  # Log the data given
 import ConfigParser
 import json
-from 
-langdetect.DetectorFactory.seed = 0
 
 root = os.path.dirname(os.path.abspath(__file__))
 utils = os.path.join((os.path.split(root)[0]), 'utils')
@@ -25,14 +23,13 @@ inferFlag = std_input['infer_all']
 op_dir = std_input['corpus_loc']
 model_loc = std_input['model']
 
-
-
 # geting paths from config file
 config = ConfigParser.SafeConfigParser()
 config.read(config_file)
 
 # op_dir = config.get('FilePath', 'corpus_path')
 log_dir = config.get('FilePath', 'log_path')
+use_LDA = config.get('Training', 'use_LDA')
 
 if not os.path.exists(model_loc):
     logging.info('model folder do not exist')
@@ -44,5 +41,7 @@ infer_log_file = os.path.join(log_dir, 'inferQuery.log')
 # test and remove the comments below
 logging.basicConfig(filename=infer_log_file, level=logging.DEBUG)
 logging.info('Corpus to Vectors')
-
-infer_query()
+if use_LDA == 'false':
+	infer_query()
+else:
+	infer_query_LDA()

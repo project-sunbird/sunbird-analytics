@@ -11,6 +11,11 @@ import ConfigParser
 from nltk.corpus import stopwords
 stopword = set(stopwords.words("english"))
 
+#for LDA
+from nltk.tokenize import RegexpTokenizer
+from nltk.stem.porter import PorterStemmer
+from gensim import corpora, models, similarities
+
 root = os.path.dirname(os.path.abspath(__file__))
 utils = os.path.join(os.path.split(root)[0], 'utils')
 resource = os.path.join((os.path.split(root)[0]), 'resources')
@@ -48,6 +53,10 @@ pvdbow_negative = int(config.get('pvdbow', 'negative'))
 pvdbow_workers = int(config.get('pvdbow', 'workers'))
 pvdbow_sample = float(config.get('pvdbow', 'sample'))
 pvdbow_dm = int(config.get('pvdbow', 'dm'))
+
+# LDA params
+lda_topics = int(config.get('LDA', 'topics'))
+lda_passes = int(config.get('LDA', 'passes'))
 
 def process_text(lines, language):  # Text processing
     word_list = []
@@ -91,6 +100,22 @@ def load_documents(filenames, language):  # Creating TaggedDocuments
             logging.info(filename + " failed to load in load_documents")
     return doc
 
+def load_documents_LDA(filenames, language)
+    doc = []
+    flag = 0
+    for filename in filenames:
+        word_list = process_file(filename, language)
+        if word_list:
+            doc.append(word_list)
+            flag = 1
+        else:
+            logging.info(filename + " failed to load in load_documents")
+    if flag:
+        flattened_doc = [val for sublist in doc for val in sublist]
+    else:
+        flattened_doc = doc
+    return flattened_doc
+
 
 def train_model_pvdm(directory, language):
     if language == ['tags']:
@@ -117,12 +142,17 @@ def train_model_pvdbow(directory, language):
 
 def train_model_LDA(directory, language):
     if language == ['tags']:
-        doc = load_documents(findFiles(directory, ['tag']), "en-text")
+        texts = load_documents_LDA(findFiles(directory, ['tag']), "en-text")
     else:
-        doc = load_documents(findFiles(directory, [language]), language)
+        texts = load_documents_LDA(findFiles(directory, [language]), language)
     if not doc:
         return 0    
-    model = gs.models.ldamodel.LdaModel(doc, )
+    # turn our tokenized documents into a id <-> term dictionary
+    dictionary = corpora.Dictionary(texts)
+    corpus = [dictionary.doc2bow(text) for text in texts]
+
+    # generate LDA model
+    ldamodel = gs.models.ldamodel.LdaModel(corpus, num_topics=lda_topics, id2word = dictionary, passes=lda_passes)
     return model
 
 def uniqfy_list(seq):
