@@ -82,6 +82,15 @@ def process_query(line,language):
             word_list.append(word.lower())
     return word_list
 
+def get_vectors_LDA(model):
+    pr_query = model.id2word.doc2bow(query)
+    temp_vec = model[pr_query]
+    flattened = []
+    for sublist in vec_a:
+        print sublist[1]
+        flattened.append(sublist[1])
+    return flattened
+
 response = {}
 all_vector = []
 # to get the dimension of vectors from model
@@ -182,6 +191,59 @@ def infer_query():
 
 # Infer search string from model
 # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L499
+def infer_query_LDA():
+    if inferFlag == 'true':
+        # if vectors for all the content are to be populated
+        lst_folder = get_immediate_subdirectories(op_dir)
+        for folder in lst_folder:
+            vector_dict = {}
+            content_folder = os.path.join(op_dir, folder)
+            lst_lang = get_all_lang(content_folder, ('tags', 'text'))
+            for lang in lst_lang:
+                file_path = os.path.join(content_folder, lang)
+                if not os.path.exists(file_path):
+                    logging.info('%s not found' % (file_path))
+                    continue
+                txt = open(file_path)
+                # reading the text from corpus
+                query = txt.read()
+                query = process_query(query,lang)
+                if lang == "tags":
+                    query = uniqfy_list(query)
+                model_path = os.path.join(model_loc, lang)
+                # logging.info("model_path:"+model_path)
+                if not os.path.exists(model_path):
+                    logging.info(
+                        '%s model not found, using default model' % (lang))
+                    model_path = os.path.join(model_loc, 'en-text')
+                    if not os.path.exists(model_path):
+                        logging.info(
+                            'default model not found, skipping vector this language')
+                        continue
+                model = gs.models.ldamodel.LdaModel.load(model_path)
+                pr_query = model.id2word.doc2bow(query)
+                q_vec = get_vectors_LDA(model, query)
+                # q_vec=model.infer_vector(query.split(' '),alpha=0.1, min_alpha=0.0001, steps=5)
+                vector_list = np.array(q_vec).tolist()
+                if not lang == 'tags':
+                    vector_dict['text_vec'] = vector_list
+                    logging.info('Vectors for text retrieved')
+                else:
+                    vector_dict['tag_vec'] = vector_list
+                    # logging.info(vector_list)
+                    logging.info('Vectors for tags retrieved')
+            vector_dict['contentId'] = folder
+            if not 'tag_vec' in vector_dict:
+                logging.info('no tags data, so adding zero vectors')
+                vector_dict['tag_vec'] = np.array(np.zeros(n_dim)).tolist()
+            if not 'text_vec' in vector_dict:
+                logging.info('no text data, so adding zero vectors')
+                vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
+            all_vector.append(vector_dict)
+            response['content_vectors'] = all_vector
+        # logging.info(json.dumps(response))
+        print(json.dumps(response))
+
 
 def inference(query, model):
     model.sg = 1  # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L721
