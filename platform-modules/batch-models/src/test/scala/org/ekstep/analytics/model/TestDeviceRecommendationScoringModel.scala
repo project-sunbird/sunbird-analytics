@@ -5,40 +5,46 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.mllib.linalg.DenseVector
+import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
 
+    val jobParams1 = Map("model" -> "fm.model", "localPath" -> "src/test/resources/device-recos-training/")
+    
     "DeviceRecommendationScoringModel" should "load model and generate scores" in {
 
         populateCassandra();
-        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/")))
-        DeviceRecommendationScoringModel.execute(null, None)
+        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model")))
+        DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
+        deleteCreatedTestFiles();
 
     }
 
     it should "load model with zero pairwise interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/")
+        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams2))
-        val jobParams1 = Map("model" -> "fm.model", "localPath" -> "/tmp/")
         val me2 = DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
+        deleteCreatedTestFiles();
     }
 
     it should "load model with zero W0 and generate scores" in {
 
         populateCassandra();
-        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/")
+        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams3))
-        val me3 = DeviceRecommendationScoringModel.execute(null, None)
+        val me3 = DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
+        deleteCreatedTestFiles();
     }
 
     it should "load model with zero unary interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/")
+        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams4))
-        val me4 = DeviceRecommendationScoringModel.execute(null, None)
+        val me4 = DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
+        deleteCreatedTestFiles();
     }
 
     def populateCassandra() {
@@ -63,6 +69,14 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
             session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (0, 'all' ,'domain_68601', 0, 0, 0, bigintAsBlob(3), 1459641600, 1459641600000, 1459641600000, 4, 0, 0, 20);");
             session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (2016731, 'dff9175fa217e728d86bc1f4d8f818f6d2959303' ,'domain_63844', 0, 0, 0, bigintAsBlob(3), 1459641600, 1475731808000, 1475731808000, 4, 0, 0, 20);");
         }
+    }
+    
+    def deleteCreatedTestFiles() {
+        
+        CommonUtil.deleteFile("src/test/resources/device-recos-training/train.dat.libfm");
+        CommonUtil.deleteFile("src/test/resources/device-recos-training/test.dat.libfm");
+        CommonUtil.deleteFile("src/test/resources/device-recos-training/fm.model");
+        CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-input");
     }
     
     ignore should "run scoringAlgo() method and generate scores" in {
