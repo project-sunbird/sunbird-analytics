@@ -80,4 +80,8 @@
   tags:
     - analytics
 
+- name: change permissions 
+  become: yes
+  file: path={{ analytics.home }} owner=ec2-user group=ec2-user mode=0750 recurse=yes
+
 
