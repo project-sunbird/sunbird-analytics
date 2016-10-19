@@ -81,14 +81,14 @@ jobs:
 
 pre_jobs:
   pre_job:
-    hour: 2
-    minute: 30
+    hour: 7
+    minute: 32
   #state: present
 
 monit_jobs:
   joblog.log:
     hour: 7
-    minute: 15
+    minute: 30
 secor_raw_job:
   secor_raw:
     hour: 23
