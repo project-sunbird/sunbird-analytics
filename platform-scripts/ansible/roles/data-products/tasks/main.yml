@@ -21,21 +21,21 @@
 
 - name: move files
   become: yes
-  command: cp -r {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/GenieSearch
+  command: cp -r {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/
   tags:
    - analytics
 
 
 - name: move files
   become: yes
-  command: cp -r {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/VidyavaniCnQ
+  command: cp -r {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/
   tags:
    - analytics
 
 
 - name: move files
   become: yes
-  command: cp -r {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/vidyavaani
+  command: cp -r {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/
   tags:
    - analytics   
 
