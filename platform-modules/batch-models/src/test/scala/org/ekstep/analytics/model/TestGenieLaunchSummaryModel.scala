@@ -10,12 +10,12 @@ import org.ekstep.analytics.framework.Dispatcher
 
 class TestGenieLaunchSummaryModel extends SparkSpec(null) {
 
-    "GenieLaunchSummaryModel" should "generate content summary events" in {
+    "GenieLaunchSummaryModel" should "generate genie summary events" in {
         val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data1.log");
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(73)
-
+        
         // check the number of events where timeSpent==0 
         val zeroTimeSpentGE = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
         zeroTimeSpentGE.size should be(10)
@@ -142,5 +142,12 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         val gseEksMap1 = gseEvent1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap1.get("timeSpent").get.asInstanceOf[Double] should be > (0d)
         gseEksMap1.get("contentCount").get.asInstanceOf[Int] should be > (0)
+    }
+    
+    it should "generate the genie summary with stage summary" in {
+        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/stage/test-data1.log")
+        val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
+        val events = rdd2.collect
+        events.size should be(3)
     }
 }
