@@ -21,7 +21,7 @@ case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, conten
                         tags: Option[AnyRef], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary]) extends AlgoOutput
 case class LaunchSessions(did: String, events: Buffer[Event]) extends AlgoInput
 case class GenieStageSummary(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]])
-case class StageDetails(timeSpent: Double, interactEvents: Buffer[Event], visitCount: Int)
+case class StageDetails(timeSpent: Double, interactEvents: Buffer[Event], visitCount: Int, sid: String)
 
 object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, LaunchSessions, GenieSummary, MeasuredEvent] with Serializable {
 
@@ -36,44 +36,45 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
         var screenSummaryList = Buffer[HashMap[String, Double]]();
         val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("GE_INTERACT"))).length;
         if (screenInteractCount > 0) {
-            var stageList = ListBuffer[(String, Double, Buffer[Event])]();
+            var stageList = ListBuffer[(String, Double, Buffer[Event], String)]();
             var prevEvent = events(0);
             events.foreach { x =>
                 x.eid match {
                     case "GE_GENIE_START" =>
-                        stageList += Tuple3("splash", CommonUtil.getTimeDiff(prevEvent, x).get, Buffer[Event]());
+                        stageList += Tuple4("splash", CommonUtil.getTimeDiff(prevEvent, x).get, Buffer[Event](), x.sid);
                     case "GE_INTERACT" =>
-                        stageList += Tuple3(x.edata.eks.stageid, CommonUtil.getTimeDiff(prevEvent, x).get, Buffer(x));
+                        stageList += Tuple4(x.edata.eks.stageid, CommonUtil.getTimeDiff(prevEvent, x).get, Buffer(x), x.sid);
                     case "GE_GENIE_END" =>
-                        stageList += Tuple3("endStage", CommonUtil.getTimeDiff(prevEvent, x).get, Buffer[Event]());
+                        stageList += Tuple4("endStage", CommonUtil.getTimeDiff(prevEvent, x).get, Buffer[Event](), x.sid);
                 }
                 prevEvent = x;
             }
 
             var currStage: String = null;
+            var prevStage: String = null;
             stageList.foreach { x =>
                 if (currStage == null) {
                     currStage = x._1;
                 }
                 if (stageMap.getOrElse(currStage, null) == null) {
-                    val visits = if (x._3.length == 1) 1 else 0
-                    stageMap.put(currStage, StageDetails(x._2, x._3, visits));
+                    stageMap.put(currStage, StageDetails(x._2, x._3, 0, x._4));
                 } else {
-                    stageMap.put(currStage, StageDetails(stageMap.get(currStage).get.timeSpent + x._2, stageMap.get(currStage).get.interactEvents ++ x._3, stageMap.get(currStage).get.visitCount));
+                    stageMap.put(currStage, StageDetails(stageMap.get(currStage).get.timeSpent + x._2, stageMap.get(currStage).get.interactEvents ++ x._3, stageMap.get(currStage).get.visitCount, stageMap.get(currStage).get.sid));
                 }
-                if (!currStage.equals(x._1)) {
-                    stageMap.put(currStage, StageDetails(stageMap.get(currStage).get.timeSpent, stageMap.get(currStage).get.interactEvents, stageMap.get(currStage).get.visitCount + 1));
-                    currStage = x._1;
+                if (currStage.equals(x._1)) {
+                    if(prevStage != currStage)
+                      stageMap.put(currStage, StageDetails(stageMap.get(currStage).get.timeSpent, stageMap.get(currStage).get.interactEvents, stageMap.get(currStage).get.visitCount + 1, stageMap.get(currStage).get.sid));
+                    currStage = null;
                 }
+                prevStage = x._1;
             }
         }
         stageMap.map { x => 
             
-            val sid = x._2.interactEvents(0).sid
             val interactEventsDetails = x._2.interactEvents.toList.map{ f => 
                 Map("ID" -> f.edata.eks.id, "type" -> f.edata.eks.`type`, "subtype" -> f.edata.eks.subtype)
             }
-            GenieStageSummary(x._1, sid, x._2.timeSpent, x._2.visitCount, x._2.interactEvents.length, interactEventsDetails)
+            GenieStageSummary(x._1, x._2.sid, x._2.timeSpent, x._2.visitCount, x._2.interactEvents.length, interactEventsDetails)
         }
     }
     

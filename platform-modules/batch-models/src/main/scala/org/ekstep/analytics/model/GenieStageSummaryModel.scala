@@ -37,7 +37,6 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
         data.map { summary =>
             val mid = CommonUtil.getMessageId("ME_GENIE_STAGE_SUMMARY", summary.stageId + summary.sid, config.getOrElse("granularity", "GENIE SESSION").asInstanceOf[String], summary.dt_range.to);
             val measures = Map(
-                "stageId" -> summary.stageId,
                 "timeSpent" -> summary.timeSpent,
                 "stageVisitCount" -> summary.visitCount,
                 "interactEventsCount" -> summary.interactEventsCount,
