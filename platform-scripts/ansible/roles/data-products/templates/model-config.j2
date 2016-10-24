@@ -76,7 +76,7 @@ config() {
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Raw Telemetry Updater","deviceMapping":false}'
 		;;
 		"ss-jobs")
-		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":6}]},"model":"org.ekstep.analytics.job.consolidated.SessionSummaryJobs","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"Session Summary Jobs","deviceMapping":false}'
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.job.consolidated.SessionSummaryJobs","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"Session Summary Jobs","deviceMapping":false}'
 		;;
 		"genie-launch-summ")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gls/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieUsageSummaryModel","output":[{"to":"console","params":{"printEvent":false}}, {"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"GenieUsageSummarizer","deviceMapping":false}'
