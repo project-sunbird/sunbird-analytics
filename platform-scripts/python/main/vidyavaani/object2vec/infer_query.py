@@ -23,7 +23,6 @@ config_file = os.path.join(resource, 'config.properties')
 # inputs
 #std_input = json.loads(sys.stdin.read())
 std_input = sys.stdin.readline()
-# print std_input
 
 std_input = json.loads(std_input)
 
