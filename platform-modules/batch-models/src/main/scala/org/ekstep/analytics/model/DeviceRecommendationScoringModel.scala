@@ -3,7 +3,7 @@ package org.ekstep.analytics.model
 import org.apache.spark.ml.feature.{ OneHotEncoder, StringIndexer, RFormula }
 import org.apache.spark.ml.feature.QuantileDiscretizer
 import org.apache.spark.mllib.linalg.Vector
-import org.apache.spark.mllib.regression.LabeledPoint
+//import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import com.datastax.spark.connector.cql.CassandraConnector
@@ -271,7 +271,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         (0 until max toList).map { x => new StructField(prefix + x, DoubleType, true) }.toSeq
     }
 
-    def scoringAlgo(data: RDD[org.apache.spark.mllib.linalg.DenseVector], localPath: String, model: String )(implicit sc: SparkContext): RDD[Double] ={
+    def scoringAlgo(data: RDD[org.apache.spark.ml.linalg.DenseVector], localPath: String, model: String )(implicit sc: SparkContext): RDD[Double] ={
         
         val modelData = sc.textFile(localPath + model).filter(!_.isEmpty()).collect()
         
@@ -347,7 +347,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
 
-        val featureVector = output.select("features").rdd.map { x => x.asInstanceOf[org.apache.spark.mllib.linalg.DenseVector] };
+        val featureVector = output.select("features").rdd.map { x => x.getAs[org.apache.spark.ml.linalg.SparseVector](0).toDense };//x.asInstanceOf[org.apache.spark.mllib.linalg.DenseVector] };
         JobLogger.log("created featureVector", None, INFO);
 
         JobLogger.log("Downloading model from s3", None, INFO);

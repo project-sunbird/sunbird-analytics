@@ -30,7 +30,7 @@ class TestDeviceUsageTransformer extends SparkSpec(null) {
         out.count() should be(table.count())
     }
     
-    it should "perform one-hot-encoding on device-spec" in {
+    ignore should "perform one-hot-encoding on device-spec" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             

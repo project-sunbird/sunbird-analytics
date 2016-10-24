@@ -4,17 +4,17 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
-import org.apache.spark.mllib.linalg.DenseVector
+import org.apache.spark.ml.linalg.DenseVector
 import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
 
-    val jobParams1 = Map("model" -> "fm.model", "localPath" -> "src/test/resources/device-reco/")
+    val jobParams1 = Map("model" -> "fm.model", "localPath" -> "src/test/resources/device-reco/", "key" -> "model/test/fm.model")
     
     "DeviceRecommendationScoringModel" should "load model and generate scores" in {
 
         populateCassandra();
-        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-reco/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model")))
+        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model", "key" -> "model/test/fm.model")))
         DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
         deleteCreatedTestFiles();
 
@@ -23,7 +23,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "load model with zero pairwise interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-reco/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model")
+        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model", "key" -> "model/test/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams2))
         val me2 = DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
         deleteCreatedTestFiles();
@@ -32,7 +32,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "load model with zero W0 and generate scores" in {
 
         populateCassandra();
-        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-reco/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model")
+        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model", "key" -> "model/test/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams3))
         val me3 = DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
         deleteCreatedTestFiles();
@@ -41,7 +41,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "load model with zero unary interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-reco/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model")
+        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-reco/RE-input", "trainDataFile" -> "src/test/resources/device-reco/train.dat.libfm", "testDataFile" -> "src/test/resources/device-reco/test.dat.libfm", "model" -> "src/test/resources/device-reco/fm.model", "key" -> "model/test/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams4))
         val me4 = DeviceRecommendationScoringModel.execute(null, Option(jobParams1))
         deleteCreatedTestFiles();
