@@ -180,7 +180,6 @@ def updateContentCorpus(reqJson):
         msg = 'Not able to read input json stream'
         logging.info(msg)
         return(1)
-    print contentPayload
     # get the key info
     try:
         mustHavekeysFromContentModel = contentPayload[
