@@ -38,7 +38,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
         if (screenInteractCount > 0) {
             var stageList = ListBuffer[(String, Double, Buffer[Event], String)]();
             var prevEvent = events(0);
-            events.foreach { x =>
+            screenInteractEvents.foreach { x =>
                 x.eid match {
                     case "GE_GENIE_START" =>
                         stageList += Tuple4("splash", CommonUtil.getTimeDiff(prevEvent, x).get, Buffer[Event](), x.sid);
