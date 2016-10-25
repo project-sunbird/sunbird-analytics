@@ -68,22 +68,6 @@ object OutputDispatcher {
             null;
         }
     }
-    
-    @throws(classOf[DispatcherException])
-    def dispatchDF[T](dispatcher: Dispatcher, events: RDD[T], header: String) = {
-
-        if (null == dispatcher) {
-            throw new DispatcherException("No output configurations found");
-        }
-        val eventArr = stringify(events).collect();
-        if (eventArr.length != 0) {
-            JobLogger.log("Dispatching output", Option(dispatcher.to));
-            FileDispatcher.dispatchDF(eventArr, dispatcher.params, header);
-        } else {
-            JobLogger.log("No events produced");
-            null;
-        }
-    }
 
     def stringify[T](events: RDD[T]): RDD[String] = {
         events.map { x =>
