@@ -111,6 +111,10 @@ class TestJobFactory extends BaseSpec {
         val jobISU = JobFactory.getJob("item-usage-metrics")
         jobISU should be (ItemSummaryUpdater)
         jobISU.isInstanceOf[IJob] should be(true)
+        
+        val jobGSTS = JobFactory.getJob("gsts")
+        jobGSTS should be (GenieStageSummarizer)
+        jobGSTS.isInstanceOf[IJob] should be(true)
 
     }
 }
