@@ -13,7 +13,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
 
         populateCassandra();
         DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")))
-        DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model2", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/fm.model")))
+        DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model2", "localPath" -> "src/test/resources/device-recos-training/", "outputFile" -> "src/test/resources/device-recos-training/score.txt", "key" -> "model/test/fm.model")))
         deleteCreatedTestFiles();
 
     }
@@ -23,7 +23,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
         populateCassandra();
         val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams2))
-        val me2 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model3", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/fm.model")))
+        val me2 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model3", "localPath" -> "src/test/resources/device-recos-training/", "outputFile" -> "src/test/resources/device-recos-training/score.txt", "key" -> "model/test/fm.model")))
         deleteCreatedTestFiles();
     }
 
@@ -32,7 +32,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
         populateCassandra();
         val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams3))
-        val me3 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/fm.model")))
+        val me3 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/", "outputFile" -> "src/test/resources/device-recos-training/score.txt", "key" -> "model/test/fm.model")))
         deleteCreatedTestFiles();
     }
 
@@ -41,7 +41,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
         populateCassandra();
         val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams4))
-        val me4 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model5", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/fm.model")))
+        val me4 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model5", "localPath" -> "src/test/resources/device-recos-training/", "outputFile" -> "src/test/resources/device-recos-training/score.txt", "key" -> "model/test/fm.model")))
         deleteCreatedTestFiles();
     }
 
@@ -75,5 +75,6 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
         CommonUtil.deleteFile("src/test/resources/device-recos-training/test.dat.libfm");
         CommonUtil.deleteFile("src/test/resources/device-recos-training/fm.model");
         CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-input");
+        CommonUtil.deleteFile("src/test/resources/device-recos-training/score.txt");
     }
 }
