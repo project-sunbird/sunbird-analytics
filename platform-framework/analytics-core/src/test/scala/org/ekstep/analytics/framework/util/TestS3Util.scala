@@ -32,6 +32,7 @@ class TestS3Util extends BaseSpec {
          S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/session-batch-model", "testUpload/")
          S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/testDir", "testUpload/")
          S3Util.downloadFile("sandbox-data-store", "model/fm.model", "src/test/resources/testDir/")
+         CommonUtil.deleteDirectory("src/test/resources/testDir/")
     }
     
     it should "get object from S3 bucket" in {

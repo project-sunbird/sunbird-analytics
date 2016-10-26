@@ -25,8 +25,9 @@ class TestUpdateContentModel extends SparkSpec(null) {
             ContentUsageSummaryFact(0, "numeracy_374", "all", DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null));
         sc.parallelize(usageSummaries).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT);
 
-        val popularitySummary = ContentPopularitySummaryFact(0, "org.ekstep.delta", "all", 22, 53, List(("Test comment1", DateTime.now),("Test comment", DateTime.now)), List((3, DateTime.now),(4, DateTime.now), (3, DateTime.now)), 3.33)
-        sc.parallelize(Seq(popularitySummary)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT);
+        val popularitySummary = Array(ContentPopularitySummaryFact(0, "org.ekstep.delta", "all", 22, 53, List(("Test comment1", DateTime.now),("Test comment", DateTime.now)), List((3, DateTime.now),(4, DateTime.now), (3, DateTime.now)), 3.33),
+            ContentPopularitySummaryFact(0, "org.ekstep.vayuthewind", "all", 22, 53, List(("Test comment1", DateTime.now),("Test comment", DateTime.now)), List((3, DateTime.now),(4, DateTime.now), (3, DateTime.now)), 3.33))
+        sc.parallelize(popularitySummary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT);
     }
 
     override def afterAll() {
@@ -34,6 +35,7 @@ class TestUpdateContentModel extends SparkSpec(null) {
             session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_USAGE_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='org.ekstep.delta'");
             session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_USAGE_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='numeracy_374'");
             session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_POPULARITY_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='org.ekstep.delta'");
+            session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_POPULARITY_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='org.ekstep.vayuthewind'");
         }
         super.afterAll();
     }
@@ -43,7 +45,7 @@ class TestUpdateContentModel extends SparkSpec(null) {
         val rdd = DataFetcher.fetchBatchData[DerivedEvent](Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/content-popularity/test-data.json"))))));
         val rdd2 = UpdateContentModel.execute(rdd, Option(Map()));
         var out = rdd2.collect();
-        out.length should be(1);
+        out.length should be(2);
 
         val resp = RestUtil.get[ContentResponse](Constants.getContent("org.ekstep.delta") + "?fields=popularity,me_totalSessionsCount,me_totalTimespent,me_totalInteractions,me_averageInteractionsPerMin,me_averageSessionsPerDevice,me_totalDevices,me_averageTimespentPerSession,me_averageRating,me_totalDownloads,me_totalSideloads,me_totalRatings,me_totalComments")
         resp.result.content.get("identifier").get should be ("org.ekstep.delta");
