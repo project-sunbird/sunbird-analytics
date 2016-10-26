@@ -31,5 +31,12 @@ class TestS3Util extends BaseSpec {
     it should "download multiple files from a directory in S3 bucket" in {
          S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/session-batch-model", "testUpload/")
          S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/testDir", "testUpload/")
+         S3Util.downloadFile("sandbox-data-store", "model/fm.model", "src/test/resources/testDir/")
+    }
+    
+    it should "get object from S3 bucket" in {
+        S3Util.getObject("sandbox-data-store", "model/fm.model")
+        val res = S3Util.getObject("sandbox-data-store", "fm.model")
+        res.length should be (0)
     }
 }

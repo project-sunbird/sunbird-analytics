@@ -7,51 +7,51 @@ import org.apache.spark.rdd.RDD
 
 class Models extends Serializable {}
 
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class GData(val id: String, val ver: String) extends Serializable {}
 
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val qid: String, val score: Int, val res: Array[String], val length: AnyRef,
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
           val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double) extends Serializable {}
 
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
 
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
             val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends AlgoInput with Input {}
 
 // Computed Event Model
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class CData(id: String, `type`: Option[String]);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Input with AlgoInput;
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
-@scala.beans.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None);
+@scala.reflect.BeanInfo
 case class PData(id: String, model: String, ver: String);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class DtRange(from: Long, to: Long);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class MEEdata(eks: AnyRef);
 
 // User profile event models
 
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err: String, val attrs: Array[AnyRef], val uid: String, val age: Int, val day: Int, val month: Int, val gender: String, val language: String, val standard: Int, val is_group_user: Boolean, val dspec: Map[String, AnyRef]) extends Serializable {}
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
 
 // User Model
@@ -60,15 +60,15 @@ case class UserProfile(uid: String, gender: String, age: Int);
 
 // Analytics Framework Job Models
 case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None)
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class Sort(name: String, order: Option[String]);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class Dispatcher(to: String, params: Map[String, AnyRef]);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]]);
-@scala.beans.BeanInfo
+@scala.reflect.BeanInfo
 case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String], deviceMapping: Option[Boolean] = Option(false));
 
 // LP API Response Model

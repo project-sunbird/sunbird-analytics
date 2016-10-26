@@ -26,6 +26,11 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         noException should be thrownBy {
             OutputDispatcher.dispatch(Dispatcher("console", Map()), sc.parallelize(events.take(1)));
         }
+        
+        val eventsInArray = events.map{x => JSONUtils.serialize(x)}.collect
+        noException should be thrownBy {
+            OutputDispatcher.dispatch(Dispatcher("console", Map()), eventsInArray);
+        }
     }
     
     it should "dispatch output to s3" in {
@@ -86,6 +91,11 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
             OutputDispatcher.dispatch(null.asInstanceOf[Dispatcher], events);
         }
         
+        val eventsInArray = events.map{x => JSONUtils.serialize(x)}.collect
+        a[DispatcherException] should be thrownBy {
+            OutputDispatcher.dispatch(null.asInstanceOf[Dispatcher], eventsInArray);
+        }
+        
         // Invoke dispatch with None dispatchers
         a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(None, events);
@@ -102,6 +112,8 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         //a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), noEvents);
         //}
+            
+        OutputDispatcher.dispatch(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])), Array[String]());
     }
     
     it should "execute test cases related to script dispatcher" in {
