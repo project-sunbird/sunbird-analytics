@@ -23,9 +23,10 @@ import org.ekstep.analytics.framework.Period._
  */
 object CommonUtil {
 
-    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
-    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM");
-    @transient val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww");
+    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+    @transient val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy'7'ww").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+    @transient val weekPeriodLabel: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
@@ -104,7 +105,7 @@ object CommonUtil {
     }
 
     def getPeriodLabel(period: Period, date: Int)(implicit config: Config): String = {
-        val formatter = DateTimeFormat.forPattern("YYYYMMdd");
+        val formatter = DateTimeFormat.forPattern("YYYYMMdd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
         period match {
             case MONTH =>
                 val format = config.getString("metrics.period.format.month");
@@ -121,7 +122,7 @@ object CommonUtil {
     
     def getWeekPeriodLabel(date: String): String = {
     	val week = date.substring(0,4)+"-"+date.substring(5,date.length);
-    	val firstDay = weekPeriod.parseDateTime(week);
+    	val firstDay = weekPeriodLabel.parseDateTime(week);
         val lastDay = firstDay.plusDays(6);
         val first = firstDay.toString(DateTimeFormat.forPattern("MMM dd"));
         val last = if (firstDay.getMonthOfYear == lastDay.getMonthOfYear) 

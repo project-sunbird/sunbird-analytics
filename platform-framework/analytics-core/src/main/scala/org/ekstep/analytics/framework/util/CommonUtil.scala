@@ -51,8 +51,9 @@ object CommonUtil {
     @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
     @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
     @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
-    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZoneUTC();
-    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZoneUTC();
+    @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+    @transient val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy'7'ww").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+    @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
 
     def getParallelization(config: JobConfig): Int = {
 
@@ -342,8 +343,8 @@ object CommonUtil {
         val d = new DateTime(syncts, DateTimeZone.UTC);
         period match {
             case DAY        => dayPeriod.print(d).toInt;
-            case WEEK       => getWeekNumber(d.getWeekyear, d.getWeekOfWeekyear)
-            case MONTH      => monthPeriod.print(d).toInt
+            case WEEK       => weekPeriod.print(d).toInt;
+            case MONTH      => monthPeriod.print(d).toInt;
             case CUMULATIVE => 0
             case LAST7      => 7
             case LAST30     => 30
