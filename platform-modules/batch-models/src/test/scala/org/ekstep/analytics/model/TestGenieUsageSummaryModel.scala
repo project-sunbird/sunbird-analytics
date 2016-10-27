@@ -31,14 +31,14 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
 
         // ACROSS ALL TAG
         val allTagEvents = events.filter { x => StringUtils.equals(x.dimensions.tag.get, "all") }
-        allTagEvents.length should be(28)
+        allTagEvents.length should be(29)
         val aug30Summ = allTagEvents.filter { x => x.dimensions.period.get == 20160830 }.last
         aug30Summ.mid should be("75152D5CE321A2438D29CA113C16793A")
         aug30Summ.eid should be("ME_GENIE_USAGE_SUMMARY")
 
         val aug30EksMap = aug30Summ.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
-        aug30EksMap.get("total_ts").get.asInstanceOf[Double] should be(82118.08)
+        aug30EksMap.get("total_ts").get.asInstanceOf[Double] should be(82349.44)
 
         val devices = aug30EksMap.get("device_ids").get.asInstanceOf[Array[String]]
         devices.size should be(devices.distinct.size)
@@ -46,8 +46,8 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
         val contents = aug30EksMap.get("contents").get.asInstanceOf[Array[String]]
         contents.size should be(contents.distinct.size)
 
-        aug30EksMap.get("total_sessions").get.asInstanceOf[Long] should be(146)
-        aug30EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(562.45)
+        aug30EksMap.get("total_sessions").get.asInstanceOf[Long] should be(145)
+        aug30EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(567.93)
 
         // tag1 (42d3b7edc2e9b59a286b1956e3cdbc492706ac21) Summary
 
@@ -57,13 +57,13 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
         tag1Aug22Summ.eid should be("ME_GENIE_USAGE_SUMMARY")
 
         val tag1Aug22SummEksMap = tag1Aug22Summ.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        tag1Aug22SummEksMap.get("total_ts").get.asInstanceOf[Double] should be(31956.23)
+        tag1Aug22SummEksMap.get("total_ts").get.asInstanceOf[Double] should be(31957.45)
         val devicesTag1 = tag1Aug22SummEksMap.get("device_ids").get.asInstanceOf[Array[String]]
         devicesTag1.size should be(devicesTag1.distinct.size)
         val contentsTag1 = tag1Aug22SummEksMap.get("contents").get.asInstanceOf[Array[String]]
         contentsTag1.size should be(contentsTag1.distinct.size)
-        tag1Aug22SummEksMap.get("total_sessions").get.asInstanceOf[Long] should be(50)
-        tag1Aug22SummEksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(639.12)
+        tag1Aug22SummEksMap.get("total_sessions").get.asInstanceOf[Long] should be(51)
+        tag1Aug22SummEksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(626.62)
 
         // tag2 (becb887fe82f24c644482eb30041da6d88bd8150) Summary    
 
@@ -114,7 +114,7 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
 
         val tag1EventEksMap = tag1Event.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
-        tag1EventEksMap.get("total_ts").get.asInstanceOf[Double] should be(78678.75)
+        tag1EventEksMap.get("total_ts").get.asInstanceOf[Double] should be(78939.37)
 
         val devices = tag1EventEksMap.get("device_ids").get.asInstanceOf[Array[String]]
         devices.size should be(devices.distinct.size)
@@ -122,8 +122,8 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
         val contents =  tag1EventEksMap.get("contents").get.asInstanceOf[Array[String]]
         contents.size should be(contents.distinct.size)
 
-        tag1EventEksMap.get("total_sessions").get.asInstanceOf[Long] should be(112)
-        tag1EventEksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(702.49)
+        tag1EventEksMap.get("total_sessions").get.asInstanceOf[Long] should be(114)
+        tag1EventEksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(692.45)
         
     }
     it should "test the summary for one month of data where last week data is missing" in {

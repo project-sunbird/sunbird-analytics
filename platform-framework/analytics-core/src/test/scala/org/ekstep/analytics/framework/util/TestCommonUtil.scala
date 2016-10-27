@@ -155,7 +155,7 @@ class TestCommonUtil extends BaseSpec {
             CommonUtil.getPeriod(1451650400000L, LAST7) should be (7)
             CommonUtil.getPeriod(1451650400000L, LAST30) should be (30)
             CommonUtil.getPeriod(1451650400000L, LAST90) should be (90)
-            CommonUtil.getPeriod(new DateTime("2016-01-01"), DAY) should be (20151231)
+            CommonUtil.getPeriod(new DateTime("2016-01-01"), DAY) should be (20160101)
         
         })
         res._1 should be > (0L)
