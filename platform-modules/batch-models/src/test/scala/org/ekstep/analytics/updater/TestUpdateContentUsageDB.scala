@@ -27,6 +27,7 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         sc.makeRDD(Seq(tag1)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_usage_summary_fact");
+            session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (20160920, 'all' ,'domain_3996', 0, 0, 0, bigintAsBlob(3), 1459641600, 1476550249537, 1476550249537, 4, 0, 0, 20);");
         }
     }
 
@@ -173,7 +174,8 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/cus_3.log");
         val rdd2 = UpdateContentUsageDB.execute(rdd, None);
-
+        rdd2.count() should be (4)
+        
         val record1 = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "1375b1d70a66a0f2c22dd1872b98030cb7d9bacb").first
         record1.m_total_ts should be(1222.53)
         record1.m_avg_interactions_min should be(29.35)
