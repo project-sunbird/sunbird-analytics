@@ -12,7 +12,7 @@ import org.apache.spark.SparkException
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.mutable.Buffer
 
-@scala.reflect.BeanInfo
+@scala.beans.BeanInfo
 case class Test(id: String, value: Option[String], optValue: Option[String]);
 
 /**

@@ -4,7 +4,7 @@ import org.apache.spark.ml.feature.{ OneHotEncoder, StringIndexer, RFormula }
 import org.apache.spark.ml.feature.QuantileDiscretizer
 import org.apache.spark.ml.feature.{ CountVectorizerModel, CountVectorizer, RegexTokenizer }
 import org.apache.spark.mllib.linalg.Vector
-import org.apache.spark.mllib.regression.LabeledPoint
+//import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import com.datastax.spark.connector.cql.CassandraConnector
@@ -42,6 +42,8 @@ import java.io.File
 import org.ekstep.analytics.updater.DeviceSpec
 import org.ekstep.analytics.transformer._
 import org.ekstep.analytics.util.ContentUsageSummaryFact
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.ml.feature.LabeledPoint
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput with AlgoOutput with Output;
@@ -60,7 +62,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
-    
+
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -77,12 +79,12 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val contentVectorsB = sc.broadcast(contentVectors);
 
         // Content Usage Summaries
-        val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map{ x => x}.cache();
+        val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
         // cus transformations
         val cusT = ContentUsageTransformer.excecute(contentUsageSummaries)
-        val contentUsageB = cusT.map{ x => (x._1, x._2._2)}.collect().toMap
+        val contentUsageB = cusT.map { x => (x._1, x._2._2) }.collect().toMap
         val contentUsageBB = sc.broadcast(contentUsageB);
-        val contentUsageO = cusT.map{ x => (x._1, x._2._1)}.collect().toMap
+        val contentUsageO = cusT.map { x => (x._1, x._2._1) }.collect().toMap
         val contentUsageOB = sc.broadcast(contentUsageO);
         contentUsageSummaries.unpersist(true);
 
@@ -91,33 +93,33 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
 
         // Device Usage Summaries
-        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map{ x => x._2}//.map { x => (x._1, x._2) }
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 } //.map { x => (x._1, x._2) }
         // dus transformations
         val dusT = DeviceUsageTransformer.excecute(device_usage)
-        val dusB = dusT.map{x => (x._1, x._2._2)}.collect().toMap;
+        val dusB = dusT.map { x => (x._1, x._2._2) }.collect().toMap;
         val dusBB = sc.broadcast(dusB);
-        val dusO = dusT.map{x => (DeviceId(x._1), x._2._1)}
-        
+        val dusO = dusT.map { x => (DeviceId(x._1), x._2._1) }
+
         // Device Content Usage Summaries
         val dcus = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
         // dcus transformations
         val dcusT = DeviceContentUsageTransformer.excecute(dcus)
-        val dcusB = dcusT.map{x => (x._1,x._2._2)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
+        val dcusB = dcusT.map { x => (x._1, x._2._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusBB = sc.broadcast(dcusB);
-        val dcusO = dcusT.map{x => (DeviceId(x._1),x._2._1)}.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
-        
+        val dcusO = dcusT.map { x => (DeviceId(x._1), x._2._1) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
+
         dcus.unpersist(true);
-        
+
         // creating DeviceContext without transformations
         val inputDataPath = config.getOrElse("inputDataPath", "/tmp/RE-input").asInstanceOf[String]
-        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map{x => (DeviceId(x.device_id), x)}, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map{ x => (x.d_content_id, x)}.collect().toMap, contentModel)
+        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
         JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val file = new File(inputDataPath)
         if (file.exists())
             CommonUtil.deleteDirectory(inputDataPath)
         val jsondata = createJSON(deviceContext) //data.map { x => JSONUtils.serialize(x) }
         jsondata.saveAsTextFile(inputDataPath)
-        
+
         device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.contentId, x) }.toMap;
@@ -141,9 +143,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 }
             }
         }.flatMap { x => x.map { f => f } }
-        
+
     }
-    
+
     private def _createDF(data: RDD[DeviceContext]): RDD[Row] = {
         data.map { x =>
             val seq = ListBuffer[Any]();
@@ -290,6 +292,12 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
+//        implicit val spark = SparkSession
+//            .builder()
+//            .appName("RE training model")
+//            .getOrCreate()
+
+        import sqlContext.implicits._
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
         val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
@@ -325,7 +333,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
 
-        val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[Vector](0)) };
+        val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
         JobLogger.log("created labeledRDD", None, INFO);
 
         val dataStr = labeledRDD.map {
@@ -368,12 +376,12 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         data;
     }
 
-    def createDeviceContextWithoutTransformation(device_spec:  RDD[(DeviceId, DeviceSpec)], dus: RDD[(DeviceId, DeviceUsageSummary)], dcus: RDD[(DeviceId, Iterable[DeviceContentSummary])], contentVectors: Map[String, ContentToVector], contentUsage: Map[String, ContentUsageSummaryFact], contentModel: Map[String, ContentModel])(implicit sc: SparkContext): RDD[DeviceContext] = {
-        
+    def createDeviceContextWithoutTransformation(device_spec: RDD[(DeviceId, DeviceSpec)], dus: RDD[(DeviceId, DeviceUsageSummary)], dcus: RDD[(DeviceId, Iterable[DeviceContentSummary])], contentVectors: Map[String, ContentToVector], contentUsage: Map[String, ContentUsageSummaryFact], contentModel: Map[String, ContentModel])(implicit sc: SparkContext): RDD[DeviceContext] = {
+
         val contentModelB = sc.broadcast(contentModel)
         val contentVectorsB = sc.broadcast(contentVectors)
         val contentUsageB = sc.broadcast(contentUsage)
-        
+
         device_spec.leftOuterJoin(dus).leftOuterJoin(dcus).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, null)
@@ -394,9 +402,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             }
         }.flatMap { x => x.map { f => f } }
     }
-    
+
     def createJSON(data: RDD[DeviceContext])(implicit sc: SparkContext): RDD[String] = {
-        
+
         data.map { x =>
             val c1_text = if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined)
                 x.contentInFocusVec.text_vec.get.toSeq
@@ -424,8 +432,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 (if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if (StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
             }
             val primary_camera = ps._1
-            val secondary_camera = ps._2            
-            
+            val secondary_camera = ps._2
+
             val dataMap = Map(
                 "did" -> x.did,
                 "c1_content_id" -> x.contentInFocus,

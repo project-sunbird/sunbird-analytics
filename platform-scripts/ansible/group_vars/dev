@@ -23,7 +23,7 @@ bucket: sandbox-data-store
 brokerlist: 172.31.1.92:9092
 topic: sandbox.telemetry.derived
 spark:
-  home: "{{ analytics.home }}/spark-1.6.2-bin-hadoop2.3"
+  home: "{{ analytics.home }}/spark-2.0.1-bin-hadoop2.7"
   driver_memory: 7g
   executor_extraJavaOptions: -Denv=dev
   driver_extraJavaOptions: -Denv=dev

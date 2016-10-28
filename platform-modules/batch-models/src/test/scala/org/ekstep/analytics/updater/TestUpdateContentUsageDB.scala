@@ -82,11 +82,11 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         dayPerContnetSumm.m_avg_ts_session should be(63.74)
 
         val dayAcrossSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "all").first
-        dayAcrossSumm.m_total_ts should be(71474.96)
-        dayAcrossSumm.m_avg_interactions_min should be(16.5)
-        dayAcrossSumm.m_total_interactions should be(19652)
-        dayAcrossSumm.m_total_sessions should be(476)
-        dayAcrossSumm.m_avg_ts_session should be(150.16)
+        dayAcrossSumm.m_total_ts should be(76378.19)
+        dayAcrossSumm.m_avg_interactions_min should be(21.51)
+        dayAcrossSumm.m_total_interactions should be(27380)
+        dayAcrossSumm.m_total_sessions should be(536)
+        dayAcrossSumm.m_avg_ts_session should be(142.5)
 
         val dayPerTagSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb").first
         dayPerTagSumm.m_total_ts should be(1222.53)

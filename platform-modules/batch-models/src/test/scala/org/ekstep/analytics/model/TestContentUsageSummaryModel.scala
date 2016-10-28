@@ -28,7 +28,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
 
         // All Summary
         val allSum = events.filter { x => "all".equals(x.dimensions.tag.getOrElse("")) && "all".equals(x.dimensions.content_id.getOrElse("")) }
-        allSum.size should be(27)
+        allSum.size should be(28)
 
         val event_20160909 = allSum.filter { x => 20160909 == x.dimensions.period.get }.last
         event_20160909.eid should be("ME_CONTENT_USAGE_SUMMARY")
@@ -42,7 +42,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
 
         // Content Summary
         val contentSum = events.filter { x => "all".equals(x.dimensions.tag.get) && !"all".equals(x.dimensions.content_id.get) }
-        contentSum.size should be(551)
+        contentSum.size should be(555)
 
         val do_30031115Sum = contentSum.filter { x => "do_30031115".equals(x.dimensions.content_id.get) }
         do_30031115Sum.size should be(13)
@@ -84,7 +84,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         // tag Contenent Summary
         val tagContentSum = events.filter { x => !"all".equals(x.dimensions.tag.get) && !"all".equals(x.dimensions.content_id.get) }
 
-        tagContentSum.size should be(219)
+        tagContentSum.size should be(222)
 
         val tag1ContentSum = tagContentSum.filter { x => "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb".equals(x.dimensions.tag.get) }
         tag1ContentSum.size should be(12)
@@ -133,11 +133,11 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         event_20160916.eid should be("ME_CONTENT_USAGE_SUMMARY")
         event_20160916.mid should be("596342778603A7D7CAB14BE812A3C868")
         val event_20160916EksMap = event_20160916.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event_20160916EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(103.89)
-        event_20160916EksMap.get("total_sessions").get.asInstanceOf[Long] should be(202L)
+        event_20160916EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(103.4)
+        event_20160916EksMap.get("total_sessions").get.asInstanceOf[Long] should be(203L)
         event_20160916EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(22.6)
-        event_20160916EksMap.get("total_interactions").get.asInstanceOf[Long] should be(7905L)
-        event_20160916EksMap.get("total_ts").get.asInstanceOf[Double] should be(20985.68)
+        event_20160916EksMap.get("total_interactions").get.asInstanceOf[Long] should be(7907L)
+        event_20160916EksMap.get("total_ts").get.asInstanceOf[Double] should be(20990.23)
 
         // Tag Summary
         val tagSum = events.filter { x => !"all".equals(x.dimensions.tag.get) && "all".equals(x.dimensions.content_id.get) }
