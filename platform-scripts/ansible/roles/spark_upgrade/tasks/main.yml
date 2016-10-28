@@ -14,6 +14,16 @@
   tags:
     - analytics
 
+- name: Remove Guava 14.0.1 from Spark jars folder
+  file: path={{ analytics.home }}/spark-2.0.1-bin-hadoop2.3/jars/guava-14.0.1.jar state=absent
+  tags:
+    - analytics
+
+- name: Download Guava 19.0 and copy to Spark jars folder
+  get_url: http://central.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/guava-19.0.jar timeout=1000 force=no owner=ec2-user group=ec2-user
+  tags:
+    - analytics
+
 - name: remove SPARK_HOME
   lineinfile: dest=.bash_profile line='SPARK_HOME=/home/ec2-user/spark-2.0.1-bin-hadoop2.3' state=absent 
   tags:
