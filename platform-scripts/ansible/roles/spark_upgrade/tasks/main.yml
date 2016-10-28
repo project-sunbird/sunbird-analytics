@@ -15,7 +15,7 @@
     - analytics
 
 - name: Remove Guava 14.0.1 from Spark jars folder
-  file: path={{ analytics.home }}/spark-2.0.1-bin-hadoop2.3/jars/guava-14.0.1.jar state=absent
+  file: path={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/guava-14.0.1.jar state=absent
   tags:
     - analytics
 
