@@ -36,9 +36,8 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>16.0.1</version>
+			<version>19.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming_${scala.maj.version}</artifactId>
