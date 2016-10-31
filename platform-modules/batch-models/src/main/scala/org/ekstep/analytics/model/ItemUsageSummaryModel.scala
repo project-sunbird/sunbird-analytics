@@ -53,7 +53,7 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEv
     override def postProcess(data: RDD[ItemSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", summary.itemResponse.itemId, summary.uid, summary.itemResponse.time_stamp);
+            val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", summary.itemResponse.itemId + summary.uid, "EVENT", DtRange(summary.itemResponse.time_stamp, summary.itemResponse.time_stamp), summary.gdata.id);
             val measures = summary.itemResponse;
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.gdata.id), None,
@@ -61,4 +61,5 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEv
                 Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
         };
     }
+
 }
