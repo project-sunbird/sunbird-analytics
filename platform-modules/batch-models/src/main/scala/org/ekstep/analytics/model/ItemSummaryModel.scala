@@ -48,13 +48,13 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
         val total_ts = CommonUtil.roundDouble(events.map { x => x.total_ts }.sum, 2);
         val total_count = events.map { x => x.total_count }.sum
         val avg_ts = CommonUtil.roundDouble(total_ts / total_count, 2)
-        val correct_res = firstEvent.correct_res
+        val correct_res = events.flatMap { x => x.correct_res }.distinct.toList
         val correct_res_count = events.map { x => x.correct_res_count }.sum
         val inc_res_count = events.map { x => x.inc_res_count }.sum
         val m_incorrect_res = events.flatMap { x => x.m_incorrect_res }.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
         ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, date_range, lastEvent.syncts);
     }
-
+    
     private def _getItemUsageSummary(event: DerivedEvent, period: Int, tagId: String, content_id: String, item_id: String): ItemUsageMetricsSummary = {
 
         val ik = ItemKey(period, tagId, content_id, item_id);

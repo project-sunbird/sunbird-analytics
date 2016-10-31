@@ -79,7 +79,7 @@ object UpdateItemSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val total_count = fact1.m_total_count + fact2.m_total_count
         val correct_res_count = fact1.m_correct_res_count + fact2.m_correct_res_count
         val inc_res_count = fact1.m_inc_res_count + fact2.m_inc_res_count
-        val correct_res = fact1.m_correct_res;
+        val correct_res = (fact1.m_correct_res ++ fact2.m_correct_res).distinct;
         val incorrect_res = (fact1.m_incorrect_res ++ fact2.m_incorrect_res).groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
         val top5_incorrect_res = incorrect_res.sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => x._1 }.toList;
         val avg_ts = CommonUtil.roundDouble((total_ts / total_count), 2)
@@ -92,7 +92,7 @@ object UpdateItemSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val total_count = fact1.m_total_count + fact2.m_total_count
         val correct_res_count = fact1.m_correct_res_count + fact2.m_correct_res_count
         val inc_res_count = fact1.m_inc_res_count + fact2.m_inc_res_count
-        val correct_res = fact1.m_correct_res
+        val correct_res = (fact1.m_correct_res ++ fact2.m_correct_res).distinct
         val incorrect_res = (fact1.m_incorrect_res ++ fact2.m_incorrect_res).groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
         val avg_ts = CommonUtil.roundDouble((total_ts / total_count), 2)
         ItemUsageSummaryFact_T(fact1.d_period, fact1.d_tag, fact1.d_content_id, fact1.d_item_id, total_ts, total_count, correct_res_count, inc_res_count, correct_res, incorrect_res, avg_ts, fact2.m_last_gen_date);
