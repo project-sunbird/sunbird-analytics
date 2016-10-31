@@ -26,8 +26,8 @@ config.read(config_file)
 # op_dir = config.get('FilePath', 'corpus_path')
 log_dir = config.get('FilePath', 'log_path')
 
-if not os.path.exists(model_loc):
-    logging.info('model folder do not exist')
+# if not os.path.exists(model_loc):
+#     logging.info('model folder do not exist')
 
 # Set up logging
 infer_log_file = os.path.join(log_dir, 'inferQuery.log')
@@ -96,7 +96,7 @@ all_vector = []
 # to get the dimension of vectors from model
 n_dim = get_vector_dimension()
 
-def infer_query():
+def infer_query(inferFlag, model_loc, op_dir):
     if inferFlag == 'true':
         # if vectors for all the content are to be populated
         lst_folder = get_immediate_subdirectories(op_dir)

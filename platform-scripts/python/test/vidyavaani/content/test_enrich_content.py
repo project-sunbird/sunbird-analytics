@@ -17,7 +17,7 @@ from enrich_content_functions import createDirectory, enrichContent
 root = os.path.dirname(os.path.abspath(__file__))
 dir_path = os.path.join(rec_dir(root,1), 'test_resources', 'enrich_content')
 
-def test_enrichContent(capfd):
+def test_enrichContent():
 	data_file = os.path.join(dir_path, 'input.json')
 	with open(data_file) as json_data:
 		contentJSON = json.load(json_data)

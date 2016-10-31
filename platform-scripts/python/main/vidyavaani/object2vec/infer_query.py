@@ -42,6 +42,6 @@ infer_log_file = os.path.join(log_dir, 'inferQuery.log')
 logging.basicConfig(filename=infer_log_file, level=logging.DEBUG)
 logging.info('Corpus to Vectors')
 if use_LDA == 'false':
-	infer_query()
+	infer_query(inferFlag, model_loc, op_dir)
 else:
 	infer_query_LDA()
