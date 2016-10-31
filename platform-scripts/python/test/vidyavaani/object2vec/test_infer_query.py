@@ -22,25 +22,23 @@ def test_infer_query_pos_1():
 	inferFlag = 'True'
 	op_dir = os.path.join(dir_path, 'pos', 'content_corpus')
 	model_loc = os.path.join(dir_path, 'pos', 'model')
-	q_vec = infer_query(inferFlag, model_loc, op_dir)
+	infer_query(inferFlag, model_loc, op_dir)
 	assert q_vec
 
 def test_infer_query_pos_1():
 	inferFlag = 'True'
 	op_dir = os.path.join(dir_path, 'pos', 'content_corpus')
 	model_loc = os.path.join(dir_path, 'pos', 'model')
-	q_vec = infer_query(inferFlag, model_loc, op_dir)
+	infer_query(inferFlag, model_loc, op_dir)
 	assert q_vec
 
 def test_infer_query_neg():
 	inferFlag = 'True'
 	op_dir = os.path.join(dir_path, 'neg', 'content_corpus')
 	model_loc = os.path.join(dir_path, 'neg', 'model')
-	q_vec = infer_query()
+	infer_query(inferFlag, model_loc, op_dir)
 	assert q_vec
 	pass
 
 def test_get_vector_dimension():
 	pass
-
-def 
