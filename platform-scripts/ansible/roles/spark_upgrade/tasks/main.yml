@@ -1,6 +1,6 @@
 ---
-- name: remove Spark 2.0.1 hadoop 2.3
-  file: path={{ analytics.home }}/spark-2.0.1-bin-hadoop2.3 state=absent
+- name: remove Spark 1.6.2 hadoop 2.3
+  file: path={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3 state=absent
   tags:
     - analytics
 
@@ -25,7 +25,7 @@
     - analytics
 
 - name: remove SPARK_HOME
-  lineinfile: dest=.bash_profile line='SPARK_HOME=/home/ec2-user/spark-2.0.1-bin-hadoop2.3' state=absent 
+  lineinfile: dest=.bash_profile line='SPARK_HOME=/home/ec2-user/spark-1.6.2-bin-hadoop2.3' state=absent 
   tags:
     - analytics
 
