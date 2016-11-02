@@ -10,6 +10,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.ItemUsageSummaryFact
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestUpdateItemSummaryDB extends SparkSpec(null) {
 
@@ -33,6 +34,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
         Q1.m_correct_res_count should be(0)
         Q1.m_inc_res_count should be(1)
         Q1.m_correct_res should be(List())
+        Q1.m_incorrect_res.last._1 should be("2:3")
 
         val Q2 = cummAlldo_20043159ItemSumm.filter { x => StringUtils.equals("Q2", x.d_item_id) }.last
 
@@ -41,6 +43,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
         Q2.m_correct_res_count should be(0)
         Q2.m_inc_res_count should be(1)
         Q2.m_correct_res should be(List())
+        Q2.m_incorrect_res.last._1 should be("2:25")
 
         val Q3 = cummAlldo_20043159ItemSumm.filter { x => StringUtils.equals("Q3", x.d_item_id) }.last
 
@@ -50,6 +53,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
         Q3.m_correct_res_count should be(1)
         Q3.m_inc_res_count should be(0)
         Q3.m_top5_incorrect_res should be(List())
+        Q3.m_correct_res.last should be("2:18")
 
         val Q4 = cummAlldo_20043159ItemSumm.filter { x => StringUtils.equals("Q4", x.d_item_id) }.last
 
@@ -58,6 +62,35 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
         Q4.m_avg_ts should be(1)
         Q4.m_correct_res_count should be(0)
         Q4.m_inc_res_count should be(2)
+
+    }
+
+    it should "test correct and incorrect result aggregation" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.item_usage_summary_fact");
+        }
+
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-updater/ius19.log");
+        val rdd2 = UpdateItemSummaryDB.execute(rdd, None);
+
+        val itemData = sc.cassandraTable[ItemUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.ITEM_USAGE_SUMMARY_FACT).collect
+
+        val week41 = itemData.filter { x => ("all".equals(x.d_tag)) && ("org.ekstep.delta".equals(x.d_content_id) && 2016741 == x.d_period && ("single-add".equals(x.d_item_id))) }
+
+        val oct10 = itemData.filter { x => ("all".equals(x.d_tag)) && ("org.ekstep.delta".equals(x.d_content_id) && 20161010 == x.d_period && ("single-add".equals(x.d_item_id))) }.last
+        val oct11 = itemData.filter { x => ("all".equals(x.d_tag)) && ("org.ekstep.delta".equals(x.d_content_id) && 20161011 == x.d_period && ("single-add".equals(x.d_item_id))) }.last
+
+        val week41CorrectRes = week41.flatMap { x => x.m_correct_res }.distinct
+
+        val aggregateValue = (oct10.m_correct_res ++ oct11.m_correct_res).distinct
+        aggregateValue.size should be(week41CorrectRes.size)
+
+        JSONUtils.serialize(oct10.m_correct_res) should be("""["6","5","2"]""")
+        JSONUtils.serialize(oct11.m_correct_res) should be("""["2","4","8","5"]""")
+
+        JSONUtils.serialize(aggregateValue) should be("""["6","5","2","4","8"]""")
+        JSONUtils.serialize(week41CorrectRes) should be("""["6","5","2","4","8"]""")
 
     }
 
