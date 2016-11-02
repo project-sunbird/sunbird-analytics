@@ -42,7 +42,7 @@ jobs:
     minute: 50
     state: present
   gsts:
-  	hour: 7
+    hour: 7
     minute: 02
     state: present
   cpu:
