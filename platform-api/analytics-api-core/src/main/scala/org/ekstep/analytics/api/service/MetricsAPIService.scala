@@ -41,16 +41,7 @@ object MetricsAPIService {
     }
     val filter = body.request.filter.getOrElse(Filter());
     val contentId = filter.content_id.getOrElse("all");
-    var tag: String = ""
-    //tags 
-    val tags = filter.tags
-    //picking first element in tags and place it in tag
-    if (tags.size >= 1) {
-      tag = tags.get(0)
-    } else {
-      tag = filter.tag.getOrElse("all");
-    }
-    //val tag = filter.tag.getOrElse("all");
+    val tag = getTag(filter);
     val result = CotentUsageMetricsModel.fetch(contentId, tag, body.request.period);
     JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.content-usage", result));
   }
@@ -86,17 +77,7 @@ object MetricsAPIService {
     }
     val filter = body.request.filter.getOrElse(Filter());
     val contentId = filter.content_id.getOrElse("all");
-    var tag: String = ""
-    //tags 
-    val tags = filter.tags
-    //picking first element in tags and place it in tag
-    if (tags.size >= 1) {
-      tag = tags.get(0)
-    } else {
-      tag = filter.tag.getOrElse("all");
-    }
-
-    //	val tag = filter.tag.getOrElse("all");
+    val tag = getTag(filter);
     val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period);
     JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.genie-launch", result));
   }
@@ -114,5 +95,16 @@ object MetricsAPIService {
     val result = ItemUsageMetricsModel.fetch(contentId, tag, body.request.period);
     JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.item-usage", result));
   }
+  
+  // This is method the Tag aggregation mock API. 
+  // TODO: We should remove it when we implement tag aggregation of the metrics.
+  private def getTag(filter: Filter): String = {
+	  val tags = filter.tags.getOrElse(Array());
+	   if (tags.length == 0) {
+	  		filter.tag.getOrElse("all");   
+	   } else {
+	  	   tags.head;
+	   }
+  } 
 
 }
