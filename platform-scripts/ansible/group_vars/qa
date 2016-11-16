@@ -42,7 +42,7 @@ jobs:
     minute: 42
     state: present
   gsts:
-  	hour: 1
+    hour: 1
     minute: 47
     state: present
   dcus:

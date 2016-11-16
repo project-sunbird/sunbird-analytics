@@ -37,7 +37,7 @@ jobs:
     hour: 1
     minute: 20
     state: present
-  ss-jobs: 
+  ss-jobs:
     hour: 1
     minute: 42
     state: present

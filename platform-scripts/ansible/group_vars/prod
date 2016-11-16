@@ -23,7 +23,7 @@ bucket: prod-data-store
 brokerlist: 10.10.1.207:9092
 topic: production.telemetry.derived
 spark:
-  home: "{{ analytics.home }}/spark-2.0.1-bin-hadoop2.3"
+  home: "{{ analytics.home }}/spark-2.0.1-bin-hadoop2.7"
   driver_memory: 12g
   executor_extraJavaOptions: -Denv=prod
   driver_extraJavaOptions: -Denv=prod
@@ -42,7 +42,7 @@ jobs:
     minute: 50
     state: present
   gsts:
-  	hour: 7
+    hour: 7
     minute: 02
     state: present
   cpu:
