@@ -9,6 +9,7 @@ utils = os.path.join((os.path.split(root)[0]), 'utils')
 # Insert at front of list ensuring that our util is executed first in
 sys.path.insert(0, utils)
 from find_files import *
+from infer_query_functions import *
 resource = os.path.join((os.path.split(root)[0]), 'resources')
 config_file = os.path.join(resource, 'config.properties')
 
@@ -42,6 +43,18 @@ infer_log_file = os.path.join(log_dir, 'inferQuery.log')
 logging.basicConfig(filename=infer_log_file, level=logging.DEBUG)
 logging.info('Corpus to Vectors')
 if use_LDA == 'false':
-	infer_query(inferFlag, model_loc, op_dir)
+	vectors = infer_query(inferFlag, model_loc, op_dir)
+	# vectors = get_vectors(model_loc, op_dir)
+	# print(vectors)
+	#for testing purpose , will remove afterwards
+	file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
+	file.write(vectors)
+	file.close()
+
 else:
-	infer_query_LDA()
+	vectors = infer_query_LDA(inferFlag, model_loc, op_dir)
+	file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
+	file.write(vectors)
+	file.close()
+
+# print vectors

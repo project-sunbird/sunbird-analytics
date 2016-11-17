@@ -36,6 +36,9 @@ def get_immediate_subdirectories(a_dir):
     return [name for name in os.listdir(a_dir)
             if os.path.isdir(os.path.join(a_dir, name))]
 
+def get_immediate_subdirectories_fullpath(a_dir):
+    return [os.path.join(a_dir, name) for name in os.listdir(a_dir)
+            if os.path.isdir(os.path.join(a_dir, name))]
 
 def uniqfy_list(seq):
     seen = set()
@@ -65,30 +68,74 @@ def get_vector_dimension():
         n_dim = 50  # default value ,should take it from stdin?
     return n_dim
 
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
+
+def get_norm_vec(vector_list):
+    if not  all(v == 0 for v in vector_list):
+        x = np.array(vector_list).reshape(1,50)
+#         t = x.transpose()
+#         dot_product = math.sqrt(np.dot(x, t))
+        norm_vector = x/np.linalg.norm(x)
+        norm_vector = norm_vector.tolist()[0]
+    else:
+        norm_vector = vector_list
+#     norm_vector = [ '%.6f' % elem for elem in norm_vector ]
+    return norm_vector
 def process_query(line,language):
+    # word_list = []
+    # if(language == 'en' or language == 'en-text'):
+    #     line = re.sub("[^a-zA-Z]", " ", line)
+    #     for word in line.split(' '):
+    #         if word not in stopword and len(word) > 1:
+    #             word_list.append(word.lower())
+    # elif(language == 'tags'):
+    #     pre_query = line.split(",")
+    #     word_list = []
+    #     for str_word in pre_query:
+    #         word_list.append("".join(str_word.split()).lower())     
+    # else:
+    #     for word in line.split(' '):
+    #         word_list.append(word.lower())
+    # return word_list
+
     word_list = []
-    if(language == 'en' or language == 'en-text'):
-        line = re.sub("[^a-zA-Z]", " ", line)
-        for word in line.split(' '):
-            if word not in stopword and len(word) > 1:
-                word_list.append(word.lower())
-    elif(language == 'tags'):
+
+    if language == 'tags':
         pre_query = line.split(",")
         word_list = []
         for str_word in pre_query:
-            word_list.append("".join(str_word.split()).lower())     
+            word_list.append("".join(str_word.split()).lower())
+            word_list = uniqfy_list(word_list)
     else:
-        for word in line.split(' '):
-            word_list.append(word.lower())
+        try:
+            line = unicode(line, "UTF-8")
+            line = line.replace(u"\u00A0", " ")
+        except:
+            line = line
+        if is_ascii(line):# Any language using ASCII characters goes here
+            line = re.sub("[^a-zA-Z]", " ", line)
+            for word in line.split(' '):
+                if word not in stopword and len(word) > 1:
+                    word_list.append(word.lower())
+        else:
+            for word in line.split(' '):
+                word_list.append(word)
     return word_list
 
-def get_vectors_LDA(model):
+def get_vectors_LDA(model, query):
+#     print 'query: '+ str(query)
     pr_query = model.id2word.doc2bow(query)
+#     print 'pr_query: '+ str(pr_query)
     temp_vec = model[pr_query]
-    flattened = []
-    for sublist in vec_a:
-        print sublist[1]
-        flattened.append(sublist[1])
+    num = range(0,50)
+    listofzeros = [0] * 50 
+    t_dict = dict(zip(num, listofzeros))
+    for t_list in temp_vec:
+        key = t_list[0]
+        t_dict[key] = t_list[1]
+    # flattened = []
+    flattened = t_dict.values()
     return flattened
 
 response = {}
@@ -126,9 +173,10 @@ def infer_query(inferFlag, model_loc, op_dir):
                             'default model not found, skipping vector this language')
                         continue
                 model = gs.models.doc2vec.Doc2Vec.load(model_path)
-                q_vec = model.infer_vector(query)
+                q_vec = model.infer_vector(query, alpha=0.1, min_alpha=0.0001,steps=20)
                 # q_vec=model.infer_vector(query.split(' '),alpha=0.1, min_alpha=0.0001, steps=5)
                 vector_list = np.array(q_vec).tolist()
+                vector_list = get_norm_vec(vector_list)
                 if not lang == 'tags':
                     vector_dict['text_vec'] = vector_list
                     logging.info('Vectors for text retrieved')
@@ -146,7 +194,7 @@ def infer_query(inferFlag, model_loc, op_dir):
             all_vector.append(vector_dict)
             response['content_vectors'] = all_vector
         # logging.info(json.dumps(response))
-        print(json.dumps(response))
+        return(json.dumps(response))
 
     else:
         contentID = std_input['contentId']
@@ -170,7 +218,7 @@ def infer_query(inferFlag, model_loc, op_dir):
                         'default model not found, skipping vector this language')
                     continue
             gensim_model = gs.models.doc2vec.Doc2Vec.load(model_path)
-            q_vec = gensim_model.infer_vector(query)
+            q_vec = gensim_model.infer_vector(query, alpha=0.1, min_alpha=0.0001,steps=20 )
             vector_list = np.array(q_vec).tolist()
             if not key == 'tags':
                 vector_dict['text_vec'] = vector_list
@@ -187,11 +235,48 @@ def infer_query(inferFlag, model_loc, op_dir):
             vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
         all_vector.append(vector_dict)
         response['content_vectors'] = all_vector
-        print(json.dumps(response))
+        return (json.dumps(response))
+
+def get_vectors(model_loc, op_dir):
+    lst_folder = get_immediate_subdirectories_fullpath(op_dir)
+    for content_folder in lst_folder:
+        vector_dict = {}
+        lst_lang = get_all_lang(content_folder, ('tags', 'text')) 
+        # print content_folder
+        # print lst_lang
+        for lang in lst_lang:
+            file_path = os.path.join(content_folder, lang)
+            if not os.path.exists(file_path):
+                logging.info('%s not found' % (file_path))
+                continue   
+            model_path = os.path.join(model_loc, lang)
+            model = gs.models.doc2vec.Doc2Vec.load(model_path)
+            # print file_path
+            q_vec = model.docvecs[file_path]
+            vector_list = np.array(q_vec).tolist()
+            if not lang == 'tags':
+                vector_dict['text_vec'] = vector_list
+                logging.info('Vectors for text retrieved')
+            else:
+                vector_dict['tag_vec'] = vector_list
+                # logging.info(vector_list)
+                logging.info('Vectors for tags retrieved')
+        folder = os.path.basename(os.path.normpath(content_folder))
+        vector_dict['contentId'] = folder            
+        if not 'tag_vec' in vector_dict:
+            logging.info('no tags data, so adding zero vectors')
+            vector_dict['tag_vec'] = np.array(np.zeros(n_dim)).tolist()
+        if not 'text_vec' in vector_dict:
+            logging.info('no text data, so adding zero vectors')
+            vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
+        all_vector.append(vector_dict)
+        response['content_vectors'] = all_vector
+    # logging.info(json.dumps(response))
+    return(json.dumps(response))
 
 # Infer search string from model
 # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L499
-def infer_query_LDA():
+def infer_query_LDA(inferFlag, model_loc, op_dir):
     if inferFlag == 'true':
         # if vectors for all the content are to be populated
         lst_folder = get_immediate_subdirectories(op_dir)
@@ -242,7 +327,7 @@ def infer_query_LDA():
             all_vector.append(vector_dict)
             response['content_vectors'] = all_vector
         # logging.info(json.dumps(response))
-        print(json.dumps(response))
+        return(json.dumps(response))
 
 
 def inference(query, model):

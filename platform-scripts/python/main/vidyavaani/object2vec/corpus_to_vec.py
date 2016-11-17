@@ -20,7 +20,7 @@ config_file = os.path.join(resource, 'config.properties')
 sys.path.insert(0, utils)
 # To find files with a particular substring
 from find_files import findFiles
-from corpus_to_vec import *
+from corpus_to_vec_functions import *
 # get file path from config file
 config = ConfigParser.SafeConfigParser()
 config.read(config_file)

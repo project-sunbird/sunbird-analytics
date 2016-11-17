@@ -1,5 +1,5 @@
 import sys
-from update_content_corpus import *
+from update_content_corpus_functions import *
 
 for line in sys.stdin:
     str_line = line.rstrip('\n')

@@ -8,6 +8,7 @@ import logging  # Log the data given
 import sys
 import ast
 import ConfigParser
+from langdetect import detect
 from nltk.corpus import stopwords
 stopword = set(stopwords.words("english"))
 
@@ -58,25 +59,51 @@ pvdbow_dm = int(config.get('pvdbow', 'dm'))
 lda_topics = int(config.get('LDA', 'topics'))
 lda_passes = int(config.get('LDA', 'passes'))
 
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
+
 def process_text(lines, language):  # Text processing
+    # word_list = []
+    # for line in lines:
+    #     if(language == 'en-text'):  # Any language using ASCII characters goes here
+    #         line = re.sub("[^a-zA-Z]", " ", line)
+    #         for word in line.split(' '):
+    #             if word not in stopword and len(word) > 1:
+    #                 word_list.append(word.lower())
+    #     elif(language == 'tags'):
+    #         pre_query = line.split(",")
+    #         word_list = []
+    #         for str_word in pre_query:
+    #             word_list.append("".join(str_word.split()).lower())
+    #             word_list = uniqfy_list(word_list)  
+    #     else:
+    #         for word in line.split(' '):
+    #             word_list.append(word.lower())
+    # return word_list
+
     word_list = []
     for line in lines:
-        if(language == 'en-text'):  # Any language using ASCII characters goes here
-            line = re.sub("[^a-zA-Z]", " ", line)
-            for word in line.split(' '):
-                if word not in stopword and len(word) > 1:
-                    word_list.append(word.lower())
-        elif(language == 'tags'):
+        if language == 'tags':
             pre_query = line.split(",")
             word_list = []
             for str_word in pre_query:
                 word_list.append("".join(str_word.split()).lower())
-                word_list = uniqfy_list(word_list)  
+                word_list = uniqfy_list(word_list)
         else:
-            for word in line.split(' '):
-                word_list.append(word.lower())
+            try:
+                line = unicode(line, "UTF-8")
+                line = line.replace(u"\u00A0", " ")
+            except:
+                line = line
+            if is_ascii(line):# Any language using ASCII characters goes here
+                line = re.sub("[^a-zA-Z]", " ", line)
+                for word in line.split(' '):
+                    if word not in stopword and len(word) > 1:
+                        word_list.append(word.lower())
+            else:
+                for word in line.split(' '):
+                    word_list.append(word)
     return word_list
-
 
 def process_file(filename, language):  # File processing
     try:
@@ -92,30 +119,42 @@ def load_documents(filenames, language):  # Creating TaggedDocuments
     doc = []
     for filename in filenames:
         word_list = process_file(filename, language)
-        # if(word_list!=None):
         if word_list:
             doc.append(gs.models.doc2vec.TaggedDocument(
                 words=word_list, tags=[filename]))
         else:
-            logging.info(filename + " failed to load in load_documents")
+            logging.warning(filename + " failed to load in load_documents")
     return doc
 
-def load_documents_LDA(filenames, language)
-    doc = []
+# def load_documents_LDA(filenames, language):
+#     doc = []
+#     flag = 0
+#     for filename in filenames:
+#         word_list = process_file(filename, language)
+#         if word_list:
+#             doc.append(word_list)
+#             flag = 1
+#         else:
+#             logging.info(filename + " failed to load in load_documents")
+#     if flag:
+#         flattened_doc = [val for sublist in doc for val in sublist]
+#     else:
+#         flattened_doc = doc
+#     return flattened_doc
+
+def load_documents_LDA(filenames, language):
     flag = 0
+    texts = []
     for filename in filenames:
         word_list = process_file(filename, language)
         if word_list:
-            doc.append(word_list)
+            
+            # tokens = word_list[0].split()
+            texts.append(word_list)
             flag = 1
         else:
-            logging.info(filename + " failed to load in load_documents")
-    if flag:
-        flattened_doc = [val for sublist in doc for val in sublist]
-    else:
-        flattened_doc = doc
-    return flattened_doc
-
+            logging.warning(filename + " failed to load in load_documents")
+    return texts
 
 def train_model_pvdm(directory, language):
     if language == ['tags']:
@@ -141,11 +180,12 @@ def train_model_pvdbow(directory, language):
     return model
 
 def train_model_LDA(directory, language):
+    # print 'in LDA func'
     if language == ['tags']:
         texts = load_documents_LDA(findFiles(directory, ['tag']), "en-text")
     else:
         texts = load_documents_LDA(findFiles(directory, [language]), language)
-    if not doc:
+    if not texts:
         return 0    
     # turn our tokenized documents into a id <-> term dictionary
     dictionary = corpora.Dictionary(texts)
@@ -153,7 +193,7 @@ def train_model_LDA(directory, language):
 
     # generate LDA model
     ldamodel = gs.models.ldamodel.LdaModel(corpus, num_topics=lda_topics, id2word = dictionary, passes=lda_passes)
-    return model
+    return ldamodel
 
 def uniqfy_list(seq):
     seen = set()
