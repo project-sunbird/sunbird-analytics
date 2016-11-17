@@ -163,7 +163,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 _getZeros(50);
             })
             // Add c1 context attributes
-            seq ++= Seq(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0))
+            val targetVariable = x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0)
+            seq ++= Seq(if(targetVariable == 0.0) targetVariable else CommonUtil.roundDouble(Math.log(targetVariable), 2))
             //            seq ++= Seq(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0), x.contentInFocusUsageSummary.avg_interactions_min.getOrElse(0.0),
             //                x.contentInFocusUsageSummary.download_date.getOrElse(0L), if (x.contentInFocusUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.contentInFocusUsageSummary.last_played_on.getOrElse(0L),
             //                x.contentInFocusUsageSummary.mean_play_time_interval.getOrElse(0.0), x.contentInFocusUsageSummary.num_group_user.getOrElse(0L), x.contentInFocusUsageSummary.num_individual_user.getOrElse(0L),
@@ -300,6 +301,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         import sqlContext.implicits._
         val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
         val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
+        val logFile = config.getOrElse("logFile", "/tmp/libfm.log").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
@@ -311,6 +313,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
+        CommonUtil.deleteFile(logFile);
         CommonUtil.deleteFile(model);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
@@ -364,7 +367,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))

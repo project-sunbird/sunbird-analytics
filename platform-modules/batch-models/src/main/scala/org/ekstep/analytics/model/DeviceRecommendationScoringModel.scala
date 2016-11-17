@@ -146,7 +146,8 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 _getZeros(50);
             })
             // Add c1 context attributes
-            seq ++= Seq(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0))
+            val targetVariable = x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0)
+            seq ++= Seq(if(targetVariable == 0.0) targetVariable else CommonUtil.roundDouble(Math.log(targetVariable), 2))
             //            seq ++= Seq(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0), x.contentInFocusUsageSummary.avg_interactions_min.getOrElse(0.0),
             //                x.contentInFocusUsageSummary.download_date.getOrElse(0L), if (x.contentInFocusUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.contentInFocusUsageSummary.last_played_on.getOrElse(0L),
             //                x.contentInFocusUsageSummary.mean_play_time_interval.getOrElse(0.0), x.contentInFocusUsageSummary.num_group_user.getOrElse(0L), x.contentInFocusUsageSummary.num_individual_user.getOrElse(0L),
