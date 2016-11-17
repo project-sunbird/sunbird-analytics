@@ -35,6 +35,7 @@ import org.ekstep.analytics.job.updater.ItemSummaryUpdater
 import org.ekstep.analytics.job.updater.ContentPopularityUpdater
 import org.ekstep.analytics.job.updater.ContentModelUpdater
 import org.ekstep.analytics.job.summarizer.GenieStageSummarizer
+import org.ekstep.analytics.job.summarizer.GenieFunnelSummarizer
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -106,6 +107,8 @@ object JobFactory {
                 ItemSummaryUpdater
             case "gsts" =>
                 GenieStageSummarizer
+            case "gfs" =>
+                GenieFunnelSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
