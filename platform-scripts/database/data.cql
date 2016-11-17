@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
 	m_inc_res_count int,
 	m_correct_res list<text>,
 	m_incorrect_res list<frozen <tuple<text, int>>>,
-	m_top5_incorrect_res list<text>,
+	m_top5_incorrect_res list<frozen <tuple<text, int>>>,
 	m_avg_ts double,
 	PRIMARY KEY (d_period, d_tag, d_content_id, d_item_id)
 );
