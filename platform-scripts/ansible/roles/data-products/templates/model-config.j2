@@ -104,6 +104,7 @@ config() {
 		;;
 		"gfs")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieFunnelModel","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Genie Funnel Model","deviceMapping":true}'
+		;;
 		"*")  
 		echo "Unknown model code"
       	exit 1 # Command to come out of the program with status 1
