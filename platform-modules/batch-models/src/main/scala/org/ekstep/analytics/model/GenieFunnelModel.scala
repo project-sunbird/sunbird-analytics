@@ -22,7 +22,7 @@ import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Dimensions
 
-case class GenieFunnelSession(sid: String, cid: String, funnel: String, events: Buffer[Event]) extends AlgoInput
+case class GenieFunnelSession(sid: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event]) extends AlgoInput
 case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, tags: Option[AnyRef]) extends AlgoOutput
 
 case class FunnelStageSummary(timeSpent: Double, count: Int, stageInvoked: Int)
@@ -108,7 +108,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         val did = firstEvent.did
         val sid = firstEvent.sid
         val cid = event.cid
-        val dspec = Map("" -> "") // TODO will be fetched from DeviceSpec table
+        val dspec = event.dspec // Map("" -> "") // TODO will be fetched from DeviceSpec table
         val genieVer = firstEvent.gdata.ver
         val dateRange = DtRange(CommonUtil.getEventTS(firstEvent), CommonUtil.getEventTS(endEvent))
         val syncts = CommonUtil.getEventSyncTS(endEvent)
@@ -132,18 +132,21 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         val genieLaunchSessions = getGenieLaunchSessions(data, idleTime);
 
         genieLaunchSessions.mapValues { x =>
+            val geStartEvents = DataFilter.filter(x, Filter("eid", "EQ", Option("GE_GENIE_START")))
+            val dspec = if(geStartEvents.length>0) geStartEvents.last.edata.eks.dspec; else null;
+            
             val filteredData = DataFilter.filter(x, Filter("eid", "IN", Option(List("GE_LAUNCH_GAME", "GE_INTERACT")))).filter { x => x.cdata!=null && x.cdata.nonEmpty }
-            filteredData.map { x => (x.cdata.last.id, x) }.groupBy { x => x._1 }.map { x => (x._1, x._2.map(y => y._2)) };
+            filteredData.map { x => (x.cdata.last.id, x) }.groupBy { x => x._1 }.map { x => (x._1, dspec, x._2.map(y => y._2)) };
         }.map { x =>
             val sid = x._1
             x._2.map { x =>
-                val events = x._2.sortBy { x => x.ts }
+                val events = x._3.sortBy { x => x.ts }
                 val firstEvent = events.head
                 val cdataType = firstEvent.cdata.last.`type`.get
                 val stageId = firstEvent.edata.eks.stageid
                 val subType = firstEvent.edata.eks.subtype
                 val funnel = if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ExploreContent".equals(stageId) && "".equals(subType)) "ExploreContent"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else "ExploreContent";
-                GenieFunnelSession(sid, x._1, funnel, events)
+                GenieFunnelSession(sid, x._1, x._2, funnel, events)
             };
         }.flatMap { x => x };
     }

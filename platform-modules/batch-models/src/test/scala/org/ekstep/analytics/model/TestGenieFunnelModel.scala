@@ -8,7 +8,8 @@ class TestGenieFunnelModel extends SparkSpec(null) {
     "GenieFunnelModel" should "Generates Funnel Summary" in {
 
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data.log");
-        val events = GenieFunnelModel.execute(rdd, None)
+        val events = GenieFunnelModel.execute(rdd, None).collect
+        events.length should be (35)
     }
 
     it should "generates funnel summary, from a data having one funnel in one session" in {
