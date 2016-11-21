@@ -15,8 +15,8 @@ import org.apache.spark.sql.functions._
 trait DeviceRecommendationTransformer[T, R] {
 
     def name(): String = "DeviceRecommendationTransformer";
-
-    def binning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, String)] = {
+    
+    def binning(rdd: RDD[(String, Double)], numBuckets: Int)(implicit sqlContext: SQLContext): RDD[(String, Double)] = {
 
         val rows = rdd.map(f => Row.fromSeq(Seq(f._1, f._2)));
         val structs = new StructType(Array(new StructField("key", StringType, true), new StructField("value", DoubleType, true)));
@@ -27,29 +27,10 @@ trait DeviceRecommendationTransformer[T, R] {
             .setNumBuckets(numBuckets)
 
         val result = discretizer.fit(df).transform(df).drop("value").rdd;
-        result.map { x => (x.getString(0), x.getDouble(1).toString()) };
+        result.map { x => (x.getString(0), x.getDouble(1)) };
     }
 
-    def outlierTreatment(rdd: RDD[(String, Double)]): RDD[(String, Double)] = {
-        val valueArray = rdd.map { x => x._2 }.collect()
-        val q1 = DescriptiveStats.percentile(valueArray, 0.25)
-        val q2 = DescriptiveStats.percentile(valueArray, 0.5)
-        val q3 = DescriptiveStats.percentile(valueArray, 0.75)
-        val iqr = q3 - q1
-        val lowerLimit = q1 - (1.5 * iqr)
-        val upperLimit = q3 + (1.5 * iqr)
-        rdd.map { x =>
-            if (x._2 < lowerLimit) (x._1, q2)
-            else if (x._2 > upperLimit) (x._1, q2)
-            else x
-        }
-    }
-
-    def getTransformationByBinning(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String, R)]
-
-    def removeOutliers(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String, T)]
-    
-    def excecute(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String,(T, R))]
+    def getTransformationByBinning(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String, R)]    
 
     private def flattenColumn(df: DataFrame, colToSplit: String, cols: Array[String])(implicit sc: SparkContext): DataFrame = {
 

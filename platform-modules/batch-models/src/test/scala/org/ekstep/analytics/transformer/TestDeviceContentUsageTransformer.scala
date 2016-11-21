@@ -22,7 +22,7 @@ class TestDeviceContentUsageTransformer extends SparkSpec(null) {
         }
 
         val table = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT)
-        val out = DeviceContentUsageTransformer.excecute(table)
+        val out = DeviceContentUsageTransformer.getTransformationByBinning(table)
         out.count() should be (table.count())
     }
 
