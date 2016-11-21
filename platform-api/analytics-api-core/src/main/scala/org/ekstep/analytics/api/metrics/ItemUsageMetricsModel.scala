@@ -10,6 +10,8 @@ import org.ekstep.analytics.api.ItemUsageSummary
 import scala.collection.JavaConversions._
 import org.ekstep.analytics.api.ItemUsageSummaryView
 import org.ekstep.analytics.api.InCorrectRes
+import org.ekstep.analytics.api.IUSofAPI
+import org.ekstep.analytics.api.IUMetricsOfAPI
 
 object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
   	override def metric : String = "ius";
@@ -52,6 +54,24 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 		val m_avg_ts = if (m_total_count > 0) CommonUtil.roundDouble(m_total_ts/m_total_count, 2) else 0;
   		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
   	}
-	
-  
+  	
+  	override def postProcess(metrics: RDD[ItemUsageMetrics], summary: ItemUsageMetrics) : Map[String, AnyRef] = {
+
+		val newMetrics = metrics.map { f => 
+			val newItems = f.items.getOrElse(List()).map { x =>
+					val top5_incorrect_res = x.m_top5_incorrect_res.getOrElse(List()).map { x => x.resp };
+					IUSofAPI(x.d_item_id, x.d_content_id, x.m_total_ts, x.m_total_count, x.m_correct_res_count, x.m_inc_res_count, x.m_correct_res, Option(top5_incorrect_res), x.m_avg_ts) 
+				}
+			IUMetricsOfAPI(f.d_period, f.label, Option(newItems));
+		}
+		val newSummaryItems = summary.items.getOrElse(List()).map { x => 
+			val top5_incorrect_res = x.m_top5_incorrect_res.getOrElse(List()).map { x => x.resp };
+			IUSofAPI(x.d_item_id, x.d_content_id, x.m_total_ts, x.m_total_count, x.m_correct_res_count, x.m_inc_res_count, x.m_correct_res, Option(top5_incorrect_res), x.m_avg_ts)	
+		}
+		val newSummary = IUMetricsOfAPI(None, None, Option(newSummaryItems));
+  		Map[String, AnyRef](
+                "metrics" -> newMetrics.collect(),
+                "summary" -> newSummary);
+  	}
+  	
 }

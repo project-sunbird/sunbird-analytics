@@ -54,6 +54,12 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
 
     def getMetrics(records: RDD[T], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[R]
 
+    def postProcess(metrics: RDD[R], summary: R): Map[String, AnyRef] = {
+    	Map[String, AnyRef](
+                "metrics" -> metrics.collect(),
+                "summary" -> summary);
+    };
+    
     def getSummary(metrics: RDD[R],  fields: Array[String] = Array()): R = {
         metrics.reduce((a, b) => reduce(a, b, fields));
     }
@@ -63,9 +69,7 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
     private def getResult(records: RDD[T], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config) : Map[String, AnyRef] = {
     	val metrics = getMetrics(records, period, fields);
             val summary = getSummary(metrics, fields);
-            Map[String, AnyRef](
-                "metrics" -> metrics.collect(),
-                "summary" -> summary);
+            postProcess(metrics, summary);
     }
 
     private def getData[T](contentId: String, tag: String, period: String)(implicit mf: Manifest[T], sc: SparkContext, config: Config): RDD[T] = {
