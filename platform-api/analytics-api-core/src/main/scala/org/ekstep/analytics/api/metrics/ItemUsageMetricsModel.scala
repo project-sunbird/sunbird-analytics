@@ -9,6 +9,9 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.ItemUsageSummary
 import scala.collection.JavaConversions._
 import org.ekstep.analytics.api.ItemUsageSummaryView
+import org.ekstep.analytics.api.InCorrectRes
+import org.ekstep.analytics.api.IUSofAPI
+import org.ekstep.analytics.api.IUMetricsOfAPI
 
 object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
   	override def metric : String = "ius";
@@ -18,7 +21,8 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 		val periods = _getPeriods(period);
 		val recordsRDD = records.groupBy { x => x.d_period + "-" + x.d_content_id }.map{ f => 
 			val items = f._2.map { x => 
-				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(x.m_incorrect_res), Option(x.m_top5_incorrect_res), Option(x.m_avg_ts)) 
+				val top5_incorrect_res = if (null == x.m_top5_incorrect_res || x.m_top5_incorrect_res.isEmpty) List() else  x.m_top5_incorrect_res.map(f => InCorrectRes(f._1, f._2));
+				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(top5_incorrect_res), Option(x.m_avg_ts)) 
 			}.toList;
 			val first = f._2.head;
 			ItemUsageMetrics(Option(first.d_period), None, Option(items));
@@ -45,11 +49,29 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 		val m_correct_res_count = fact2.m_correct_res_count.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_correct_res_count.getOrElse(0l).asInstanceOf[Number].longValue;
 		val m_inc_res_count = fact2.m_inc_res_count.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_inc_res_count.getOrElse(0l).asInstanceOf[Number].longValue;
 		val m_correct_res = (fact2.m_correct_res.getOrElse(List()) ++ fact1.m_correct_res.getOrElse(List())).distinct;
-		val m_incorrect_res = (fact1.m_incorrect_res.getOrElse(List()) ++ fact2.m_incorrect_res.getOrElse(List())).groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
-		val m_top5_incorrect_res = m_incorrect_res.sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => x._1 }.toList;
+		val m_top5_incorrect_res = (fact1.m_top5_incorrect_res.getOrElse(List()) ++ fact2.m_top5_incorrect_res.getOrElse(List())).groupBy(f => f.resp).mapValues(f => f.map(x => x.count).sum).toList
+									.sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => InCorrectRes(x._1, x._2) }.toList;
 		val m_avg_ts = if (m_total_count > 0) CommonUtil.roundDouble(m_total_ts/m_total_count, 2) else 0;
-  		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_incorrect_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
+  		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
   	}
-	
-  
+  	
+  	override def postProcess(metrics: RDD[ItemUsageMetrics], summary: ItemUsageMetrics) : Map[String, AnyRef] = {
+
+		val newMetrics = metrics.map { f => 
+			val newItems = f.items.getOrElse(List()).map { x =>
+					val top5_incorrect_res = x.m_top5_incorrect_res.getOrElse(List()).map { x => x.resp };
+					IUSofAPI(x.d_item_id, x.d_content_id, x.m_total_ts, x.m_total_count, x.m_correct_res_count, x.m_inc_res_count, x.m_correct_res, Option(top5_incorrect_res), x.m_avg_ts) 
+				}
+			IUMetricsOfAPI(f.d_period, f.label, Option(newItems));
+		}
+		val newSummaryItems = summary.items.getOrElse(List()).map { x => 
+			val top5_incorrect_res = x.m_top5_incorrect_res.getOrElse(List()).map { x => x.resp };
+			IUSofAPI(x.d_item_id, x.d_content_id, x.m_total_ts, x.m_total_count, x.m_correct_res_count, x.m_inc_res_count, x.m_correct_res, Option(top5_incorrect_res), x.m_avg_ts)	
+		}
+		val newSummary = IUMetricsOfAPI(None, None, Option(newSummaryItems));
+  		Map[String, AnyRef](
+                "metrics" -> newMetrics.collect(),
+                "summary" -> newSummary);
+  	}
+  	
 }
