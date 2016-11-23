@@ -3,7 +3,7 @@ package controllers
 import org.ekstep.analytics.api.MetricsRequestBody
 import org.ekstep.analytics.api.ResponseCode
 import org.ekstep.analytics.api.exception.ClientException
-import org.ekstep.analytics.api.service.MockMetricsAPIService
+import org.ekstep.analytics.api.service.MetricsAPIService
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 
@@ -27,7 +27,7 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 	def contentUsage() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);
-			val result = MockMetricsAPIService.contentUsage(body)(Context.sc);
+			val result = MetricsAPIService.contentUsage(body)(Context.sc, config);
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>
@@ -38,7 +38,8 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 	def contentPopularity() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);
-			val result = MockMetricsAPIService.contentPopularity(body)(Context.sc);
+			val fields = request.getQueryString("fields").getOrElse("NA").split(",");
+			val result = MetricsAPIService.contentPopularity(body, fields)(Context.sc, config);
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>
@@ -49,7 +50,7 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 	def itemUsage() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);
-			val result = MockMetricsAPIService.itemUsage(body)(Context.sc);
+			val result = MetricsAPIService.itemUsage(body)(Context.sc, config);
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>
@@ -60,7 +61,7 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 	def genieLaunch() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);
-			val result = MockMetricsAPIService.genieLaunch(body)(Context.sc);
+			val result = MetricsAPIService.genieLaunch(body)(Context.sc, config);
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>
@@ -71,7 +72,7 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 	def contentList() = Action { implicit request =>
 		try {
 			val body = _getMetricsRequest(request);
-			val result = MockMetricsAPIService.contentList(body)(Context.sc);
+			val result = MetricsAPIService.contentList(body)(Context.sc, config);
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		} catch {
 			case ex: ClientException =>

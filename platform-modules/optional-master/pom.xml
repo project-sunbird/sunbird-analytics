@@ -25,11 +25,17 @@
         </profile>
         <profile>
             <id>Scala-2.10.5</id>
+            <properties>
+                <scala.version>2.10.5</scala.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>Scala-2.11.8</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <scala.version>2.10.5</scala.version>
+                <scala.version>2.11.8</scala.version>
             </properties>
         </profile>
     </profiles>

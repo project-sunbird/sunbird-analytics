@@ -15,6 +15,7 @@ import scala.collection.mutable.Buffer
 import java.nio.file.Paths
 import org.jets3t.service.S3ServiceException
 import org.ekstep.analytics.framework.Level._
+import java.io.InputStream
 
 object S3Util {
 
@@ -55,6 +56,20 @@ object S3Util {
             val file = key.split("/").last
             val fileObj = s3Service.getObject(bucket, key)
             CommonUtil.copyFile(fileObj.getDataInputStream(), localPath, file);
+        }
+    }
+
+    def getObject(bucketName: String, key: String): Array[String] = {
+
+        val bucket = s3Service.getBucket(bucketName);
+        try {
+            val fileObj = s3Service.getObject(bucket, key);
+            scala.io.Source.fromInputStream(fileObj.getDataInputStream()).getLines().toArray
+        } catch {
+            case ex: S3ServiceException =>
+                println("Key not found in the given bucket", bucketName, key);
+                JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
+                Array();
         }
     }
 

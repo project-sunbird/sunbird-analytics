@@ -3,12 +3,14 @@ package org.ekstep.analytics.model
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.OutputDispatcher
 
 class TestItemUsageSummaryModel extends SparkSpec(null) {
 
     "ItemUsageSummaryModel" should "generate item summaries" in {
 
-        val rdd = loadFile[org.ekstep.analytics.util.DerivedEvent]("src/test/resources/item-summary/test-data.log");
+        val rdd = loadFile[org.ekstep.analytics.util.DerivedEvent]("src/test/resources/item-usage-summary/test-data.log");
 
         val rdd2 = ItemUsageSummaryModel.execute(rdd, None);
         val me = rdd2.map { x => JSONUtils.serialize(x) }.collect();
@@ -19,7 +21,7 @@ class TestItemUsageSummaryModel extends SparkSpec(null) {
         event.eid should be("ME_ITEM_SUMMARY")
         event.syncts should be(1474356964993L)
         event.ver should be("1.0")
-        event.mid should be("8DECB0BA229A0E7524F00A8576CAE9C4")
+        event.mid should be("34E364B2E1D30B91D5D9CF062D51EC2E")
         event.uid should be("0d254525-2911-411b-9bb4-4351eab2d916")
         event.context.granularity should be("EVENT")
         event.dimensions.anonymous_user.get should be (false);

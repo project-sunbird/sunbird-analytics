@@ -19,10 +19,10 @@ import org.ekstep.analytics.updater.LearnerProfile
 /**
  * Case class to hold the item responses
  */
-case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], resValues: Option[Array[AnyRef]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Option[Long], maxScore: Option[AnyRef], domain: Option[AnyRef], pass: String);
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], resValues: Option[Array[AnyRef]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Long, maxScore: Option[AnyRef], domain: Option[AnyRef], pass: String);
 
 case class ActivitySummary(actType: String, count: Int, timeSpent: Double)
-case class ScreenSummary(id: String, timeSpent: Double)
+case class ScreenSummary(id: String, timeSpent: Double, visitCount: Long)
 case class EventSummary(id: String, count: Int)
 case class SessionSummaryInput(userId: String, filteredEvents: Buffer[Event]) extends AlgoInput
 case class SessionSummaryOutput(gameId: String, ss: SessionSummary, groupInfo: Option[(Boolean, Boolean)]) extends AlgoOutput
@@ -120,8 +120,8 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
             val lastStage = prevEvent.edata.eks.stageto;
             val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, lastEvent.ets).get;
             stages += Tuple2(lastStage, timeDiff);
-            stages.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).map(f => {
-                ScreenSummary(f._1, CommonUtil.roundDouble((f._2 - interruptSummary.getOrElse(f._1, 0d)), 2));
+            stages.groupBy(f => f._1).mapValues(f => (f.map(x => x._2).sum, f.length)).map(f => {
+                ScreenSummary(f._1, CommonUtil.roundDouble((f._2._1 - interruptSummary.getOrElse(f._1, 0d)), 2), f._2._2);
             });
         } else {
             Iterable[ScreenSummary]();
@@ -166,7 +166,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                     true
             }
         }
-        var stageMap = HashMap[String, Double]();
+        var stageMap = HashMap[String, (Double, Long)]();
         var screenSummaryList = Buffer[HashMap[String, Double]]();
         val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("OE_INTERACT"))).length;
         if (screenInteractCount > 0) {
@@ -192,16 +192,16 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                     currStage = x._1;
                 }
                 if (stageMap.getOrElse(currStage, null) == null) {
-                    stageMap.put(currStage, x._2);
+                    stageMap.put(currStage, (x._2, 1));
                 } else {
-                    stageMap.put(currStage, stageMap.get(currStage).get + x._2);
+                    stageMap.put(currStage, (stageMap.get(currStage).get._1 + x._2, stageMap.get(currStage).get._2 + 1));
                 }
                 if (!currStage.equals(x._1)) {
                     currStage = x._1;
                 }
             }
         }
-        stageMap.map { x => ScreenSummary(x._1, x._2) };
+        stageMap.map { x => ScreenSummary(x._1, x._2._1, x._2._2) };
     }
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
@@ -260,7 +260,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                     case _ =>
                         Option(x.edata.eks.res);
                 }
-                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, Option(CommonUtil.getEventTS(x)), metadata.get("max_score"), metadata.get("domain"), x.edata.eks.pass);
+                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, CommonUtil.getEventTS(x), metadata.get("max_score"), metadata.get("domain"), x.edata.eks.pass);
             }
             val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);

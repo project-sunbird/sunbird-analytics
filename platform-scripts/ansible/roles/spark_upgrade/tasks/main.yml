@@ -1,21 +1,41 @@
 ---
-- name: remove Spark
-  file: path=/home/ec2-user/spark-1.5.2-bin-hadoop2.3 state=absent
+- name: remove Spark 1.6.2 hadoop 2.3
+  file: path={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3 state=absent
   tags:
     - analytics
 
-- name: Download Apache Spark
-  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-1.6.2/spark-1.6.2-bin-hadoop2.3.tgz dest={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
+- name: Download Apache Spark 2.0.1 hadoop 2.7
+  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-2.0.1/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
   tags:
     - analytics
 
 - name: Unarchive Spark
-  unarchive: src={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3.tgz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/spark-1.6.2-bin-hadoop2.3
+  unarchive: src={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7
+  tags:
+    - analytics
+
+- name: Remove Guava 14.0.1 from Spark jars folder
+  file: path={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/guava-14.0.1.jar state=absent
+  tags:
+    - analytics
+
+- name: Download Guava 19.0 and copy to Spark jars folder
+  get_url: url=http://central.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/guava-19.0.jar timeout=1000 force=no owner=ec2-user group=ec2-user
+  tags:
+    - analytics
+
+- name: Remove jets3t 0.9.3 from Spark jars folder
+  file: path={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/jets3t-0.9.3.jar state=absent
+  tags:
+    - analytics
+
+- name: Download jets3t 0.7.4 and copy to Spark jars folder
+  get_url: url=http://central.maven.org/maven2/net/java/dev/jets3t/jets3t/0.7.4/jets3t-0.7.4.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/jets3t-0.7.4.jar timeout=1000 force=no owner=ec2-user group=ec2-user
   tags:
     - analytics
 
 - name: remove SPARK_HOME
-  lineinfile: dest=.bash_profile line='SPARK_HOME=/home/ec2-user/spark-1.5.2-bin-hadoop2.3' state=absent 
+  lineinfile: dest=.bash_profile line='SPARK_HOME=/home/ec2-user/spark-1.6.2-bin-hadoop2.3' state=absent 
   tags:
     - analytics
 
@@ -30,7 +50,7 @@
     - analytics
 
 - name: Update bashrc for SPARK_HOME
-  lineinfile: dest=.bash_profile line='SPARK_HOME=/mnt/data/analytics/spark-1.6.2-bin-hadoop2.3' state=present insertafter=EOF create=yes
+  lineinfile: dest=.bash_profile line='SPARK_HOME=/mnt/data/analytics/spark-2.0.1-bin-hadoop2.7' state=present insertafter=EOF create=yes
   tags:
     - analytics
 

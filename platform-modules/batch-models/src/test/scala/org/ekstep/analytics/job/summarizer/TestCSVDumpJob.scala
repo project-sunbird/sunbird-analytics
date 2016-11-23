@@ -27,6 +27,12 @@ class TestCSVDumpJob extends SparkSpec(null) {
         CSVDumpJob.main(JSONUtils.serialize(config))(Option(sc));
     }
     
+    it should "execute csv dump job on derived telemetry data when no modelParams is passed" in {
+
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/session-summary/test_data1.log"))))), null, null, "org.ekstep.analytics.model.FieldExtractor", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestCSVDumpJob"), Option(false))
+        CSVDumpJob.main(JSONUtils.serialize(config))(Option(sc));
+    }
+    
     ignore should "execute csv dump job job fetching data from s3 prod file" in {
 
         val config = JobConfig(Fetcher("S3", None, Option(Array(Query(Option("prod-data-store"), Option("ss/"), Option("2016-06-20"), Option("2016-07-27"), None, None, None, None, None, None)))), None, null, "org.ekstep.analytics.model.FieldExtractor", Option(Map("eid" -> "ME_SESSION_SUMMARY", "headers" -> "eid,gameid,timespent,tags", "fields" -> "eid,dimensions.gdata.id,edata.eks.timeSpent,tags")), Option(Array(Dispatcher("file", Map("file" -> "dump_ss_20062016_27072016.csv")))), Option(10), Option("TestCSVDumpJob"), Option(false));

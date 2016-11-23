@@ -21,21 +21,21 @@
 
 - name: move files
   become: yes
-  command: cp -r {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/GenieSearch
+  command: cp -r {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/
   tags:
    - analytics
 
 
 - name: move files
   become: yes
-  command: cp -r {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/VidyavaniCnQ
+  command: cp -r {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/
   tags:
    - analytics
 
 
 - name: move files
   become: yes
-  command: cp -r {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/vidyavaani
+  command: cp -r {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/
   tags:
    - analytics   
 
@@ -52,7 +52,14 @@
   tags:
     - analytics
 
-- name: Create cron jobs
+- name: Create pre cron jobs
+  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/pre-comp-job.sh"
+  with_dict: "{{ pre_jobs }}"
+  tags:
+    - analytics
+
+
+- name: Create monitor cron jobs
   cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/monitor-dp.sh {{ analytics.home }}/scripts/logs/joblog.log"
   with_dict: "{{ monit_jobs }}"
   tags:
@@ -68,8 +75,16 @@
     - analytics
 
 - name: Replace Working directory line
+  become: yes
   lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
   tags:
     - analytics
+
+- name: change permissions 
+  become: yes
+  file: path={{ analytics.home }} owner=ec2-user group=ec2-user mode=0750 recurse=yes
+  tags:
+    - analytics
+
 
 

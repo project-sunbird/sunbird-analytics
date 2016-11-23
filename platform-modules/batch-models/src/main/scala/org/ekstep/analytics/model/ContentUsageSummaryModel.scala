@@ -26,7 +26,7 @@ import scala.collection.mutable.ListBuffer
 import org.ekstep.analytics.util.DerivedEvent
 
 
-case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
+case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, device_ids: Array[String]) extends AlgoOutput;
 case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
 
 object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsContentSummary, ContentUsageMetricsSummary, MeasuredEvent] with Serializable {
@@ -48,7 +48,8 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
         val total_interactions = events.map { x => x.total_interactions }.sum;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, date_range, lastEvent.syncts, gdata);
+        val device_ids = events.map { x => x.device_ids }.reduce((a,b) => a ++ b).distinct;
+        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, date_range, lastEvent.syncts, gdata, device_ids);
     }
 
     private def getContentUsageSummary(event: DerivedEvent, period: Int, contentId: String, tagId: String): ContentUsageMetricsSummary = {
@@ -60,7 +61,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
         val avg_ts_session = total_ts;
         val total_interactions = event.edata.eks.noOfInteractEvents;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, Option(gdata));
+        ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, event.context.date_range, event.syncts, Option(gdata), Array(event.dimensions.did));
     }
 
     private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
@@ -114,9 +115,11 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
                 "total_sessions" -> cuMetrics.total_sessions,
                 "avg_ts_session" -> cuMetrics.avg_ts_session,
                 "total_interactions" -> cuMetrics.total_interactions,
-                "avg_interactions_min" -> cuMetrics.avg_interactions_min)
+                "avg_interactions_min" -> cuMetrics.avg_interactions_min,
+                "device_ids" -> cuMetrics.device_ids
+            )
 
-            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
                 Dimensions(None, None, cuMetrics.gdata, None, None, None, None, None, None, Option(cuMetrics.ck.tag), Option(cuMetrics.ck.period), Option(cuMetrics.ck.content_id)),
                 MEEdata(measures));

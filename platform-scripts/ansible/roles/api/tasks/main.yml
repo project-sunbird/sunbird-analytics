@@ -28,10 +28,10 @@
 #   tags:
 #     - api
 
-# - name: Remove lib directory
-#   file: path={{ api_home }}/lib state=absent
-#   tags:
-#     - api    
+- name: Remove lib directory
+  file: path={{ api_home }}/lib state=absent
+  tags:
+    - api    
 
 - name: Unarchive api artifact
   unarchive: src={{ api_root }}/analytics-api-1.0-dist.zip dest={{ api_root }} copy=no group=ec2-user owner=ec2-user mode=755  

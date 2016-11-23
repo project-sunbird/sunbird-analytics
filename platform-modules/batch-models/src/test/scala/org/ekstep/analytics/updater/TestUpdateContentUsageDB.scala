@@ -16,16 +16,31 @@ import org.ekstep.analytics.job.ReplaySupervisor
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import scala.collection.mutable.Buffer
+import org.ekstep.analytics.framework.RegisteredTag
+import org.ekstep.analytics.util.ContentUsageSummaryFact
 
 class TestUpdateContentUsageDB extends SparkSpec(null) {
 
-    "UpdateContentUsageDB" should "update the content usage updater db and check the updated fields" in {
-
+    override def beforeAll() {
+        super.beforeAll()
+        val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1872b98030cb7d9bacb", System.currentTimeMillis(), true)
+        sc.makeRDD(Seq(tag1)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_usage_summary_fact");
+            session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (20160920, 'all' ,'domain_3996', 0, 0, 0, bigintAsBlob(3), 1459641600, 1476550249537, 1476550249537, 4, 0, 0, 20);");
         }
+    }
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/content_usage_summaries.log");
+    override def afterAll() {
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1872b98030cb7d9bacb'");
+        }
+        super.afterAll();
+    }
+
+    "UpdateContentUsageDB" should "update the content usage updater db and check the updated fields" in {
+
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/cus_1.log");
         val rdd2 = UpdateContentUsageDB.execute(rdd, None);
 
         // cumulative (period = 0)  
@@ -37,11 +52,11 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         zeroPerContnetSumm.m_avg_ts_session should be(35.97)
 
         val zeroAcrossSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 0).where("d_tag=?", "all").first
-        zeroAcrossSumm.m_total_ts should be(261835.97)
-        zeroAcrossSumm.m_avg_interactions_min should be(18.99)
-        zeroAcrossSumm.m_total_interactions should be(82852)
-        zeroAcrossSumm.m_total_sessions should be(2168)
-        zeroAcrossSumm.m_avg_ts_session should be(120.77)
+        zeroAcrossSumm.m_total_ts should be(254949.17)
+        zeroAcrossSumm.m_avg_interactions_min should be(19.35)
+        zeroAcrossSumm.m_total_interactions should be(82242)
+        zeroAcrossSumm.m_total_sessions should be(2150)
+        zeroAcrossSumm.m_avg_ts_session should be(118.58)
 
         val zeroPerTagSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 0).where("d_tag=?", "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb").first
         zeroPerTagSumm.m_total_ts should be(1331.53)
@@ -67,11 +82,11 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         dayPerContnetSumm.m_avg_ts_session should be(63.74)
 
         val dayAcrossSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "all").first
-        dayAcrossSumm.m_total_ts should be(71474.96)
-        dayAcrossSumm.m_avg_interactions_min should be(16.5)
-        dayAcrossSumm.m_total_interactions should be(19652)
-        dayAcrossSumm.m_total_sessions should be(476)
-        dayAcrossSumm.m_avg_ts_session should be(150.16)
+        dayAcrossSumm.m_total_ts should be(76378.19)
+        dayAcrossSumm.m_avg_interactions_min should be(21.51)
+        dayAcrossSumm.m_total_interactions should be(27380)
+        dayAcrossSumm.m_total_sessions should be(536)
+        dayAcrossSumm.m_avg_ts_session should be(142.5)
 
         val dayPerTagSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb").first
         dayPerTagSumm.m_total_ts should be(1222.53)
@@ -103,36 +118,21 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         weekAcrossSumm.m_total_sessions should be(59)
         weekAcrossSumm.m_avg_ts_session should be(162.96)
 
-        val weekPerTagSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 2016733).where("d_tag=?", "c6ed6e6849303c77c0182a282ebf318aad28f8d1").first
-        weekPerTagSumm.m_total_ts should be(165.78)
-        weekPerTagSumm.m_avg_interactions_min should be(3.98)
-        weekPerTagSumm.m_total_interactions should be(11)
-        weekPerTagSumm.m_total_sessions should be(2)
-        weekPerTagSumm.m_avg_ts_session should be(82.89)
+        val weekPerTagSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 2016737).where("d_tag=?", "c6ed6e6849303c77c0182a282ebf318aad28f8d1").first
+        weekPerTagSumm.m_total_ts should be(21817.18)
+        weekPerTagSumm.m_avg_interactions_min should be(21.25)
+        weekPerTagSumm.m_total_interactions should be(7727)
+        weekPerTagSumm.m_total_sessions should be(289)
+        weekPerTagSumm.m_avg_ts_session should be(75.49)
 
-        val weekPerTagContentSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "do_20043386").where("d_period=?", 2016733).where("d_tag=?", "c6ed6e6849303c77c0182a282ebf318aad28f8d1").first
-        weekPerTagContentSumm.m_total_ts should be(165.78)
-        weekPerTagContentSumm.m_avg_interactions_min should be(3.98)
-        weekPerTagContentSumm.m_total_interactions should be(11)
+        val weekPerTagContentSumm = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "do_30083384").where("d_period=?", 2016737).where("d_tag=?", "c6ed6e6849303c77c0182a282ebf318aad28f8d1").first
+        weekPerTagContentSumm.m_total_ts should be(50.39)
+        weekPerTagContentSumm.m_avg_interactions_min should be(26.2)
+        weekPerTagContentSumm.m_total_interactions should be(22)
         weekPerTagContentSumm.m_total_sessions should be(2)
-        weekPerTagContentSumm.m_avg_ts_session should be(82.89)
+        weekPerTagContentSumm.m_avg_ts_session should be(25.2)
 
         // month period
-
-        val monthAcrossSummJun = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 201606).where("d_tag=?", "all").first
-        monthAcrossSummJun.m_total_ts should be(2713.58)
-        monthAcrossSummJun.m_avg_interactions_min should be(7.92)
-        monthAcrossSummJun.m_total_interactions should be(358)
-        monthAcrossSummJun.m_total_sessions should be(10)
-        monthAcrossSummJun.m_avg_ts_session should be(271.36)
-
-        val monthAcrossSummJul = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 201607).where("d_tag=?", "all").first
-
-        monthAcrossSummJul.m_total_ts should be(4173.22)
-        monthAcrossSummJul.m_avg_interactions_min should be(3.62)
-        monthAcrossSummJul.m_total_interactions should be(252)
-        monthAcrossSummJul.m_total_sessions should be(8)
-        monthAcrossSummJul.m_avg_ts_session should be(521.65)
 
         val monthAcrossSummAug = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 201608).where("d_tag=?", "all").first
         monthAcrossSummAug.m_total_ts should be(19713.06)
@@ -168,6 +168,34 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         monthPerTagContentSumm.m_total_interactions should be(42)
         monthPerTagContentSumm.m_total_sessions should be(5)
         monthPerTagContentSumm.m_avg_ts_session should be(26.68)
+    }
+
+    it should "validate the bloom filter logic" in {
+
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/cus_3.log");
+        val rdd2 = UpdateContentUsageDB.execute(rdd, None);
+        rdd2.count() should be (4)
+        
+        val record1 = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "1375b1d70a66a0f2c22dd1872b98030cb7d9bacb").first
+        record1.m_total_ts should be(1222.53)
+        record1.m_avg_interactions_min should be(29.35)
+        record1.m_total_interactions should be(598)
+        record1.m_total_sessions should be(20)
+        record1.m_avg_ts_session should be(61.13)
+        record1.m_avg_sess_device should be(10)
+        record1.m_total_devices should be(2)
+
+        val rdd3 = loadFile[DerivedEvent]("src/test/resources/content-usage-updater/cus_4.log");
+        val rdd4 = UpdateContentUsageDB.execute(rdd3, None);
+
+        val record2 = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_content_id=?", "all").where("d_period=?", 20160920).where("d_tag=?", "1375b1d70a66a0f2c22dd1872b98030cb7d9bacb").first
+        record2.m_total_ts should be(2445.06)
+        record2.m_avg_interactions_min should be(29.35)
+        record2.m_total_interactions should be(1196)
+        record2.m_total_sessions should be(40)
+        record2.m_avg_ts_session should be(61.13)
+        record2.m_avg_sess_device should be(13.33)
+        record2.m_total_devices should be(3)
     }
 
 }

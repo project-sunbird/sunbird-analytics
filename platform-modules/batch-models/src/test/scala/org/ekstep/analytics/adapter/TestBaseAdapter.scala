@@ -27,6 +27,11 @@ class TestBaseAdapter extends BaseSpec {
             SampleBaseAdapter.checkResponse(domainResp)
         }
         
+        val contentResp = ContentResponse(null, null, null, null, "ERROR", null)
+        a[DataAdapterException] should be thrownBy {
+            SampleBaseAdapter.checkResponse(contentResp)
+        }
+        
     }
   
 }

@@ -197,26 +197,26 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
         val ssList = summary1.screenSummary.get
         ssList.size should be(18);
-        val summaryMap = ssList.map { x => (x.id, x.timeSpent) }.toMap
+        val summaryMap = ssList.map { x => (x.id, (x.timeSpent, x.visitCount)) }.toMap
 
-        summaryMap.getOrElse("scene11", 0d) should be(4.0);
-        summaryMap.getOrElse("scene5", 0d) should be(5.0);
-        summaryMap.getOrElse("scene14", 0d) should be(4.0);
-        summaryMap.getOrElse("scene17", 0d) should be(17.0);
-        summaryMap.getOrElse("scene4", 0d) should be(5.0);
-        summaryMap.getOrElse("scene7", 0d) should be(5.0);
-        summaryMap.getOrElse("scene16", 0d) should be(5.0);
-        summaryMap.getOrElse("scene10", 0d) should be(12.0);
-        summaryMap.getOrElse("scene13", 0d) should be(4.0);
-        summaryMap.getOrElse("scene9", 0d) should be(5.0);
-        summaryMap.getOrElse("scene3", 0d) should be(4.0);
-        summaryMap.getOrElse("scene6", 0d) should be(4.0);
-        summaryMap.getOrElse("scene15", 0d) should be(6.0);
-        summaryMap.getOrElse("scene18", 0d) should be(1.0);
-        summaryMap.getOrElse("scene12", 0d) should be(9.0);
-        summaryMap.getOrElse("scene8", 0d) should be(10.0);
-        summaryMap.getOrElse("scene2", 0d) should be(9.0);
-        summaryMap.getOrElse("splash", 0d) should be(14.0);
+        summaryMap.getOrElse("scene11", (0d, 0L)) should be(4.0, 2);
+        summaryMap.getOrElse("scene5", (0d, 0L)) should be(5.0, 2);
+        summaryMap.getOrElse("scene14", (0d, 0L)) should be(4.0, 3);
+        summaryMap.getOrElse("scene17", (0d, 0L)) should be(17.0, 2);
+        summaryMap.getOrElse("scene4", (0d, 0L)) should be(5.0, 2);
+        summaryMap.getOrElse("scene7", (0d, 0L)) should be(5.0, 3);
+        summaryMap.getOrElse("scene16", (0d, 0L)) should be(5.0, 2);
+        summaryMap.getOrElse("scene10", (0d, 0L)) should be(12.0, 2);
+        summaryMap.getOrElse("scene13", (0d, 0L)) should be(4.0, 2);
+        summaryMap.getOrElse("scene9", (0d, 0L)) should be(5.0, 2);
+        summaryMap.getOrElse("scene3", (0d, 0L)) should be(4.0, 2);
+        summaryMap.getOrElse("scene6", (0d, 0L)) should be(4.0, 3);
+        summaryMap.getOrElse("scene15", (0d, 0L)) should be(6.0, 2);
+        summaryMap.getOrElse("scene18", (0d, 0L)) should be(1.0, 1);
+        summaryMap.getOrElse("scene12", (0d, 0L)) should be(9.0, 3);
+        summaryMap.getOrElse("scene8", (0d, 0L)) should be(10.0, 3);
+        summaryMap.getOrElse("scene2", (0d, 0L)) should be(9.0, 2);
+        summaryMap.getOrElse("splash", (0d, 0L)) should be(14.0, 4);
         summary1.mimeType.get should be("application/vnd.ekstep.ecml-archive");
         summary1.contentType.get should be("Story");
 
@@ -320,13 +320,13 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         esMap.get("OE_INTERRUPT").get should be(3);
 
         val ssList = summary1.screenSummary.get
-        val ssMap = ssList.map { x => (x.id, x.timeSpent) }.toMap
+        val ssMap = ssList.map { x => (x.id, (x.timeSpent, x.visitCount)) }.toMap
         ssList.size should be(5);
-        ssMap.get("questions_g4").get should be(62.22);
-        ssMap.get("endScreen_g5").get should be(421.34);
-        ssMap.get("questions_g5").get should be(44.32);
-        ssMap.get("endScreen_g4").get should be(1.71);
-        ssMap.get("splash").get should be(15.16);
+        ssMap.get("questions_g4").get should be(62.22, 2);
+        ssMap.get("endScreen_g5").get should be(421.34, 1);
+        ssMap.get("questions_g5").get should be(44.32, 1);
+        ssMap.get("endScreen_g4").get should be(1.71, 1);
+        ssMap.get("splash").get should be(15.16, 2);
 
         summary1.syncDate should be(1459558762917L)
         event1.syncts should be(summary1.syncDate);

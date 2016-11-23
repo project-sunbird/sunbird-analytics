@@ -8,9 +8,10 @@ import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestItemSummarizer extends SparkSpec(null) {
-    
-      "ItemSummarizer" should "execute ItemSummary job and won't throw any Exception" in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/item-summary/test-data.log"))))), null, null, "org.ekstep.analytics.model.ItemSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestItemSummarizer"), Option(true))
+  
+    "ItemSummarizer" should "execute the job and won't throw any Exception" in {
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/item-summary-model/item_summary_1.log"))))), null, null, "org.ekstep.analytics.model.ItemSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestItemSummarizer"), Option(true))
         ItemSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
+    
 }
