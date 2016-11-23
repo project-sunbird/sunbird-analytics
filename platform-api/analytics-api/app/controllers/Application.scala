@@ -30,6 +30,10 @@ import scala.collection.JavaConverters._
 import org.ekstep.analytics.api.service.DataProductManagementAPIService
 import org.ekstep.analytics.api.service.DataProductManagementAPIService
 
+/**
+ * @author mahesh
+ */
+
 @Singleton
 class Application @Inject() (system: ActorSystem) extends BaseController {
 	implicit val className = "controllers.Application";
@@ -76,7 +80,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 		response.map { resp =>
 			JobLogger.log("ekstep.analytics.recommendations", Option(Map("request" -> body, "response" -> resp)), INFO);
 			play.Logger.info(request + " body - " + body + "\n\t => " + resp);
-			val result = if (resp.contains(ResponseCode.CLIENT_ERROR.toString())) resp
+			val result = if (resp.contains(ResponseCode.CLIENT_ERROR.toString()) || config.getBoolean("recommendation.enable")) resp
 			else JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		}
