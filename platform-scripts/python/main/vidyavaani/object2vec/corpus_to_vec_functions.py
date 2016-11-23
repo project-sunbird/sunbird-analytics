@@ -63,24 +63,6 @@ def is_ascii(s):
     return all(ord(c) < 128 for c in s)
 
 def process_text(lines, language):  # Text processing
-    # word_list = []
-    # for line in lines:
-    #     if(language == 'en-text'):  # Any language using ASCII characters goes here
-    #         line = re.sub("[^a-zA-Z]", " ", line)
-    #         for word in line.split(' '):
-    #             if word not in stopword and len(word) > 1:
-    #                 word_list.append(word.lower())
-    #     elif(language == 'tags'):
-    #         pre_query = line.split(",")
-    #         word_list = []
-    #         for str_word in pre_query:
-    #             word_list.append("".join(str_word.split()).lower())
-    #             word_list = uniqfy_list(word_list)  
-    #     else:
-    #         for word in line.split(' '):
-    #             word_list.append(word.lower())
-    # return word_list
-
     word_list = []
     for line in lines:
         if language == 'tags':
@@ -125,22 +107,6 @@ def load_documents(filenames, language):  # Creating TaggedDocuments
         else:
             logging.warning(filename + " failed to load in load_documents")
     return doc
-
-# def load_documents_LDA(filenames, language):
-#     doc = []
-#     flag = 0
-#     for filename in filenames:
-#         word_list = process_file(filename, language)
-#         if word_list:
-#             doc.append(word_list)
-#             flag = 1
-#         else:
-#             logging.info(filename + " failed to load in load_documents")
-#     if flag:
-#         flattened_doc = [val for sublist in doc for val in sublist]
-#     else:
-#         flattened_doc = doc
-#     return flattened_doc
 
 def load_documents_LDA(filenames, language):
     flag = 0
