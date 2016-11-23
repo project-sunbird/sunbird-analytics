@@ -2,3 +2,4 @@
 echo "libFM"
 cd src/test/resources/device-recos-training/
 echo 'Dummy Model.' > fm.model
+echo 'Dummy log.' > libfm.log

@@ -25,7 +25,7 @@ class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.beans.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null) extends AlgoInput with Input {}
+            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List()) extends AlgoInput with Input {}
 
 // Computed Event Model
 @scala.beans.BeanInfo
@@ -35,7 +35,7 @@ case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: 
 @scala.beans.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
 @scala.beans.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None);
 @scala.beans.BeanInfo
 case class PData(id: String, model: String, ver: String);
 @scala.beans.BeanInfo
