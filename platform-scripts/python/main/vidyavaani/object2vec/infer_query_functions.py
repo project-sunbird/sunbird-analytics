@@ -306,7 +306,7 @@ def infer_query_LDA(inferFlag, model_loc, op_dir):
                             'default model not found, skipping vector this language')
                         continue
                 model = gs.models.ldamodel.LdaModel.load(model_path)
-                pr_query = model.id2word.doc2bow(query)
+                # pr_query = model.id2word.doc2bow(query)
                 q_vec = get_vectors_LDA(model, query)
                 # q_vec=model.infer_vector(query.split(' '),alpha=0.1, min_alpha=0.0001, steps=5)
                 vector_list = np.array(q_vec).tolist()

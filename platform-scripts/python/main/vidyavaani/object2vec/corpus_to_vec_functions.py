@@ -195,6 +195,39 @@ def train_model_LDA(directory, language):
     ldamodel = gs.models.ldamodel.LdaModel(corpus, num_topics=lda_topics, id2word = dictionary, passes=lda_passes)
     return ldamodel
 
+def train_model_LSA(directory, language):
+    if language == ['tags']:
+        texts = load_documents_LDA(findFiles(directory, ['tag']), "en-text")
+    else:
+        texts = load_documents_LDA(findFiles(directory, [language]), language)
+    if not texts:
+        return 0    
+    # turn our tokenized documents into a id <-> term dictionary
+    dictionary = corpora.Dictionary(texts)
+    corpus = [dictionary.doc2bow(text) for text in texts]
+    # generate LDA model
+    # lsamodel = gs.models.ldamodel.LdaModel(corpus, num_topics=lda_topics, id2word = dictionary, passes=lda_passes)
+    tfidf = gs.models.TfidfModel(corpus)
+    corpus_tfidf = tfidf[corpus]
+    lsamodel = gs.models.lsimodel.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=lda_topics)
+    return lsamodel
+
+def train_model_TFIDF(directory, language):
+    if language == ['tags']:
+        texts = load_documents_LDA(findFiles(directory, ['tag']), "en-text")
+    else:
+        texts = load_documents_LDA(findFiles(directory, [language]), language)
+    if not texts:
+        return 0    
+    # turn our tokenized documents into a id <-> term dictionary
+    dictionary = corpora.Dictionary(texts)
+    corpus = [dictionary.doc2bow(text) for text in texts]
+    # generate LDA model
+    # lsamodel = gs.models.ldamodel.LdaModel(corpus, num_topics=lda_topics, id2word = dictionary, passes=lda_passes)
+    tfidf = gs.models.TfidfModel(corpus)
+    return tfidf
+
+# lsi = gensim.models.lsimodel.LsiModel(corpus=mm, id2word=id2word, num_topics=400, chunksize=20000, distributed=True)
 def uniqfy_list(seq):
     seen = set()
     seen_add = seen.add

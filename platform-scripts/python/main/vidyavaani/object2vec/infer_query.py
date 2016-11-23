@@ -47,14 +47,14 @@ if use_LDA == 'false':
 	# vectors = get_vectors(model_loc, op_dir)
 	# print(vectors)
 	#for testing purpose , will remove afterwards
-	file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
-	file.write(vectors)
-	file.close()
+	# file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
+	# file.write(vectors)
+	# file.close()
 
 else:
 	vectors = infer_query_LDA(inferFlag, model_loc, op_dir)
-	file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
-	file.write(vectors)
-	file.close()
+	# file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
+	# file.write(vectors)
+	# file.close()
 
-# print vectors
+print vectors
