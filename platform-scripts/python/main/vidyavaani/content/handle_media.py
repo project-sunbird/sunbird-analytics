@@ -20,16 +20,17 @@ from find_files import findFiles
 # to get all the text in ecml file
 
 def get_text(ecml_file):
-    all_text = ''
-    xmldoc = minidom.parse(ecml_file)
-    plist = xmldoc.getElementsByTagName("text") 
-    for p in plist:
-        try:
-            text = p.firstChild.data
-            all_text+=text
-        except:
-            text=""
-    return all_text
+	all_text = ''
+	if ecml_file:
+		xmldoc = minidom.parse(ecml_file)
+		plist = xmldoc.getElementsByTagName("text") 
+		for p in plist:
+			try:
+				text = p.firstChild.data
+				all_text+=text
+			except:
+				text=""
+	return all_text
 
 #This counts the length of mp3 files in a directory 
 def count_MP3_length_directory(mp3_filelist):
@@ -107,9 +108,9 @@ def imageNames(directory):
 	image_names=[os.path.basename(image) for image in image_names]#Get filename from path
 	image_names=[os.path.splitext(image)[0] for image in image_names]#Get filename without file type
 #	image_names=[image[:-4] for image in image_names]#Possibly better since it can handle files with '.' in their name
-	image_names=[' '.join(image.split('_')) for image in image_names]#Replace underscore('_') by space
-	image_names=[' '.join(re.findall('[a-zA-Z]+', image)) for image in image_names]#Filter out numbers
-	image_names=[' '.join(camel_case_split(image)) for image in image_names]#Split Camel Case
+	# image_names=[' '.join(image.split('_')) for image in image_names]#Replace underscore('_') by space
+	# image_names=[' '.join(re.findall('[a-zA-Z]+', image)) for image in image_names]#Filter out numbers
+	# image_names=[' '.join(camel_case_split(image)) for image in image_names]#Split Camel Case
 	image_names=[image.lower() for image in image_names]#Turn all text to lower case
 	return(list(set(image_names)))#list(set(.)) removes identical values if any
 

@@ -1,10 +1,26 @@
 import pytest
 import os
+import sys
+
+root = os.path.dirname(os.path.abspath(__file__))
+
+def rec_dir(path, times):
+    if times > 0:
+        path = rec_dir(os.path.split(path)[0], times-1)
+    return path
+
+python_dir = rec_dir(root,3)
+src_code = os.path.join(python_dir, 'main', 'vidyavaani', 'content')
+sys.path.insert(0, src_code)
 from download_content import *
 
+#test resources 
+root = os.path.dirname(os.path.abspath(__file__))
+dir_path = os.path.join(rec_dir(root,1), 'test_resources', 'download_content')
 
+@pytest.mark.skip(reason="no way of currently testing this")
 def test_unzip_files():
-	dir_path = '/Users/ajitbarik/Ilimi/testing/nose/Data/download_content/case1/1463137344367_domain_48617'
+	path1 = os.path.join(dir_path, 'unzip', '1463137344367_domain_48617.zip')
 	unzip_files(dir_path)
 	e_assets_files = ["PopupTint_1460636175572.png", "btn_ok_highlights_1460705843676.png", "icon_hint_1454918891133.png", 
 					"micro_345_1463136986_1463136986762.png", "background_1458729298020.png",	
@@ -16,9 +32,9 @@ def test_unzip_files():
 	e_main_files = ["assets", "index.json", "widgets"]
 	
 
-	r_main_files  = os.listdir("/Users/ajitbarik/Ilimi/testing/nose/Data/download_content/case1/1463137344367_domain_48617")
-	r_widgets_files = os.listdir("/Users/ajitbarik/Ilimi/testing/nose/Data/download_content/case1/1463137344367_domain_48617/widgets")
-	r_assets_files = os.listdir("/Users/ajitbarik/Ilimi/testing/nose/Data/download_content/case1/1463137344367_domain_48617/assets")
+	r_main_files  = os.listdir(os.path.join(dir_path, 'unzip', '1463137344367_domain_48617'))
+	r_widgets_files = os.listdir(os.path.join(dir_path, 'unzip', '1463137344367_domain_48617', 'widgets'))
+	r_assets_files = os.listdir(os.path.join(dir_path, 'unzip', '1463137344367_domain_48617', 'assets'))
 	
 	check = 0
 	if sorted(r_main_files) == sorted(e_main_files):

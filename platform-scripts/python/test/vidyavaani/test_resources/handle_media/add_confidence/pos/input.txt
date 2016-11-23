@@ -1,0 +1,21 @@
+{
+        "/home/assets/1467016127026story11": {
+            "alternative": [
+                {
+                    "transcript": "Diamond Nani I hi hopes Lauren laddu laddu Ayenge Dosto ko bhi khelenge"
+                }, 
+                {
+                    "transcript": "Diamond Nani aayi hai boobs Lauren laddu line Hain hum sab bolenge Dosto ko bhi khelenge"
+                }, 
+                {
+                    "transcript": "Diamond Nani I High Court floral laddu line Hain hum sab bolenge Dosto ko bhi khelenge"
+                }, 
+                {
+                    "transcript": "Diamond Nani aayi hai boobs Lauren laddu line hai hum sab bolenge Dosto ko bhi khelenge"
+                }, 
+                {
+                    "transcript": "Diamond Nani I hi hopes Lauren laddu line Hain hum sab bolenge Dosto ko bhi khelenge"
+                }
+            ], 
+            "final": 'true'
+        }}
