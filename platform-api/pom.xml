@@ -18,11 +18,6 @@
 			</snapshots>
 		</repository>
 	</repositories>
-	<parent>
-		<groupId>org.ekstep</groupId>
-		<artifactId>analytics-platform</artifactId>
-		<version>1.0</version>
-	</parent>
 	<modules>
 		<module>analytics-api-core</module>
 		<module>analytics-api</module>
@@ -31,6 +26,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
+		<scala.maj.version>2.11</scala.maj.version>
+		<scala.version>2.11.8</scala.version>
+		<spark.maj.version>2.0</spark.maj.version>
+		<spark.version>2.0.1</spark.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -53,6 +52,20 @@
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_${scala.maj.version}</artifactId>
 			<version>${spark.version}</version>
+			<exclusions>
+		    	<exclusion>
+		    		<artifactId>jets3t</artifactId>
+		    		<groupId>net.java.dev.jets3t</groupId>
+		    	</exclusion>
+		    	<exclusion>
+		    		<groupId>org.apache.hadoop</groupId>
+		    		<artifactId>hadoop-client</artifactId>
+		    	</exclusion>
+		    	<exclusion>
+		    		<groupId>org.apache.hadoop</groupId>
+		    		<artifactId>hadoop-common</artifactId>
+		    	</exclusion>
+		    </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
