@@ -13,6 +13,9 @@ import org.joda.time.DateTimeZone
 import java.util.concurrent.TimeUnit
 import com.typesafe.config.ConfigFactory
 
+/**
+ * @author mahesh
+ */
 
 class TestRecommendationAPIService extends SparkSpec {
 	val config = ConfigFactory.load();
@@ -59,8 +62,12 @@ class TestRecommendationAPIService extends SparkSpec {
         resp.params.status should be ("successful");
         val result = resp.result.get;
         val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
-        content should not be empty 
-//        content.size should be (3) // we are returning empty response #RE_INTERNAL_REVIEW
+        content should not be empty
+        if (config.getBoolean("recommendation.enable")) {
+        	content.size should be (3)	
+        } else {
+        	content.size should be (config.getInt("service.search.limit"))
+        }
     }
     
     it should "return only 'Hindi' contents" in {
@@ -72,7 +79,7 @@ class TestRecommendationAPIService extends SparkSpec {
         val result = resp.result.get;
         val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
         content should not be empty 
-//        content.filter { x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") } should have size(content.length) // we are returning empty response #RE_INTERNAL_REVIEW
+        content.filter { x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") } should have size(content.length)
     }
     
     it should "return only 'Hindi Stories' content" in {
@@ -84,11 +91,9 @@ class TestRecommendationAPIService extends SparkSpec {
         val result = resp.result.get;
         val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
         content should not be empty 
-//        content
-//			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") })
-//			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("contentType", "").asInstanceOf[String].contains("Story") }) should have size(content.length)
-        // we are returning empty response #RE_INTERNAL_REVIEW
-        
+        content
+			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") })
+			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("contentType", "").asInstanceOf[String].contains("Story") }) should have size(content.length)        
     }
     
     it should "return content based context filtered content" in {
@@ -100,10 +105,9 @@ class TestRecommendationAPIService extends SparkSpec {
         val result = resp.result.get;
         val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
         content should not be empty 
-//        content
-//			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") })
-//			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("contentType", "").asInstanceOf[String].contains("Story") }) should have size(content.length)
-        // we are returning empty response #RE_INTERNAL_REVIEW
+        content
+			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") })
+			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("contentType", "").asInstanceOf[String].contains("Story") }) should have size(content.length)
     }
     
     it should "update the cache" in {
