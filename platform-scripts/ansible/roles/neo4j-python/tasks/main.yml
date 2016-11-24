@@ -16,7 +16,6 @@
   become: yes
   yum: name="@Development tools" state=present
 
-
 - name: install gcc
   become: yes
   command: pip install --upgrade pip 

@@ -1,0 +1,105 @@
+channel: "#monitor_prod"
+dp_username: dp-monitor
+secor_username: secor-monitor
+env: prod
+cassandra_user: ubuntu
+user_home: /home/ec2-user
+sbin_path: "{{ user_home }}/sbin"
+analytics:
+  home: /mnt/data/analytics
+  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/tmp', '/mnt/data/analytics/scripts/monitor-data']
+  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp','pre-comp-job']
+cassandra_home: "{{ analytics.home }}/apache-cassandra-3.7"
+cql_path: cqlsh
+api_root: "{{ analytics.home }}/api"
+api_home: "{{ analytics.home }}/api/analytics-api-1.0"
+secor:
+  artifact_dir: /mnt/secor
+  raw_home: "{{ user_home }}/secor-raw"
+  me_home: "{{ user_home }}/secor-me"
+  paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor-raw', '/mnt/secor-me', '/home/ec2-user/secor-raw', '/home/ec2-user/secor-me']
+api_args: -Dconfig.resource=prod.conf
+bucket: prod-data-store
+brokerlist: 10.10.1.207:9092
+topic: production.telemetry.derived
+spark:
+  home: "{{ analytics.home }}/spark-2.0.1-bin-hadoop2.7"
+  driver_memory: 12g
+  executor_extraJavaOptions: -Denv=prod
+  driver_extraJavaOptions: -Denv=prod
+  executor_memory: 3g
+jobs:
+  raw-telemetry-jobs:
+   hour: 6
+   minute: 20
+   state: present
+  raw-telemetry-updaters:
+   hour: 6
+   minute: 40
+   state: present
+  ss-jobs: 
+    hour: 6
+    minute: 50
+    state: present
+  gsts:
+    hour: 7
+    minute: 02
+    state: present
+  cpu:
+    hour: 7
+    minute: 05
+    state: present 
+  dcus:
+    hour: 7
+    minute: 06
+    state: present
+  dus:
+    hour: 7
+    minute: 07
+    state: present
+  genie-launch-summ:
+    hour: 7
+    minute: 08
+    state: present  
+  cuu:
+    hour: 7
+    minute: 12
+    state: present
+  item-usage-summ:
+    hour: 7
+    minute: 13
+    state: present
+  genie-launch-metrics:
+    hour: 7
+    minute: 20
+    state: present
+  item-usage-metrics:
+    hour: 7
+    minute: 25
+    state: present
+  cmu:
+    hour: 7
+    minute: 26
+    state: present
+
+
+pre_jobs:
+  pre_job:
+    hour: 7
+    minute: 32
+  #state: present
+
+monit_jobs:
+  joblog.log:
+    hour: 7
+    minute: 30
+secor_raw_job:
+  secor_raw:
+    hour: 23
+    minute: 57
+secor_me_job:
+  secor_me:
+    hour: 23
+    minute: 58
+
+
