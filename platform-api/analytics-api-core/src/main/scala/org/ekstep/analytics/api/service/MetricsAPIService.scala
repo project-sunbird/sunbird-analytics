@@ -55,7 +55,7 @@ object MetricsAPIService {
       throw new ClientException("filter.content_id is missing.");
     }
     val contentId = filter.content_id.get;
-    val tag = filter.tag.getOrElse("all");
+    val tag = getTag(filter);
     val result = ContentPopularityMetricsModel.fetch(contentId, tag, body.request.period, fields);
     JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.content-popularity", result));
   }
@@ -66,7 +66,7 @@ object MetricsAPIService {
     }
     val filter = body.request.filter.getOrElse(Filter());
     val contentId = filter.content_id.getOrElse("all");
-    val tag = filter.tag.getOrElse("all");
+    val tag = getTag(filter);
     val result = ContentUsageListMetricsModel.fetch(contentId, tag, body.request.period);
     JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.content-list", result));
   }
@@ -91,7 +91,7 @@ object MetricsAPIService {
       throw new ClientException("filter.content_id is missing.");
     }
     val contentId = filter.content_id.get;
-    val tag = filter.tag.getOrElse("all");
+    val tag = getTag(filter);
     val result = ItemUsageMetricsModel.fetch(contentId, tag, body.request.period);
     JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.item-usage", result));
   }
@@ -103,7 +103,7 @@ object MetricsAPIService {
 	   if (tags.length == 0) {
 	  		filter.tag.getOrElse("all");   
 	   } else {
-	  	   tags.head;
+	  	   tags.mkString(",");
 	   }
   } 
 

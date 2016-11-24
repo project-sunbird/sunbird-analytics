@@ -25,7 +25,7 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(top5_incorrect_res), Option(x.m_avg_ts)) 
 			}.toList;
 			val first = f._2.head;
-			ItemUsageMetrics(Option(first.d_period), None, Option(items));
+			ItemUsageMetrics(Option(first.d_period.get), None, Option(items));
 		}.map { x => (x.d_period.get, x) };
 		val periodsRDD = sc.parallelize(periods.map { period => (period, ItemUsageMetrics(Option(period),  Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>

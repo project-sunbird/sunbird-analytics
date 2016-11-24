@@ -31,6 +31,7 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
 		val total_devices = fact2.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue;
 		val avg_sess_device = if (total_devices > 0) CommonUtil.roundDouble(total_sessions.toDouble / total_devices, 2) else 0.0;
 		val avg_ts_session = if (total_sessions > 0) CommonUtil.roundDouble((total_ts / total_sessions), 2) else 0.0;
+        val period = fact1.d_period
 		GenieLaunchMetrics(None, None, Option(total_sessions), Option(total_ts), Option(total_devices), Option(avg_sess_device), Option(avg_ts_session));
 	}
 }
