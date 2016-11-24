@@ -4,6 +4,8 @@ secor_username: secor-monitor
 env: prod
 cassandra_user: ubuntu
 user_home: /home/ec2-user
+user: ec2-user
+group: ec2-user
 sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
