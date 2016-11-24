@@ -350,11 +350,11 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         implicit val sqlContext = new SQLContext(sc);
 
-        val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
         val localPath = config.getOrElse("localPath", "/tmp/").asInstanceOf[String]
+        val outputFile = localPath + "score.txt"
         val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
-        val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
+        val key = config.getOrElse("key", "model/").asInstanceOf[String];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
@@ -375,7 +375,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("created featureVector", None, INFO);
         
         JobLogger.log("Downloading model from s3", None, INFO);
-        S3Util.downloadFile(bucket, key, localPath)
+        S3Util.downloadFile(bucket, key + "fm.model", localPath)
         
         JobLogger.log("Running scoring algorithm", None, INFO);
         val scores = scoringAlgo(featureVector, localPath, model)
@@ -383,6 +383,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
 
+        JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        S3Dispatcher.dispatch(null, Map("filePath" -> outputFile, "bucket" -> bucket, "key" -> (key + "score.txt")))
+        
         JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
         val scoresIndexed = scores.zipWithIndex().map { case (k, v) => (v, k) }

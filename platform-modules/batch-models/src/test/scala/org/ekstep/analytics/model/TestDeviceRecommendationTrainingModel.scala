@@ -31,12 +31,8 @@ class TestDeviceRecommendationTrainingModel extends SparkSpec(null) {
             session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (2016731, 'dff9175fa217e728d86bc1f4d8f818f6d2959303' ,'domain_63844', 0, 0, 0, bigintAsBlob(3), 1459641600, 1475731808000, 1475731808000, 4, 0, 0, 20);");
         }
 
-        val me = DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "dataLimit" -> Int.box(5), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm","testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "logFile" -> "src/test/resources/device-recos-training/libfm.log", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")))
-        CommonUtil.deleteFile("src/test/resources/device-recos-training/train.dat.libfm");
-        CommonUtil.deleteFile("src/test/resources/device-recos-training/test.dat.libfm");
-        CommonUtil.deleteFile("src/test/resources/device-recos-training/libfm.log");
-        CommonUtil.deleteFile("src/test/resources/device-recos-training/fm.model");
-        CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-input");
+        val me = DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "dataLimit" -> Int.box(5), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/fm.model")))
+        CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
 
 }

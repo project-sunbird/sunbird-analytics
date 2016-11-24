@@ -68,7 +68,11 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
-
+    val dateTime = new DateTime()
+    val date = dateTime.toLocalDate()
+    val time = dateTime.toLocalTime().toString("hh:mm")
+    val path = date + "/" + time + "/"
+    
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -117,7 +121,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         dcus.unpersist(true);
 
         // creating DeviceContext without transformations
-        val inputDataPath = config.getOrElse("inputDataPath", "/tmp/RE-input").asInstanceOf[String]
+        val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
+        val inputDataPath = localPath + path + "RE-input"
         val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
         JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val file = new File(inputDataPath)
@@ -329,10 +334,12 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         //            .getOrCreate()
 
         import sqlContext.implicits._
-        val trainDataFile = config.getOrElse("trainDataFile", "/tmp/train.dat.libfm").asInstanceOf[String]
-        val testDataFile = config.getOrElse("testDataFile", "/tmp/test.dat.libfm").asInstanceOf[String]
-        val logFile = config.getOrElse("logFile", "/tmp/libfm.log").asInstanceOf[String]
-        val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
+        val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
+        val completePath = localPath + path
+        val trainDataFile = completePath + "train.dat.libfm"
+        val testDataFile = completePath + "test.dat.libfm"
+        val logFile = completePath + "libfm.log"
+        val model = completePath + "fm.model"
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
@@ -345,7 +352,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(logFile);
         CommonUtil.deleteFile(model);
-
+        
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val rdd: RDD[Row] = _createDF(data);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
@@ -465,6 +472,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 "did" -> x.did,
                 "c1_content_id" -> x.contentInFocus,
                 "c2_content_id" -> x.otherContentId,
+                "c3_content_id" -> x.device_usage.last_played_content.getOrElse(""),
                 "c1_text" -> c1_text,
                 "c1_tag" -> c1_tag,
                 "c1_total_ts" -> x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0),
@@ -478,6 +486,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 "c1_avg_ts_session" -> x.contentInFocusSummary.m_avg_ts_session,
                 "c1_num_interactions" -> x.contentInFocusSummary.m_total_interactions,
                 "c1_mean_interactions_min" -> x.contentInFocusSummary.m_avg_interactions_min,
+                "c1_total_devices" -> x.contentInFocusSummary.m_total_devices,
+                "c1_avg_sess_devices" -> x.contentInFocusSummary.m_avg_sess_device,
                 "c2_text" -> c2_text,
                 "c2_tag" -> c2_tag,
                 "c2_total_ts" -> x.otherContentUsageSummary.total_timespent.getOrElse(0.0),
@@ -501,6 +511,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 "c2_avg_ts_session" -> x.otherContentSummary.m_avg_ts_session,
                 "c2_num_interactions" -> x.otherContentSummary.m_total_interactions,
                 "c2_mean_interactions_min" -> x.otherContentSummary.m_avg_interactions_min,
+                "c2_total_devices" -> x.otherContentSummary.m_total_devices,
+                "c2_avg_sess_devices" -> x.otherContentSummary.m_avg_sess_device,
                 "total_timespent" -> x.device_usage.total_timespent.getOrElse(0.0),
                 "total_launches" -> x.device_usage.total_launches.getOrElse(0L),
                 "total_play_time" -> x.device_usage.total_play_time.getOrElse(0.0),
