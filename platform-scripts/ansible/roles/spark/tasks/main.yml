@@ -1,6 +1,6 @@
 ---
 - name: Download Apache Spark 2.0.1 hadoop 2.7
-  get_url: url=http://mirror.fibergrid.in/apache/spark/spark-2.0.1/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz force=no owner=analytics group=analytics
+  get_url: url=http://www-eu.apache.org/dist/spark/spark-2.0.1/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz force=no owner=analytics group=analytics
   tags:
     - analytics
 
