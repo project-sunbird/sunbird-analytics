@@ -1,0 +1,4 @@
+---
+- hosts: analytics
+  roles:
+    - re_data-products

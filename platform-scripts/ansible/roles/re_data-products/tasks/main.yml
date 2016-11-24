@@ -1,0 +1,65 @@
+---
+- name: Copy Data Products
+  copy: src=batch-models-1.0.jar dest={{ analytics.home }}/models
+  tags:
+    - analytics
+
+- name: Copy Framework Library
+  copy: src=analytics-framework-1.0.jar dest={{ analytics.home }}/models
+  tags:
+    - analytics
+
+- name: Copy Python Library
+  copy: src=script.zip dest={{ analytics.home }}
+  tags:
+    - analytics
+
+- name: Unarchive script
+  unarchive: src={{ analytics.home }}/script.zip dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/script
+  tags:
+   - analytics
+
+- name: move files
+  become: yes
+  command: cp -r {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/
+  tags:
+   - analytics
+
+
+- name: move files
+  become: yes
+  command: cp -r {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/
+  tags:
+   - analytics
+
+
+- name: move files
+  become: yes
+  command: cp -r {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/
+  tags:
+   - analytics   
+
+
+- name: Remove file 
+  become: yes
+  file: path={{ analytics.home }}/{{ item }} state=absent
+  with_items:
+              - script
+              - script.zip
+  tags:
+    - analytics
+
+- name: Replace Working directory line
+  become: yes
+  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
+  tags:
+    - analytics
+
+- name: change permissions 
+  become: yes
+  file: path={{ analytics.home }} owner=ec2-user group=ec2-user mode=0750 recurse=yes
+  tags:
+    - analytics
+
+
+
