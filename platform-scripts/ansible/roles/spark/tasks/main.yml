@@ -15,7 +15,7 @@
     - analytics
 
 - name: Download Guava 19.0 and copy to Spark jars folder
-  get_url: url=http://central.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/guava-19.0.jar timeout=1000 force=no owner={{ user }} group=ec2-user
+  get_url: url=http://central.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/guava-19.0.jar timeout=1000 force=no owner=ec2-user group=ec2-user
   tags:
     - analytics
 
@@ -25,12 +25,12 @@
     - analytics
 
 - name: Download jets3t 0.9.4 and copy to Spark jars folder
-  get_url: url=http://central.maven.org/maven2/net/java/dev/jets3t/jets3t/0.9.4/jets3t-0.9.4.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/jets3t-0.9.4.jar timeout=1000 force=no owner={{ user }} group=ec2-user
+  get_url: url=http://central.maven.org/maven2/net/java/dev/jets3t/jets3t/0.9.4/jets3t-0.9.4.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/jets3t-0.9.4.jar timeout=1000 force=no owner=ec2-user group=ec2-user
   tags:
     - analytics
 
 - name: Download hadoop-aws 2.7.3 and copy to Spark jars folder
-  get_url: url=http://central.maven.org/maven2/org/apache/hadoop/hadoop-aws/2.7.3/hadoop-aws-2.7.3.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/hadoop-aws-2.7.3.jar timeout=1000 force=no owner={{ user }} group=ec2-user
+  get_url: url=http://central.maven.org/maven2/org/apache/hadoop/hadoop-aws/2.7.3/hadoop-aws-2.7.3.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/hadoop-aws-2.7.3.jar timeout=1000 force=no owner=ec2-user group=ec2-user
   tags:
     - analytics
 
