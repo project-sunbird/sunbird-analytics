@@ -1,11 +1,11 @@
 ---
 - name: Download Apache Spark 2.0.1 hadoop 2.7
-  get_url: url=http://www-eu.apache.org/dist/spark/spark-2.0.1/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz force=no owner=analytics group=analytics
+  get_url: url=http://www-eu.apache.org/dist/spark/spark-2.0.1/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz force=no owner=ec2-user group=ec2-user
   tags:
-    - analytics
+    - ec2-user
 
 - name: Unarchive Spark 2.0.1 hadoop 2.7
-  unarchive: src={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/ copy=no group=analytics owner=analytics creates={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7
+  unarchive: src={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7.tgz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7
   tags:
     - analytics
 
