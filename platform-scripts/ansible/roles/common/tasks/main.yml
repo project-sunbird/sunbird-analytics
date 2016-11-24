@@ -45,21 +45,6 @@
   tags:
     - always
 
-- name: Clone libfm from github
-  git:  repo=https://github.com/srendle/libfm.git dest={{ analytics.home }}/libfm
-  tags:
-     - always
-
-- name: run make of libfm
-  command: chdir={{ analytics.home }}/libfm make all
-  tags:
-     - always
-
-- name: make a link
-  become: yes
-  file: src={{ analytics.home }}/libfm/bin/libFM dest=/usr/local/bin/libFM state=link 
-  tags:
-     - always
      
 - name: Create directories for analytics
   become: yes
@@ -75,3 +60,20 @@
   with_items: "{{ secor.paths }}"
   tags:
     - secor
+
+
+- name: Clone libfm from github
+  git:  repo=https://github.com/srendle/libfm.git dest={{ analytics.home }}/libfm
+  tags:
+     - always
+
+- name: run make of libfm
+  command: chdir={{ analytics.home }}/libfm make all
+  tags:
+     - always
+
+- name: make a link
+  become: yes
+  file: src={{ analytics.home }}/libfm/bin/libFM dest=/usr/local/bin/libFM state=link 
+  tags:
+     - always
