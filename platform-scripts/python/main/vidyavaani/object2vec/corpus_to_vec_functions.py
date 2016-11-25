@@ -171,8 +171,7 @@ def train_model_LSA(directory, language):
     # turn our tokenized documents into a id <-> term dictionary
     dictionary = corpora.Dictionary(texts)
     corpus = [dictionary.doc2bow(text) for text in texts]
-    # generate LDA model
-    # lsamodel = gs.models.ldamodel.LdaModel(corpus, num_topics=lda_topics, id2word = dictionary, passes=lda_passes)
+    # generate LSA model
     tfidf = gs.models.TfidfModel(corpus)
     corpus_tfidf = tfidf[corpus]
     lsamodel = gs.models.lsimodel.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=lda_topics)
