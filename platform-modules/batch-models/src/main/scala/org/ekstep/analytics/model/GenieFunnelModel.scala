@@ -21,6 +21,9 @@ import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.OnboardStage
+import org.ekstep.analytics.framework.OtherStage
+import org.ekstep.analytics.framework.Stage
 
 case class GenieFunnelSession(did: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event], onbFlag: Boolean) extends AlgoInput
 case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, tags: Option[AnyRef]) extends AlgoOutput
@@ -41,20 +44,13 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
             var prevEvent = events(0);
 
             if ("GenieOnboarding".equals(funnel)) {
-                stageMap.put("loadOnboardPage", FunnelStageSummary());
-                stageMap.put("welcomeContentSkipped", FunnelStageSummary());
-                stageMap.put("addChildSkipped", FunnelStageSummary());
-                stageMap.put("firstLessonSkipped", FunnelStageSummary());
-                stageMap.put("gotoLibrarySkipped", FunnelStageSummary());
-                stageMap.put("searchLessonSkipped", FunnelStageSummary());
-                stageMap.put("gotoLibrarySkipped", FunnelStageSummary());
-                stageMap.put("contentPlayed", FunnelStageSummary());
+
+                _fillEmptySumm(stageMap, OnboardStage)
 
                 events.foreach { x =>
                     x.eid match {
                         case "GE_INTERACT" =>
-                            val subType = x.edata.eks.subtype
-                            val stage = subType match {
+                            val stage = x.edata.eks.subtype match {
                                 case "WelcomeContent-Skipped" => "welcomeContentSkipped";
                                 case "AddChild-Skipped"       => "addChildSkipped";
                                 case "FirstLesson-Skipped"    => "firstLessonSkipped";
@@ -62,8 +58,8 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                                 case "SearchLesson-Skipped"   => "searchLessonSkipped";
                                 case ""                       => "loadOnboardPage";
                             }
-
                             stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
+
                         case "GE_LAUNCH_GAME" =>
                             stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
                     }
@@ -71,11 +67,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 }
             } else {
 
-                stageMap.put("listContent", FunnelStageSummary());
-                stageMap.put("selectContent", FunnelStageSummary());
-                stageMap.put("downloadInitiated", FunnelStageSummary());
-                stageMap.put("downloadComplete", FunnelStageSummary());
-                stageMap.put("contentPlayed", FunnelStageSummary());
+                _fillEmptySumm(stageMap, OtherStage)
 
                 events.foreach { x =>
                     x.eid match {
@@ -92,8 +84,8 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                                 case ("ExploreContent", "ContentClicked")          => "selectContent";
                                 case ("ExploreContent", "")                        => "listContent";
                             }
-
                             stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
+
                         case "GE_LAUNCH_GAME" =>
                             stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
                     }
@@ -132,6 +124,19 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
 
     }
 
+    private def _fillEmptySumm(stageMap: HashMap[String, FunnelStageSummary], stage: Stage) {
+        stage.values.foreach { x =>
+            stageMap.put(x.toString(), FunnelStageSummary());
+        }
+    }
+
+    private def _getFunnelId(event: Event): String = {
+        val cdataType = event.cdata.last.`type`.get
+        val stageId = event.edata.eks.stageid
+        val subType = event.edata.eks.subtype
+        if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ExploreContent".equals(stageId) && "".equals(subType)) "ExploreContent"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else "ExploreContent";
+    }
+
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GenieFunnelSession] = {
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val genieLaunchSessions = getGenieLaunchSessions(data, idleTime);
@@ -149,10 +154,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
             x._2.map { x =>
                 val events = x._3.sortBy { x => x.ts }
                 val firstEvent = events.head
-                val cdataType = firstEvent.cdata.last.`type`.get
-                val stageId = firstEvent.edata.eks.stageid
-                val subType = firstEvent.edata.eks.subtype
-                val funnel = if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ExploreContent".equals(stageId) && "".equals(subType)) "ExploreContent"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else "ExploreContent";
+                val funnel = _getFunnelId(firstEvent)
                 GenieFunnelSession(did, x._1, x._2, funnel, events, x._4)
             };
         }.flatMap { x => x };

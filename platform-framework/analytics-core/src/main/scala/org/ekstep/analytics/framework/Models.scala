@@ -124,3 +124,20 @@ object Level extends Enumeration {
     type Level = Value
     val INFO, DEBUG, WARN, ERROR = Value
 }
+
+trait Stage extends Enumeration {
+    type Stage = Value
+    val contentPlayed = Value
+}
+
+object OnboardStage extends Stage {
+    override type Stage = Value
+    val welcomeContentSkipped, addChildSkipped, firstLessonSkipped, gotoLibrarySkipped, searchLessonSkipped, loadOnboardPage = Value
+}
+
+object OtherStage extends Stage {
+    override type Stage = Value
+    val listContent, selectContent, downloadInitiated, downloadComplete = Value
+}
+
+
