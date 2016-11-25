@@ -29,7 +29,7 @@ config.read(config_file)
 
 # op_dir = config.get('FilePath', 'corpus_path')
 log_dir = config.get('FilePath', 'log_path')
-use_LDA = config.get('Training', 'use_LDA')
+use_doc2vec = config.get('Training', 'use_doc2vec')
 
 if not os.path.exists(model_loc):
     logging.info('model folder do not exist')
@@ -41,7 +41,7 @@ infer_log_file = os.path.join(log_dir, 'inferQuery.log')
 # test and remove the comments below
 logging.basicConfig(filename=infer_log_file, level=logging.DEBUG)
 logging.info('Corpus to Vectors')
-if use_LDA == 'false':
+if use_doc2vec == 'true':
 	vectors = infer_query(inferFlag, model_loc, op_dir)
 	# vectors = get_vectors(model_loc, op_dir)
 	# print(vectors)
@@ -51,7 +51,7 @@ if use_LDA == 'false':
 	# file.close()
 
 else:
-	vectors = infer_query_LDA(inferFlag, model_loc, op_dir)
+	vectors = infer_query_LSA(inferFlag, model_loc, op_dir)
 	# file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
 	# file.write(vectors)
 	# file.close()

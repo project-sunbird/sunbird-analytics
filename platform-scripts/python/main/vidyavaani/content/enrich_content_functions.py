@@ -273,3 +273,4 @@ def enrichContent(contentJson):
         logging.warn('Unable to read ecml file. Skipping this step')
     print(json.dumps(contentPayload))
     # shutil.rmtree(path)
+

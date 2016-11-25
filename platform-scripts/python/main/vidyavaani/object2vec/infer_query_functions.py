@@ -1,6 +1,7 @@
 import os
 import sys
 import gensim as gs
+from gensim import corpora, models, similarities
 import logging  # Log the data given
 import numpy as np
 import ConfigParser
@@ -8,6 +9,7 @@ import json
 import ast  # remove
 import langdetect
 import re
+import codecs
 from nltk.corpus import stopwords
 stopword = set(stopwords.words("english"))
 langdetect.DetectorFactory.seed = 0
@@ -68,8 +70,6 @@ def get_vector_dimension():
         n_dim = 50  # default value ,should take it from stdin?
     return n_dim
 
-def is_ascii(s):
-    return all(ord(c) < 128 for c in s)
 
 def get_norm_vec(vector_list):
     if not  all(v == 0 for v in vector_list):
@@ -82,6 +82,7 @@ def get_norm_vec(vector_list):
         norm_vector = vector_list
 #     norm_vector = [ '%.6f' % elem for elem in norm_vector ]
     return norm_vector
+
 def process_query(line,language):
     word_list = []
 
@@ -166,6 +167,7 @@ def load_documents(filenames, language):
     texts = []
     list_filename= []
     for filename in filenames:
+        # print filename
         word_list = process_file(filename, language)
         if word_list:
             
@@ -175,6 +177,8 @@ def load_documents(filenames, language):
 #             list_filename.append(filename)
             flag = 1
         else:
+            texts.append(word_list)
+            list_filename.append(os.path.basename(os.path.normpath(os.path.dirname(filename))))
             logging.warning(filename + " failed to load in load_documents")
     return [list_filename, texts]
 
@@ -369,12 +373,15 @@ def infer_query_LDA(inferFlag, model_loc, op_dir):
         # logging.info(json.dumps(response))
         return(json.dumps(response))
 
-def infer_query_LSA(inferFlag, model_loc, directory):
+def infer_query_LSA(inferFlag, model_loc, op_dir):
     if inferFlag == 'true':
-        tfidf_dict_tags, tfidf_dict_text = tfidf_dict(directory)
+        tfidf_dict_tags, tfidf_dict_text = tfidf_dict(op_dir)
         #get list of folders in 
         lst_folder = get_immediate_subdirectories(op_dir)
         for folder in lst_folder:
+            vector_dict = {}
+            content_folder = os.path.join(op_dir, folder)
+            lst_lang = get_all_lang(content_folder, ('tags', 'text'))
             for lang in lst_lang:
                 model_path = os.path.join(model_loc, lang)
                 # logging.info("model_path:"+model_path)
@@ -406,7 +413,6 @@ def infer_query_LSA(inferFlag, model_loc, directory):
             response['content_vectors'] = all_vector
         # logging.info(json.dumps(response))
         return(json.dumps(response))
-
 
 def tfidf_dict(directory):
     tags_filename, tags_doc = load_documents(findFiles(directory, ['tags']), 'en-text')
