@@ -83,22 +83,6 @@ def get_norm_vec(vector_list):
 #     norm_vector = [ '%.6f' % elem for elem in norm_vector ]
     return norm_vector
 def process_query(line,language):
-    # word_list = []
-    # if(language == 'en' or language == 'en-text'):
-    #     line = re.sub("[^a-zA-Z]", " ", line)
-    #     for word in line.split(' '):
-    #         if word not in stopword and len(word) > 1:
-    #             word_list.append(word.lower())
-    # elif(language == 'tags'):
-    #     pre_query = line.split(",")
-    #     word_list = []
-    #     for str_word in pre_query:
-    #         word_list.append("".join(str_word.split()).lower())     
-    # else:
-    #     for word in line.split(' '):
-    #         word_list.append(word.lower())
-    # return word_list
-
     word_list = []
 
     if language == 'tags':
@@ -137,6 +121,62 @@ def get_vectors_LDA(model, query):
     # flattened = []
     flattened = t_dict.values()
     return flattened
+
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
+
+def process_text(lines, language):  # Text processing
+
+    word_list = []
+    for line in lines:
+        if language == 'tags':
+            pre_query = line.split(",")
+            word_list = []
+            for str_word in pre_query:
+                word_list.append("".join(str_word.split()).lower())
+                word_list = uniqfy_list(word_list)
+        else:
+            try:
+                line = unicode(line, "UTF-8")
+                line = line.replace(u"\u00A0", " ")
+            except:
+                line = line
+            if is_ascii(line):# Any language using ASCII characters goes here
+                line = re.sub("[^a-zA-Z]", " ", line)
+                for word in line.split(' '):
+                    if word not in stopword and len(word) > 1:
+                        word_list.append(word.lower())
+            else:
+                for word in line.split(' '):
+                    word_list.append(word)
+    return word_list
+
+def process_file(filename, language):  # File processing
+    try:
+        with codecs.open(filename, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        f.close()
+        return process_text(lines, language)
+    except:
+        return []
+
+
+def load_documents(filenames, language):
+    flag = 0
+    texts = []
+    list_filename= []
+    for filename in filenames:
+        word_list = process_file(filename, language)
+        if word_list:
+            
+            # tokens = word_list[0].split()
+            texts.append(word_list)
+            list_filename.append(os.path.basename(os.path.normpath(os.path.dirname(filename))))
+#             list_filename.append(filename)
+            flag = 1
+        else:
+            logging.warning(filename + " failed to load in load_documents")
+    return [list_filename, texts]
 
 response = {}
 all_vector = []
@@ -329,6 +369,64 @@ def infer_query_LDA(inferFlag, model_loc, op_dir):
         # logging.info(json.dumps(response))
         return(json.dumps(response))
 
+def infer_query_LSA(inferFlag, model_loc, directory):
+    if inferFlag == 'true':
+        tfidf_dict_tags, tfidf_dict_text = tfidf_dict(directory)
+        #get list of folders in 
+        lst_folder = get_immediate_subdirectories(op_dir)
+        for folder in lst_folder:
+            for lang in lst_lang:
+                model_path = os.path.join(model_loc, lang)
+                # logging.info("model_path:"+model_path)
+                if not os.path.exists(model_path):
+                    logging.info('%s model not found, using default model' % (lang))
+                    model_path = os.path.join(model_loc, 'en-text')
+                    if not os.path.exists(model_path):
+                        logging.info('default model not found, skipping vector this language')
+                        continue 
+                model = gs.models.LsiModel.load(model_path)
+                n_dim = model.num_topics
+                if not lang == 'tags':
+                    vector_list = model[tfidf_dict_text[folder]]
+                    vector_dict['text_vec'] = vector_list
+                    logging.info('Vectors for text retrieved')
+                else:
+                    vector_list = model[tfidf_dict_tags[folder]]
+                    vector_dict['tag_vec'] = vector_list
+                    # logging.info(vector_list)
+                    logging.info('Vectors for tags retrieved')
+            vector_dict['contentId'] = folder
+            if not 'tag_vec' in vector_dict:
+                logging.info('no tags data, so adding zero vectors')
+                vector_dict['tag_vec'] = np.array(np.zeros(n_dim)).tolist()
+            if not 'text_vec' in vector_dict:
+                logging.info('no text data, so adding zero vectors')
+                vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
+            all_vector.append(vector_dict)
+            response['content_vectors'] = all_vector
+        # logging.info(json.dumps(response))
+        return(json.dumps(response))
+
+
+def tfidf_dict(directory):
+    tags_filename, tags_doc = load_documents(findFiles(directory, ['tags']), 'en-text')
+    text_filename, text_doc = load_documents(findFiles(directory, ['en-text']), 'en-text')
+    dictionary_tags = corpora.Dictionary(tags_doc)
+    corpus_tags = [dictionary_tags.doc2bow(text) for text in tags_doc]
+    dictionary_text = corpora.Dictionary(text_doc)
+    corpus_text = [dictionary_text.doc2bow(text) for text in text_doc]
+    tfidf_tags = gs.models.TfidfModel(corpus_tags)
+    corpus_tfidf_tags = tfidf_tags[corpus_tags]
+    tfidf_text = gs.models.TfidfModel(corpus_text)
+    corpus_tfidf_text = tfidf_text[corpus_text]
+    tfidf_dict_tags = {}
+    tfidf_dict_text = {}
+    for t in range(len(tags_filename)):
+        tfidf_dict_tags[tags_filename[t]] =  corpus_tfidf_tags[t]
+    for t in range(len(text_filename)):
+        tfidf_dict_text[text_filename[t]] =  corpus_tfidf_text[t]
+
+    return [tfidf_dict_tags, tfidf_dict_text]
 
 def inference(query, model):
     model.sg = 1  # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L721
