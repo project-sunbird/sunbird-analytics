@@ -35,62 +35,28 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
     def computeFunnelSummary(event: GenieFunnelSession): GenieFunnel = {
 
         var stageMap = HashMap[String, FunnelStageSummary]();
+        
         val funnel = event.funnel
         val events = event.events
-        val did = event.did
-
+        
         if (events.length > 0) {
             var stageList = ListBuffer[(String, Double)]();
             var prevEvent = events(0);
-
             if ("GenieOnboarding".equals(funnel)) {
-
                 _fillEmptySumm(stageMap, OnboardStage)
-
-                events.foreach { x =>
-                    x.eid match {
-                        case "GE_INTERACT" =>
-                            val stage = x.edata.eks.subtype match {
-                                case "WelcomeContent-Skipped" => "welcomeContentSkipped";
-                                case "AddChild-Skipped"       => "addChildSkipped";
-                                case "FirstLesson-Skipped"    => "firstLessonSkipped";
-                                case "GoToLibrary-Skipped"    => "gotoLibrarySkipped";
-                                case "SearchLesson-Skipped"   => "searchLessonSkipped";
-                                case ""                       => "loadOnboardPage";
-                            }
-                            stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-
-                        case "GE_LAUNCH_GAME" =>
-                            stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-                    }
-                    prevEvent = x;
-                }
             } else {
-
                 _fillEmptySumm(stageMap, OtherStage)
+            }
+            events.foreach { x =>
+                x.eid match {
+                    case "GE_INTERACT" =>
+                        val stage = getStage(x.edata.eks.stageid, x.edata.eks.subtype)
+                        stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
 
-                events.foreach { x =>
-                    x.eid match {
-                        case "GE_INTERACT" =>
-
-                            val stageId = x.edata.eks.stageid
-                            val subType = x.edata.eks.subtype
-                            val stage = (stageId, subType) match {
-                                case ("ContentSearch", "SearchPhrase")             => "listContent";
-                                case ("ContentList", "SearchPhrase")               => "listContent";
-                                case ("ContentList", "ContentClicked")             => "selectContent";
-                                case ("ContentDetail", "ContentDownload-Initiate") => "downloadInitiated";
-                                case ("ContentDetail", "ContentDownload-Success")  => "downloadComplete";
-                                case ("ExploreContent", "ContentClicked")          => "selectContent";
-                                case ("ExploreContent", "")                        => "listContent";
-                            }
-                            stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-
-                        case "GE_LAUNCH_GAME" =>
-                            stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-                    }
-                    prevEvent = x;
+                    case "GE_LAUNCH_GAME" =>
+                        stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
                 }
+                prevEvent = x;
             }
 
             var currStage: String = null;
@@ -109,19 +75,34 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
             }
         }
 
-        val firstEvent = events.head
-        val endEvent = events.last
-        val sid = firstEvent.sid
-        val cid = event.cid
-        val dspec = event.dspec
-        val genieVer = firstEvent.gdata.ver
-        val dateRange = DtRange(CommonUtil.getEventTS(firstEvent), CommonUtil.getEventTS(endEvent))
-        val syncts = CommonUtil.getEventSyncTS(endEvent)
-        val tags = endEvent.tags
         val totalTimeSpent = CommonUtil.roundDouble(stageMap.map { x => x._2.timeSpent.get }.sum, 2)
 
-        GenieFunnel(funnel, cid, did, sid, dspec, genieVer, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(tags));
+        val firstEvent = events.head
+        val endEvent = events.last
+        val dateRange = DtRange(CommonUtil.getEventTS(firstEvent), CommonUtil.getEventTS(endEvent))
+        val syncts = CommonUtil.getEventSyncTS(endEvent)
 
+        GenieFunnel(funnel, event.cid, event.did, firstEvent.sid, event.dspec, firstEvent.gdata.ver, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(endEvent.tags));
+    }
+
+    private def getStage(stageId: String, subType: String): String = {
+        (stageId, subType) match {
+            // for Genie Onboarding
+            case ("Genie-Home-OnBoardingScreen", "WelcomeContent-Skipped") => "welcomeContentSkipped";
+            case ("Genie-Home-OnBoardingScreen", "AddChild-Skipped")       => "addChildSkipped";
+            case ("Genie-Home-OnBoardingScreen", "FirstLesson-Skipped")    => "firstLessonSkipped";
+            case ("Genie-Home-OnBoardingScreen", "GoToLibrary-Skipped")    => "gotoLibrarySkipped";
+            case ("Genie-Home-OnBoardingScreen", "SearchLesson-Skipped")   => "searchLessonSkipped";
+            case ("Genie-Home-OnBoardingScreen", "")                       => "loadOnboardPage";
+            // for others
+            case ("ContentSearch", "SearchPhrase")                         => "listContent";
+            case ("ContentList", "SearchPhrase")                           => "listContent";
+            case ("ContentList", "ContentClicked")                         => "selectContent";
+            case ("ContentDetail", "ContentDownload-Initiate")             => "downloadInitiated";
+            case ("ContentDetail", "ContentDownload-Success")              => "downloadComplete";
+            case ("ExploreContent", "ContentClicked")                      => "selectContent";
+            case ("ExploreContent", "")                                    => "listContent";
+        }
     }
 
     private def _fillEmptySumm(stageMap: HashMap[String, FunnelStageSummary], stage: Stage) {
