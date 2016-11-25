@@ -10,8 +10,6 @@ import org.ekstep.analytics.api.ItemUsageSummary
 import scala.collection.JavaConversions._
 import org.ekstep.analytics.api.ItemUsageSummaryView
 import org.ekstep.analytics.api.InCorrectRes
-import org.ekstep.analytics.api.IUSofAPI
-import org.ekstep.analytics.api.IUMetricsOfAPI
 
 object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
   	override def metric : String = "ius";

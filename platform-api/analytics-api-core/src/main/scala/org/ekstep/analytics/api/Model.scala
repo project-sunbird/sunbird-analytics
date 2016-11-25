@@ -43,10 +43,6 @@ case class InCorrectRes(resp: String, count: Int);
 case class ItemUsageSummary( d_item_id: String, d_content_id: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_count: Option[Long] = Option(0), m_correct_res_count: Option[Long] = Option(0), m_inc_res_count: Option[Long] = Option(0), m_correct_res: Option[List[AnyRef]] = Option(List()), m_top5_incorrect_res: Option[List[InCorrectRes]] = Option(List()), m_avg_ts: Option[Double] = Option(0.0))
 case class ItemUsageMetrics(override val d_period: Option[Int] = None, label: Option[String] = None, items: Option[List[ItemUsageSummary]] = Option(List())) extends Metrics;
 
-// TODO: These pojos are only to supress count property of top5 incorrect res. December release remove it.
-case class IUSofAPI( d_item_id: String, d_content_id: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_count: Option[Long] = Option(0), m_correct_res_count: Option[Long] = Option(0), m_inc_res_count: Option[Long] = Option(0), m_correct_res: Option[List[AnyRef]] = Option(List()), m_top5_incorrect_res: Option[List[String]] = Option(List()), m_avg_ts: Option[Double] = Option(0.0))
-case class IUMetricsOfAPI(override val d_period: Option[Int] = None, label: Option[String] = None, items: Option[List[IUSofAPI]] = Option(List())) extends Metrics;
-
 case class RecommendationContent(device_id: String, scores: List[(String, Double)])
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String, val text_vec: List[Double], val tag_vec: List[Double]);
