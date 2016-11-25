@@ -12,8 +12,8 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     "DeviceRecommendationScoringModel" should "load model with zero pairwise interactions and generate scores" in {
 
         populateCassandra();
-        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/fm.model")))
-        DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model1", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
+        DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model")))
+        DeviceRecommendationScoringModel.execute(null, Option(Map("model_name" -> "fm.model1", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
         deleteCreatedTestFiles();
 
     }
@@ -21,27 +21,27 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "load model with pairwise interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/fm.model")
+        val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams2))
-        val me2 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model2", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
+        val me2 = DeviceRecommendationScoringModel.execute(null, Option(Map("model_name" -> "fm.model2", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
         deleteCreatedTestFiles();
     }
 
     it should "load model with zero W0 and generate scores" in {
 
         populateCassandra();
-        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/fm.model")
+        val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams3))
-        val me3 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model3", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
+        val me3 = DeviceRecommendationScoringModel.execute(null, Option(Map("model_name" -> "fm.model3", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
         deleteCreatedTestFiles();
     }
 
     it should "load model with zero unary interactions and generate scores" in {
 
         populateCassandra();
-        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/fm.model")
+        val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model")
         DeviceRecommendationTrainingModel.execute(null, Option(jobParams4))
-        val me4 = DeviceRecommendationScoringModel.execute(null, Option(Map("model" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
+        val me4 = DeviceRecommendationScoringModel.execute(null, Option(Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/", "key" -> "model/test/")))
         deleteCreatedTestFiles();
     }
 

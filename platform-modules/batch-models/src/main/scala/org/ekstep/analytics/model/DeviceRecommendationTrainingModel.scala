@@ -71,7 +71,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
     val time = dateTime.toLocalTime().toString("hh:mm")
-    val path = date + "/" + time + "/"
+    val path = "/training/" + date + "/" + time + "/"
     
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
@@ -81,6 +81,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
         val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
+        val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
         val contentModel = ContentAdapter.getLiveContent(limit).map { x => (x.id, x) }.toMap;
         JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO);
 
@@ -91,7 +92,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
         // cus transformations
-        val cusT = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries)
+        val cusT = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries, num_bins)
         val contentUsageB = cusT.map { x => (x._1, x._2) }.collect().toMap
         val contentUsageBB = sc.broadcast(contentUsageB);
         val contentUsageO = contentUsageSummaries.map{x => (x.d_content_id, x)}.collect().toMap
@@ -105,7 +106,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         // Device Usage Summaries
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 } //.map { x => (x._1, x._2) }
         // dus transformations
-        val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage)
+        val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage, num_bins)
         val dusB = dusT.map { x => (x._1, x._2) }.collect().toMap;
         val dusBB = sc.broadcast(dusB);
         val dusO = device_usage.map { x => (DeviceId(x.device_id), x) }
@@ -113,7 +114,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         // Device Content Usage Summaries
         val dcus = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
         // dcus transformations
-        val dcusT = DeviceContentUsageTransformer.getTransformationByBinning(dcus)
+        val dcusT = DeviceContentUsageTransformer.getTransformationByBinning(dcus, num_bins)
         val dcusB = dcusT.map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusBB = sc.broadcast(dcusB);
         val dcusO = dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
@@ -159,7 +160,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
     }
 
-    private def _createDF(data: RDD[DeviceContext]): RDD[Row] = {
+    private def _createDF(data: RDD[DeviceContext], tag_dimensions: Int, text_dimensions: Int): RDD[Row] = {
         data.map { x =>
             val seq = ListBuffer[Any]();
             //seq += x.did; // did
@@ -167,13 +168,13 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             seq ++= (if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined) {
                 x.contentInFocusVec.text_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(text_dimensions);
             })
             // Add c1 tag vectors
             seq ++= (if (null != x.contentInFocusVec && x.contentInFocusVec.tag_vec.isDefined) {
                 x.contentInFocusVec.tag_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(tag_dimensions);
             })
             // Add c1 context attributes
             val targetVariable = x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0)
@@ -193,13 +194,13 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             seq ++= (if (null != x.otherContentModelVec && x.otherContentModelVec.text_vec.isDefined) {
                 x.otherContentModelVec.text_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(text_dimensions);
             })
             // Add c2 tag vectors
             seq ++= (if (null != x.otherContentModelVec && x.otherContentModelVec.tag_vec.isDefined) {
                 x.otherContentModelVec.tag_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(tag_dimensions);
             })
 
             // Add c2 context attributes
@@ -233,13 +234,13 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             seq ++= (if (null != x.lastPlayedContentVec && x.lastPlayedContentVec.text_vec.isDefined) {
                 x.lastPlayedContentVec.text_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(text_dimensions);
             })
             // Add lastPlayedContent(c3) tag vectors
             seq ++= (if (null != x.lastPlayedContentVec && x.lastPlayedContentVec.tag_vec.isDefined) {
                 x.lastPlayedContentVec.tag_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(tag_dimensions);
             })    
             
             // Device Context Attributes
@@ -257,13 +258,13 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         }
     }
 
-    private def _getStructType(): StructType = {
+    private def _getStructType(tag_dimensions: Int, text_dimensions: Int): StructType = {
         val seq = ListBuffer[StructField]();
         //seq += new StructField("did", StringType, false); // did
         // Add c1 text vectors
-        seq ++= _getStructField("c1_text", 50);
+        seq ++= _getStructField("c1_text", text_dimensions);
         // Add c1 tag vectors
-        seq ++= _getStructField("c1_tag", 50);
+        seq ++= _getStructField("c1_tag", tag_dimensions);
         // Add c1 context attributes
         seq ++= Seq(new StructField("c1_total_ts", DoubleType, true))
         //        seq ++= Seq(new StructField("c1_total_ts", DoubleType, true), new StructField("c1_avg_interactions_min", DoubleType, true), new StructField("c1_download_date", LongType, true),
@@ -280,9 +281,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             new StructField("c1_total_devices", DoubleType, true), new StructField("c1_avg_sess_device", DoubleType, true));
 
         // Add c2 text vectors
-        seq ++= _getStructField("c2_text", 50);
+        seq ++= _getStructField("c2_text", text_dimensions);
         // Add c2 tag vectors
-        seq ++= _getStructField("c2_tag", 50);
+        seq ++= _getStructField("c2_tag", tag_dimensions);
         // Add c2 context attributes
 
         seq ++= Seq(new StructField("c2_total_ts", DoubleType, true), new StructField("c2_avg_interactions_min", DoubleType, true), new StructField("c2_download_date", DoubleType, true),
@@ -306,9 +307,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             new StructField("num_contents", DoubleType, true), new StructField("num_days", DoubleType, true), new StructField("num_sessions", DoubleType, true),
             new StructField("play_start_time", DoubleType, true), new StructField("start_time", DoubleType, true))
         // Add c3 text vectors
-        seq ++= _getStructField("c3_text", 50);
+        seq ++= _getStructField("c3_text", text_dimensions);
         // Add c3 tag vectors
-        seq ++= _getStructField("c3_tag", 50);
+        seq ++= _getStructField("c3_tag", tag_dimensions);
             
         // Device Specification
         seq ++= Seq(new StructField("device_spec", StringType, true), new StructField("screen_size", DoubleType, true), new StructField("external_disk", DoubleType, true), new StructField("internal_disk", DoubleType, true), new StructField("primary_camera", DoubleType, true), new StructField("secondary_camera", DoubleType, true))
@@ -335,28 +336,32 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         import sqlContext.implicits._
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
+        val model_name = config.getOrElse("model_name", "fm.model").asInstanceOf[String]
         val completePath = localPath + path
         val trainDataFile = completePath + "train.dat.libfm"
         val testDataFile = completePath + "test.dat.libfm"
         val logFile = completePath + "libfm.log"
-        val model = completePath + "fm.model"
+        val model_path = completePath + model_name
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
-        val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
+        val key = config.getOrElse("key", "model/").asInstanceOf[String];
         val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,0 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100")
         val trainRatio = config.getOrElse("trainRatio", 0.8).asInstanceOf[Double];
         val testRatio = config.getOrElse("testRatio", 0.2).asInstanceOf[Double];
         val dataLimit = config.getOrElse("dataLimit", -1).asInstanceOf[Int];
-
+        val upload_model_s3 = config.getOrElse("upload_model_s3", true).asInstanceOf[Boolean];
+        val tag_dimensions = config.getOrElse("tag_dimensions", 50).asInstanceOf[Int];
+        val text_dimensions = config.getOrElse("text_dimensions", 50).asInstanceOf[Int];
+        
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(logFile);
-        CommonUtil.deleteFile(model);
+        CommonUtil.deleteFile(model_path);
         
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val rdd: RDD[Row] = _createDF(data);
+        val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val df = sqlContext.createDataFrame(rdd, _getStructType);
+        val df = sqlContext.createDataFrame(rdd, _getStructType(tag_dimensions, text_dimensions));
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
 
         val formula = new RFormula()
@@ -398,11 +403,14 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
-        JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        S3Dispatcher.dispatch(null, Map("filePath" -> model, "bucket" -> bucket, "key" -> key))
-        JobLogger.log("Saved the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        if(upload_model_s3)
+        {
+            JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+            S3Dispatcher.dispatch(null, Map("filePath" -> model_path, "bucket" -> bucket, "key" -> (key + model_name)))
+            JobLogger.log("Saved the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        }
         sc.makeRDD(List(Empty()));
     }
 

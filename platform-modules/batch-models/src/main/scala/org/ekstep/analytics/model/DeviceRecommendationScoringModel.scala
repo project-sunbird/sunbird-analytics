@@ -55,6 +55,10 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
+    val dateTime = new DateTime()
+    val date = dateTime.toLocalDate()
+    val time = dateTime.toLocalTime().toString("hh:mm")
+    val path = "/scoring/" + date + "/" + time + "/"
     
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
@@ -64,6 +68,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
         val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
+        val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
         val contentModel = ContentAdapter.getLiveContent(limit).map { x => (x.id, x) }.toMap;
         JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO);
 
@@ -74,7 +79,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
         // cus transformations
-        val cusT = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries)
+        val cusT = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries, num_bins)
         val contentUsageB = cusT.map { x => (x._1, x._2) }.collect().toMap
         val contentUsageBB = sc.broadcast(contentUsageB);
         val contentUsageO = contentUsageSummaries.map{x => (x.d_content_id, x)}.collect().toMap
@@ -88,7 +93,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         // Device Usage Summaries
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 } //.map { x => (x._1, x._2) }
         // dus transformations
-        val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage)
+        val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage, num_bins)
         val dusB = dusT.map { x => (x._1, x._2) }.collect().toMap;
         val dusBB = sc.broadcast(dusB);
         val dusO = device_usage.map { x => (DeviceId(x.device_id), x) }
@@ -96,7 +101,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         // Device Content Usage Summaries
         val dcus = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
         // dcus transformations
-        val dcusT = DeviceContentUsageTransformer.getTransformationByBinning(dcus)
+        val dcusT = DeviceContentUsageTransformer.getTransformationByBinning(dcus, num_bins)
         val dcusB = dcusT.map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
         val dcusBB = sc.broadcast(dcusB);
         val dcusO = dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
@@ -131,7 +136,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     }
 
-    private def _createDF(data: RDD[DeviceContext]): RDD[Row] = {
+    private def _createDF(data: RDD[DeviceContext], tag_dimensions: Int, text_dimensions: Int): RDD[Row] = {
         data.map { x =>
             val seq = ListBuffer[Any]();
             //seq += x.did; // did
@@ -139,13 +144,13 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             seq ++= (if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined) {
                 x.contentInFocusVec.text_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(text_dimensions);
             })
             // Add c1 tag vectors
             seq ++= (if (null != x.contentInFocusVec && x.contentInFocusVec.tag_vec.isDefined) {
                 x.contentInFocusVec.tag_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(tag_dimensions);
             })
             // Add c1 context attributes
             val targetVariable = x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0)
@@ -165,13 +170,13 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             seq ++= (if (null != x.otherContentModelVec && x.otherContentModelVec.text_vec.isDefined) {
                 x.otherContentModelVec.text_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(text_dimensions);
             })
             // Add c2 tag vectors
             seq ++= (if (null != x.otherContentModelVec && x.otherContentModelVec.tag_vec.isDefined) {
                 x.otherContentModelVec.tag_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(tag_dimensions);
             })
 
             // Add c2 context attributes
@@ -194,6 +199,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             //println(x.did, "x.device_usage.total_launches", x.device_usage.total_launches, x.device_usage.total_launches.getOrElse(0L).isInstanceOf[Long]);
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
             // Device Context Attributes
+                
             seq ++= Seq(x.dusT.t_total_timespent.getOrElse(0.0), x.dusT.t_total_launches.getOrElse(0.0), x.dusT.t_total_play_time.getOrElse(0.0),
                 x.dusT.t_avg_num_launches.getOrElse(0.0), x.dusT.t_avg_time.getOrElse(0.0), x.dusT.t_end_time.getOrElse(0.0),
                 x.dusT.t_last_played_on.getOrElse(0.0), x.dusT.t_mean_play_time.getOrElse(0.0), x.dusT.t_mean_play_time_interval.getOrElse(0.0),
@@ -204,14 +210,15 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             seq ++= (if (null != x.lastPlayedContentVec && x.lastPlayedContentVec.text_vec.isDefined) {
                 x.lastPlayedContentVec.text_vec.get.toSeq
             } else {
-                _getZeros(50);
+                _getZeros(text_dimensions);
             })
             // Add lastPlayedContent(c3) tag vectors
             seq ++= (if (null != x.lastPlayedContentVec && x.lastPlayedContentVec.tag_vec.isDefined) {
                 x.lastPlayedContentVec.tag_vec.get.toSeq
             } else {
-                _getZeros(50);
-            })   
+                _getZeros(tag_dimensions);
+            })    
+            
             // Device Context Attributes
             seq ++= Seq(x.device_spec.make, x.device_spec.screen_size, x.device_spec.external_disk, x.device_spec.internal_disk)
             val psc = x.device_spec.primary_secondary_camera.split(",");
@@ -227,13 +234,13 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         }
     }
 
-    private def _getStructType(): StructType = {
+    private def _getStructType(tag_dimensions: Int, text_dimensions: Int): StructType = {
         val seq = ListBuffer[StructField]();
         //seq += new StructField("did", StringType, false); // did
         // Add c1 text vectors
-        seq ++= _getStructField("c1_text", 50);
+        seq ++= _getStructField("c1_text", text_dimensions);
         // Add c1 tag vectors
-        seq ++= _getStructField("c1_tag", 50);
+        seq ++= _getStructField("c1_tag", tag_dimensions);
         // Add c1 context attributes
         seq ++= Seq(new StructField("c1_total_ts", DoubleType, true))
         //        seq ++= Seq(new StructField("c1_total_ts", DoubleType, true), new StructField("c1_avg_interactions_min", DoubleType, true), new StructField("c1_download_date", LongType, true),
@@ -250,9 +257,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             new StructField("c1_total_devices", DoubleType, true), new StructField("c1_avg_sess_device", DoubleType, true));
 
         // Add c2 text vectors
-        seq ++= _getStructField("c2_text", 50);
+        seq ++= _getStructField("c2_text", text_dimensions);
         // Add c2 tag vectors
-        seq ++= _getStructField("c2_tag", 50);
+        seq ++= _getStructField("c2_tag", tag_dimensions);
         // Add c2 context attributes
 
         seq ++= Seq(new StructField("c2_total_ts", DoubleType, true), new StructField("c2_avg_interactions_min", DoubleType, true), new StructField("c2_download_date", DoubleType, true),
@@ -275,15 +282,14 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             new StructField("last_played_on", DoubleType, true), new StructField("mean_play_time", DoubleType, true), new StructField("mean_play_time_interval", DoubleType, true),
             new StructField("num_contents", DoubleType, true), new StructField("num_days", DoubleType, true), new StructField("num_sessions", DoubleType, true),
             new StructField("play_start_time", DoubleType, true), new StructField("start_time", DoubleType, true))
-
         // Add c3 text vectors
-        seq ++= _getStructField("c3_text", 50);
+        seq ++= _getStructField("c3_text", text_dimensions);
         // Add c3 tag vectors
-        seq ++= _getStructField("c3_tag", 50);
-           
+        seq ++= _getStructField("c3_tag", tag_dimensions);
+            
         // Device Specification
         seq ++= Seq(new StructField("device_spec", StringType, true), new StructField("screen_size", DoubleType, true), new StructField("external_disk", DoubleType, true), new StructField("internal_disk", DoubleType, true), new StructField("primary_camera", DoubleType, true), new StructField("secondary_camera", DoubleType, true))
-
+        
         new StructType(seq.toArray);
     }
 
@@ -351,16 +357,19 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         implicit val sqlContext = new SQLContext(sc);
 
         val localPath = config.getOrElse("localPath", "/tmp/").asInstanceOf[String]
-        val outputFile = localPath + "score.txt"
-        val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
+        val outputFile = localPath + path + "score.txt"
+        val model_name = config.getOrElse("model_name", "fm.model").asInstanceOf[String]
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/").asInstanceOf[String];
+        val tag_dimensions = config.getOrElse("tag_dimensions", 50).asInstanceOf[Int];
+        val text_dimensions = config.getOrElse("text_dimensions", 50).asInstanceOf[Int];
+        val upload_score_s3 = config.getOrElse("upload_score_s3", true).asInstanceOf[Boolean];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val rdd: RDD[Row] = _createDF(data);
+        val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        val df = sqlContext.createDataFrame(rdd, _getStructType);
+        val df = sqlContext.createDataFrame(rdd, _getStructType(tag_dimensions, text_dimensions));
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         
         val formula = new RFormula()
@@ -375,16 +384,19 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("created featureVector", None, INFO);
         
         JobLogger.log("Downloading model from s3", None, INFO);
-        S3Util.downloadFile(bucket, key + "fm.model", localPath)
+        S3Util.downloadFile(bucket, key + model_name, localPath + path)
         
         JobLogger.log("Running scoring algorithm", None, INFO);
-        val scores = scoringAlgo(featureVector, localPath, model)
+        val scores = scoringAlgo(featureVector, localPath + path, model_name)
 
         JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
 
-        JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
-        S3Dispatcher.dispatch(null, Map("filePath" -> outputFile, "bucket" -> bucket, "key" -> (key + "score.txt")))
+        if(upload_score_s3)
+        {
+            JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+            S3Dispatcher.dispatch(null, Map("filePath" -> outputFile, "bucket" -> bucket, "key" -> (key + "score.txt")))
+        }
         
         JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
         val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
