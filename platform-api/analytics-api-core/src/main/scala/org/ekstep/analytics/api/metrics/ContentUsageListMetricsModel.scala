@@ -37,6 +37,10 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 	override def reduce(fact1: ContentUsageListMetrics, fact2: ContentUsageListMetrics, fields: Array[String] = Array()): ContentUsageListMetrics = {
 	    val m_contents = (fact2.m_contents.getOrElse(List()) ++ fact1.m_contents.getOrElse(List())).distinct;
 		val contents = (fact2.content.getOrElse(List()) ++ fact1.content.getOrElse(List())).distinct;
-		ContentUsageListMetrics(None, None, Option(m_contents), Option(contents))
+		ContentUsageListMetrics(fact1.d_period, None, Option(m_contents), Option(contents))
+	}
+	
+	override def getSummary(summary: ContentUsageListMetrics) : ContentUsageListMetrics = {
+		ContentUsageListMetrics(None, None, summary.m_contents, summary.content)
 	}
 }

@@ -47,11 +47,13 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 		} else 0.0;
 		if(returnComments(fields)) {
 			val m_comments = (fact2.m_comments.getOrElse(List()) ++ fact1.m_comments.getOrElse(List())).distinct;
-			ContentPopularityMetrics(None, None, Option(m_comments), Option(m_downloads), Option(m_side_loads), Option(m_ratings), Option(m_avg_rating));
+			ContentPopularityMetrics(fact1.d_period, None, Option(m_comments), Option(m_downloads), Option(m_side_loads), Option(m_ratings), Option(m_avg_rating));
 		} else {
-			ContentPopularityMetrics(None, None, None, Option(m_downloads), Option(m_side_loads), Option(m_ratings), Option(m_avg_rating));
+			ContentPopularityMetrics(fact1.d_period, None, None, Option(m_downloads), Option(m_side_loads), Option(m_ratings), Option(m_avg_rating));
 		}
-			
-		
+	}
+	
+	override def getSummary(summary: ContentPopularityMetrics) : ContentPopularityMetrics = {
+		ContentPopularityMetrics(None, None, summary.m_comments, summary.m_downloads, summary.m_side_loads, summary.m_ratings, summary.m_avg_rating);
 	}
 }

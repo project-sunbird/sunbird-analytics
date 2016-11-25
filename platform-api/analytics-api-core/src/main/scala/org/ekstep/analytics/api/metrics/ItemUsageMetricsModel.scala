@@ -40,7 +40,7 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
   	override def reduce(fact1: ItemUsageMetrics, fact2: ItemUsageMetrics, fields: Array[String] = Array()): ItemUsageMetrics = {
 		val items = (fact1.items ++ fact2.items).flatMap { x => x }
   		val summaryItems = items.groupBy { x => x.d_item_id }.map { f => f._2.reduce(reduceItemSummary) }.toList;
-  		ItemUsageMetrics(None, None, Option(summaryItems));
+  		ItemUsageMetrics(fact1.d_period, None, Option(summaryItems));
 	}
   	
   	private def reduceItemSummary(fact1: ItemUsageSummary, fact2: ItemUsageSummary) : ItemUsageSummary = {
@@ -53,6 +53,10 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 									.sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => InCorrectRes(x._1, x._2) }.toList;
 		val m_avg_ts = if (m_total_count > 0) CommonUtil.roundDouble(m_total_ts/m_total_count, 2) else 0;
   		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
+  	}
+  	
+  	override def getSummary(summary: ItemUsageMetrics) : ItemUsageMetrics = {
+  		ItemUsageMetrics(None, None, summary.items);
   	}
   	
 }

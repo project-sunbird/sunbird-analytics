@@ -12,11 +12,6 @@ import com.typesafe.config.ConfigFactory
 class TestTagAggregation extends SparkSpec {
 
     implicit val config = ConfigFactory.load();
-    override def beforeAll() {
-        super.beforeAll()
-        DateTimeUtils.setCurrentMillisFixed(1474963510000L); // Fix the date-time to be returned by DateTime.now() to 20160927
-        ContentCacheUtil.initCache()(sc, config);
-    }
 
     private def getContentUsageMetrics(request: String): MetricsResponse = {
         val result = MetricsAPIService.contentUsage(JSONUtils.deserialize[MetricsRequestBody](request))

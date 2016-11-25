@@ -96,8 +96,6 @@ object MetricsAPIService {
     JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.metrics.item-usage", result));
   }
   
-  // This is method the Tag aggregation mock API. 
-  // TODO: We should remove it when we implement tag aggregation of the metrics.
   private def getTag(filter: Filter): String = {
 	  val tags = filter.tags.getOrElse(Array());
 	   if (tags.length == 0) {
