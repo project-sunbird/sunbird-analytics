@@ -174,7 +174,7 @@ def train_model_LSA(directory, language):
     # generate LSA model
     tfidf = gs.models.TfidfModel(corpus)
     corpus_tfidf = tfidf[corpus]
-    lsamodel = gs.models.lsimodel.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=lda_topics)
+    lsamodel = gs.models.lsimodel.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=lsa_topics)
     return lsamodel
 
 def train_model_TFIDF(directory, language):
