@@ -302,7 +302,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     }
 
     def scoringAlgo(data: RDD[org.apache.spark.ml.linalg.DenseVector], localPath: String, model: String )(implicit sc: SparkContext): RDD[Double] ={
-        
+        JobLogger.log(localPath + model, None ,INFO, "org.ekstep.analytics.model")
         val modelData = sc.textFile(localPath + model).filter(!_.isEmpty()).collect()
         
         JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
