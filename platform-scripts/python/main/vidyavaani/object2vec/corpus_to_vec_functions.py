@@ -59,6 +59,10 @@ pvdbow_dm = int(config.get('pvdbow', 'dm'))
 lda_topics = int(config.get('LDA', 'topics'))
 lda_passes = int(config.get('LDA', 'passes'))
 
+# LSA params
+lsa_topics = int(config.get('LSA', 'topics'))
+lsa_passes = int(config.get('LSA', 'passes'))
+
 def is_ascii(s):
     return all(ord(c) < 128 for c in s)
 
