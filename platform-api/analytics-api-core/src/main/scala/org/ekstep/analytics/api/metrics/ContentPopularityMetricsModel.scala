@@ -15,7 +15,7 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 		val periods = _getPeriods(period);
 		val addComments = returnComments(fields);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => 
+		val periodsRDD = sc.parallelize(periods.map { period => 
 			if(addComments) 
 				(period, ContentPopularityMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)), Option(List())))
 			else
