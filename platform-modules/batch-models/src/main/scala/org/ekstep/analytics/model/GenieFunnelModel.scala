@@ -35,10 +35,10 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
     def computeFunnelSummary(event: GenieFunnelSession): GenieFunnel = {
 
         var stageMap = HashMap[String, FunnelStageSummary]();
-        
+
         val funnel = event.funnel
         val events = event.events
-        
+
         if (events.length > 0) {
             var stageList = ListBuffer[(String, Double)]();
             var prevEvent = events(0);
@@ -127,9 +127,9 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
             val dspec = if (geStartEvents.length > 0) geStartEvents.last.edata.eks.dspec; else null;
 
             val filteredData = DataFilter.filter(x, Filter("eid", "IN", Option(List("GE_LAUNCH_GAME", "GE_INTERACT")))).filter { x => x.cdata != null && x.cdata.nonEmpty }
-            val onb = filteredData.filter { x => "ONBRDNG".equals(x.cdata.last.`type`.getOrElse("")) }
+            val onb = filteredData.filter { x => "Genie-Home-OnBoardingScreen".equals(x.edata.eks.stageid) }
             val onbflag = if (onb.length > 0) true; else false;
-            filteredData.map { x => (x.cdata.last.id, x) }.groupBy { x => x._1 }.map { x => (x._1, dspec, x._2.map(y => y._2), onbflag) };
+            filteredData.flatMap { x => x.cdata.map { y => (y.id, x) } }.groupBy { x => x._1 }.map { x => (x._1, dspec, x._2.map(y => y._2), onbflag) };
         }.map { x =>
             val did = x._1
             x._2.map { x =>

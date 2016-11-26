@@ -147,4 +147,20 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         stages1.map{x=> x.timeSpent.get}.sum should be (stagesTimeSpent1)
         
     }
+    
+    it should "test the funnel summary events for the input having all funnel" in {
+        val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data6.log");
+        val events = GenieFunnelModel.execute(rdd, None).collect
+        
+        val funnels = events.map { x => x.dimensions.funnel.get }.toList.distinct
+        funnels.size should be (4)
+        funnels.contains("GenieOnboarding") should be (true)
+        funnels.contains("ContentSearch") should be (true)
+        funnels.contains("ExploreContent") should be (true)
+        funnels.contains("ContentRecommendation") should be (true)
+    }
+    
+    it should "test the event for the input, not having any funnel" in {
+        
+    }
 }
