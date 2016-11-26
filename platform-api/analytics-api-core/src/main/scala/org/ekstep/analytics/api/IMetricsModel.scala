@@ -59,7 +59,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
         try {
             val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
                 val records = getData[T](contentId, tags, period.replace("LAST_", "").replace("_", "")).cache();
-                records.collect();
                 records;
             });
             println(s"Timetaken to fetch data from S3 ($contentId, $tags, $period):", dataFetch._1);
