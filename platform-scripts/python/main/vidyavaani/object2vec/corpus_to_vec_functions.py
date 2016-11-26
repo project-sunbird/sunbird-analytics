@@ -59,6 +59,10 @@ pvdbow_dm = int(config.get('pvdbow', 'dm'))
 lda_topics = int(config.get('LDA', 'topics'))
 lda_passes = int(config.get('LDA', 'passes'))
 
+# LSA params
+lsa_topics = int(config.get('LSA', 'topics'))
+lsa_passes = int(config.get('LSA', 'passes'))
+
 def is_ascii(s):
     return all(ord(c) < 128 for c in s)
 
@@ -174,7 +178,7 @@ def train_model_LSA(directory, language):
     # generate LSA model
     tfidf = gs.models.TfidfModel(corpus)
     corpus_tfidf = tfidf[corpus]
-    lsamodel = gs.models.lsimodel.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=lda_topics)
+    lsamodel = gs.models.lsimodel.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=lsa_topics)
     return lsamodel
 
 def train_model_TFIDF(directory, language):

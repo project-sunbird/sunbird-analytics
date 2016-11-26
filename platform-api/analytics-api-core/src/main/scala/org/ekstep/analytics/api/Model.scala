@@ -18,9 +18,7 @@ case class MetricsRequestBody(id: String, ver: String, ts: String, request: Metr
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
 case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Integer, m_correct_res_count: Integer, m_inc_res_count: Integer, m_top5_incorrect_res: Array[String], m_avg_ts: Double)
-case class MockContentUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_interactions: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double, m_avg_interactions_min: Double)
 case class Comment(comment: String, date: Int);
-case class MockContentPopularityMetrics(d_period: Option[Int], m_downloads: Long, m_side_loads: Long, m_comments: Option[Array[Comment]], m_avg_rating: Double);
 case class GenieUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double)
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);

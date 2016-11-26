@@ -14,7 +14,7 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => (period, GenieLaunchMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
+		val periodsRDD = sc.parallelize(periods.map { period => (period, GenieLaunchMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
 			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1) else f._2._1
 		};
