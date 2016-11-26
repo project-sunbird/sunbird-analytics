@@ -161,6 +161,23 @@ def process_file(filename, language):  # File processing
     except:
         return []
 
+def sparseToDense(sparse_vec, length):
+    """
+    Convert from a sparse vector representation to a dense vector. 
+
+    A sparse vector is represented by a list of (index, value) tuples.
+    A dense vector is a fixed length array of values.
+    """        
+    # Create an empty dense vector.
+    vec = np.zeros(length)
+
+    # Copy over the values into their correct positions.
+    for i in range(0, len(sparse_vec)):
+        j = sparse_vec[i][0]
+        value = sparse_vec[i][1]
+        vec[j] = value
+
+    return vec
 
 def load_documents(filenames, language):
     flag = 0
@@ -394,12 +411,12 @@ def infer_query_LSA(inferFlag, model_loc, op_dir):
                 model = gs.models.LsiModel.load(model_path)
                 n_dim = model.num_topics
                 if not lang == 'tags':
-                    vector_list = model[tfidf_dict_text[folder]]
-                    vector_dict['text_vec'] = vector_list
+                    vector_list = sparseToDense(model[tfidf_dict_text[folder]], model.num_topics)
+                    vector_dict['text_vec'] = vector_list.tolist()
                     logging.info('Vectors for text retrieved')
                 else:
-                    vector_list = model[tfidf_dict_tags[folder]]
-                    vector_dict['tag_vec'] = vector_list
+                    vector_list = sparseToDense(model[tfidf_dict_tags[folder]], model.num_topics)
+                    vector_dict['tag_vec'] = vector_list.tolist()
                     # logging.info(vector_list)
                     logging.info('Vectors for tags retrieved')
             vector_dict['contentId'] = folder
