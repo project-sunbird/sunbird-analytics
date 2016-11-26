@@ -10,8 +10,6 @@ import org.ekstep.analytics.api.ItemUsageSummary
 import scala.collection.JavaConversions._
 import org.ekstep.analytics.api.ItemUsageSummaryView
 import org.ekstep.analytics.api.InCorrectRes
-import org.ekstep.analytics.api.IUSofAPI
-import org.ekstep.analytics.api.IUMetricsOfAPI
 
 object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
   	override def metric : String = "ius";
@@ -25,7 +23,7 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(top5_incorrect_res), Option(x.m_avg_ts)) 
 			}.toList;
 			val first = f._2.head;
-			ItemUsageMetrics(Option(first.d_period), None, Option(items));
+			ItemUsageMetrics(Option(first.d_period.get), None, Option(items));
 		}.map { x => (x.d_period.get, x) };
 		val periodsRDD = sc.parallelize(periods.map { period => (period, ItemUsageMetrics(Option(period),  Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
@@ -40,7 +38,7 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
   	override def reduce(fact1: ItemUsageMetrics, fact2: ItemUsageMetrics, fields: Array[String] = Array()): ItemUsageMetrics = {
 		val items = (fact1.items ++ fact2.items).flatMap { x => x }
   		val summaryItems = items.groupBy { x => x.d_item_id }.map { f => f._2.reduce(reduceItemSummary) }.toList;
-  		ItemUsageMetrics(None, None, Option(summaryItems));
+  		ItemUsageMetrics(fact1.d_period, None, Option(summaryItems));
 	}
   	
   	private def reduceItemSummary(fact1: ItemUsageSummary, fact2: ItemUsageSummary) : ItemUsageSummary = {
@@ -53,6 +51,10 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 									.sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => InCorrectRes(x._1, x._2) }.toList;
 		val m_avg_ts = if (m_total_count > 0) CommonUtil.roundDouble(m_total_ts/m_total_count, 2) else 0;
   		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
+  	}
+  	
+  	override def getSummary(summary: ItemUsageMetrics) : ItemUsageMetrics = {
+  		ItemUsageMetrics(None, None, summary.items);
   	}
   	
 }
