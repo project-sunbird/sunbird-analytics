@@ -2,6 +2,8 @@ package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.OtherStage
+import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestGenieFunnelModel extends SparkSpec(null) {
 
@@ -106,5 +108,43 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         onbEvents.length should be(events.length)
 
         onbEvents.head.dimensions.sid.get should not be (onbEvents.last.dimensions.sid.get)
+    }
+    
+    it should "generates funnel summary, from a data having two recommendations funnel" in {
+        val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data5.log");
+        val events = GenieFunnelModel.execute(rdd, None).collect
+        events.length should be(2)
+        
+        val event = events.last
+        event.dimensions.did.get should be ("2e9d6b184f491540f9be4b800a4ab4a62ea8e592")
+        
+        event.dimensions.funnel.get should be ("ContentRecommendation")
+        event.dimensions.onboarding.get should be (false)
+        
+        val eventEksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        val stages = OtherStage.values.map { x => eventEksMap.get(x.toString()).get.asInstanceOf[FunnelStageSummary] }
+        
+        stages.size should be (5)
+        stages.filter{x=> x.stageInvoked.get == 1}.size should be (4)
+        
+        val stagesTimeSpent = eventEksMap.get("timeSpent").get.asInstanceOf[Double]
+        stagesTimeSpent should be (41.98)
+        CommonUtil.roundDouble(stages.map{x=> x.timeSpent.get }.sum, 2) should be (stagesTimeSpent)
+        
+        
+        val event1 = events.head
+        event1.dimensions.did.get should be (event.dimensions.did.get)
+        
+        event1.dimensions.funnel.get should be ("ContentRecommendation")
+        event1.dimensions.onboarding.get should be (false)
+        
+        val eventEksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        val stages1 = OtherStage.values.map { x => eventEksMap1.get(x.toString()).get.asInstanceOf[FunnelStageSummary] }
+        stages1.filter{x=> x.stageInvoked.get == 1}.size should be (1)
+        
+        val stagesTimeSpent1 = eventEksMap1.get("timeSpent").get.asInstanceOf[Double]
+        stagesTimeSpent1 should be (0)
+        stages1.map{x=> x.timeSpent.get}.sum should be (stagesTimeSpent1)
+        
     }
 }

@@ -127,7 +127,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
             val dspec = if (geStartEvents.length > 0) geStartEvents.last.edata.eks.dspec; else null;
 
             val filteredData = DataFilter.filter(x, Filter("eid", "IN", Option(List("GE_LAUNCH_GAME", "GE_INTERACT")))).filter { x => x.cdata != null && x.cdata.nonEmpty }
-            val onb = filteredData.filter { x => "ONBRDNG".equals(x.cdata.last.`type`.get) }
+            val onb = filteredData.filter { x => "ONBRDNG".equals(x.cdata.last.`type`.getOrElse("")) }
             val onbflag = if (onb.length > 0) true; else false;
             filteredData.map { x => (x.cdata.last.id, x) }.groupBy { x => x._1 }.map { x => (x._1, dspec, x._2.map(y => y._2), onbflag) };
         }.map { x =>
