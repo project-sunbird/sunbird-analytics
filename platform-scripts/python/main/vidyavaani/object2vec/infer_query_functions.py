@@ -205,7 +205,10 @@ all_vector = []
 n_dim = get_vector_dimension()
 
 def get_normalized_list(g):
-    norm = [float(i)/sum(g) for i in g]
+    if sum(g) != 0:
+        norm = [float(i)/sum(g) for i in g]
+    else:
+        norm = g 
     return norm
 
 def infer_query(inferFlag, model_loc, op_dir):
