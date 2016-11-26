@@ -1,6 +1,7 @@
 import os
 import sys
 import gensim as gs
+from gensim import corpora, models, similarities
 import logging  # Log the data given
 import numpy as np
 import ConfigParser
@@ -8,6 +9,7 @@ import json
 import ast  # remove
 import langdetect
 import re
+import codecs
 from nltk.corpus import stopwords
 stopword = set(stopwords.words("english"))
 langdetect.DetectorFactory.seed = 0
@@ -68,8 +70,6 @@ def get_vector_dimension():
         n_dim = 50  # default value ,should take it from stdin?
     return n_dim
 
-def is_ascii(s):
-    return all(ord(c) < 128 for c in s)
 
 def get_norm_vec(vector_list):
     if not  all(v == 0 for v in vector_list):
@@ -82,23 +82,8 @@ def get_norm_vec(vector_list):
         norm_vector = vector_list
 #     norm_vector = [ '%.6f' % elem for elem in norm_vector ]
     return norm_vector
-def process_query(line,language):
-    # word_list = []
-    # if(language == 'en' or language == 'en-text'):
-    #     line = re.sub("[^a-zA-Z]", " ", line)
-    #     for word in line.split(' '):
-    #         if word not in stopword and len(word) > 1:
-    #             word_list.append(word.lower())
-    # elif(language == 'tags'):
-    #     pre_query = line.split(",")
-    #     word_list = []
-    #     for str_word in pre_query:
-    #         word_list.append("".join(str_word.split()).lower())     
-    # else:
-    #     for word in line.split(' '):
-    #         word_list.append(word.lower())
-    # return word_list
 
+def process_query(line,language):
     word_list = []
 
     if language == 'tags':
@@ -138,10 +123,93 @@ def get_vectors_LDA(model, query):
     flattened = t_dict.values()
     return flattened
 
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
+
+def process_text(lines, language):  # Text processing
+
+    word_list = []
+    for line in lines:
+        if language == 'tags':
+            pre_query = line.split(",")
+            word_list = []
+            for str_word in pre_query:
+                word_list.append("".join(str_word.split()).lower())
+                word_list = uniqfy_list(word_list)
+        else:
+            try:
+                line = unicode(line, "UTF-8")
+                line = line.replace(u"\u00A0", " ")
+            except:
+                line = line
+            if is_ascii(line):# Any language using ASCII characters goes here
+                line = re.sub("[^a-zA-Z]", " ", line)
+                for word in line.split(' '):
+                    if word not in stopword and len(word) > 1:
+                        word_list.append(word.lower())
+            else:
+                for word in line.split(' '):
+                    word_list.append(word)
+    return word_list
+
+def process_file(filename, language):  # File processing
+    try:
+        with codecs.open(filename, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        f.close()
+        return process_text(lines, language)
+    except:
+        return []
+
+def sparseToDense(sparse_vec, length):
+    """
+    Convert from a sparse vector representation to a dense vector. 
+
+    A sparse vector is represented by a list of (index, value) tuples.
+    A dense vector is a fixed length array of values.
+    """        
+    # Create an empty dense vector.
+    vec = np.zeros(length)
+
+    # Copy over the values into their correct positions.
+    for i in range(0, len(sparse_vec)):
+        j = sparse_vec[i][0]
+        value = sparse_vec[i][1]
+        vec[j] = value
+
+    return vec
+
+def load_documents(filenames, language):
+    flag = 0
+    texts = []
+    list_filename= []
+    for filename in filenames:
+        # print filename
+        word_list = process_file(filename, language)
+        if word_list:
+            
+            # tokens = word_list[0].split()
+            texts.append(word_list)
+            list_filename.append(os.path.basename(os.path.normpath(os.path.dirname(filename))))
+#             list_filename.append(filename)
+            flag = 1
+        else:
+            texts.append(word_list)
+            list_filename.append(os.path.basename(os.path.normpath(os.path.dirname(filename))))
+            logging.warning(filename + " failed to load in load_documents")
+    return [list_filename, texts]
+
 response = {}
 all_vector = []
 # to get the dimension of vectors from model
 n_dim = get_vector_dimension()
+
+def get_normalized_list(g):
+    if sum(g) != 0:
+        norm = [float(i)/sum(g) for i in g]
+    else:
+        norm = g 
+    return norm
 
 def infer_query(inferFlag, model_loc, op_dir):
     if inferFlag == 'true':
@@ -329,6 +397,66 @@ def infer_query_LDA(inferFlag, model_loc, op_dir):
         # logging.info(json.dumps(response))
         return(json.dumps(response))
 
+def infer_query_LSA(inferFlag, model_loc, op_dir):
+    if inferFlag == 'true':
+        tfidf_dict_tags, tfidf_dict_text = tfidf_dict(op_dir)
+        #get list of folders in 
+        lst_folder = get_immediate_subdirectories(op_dir)
+        for folder in lst_folder:
+            vector_dict = {}
+            content_folder = os.path.join(op_dir, folder)
+            lst_lang = get_all_lang(content_folder, ('tags', 'text'))
+            for lang in lst_lang:
+                model_path = os.path.join(model_loc, lang)
+                # logging.info("model_path:"+model_path)
+                if not os.path.exists(model_path):
+                    logging.info('%s model not found, using default model' % (lang))
+                    model_path = os.path.join(model_loc, 'en-text')
+                    if not os.path.exists(model_path):
+                        logging.info('default model not found, skipping vector this language')
+                        continue 
+                model = gs.models.LsiModel.load(model_path)
+                n_dim = model.num_topics
+                if not lang == 'tags':
+                    vector_list = sparseToDense(model[tfidf_dict_text[folder]], model.num_topics)
+                    vector_dict['text_vec'] = get_normalized_list(vector_list.tolist())
+                    logging.info('Vectors for text retrieved')
+                else:
+                    vector_list = sparseToDense(model[tfidf_dict_tags[folder]], model.num_topics)
+                    vector_dict['tag_vec'] = get_normalized_list(vector_list.tolist())
+                    # logging.info(vector_list)
+                    logging.info('Vectors for tags retrieved')
+            vector_dict['contentId'] = folder
+            if not 'tag_vec' in vector_dict:
+                logging.info('no tags data, so adding zero vectors')
+                vector_dict['tag_vec'] = np.array(np.zeros(n_dim)).tolist()
+            if not 'text_vec' in vector_dict:
+                logging.info('no text data, so adding zero vectors')
+                vector_dict['text_vec'] = np.array(np.zeros(n_dim)).tolist()
+            all_vector.append(vector_dict)
+            response['content_vectors'] = all_vector
+        # logging.info(json.dumps(response))
+        return(json.dumps(response))
+
+def tfidf_dict(directory):
+    tags_filename, tags_doc = load_documents(findFiles(directory, ['tags']), 'en-text')
+    text_filename, text_doc = load_documents(findFiles(directory, ['en-text']), 'en-text')
+    dictionary_tags = corpora.Dictionary(tags_doc)
+    corpus_tags = [dictionary_tags.doc2bow(text) for text in tags_doc]
+    dictionary_text = corpora.Dictionary(text_doc)
+    corpus_text = [dictionary_text.doc2bow(text) for text in text_doc]
+    tfidf_tags = gs.models.TfidfModel(corpus_tags)
+    corpus_tfidf_tags = tfidf_tags[corpus_tags]
+    tfidf_text = gs.models.TfidfModel(corpus_text)
+    corpus_tfidf_text = tfidf_text[corpus_text]
+    tfidf_dict_tags = {}
+    tfidf_dict_text = {}
+    for t in range(len(tags_filename)):
+        tfidf_dict_tags[tags_filename[t]] =  corpus_tfidf_tags[t]
+    for t in range(len(text_filename)):
+        tfidf_dict_text[text_filename[t]] =  corpus_tfidf_text[t]
+
+    return [tfidf_dict_tags, tfidf_dict_text]
 
 def inference(query, model):
     model.sg = 1  # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L721
