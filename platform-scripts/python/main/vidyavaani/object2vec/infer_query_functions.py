@@ -204,6 +204,10 @@ all_vector = []
 # to get the dimension of vectors from model
 n_dim = get_vector_dimension()
 
+def get_normalized_list(g):
+    norm = [float(i)/sum(g) for i in g]
+    return norm
+
 def infer_query(inferFlag, model_loc, op_dir):
     if inferFlag == 'true':
         # if vectors for all the content are to be populated
@@ -412,11 +416,11 @@ def infer_query_LSA(inferFlag, model_loc, op_dir):
                 n_dim = model.num_topics
                 if not lang == 'tags':
                     vector_list = sparseToDense(model[tfidf_dict_text[folder]], model.num_topics)
-                    vector_dict['text_vec'] = vector_list.tolist()
+                    vector_dict['text_vec'] = get_normalized_list(vector_list.tolist())
                     logging.info('Vectors for text retrieved')
                 else:
                     vector_list = sparseToDense(model[tfidf_dict_tags[folder]], model.num_topics)
-                    vector_dict['tag_vec'] = vector_list.tolist()
+                    vector_dict['tag_vec'] = get_normalized_list(vector_list.tolist())
                     # logging.info(vector_list)
                     logging.info('Vectors for tags retrieved')
             vector_dict['contentId'] = folder
