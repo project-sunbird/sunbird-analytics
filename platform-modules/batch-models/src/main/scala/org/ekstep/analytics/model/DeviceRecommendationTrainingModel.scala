@@ -83,7 +83,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
         val contentModel = ContentAdapter.getLiveContent(limit).map { x => (x.id, x) }.toMap;
-        JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO);
+        JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO, "org.ekstep.analytics.model");
 
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
@@ -125,7 +125,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
         val inputDataPath = localPath + path + "RE-input"
         val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
-        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val file = new File(inputDataPath)
         if (file.exists())
             CommonUtil.deleteDirectory(inputDataPath)
@@ -327,7 +327,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
 
-        JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         implicit val sqlContext = new SQLContext(sc);
         //        implicit val spark = SparkSession
         //            .builder()
@@ -358,22 +358,22 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         CommonUtil.deleteFile(logFile);
         CommonUtil.deleteFile(model_path);
         
-        JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
-        JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val df = sqlContext.createDataFrame(rdd, _getStructType(tag_dimensions, text_dimensions));
-        JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
             .setLabelCol("label")
-        JobLogger.log("applied the formula", None, INFO);
+        JobLogger.log("applied the formula", None, INFO, "org.ekstep.analytics.model");
         val output = formula.fit(df).transform(df)
-        JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
+        JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
 
         val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
-        JobLogger.log("created labeledRDD", None, INFO);
+        JobLogger.log("created labeledRDD", None, INFO, "org.ekstep.analytics.model");
 
         val dataStr = labeledRDD.map {
             case LabeledPoint(label, features) =>
@@ -390,26 +390,26 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 sb.mkString
         }
 
-        JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
 
-        JobLogger.log("sampling used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("sampling used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val sampledUsedDataSet = if (dataLimit == -1) usedDataSet else sc.parallelize(usedDataSet.take(dataLimit))
         val trainDataSet = sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);
         val testDataSet = sampledUsedDataSet.sample(false, testRatio, System.currentTimeMillis().toInt);
 
-        JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
-        JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
 
         if(upload_model_s3)
         {
-            JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+            JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             S3Dispatcher.dispatch(null, Map("filePath" -> model_path, "bucket" -> bucket, "key" -> (key + model_name)))
-            JobLogger.log("Saved the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+            JobLogger.log("Saved the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         }
         sc.makeRDD(List(Empty()));
     }

@@ -70,7 +70,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
         val contentModel = ContentAdapter.getLiveContent(limit).map { x => (x.id, x) }.toMap;
-        JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO);
+        JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO, "org.ekstep.analytics.model");
 
         val contentModelB = sc.broadcast(contentModel);
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
@@ -305,7 +305,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         
         val modelData = sc.textFile(localPath + model).filter(!_.isEmpty()).collect()
         
-        JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val W0_indStart = modelData.indexOf("#global bias W0")
         val W_indStart = modelData.indexOf("#unary interactions Wj")
         val v_indStart = modelData.indexOf("#pairwise interactions Vj,f") + 1
@@ -328,7 +328,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             DenseMatrix.create(col, test.length, data).t
         }
         
-        JobLogger.log("generating scores", None, INFO);
+        JobLogger.log("generating scores", None, INFO, "org.ekstep.analytics.model");
         data.map { vect =>
             val x = DenseMatrix.create(1, vect.size, vect.toArray)
             val yhatW = if (w != 0.0) {
@@ -353,7 +353,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     
     override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
         
-        JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         implicit val sqlContext = new SQLContext(sc);
 
         val localPath = config.getOrElse("localPath", "/tmp/").asInstanceOf[String]
@@ -366,39 +366,39 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val upload_score_s3 = config.getOrElse("upload_score_s3", true).asInstanceOf[Boolean];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
-        JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
-        JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val df = sqlContext.createDataFrame(rdd, _getStructType(tag_dimensions, text_dimensions));
-        JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ .")
             .setFeaturesCol("features")
             .setLabelCol("label")
-        JobLogger.log("applied the formula", None, INFO);
+        JobLogger.log("applied the formula", None, INFO, "org.ekstep.analytics.model");
         val output = formula.fit(df).transform(df)
-        JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO);
+        JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
 
         val featureVector = output.select("features").rdd.map { x => x.getAs[org.apache.spark.ml.linalg.SparseVector](0).toDense };//x.asInstanceOf[org.apache.spark.mllib.linalg.DenseVector] };
-        JobLogger.log("created featureVector", None, INFO);
+        JobLogger.log("created featureVector", None, INFO, "org.ekstep.analytics.model");
         
-        JobLogger.log("Downloading model from s3", None, INFO);
+        JobLogger.log("Downloading model from s3", None, INFO, "org.ekstep.analytics.model");
         S3Util.downloadFile(bucket, key + model_name, localPath + path)
         
-        JobLogger.log("Running scoring algorithm", None, INFO);
+        JobLogger.log("Running scoring algorithm", None, INFO, "org.ekstep.analytics.model");
         val scores = scoringAlgo(featureVector, localPath + path, model_name)
 
-        JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
 
         if(upload_score_s3)
         {
-            JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+            JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             S3Dispatcher.dispatch(null, Map("filePath" -> outputFile, "bucket" -> bucket, "key" -> (key + "score.txt")))
         }
         
-        JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
         val scoresIndexed = scores.zipWithIndex().map { case (k, v) => (v, k) }
         val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
@@ -409,7 +409,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
-        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO);
+        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
         data;
     }
