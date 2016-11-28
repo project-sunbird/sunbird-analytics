@@ -261,7 +261,21 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         itemRes.res.get.asInstanceOf[Array[String]].last should be("ans1:10")
         itemRes.resValues.get.asInstanceOf[Array[AnyRef]].last.asInstanceOf[Map[String, AnyRef]].get("ans1").get.asInstanceOf[Int] should be(10)
     }
-    
+    it should "generate None for qtitle and qdesc when raw telemetry not having qtitle and qdesc" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+        itemRes.qtitle should be(None)
+        itemRes.qdesc should be(None)
+    }
+
+    it should "generate title for qtitle and description for qdesc when raw telemetry having qtitle as tile and qdesc as description" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+        itemRes.qtitle.get should be("title")
+        itemRes.qdesc.get should be("description")
+    }
     it should "generate session summary for v2 telemetry" in {
 
         val rdd = loadFile[Event]("src/test/resources/session-summary/v2_telemetry.json");
