@@ -30,7 +30,7 @@ object DeviceRecommendationScoringJob extends Application with IJob  {
     def initLoggingDir(logPath: String) {
         val dateTime = new DateTime()
         val date = dateTime.toLocalDate()
-        val time = dateTime.toLocalTime().toString("hh:mm")
+        val time = dateTime.toLocalTime().toString("hh-mm")
         val path = "/scoring/" + date + "/" + time + "/"
         val logDir = logPath + path;
         System.setProperty("REDir", logDir);

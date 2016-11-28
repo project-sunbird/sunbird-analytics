@@ -57,7 +57,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
-    val time = dateTime.toLocalTime().toString("hh:mm")
+    val time = dateTime.toLocalTime().toString("hh-mm")
     val path = "/scoring/" + date + "/" + time + "/"
     
     def choose[A](it: Buffer[A], r: Random): A = {
