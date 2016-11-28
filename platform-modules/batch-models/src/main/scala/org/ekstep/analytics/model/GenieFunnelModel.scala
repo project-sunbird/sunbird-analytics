@@ -51,7 +51,9 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 x.eid match {
                     case "GE_INTERACT" =>
                         val stage = getStage(x.edata.eks.stageid, x.edata.eks.subtype)
-                        stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
+                        if (stage.nonEmpty) {
+                            stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
+                        }
 
                     case "GE_LAUNCH_GAME" =>
                         stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
@@ -89,19 +91,20 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         (stageId, subType) match {
             // for Genie Onboarding
             case ("Genie-Home-OnBoardingScreen", "WelcomeContent-Skipped") => "welcomeContentSkipped";
-            case ("Genie-Home-OnBoardingScreen", "AddChild-Skipped")       => "addChildSkipped";
-            case ("Genie-Home-OnBoardingScreen", "FirstLesson-Skipped")    => "firstLessonSkipped";
-            case ("Genie-Home-OnBoardingScreen", "GoToLibrary-Skipped")    => "gotoLibrarySkipped";
-            case ("Genie-Home-OnBoardingScreen", "SearchLesson-Skipped")   => "searchLessonSkipped";
-            case ("Genie-Home-OnBoardingScreen", "")                       => "loadOnboardPage";
+            case ("Genie-Home-OnBoardingScreen", "AddChild-Skipped") => "addChildSkipped";
+            case ("Genie-Home-OnBoardingScreen", "FirstLesson-Skipped") => "firstLessonSkipped";
+            case ("Genie-Home-OnBoardingScreen", "GoToLibrary-Skipped") => "gotoLibrarySkipped";
+            case ("Genie-Home-OnBoardingScreen", "SearchLesson-Skipped") => "searchLessonSkipped";
+            case ("Genie-Home-OnBoardingScreen", "") => "loadOnboardPage";
             // for others
-            case ("ContentSearch", "SearchPhrase")                         => "listContent";
-            case ("ContentList", "SearchPhrase")                           => "listContent";
-            case ("ContentList", "ContentClicked")                         => "selectContent";
-            case ("ContentDetail", "ContentDownload-Initiate")             => "downloadInitiated";
-            case ("ContentDetail", "ContentDownload-Success")              => "downloadComplete";
-            case ("ExploreContent", "ContentClicked")                      => "selectContent";
-            case ("ExploreContent", "")                                    => "listContent";
+            case ("ContentSearch", "SearchPhrase") => "listContent";
+            case ("ContentList", "SearchPhrase") => "listContent";
+            case ("ContentList", "ContentClicked") => "selectContent";
+            case ("ContentDetail", "ContentDownload-Initiate") => "downloadInitiated";
+            case ("ContentDetail", "ContentDownload-Success") => "downloadComplete";
+            case ("ExploreContent", "ContentClicked") => "selectContent";
+            case ("ExploreContent", "") => "listContent";
+            case _ => "";
         }
     }
 
@@ -115,7 +118,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         val cdataType = event.cdata.last.`type`.get
         val stageId = event.edata.eks.stageid
         val subType = event.edata.eks.subtype
-        if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ExploreContent".equals(stageId) && "".equals(subType)) "ExploreContent"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else "ExploreContent";
+        if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else if ("ExploreContent".equals(stageId) && ("".equals(subType) || "ContentClicked".equals(subType))) "ExploreContent"; else "";
     }
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GenieFunnelSession] = {
@@ -124,7 +127,11 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
 
         genieLaunchSessions.mapValues { x =>
             val geStartEvents = DataFilter.filter(x, Filter("eid", "EQ", Option("GE_GENIE_START")))
-            val dspec = if (geStartEvents.length > 0) geStartEvents.last.edata.eks.dspec; else null;
+            val dspec = if (geStartEvents.size > 0) {
+                if (null != geStartEvents.last.edata)
+                    geStartEvents.last.edata.eks.dspec;
+                else null;
+            } else null;
 
             val filteredData = DataFilter.filter(x, Filter("eid", "IN", Option(List("GE_LAUNCH_GAME", "GE_INTERACT")))).filter { x => x.cdata != null && x.cdata.nonEmpty }
             val onb = filteredData.filter { x => "Genie-Home-OnBoardingScreen".equals(x.edata.eks.stageid) }
@@ -138,7 +145,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 val funnel = _getFunnelId(firstEvent)
                 GenieFunnelSession(did, x._1, x._2, funnel, events, x._4)
             };
-        }.flatMap { x => x };
+        }.flatMap { x => x }.filter { x => !"".equals(x.funnel) };
 
     }
 
@@ -149,7 +156,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
     }
 
     override def postProcess(data: RDD[GenieFunnel], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        data.map { summary =>
+        data.filter { x => x.timeSpent > 0 }.map { summary =>
             val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL", summary.funnel + summary.cid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did);
             val measures = summary.summary.toMap ++ Map("timeSpent" -> summary.timeSpent)
             MeasuredEvent("ME_GENIE_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", None, None,
@@ -158,4 +165,5 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 MEEdata(measures), summary.tags);
         }
     }
+
 }
