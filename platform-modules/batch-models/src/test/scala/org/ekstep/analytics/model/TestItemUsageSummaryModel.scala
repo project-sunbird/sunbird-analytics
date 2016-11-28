@@ -56,8 +56,8 @@ class TestItemUsageSummaryModel extends SparkSpec(null) {
         val rdd2 = ItemUsageSummaryModel.execute(rdd, None);
         val me = rdd2.map { x => JSONUtils.serialize(x) }.collect();
         val event = JSONUtils.deserialize[DerivedEvent](me(7));
-        val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        eksMap.get("qtitle").get.asInstanceOf[String] should be("title")
-        eksMap.get("qdesc").get.asInstanceOf[String] should be("description")
-    }
+        val itemRes = JSONUtils.deserialize[ItemResponse](JSONUtils.serialize(event.edata.eks))
+        itemRes.qtitle.get should be("title")
+        itemRes.qdesc.get should be("description")
+  }
 }
