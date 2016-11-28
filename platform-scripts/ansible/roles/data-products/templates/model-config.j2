@@ -99,7 +99,7 @@ config() {
 		"sts")
         echo '{"search":{"type":"S3","queries":[{"bucket":"'$bucket'","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.StageSummary","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"TestStageSummarizer","deviceMapping":true}'
         ;;
-        "gsts") 
+        "gsts")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gls/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieStageSummaryModel","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"GenieStageSummaryModel","deviceMapping":false}'
 		;;
 		"gfs")
@@ -108,7 +108,7 @@ config() {
 		"gfa")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gfs/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieFunnelAggregatorModel","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Genie Funnel Aggregator Model","deviceMapping":true}'
 		;;
-		"*")  
+		"*")
 		echo "Unknown model code"
       	exit 1 # Command to come out of the program with status 1
       	;;
