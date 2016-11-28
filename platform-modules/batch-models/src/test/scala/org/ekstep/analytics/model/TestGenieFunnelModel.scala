@@ -34,6 +34,7 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         event.dimensions.onboarding.get should be(false)
 
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        eksMap.get("correlationID").get should be ("7124904c-b7be-4944-8a95-8c1cedebf712")
         val timeSpent = eksMap.get("timeSpent").get.asInstanceOf[Double]
         timeSpent should be(1114.23)
 
