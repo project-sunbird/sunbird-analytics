@@ -81,6 +81,10 @@ jobs:
     hour: 2
     minute: 24
     state: present
+  gfa:
+    hour: 2
+    minute: 26
+    state: present
 
 pre_jobs:
   pre_job:
