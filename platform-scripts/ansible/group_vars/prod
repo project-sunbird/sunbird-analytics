@@ -103,3 +103,11 @@ secor_me_job:
     minute: 58
 
 
+cassandra:
+  seeds: ""
+  listen_address: 
+  rpc_address: 
+  broadcast_rpc_address: 
+  
+
+
