@@ -70,7 +70,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
-    val time = dateTime.toLocalTime().toString("hh:mm")
+    val time = dateTime.toLocalTime().toString("hh-mm")
     val path = "/training/" + date + "/" + time + "/"
     
     def choose[A](it: Buffer[A], r: Random): A = {
@@ -122,6 +122,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         dcus.unpersist(true);
 
         // creating DeviceContext without transformations
+        val tag_dimensions = config.getOrElse("tag_dimensions", 50).asInstanceOf[Int];
+        val text_dimensions = config.getOrElse("text_dimensions", 50).asInstanceOf[Int];
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
         val inputDataPath = localPath + path + "RE-input"
         val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
@@ -129,7 +131,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val file = new File(inputDataPath)
         if (file.exists())
             CommonUtil.deleteDirectory(inputDataPath)
-        val jsondata = createJSON(deviceContext) //data.map { x => JSONUtils.serialize(x) }
+        val jsondata = createJSON(deviceContext, tag_dimensions, text_dimensions) //data.map { x => JSONUtils.serialize(x) }
         jsondata.saveAsTextFile(inputDataPath)
 
         device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
@@ -445,22 +447,22 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         }.flatMap { x => x.map { f => f } }
     }
 
-    def createJSON(data: RDD[DeviceContextWithoutTransformations])(implicit sc: SparkContext): RDD[String] = {
+    def createJSON(data: RDD[DeviceContextWithoutTransformations], tag_dimensions: Int, text_dimensions: Int)(implicit sc: SparkContext): RDD[String] = {
 
         data.map { x =>
             val c1_text = if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined)
                 x.contentInFocusVec.text_vec.get.toSeq
-            else _getZeros(50);
+            else _getZeros(text_dimensions);
 
             val c1_tag = if (null != x.contentInFocusVec && x.contentInFocusVec.tag_vec.isDefined)
                 x.contentInFocusVec.tag_vec.get.toSeq
-            else _getZeros(50);
+            else _getZeros(tag_dimensions);
             val c2_text = if (null != x.otherContentModelVec && x.otherContentModelVec.text_vec.isDefined)
                 x.otherContentModelVec.text_vec.get.toSeq
-            else _getZeros(50);
+            else _getZeros(text_dimensions);
             val c2_tag = if (null != x.otherContentModelVec && x.otherContentModelVec.tag_vec.isDefined)
                 x.otherContentModelVec.tag_vec.get.toSeq
-            else _getZeros(50)
+            else _getZeros(tag_dimensions)
             val c2_downloaded = if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0
             val c2_subject = if (null != x.otherContentModel) x.otherContentModel.subject.mkString(",") else "Unknown"
             val c2_contentType = if (null != x.otherContentModel) x.contentInFocusModel.contentType else "Unknown"

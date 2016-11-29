@@ -57,7 +57,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
-    val time = dateTime.toLocalTime().toString("hh:mm")
+    val time = dateTime.toLocalTime().toString("hh-mm")
     val path = "/scoring/" + date + "/" + time + "/"
     
     def choose[A](it: Buffer[A], r: Random): A = {
@@ -302,7 +302,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     }
 
     def scoringAlgo(data: RDD[org.apache.spark.ml.linalg.DenseVector], localPath: String, model: String )(implicit sc: SparkContext): RDD[Double] ={
-        
+        JobLogger.log(localPath + model, None ,INFO, "org.ekstep.analytics.model")
         val modelData = sc.textFile(localPath + model).filter(!_.isEmpty()).collect()
         
         JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
