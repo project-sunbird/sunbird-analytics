@@ -32,6 +32,9 @@ case class FunnelStageSummary(timeSpent: Option[Double] = Option(0.0), count: Op
 
 object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, GenieFunnelSession, GenieFunnel, MeasuredEvent] with Serializable {
 
+	val className = "org.ekstep.analytics.model.GenieFunnelModel"
+	override def name: String = "GenieFunnelModel"
+	
     def computeFunnelSummary(event: GenieFunnelSession): GenieFunnel = {
 
         var stageMap = HashMap[String, FunnelStageSummary]();

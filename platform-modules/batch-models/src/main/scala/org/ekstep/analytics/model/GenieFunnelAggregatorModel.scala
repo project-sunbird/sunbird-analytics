@@ -31,6 +31,9 @@ case class StageAggSumm(timeSpent: Double, totalCount: Int, avgTimespent: Double
 
 object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, DeviceFunnelSummary, FunnelSummary, MeasuredEvent] with Serializable {
 
+	val className = "org.ekstep.analytics.model.GenieFunnelAggregatorModel"
+	override def name: String = "GenieFunnelAggregatorModel"
+	
     def _funnelAggregator(data: DeviceFunnelSummary): FunnelSummary = {
         val funnel = data.funnel
         if ("GenieOnboarding".equals(funnel)) {
