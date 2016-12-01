@@ -132,7 +132,7 @@ trait Stage extends Enumeration {
 
 object OnboardStage extends Stage {
     override type Stage = Value
-    val welcomeContentSkipped, addChildSkipped, firstLessonSkipped, gotoLibrarySkipped, searchLessonSkipped, loadOnboardPage = Value
+    val welcomeContent, addChild, firstLesson, gotoLibrary, searchLesson, loadOnboardPage = Value
 }
 
 object OtherStage extends Stage {

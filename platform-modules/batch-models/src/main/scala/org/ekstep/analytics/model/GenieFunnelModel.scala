@@ -28,13 +28,13 @@ import org.ekstep.analytics.framework.Stage
 case class GenieFunnelSession(did: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event], onbFlag: Boolean) extends AlgoInput
 case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, tags: Option[AnyRef]) extends AlgoOutput
 
-case class FunnelStageSummary(timeSpent: Option[Double] = Option(0.0), count: Option[Int] = Option(0), stageInvoked: Option[Int] = Option(0))
+case class FunnelStageSummary(label: String, count: Option[Int] = Option(0), stageInvoked: Option[Int] = Option(0))
 
 object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, GenieFunnelSession, GenieFunnel, MeasuredEvent] with Serializable {
 
-	val className = "org.ekstep.analytics.model.GenieFunnelModel"
-	override def name: String = "GenieFunnelModel"
-	
+    val className = "org.ekstep.analytics.model.GenieFunnelModel"
+    override def name: String = "GenieFunnelModel"
+
     def computeFunnelSummary(event: GenieFunnelSession): GenieFunnel = {
 
         var stageMap = HashMap[String, FunnelStageSummary]();
@@ -42,8 +42,8 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         val funnel = event.funnel
         val events = event.events
 
+        var stageList = ListBuffer[(String, Double)]();
         if (events.length > 0) {
-            var stageList = ListBuffer[(String, Double)]();
             var prevEvent = events(0);
             if ("GenieOnboarding".equals(funnel)) {
                 _fillEmptySumm(stageMap, OnboardStage)
@@ -70,34 +70,59 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 if (currStage == null) {
                     currStage = x._1;
                 }
-                stageMap.put(currStage, FunnelStageSummary(Option(CommonUtil.roundDouble((stageMap.get(currStage).get.timeSpent.get + x._2), 2)), stageMap.get(currStage).get.count, stageMap.get(currStage).get.stageInvoked));
+                stageMap.put(currStage, FunnelStageSummary(currStage, stageMap.get(currStage).get.count, stageMap.get(currStage).get.stageInvoked));
                 if (currStage.equals(x._1)) {
                     if (prevStage != currStage)
-                        stageMap.put(currStage, FunnelStageSummary(Option(CommonUtil.roundDouble(stageMap.get(currStage).get.timeSpent.get, 2)), Option(stageMap.get(currStage).get.count.get + 1), Option(1)));
+                        stageMap.put(currStage, FunnelStageSummary(currStage, Option(stageMap.get(currStage).get.count.get + 1), Option(1)));
                     currStage = null;
                 }
                 prevStage = x._1;
             }
         }
 
-        val totalTimeSpent = CommonUtil.roundDouble(stageMap.map { x => x._2.timeSpent.get }.sum, 2)
-
         val firstEvent = events.head
         val endEvent = events.last
+
+        val totalTimeSpent = CommonUtil.roundDouble(stageList.map { x => x._2 }.sum, 2)
+
         val dateRange = DtRange(CommonUtil.getEventTS(firstEvent), CommonUtil.getEventTS(endEvent))
         val syncts = CommonUtil.getEventSyncTS(endEvent)
 
+        if ("GenieOnboarding".equals(funnel)) {
+            stageMap = _updateSkippedStageSummary(stageMap);
+        }
         GenieFunnel(funnel, event.cid, event.did, firstEvent.sid, event.dspec, firstEvent.gdata.ver, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(endEvent.tags));
     }
 
+    private def _updateSkippedStageSummary(stageMap: HashMap[String, FunnelStageSummary]): HashMap[String, FunnelStageSummary] = {
+        stageMap.map { x =>
+            (x._1, x._2.stageInvoked.get) match {
+                case ("welcomeContent", 0) => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("welcomeContent", 1) => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("addChild", 0)       => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("addChild", 1)       => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("firstLesson", 0)    => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("firstLesson", 1)    => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("gotoLibrary", 0)    => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("gotoLibrary", 1)    => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("searchLesson", 0)   => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("searchLesson", 1)   => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+                case _                     => (x._1, x._2)
+            }
+        }
+    }
     private def getStage(stageId: String, subType: String): String = {
         (stageId, subType) match {
             // for Genie Onboarding
-            case ("Genie-Home-OnBoardingScreen", "WelcomeContent-Skipped") => "welcomeContentSkipped";
-            case ("Genie-Home-OnBoardingScreen", "AddChild-Skipped") => "addChildSkipped";
-            case ("Genie-Home-OnBoardingScreen", "FirstLesson-Skipped") => "firstLessonSkipped";
-            case ("Genie-Home-OnBoardingScreen", "GoToLibrary-Skipped") => "gotoLibrarySkipped";
-            case ("Genie-Home-OnBoardingScreen", "SearchLesson-Skipped") => "searchLessonSkipped";
+            case ("Genie-Home-OnBoardingScreen", "WelcomeContent-Skipped") => "welcomeContent";
+            case ("Genie-Home-OnBoardingScreen", "AddChild-Skipped") => "addChild";
+            case ("Genie-Home-OnBoardingScreen", "FirstLesson-Skipped") => "firstLesson";
+            case ("Genie-Home-OnBoardingScreen", "GoToLibrary-Skipped") => "gotoLibrary";
+            case ("Genie-Home-OnBoardingScreen", "SearchLesson-Skipped") => "searchLesson";
             case ("Genie-Home-OnBoardingScreen", "") => "loadOnboardPage";
             // for others
             case ("ContentSearch", "SearchPhrase") => "listContent";
@@ -113,7 +138,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
 
     private def _fillEmptySumm(stageMap: HashMap[String, FunnelStageSummary], stage: Stage) {
         stage.values.foreach { x =>
-            stageMap.put(x.toString(), FunnelStageSummary());
+            stageMap.put(x.toString(), FunnelStageSummary(x.toString()));
         }
     }
 
@@ -143,7 +168,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         }.map { x =>
             val did = x._1
             x._2.map { x =>
-                val events = x._3.sortBy { x => x.ts }
+                val events = x._3.sortBy { x => CommonUtil.getEventTS(x) }
                 val firstEvent = events.head
                 val funnel = _getFunnelId(firstEvent)
                 GenieFunnelSession(did, x._1, x._2, funnel, events, x._4)

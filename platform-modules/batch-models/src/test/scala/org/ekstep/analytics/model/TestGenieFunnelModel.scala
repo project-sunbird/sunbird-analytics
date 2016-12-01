@@ -23,6 +23,7 @@ class TestGenieFunnelModel extends SparkSpec(null) {
     it should "generates funnel summary, from a data having one funnel" in {
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data1.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
+
         events.length should be(1)
         val event = events.last
 
@@ -34,23 +35,9 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         event.dimensions.onboarding.get should be(false)
 
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        eksMap.get("correlationID").get should be ("7124904c-b7be-4944-8a95-8c1cedebf712")
+        eksMap.get("correlationID").get should be("7124904c-b7be-4944-8a95-8c1cedebf712")
         val timeSpent = eksMap.get("timeSpent").get.asInstanceOf[Double]
         timeSpent should be(1114.23)
-
-        val listContent = eksMap.get("listContent").get.asInstanceOf[FunnelStageSummary]
-        val ts1 = listContent.timeSpent.get
-
-        val selectContent = eksMap.get("selectContent").get.asInstanceOf[FunnelStageSummary]
-        val ts2 = selectContent.timeSpent.get
-
-        val downloadInitiated = eksMap.get("downloadInitiated").get.asInstanceOf[FunnelStageSummary]
-        val ts3 = downloadInitiated.timeSpent.get
-
-        val downloadComplete = eksMap.get("downloadComplete").get.asInstanceOf[FunnelStageSummary]
-        val ts4 = downloadComplete.timeSpent.get
-
-        (ts1 + ts2 + ts3 + ts4) should be(timeSpent)
 
     }
 
@@ -59,7 +46,7 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data2.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
         events.length should be(6)
-
+        
         val onbs = events.filter { x => "GenieOnboarding".equals(x.dimensions.funnel.get) }
         val contentSearch = events.filter { x => "ContentSearch".equals(x.dimensions.funnel.get) }
 
@@ -70,10 +57,10 @@ class TestGenieFunnelModel extends SparkSpec(null) {
 
         onb.dimensions.onboarding.get should be(true)
         val eksMap = onb.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        OnboardStage.values.foreach { x =>  
-            eksMap.contains(x.toString()) should be(true)    
+        OnboardStage.values.foreach { x =>
+            eksMap.contains(x.toString()) should be(true)
         }
-        
+
         eksMap.get("timeSpent").get.asInstanceOf[Double] should be(0.63)
 
     }
@@ -89,23 +76,26 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         onb.length should be(1)
 
         val e1 = onb.last
-        
 
         e1.dimensions.onboarding.get should be(true)
 
         val eksMap1 = e1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap1.get("timeSpent").get should be(4.47)
 
-        eksMap1.contains("welcomeContentSkipped") should be(true)
-        eksMap1.contains("addChildSkipped") should be(true)
-        eksMap1.contains("gotoLibrarySkipped") should be(true)
-        eksMap1.contains("firstLessonSkipped") should be(true)
+        eksMap1.contains("welcomeContent") should be(true)
+        eksMap1.contains("addChild") should be(true)
+        eksMap1.contains("gotoLibrary") should be(true)
+        eksMap1.contains("firstLesson") should be(true)
     }
 
     it should "generates funnel summary, from a data having multiple funnel in multiple session and having onboarding funnel" in {
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data4.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
         events.length should be(4)
+        
+        for(e<-events){
+            println(JSONUtils.serialize(e))
+        }
 
         val onbEvents = events.filter { x => x.dimensions.onboarding.get == true }
 
@@ -131,57 +121,48 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         stages.size should be(5)
         val invokedStages = stages.filter { x => x._2.stageInvoked.get == 1 }
         invokedStages.size should be(4)
-        
-        stages.contains("listContent") should be (true)
+
+        stages.contains("listContent") should be(true)
         val listContent = stages.get("listContent").get
-        listContent.timeSpent.get should be (0)
-        listContent.count.get should be (1)
-        listContent.stageInvoked.get should be (1)
-        
-        
-        stages.contains("selectContent") should be (true)
+        listContent.count.get should be(1)
+        listContent.stageInvoked.get should be(1)
+
+        stages.contains("selectContent") should be(true)
         val selectContent = stages.get("selectContent").get
-        selectContent.stageInvoked.get should be (0)
-        selectContent should be (FunnelStageSummary())
-        
-        
-        stages.contains("downloadInitiated") should be (true)
+        selectContent.stageInvoked.get should be(0)
+        selectContent should be(FunnelStageSummary("selectContent"))
+
+        stages.contains("downloadInitiated") should be(true)
         val downloadInitiated = stages.get("downloadInitiated").get
-        downloadInitiated.timeSpent.get should be (0.59)
-        downloadInitiated.count.get should be (1)
-        downloadInitiated.stageInvoked.get should be (1)
-        
-        
-        stages.contains("downloadComplete") should be (true)
+        downloadInitiated.count.get should be(1)
+        downloadInitiated.stageInvoked.get should be(1)
+
+        stages.contains("downloadComplete") should be(true)
         val downloadComplete = stages.get("downloadComplete").get
-        downloadComplete.timeSpent.get should be (8.41)
-        downloadComplete.count.get should be (1)
-        downloadComplete.stageInvoked.get should be (1)
-        
-        stages.contains("contentPlayed") should be (true)
+        downloadComplete.count.get should be(1)
+        downloadComplete.stageInvoked.get should be(1)
+
+        stages.contains("contentPlayed") should be(true)
         val contentPlayed = stages.get("contentPlayed").get
-        contentPlayed.timeSpent.get should be (32.98)
-        contentPlayed.count.get should be (1)
-        contentPlayed.stageInvoked.get should be (1)
-        
-        
+        contentPlayed.count.get should be(1)
+        contentPlayed.stageInvoked.get should be(1)
+
         val stagesTimeSpent = eventEksMap.get("timeSpent").get.asInstanceOf[Double]
         stagesTimeSpent should be(41.98)
-        CommonUtil.roundDouble(stages.map { x => x._2.timeSpent.get }.sum, 2) should be(stagesTimeSpent)
 
     }
 
-//    it should "test the funnel summary events for the input having all funnel" in {
-//        val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data6.log");
-//        val events = GenieFunnelModel.execute(rdd, None).collect
-//
-//        val funnels = events.map { x => x.dimensions.funnel.get }.toList.distinct
-//        funnels.size should be(3)
-//        funnels.contains("GenieOnboarding") should be(true)
-//        funnels.contains("ContentSearch") should be(true)
-//        funnels.contains("ExploreContent") should be(false)
-//        funnels.contains("ContentRecommendation") should be(true)
-//    }
+    //    it should "test the funnel summary events for the input having all funnel" in {
+    //        val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data6.log");
+    //        val events = GenieFunnelModel.execute(rdd, None).collect
+    //
+    //        val funnels = events.map { x => x.dimensions.funnel.get }.toList.distinct
+    //        funnels.size should be(3)
+    //        funnels.contains("GenieOnboarding") should be(true)
+    //        funnels.contains("ContentSearch") should be(true)
+    //        funnels.contains("ExploreContent") should be(false)
+    //        funnels.contains("ContentRecommendation") should be(true)
+    //    }
 
     it should "test the event for the input of GE_INTERACT events, but not having any funnel" in {
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data7.log");
@@ -193,5 +174,5 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         val events = GenieFunnelModel.execute(rdd, None).collect
         events.length should be(0)
     }
-    
+
 }
