@@ -15,7 +15,6 @@ class TestTagAggregation extends SparkSpec {
     override def beforeAll() {
         super.beforeAll()
         DateTimeUtils.setCurrentMillisFixed(1474963510000L); // Fix the date-time to be returned by DateTime.now() to 20160927
-        ContentCacheUtil.initCache()(sc, config);
     }
 
     private def getContentUsageMetrics(request: String): MetricsResponse = {
