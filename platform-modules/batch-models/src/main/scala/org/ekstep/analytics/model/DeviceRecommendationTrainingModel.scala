@@ -44,6 +44,7 @@ import org.ekstep.analytics.transformer._
 import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.ml.feature.LabeledPoint
+import sys.process._
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: cus_t, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf, lastPlayedContentVec: ContentToVector) extends AlgoInput with AlgoOutput with Output;
@@ -405,8 +406,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
-
+//        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        
+        s"libFM -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path".!
         if(upload_model_s3)
         {
             JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
