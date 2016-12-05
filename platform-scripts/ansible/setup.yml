@@ -1,5 +1,4 @@
 ---
-
 - hosts: secor
   roles:
     - common
@@ -19,3 +18,5 @@
   roles:
     - common
     - service
+    - neo4j-python
+    
