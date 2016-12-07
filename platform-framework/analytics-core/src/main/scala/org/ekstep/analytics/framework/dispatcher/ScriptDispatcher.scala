@@ -6,6 +6,7 @@ import java.io.PrintWriter
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import sys.process._
 
 /**
  * @author Santhosh
@@ -14,6 +15,7 @@ object ScriptDispatcher extends IDispatcher {
 
     val className = "org.ekstep.analytics.framework.dispatcher.ScriptDispatcher"
 
+    @deprecated
     @throws(classOf[DispatcherException])
     def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
         val script = config.getOrElse("script", null).asInstanceOf[String];
@@ -42,6 +44,13 @@ object ScriptDispatcher extends IDispatcher {
             throw new DispatcherException("Script exited with non zero status")
         }
         outputLines.toArray;
+    }
+
+    def dispatch(script: String): Int = {
+        if (null == script) {
+            throw new DispatcherException("script should not be empty")
+        }
+        script.!
     }
 
 }

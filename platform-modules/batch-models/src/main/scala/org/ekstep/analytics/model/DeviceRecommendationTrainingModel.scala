@@ -73,7 +73,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val date = dateTime.toLocalDate()
     val time = dateTime.toLocalTime().toString("hh-mm")
     val path = "/training/" + date + "/" + time + "/"
-    
+
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
@@ -96,7 +96,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val cusT = ContentUsageTransformer.getTransformationByBinning(contentUsageSummaries, num_bins)
         val contentUsageB = cusT.map { x => (x._1, x._2) }.collect().toMap
         val contentUsageBB = sc.broadcast(contentUsageB);
-        val contentUsageO = contentUsageSummaries.map{x => (x.d_content_id, x)}.collect().toMap
+        val contentUsageO = contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap
         val contentUsageOB = sc.broadcast(contentUsageO);
         contentUsageSummaries.unpersist(true);
 
@@ -226,13 +226,13 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             //println(x.did, "x.device_usage.total_launches", x.device_usage.total_launches, x.device_usage.total_launches.getOrElse(0L).isInstanceOf[Long]);
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
             // Device Context Attributes
-                
+
             seq ++= Seq(x.dusT.t_total_timespent.getOrElse(0.0), x.dusT.t_total_launches.getOrElse(0.0), x.dusT.t_total_play_time.getOrElse(0.0),
                 x.dusT.t_avg_num_launches.getOrElse(0.0), x.dusT.t_avg_time.getOrElse(0.0), x.dusT.t_end_time.getOrElse(0.0),
                 x.dusT.t_last_played_on.getOrElse(0.0), x.dusT.t_mean_play_time.getOrElse(0.0), x.dusT.t_mean_play_time_interval.getOrElse(0.0),
                 x.dusT.t_num_contents.getOrElse(0.0), x.dusT.t_num_days.getOrElse(0.0), x.dusT.t_num_sessions.getOrElse(0.0), x.dusT.t_play_start_time.getOrElse(0.0),
                 x.dusT.t_start_time.getOrElse(0.0))
-                
+
             // Add lastPlayedContent(c3) text vectors
             seq ++= (if (null != x.lastPlayedContentVec && x.lastPlayedContentVec.text_vec.isDefined) {
                 x.lastPlayedContentVec.text_vec.get.toSeq
@@ -244,8 +244,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 x.lastPlayedContentVec.tag_vec.get.toSeq
             } else {
                 _getZeros(tag_dimensions);
-            })    
-            
+            })
+
             // Device Context Attributes
             seq ++= Seq(x.device_spec.make, x.device_spec.screen_size, x.device_spec.external_disk, x.device_spec.internal_disk)
             val psc = x.device_spec.primary_secondary_camera.split(",");
@@ -256,7 +256,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             } else {
                 seq ++= Seq(if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if (StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
             }
-            
+
             Row.fromSeq(seq);
         }
     }
@@ -313,10 +313,10 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         seq ++= _getStructField("c3_text", text_dimensions);
         // Add c3 tag vectors
         seq ++= _getStructField("c3_tag", tag_dimensions);
-            
+
         // Device Specification
         seq ++= Seq(new StructField("device_spec", StringType, true), new StructField("screen_size", DoubleType, true), new StructField("external_disk", DoubleType, true), new StructField("internal_disk", DoubleType, true), new StructField("primary_camera", DoubleType, true), new StructField("secondary_camera", DoubleType, true))
-        
+
         new StructType(seq.toArray);
     }
 
@@ -355,12 +355,12 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val upload_model_s3 = config.getOrElse("upload_model_s3", true).asInstanceOf[Boolean];
         val tag_dimensions = config.getOrElse("tag_dimensions", 50).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 50).asInstanceOf[Int];
-        
+
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
         CommonUtil.deleteFile(logFile);
         CommonUtil.deleteFile(model_path);
-        
+
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
@@ -406,11 +406,12 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-//        ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+        //ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
+
+        val script = s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path"
+        ScriptDispatcher.dispatch(script)
         
-        s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path".!
-        if(upload_model_s3)
-        {
+        if (upload_model_s3) {
             JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             S3Dispatcher.dispatch(null, Map("filePath" -> model_path, "bucket" -> bucket, "key" -> (key + model_name)))
             JobLogger.log("Saved the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
