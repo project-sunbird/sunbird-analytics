@@ -15,16 +15,20 @@
 - name: install gcc
   become: yes
   yum: name="@Development tools" state=present
-
+  tags:
+       - always
 
 - name: install gcc
   become: yes
   command: pip install --upgrade pip 
-
+  tags:
+       - always
 
 - name: add link
   become: yes
   file: src=/usr/local/bin/pip dest=/usr/bin/pip state=link
+  tags:
+       - always
 
 - name: install modules
   become: yes
@@ -46,8 +50,13 @@
             - validators
             - networkx
             - gensim
+  tags:
+       - always
+
 - name: type command
   command: python -c "import nltk; nltk.download('stopwords')"
+  tags:
+       - always
 
 
 

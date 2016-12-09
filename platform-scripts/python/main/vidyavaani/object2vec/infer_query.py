@@ -52,8 +52,8 @@ if use_doc2vec == 'true':
 
 else:
 	vectors = infer_query_LSA(inferFlag, model_loc, op_dir)
-	# file = open(os.path.join(model_loc, "vectors_normalized.txt"), "w")
-	# file.write(vectors)
-	# file.close()
+	file = open(os.path.join(model_loc, "vectors.txt"), "w")
+	file.write(vectors)
+	file.close()
 
 print vectors
