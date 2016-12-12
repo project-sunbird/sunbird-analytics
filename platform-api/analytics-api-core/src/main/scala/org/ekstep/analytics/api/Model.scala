@@ -58,3 +58,12 @@ object Constants {
 	val CONTENT_TO_VEC = "content_to_vector";
 	val REGISTERED_TAGS = "registered_tags";
 }
+
+object JobStatus extends Enumeration {
+	type Status = Value
+	val SUBMITTED, PROCESSING, COMPLETED, FAILED, RETRY = Value
+}
+
+case class JobOutput(location: String, dt_created: String, first_event_date: Long, last_event_date: Long, dt_expiration: Long);
+case class JobStats(dt_job_submitted: Long, dt_job_processing: Long, dt_job_completed: Long, input_events: Int, output_events: Int, latency: Int, executionTime: Int);
+case class JobStatusResponse(job_id: String, status: String, last_updated:Long, request_data: Map[String, AnyRef], output: Option[JobOutput] = None, job_stats: Option[JobStats] = None);
