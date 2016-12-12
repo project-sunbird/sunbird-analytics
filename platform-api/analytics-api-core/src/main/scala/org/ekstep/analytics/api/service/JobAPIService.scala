@@ -50,7 +50,7 @@ object JobAPIService {
 			val diff = 1728000;
 			val current = CommonUtil.getMillis();
 			val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC()
-			val output = JobOutput("https://s3-ap-southeast-1.amazonaws.com/ekstep-public/ecar_files/1454996593287.zip", df.print(current), current-diff, current, current+diff);
+			val output = JobOutput("https://s3-ap-southeast-1.amazonaws.com/ekstep-public/data-out/1454996593287.zip", df.print(current), current-diff, current, current+diff);
 			val stats = JobStats(current-3600, current-2400, current-3000, Random.nextInt(10000), Random.nextInt(2000), Random.nextInt(200), Random.nextInt(1200))
 			JobStatusResponse(id, status, CommonUtil.getMillis, Map(), Option(output), Option(stats))
 		} else {
