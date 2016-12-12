@@ -80,7 +80,7 @@ class TestItemSummaryModel extends SparkSpec(null) {
         val tag1Events = events.filter { x => StringUtils.equals("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", x.dimensions.tag.get) && 20160929 == x.dimensions.period.get }
         val domain_4564Event = tag1Events.filter { x => StringUtils.equals("domain_4564", x.dimensions.item_id.get) }.last
         val domain_4564EventEksMap = domain_4564Event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        domain_4564EventEksMap.get("misconception_res").get.asInstanceOf[Map[String, Int]] should be(Map())
+        domain_4564EventEksMap.get("mmc").get.asInstanceOf[Map[String, Int]] should be(Map())
     }
 
     it should "generate aggregated mmc response when grouped by ItemKey" in {
@@ -90,7 +90,7 @@ class TestItemSummaryModel extends SparkSpec(null) {
         val tag1Events = events.filter { x => StringUtils.equals("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", x.dimensions.tag.get) && 20160929 == x.dimensions.period.get }
         val domain_4564Event = tag1Events.filter { x => StringUtils.equals("domain_4544", x.dimensions.item_id.get) }.last
         val domain_4564EventEksMap = domain_4564Event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        val maping = domain_4564EventEksMap.get("misconception_res").get.asInstanceOf[Map[String, AnyRef]].toList
+        val maping = domain_4564EventEksMap.get("mmc").get.asInstanceOf[Map[String, AnyRef]].toList
         maping(2)._2 should be (2)
     }
     
@@ -101,7 +101,7 @@ class TestItemSummaryModel extends SparkSpec(null) {
         val tag1Events = events.filter { x => StringUtils.equals("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", x.dimensions.tag.get) && 20160929 == x.dimensions.period.get }
         val domain_4564Event = tag1Events.filter { x => StringUtils.equals("domain_4544", x.dimensions.item_id.get) }.last
         val domain_4564EventEksMap = domain_4564Event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        val maping = domain_4564EventEksMap.get("misconception_res").get.asInstanceOf[Map[String, AnyRef]].toList
+        val maping = domain_4564EventEksMap.get("mmc").get.asInstanceOf[Map[String, AnyRef]].toList
         maping(2)._1 should be ("m6")
     }
 }

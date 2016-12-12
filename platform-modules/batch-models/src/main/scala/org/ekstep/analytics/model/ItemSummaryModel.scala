@@ -31,7 +31,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.immutable.Nil
 
 case class InputEventsItemSummary(ik: ItemKey, events: Buffer[ItemUsageMetricsSummary]) extends Input with AlgoInput
-case class ItemUsageMetricsSummary(ik: ItemKey, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, m_incorrect_res: List[(String, Int)], dt_range: DtRange, syncts: Long, m_misconception_res: List[(String,Int)]) extends AlgoOutput;
+case class ItemUsageMetricsSummary(ik: ItemKey, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, m_incorrect_res: List[(String, Int)], dt_range: DtRange, syncts: Long, m_mmc: List[(String,Int)]) extends AlgoOutput;
 
 object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsItemSummary, ItemUsageMetricsSummary, MeasuredEvent] with Serializable {
 
@@ -52,7 +52,7 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
         val correct_res_count = events.map { x => x.correct_res_count }.sum
         val inc_res_count = events.map { x => x.inc_res_count }.sum
         val m_incorrect_res = events.flatMap { x => x.m_incorrect_res }.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
-        val m_misconception_res = events.flatMap { x => x.m_misconception_res }.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
+        val m_misconception_res = events.flatMap { x => x.m_mmc }.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
         ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, date_range, lastEvent.syncts, m_misconception_res);
     }
     
@@ -71,8 +71,8 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
         val inc_res_count: Int = if (StringUtils.equals("No", pass)) 1 else 0;
 
         val m_incorrect_res = if (inc_res_count == 1) res.map { x => (x, 1) } else List[(String, Int)]();
-        val m_misconception_res=if (inc_res_count == 1) mmc.map { x => (x , 1) } else List[(String, Int)]();
-        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, event.context.date_range, event.syncts, m_misconception_res);
+        val m_mmc=if (inc_res_count == 1) mmc.map { x => (x , 1) } else List[(String, Int)]();
+        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, event.context.date_range, event.syncts, m_mmc);
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsItemSummary] = {
@@ -120,7 +120,7 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
                 "inc_res_count" -> itSumm.inc_res_count,
                 "incorrect_res" -> itSumm.m_incorrect_res.toMap,
                 "correct_res" -> itSumm.correct_res,
-                "misconception_res" -> itSumm.m_misconception_res.toMap
+                "mmc" -> itSumm.m_mmc.toMap
                 )
 
             MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.syncts, "1.0", mid, "", None, None,
