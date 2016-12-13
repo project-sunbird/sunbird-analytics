@@ -29,7 +29,7 @@ class Eks(val id: String, val ver: String, val levels: Array[Map[String, Any]], 
                      val interruptTime: Double, val timeDiff: Double, val start_time: Long, val end_time: Long, val currentLevel: Map[String, String],
                      val noOfLevelTransitions: Int, val interactEventsPerMin: Double, val completionStatus: Boolean, val screenSummary: Array[AnyRef], 
                      val noOfInteractEvents: Int, val eventsSummary: Array[AnyRef], val syncDate: Long, val contentType: AnyRef, val mimeType: AnyRef, 
-                     val did: String, val tags: AnyRef, val telemetryVer: String, val itemResponses: Array[AnyRef], val qtitle: Option[String]=None, val qdesc: Option[String]=None)
+                     val did: String, val tags: AnyRef, val telemetryVer: String, val itemResponses: Array[AnyRef])
 
 @scala.beans.BeanInfo
 class MEEdata(val eks: Eks) extends Serializable;
