@@ -68,10 +68,11 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
                 Map();
             }
             val versionKey = AppConf.getConfig("lp.contentmodel.versionkey").asInstanceOf[AnyVal];
-            val contentMap = usageMap ++ popularityMap ++ Map("versionKey" -> versionKey);
+            val metrics = usageMap ++ popularityMap
+            val contentMap = metrics ++ Map("versionKey" -> versionKey);
             val request = Map("request" -> Map("content" -> contentMap));            
             val r = RestUtil.patch[Response](url, JSONUtils.serialize(request));
-            PopularityUpdaterOutput(x.contentId, contentMap, r.responseCode, r.params.errmsg)
+            PopularityUpdaterOutput(x.contentId, metrics, r.responseCode, r.params.errmsg)
         };
     }
 
