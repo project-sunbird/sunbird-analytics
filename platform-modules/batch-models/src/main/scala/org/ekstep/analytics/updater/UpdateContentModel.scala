@@ -19,14 +19,15 @@ import org.ekstep.analytics.framework.ContentId
 import org.ekstep.analytics.util.ContentUsageSummaryView
 import org.ekstep.analytics.util.ContentPopularitySummaryView
 import org.ekstep.analytics.util.ContentSummaryIndex
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class PopularityUpdaterInput(contentId: String, contentSummary: Option[ContentUsageSummaryView], popularitySummary: Option[ContentPopularitySummaryView]) extends AlgoInput
-case class PopularityUpdaterOutut(contentId: String, metrics: Map[String, AnyVal], reponseCode: String, errorMsg: Option[String]) extends AlgoOutput with Output
+case class PopularityUpdaterOutput(contentId: String, metrics: Map[String, AnyVal], reponseCode: String, errorMsg: Option[String]) extends AlgoOutput with Output
 
 /**
  * @author Santhosh
  */
-object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUpdaterInput, PopularityUpdaterOutut, PopularityUpdaterOutut] with Serializable {
+object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUpdaterInput, PopularityUpdaterOutput, PopularityUpdaterOutput] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateContentModel"
     override def name: String = "UpdateContentModel"
@@ -42,7 +43,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             PopularityUpdaterInput(f._1, if (f._2._1.size > 0) Option(f._2._1.head) else None, if (f._2._2.size > 0) Option(f._2._2.head) else None))
     }
 
-    override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutut] = {
+    override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutput] = {
         data.map { x =>
             val url = Constants.getContentUpdateAPIUrl(x.contentId);
             val usageMap = if (x.contentSummary.isDefined) {
@@ -66,14 +67,15 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             } else {
                 Map();
             }
-            val contentMap = usageMap ++ popularityMap;
-            val request = Map("request" -> Map("content" -> contentMap));
+            val versionKey = AppConf.getConfig("lp.contentmodel.versionkey").asInstanceOf[AnyVal];
+            val contentMap = usageMap ++ popularityMap ++ Map("versionKey" -> versionKey);
+            val request = Map("request" -> Map("content" -> contentMap));            
             val r = RestUtil.patch[Response](url, JSONUtils.serialize(request));
-            PopularityUpdaterOutut(x.contentId, contentMap, r.responseCode, r.params.errmsg)
+            PopularityUpdaterOutput(x.contentId, contentMap, r.responseCode, r.params.errmsg)
         };
     }
 
-    override def postProcess(data: RDD[PopularityUpdaterOutut], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutut] = {
-        data
+    override def postProcess(data: RDD[PopularityUpdaterOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutput] = {
+    	data
     }
 }
