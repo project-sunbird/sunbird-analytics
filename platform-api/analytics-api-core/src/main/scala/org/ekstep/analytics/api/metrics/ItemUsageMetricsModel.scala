@@ -7,8 +7,8 @@ import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.ItemUsageSummary
-import scala.collection.JavaConversions._
 import org.ekstep.analytics.api.ItemUsageSummaryView
+import org.ekstep.analytics.api.Misconception
 import org.ekstep.analytics.api.InCorrectRes
 
 object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
@@ -20,7 +20,8 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 		val recordsRDD = records.groupBy { x => x.d_period + "-" + x.d_content_id }.map{ f => 
 			val items = f._2.map { x => 
 				val top5_incorrect_res = if (null == x.m_top5_incorrect_res || x.m_top5_incorrect_res.isEmpty) List() else  x.m_top5_incorrect_res.map(f => InCorrectRes(f._1, f._2));
-				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(top5_incorrect_res), Option(x.m_avg_ts)) 
+				val top5_mmc = if (null == x.m_top5_mmc || x.m_top5_mmc.isEmpty) List() else  x.m_top5_mmc.map(f => Misconception(f._1, f._2));
+				ItemUsageSummary(x.d_item_id, Option(x.d_content_id), Option(x.m_total_ts), Option(x.m_total_count), Option(x.m_correct_res_count), Option(x.m_inc_res_count), Option(x.m_correct_res), Option(top5_incorrect_res), Option(x.m_avg_ts), Option(top5_mmc))
 			}.toList;
 			val first = f._2.head;
 			ItemUsageMetrics(Option(first.d_period.get), None, Option(items));
@@ -50,7 +51,10 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 		val m_top5_incorrect_res = (fact1.m_top5_incorrect_res.getOrElse(List()) ++ fact2.m_top5_incorrect_res.getOrElse(List())).groupBy(f => f.resp).mapValues(f => f.map(x => x.count).sum).toList
 									.sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => InCorrectRes(x._1, x._2) }.toList;
 		val m_avg_ts = if (m_total_count > 0) CommonUtil.roundDouble(m_total_ts/m_total_count, 2) else 0;
-  		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_top5_incorrect_res), Option(m_avg_ts));
+  	val m_top5_mmc = (fact1.m_top5_mmc.getOrElse(List()) ++ fact2.m_top5_mmc.getOrElse(List())).groupBy(f => f.resp).mapValues(f => f.map(x => x.count).sum).toList
+		                 .sorted(Ordering.by((_: (String, Int))._2).reverse).take(5).map { x => Misconception(x._1, x._2) }.toList;
+  		
+		ItemUsageSummary(fact1.d_item_id, None, Option(m_total_ts), Option(m_total_count), Option(m_correct_res_count), Option(m_inc_res_count), Option(m_correct_res), Option(m_top5_incorrect_res), Option(m_avg_ts), Option(m_top5_mmc));
   	}
   	
   	override def getSummary(summary: ItemUsageMetrics) : ItemUsageMetrics = {

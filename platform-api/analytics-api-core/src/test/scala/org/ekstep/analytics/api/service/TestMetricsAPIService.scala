@@ -69,6 +69,20 @@ class TestMetricsAPIService extends SparkSpec {
         metric.get("m_avg_ts_session") should be(Some(0.0));
     }
 
+    private def checkItemUsageMetrics(metric: Map[String, AnyRef]) {
+        metric.get("m_top5_incorrect_res") should be(Some(List()));
+        metric.get("m_inc_res_count").get should be(1);
+        metric.get("m_top5_mmc") should be(Some(List()));
+
+    }
+
+    private def checkItemUsageSummary(summary: Map[String, AnyRef]) {
+        summary.get("m_total_count").get should be(6);
+        summary.get("m_inc_res_count").get should be(6);
+        summary.get("m_top5_mmc") should be(Some(List()));
+
+    }
+
     "ContentUsageMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
         val request = """{"id":"ekstep.analytics.metrics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341","content_id":"do_435543"}}}""";
         val response = getContentUsageMetrics(request);
@@ -209,6 +223,29 @@ class TestMetricsAPIService extends SparkSpec {
         val response = getItemUsageMetrics(request);
         response.result.metrics.length should be(7);
         response.result.summary should not be empty;
+    }
+
+    it should "return metrics of Item usage metrics for last 7 days data if values present in input data " in {
+        val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb","content_id":"do_324353","d_item_id":"pq.div.a36"}}}""";
+        val response = getItemUsageMetrics(request);
+        val metrics = response.result.metrics(0).get("items").get.asInstanceOf[List[Map[String, AnyRef]]]
+        checkItemUsageMetrics(metrics(0))
+    }
+
+    it should "return summary of Item usage metrics for last 7 days data if values present in input data " in {
+        val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb","content_id":"do_324353","d_item_id":"pq.div.a36"}}}""";
+        val response = getItemUsageMetrics(request);
+        val summary = response.result.summary.get("items").get.asInstanceOf[List[Map[String, AnyRef]]]
+        checkItemUsageSummary(summary(0))
+    }
+
+    it should "return summary of top5_mmc metrics for last 7 days data if values present in input data " in {
+        val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb","content_id":"do_324353","d_item_id":"pq.div.a36"}}}""";
+        val response = getItemUsageMetrics(request);
+        val summary = response.result.summary.get("items").get.asInstanceOf[List[Map[String, AnyRef]]]
+        val top5_mmc = summary(14).get("m_top5_mmc").get.asInstanceOf[List[Map[String, AnyRef]]]
+        top5_mmc(0).get("resp").get should be("m1")
+        top5_mmc(0).get("count").get should be(10)
     }
 
     it should "return last 5 weeks metrics when, when 5 weeks data present" in {
