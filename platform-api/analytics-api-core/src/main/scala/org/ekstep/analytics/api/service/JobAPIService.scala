@@ -8,6 +8,7 @@ import java.util.UUID
 import org.ekstep.analytics.api.JobStatus
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.util.Random
+import akka.actor.Props
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
 import org.ekstep.analytics.api.JobStats
@@ -19,7 +20,9 @@ import org.ekstep.analytics.api.JobStats
 
 object JobAPIService {
 	
-	def dataExhaust()(implicit sc: SparkContext): String = {
+    def props = Props[ContentAPIService];
+	
+    def dataExhaust()(implicit sc: SparkContext): String = {
 		val result = randomJobStatus(None)
 		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.data.out", result));	
 	}

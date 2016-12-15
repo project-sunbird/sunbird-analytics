@@ -28,7 +28,8 @@ object CommonUtil {
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
     @transient val weekPeriodLabel: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
-
+    @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
         val conf = new SparkConf().setAppName(appName);
@@ -134,6 +135,11 @@ object CommonUtil {
     
     def getMillis(): Long = {
     	DateTime.now(DateTimeZone.UTC).getMillis
+    }
+    
+    def getToday(): String = {
+        val date = new DateTime
+        dateFormat.print(date)
     }
 
 }
