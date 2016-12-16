@@ -57,11 +57,11 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
 
         val Q4 = cummAlldo_20043159ItemSumm.filter { x => StringUtils.equals("Q4", x.d_item_id) }.last
 
-        Q4.m_total_ts should be(2)
-        Q4.m_total_count should be(2)
+        Q4.m_total_ts should be(4)
+        Q4.m_total_count should be(4)
         Q4.m_avg_ts should be(1)
         Q4.m_correct_res_count should be(0)
-        Q4.m_inc_res_count should be(2)
+        Q4.m_inc_res_count should be(4)
 
     }
 
@@ -112,9 +112,9 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
 
         val Q4 = cummAlldo_20043159ItemSumm.filter { x => StringUtils.equals("Q4", x.d_item_id) }.last
 
-        JSONUtils.serialize(Q4.m_top5_mmc) should be("""[["m4",2],["m6",2]]""")
-        JSONUtils.serialize(Q4.m_mmc) should be("""[["m4",2],["m6",2]]""")
-
+        JSONUtils.serialize(Q4.m_top5_mmc) should be("""[["m4",4],["m6",4]]""")
+        JSONUtils.serialize(Q4.m_mmc) should be("""[["m4",4],["m6",4]]""")
+        JSONUtils.serialize(Q4.m_mmc_res) should be("""[["m6,m4",6]]""")
     }
 
     it should "validate top5_misconception per day results from cassandra DB " in {
