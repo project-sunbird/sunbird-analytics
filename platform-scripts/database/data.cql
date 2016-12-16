@@ -254,7 +254,7 @@ CREATE KEYSPACE IF NOT EXISTS general_db WITH replication = {
 
 CREATE TABLE IF NOT EXISTS general_db.jobs (
     client_id text,
-    request_id text,
+    request_id int,
     job_id text,
     status text,
     request_data text,

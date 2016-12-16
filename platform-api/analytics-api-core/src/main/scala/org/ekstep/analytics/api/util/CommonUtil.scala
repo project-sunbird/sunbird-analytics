@@ -2,6 +2,7 @@ package org.ekstep.analytics.api.util
 
 import org.joda.time.LocalDate
 import org.joda.time.Weeks
+import org.joda.time.Days
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.Response
 import org.joda.time.DateTime
@@ -138,8 +139,24 @@ object CommonUtil {
     }
     
     def getToday(): String = {
-        val date = new DateTime
-        dateFormat.print(date)
+        dateFormat.print(new DateTime)
+    }
+    
+    def getPeriod(date: String): Int = {
+        try {
+            Integer.parseInt(date.replace("-", ""))  
+        } catch {
+          case t: Throwable => 0; // TODO: handle error
+        }
+    }
+    
+    def getDaysBetween(start: String, end: String): Int = {
+        val to = dateFormat.parseLocalDate(end)
+        val from = dateFormat.parseLocalDate(start)
+        Days.daysBetween(from, to).getDays()
+    }
+    def main(args: Array[String]): Unit = {
+      println(getPeriod("2016-10-01"))
     }
 
 }
