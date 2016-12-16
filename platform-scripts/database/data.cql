@@ -272,7 +272,7 @@ CREATE TABLE IF NOT EXISTS general_db.jobs (
     output_events int,
     file_size bigint,
     latency int,
-    executionTime bigint,
+    execution_time bigint,
     err_message text,
     PRIMARY KEY (request_id)
 );

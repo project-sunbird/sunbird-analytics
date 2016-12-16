@@ -18,7 +18,7 @@ case class JobSummary(client_id: Option[String], request_id: Option[String], job
                       locations: Option[List[String]], dt_file_created: Option[DateTime], dt_first_event: Option[DateTime], dt_last_event: Option[DateTime],
                       dt_expiration: Option[DateTime], iteration: Option[Int], dt_job_submitted: Option[DateTime], dt_job_processing: Option[DateTime],
                       dt_job_completed: Option[DateTime], input_events: Option[Int], output_events: Option[Int], file_size: Option[Long], latency: Option[Int],
-                      executiontime: Option[Long], err_message: Option[String]) extends AlgoOutput
+                      execution_time: Option[Long], err_message: Option[String]) extends AlgoOutput
 
 @scala.beans.BeanInfo
 case class DataExhaustInput(tag: String, events: Buffer[Event]) extends AlgoInput
@@ -31,6 +31,8 @@ object DataExhaustModel extends IBatchModelTemplate[Event, DataExhaustInput, Emp
     
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DataExhaustInput] = {
 
+        val request_id = config.getOrElse("request_id", "").asInstanceOf[String]
+        sc.parallelize(Array((request_id, data.count().toInt))).saveToCassandra("general_db", "jobs", SomeColumns("request_id","input_events"))
         data.map { x =>
             val tagList = x.tags.asInstanceOf[List[Map[String, List[String]]]]
             val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
