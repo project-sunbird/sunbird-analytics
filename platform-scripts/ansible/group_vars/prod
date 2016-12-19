@@ -65,9 +65,13 @@ jobs:
     hour: 7
     minute: 12
     state: present
+  gfa:
+    hour: 7
+    minute: 15
+    state: present
   item-usage-summ:
     hour: 7
-    minute: 13
+    minute: 18
     state: present
   genie-launch-metrics:
     hour: 7
@@ -75,24 +79,23 @@ jobs:
     state: present
   item-usage-metrics:
     hour: 7
-    minute: 25
+    minute: 45
     state: present
   cmu:
     hour: 7
-    minute: 26
+    minute: 46
     state: present
-
 
 pre_jobs:
   pre_job:
     hour: 7
-    minute: 32
+    minute: 52
   #state: present
 
 monit_jobs:
   joblog.log:
     hour: 7
-    minute: 30
+    minute: 50
 secor_raw_job:
   secor_raw:
     hour: 23
