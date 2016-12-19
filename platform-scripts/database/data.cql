@@ -254,12 +254,12 @@ CREATE KEYSPACE IF NOT EXISTS general_db WITH replication = {
 
 CREATE TABLE IF NOT EXISTS general_db.jobs (
     client_id text,
-    request_id int,
+    request_id text,
     job_id text,
     status text,
     request_data text,
     config text,
-    locations list<text>,
+    location text,
     dt_file_created timestamp,
     dt_first_event timestamp,
     dt_last_event timestamp,

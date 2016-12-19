@@ -10,6 +10,7 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.Dispatcher
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestDataExhaustModel extends SparkSpec(null) {
   
@@ -23,6 +24,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
         table.output_events.get should be(100)
         table.dt_first_event.get.getMillis should be(1477980487115L)
         table.dt_last_event.get.getMillis should be(1479619192051L)
+        CommonUtil.deleteFile("src/test/resources/data-exhaust/6a54bfa283de43a89086e69e2efdc9eb6750493d.zip")
     }
     
     it should "generate zip file of only assessment events and save to s3" in {
@@ -36,6 +38,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
         table.output_events.get should be(50)
         table.dt_first_event.get.getMillis should be(1477987602000L)
         table.dt_last_event.get.getMillis should be(1479629266000L)
+        CommonUtil.deleteFile("src/test/resources/data-exhaust/4a54bfa283de43a89086e69e2efdc9eb6750493d.zip")
     }
     
     it should "check for given filter criteria that no data available" in {
@@ -46,7 +49,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
         
         val table = sc.cassandraTable[JobSummary]("general_db", "jobs").where("request_id=?", "8a54bfa283de43a89086e69e2efdc9eb6750493d").first
         table.output_events.get should be(0)
-//        table.locations.size should be(0)
+        table.location should be(None)
     }
     
     it should "Check for duplicate events if 2 tags are selected" in {
@@ -59,6 +62,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
         table.output_events.get should be(25)
         table.dt_first_event.get.getMillis should be(1477980487115L)
         table.dt_last_event.get.getMillis should be(1478067027149L)
+        CommonUtil.deleteFile("src/test/resources/data-exhaust/2a54bfa283de43a89086e69e2efdc9eb6750493d.zip")
     }
     
     def populateCassandra() {
