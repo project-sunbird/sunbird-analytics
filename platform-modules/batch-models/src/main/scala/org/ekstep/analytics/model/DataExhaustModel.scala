@@ -13,6 +13,8 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import java.io.File
 import org.apache.hadoop.io.compress.GzipCodec
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
 
 case class JobSummary(client_id: Option[String], request_id: Option[String], job_id: Option[String], status: Option[String], request_data: Option[String], config: Option[String],
                       locations: Option[List[String]], dt_file_created: Option[DateTime], dt_first_event: Option[DateTime], dt_last_event: Option[DateTime],
@@ -49,15 +51,29 @@ object DataExhaustModel extends IBatchModelTemplate[Event, DataExhaustInput, Emp
 
         val filterTags = config.getOrElse("tags", List()).asInstanceOf[List[String]]
         val request_id = config.getOrElse("request_id", "").asInstanceOf[String]
+        val local_path = config.getOrElse("local_path", "mnt/data/analytics/data-exhaust/").asInstanceOf[String]
+        val bucket = config.getOrElse("bucket", "ekstep-public").asInstanceOf[String]
+        val key = config.getOrElse("key", "data-exhaust/").asInstanceOf[String]
         
         val dataMap = data.collect().map{x => (x.tag, x.events)}.toMap
         val outputEvents = filterTags.map{ f =>
             if(dataMap.contains(f)) dataMap.get(f).get else Buffer[Event]()
         }.flatMap { x => x }
-        val distinctOutput = sc.parallelize(outputEvents).map{y => JSONUtils.serialize(y)}.distinct()//.map { x => JSONUtils.deserialize[Event](x) }
-        sc.parallelize(Array((request_id, distinctOutput.count().toInt))).saveToCassandra("general_db", "jobs", SomeColumns("request_id","output_events"))
-//        distinctOutput.saveAsTextFile("/tmp/data-exhaust/request_id", classOf[GzipCodec])
-//        CommonUtil.gzip("/tmp/data-exhaust")
+        val sortedEvents = outputEvents.sortBy { x => CommonUtil.getEventTS(x) }
+        val firstEventDate = if(sortedEvents.size>0) CommonUtil.getEventTS(sortedEvents(0)) else None
+        val lastEventDate = if(sortedEvents.size>0) CommonUtil.getEventTS(sortedEvents.last) else None
+        val distinctOutput = sc.parallelize(outputEvents).map{y => JSONUtils.serialize(y)}.distinct()
+
+        val file = new File("/tmp/data-exhaust/"+request_id)
+        if (file.exists())
+            CommonUtil.deleteDirectory(local_path+request_id)
+        distinctOutput.saveAsTextFile(local_path+request_id)
+        val files = sc.wholeTextFiles(local_path+request_id).map{x => x._1.split(":").last}
+        CommonUtil.zip(local_path+request_id+".zip", files.collect())
+        CommonUtil.deleteDirectory(local_path+request_id)
+        val fileSize = new File(local_path+request_id+".zip").length()
+        S3Dispatcher.dispatch(null, Map("filePath" -> (local_path+request_id+".zip"), "bucket" -> bucket, "key" -> (key+request_id+".zip")))
+        sc.parallelize(Array((request_id, distinctOutput.count().toInt, firstEventDate, lastEventDate, fileSize, new DateTime().getMillis))).saveToCassandra("general_db", "jobs", SomeColumns("request_id","output_events", "dt_first_event", "dt_last_event", "file_size", "dt_file_created"))
         sc.makeRDD(List(Empty()));
     }
 
