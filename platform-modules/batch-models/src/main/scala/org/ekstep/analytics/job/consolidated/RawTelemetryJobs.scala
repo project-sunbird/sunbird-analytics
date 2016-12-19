@@ -10,7 +10,7 @@ object RawTelemetryJobs extends optional.Application with IJob {
     val className = "org.ekstep.analytics.job.RawTelemetryJob"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        val models = List(LearnerSessionSummaryModel, AserScreenSummaryModel, GenieLaunchSummaryModel, GenieSessionSummaryModel, ContentSideloadingSummaryModel, ContentPopularitySummaryModel)
+        val models = List(LearnerSessionSummaryModel, AserScreenSummaryModel, GenieLaunchSummaryModel, GenieSessionSummaryModel, ContentSideloadingSummaryModel, ContentPopularitySummaryModel, GenieFunnelModel)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, models, className);
     }

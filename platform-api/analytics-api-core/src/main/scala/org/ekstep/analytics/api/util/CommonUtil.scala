@@ -131,5 +131,9 @@ object CommonUtil {
         	lastDay.toString(DateTimeFormat.forPattern("MMM dd"))
         s"$first - $last";
     }
+    
+    def getMillis(): Long = {
+    	DateTime.now(DateTimeZone.UTC).getMillis
+    }
 
 }

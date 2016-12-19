@@ -1,0 +1,4 @@
+---
+- hosts: jmeter
+  roles:
+        - jmeter

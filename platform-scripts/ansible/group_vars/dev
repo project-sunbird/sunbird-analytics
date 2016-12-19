@@ -81,6 +81,10 @@ jobs:
     hour: 2
     minute: 24
     state: present
+  gfa:
+    hour: 2
+    minute: 26
+    state: present
 
 pre_jobs:
   pre_job:
@@ -99,3 +103,9 @@ secor_me_job:
   secor_me:
     hour: 23
     minute: 58
+
+cassandra:
+  seeds: 172.31.25.29
+  listen_address: 172.31.25.29
+  rpc_address: 0.0.0.0
+  broadcast_rpc_address: 172.31.25.29

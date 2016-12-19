@@ -1,0 +1,24 @@
+---
+- name: Download Apache jmeter
+  get_url: url=http://www-eu.apache.org/dist//jmeter/binaries/apache-jmeter-3.1.tgz dest={{ analytics.home }}/apache-jmeter-3.1.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
+
+- name: Unarchive jmeter
+  unarchive: src={{ analytics.home }}/apache-jmeter-3.1.tgz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-jmeter-3.1
+
+- name: Update bashrc for JMETER_HOME
+  lineinfile: dest=.bash_profile line='JMETER_HOME=/mnt/data/analytics/apache-jmeter-3.1' state=present insertafter=EOF create=yes
+  tags:
+    - analytics
+
+- name: Export JMETER_HOME
+  lineinfile: dest=.bash_profile  line='export JMETER_HOME' state=present insertafter=EOF create=yes
+  tags:
+    - analytics
+
+- name: Add JMETER_HOME to the PATH
+  lineinfile: dest=.bash_profile line='PATH=$PATH:$JMETER_HOME/bin' state=present insertafter=EOF create=yes
+  tags:
+    - analytics
+
+- name: Create directory
+  file: path={{ analytics.home }}/load-testing owner=ec2-user group=ec2-user state=directory

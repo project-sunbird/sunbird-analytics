@@ -12,7 +12,8 @@ DESC="{{ description }}"
 GREP_KEY="{{ grep_key }}"
 DAEMON={{ process }}
 DAEMON_ARGS="{{ process_args }}"
-DAEMON_HOME="{{ script_dir }}"
+DAEMON_HOME="{{ app_home }}"
+SBIN_HOME="{{ script_dir }}"
 
 #echo "All value sets"
 
@@ -27,7 +28,7 @@ start() {
     else
         printf "%-50s" "Starting $prog ..."
         cd $DAEMON_HOME
-        daemon $DAEMON $DAEMON_ARGS >service.log 2>&1 &
+        daemon $DAEMON $DAEMON_ARGS >$SBIN_HOME/service.log 2>&1 &
         sleep 5
         PID=`ps aux|grep -vE 'grep|runuser|bash'|grep -w "$GREP_KEY"|awk '{print $2}'`
         if [ -z "$PID" ]; then

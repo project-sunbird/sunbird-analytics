@@ -27,7 +27,7 @@ class ApplicationSpec extends BaseSpec {
             status(response) must equalTo(OK)
        }
        
-       "return error response on invalid request - error response" in new WithApplication {
+       "return error response on invalid request(recommendations) - error response" in new WithApplication {
     		val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """
 			val response = post("/recommendations", request);
     		hasClientError(response);
@@ -78,6 +78,13 @@ class ApplicationSpec extends BaseSpec {
        "un-register tag" in new WithApplication {
     	   	val response = route(FakeRequest(DELETE, "/tag/4f04da601e244d31aa7b1daf91c46341")).get;
 			isOK(response);
+       }
+       
+       "recommendations - should return empty response when recommendations disabled" in new WithApplication {
+			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}, "filters": {"contentType": "Story"}}} """
+			val response = post("/recommendations", request);
+			isOK(response);
+			contentAsString(response) must contain(""""count":0""")
        }
     }
 }

@@ -15,7 +15,7 @@ class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
-          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double) extends Serializable {}
+          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double, val qtitle: String, val qdesc: String) extends Serializable {}
 
 @scala.beans.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -35,7 +35,7 @@ case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: 
 @scala.beans.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
 @scala.beans.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None);
 @scala.beans.BeanInfo
 case class PData(id: String, model: String, ver: String);
 @scala.beans.BeanInfo
@@ -124,3 +124,20 @@ object Level extends Enumeration {
     type Level = Value
     val INFO, DEBUG, WARN, ERROR = Value
 }
+
+trait Stage extends Enumeration {
+    type Stage = Value
+    val contentPlayed = Value
+}
+
+object OnboardStage extends Stage {
+    override type Stage = Value
+    val welcomeContent, addChild, firstLesson, gotoLibrary, searchLesson, loadOnboardPage = Value
+}
+
+object OtherStage extends Stage {
+    override type Stage = Value
+    val listContent, selectContent, downloadInitiated, downloadComplete = Value
+}
+
+

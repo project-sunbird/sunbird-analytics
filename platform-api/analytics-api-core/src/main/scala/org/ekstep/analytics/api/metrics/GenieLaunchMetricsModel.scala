@@ -14,7 +14,7 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
-		var periodsRDD = sc.parallelize(periods.map { period => (period, GenieLaunchMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
+		val periodsRDD = sc.parallelize(periods.map { period => (period, GenieLaunchMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
 		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
 			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1) else f._2._1
 		};
@@ -31,6 +31,10 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
 		val total_devices = fact2.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue + fact1.m_total_devices.getOrElse(0l).asInstanceOf[Number].longValue;
 		val avg_sess_device = if (total_devices > 0) CommonUtil.roundDouble(total_sessions.toDouble / total_devices, 2) else 0.0;
 		val avg_ts_session = if (total_sessions > 0) CommonUtil.roundDouble((total_ts / total_sessions), 2) else 0.0;
-		GenieLaunchMetrics(None, None, Option(total_sessions), Option(total_ts), Option(total_devices), Option(avg_sess_device), Option(avg_ts_session));
+		GenieLaunchMetrics(fact1.d_period, None, Option(total_sessions), Option(total_ts), Option(total_devices), Option(avg_sess_device), Option(avg_ts_session));
+	}
+	
+	override def getSummary(summary: GenieLaunchMetrics) : GenieLaunchMetrics = {
+		GenieLaunchMetrics(None, None, summary.m_total_sessions, summary.m_total_ts, summary.m_total_devices, summary.m_avg_sess_device, summary.m_avg_ts_session);		
 	}
 }

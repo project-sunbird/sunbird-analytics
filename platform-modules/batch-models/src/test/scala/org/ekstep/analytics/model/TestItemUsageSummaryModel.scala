@@ -41,4 +41,23 @@ class TestItemUsageSummaryModel extends SparkSpec(null) {
         eksMap.get("mc").get.asInstanceOf[List[AnyRef]].length should be(0)
         eksMap.get("time_stamp").get.asInstanceOf[Long] should be(1473923942941L)
     }
+    it should "generate None for qtitle and qdesc when raw telemetry don't have qtitle and qdesc" in {
+        val rdd = loadFile[org.ekstep.analytics.util.DerivedEvent]("src/test/resources/item-usage-summary/test-data.log");
+        val rdd2 = ItemUsageSummaryModel.execute(rdd, None);
+        val me = rdd2.map { x => JSONUtils.serialize(x) }.collect();
+        val event = JSONUtils.deserialize[DerivedEvent](me(7));
+        val itemRes = JSONUtils.deserialize[ItemResponse](JSONUtils.serialize(event.edata.eks))
+        itemRes.qtitle should be(None)
+        itemRes.qdesc should be(None)
+    }
+
+    it should "generate title for qtitle and description for qdesc when raw telemetry having qtitle as title and qdesc as description " in {
+        val rdd = loadFile[org.ekstep.analytics.util.DerivedEvent]("src/test/resources/item-usage-summary/test-data1.log");
+        val rdd2 = ItemUsageSummaryModel.execute(rdd, None);
+        val me = rdd2.map { x => JSONUtils.serialize(x) }.collect();
+        val event = JSONUtils.deserialize[DerivedEvent](me(7));
+        val itemRes = JSONUtils.deserialize[ItemResponse](JSONUtils.serialize(event.edata.eks))
+        itemRes.qtitle.get should be("title")
+        itemRes.qdesc.get should be("description")
+  }
 }

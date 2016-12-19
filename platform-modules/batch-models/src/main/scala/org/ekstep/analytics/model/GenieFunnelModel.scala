@@ -21,84 +21,47 @@ import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.OnboardStage
+import org.ekstep.analytics.framework.OtherStage
+import org.ekstep.analytics.framework.Stage
 
 case class GenieFunnelSession(did: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event], onbFlag: Boolean) extends AlgoInput
 case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, tags: Option[AnyRef]) extends AlgoOutput
 
-case class FunnelStageSummary(timeSpent: Option[Double] = Option(0.0), count: Option[Int] = Option(0), stageInvoked: Option[Int] = Option(0))
+case class FunnelStageSummary(label: String, count: Option[Int] = Option(0), stageInvoked: Option[Int] = Option(0))
 
 object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, GenieFunnelSession, GenieFunnel, MeasuredEvent] with Serializable {
+
+    val className = "org.ekstep.analytics.model.GenieFunnelModel"
+    override def name: String = "GenieFunnelModel"
 
     def computeFunnelSummary(event: GenieFunnelSession): GenieFunnel = {
 
         var stageMap = HashMap[String, FunnelStageSummary]();
+
         val funnel = event.funnel
         val events = event.events
-        val did = event.did
 
+        var stageList = ListBuffer[(String, Double)]();
         if (events.length > 0) {
-            var stageList = ListBuffer[(String, Double)]();
             var prevEvent = events(0);
-
             if ("GenieOnboarding".equals(funnel)) {
-                stageMap.put("loadOnboardPage", FunnelStageSummary());
-                stageMap.put("welcomeContentSkipped", FunnelStageSummary());
-                stageMap.put("addChildSkipped", FunnelStageSummary());
-                stageMap.put("firstLessonSkipped", FunnelStageSummary());
-                stageMap.put("gotoLibrarySkipped", FunnelStageSummary());
-                stageMap.put("searchLessonSkipped", FunnelStageSummary());
-                stageMap.put("gotoLibrarySkipped", FunnelStageSummary());
-                stageMap.put("contentPlayed", FunnelStageSummary());
-
-                events.foreach { x =>
-                    x.eid match {
-                        case "GE_INTERACT" =>
-                            val subType = x.edata.eks.subtype
-                            val stage = subType match {
-                                case "WelcomeContent-Skipped" => "welcomeContentSkipped";
-                                case "AddChild-Skipped"       => "addChildSkipped";
-                                case "FirstLesson-Skipped"    => "firstLessonSkipped";
-                                case "GoToLibrary-Skipped"    => "gotoLibrarySkipped";
-                                case "SearchLesson-Skipped"   => "searchLessonSkipped";
-                                case ""                       => "loadOnboardPage";
-                            }
-
-                            stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-                        case "GE_LAUNCH_GAME" =>
-                            stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-                    }
-                    prevEvent = x;
-                }
+                _fillEmptySumm(stageMap, OnboardStage)
             } else {
-
-                stageMap.put("listContent", FunnelStageSummary());
-                stageMap.put("selectContent", FunnelStageSummary());
-                stageMap.put("downloadInitiated", FunnelStageSummary());
-                stageMap.put("downloadComplete", FunnelStageSummary());
-                stageMap.put("contentPlayed", FunnelStageSummary());
-
-                events.foreach { x =>
-                    x.eid match {
-                        case "GE_INTERACT" =>
-
-                            val stageId = x.edata.eks.stageid
-                            val subType = x.edata.eks.subtype
-                            val stage = (stageId, subType) match {
-                                case ("ContentSearch", "SearchPhrase")             => "listContent";
-                                case ("ContentList", "SearchPhrase")               => "listContent";
-                                case ("ContentList", "ContentClicked")             => "selectContent";
-                                case ("ContentDetail", "ContentDownload-Initiate") => "downloadInitiated";
-                                case ("ContentDetail", "ContentDownload-Success")  => "downloadComplete";
-                                case ("ExploreContent", "ContentClicked")          => "selectContent";
-                                case ("ExploreContent", "")                        => "listContent";
-                            }
-
+                _fillEmptySumm(stageMap, OtherStage)
+            }
+            events.foreach { x =>
+                x.eid match {
+                    case "GE_INTERACT" =>
+                        val stage = getStage(x.edata.eks.stageid, x.edata.eks.subtype)
+                        if (stage.nonEmpty) {
                             stageList += Tuple2(stage, CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-                        case "GE_LAUNCH_GAME" =>
-                            stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
-                    }
-                    prevEvent = x;
+                        }
+
+                    case "GE_LAUNCH_GAME" =>
+                        stageList += Tuple2("contentPlayed", CommonUtil.roundDouble(CommonUtil.getTimeDiff(prevEvent, x).get, 2));
                 }
+                prevEvent = x;
             }
 
             var currStage: String = null;
@@ -107,10 +70,10 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 if (currStage == null) {
                     currStage = x._1;
                 }
-                stageMap.put(currStage, FunnelStageSummary(Option(CommonUtil.roundDouble((stageMap.get(currStage).get.timeSpent.get + x._2), 2)), stageMap.get(currStage).get.count, stageMap.get(currStage).get.stageInvoked));
+                stageMap.put(currStage, FunnelStageSummary(currStage, stageMap.get(currStage).get.count, stageMap.get(currStage).get.stageInvoked));
                 if (currStage.equals(x._1)) {
                     if (prevStage != currStage)
-                        stageMap.put(currStage, FunnelStageSummary(Option(CommonUtil.roundDouble(stageMap.get(currStage).get.timeSpent.get, 2)), Option(stageMap.get(currStage).get.count.get + 1), Option(1)));
+                        stageMap.put(currStage, FunnelStageSummary(currStage, Option(stageMap.get(currStage).get.count.get + 1), Option(1)));
                     currStage = null;
                 }
                 prevStage = x._1;
@@ -119,17 +82,71 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
 
         val firstEvent = events.head
         val endEvent = events.last
-        val sid = firstEvent.sid
-        val cid = event.cid
-        val dspec = event.dspec
-        val genieVer = firstEvent.gdata.ver
+
+        val totalTimeSpent = CommonUtil.roundDouble(stageList.map { x => x._2 }.sum, 2)
+
         val dateRange = DtRange(CommonUtil.getEventTS(firstEvent), CommonUtil.getEventTS(endEvent))
         val syncts = CommonUtil.getEventSyncTS(endEvent)
-        val tags = endEvent.tags
-        val totalTimeSpent = CommonUtil.roundDouble(stageMap.map { x => x._2.timeSpent.get }.sum, 2)
 
-        GenieFunnel(funnel, cid, did, sid, dspec, genieVer, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(tags));
+        if ("GenieOnboarding".equals(funnel)) {
+            stageMap = _updateSkippedStageSummary(stageMap);
+        }
+        GenieFunnel(funnel, event.cid, event.did, firstEvent.sid, event.dspec, firstEvent.gdata.ver, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(endEvent.tags));
+    }
 
+    private def _updateSkippedStageSummary(stageMap: HashMap[String, FunnelStageSummary]): HashMap[String, FunnelStageSummary] = {
+        stageMap.map { x =>
+            (x._1, x._2.stageInvoked.get) match {
+                case ("welcomeContent", 0) => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("welcomeContent", 1) => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("addChild", 0)       => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("addChild", 1)       => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("firstLesson", 0)    => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("firstLesson", 1)    => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("gotoLibrary", 0)    => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("gotoLibrary", 1)    => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+
+                case ("searchLesson", 0)   => (x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
+                case ("searchLesson", 1)   => (x._1, FunnelStageSummary(x._1, Option(0), Option(0)));
+                case _                     => (x._1, x._2)
+            }
+        }
+    }
+    private def getStage(stageId: String, subType: String): String = {
+        (stageId, subType) match {
+            // for Genie Onboarding
+            case ("Genie-Home-OnBoardingScreen", "WelcomeContent-Skipped") => "welcomeContent";
+            case ("Genie-Home-OnBoardingScreen", "AddChild-Skipped") => "addChild";
+            case ("Genie-Home-OnBoardingScreen", "FirstLesson-Skipped") => "firstLesson";
+            case ("Genie-Home-OnBoardingScreen", "GoToLibrary-Skipped") => "gotoLibrary";
+            case ("Genie-Home-OnBoardingScreen", "SearchLesson-Skipped") => "searchLesson";
+            case ("Genie-Home-OnBoardingScreen", "") => "loadOnboardPage";
+            // for others
+            case ("ContentSearch", "SearchPhrase") => "listContent";
+            case ("ContentList", "SearchPhrase") => "listContent";
+            case ("ContentList", "ContentClicked") => "selectContent";
+            case ("ContentDetail", "ContentDownload-Initiate") => "downloadInitiated";
+            case ("ContentDetail", "ContentDownload-Success") => "downloadComplete";
+            case ("ExploreContent", "ContentClicked") => "selectContent";
+            case ("ExploreContent", "") => "listContent";
+            case _ => "";
+        }
+    }
+
+    private def _fillEmptySumm(stageMap: HashMap[String, FunnelStageSummary], stage: Stage) {
+        stage.values.foreach { x =>
+            stageMap.put(x.toString(), FunnelStageSummary(x.toString()));
+        }
+    }
+
+    private def _getFunnelId(event: Event): String = {
+        val cdataType = event.cdata.last.`type`.get
+        val stageId = event.edata.eks.stageid
+        val subType = event.edata.eks.subtype
+        if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else if ("ExploreContent".equals(stageId) && ("".equals(subType) || "ContentClicked".equals(subType))) "ExploreContent"; else "";
     }
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GenieFunnelSession] = {
@@ -138,24 +155,25 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
 
         genieLaunchSessions.mapValues { x =>
             val geStartEvents = DataFilter.filter(x, Filter("eid", "EQ", Option("GE_GENIE_START")))
-            val dspec = if (geStartEvents.length > 0) geStartEvents.last.edata.eks.dspec; else null;
+            val dspec = if (geStartEvents.size > 0) {
+                if (null != geStartEvents.last.edata)
+                    geStartEvents.last.edata.eks.dspec;
+                else null;
+            } else null;
 
             val filteredData = DataFilter.filter(x, Filter("eid", "IN", Option(List("GE_LAUNCH_GAME", "GE_INTERACT")))).filter { x => x.cdata != null && x.cdata.nonEmpty }
-            val onb = filteredData.filter { x => "ONBRDNG".equals(x.cdata.last.`type`.get) }
+            val onb = filteredData.filter { x => "Genie-Home-OnBoardingScreen".equals(x.edata.eks.stageid) }
             val onbflag = if (onb.length > 0) true; else false;
-            filteredData.map { x => (x.cdata.last.id, x) }.groupBy { x => x._1 }.map { x => (x._1, dspec, x._2.map(y => y._2), onbflag) };
+            filteredData.flatMap { x => x.cdata.map { y => (y.id, x) } }.groupBy { x => x._1 }.map { x => (x._1, dspec, x._2.map(y => y._2), onbflag) };
         }.map { x =>
             val did = x._1
             x._2.map { x =>
-                val events = x._3.sortBy { x => x.ts }
+                val events = x._3.sortBy { x => CommonUtil.getEventTS(x) }
                 val firstEvent = events.head
-                val cdataType = firstEvent.cdata.last.`type`.get
-                val stageId = firstEvent.edata.eks.stageid
-                val subType = firstEvent.edata.eks.subtype
-                val funnel = if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ExploreContent".equals(stageId) && "".equals(subType)) "ExploreContent"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else "ExploreContent";
+                val funnel = _getFunnelId(firstEvent)
                 GenieFunnelSession(did, x._1, x._2, funnel, events, x._4)
             };
-        }.flatMap { x => x };
+        }.flatMap { x => x }.filter { x => !"".equals(x.funnel) };
 
     }
 
@@ -166,13 +184,14 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
     }
 
     override def postProcess(data: RDD[GenieFunnel], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        data.map { summary =>
+        data.filter { x => x.timeSpent > 0 }.map { summary =>
             val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL", summary.funnel + summary.cid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did);
-            val measures = summary.summary.toMap ++ Map("timeSpent" -> summary.timeSpent)
+            val measures = summary.summary.toMap ++ Map("timeSpent" -> summary.timeSpent, "correlationID" -> summary.cid)
             MeasuredEvent("ME_GENIE_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieFunnel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange),
-                Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, None, None, None, None, Option(summary.sid), None, Option(summary.funnel), Option(summary.dspec), Option(summary.onboarding)),
+                Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, None, None, None, None, Option(summary.sid), None, Option(summary.funnel), Option(summary.dspec), Option(summary.onboarding), Option(summary.genieVer)),
                 MEEdata(measures), summary.tags);
         }
     }
+
 }
