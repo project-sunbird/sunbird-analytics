@@ -33,7 +33,7 @@
     - secor-me
 
 - name: Start the secor-me service
-  command: "/home/ec2-user/sbin/secor-me restart"
+  command: "/home/ec2-user/sbin/secor-me start"
   async: 20
   poll: 5
   tags:
@@ -43,7 +43,7 @@
 - name: Copy the config.zip properties artifact for secor-raw
   copy: src=config.zip dest=/home/ec2-user/secor-raw owner=ec2-user group=ec2-user
   tags:
-    - secor-me
+    - secor-raw
 
 - name: Status of the secor-raw service
   command: "/home/ec2-user/sbin/secor-raw status"
@@ -73,7 +73,7 @@
 
 
 - name: Start the secor-raw service
-  command: "/home/ec2-user/sbin/secor-raw restart"
+  command: "/home/ec2-user/sbin/secor-raw start"
   async: 20
   poll: 5
   tags:
