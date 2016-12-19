@@ -33,7 +33,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
     }
 
     private def _getRequestId(filter: Filter): String = {
-        Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString).mkString
+        Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString).mkString.hashCode
     }
 
     private def _validateReq(filter: Filter): String = {
