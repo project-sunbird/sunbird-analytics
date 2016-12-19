@@ -22,10 +22,7 @@ case class JobSummary(client_id: Option[String], request_id: Option[String], job
                       dt_expiration: Option[DateTime], iteration: Option[Int], dt_job_submitted: Option[DateTime], dt_job_processing: Option[DateTime],
                       dt_job_completed: Option[DateTime], input_events: Option[Int], output_events: Option[Int], file_size: Option[Long], latency: Option[Int],
                       execution_time: Option[Long], err_message: Option[String]) extends AlgoOutput
-
-@scala.beans.BeanInfo
 case class DataExhaustInput(tag: String, events: Buffer[Event]) extends AlgoInput
-case class RequestOutput(request_id: String, output_events: Int)
                       
 object DataExhaustModel extends IBatchModelTemplate[Event, DataExhaustInput, Empty, Empty] with Serializable {
 
@@ -69,7 +66,7 @@ object DataExhaustModel extends IBatchModelTemplate[Event, DataExhaustInput, Emp
 
         if(output_events_count > 0)
         {
-            val file = new File("/tmp/data-exhaust/"+request_id)
+            val file = new File(local_path+request_id)
             if (file.exists())
                 CommonUtil.deleteDirectory(local_path+request_id)
             distinctOutput.saveAsTextFile(local_path+request_id)
