@@ -1,4 +1,4 @@
 ---
-- hosts: secor-me
+- hosts: secor
   roles:
         - ondemand-secor
