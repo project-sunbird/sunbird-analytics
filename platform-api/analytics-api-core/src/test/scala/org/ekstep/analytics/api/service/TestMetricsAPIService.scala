@@ -86,7 +86,7 @@ class TestMetricsAPIService extends SparkSpec {
     "ContentUsageMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
         val request = """{"id":"ekstep.analytics.metrics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341","content_id":"do_435543"}}}""";
         val response = getContentUsageMetrics(request);
-        //    response.result should be (Result(null, null));
+        response.result.summary should be(Map("m_total_interactions" -> 0, "m_avg_interactions_min" -> 0.0, "m_avg_ts_session" -> 0.0, "m_total_sessions" -> 0, "m_total_devices" -> 0, "m_total_ts" -> 0.0, "m_avg_sess_device" -> 0.0))
     }
     
     it should "return error response on invalid request" in {
@@ -134,7 +134,8 @@ class TestMetricsAPIService extends SparkSpec {
     "ContentPopularityMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
         val request = """{"id":"ekstep.analytics.metrics.content-popularity","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341","content_id":"do_435543"}}}""";
         val response = getContentPopularityMetrics(request);
-        //    response.result should be (Result(null, null));
+        val summary = response.result.summary;
+		summary should be (Map("m_side_loads"-> 0,"m_avg_rating"-> 0.0,"m_downloads"-> 0,"m_ratings"-> List(),"m_comments"->List()))
     }
     
     it should "return error response on invalid request (without period)" in {
@@ -188,7 +189,7 @@ class TestMetricsAPIService extends SparkSpec {
     "ItemUsageMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
         val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341","content_id":"do_435543"}}}""";
         val response = getItemUsageMetrics(request);
-        //    response.result should be (Result(null, null));
+        response.result.summary should be (Map("items" -> List()));
     }
     
     it should "return error response on invalid request(without period)" in {
@@ -265,7 +266,7 @@ class TestMetricsAPIService extends SparkSpec {
     "GenieLaunchMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
         val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
         val response = getGenieLaunchMetrics(request);
-        //	response.result should be (Result(null, null));
+        response.result.summary should be (Map("m_avg_ts_session"-> 0, "m_total_sessions"-> 0, "m_total_devices"-> 0, "m_total_ts"-> 0,"m_avg_sess_device"-> 0))
     }
     
     it should "return error response on invalid request" in {
@@ -312,7 +313,7 @@ class TestMetricsAPIService extends SparkSpec {
     "ContentUsageListMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
         val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
         val response = getContentUsageListMetrics(request);
-        //    response.result should be (Result(null, null));
+        response.result.summary should be (Map("m_contents"-> List(),"content"->List()))
     }
     
     it should "return error response on invalid request" in {

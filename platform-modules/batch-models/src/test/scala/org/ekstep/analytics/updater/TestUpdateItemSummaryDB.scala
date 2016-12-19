@@ -62,7 +62,6 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
         Q4.m_avg_ts should be(1)
         Q4.m_correct_res_count should be(0)
         Q4.m_inc_res_count should be(4)
-
     }
 
     it should "test correct and incorrect result aggregation" in {
@@ -91,7 +90,6 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
 
         JSONUtils.serialize(aggregateValue) should be("""["6","5","2","4","8"]""")
         JSONUtils.serialize(week41CorrectRes) should be("""["6","5","2","4","8"]""")
-
     }
 
     it should "update the item usage summary db and check newly added fields" in {
