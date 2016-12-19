@@ -13,10 +13,10 @@ case class DeviceSummaryInput(device_id: String, data: Buffer[DerivedEvent], pre
 case class DeviceContentUsageSummaryInput(device_id: String, contentId: String, data: Buffer[DerivedEvent], prevData: Option[DeviceContentSummary])
 case class DeviceContentSummary(device_id: String, content_id: String, game_ver: Option[String], num_sessions: Option[Long], total_interactions: Option[Long], avg_interactions_min: Option[Double],
                                 total_timespent: Option[Double], last_played_on: Option[Long], start_time: Option[Long],
-                                mean_play_time_interval: Option[Double], downloaded: Option[Boolean], download_date: Option[Long], num_group_user: Option[Long], num_individual_user: Option[Long]) extends AlgoOutput
+                                mean_play_time_interval: Option[Double], downloaded: Option[Boolean], download_date: Option[Long], num_group_user: Option[Long], num_individual_user: Option[Long]) extends AlgoOutput with Output;
 case class DeviceContentSummaryIndex(device_id: String, content_id: String)
 
-object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceSummaryInput, DeviceContentSummary, MeasuredEvent] with Serializable {
+object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceSummaryInput, DeviceContentSummary, DeviceContentSummary] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceContentUsageSummaryModel"
     override def name: String = "DeviceContentUsageSummaryModel"
@@ -92,25 +92,9 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
         }
     }
 
-    override def postProcess(data: RDD[DeviceContentSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[DeviceContentSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContentSummary] = {
 
         data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT)
-        data.map { dcuSummary =>
-            val mid = CommonUtil.getMessageId("ME_DEVICE_CONTENT_USAGE_SUMMARY", null, null, DtRange(0l, 0l), dcuSummary.content_id + dcuSummary.device_id);
-            val measures = Map(
-                "num_sessions" -> dcuSummary.num_sessions,
-                "total_timespent" -> dcuSummary.total_timespent,
-                "avg_interactions_min" -> dcuSummary.avg_interactions_min,
-                "last_played_on" -> dcuSummary.last_played_on,
-                "mean_play_time_interval" -> dcuSummary.mean_play_time_interval,
-                "downloaded" -> dcuSummary.downloaded,
-                "install_date" -> dcuSummary.download_date,
-                "num_group_user" -> dcuSummary.num_group_user,
-                "num_individual_user" -> dcuSummary.num_individual_user);
-            MeasuredEvent("ME_DEVICE_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), dcuSummary.last_played_on.get, "1.0", mid, "", Option(dcuSummary.content_id), None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "DeviceContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", DtRange(dcuSummary.start_time.get, dcuSummary.last_played_on.get)),
-                Dimensions(None, Option(dcuSummary.device_id), Option(new GData(dcuSummary.content_id, dcuSummary.game_ver.get)), None, None, None, None, None),
-                MEEdata(measures));
-        }
+        data;
     }
 }

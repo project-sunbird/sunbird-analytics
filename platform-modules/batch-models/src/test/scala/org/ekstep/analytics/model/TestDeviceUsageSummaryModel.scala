@@ -27,6 +27,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         val event1 = me(0);
 
         event1.eid should be("ME_DEVICE_USAGE_SUMMARY");
+        event1.syncts should be (1460627728979L)
         event1.context.pdata.model should be("DeviceUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
