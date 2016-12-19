@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.apache.spark.rdd.RDD
 
 /**
  * @author Santhosh
@@ -16,7 +17,7 @@ object S3Dispatcher extends IDispatcher {
     implicit val className = "org.ekstep.analytics.framework.dispatcher.S3Dispatcher"
 
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: RDD[String], config: Map[String, AnyRef]): Array[String] = {
         var filePath = config.getOrElse("filePath", null).asInstanceOf[String];
         val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
         val key = config.getOrElse("key", null).asInstanceOf[String];
@@ -38,7 +39,7 @@ object S3Dispatcher extends IDispatcher {
         S3Util.upload(bucket, finalPath, key);
         if (deleteFile) CommonUtil.deleteFile(filePath);
         if (zip) CommonUtil.deleteFile(finalPath);
-        events;
+        events.collect;
     }
 
 }

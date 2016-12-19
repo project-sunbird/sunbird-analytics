@@ -6,6 +6,7 @@ import java.io.PrintWriter
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.apache.spark.rdd.RDD
 
 /**
  * @author Santhosh
@@ -15,7 +16,7 @@ object ScriptDispatcher extends IDispatcher {
     val className = "org.ekstep.analytics.framework.dispatcher.ScriptDispatcher"
 
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: RDD[String], config: Map[String, AnyRef]): Array[String] = {
         val script = config.getOrElse("script", null).asInstanceOf[String];
         if (null == script) {
             throw new DispatcherException("'script' parameter is required to send output to file")

@@ -25,16 +25,13 @@ object OutputDispatcher {
         if (outputs.isEmpty) {
             throw new DispatcherException("No output configurations found");
         }
-        val eventArr = stringify(events).collect();
-        if (eventArr.length != 0) {
-            outputs.get.foreach { dispatcher =>
-                JobLogger.log("Dispatching output", Option(dispatcher.to));
-                DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
-            }
-        } else {
-            JobLogger.log("No events produced for dispatch");
+        val eventArr = stringify(events)
+
+        outputs.get.foreach { dispatcher =>
+
+            DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
         }
-        eventArr.length;
+        eventArr.collect.length;
 
     }
 
@@ -44,30 +41,25 @@ object OutputDispatcher {
         if (null == dispatcher) {
             throw new DispatcherException("No output configurations found");
         }
-        val eventArr = stringify(events).collect();
-        if (eventArr.length != 0) {
-            JobLogger.log("Dispatching output", Option(dispatcher.to));
-            DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
-        } else {
-            JobLogger.log("No events produced");
-            null;
-        }
-    }
-    
-    @throws(classOf[DispatcherException])
-    def dispatch[T](dispatcher: Dispatcher, events: Array[String]) = {
+        val eventArr = stringify(events)
 
-        if (null == dispatcher) {
-            throw new DispatcherException("No output configurations found");
-        }
-        if (events.length != 0) {
-            JobLogger.log("Dispatching output", Option(dispatcher.to));
-            DispatcherFactory.getDispatcher(dispatcher).dispatch(events, dispatcher.params);
-        } else {
-            JobLogger.log("No events produced");
-            null;
-        }
+        DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
     }
+
+//        @throws(classOf[DispatcherException])
+//        def dispatch[T](dispatcher: Dispatcher, events: Array[String]) = {
+//    
+//            if (null == dispatcher) {
+//                throw new DispatcherException("No output configurations found");
+//            }
+//            if (events.length != 0) {
+//                JobLogger.log("Dispatching output", Option(dispatcher.to));
+//                DispatcherFactory.getDispatcher(dispatcher).dispatch(events, dispatcher.params);
+//            } else {
+//                JobLogger.log("No events produced");
+//                null;
+//            }
+//        }
 
     def stringify[T](events: RDD[T]): RDD[String] = {
         events.map { x =>

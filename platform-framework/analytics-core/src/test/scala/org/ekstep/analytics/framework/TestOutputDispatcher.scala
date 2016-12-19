@@ -27,7 +27,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
             OutputDispatcher.dispatch(Dispatcher("console", Map()), sc.parallelize(events.take(1)));
         }
         
-        val eventsInArray = events.map{x => JSONUtils.serialize(x)}.collect
+        val eventsInArray = events.map{x => JSONUtils.serialize(x)}
         noException should be thrownBy {
             OutputDispatcher.dispatch(Dispatcher("console", Map()), eventsInArray);
         }
@@ -91,7 +91,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
             OutputDispatcher.dispatch(null.asInstanceOf[Dispatcher], events);
         }
         
-        val eventsInArray = events.map{x => JSONUtils.serialize(x)}.collect
+        val eventsInArray = events.map{x => JSONUtils.serialize(x)}
         a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(null.asInstanceOf[Dispatcher], eventsInArray);
         }

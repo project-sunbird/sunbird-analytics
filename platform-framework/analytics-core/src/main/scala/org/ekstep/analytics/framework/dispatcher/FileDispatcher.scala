@@ -17,7 +17,7 @@ object FileDispatcher extends IDispatcher {
     implicit val className = "org.ekstep.analytics.framework.dispatcher.FileDispatcher";
 
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: RDD[String], config: Map[String, AnyRef]): Array[String] = {
         val filePath = config.getOrElse("file", null).asInstanceOf[String];
         if (null == filePath) {
             throw new DispatcherException("'file' parameter is required to send output to file");
@@ -27,7 +27,7 @@ object FileDispatcher extends IDispatcher {
         val fw = new FileWriter(filePath, true);
         events.foreach { x => { fw.write(x + "\n"); } };
         fw.close();
-        events;
+        events.collect;
     }
 
 }

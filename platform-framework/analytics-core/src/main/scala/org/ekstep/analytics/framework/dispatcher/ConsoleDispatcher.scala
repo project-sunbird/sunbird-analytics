@@ -1,17 +1,20 @@
 package org.ekstep.analytics.framework.dispatcher
 
+import org.apache.spark.rdd.RDD
+
 /**
  * @author Santhosh
  */
 object ConsoleDispatcher extends IDispatcher {
 
-    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: RDD[String], config: Map[String, AnyRef]): Array[String] = {
         if (config.getOrElse("printEvent", true).asInstanceOf[Boolean]) {
             for (event <- events) {
                 println("Event", event);
             }
         }
-        println("Total Events Size", events.length);
-        events;
+        val eventArr = events.collect
+        println("Total Events Size", eventArr.length);
+        eventArr;
     }
 }
