@@ -7,8 +7,8 @@
     script_dir: "{{ sbin_path }}"
     grep_key: "{{ secor.raw_home }}/secor-0.2-SNAPSHOT.jar"
     process: java
-    app_home: "{{user_home}}/secor-raw"
-    process_args: -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.{{ env }}.properties -Dconfig=secor.{{ env }}.partition.properties -cp {{ secor.raw_home }}/secor-0.2-SNAPSHOT.jar:{{ secor.raw_home }}/lib/* com.pinterest.secor.main.ConsumerMain
+    service_home: "{{user_home}}/secor-raw"
+    process_args: -Xms256M -Xmx512M -ea -Dsecor_group=raw -Dlog4j.configuration=log4j.{{ env }}.properties -Dconfig=secor.{{ env }}.partition.properties -cp secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain
   template: src=servicify-process.j2 dest={{ script_dir }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
   tags:
     - secor
@@ -20,8 +20,8 @@
     script_dir: "{{ sbin_path }}"
     grep_key: "{{ secor.me_home }}/secor-0.2-SNAPSHOT.jar"
     process: java
-    app_home: "{{user_home}}/secor-me"
-    process_args: -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.{{ env }}.properties -Dconfig=secor.{{ env }}.partition.properties -cp {{ secor.me_home }}/secor-0.2-SNAPSHOT.jar:{{ secor.me_home }}/lib/* com.pinterest.secor.main.ConsumerMain
+    service_home: "{{user_home}}/secor-me"
+    process_args: -Xms256M -Xmx512M -ea -Dsecor_group=me -Dlog4j.configuration=log4j.{{ env }}.properties -Dconfig=secor.{{ env }}.partition.properties -cp secor-0.2-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain
   template: src=servicify-process.j2 dest={{ script_dir }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
   tags:
     - secor
@@ -32,8 +32,8 @@
     script_name: cassandra-service
     script_dir: "{{ sbin_path }}"
     grep_key: org.apache.cassandra.service.CassandraDaemon
-    process: "{{ cassandra_home }}/bin/cassandra"
-    app_home: "{{analytics.home}}/apache-cassandra-3.7"
+    process: "bin/cassandra"
+    service_home: "{{analytics.home}}/apache-cassandra-3.7"
     process_args: 
   template: src=servicify-process.j2 dest={{ sbin_path }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
   tags:
@@ -46,7 +46,7 @@
     script_dir: "{{ sbin_path }}"
     grep_key: play.core.server.ProdServerStart
     process: java
-    app_home: "{{analytics.home}}/api/analytics-api-1.0"
+    service_home: "{{analytics.home}}/api/analytics-api-1.0"
     process_args: -cp 'lib/*' {{ api_args }} play.core.server.ProdServerStart {{ api_home }}
   template: src=servicify-process.j2 dest={{ sbin_path }}/{{ script_name }} mode=755 owner=ec2-user group=ec2-user
   tags:
