@@ -103,6 +103,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val contentIds = contentUsageSummaries.map{x => x.d_content_id}.distinct.collect().toList;
         val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
         val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
+        ContentAdapter.checkResponse(resp);
+        JobLogger.log("Content count", Option(Map("count" -> resp.result.content.size)), INFO, "org.ekstep.analytics.model");
         val cusContentModel = resp.result.content.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))//.map { x => (x.id, x) }.toMap;
         val liveContentModel = ContentAdapter.getLiveContent(limit)//.map { x => (x.id, x) }.toMap;
         val contentModel = (cusContentModel ++ liveContentModel).distinct.map { x => (x.id, x) }.toMap;
