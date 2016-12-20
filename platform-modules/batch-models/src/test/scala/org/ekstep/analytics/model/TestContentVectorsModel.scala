@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 
 class TestContentVectorsModel extends SparkSpec(null) {
 
-    it should "update content_to_vec tabel and generates enriched json for 10 contents" in {
+    ignore should "update content_to_vec tabel and generates enriched json for 10 contents" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_to_vector");
@@ -18,12 +18,12 @@ class TestContentVectorsModel extends SparkSpec(null) {
         val jobParams = Map(
             "content2vec.s3_bucket" -> "sandbox-data-store",
             "content2vec.s3_key_prefix" -> "model/",
-            "content2vec.model_path" -> "src/test/resources/c2v/content2vec/model",
+            "content2vec.model_path" -> "/tmp/content2vec/model",
             "content2vec.kafka_topic" -> "sandbox.learning.graph.events",
             "content2vec.kafka_broker_list" -> "localhost:9092",
-            "content2vec.corpus_path" -> "src/test/resources/c2v/content2vec/content_corpus",
+            "content2vec.corpus_path" -> "/tmp/content2vec/content_corpus",
             //"python.home" -> "/usr/local/bin/",
-            "content2vec.download_path" -> "src/test/resources/c2v/content2vec/download",
+            "content2vec.download_path" -> "/tmp/content2vec/download",
             "content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani")
             //"content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1)))
 
@@ -55,7 +55,7 @@ class TestContentVectorsModel extends SparkSpec(null) {
         procInfer.destroy()
 
         val jsonRdd = ContentVectorsModel.execute(null, Option(jobParams));
-        CommonUtil.deleteDirectory("src/test/resources/c2v/content2vec")
+        CommonUtil.deleteDirectory("/tmp/content2vec")
 
         val contentToVecTable = sc.cassandraTable[ContentVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).collect
         contentToVecTable.size should not be (0)
