@@ -45,6 +45,9 @@ import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.ml.feature.LabeledPoint
 import sys.process._
+import org.ekstep.analytics.framework.util.RestUtil
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.adapter.ContentResponse
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: cus_t, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf, lastPlayedContentVec: ContentToVector) extends AlgoInput with AlgoOutput with Output;
@@ -83,13 +86,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
-        val contentModel = ContentAdapter.getLiveContent(limit).map { x => (x.id, x) }.toMap;
-        JobLogger.log("Live content count", Option(Map("count" -> contentModel.size)), INFO, "org.ekstep.analytics.model");
-
-        val contentModelB = sc.broadcast(contentModel);
-        val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
-        val contentVectorsB = sc.broadcast(contentVectors);
-
+        
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
         // cus transformations
@@ -99,6 +96,20 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val contentUsageO = contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap
         val contentUsageOB = sc.broadcast(contentUsageO);
         contentUsageSummaries.unpersist(true);
+        
+        //Content Model
+        val baseUrl = AppConf.getConfig("service.search.url");
+        val searchUrl = s"$baseUrl/v2/search";
+        val contentIds = contentUsageSummaries.map{x => x.d_content_id}.distinct.collect().toList;
+        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
+        val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
+        val cusContentModel = resp.result.content.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))//.map { x => (x.id, x) }.toMap;
+        val liveContentModel = ContentAdapter.getLiveContent(limit)//.map { x => (x.id, x) }.toMap;
+        val contentModel = (cusContentModel ++ liveContentModel).distinct.map { x => (x.id, x) }.toMap;
+        JobLogger.log("Content count", Option(Map("count" -> contentModel.size)), INFO, "org.ekstep.analytics.model");
+        val contentModelB = sc.broadcast(contentModel);
+        val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
+        val contentVectorsB = sc.broadcast(contentVectors);
 
         // device-specifications
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
