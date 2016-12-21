@@ -104,7 +104,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Draft", "Review", "Redraft", "Flagged", "Live", "Retired", "Mock", "Processing", "FlagDraft", "FlagReview"), "identifier" -> contentIds), "limit" -> contentIds.size));
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val cusContentModel = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]].map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))
-        val liveContentModel = ContentAdapter.getLiveContent(limit)
+        val liveContentModel = ContentAdapter.getPublishedContentForRE();
         JobLogger.log("Content count", Option(Map("liveContentCount" -> liveContentModel.length)), INFO, "org.ekstep.analytics.model");
         val contentModel = (cusContentModel ++ liveContentModel).distinct.map { x => (x.id, x) }.toMap;
         JobLogger.log("Content count", Option(Map("count" -> contentModel.size, "cusContentCount" -> cusContentModel.length, "liveContentCount" -> liveContentModel.length)), INFO, "org.ekstep.analytics.model");

@@ -27,6 +27,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import java.net.URL
 import org.apache.commons.lang3.StringEscapeUtils
 import org.ekstep.analytics.util.ContentUsageSummaryFact
+import org.ekstep.analytics.adapter.ContentAdapter
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
@@ -48,13 +49,10 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         //val contentIds = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_tag = 'all' and d_period = 0").map { x => x.d_content_id }.distinct.collect().toList;
         //val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
         //val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
-        
-        val defRequest = """{"request":{"filters":{"objectType":["Content"],"contentType":["Story","Worksheet","Collection","Game"],"status":["Draft","Review","Redraft","Flagged","Live","Retired","Mock","Processing","FlagDraft","FlagReview"]},"exists":["lastPublishedOn","downloadUrl"],"limit":2000}}""";
-        val resp = RestUtil.post[Response](searchUrl, defRequest);
-        val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        JobLogger.log("Content count", Option(Map("count" -> resp.result.getOrElse("count"), "contentCount" -> contentList.size)), INFO);
-        
+
+        val contentList = ContentAdapter.getPublishedContent();
         val contentRDD = sc.parallelize(contentList, 10).cache();
+        JobLogger.log("Content count", Option(Map("contentCount" -> contentList.size)), INFO);
         val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
         val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_").asInstanceOf[String];
         val downloadTime = CommonUtil.time {
