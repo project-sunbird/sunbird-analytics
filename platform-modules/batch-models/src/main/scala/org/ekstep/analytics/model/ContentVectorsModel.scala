@@ -48,7 +48,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val contentIds = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_tag = 'all' and d_period = 0").map { x => x.d_content_id }.distinct.collect().toList;
         //val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
         //val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
-        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"),"status" -> List("Live", "Draft", "Retired"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
+        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Draft", "Review", "Redraft", "Flagged", "Live", "Retired", "Mock", "Processing", "FlagDraft", "FlagReview"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
         val contentRDD = sc.parallelize(contentList, 10).cache();
