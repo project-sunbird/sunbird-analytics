@@ -73,7 +73,7 @@ object DataExhaustModel extends IBatchModelTemplate[Event, DataExhaustInput, Emp
             val files = sc.wholeTextFiles(local_path+request_id).map{x => x._1.split(":").last}
             CommonUtil.zip(local_path+request_id+".zip", files.collect())
             CommonUtil.deleteDirectory(local_path+request_id)
-            S3Dispatcher.dispatch(null, Map("filePath" -> (local_path+request_id+".zip"), "bucket" -> bucket, "key" -> (key+request_id+".zip")))
+            S3Dispatcher.dispatch(Array(""), Map("filePath" -> (local_path+request_id+".zip"), "bucket" -> bucket, "key" -> (key+request_id+".zip")))
             val location = "s3n://"+bucket+"/"+key+request_id+".zip"
             val fileCreatedDate = new DateTime()
             val fileExpiryDate = fileCreatedDate.plusDays(days_for_expiration)

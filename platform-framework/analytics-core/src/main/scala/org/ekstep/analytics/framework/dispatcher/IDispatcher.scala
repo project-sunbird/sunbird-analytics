@@ -9,9 +9,9 @@ import org.apache.spark.rdd.RDD
 trait IDispatcher {
     
     @throws(classOf[DispatcherException])
-    def dispatch(events: RDD[String], config: Map[String, AnyRef]) : Array[String];
+    def dispatch(events: RDD[String], config: Map[String, AnyRef])
     
-//    @throws(classOf[DispatcherException])
-//    def dispatch(events: Array[String], config: Map[String, AnyRef]) : Array[String];
+    @throws(classOf[DispatcherException])
+    def dispatch(events: Array[String], config: Map[String, AnyRef])
     
 }

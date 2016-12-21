@@ -62,13 +62,14 @@ object KafkaEventProducer {
     @throws(classOf[DispatcherException])
     def sendEvents(events: RDD[String], topic: String, brokerList: String) = {
         val producer = init(brokerList);
-        events.foreach { event =>
-            {
-                val message = new ProducerRecord[String, String](topic, event);
-                producer.send(message);
+        val eventCount = events.count
+            events.map{ event =>
+                {
+                    val message = new ProducerRecord[String, String](topic, event);
+                    producer.send(message);
+                }
             }
-        }
-        close(producer);
+            close(producer);
     }
 
     def publishEvents(events: Buffer[String], topic: String, brokerList: String) = {

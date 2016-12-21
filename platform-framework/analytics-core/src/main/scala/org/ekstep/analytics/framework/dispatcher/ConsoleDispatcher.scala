@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
  */
 object ConsoleDispatcher extends IDispatcher {
 
-    def dispatch(events: RDD[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: RDD[String], config: Map[String, AnyRef]) {
         if (config.getOrElse("printEvent", true).asInstanceOf[Boolean]) {
             for (event <- events) {
                 println("Event", event);
@@ -15,6 +15,15 @@ object ConsoleDispatcher extends IDispatcher {
         }
         val eventArr = events.collect
         println("Total Events Size", eventArr.length);
-        eventArr;
+    }
+    
+    def dispatch(events: Array[String], config: Map[String, AnyRef]) {
+        if (config.getOrElse("printEvent", true).asInstanceOf[Boolean]) {
+            for (event <- events) {
+                println("Event", event);
+            }
+        }
+        val eventArr = events
+        println("Total Events Size", eventArr.length);
     }
 }

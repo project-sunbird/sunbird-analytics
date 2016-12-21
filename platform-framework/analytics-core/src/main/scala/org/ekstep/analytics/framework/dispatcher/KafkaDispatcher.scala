@@ -14,7 +14,7 @@ object KafkaDispatcher extends IDispatcher {
     implicit val className = "org.ekstep.analytics.framework.dispatcher.KafkaDispatcher"
 
     @throws(classOf[DispatcherException])
-    def dispatch(events: RDD[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: RDD[String], config: Map[String, AnyRef]){
         val brokerList = config.getOrElse("brokerList", null).asInstanceOf[String];
         val topic = config.getOrElse("topic", null).asInstanceOf[String];
         if (null == brokerList) {
@@ -24,6 +24,11 @@ object KafkaDispatcher extends IDispatcher {
             throw new DispatcherException("topic parameter is required to send output to kafka")
         }
         KafkaEventProducer.sendEvents(events, topic, brokerList);
-        events.collect;
+    }
+    
+    
+    @throws(classOf[DispatcherException])
+    def dispatch(events: Array[String], config: Map[String, AnyRef]){
+        
     }
 }

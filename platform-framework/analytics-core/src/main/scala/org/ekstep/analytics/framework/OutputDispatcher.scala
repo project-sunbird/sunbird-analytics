@@ -46,20 +46,19 @@ object OutputDispatcher {
         DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
     }
 
-//        @throws(classOf[DispatcherException])
-//        def dispatch[T](dispatcher: Dispatcher, events: Array[String]) = {
-//    
-//            if (null == dispatcher) {
-//                throw new DispatcherException("No output configurations found");
-//            }
-//            if (events.length != 0) {
-//                JobLogger.log("Dispatching output", Option(dispatcher.to));
-//                DispatcherFactory.getDispatcher(dispatcher).dispatch(events, dispatcher.params);
-//            } else {
-//                JobLogger.log("No events produced");
-//                null;
-//            }
-//        }
+
+        def dispatch[T](dispatcher: Dispatcher, events: Array[String]) {
+    
+            if (null == dispatcher) {
+                throw new DispatcherException("No output configurations found");
+            }
+            if (events.length != 0) {
+                JobLogger.log("Dispatching output", Option(dispatcher.to));
+                DispatcherFactory.getDispatcher(dispatcher).dispatch(events, dispatcher.params);
+            } else {
+                JobLogger.log("No events produced");
+            }
+        }
 
     def stringify[T](events: RDD[T]): RDD[String] = {
         events.map { x =>

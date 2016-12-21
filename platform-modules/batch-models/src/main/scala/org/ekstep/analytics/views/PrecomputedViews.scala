@@ -63,13 +63,13 @@ object PrecomputedViews {
         
     }
 
-    def precomputeMetrics[T <: CassandraTable](view: View, groupFn: (T) => String)(implicit mf: Manifest[T], sc: SparkContext) = {
+    def precomputeMetrics[T <: CassandraTable](view: View, groupFn: (T) => String)(implicit mf: Manifest[T], sc: SparkContext){
         val results = QueryProcessor.processQuery[T](view, groupFn);
 
         results.map { x =>
             val fileKey = view.filePrefix + "-" + x._1 + "-" + view.fileSuffix;
             OutputDispatcher.dispatch(Dispatcher(view.dispatchTo, view.dispatchParams ++ Map("key" -> fileKey, "file" -> fileKey)), x._2)
-        }.collect();
+        }
     }
 
 }
