@@ -36,6 +36,14 @@ object ContentAdapter extends BaseAdapter {
         checkResponse(cr);
         cr.result.content.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))
     }
+    
+    def getContentModel(contentIds: List[String]): Array[ContentModel] = {
+        val searchUrl = Constants.getContentSearch();
+        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "identifier" -> contentIds), "limit" -> contentIds.size));
+        val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
+        checkResponse(resp);
+        resp.result.content.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))
+    }
 
     def getContentWrapper(content: Map[String, AnyRef]): Content = {
         val mc = content.getOrElse("concepts", List[String]()).asInstanceOf[List[String]].toArray;
