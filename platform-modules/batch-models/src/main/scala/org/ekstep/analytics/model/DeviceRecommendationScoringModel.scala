@@ -86,7 +86,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val baseUrl = AppConf.getConfig("service.search.url");
         val searchUrl = s"$baseUrl/v2/search";
         val contentIds = contentUsageSummaries.map{x => x.d_content_id}.distinct.collect().toList;
-        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"),"status" -> List("Live", "Draft"), "identifier" -> contentIds), "limit" -> contentIds.size));
+        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"),"status" -> List("Live", "Draft", "Retired"), "identifier" -> contentIds), "limit" -> contentIds.size));
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val cusContentModel = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]].map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))
         cusContentModel.map{x => println(x)}
