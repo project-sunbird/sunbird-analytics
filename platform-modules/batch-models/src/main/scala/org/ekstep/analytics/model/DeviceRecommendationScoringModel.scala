@@ -83,17 +83,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         contentUsageSummaries.unpersist(true);
 
         //Content Model
-        val baseUrl = AppConf.getConfig("service.search.url");
-        val searchUrl = s"$baseUrl/v2/search";
-        val contentIds = contentUsageSummaries.map{x => x.d_content_id}.distinct.collect().toList;
-        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Draft", "Review", "Redraft", "Flagged", "Live", "Retired", "Mock", "Processing", "FlagDraft", "FlagReview"), "identifier" -> contentIds), "limit" -> contentIds.size));
-        val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
-        val cusContentModel = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]].map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))
-        cusContentModel.map{x => println(x)}
-        val liveContentModel = ContentAdapter.getPublishedContentForRE();
-        JobLogger.log("Content count", Option(Map("liveContentCount" -> liveContentModel.length)), INFO, "org.ekstep.analytics.model");
-        val contentModel = (cusContentModel ++ liveContentModel).distinct.map { x => (x.id, x) }.toMap;
-        JobLogger.log("Content count", Option(Map("count" -> contentModel.size, "cusContentCount" -> cusContentModel.length, "liveContentCount" -> liveContentModel.length)), INFO, "org.ekstep.analytics.model");
+        val contentModel = ContentAdapter.getPublishedContentForRE().map { x => (x.id, x) }.toMap;
+        val contentIds = contentModel.map(f => f._1).toArray;
+        JobLogger.log("Content count", Option(Map("count" -> contentModel.size)), INFO, "org.ekstep.analytics.model");
         val contentModelB = sc.broadcast(contentModel);
         
         //ContentToVector
@@ -113,7 +105,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val dusO = device_usage.map { x => (DeviceId(x.device_id), x) }
 
         // Device Content Usage Summaries
-        val dcus = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).cache();
+        val dcus = sc.cassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).filter { x => contentIds.contains(x.content_id) }.cache();
         // dcus transformations
         val dcusT = DeviceContentUsageTransformer.getTransformationByBinning(dcus, num_bins)
         val dcusB = dcusT.map { x => (x._1, x._2) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)).collect().toMap;
