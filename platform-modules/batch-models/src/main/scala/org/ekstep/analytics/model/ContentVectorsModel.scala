@@ -52,7 +52,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
         val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
         val contentRDD = sc.parallelize(contentList, 10).cache();
-
+        JobLogger.log("Content count", Option(Map("contentIdsCount" -> contentIds.size, "ContentFetchedCount" -> contentList.length)), INFO);
         val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
         val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_").asInstanceOf[String];
         val downloadTime = CommonUtil.time {
