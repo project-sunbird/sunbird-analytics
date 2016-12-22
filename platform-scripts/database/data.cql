@@ -259,7 +259,7 @@ CREATE TABLE IF NOT EXISTS general_db.jobs (
     status text,
     request_data text,
     config text,
-    location text,
+    locations list<text>,
     dt_file_created timestamp,
     dt_first_event timestamp,
     dt_last_event timestamp,
@@ -274,5 +274,5 @@ CREATE TABLE IF NOT EXISTS general_db.jobs (
     latency int,
     execution_time bigint,
     err_message text,
-    PRIMARY KEY (request_id)
+    PRIMARY KEY (request_id, client_id)
 );

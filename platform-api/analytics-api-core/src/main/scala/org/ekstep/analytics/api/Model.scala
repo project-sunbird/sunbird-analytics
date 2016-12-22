@@ -1,6 +1,10 @@
 package org.ekstep.analytics.api
 
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.EData
+import org.ekstep.analytics.framework.MEEdata
 
 /**
  * @author Santhosh
@@ -21,7 +25,7 @@ case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Int
 case class Comment(comment: String, date: Int);
 case class GenieUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double)
 
-case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
+case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String, client_id: Option[String] = None);
 case class Result(metrics: Array[Map[String, AnyRef]], summary: Map[String, AnyRef]);
 case class MetricsResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Option[Map[String, AnyRef]]);
@@ -46,7 +50,7 @@ case class JobSummary(client_id: Option[String], request_id: Option[String], job
                       dt_expiration: Option[DateTime], iteration: Option[Int], dt_job_submitted: Option[DateTime], dt_job_processing: Option[DateTime],
                       dt_job_completed: Option[DateTime], input_events: Option[Int], output_events: Option[Int], file_size: Option[Long], latency: Option[Int],
                       execution_time: Option[Long], err_message: Option[String])
-                      
+
 case class RecommendationContent(device_id: String, scores: List[(String, Double)])
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String, val text_vec: List[Double], val tag_vec: List[Double]);
@@ -59,6 +63,8 @@ object ResponseCode extends Enumeration {
 object Constants {
 	val CONTENT_DB = "content_db";
 	val DEVICE_DB = "device_db";
+	val GENERAL_DB = "general_db";
+	val JOBS = "jobs";
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
 	val DEVICE_RECOS_TABLE = "device_recos";
 	val CONTENT_TO_VEC = "content_to_vector";
@@ -70,6 +76,7 @@ object JobStatus extends Enumeration {
 	val SUBMITTED, PROCESSING, COMPLETED, FAILED, RETRY = Value
 }
 
-case class JobOutput(location: String, dt_created: String, first_event_date: Long, last_event_date: Long, dt_expiration: Long);
-case class JobStats(dt_job_submitted: Long, dt_job_processing: Long, dt_job_completed: Long, input_events: Int, output_events: Int, latency: Int, executionTime: Int);
-case class JobStatusResponse(job_id: String, status: String, last_updated:Long, request_data: Map[String, AnyRef], output: Option[JobOutput] = None, job_stats: Option[JobStats] = None);
+case class JobOutput(location: List[String], file_size: Long, dt_file_created: DateTime, dt_first_event: DateTime, dt_last_event: DateTime, dt_expiration: DateTime);
+case class JobStats(dt_job_submitted: DateTime, dt_job_processing: DateTime, dt_job_completed: DateTime, input_events: Int, output_events: Int, latency: Int, executionTime: Long);
+case class JobStatusResponse(request_id: String, status: String, last_updated:Long, request_data: Map[String, AnyRef], output: Option[JobOutput] = None, job_stats: Option[JobStats] = None);
+case class JobRequestEvent(eid: String, ets: Long, ver: String, context: Context, edata: MEEdata)

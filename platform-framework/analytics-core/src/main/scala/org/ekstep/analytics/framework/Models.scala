@@ -37,11 +37,11 @@ case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid:
 @scala.beans.BeanInfo
 case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None);
 @scala.beans.BeanInfo
-case class PData(id: String, model: String, ver: String);
+case class PData(id: String, model: String, ver: String, pid: Option[String] = None);
 @scala.beans.BeanInfo
 case class DtRange(from: Long, to: Long);
 @scala.beans.BeanInfo
-case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange);
+case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange, status: Option[String] = None, client_id: Option[String] = None, attempt: Option[Int] = None);
 @scala.beans.BeanInfo
 case class MEEdata(eks: AnyRef);
 
