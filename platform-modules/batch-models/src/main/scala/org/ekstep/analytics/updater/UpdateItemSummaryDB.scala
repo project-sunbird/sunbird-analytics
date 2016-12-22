@@ -58,7 +58,6 @@ object UpdateItemSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEven
             						}
             						InCorrectRes(resp, mmc, count);
             					}
-            val mmc = List(); // TODO
             val correct_res = eksMap.get("correct_res").get.asInstanceOf[List[String]]
             val avg_ts = CommonUtil.roundDouble(total_ts / total_count, 2)
             ItemUsageSummaryFact_T(period, tag, content, item, total_ts, total_count, correct_res_count, inc_res_count, correct_res, incorrect_res, avg_ts, x.context.date_range.to);

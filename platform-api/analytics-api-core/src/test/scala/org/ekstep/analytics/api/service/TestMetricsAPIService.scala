@@ -245,7 +245,7 @@ class TestMetricsAPIService extends SparkSpec {
         val response = getItemUsageMetrics(request);
         val summary = response.result.summary.get("items").get.asInstanceOf[List[Map[String, AnyRef]]]
         val top5_mmc = summary(14).get("m_top5_mmc").get.asInstanceOf[List[Map[String, AnyRef]]]
-        top5_mmc(0).get("resp").get should be("m1")
+        top5_mmc(0).get("concept").get should be("m1")
         top5_mmc(0).get("count").get should be(10)
     }
 
