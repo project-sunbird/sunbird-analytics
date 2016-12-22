@@ -54,7 +54,7 @@ case class DeviceContext(did: String, contentInFocus: String, contentInFocusMode
 case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
 case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
 
-case class DeviceContextWithoutTransformations(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf) extends AlgoInput with AlgoOutput with Output;
+case class DeviceContextWithoutTransformations(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf, c3_contentVec: ContentToVector) extends AlgoInput with AlgoOutput with Output;
 case class cus_t(t_publish_date: Option[Double], t_last_sync_date: Option[Double], t_total_ts: Option[Double], t_total_sessions: Option[Double], t_avg_ts_session: Option[Double], t_total_interactions: Option[Double], t_avg_interactions_min: Option[Double], t_total_devices: Option[Double], t_avg_sess_device: Option[Double]);
 case class dus_tf(t_start_time: Option[Double], t_end_time: Option[Double], t_num_days: Option[Double], t_total_launches: Option[Double], t_total_timespent: Option[Double],
                   t_avg_num_launches: Option[Double], t_avg_time: Option[Double], t_num_contents: Option[Double], t_play_start_time: Option[Double], t_last_played_on: Option[Double],
@@ -451,7 +451,9 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                     val contentInFocusUsageSummary = x.device_content.getOrElse(y._1, defaultDCUS);
                     val contentInFocusSummary = contentUsageB.value.getOrElse(y._1, defaultCUS)
                     val otherContentSummary = if (null != otherContentId) contentUsageB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
-                    DeviceContextWithoutTransformations(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec, null, null, null);
+                    val c3_contentId = x.device_usage.last_played_content.getOrElse(null)
+                    val c3_contentVec = if (null != c3_contentId) contentVectorsB.value.getOrElse(c3_contentId, null) else null;
+                    DeviceContextWithoutTransformations(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec, null, null, null, c3_contentVec);
                 }
             }
         }.flatMap { x => x.map { f => f } }
@@ -472,6 +474,12 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             else _getZeros(text_dimensions);
             val c2_tag = if (null != x.otherContentModelVec && x.otherContentModelVec.tag_vec.isDefined)
                 x.otherContentModelVec.tag_vec.get.toSeq
+            else _getZeros(tag_dimensions)
+            val c3_text = if (null != x.c3_contentVec && x.c3_contentVec.text_vec.isDefined)
+                x.c3_contentVec.text_vec.get.toSeq
+            else _getZeros(text_dimensions);
+            val c3_tag = if (null != x.c3_contentVec && x.c3_contentVec.tag_vec.isDefined)
+                x.c3_contentVec.tag_vec.get.toSeq
             else _getZeros(tag_dimensions)
             val c2_downloaded = if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0
             val c2_subject = if (null != x.otherContentModel) x.otherContentModel.subject.mkString(",") else "Unknown"
@@ -547,6 +555,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
                 "num_sessions" -> x.device_usage.num_sessions.getOrElse(0L),
                 "play_start_time" -> x.device_usage.play_start_time.getOrElse(0L),
                 "start_time" -> x.device_usage.start_time.getOrElse(0L),
+                "c3_text" -> c3_text,
+                "c3_tag" -> c3_tag,
                 "device_spec" -> x.device_spec.make,
                 "screen_size" -> x.device_spec.screen_size,
                 "external_disk" -> x.device_spec.external_disk,
