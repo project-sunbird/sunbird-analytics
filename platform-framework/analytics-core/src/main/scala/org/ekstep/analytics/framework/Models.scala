@@ -112,6 +112,8 @@ case class UpdaterOutput(msg: String) extends Output
 case class ContentKey(period: Int, content_id: String, tag: String);
 case class GenieKey(period: Int, tag: String);
 case class ItemKey(period: Int, tag: String, content_id: String, item_id: String);
+case class InCorrectRes(resp: String, mmc: List[String], count: Int) extends Input with AlgoInput;
+case class Misconception(value: String, count: Int) extends Input with AlgoInput;
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 trait CassandraTable extends AnyRef with Serializable;
 
