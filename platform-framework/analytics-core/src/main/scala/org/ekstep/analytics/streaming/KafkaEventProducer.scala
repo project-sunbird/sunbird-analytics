@@ -19,7 +19,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Future
-import org.apache.spark.rdd.RDD
 
 object KafkaEventProducer {
 
@@ -60,16 +59,15 @@ object KafkaEventProducer {
     }
 
     @throws(classOf[DispatcherException])
-    def sendEvents(events: RDD[String], topic: String, brokerList: String) = {
+    def sendEvents(events: Array[String], topic: String, brokerList: String) = {
         val producer = init(brokerList);
-        val eventCount = events.count
-            events.map{ event =>
-                {
-                    val message = new ProducerRecord[String, String](topic, event);
-                    producer.send(message);
-                }
+        events.foreach { event =>
+            {
+                val message = new ProducerRecord[String, String](topic, event);
+                producer.send(message);
             }
-            close(producer);
+        }
+        close(producer);
     }
 
     def publishEvents(events: Buffer[String], topic: String, brokerList: String) = {

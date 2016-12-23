@@ -49,7 +49,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
         
         val table = sc.cassandraTable[JobSummary]("general_db", "jobs").where("request_id=?", "8a54bfa283de43a89086e69e2efdc9eb6750493d").first
         table.output_events.get should be(0)
-        table.location should be(None)
+        table.locations should be(None)
     }
     
     it should "Check for duplicate events if 2 tags are selected" in {
