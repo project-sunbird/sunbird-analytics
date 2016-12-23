@@ -29,9 +29,10 @@ import org.ekstep.analytics.framework.DerivedEvent
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.immutable.Nil
+import org.ekstep.analytics.framework.InCorrectRes
 
 case class InputEventsItemSummary(ik: ItemKey, events: Buffer[ItemUsageMetricsSummary]) extends Input with AlgoInput
-case class ItemUsageMetricsSummary(ik: ItemKey, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, m_incorrect_res: List[(String, Int)], dt_range: DtRange, syncts: Long) extends AlgoOutput;
+case class ItemUsageMetricsSummary(ik: ItemKey, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, m_incorrect_res: List[InCorrectRes], dt_range: DtRange, syncts: Long) extends AlgoOutput;
 
 object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsItemSummary, ItemUsageMetricsSummary, MeasuredEvent] with Serializable {
 
@@ -51,7 +52,7 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
         val correct_res = events.flatMap { x => x.correct_res }.distinct.toList
         val correct_res_count = events.map { x => x.correct_res_count }.sum
         val inc_res_count = events.map { x => x.inc_res_count }.sum
-        val m_incorrect_res = events.flatMap { x => x.m_incorrect_res }.groupBy(f => f._1).mapValues(f => f.map(x => x._2).sum).toList;
+        val m_incorrect_res = events.flatMap { x => x.m_incorrect_res }.groupBy(x => (x.resp, x.mmc)).map(f => InCorrectRes(f._1._1, f._1._2, f._2.map(y => y.count).sum)).toList;
         ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, date_range, lastEvent.syncts);
     }
     
@@ -64,11 +65,11 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
         val avg_ts = total_ts;
         val pass = eksMap.get("pass").get.asInstanceOf[String]
         val res = if (eksMap.get("res").isDefined) eksMap.get("res").get.asInstanceOf[List[String]] else List[String]();
+        val mmc = if (eksMap.get("mmc").isDefined) eksMap.get("mmc").get.asInstanceOf[List[String]] else List();
         val correct_res = if (StringUtils.equals("Yes", pass) && Nil != res) res.asInstanceOf[List[String]] else List[String]()
         val correct_res_count: Int = if (StringUtils.equals("Yes", pass)) 1 else 0
         val inc_res_count: Int = if (StringUtils.equals("No", pass)) 1 else 0;
-
-        val m_incorrect_res = if (inc_res_count == 1) res.map { x => (x, 1) } else List[(String, Int)]();
+        val m_incorrect_res = if (inc_res_count == 1) res.map { x => InCorrectRes(x, mmc, 1) } else List[InCorrectRes]();
         ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, event.context.date_range, event.syncts);
     }
 
@@ -115,8 +116,9 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
                 "avg_ts" -> itSumm.avg_ts,
                 "correct_res_count" -> itSumm.correct_res_count,
                 "inc_res_count" -> itSumm.inc_res_count,
-                "incorrect_res" -> itSumm.m_incorrect_res.toMap,
-                "correct_res" -> itSumm.correct_res)
+                "incorrect_res" -> itSumm.m_incorrect_res,
+                "correct_res" -> itSumm.correct_res
+                )
 
             MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummaryModel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], itSumm.dt_range),

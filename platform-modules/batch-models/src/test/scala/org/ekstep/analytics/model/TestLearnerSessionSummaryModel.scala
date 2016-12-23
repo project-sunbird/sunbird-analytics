@@ -374,5 +374,30 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output.log")), rdd3);
     }
+    
+    it should "generate array if  mmc is present in raw telemetry" in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data8.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+        val mmc = itemRes.mmc.get.asInstanceOf[List[String]]
+        mmc(0) should be("m4")
+
+    }
+
+    it should "generate none if no mmc field present in raw telemetry " in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+        itemRes.mmc should be(None)
+
+    }
+    
+    it should "generate Empty List if mmc have no values present in raw telemetry " in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data9.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
+        itemRes.mmc.get should be(List())
+
+    }
 
 }

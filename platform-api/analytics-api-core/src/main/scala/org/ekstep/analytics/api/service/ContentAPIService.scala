@@ -125,7 +125,7 @@ object ContentAPIService {
             val bucket = config.getString("content2vec.s3_bucket");
             val modelPath = config.getString("content2vec.model_path");
             val prefix = config.getString("content2vec.s3_key_prefix");
-            ScriptDispatcher.dispatch(Array(""), Map("script" -> s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py",
+            ScriptDispatcher.dispatch(Array[String](), Map("script" -> s"$pythonExec $scriptLoc/object2vec/corpus_to_vec.py",
                 "corpus_loc" -> config.getString("content2vec.corpus_path"), "model" -> modelPath))
             S3Util.uploadDirectory(bucket, prefix, modelPath);
         }
@@ -178,7 +178,7 @@ class ContentAPIService extends Actor {
                 "script" -> config.getString("content2vec.train_model_job"),
                 "aws_key" -> AppConf.getAwsKey(),
                 "aws_secret" -> AppConf.getAwsSecret());
-            ScriptDispatcher.dispatch(Array(""), scriptParams)
+            ScriptDispatcher.dispatch(Array[String](), scriptParams).foreach(println);
             println("ContentToVec model training completed...");
             sender() ! "success";
 
@@ -189,7 +189,7 @@ class ContentAPIService extends Actor {
                 "script" -> config.getString("recommendation.train_model_job"),
                 "aws_key" -> AppConf.getAwsKey(),
                 "aws_secret" -> AppConf.getAwsSecret());
-            ScriptDispatcher.dispatch(Array(""), scriptParams)
+            ScriptDispatcher.dispatch(Array[String](), scriptParams).foreach(println);
             println("Recommendations model training completed...");
             sender() ! "success";
     }

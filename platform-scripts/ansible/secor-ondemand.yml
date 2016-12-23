@@ -1,0 +1,4 @@
+---
+- hosts: secor
+  roles:
+        - ondemand-secor

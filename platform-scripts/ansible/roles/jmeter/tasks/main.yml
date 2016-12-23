@@ -3,7 +3,7 @@
   get_url: url=http://www-eu.apache.org/dist//jmeter/binaries/apache-jmeter-3.1.tgz dest={{ analytics.home }}/apache-jmeter-3.1.tgz timeout=1000 force=no owner=ec2-user group=ec2-user
 
 - name: Unarchive jmeter
-  unarchive: src={{ analytics.home }}/apache-jmeter-3.1.tgz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-jmeter-3.1.tgz
+  unarchive: src={{ analytics.home }}/apache-jmeter-3.1.tgz dest={{ analytics.home }}/ copy=no group=ec2-user owner=ec2-user creates={{ analytics.home }}/apache-jmeter-3.1
 
 - name: Update bashrc for JMETER_HOME
   lineinfile: dest=.bash_profile line='JMETER_HOME=/mnt/data/analytics/apache-jmeter-3.1' state=present insertafter=EOF create=yes
