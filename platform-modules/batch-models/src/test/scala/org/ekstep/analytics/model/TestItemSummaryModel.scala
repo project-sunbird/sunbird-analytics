@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.updater.UpdateItemSummaryDB
 import java.io.File
+import org.ekstep.analytics.framework.InCorrectRes
 
 class TestItemSummaryModel extends SparkSpec(null) {
 
@@ -69,7 +70,40 @@ class TestItemSummaryModel extends SparkSpec(null) {
         correctRes.size should be (1)
         correctRes.last should be ("1:अपनी परछाई")
         
-        val incorrectRes = domain_4564EventEksMap.get("incorrect_res").get.asInstanceOf[Map[String,Int]];
+        val incorrectRes = domain_4564EventEksMap.get("incorrect_res").get.asInstanceOf[List[InCorrectRes]];
         incorrectRes.size should be (incResCount)
+    }
+    
+    it should "generate empty Map if  mmc values are not present in Learner Session Summary" in {
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-model/item_summary_3.log");
+        val out = ItemSummaryModel.execute(rdd, None);
+        val events = out.collect()
+        val tag1Events = events.filter { x => StringUtils.equals("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", x.dimensions.tag.get) && 20160929 == x.dimensions.period.get }
+        val domain_4564Event = tag1Events.filter { x => StringUtils.equals("domain_4564", x.dimensions.item_id.get) }.last
+        val domain_4564EventEksMap = domain_4564Event.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        domain_4564EventEksMap.get("incorrect_res").get.asInstanceOf[List[InCorrectRes]] should be(List(InCorrectRes("0:मछली",List(),1)))
+    }
+
+    it should "generate aggregated mmc response when grouped by ItemKey" in {
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-model/item_summary_3.log");
+        val out = ItemSummaryModel.execute(rdd, None);
+        val events = out.collect()
+        val tag1Events = events.filter { x => StringUtils.equals("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", x.dimensions.tag.get) && 20160929 == x.dimensions.period.get }
+        val domain_4564Event = tag1Events.filter { x => StringUtils.equals("domain_4544", x.dimensions.item_id.get) }.last
+        println("Event:", JSONUtils.serialize(domain_4564Event));
+        val domain_4564EventEksMap = domain_4564Event.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        val maping = domain_4564EventEksMap.get("incorrect_res").get.asInstanceOf[List[InCorrectRes]]
+        maping.length should be (2)
+    }
+    // Mahesh    
+    it should "generate response if  mmc values are present in Learner Session Summary" in {
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-model/item_summary_3.log");
+        val out = ItemSummaryModel.execute(rdd, None);
+        val events = out.collect()
+        val tag1Events = events.filter { x => StringUtils.equals("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", x.dimensions.tag.get) && 20160929 == x.dimensions.period.get }
+        val domain_4564Event = tag1Events.filter { x => StringUtils.equals("domain_4544", x.dimensions.item_id.get) }.last
+        val domain_4564EventEksMap = domain_4564Event.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        val maping = domain_4564EventEksMap.get("incorrect_res").get.asInstanceOf[List[InCorrectRes]]
+        maping.length should be (2)
     }
 }

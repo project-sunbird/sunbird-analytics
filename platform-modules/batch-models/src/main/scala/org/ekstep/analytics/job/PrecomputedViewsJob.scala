@@ -30,6 +30,7 @@ object PrecomputedViewsJob extends Application {
         } finally {
             CommonUtil.closeSparkContext()(sc);
         }
+        
 	}
   
 }

@@ -15,7 +15,7 @@ class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
-          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double, val qtitle: String, val qdesc: String) extends Serializable {}
+          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String]) extends Serializable {}
 
 @scala.beans.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -112,6 +112,8 @@ case class UpdaterOutput(msg: String) extends Output
 case class ContentKey(period: Int, content_id: String, tag: String);
 case class GenieKey(period: Int, tag: String);
 case class ItemKey(period: Int, tag: String, content_id: String, item_id: String);
+case class InCorrectRes(resp: String, mmc: List[String], count: Int) extends Input with AlgoInput;
+case class Misconception(value: String, count: Int) extends Input with AlgoInput;
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 trait CassandraTable extends AnyRef with Serializable;
 

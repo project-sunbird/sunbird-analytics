@@ -260,7 +260,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                     case _ =>
                         Option(x.edata.eks.res);
                 }
-                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, itemObj.mmc, x.edata.eks.score, CommonUtil.getEventTS(x), metadata.get("max_score"), metadata.get("domain"), x.edata.eks.pass, Option(x.edata.eks.qtitle), Option(x.edata.eks.qdesc));
+                ItemResponse(x.edata.eks.qid, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.eks.length), metadata.get("ex_time_spent"), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(x.edata.eks.mmc), x.edata.eks.score, CommonUtil.getEventTS(x), metadata.get("max_score"), metadata.get("domain"), x.edata.eks.pass, Option(x.edata.eks.qtitle), Option(x.edata.eks.qdesc));
             }
             val qids = assessEvents.map { x => x.edata.eks.qid }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
