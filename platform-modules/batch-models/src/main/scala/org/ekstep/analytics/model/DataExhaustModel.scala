@@ -74,6 +74,7 @@ object DataExhaustModel extends IBatchModelTemplate[Event, DataExhaustInput, Emp
         val fileSize = new File(local_path+request_id+".zip").length()
         S3Dispatcher.dispatch(null, Map("filePath" -> (local_path+request_id+".zip"), "bucket" -> bucket, "key" -> (key+request_id+".zip")))
         sc.parallelize(Array((request_id, distinctOutput.count().toInt, firstEventDate, lastEventDate, fileSize, new DateTime().getMillis))).saveToCassandra("general_db", "jobs", SomeColumns("request_id","output_events", "dt_first_event", "dt_last_event", "file_size", "dt_file_created"))
+		CommonUtil.deleteFile(local_path+request_id+".zip")
         sc.makeRDD(List(Empty()));
     }
 
