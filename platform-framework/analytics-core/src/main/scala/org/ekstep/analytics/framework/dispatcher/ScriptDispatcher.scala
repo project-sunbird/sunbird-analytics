@@ -6,6 +6,8 @@ import java.io.PrintWriter
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.apache.spark.rdd.RDD
+import org.apache.spark.SparkContext
 
 /**
  * @author Santhosh
@@ -42,6 +44,10 @@ object ScriptDispatcher extends IDispatcher {
             throw new DispatcherException("Script exited with non zero status")
         }
         outputLines.toArray;
+    }
+    
+    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
+        dispatch(events.collect(), config);
     }
 
 }

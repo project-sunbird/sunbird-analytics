@@ -7,6 +7,8 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.apache.spark.rdd.RDD
+import org.apache.spark.SparkContext
 
 /**
  * @author Santhosh
@@ -39,6 +41,10 @@ object S3Dispatcher extends IDispatcher {
         if (deleteFile) CommonUtil.deleteFile(filePath);
         if (zip) CommonUtil.deleteFile(finalPath);
         events;
+    }
+    
+    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
+        dispatch(events.collect(), config);
     }
 
 }

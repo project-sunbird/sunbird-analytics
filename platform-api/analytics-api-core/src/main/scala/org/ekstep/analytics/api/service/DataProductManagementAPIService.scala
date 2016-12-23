@@ -28,7 +28,7 @@ class DataProductManagementAPIService extends Actor {
 					"job_config" -> getConfig(body),
 					"aws_key" -> AppConf.getAwsKey(),
                 	"aws_secret" -> AppConf.getAwsSecret());
-            ScriptDispatcher.dispatch(Array(), scriptParams).foreach(println);
+            ScriptDispatcher.dispatch(Array[String](), scriptParams).foreach(println);
             println("Run Job completed for "+job);
 			sender() ! "success";
 		
@@ -41,7 +41,7 @@ class DataProductManagementAPIService extends Actor {
 					"job_config" -> getConfig(body),
 					"aws_key" -> AppConf.getAwsKey(),
                 	"aws_secret" -> AppConf.getAwsSecret());
-            ScriptDispatcher.dispatch(Array(), scriptParams).foreach(println);
+            ScriptDispatcher.dispatch(Array[String](), scriptParams).foreach(println);
             println("Reply Job completed for '"+job+"' from:"+from+" to:"+to);
 			sender() ! "success";
 		// $COVERAGE-ON$
