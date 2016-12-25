@@ -60,7 +60,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         }
         
         // Invoke kafka dispatcher without starting kafka
-        OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), events);
+//        OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), events);	
         
         // Invoke script dispatcher without required fields ('script')     
         a[DispatcherException] should be thrownBy {
