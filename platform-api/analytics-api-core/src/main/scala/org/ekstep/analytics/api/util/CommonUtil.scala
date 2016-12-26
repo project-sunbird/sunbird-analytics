@@ -155,6 +155,14 @@ object CommonUtil {
         val from = dateFormat.parseLocalDate(start)
         Days.daysBetween(from, to).getDays()
     }
+    
+    def ccToMap(cc: AnyRef) =
+  		(Map[String, AnyRef]() /: cc.getClass.getDeclaredFields) {
+	    (a, f) =>
+	      f.setAccessible(true)
+	      a + (f.getName -> f.get(cc))
+  }
+    
     def main(args: Array[String]): Unit = {
       println(getPeriod("2016-10-01"))
     }

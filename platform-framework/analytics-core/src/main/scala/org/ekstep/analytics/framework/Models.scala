@@ -1,3 +1,4 @@
+
 package org.ekstep.analytics.framework
 
 import java.io.Serializable
@@ -128,6 +129,11 @@ object Period extends Enumeration {
 object Level extends Enumeration {
     type Level = Value
     val INFO, DEBUG, WARN, ERROR = Value
+}
+
+object JobStatus extends Enumeration {
+	type Status = Value;
+	val SUBMITTED, PROCESSING, COMPLETE, RETRY, FAILED = Value
 }
 
 trait Stage extends Enumeration {
