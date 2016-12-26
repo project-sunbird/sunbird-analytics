@@ -11,7 +11,7 @@ import org.ekstep.analytics.api.Result
 import org.ekstep.analytics.api.util.ContentCacheUtil
 
 class TestMetricsAPIService extends SparkSpec {
-    
+
     implicit val config = ConfigFactory.load();
     override def beforeAll() {
         super.beforeAll()
@@ -73,14 +73,12 @@ class TestMetricsAPIService extends SparkSpec {
         metric.get("m_top5_incorrect_res") should be(Some(List()));
         metric.get("m_inc_res_count").get should be(1);
         metric.get("m_top5_mmc") should be(Some(List()));
-
     }
 
     private def checkItemUsageSummary(summary: Map[String, AnyRef]) {
         summary.get("m_total_count").get should be(6);
         summary.get("m_inc_res_count").get should be(6);
         summary.get("m_top5_mmc") should be(Some(List()));
-
     }
 
     "ContentUsageMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
@@ -107,7 +105,6 @@ class TestMetricsAPIService extends SparkSpec {
         checkCUMetricsEmpty(response.result.metrics(4));
         checkCUMetricsEmpty(response.result.metrics(5));
         checkCUMetricsEmpty(response.result.metrics(6));
-
     }
 
     it should "return tag metrics when, last 7 days data present for tag1, tag2, tag3 in S3 & API inputs (tag: tag1)" in {
@@ -135,7 +132,7 @@ class TestMetricsAPIService extends SparkSpec {
         val request = """{"id":"ekstep.analytics.metrics.content-popularity","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341","content_id":"do_435543"}}}""";
         val response = getContentPopularityMetrics(request);
         val summary = response.result.summary;
-		summary should be (Map("m_side_loads"-> 0,"m_avg_rating"-> 0.0,"m_downloads"-> 0,"m_ratings"-> List(),"m_comments"->List()))
+        summary should be(Map("m_side_loads" -> 0, "m_avg_rating" -> 0.0, "m_downloads" -> 0, "m_ratings" -> List(), "m_comments" -> List()))
     }
     
     it should "return error response on invalid request (without period)" in {
@@ -241,12 +238,12 @@ class TestMetricsAPIService extends SparkSpec {
     }
 
     it should "return summary of top5_mmc metrics for last 7 days data if values present in input data " in {
-        val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb","content_id":"do_324353","d_item_id":"pq.div.a36"}}}""";
+        val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacc","content_id":"do_324353","d_item_id":"pq.div.a19"}}}""";
         val response = getItemUsageMetrics(request);
         val summary = response.result.summary.get("items").get.asInstanceOf[List[Map[String, AnyRef]]]
-        val top5_mmc = summary(14).get("m_top5_mmc").get.asInstanceOf[List[Map[String, AnyRef]]]
+        val top5_mmc = summary(0).get("m_top5_mmc").get.asInstanceOf[List[Map[String, AnyRef]]]
         top5_mmc(0).get("concept").get should be("m1")
-        top5_mmc(0).get("count").get should be(10)
+        top5_mmc(0).get("count").get should be(15)
     }
 
     it should "return last 5 weeks metrics when, when 5 weeks data present" in {
@@ -259,6 +256,10 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return last 12 months metrics when, when 12 months data present" in {
         val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_12_MONTHS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb","content_id":"do_324353"}}}""";
         val response = getItemUsageMetrics(request);
+        val summary = response.result.summary.get("items").get.asInstanceOf[List[Map[String, AnyRef]]]
+        val top5_mmc = summary(0).get("m_top5_mmc").get.asInstanceOf[List[Map[String, AnyRef]]]
+        top5_mmc(0).get("concept").get should be("m3")
+        top5_mmc(0).get("count").get should be(6)
         response.result.metrics.length should be(12);
         response.result.summary should not be empty;
     }
