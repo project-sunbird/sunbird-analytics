@@ -24,6 +24,6 @@ POST /tag/:tagId @controllers.Application.registerTag(tagId: String)
 DELETE /tag/:tagId @controllers.Application.deleteTag(tagId: String)
 
 # Job lifecycle
-POST /analytics/data/out @controllers.JobController.dataExhaust
-GET /analytics/job/:clientId/:jobId/read @controllers.JobController.getJob(clientId: String, jobId: String)
-GET /analytics/job/:clientId/list @controllers.JobController.getJobList(clientId: String)
+POST /data/request @controllers.JobController.dataRequest
+GET /data/request/:clientKey/:requestId/read @controllers.JobController.getJob(clientKey: String, requestId: String)
+GET /data/request/:clientKey/list @controllers.JobController.getJobList(clientKey: String)

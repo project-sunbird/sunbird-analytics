@@ -16,7 +16,7 @@ object Model {
 case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None, tags: Option[Array[String]] = None, start_date: Option[String] = None, end_date: Option[String] = None, events: Option[Array[String]] = None);
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
 case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int]);
-case class RequestBody(id: String, ver: String, ts: String, request: Request, param: Option[Params]);
+case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
 case class MetricsRequest(period: String, filter: Option[Filter]);
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
@@ -25,7 +25,7 @@ case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Int
 case class Comment(comment: String, date: Int);
 case class GenieUsageMetrics(d_period: Option[Int], m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sessions: Long, m_avg_ts: Double)
 
-case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String, client_id: Option[String] = None);
+case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String, client_key: Option[String] = None);
 case class Result(metrics: Array[Map[String, AnyRef]], summary: Map[String, AnyRef]);
 case class MetricsResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Result);
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Option[Map[String, AnyRef]]);
@@ -79,5 +79,5 @@ object JobStatus extends Enumeration {
 
 case class JobOutput(location: List[String], file_size: Long, dt_file_created: DateTime, dt_first_event: DateTime, dt_last_event: DateTime, dt_expiration: DateTime);
 case class JobStats(dt_job_submitted: DateTime, dt_job_processing: DateTime, dt_job_completed: DateTime, input_events: Int, output_events: Int, latency: Int, executionTime: Long);
-case class JobStatusResponse(request_id: String, status: String, last_updated:Long, request_data: Map[String, AnyRef], output: Option[JobOutput] = None, job_stats: Option[JobStats] = None);
+case class JobStatusResponse(request_id: String, status: String, last_updated:Long, request_data: Request, output: Option[JobOutput] = None, job_stats: Option[JobStats] = None, job_id: Option[String] = None);
 case class JobRequestEvent(eid: String, ets: Long, ver: String, context: Context, edata: MEEdata)
