@@ -129,7 +129,7 @@ object Level extends Enumeration {
 }
 
 object JobStatus extends Enumeration {
-	type JobStatus = Value;
+	type Status = Value;
 	val SUBMITTED, PROCESSING, COMPLETE, RETRY, FAILED = Value
 }
 

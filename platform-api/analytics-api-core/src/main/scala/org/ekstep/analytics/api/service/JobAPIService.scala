@@ -5,12 +5,10 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.api.JobStatusResponse
 import org.ekstep.analytics.api.JobOutput
 import java.util.UUID
-import org.ekstep.analytics.api.JobStatus
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.util.Random
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
-import org.ekstep.analytics.api.JobStats
 import akka.actor.Actor
 import com.typesafe.config.Config
 import akka.actor.Props
@@ -19,13 +17,17 @@ import org.ekstep.analytics.api.Filter
 import org.ekstep.analytics.api.ResponseCode
 import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.Request
-import org.ekstep.analytics.api.JobSummary
+import org.ekstep.analytics.api.JobRequest
 import java.security.MessageDigest
 import scala.util.Sorting
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.api.JobRequestEvent
 import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.JobStatus
+import org.ekstep.analytics.api.JobStats
+import org.ekstep.analytics.api.APIIds
+import org.joda.time.DateTime
 
 
 /**
@@ -39,23 +41,24 @@ object JobAPIService {
 	
 	def dataRequest(request: String)(implicit sc: SparkContext, config: Config): String = {
 		val body = JSONUtils.deserialize[RequestBody](request);
-		val apiId = "ekstep.analytics.data.out";
-		val sdd = body.request
 		val isValid = _validateReq(body)
 		if ("true".equals(isValid.get("status").get)) {
 			val requestId = _getRequestId(body.request.filter.get);
-			val job = DBUtil.getJob(requestId, body.params.get.client_key.get);
-			if (null == job) {
-				val result = JobStatusResponse(requestId, JobStatus.SUBMITTED.toString(), Long.box(System.currentTimeMillis), body.request)
-				// TODO: Save to Database.
-				JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.data-exhaust", CommonUtil.ccToMap(result)));
+			val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
+			val result = if (null == job) {
+				val status = JobStatus.SUBMITTED.toString();
+				val jobSubmitted = DateTime.now()
+				val result = JobStatusResponse(requestId, status, jobSubmitted.getMillis, body.request);
+				val jobRequest = JobRequest(body.params.get.client_key, Option(requestId), Option("data-exhaust"), Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
+				DBUtil.saveJobRequest(jobRequest);
+				CommonUtil.ccToMap(result)
 			} else {
                 val jobStatusRes = _getJobStatusResponse(job)
-                val result = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(jobStatusRes))
-                JSONUtils.serialize(CommonUtil.OK(apiId, result));
+                JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(jobStatusRes))
             }
+			JSONUtils.serialize(CommonUtil.OK(APIIds.DATA_REQUEST, result));
 		} else {
-			CommonUtil.errorResponseSerialized(apiId, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
+			CommonUtil.errorResponseSerialized(APIIds.DATA_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
 		}
 	}
 	
@@ -92,11 +95,13 @@ object JobAPIService {
 		}
     }
 	
-	private def _getJobStatusResponse(job: JobSummary): JobStatusResponse = {
-        val output = JobOutput(job.locations.getOrElse(List("")), job.file_size.getOrElse(0L), job.dt_file_created.getOrElse(null), job.dt_first_event.getOrElse(null), job.dt_last_event.getOrElse(null), job.dt_expiration.getOrElse(null));
-        val stats = JobStats(job.dt_job_submitted.getOrElse(null), job.dt_job_processing.getOrElse(null), job.dt_job_completed.getOrElse(null), job.input_events.getOrElse(0), job.output_events.getOrElse(0), job.latency.getOrElse(0), job.execution_time.getOrElse(0L))
+	private def _getJobStatusResponse(job: JobRequest): JobStatusResponse = {
+		val processed = List(JobStatus.COMPLETE.toString(), JobStatus.FAILED.toString()).contains(job.status);
+		val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
+        val output = if (processed) Option(JobOutput(job.location.getOrElse(""), job.file_size.getOrElse(0L), created, job.dt_first_event.get.getMillis, job.dt_last_event.get.getMillis, job.dt_expiration.get.getMillis)) else None;
+        val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, job.dt_job_processing.get.getMillis, job.dt_job_completed.get.getMillis, job.input_events.getOrElse(0), job.output_events.getOrElse(0), job.latency.getOrElse(0), job.execution_time.getOrElse(0L))) else None;
         val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
-        JobStatusResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, Option(output), Option(stats))
+        JobStatusResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats)
     }
 	
 	private def _getRequestId(filter: Filter): String = {
