@@ -5,16 +5,22 @@ import org.ekstep.analytics.api.JobRequest
 import com.datastax.spark.connector._
 import org.ekstep.analytics.api.Constants
 import akka.actor.Actor
+import org.apache.spark.rdd.RDD
 
 object DBUtil {
 	
 	case class GetJobRequest(requestId: String, clientId: String, sc: SparkContext);
 	case class SaveJobRequest(jobRequest: JobRequest, sc: SparkContext);
 	
-	def getJobRequest(requestId: String, clientId: String)(implicit sc: SparkContext): JobRequest = {
-        val job = sc.cassandraTable[JobRequest](Constants.PLATFORML_DB, Constants.JOB_REQUEST).where("client_key= ?",clientId).where("request_id=?",requestId).collect
+	def getJobRequest(requestId: String, clientKey: String)(implicit sc: SparkContext): JobRequest = {
+        val job = sc.cassandraTable[JobRequest](Constants.PLATFORML_DB, Constants.JOB_REQUEST).where("client_key= ?",clientKey).where("request_id=?",requestId).collect
+        println("job:", job.isEmpty);
         if (job.isEmpty) null; else job.last;
     }
+	
+	def getJobRequestList(clientKey: String)(implicit sc: SparkContext): RDD[JobRequest] = {
+		sc.cassandraTable[JobRequest](Constants.PLATFORML_DB, Constants.JOB_REQUEST).where("client_key= ?",clientKey);
+	}
 	
 	def saveJobRequest(jobRequest: JobRequest)(implicit sc: SparkContext) = {
 		val rdd = sc.makeRDD(Seq(jobRequest))

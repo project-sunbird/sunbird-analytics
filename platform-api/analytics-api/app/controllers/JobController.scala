@@ -17,6 +17,8 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.api.service.JobAPIService
 import org.ekstep.analytics.api.service.JobAPIService.DataRequest
+import org.ekstep.analytics.api.service.JobAPIService.GetDataRequest
+import org.ekstep.analytics.api.service.JobAPIService.DataRequestList
 
 /**
  * @author mahesh
@@ -35,23 +37,19 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 		}
 	}
 	
-	def getJob(clientKey: String, requestId: String) = Action { implicit request =>
-		try {
-			val result = JobAPIService.getJob(clientKey, requestId)(Context.sc)
-			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
-		} catch {
-			case ex: ClientException =>
-				Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.job.info", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
-		}		
+	def getJob(clientKey: String, requestId: String) = Action.async { implicit request =>
+		val result = ask(jobAPIActor, GetDataRequest(clientKey, requestId, Context.sc, config)).mapTo[String];
+		result.map { x => 
+			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");	
+		}
 	}
 	
-	def getJobList(clientKey: String) = Action { implicit request =>
-		try {
-			val result = JobAPIService.getJobList(clientKey)(Context.sc)
-			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
-		} catch {
-			case ex: ClientException =>
-				Ok(CommonUtil.errorResponseSerialized("ekstep.analytics.job.list", ex.getMessage, ResponseCode.CLIENT_ERROR.toString())).withHeaders(CONTENT_TYPE -> "application/json");
-		}		
+	def getJobList(clientKey: String) = Action.async { implicit request =>
+		val limit = Integer.parseInt(request.getQueryString("fields").getOrElse(config.getString("data_exhaust.jobs.limit")))
+		val result = ask(jobAPIActor, DataRequestList(clientKey, limit, Context.sc, config)).mapTo[String];
+		result.map { x => 
+			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");	
+		}
+				
 	}
 }

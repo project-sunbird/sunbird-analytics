@@ -38,6 +38,8 @@ object JobAPIService {
 	
 	def props = Props[JobAPIService];
 	case class DataRequest(request: String, sc: SparkContext, config: Config);
+	case class GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config);
+	case class DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config);
 	
 	def dataRequest(request: String)(implicit sc: SparkContext, config: Config): String = {
 		val body = JSONUtils.deserialize[RequestBody](request);
@@ -62,12 +64,21 @@ object JobAPIService {
 		}
 	}
 	
-	def getJob(clientKey: String, requestId: String)(implicit sc: SparkContext): String = {
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.job.info", Map()));	
+	def getDataRequest(clientKey: String, requestId: String)(implicit sc: SparkContext, config: Config): String = {
+		val job = DBUtil.getJobRequest(requestId, clientKey);
+		if (null == job) {
+			CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
+		} else {
+			val jobStatusRes = _getJobStatusResponse(job);
+            JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.ccToMap(jobStatusRes)));
+		}
 	}
 	
-	def getJobList(clientKey: String)(implicit sc: SparkContext): String = {
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.job.list", Map("count" -> Int.box(0), "jobs" -> Map())));	
+	def getDataRequestList(clientKey: String, limit: Int)(implicit sc: SparkContext, config: Config): String = {
+		val currDate = DateTime.now();
+		val rdd = DBUtil.getJobRequestList(clientKey);
+		val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }.take(limit).map { x => _getJobStatusResponse(x) }
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.job.list", Map("count" -> Int.box(jobs.length), "jobs" -> jobs)));	
 	}
 	
 	private def _validateReq(body: RequestBody): Map[String, String] = {
@@ -101,7 +112,7 @@ object JobAPIService {
         val output = if (processed) Option(JobOutput(job.location.getOrElse(""), job.file_size.getOrElse(0L), created, job.dt_first_event.get.getMillis, job.dt_last_event.get.getMillis, job.dt_expiration.get.getMillis)) else None;
         val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, job.dt_job_processing.get.getMillis, job.dt_job_completed.get.getMillis, job.input_events.getOrElse(0), job.output_events.getOrElse(0), job.latency.getOrElse(0), job.execution_time.getOrElse(0L))) else None;
         val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
-        JobStatusResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats)
+        JobStatusResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats);
     }
 	
 	private def _getRequestId(filter: Filter): String = {
@@ -123,7 +134,8 @@ class JobAPIService extends Actor {
 	import JobAPIService._;
 	
 	def receive = {
-		case DataRequest(request: String, sc: SparkContext, config: Config) =>
-			sender() ! dataRequest(request)(sc, config);
+		case DataRequest(request: String, sc: SparkContext, config: Config) => sender() ! dataRequest(request)(sc, config);
+		case GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config) => sender() ! getDataRequest(clientKey, requestId)(sc, config);
+		case DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config) => sender() ! getDataRequestList(clientKey, limit)(sc, config);
 	}
 }
