@@ -8,15 +8,23 @@ import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.joda.time.DateTime
+import org.ekstep.analytics.model.JobRequest
+import org.ekstep.analytics.model.RequestFilter
+import org.ekstep.analytics.model.RequestConfig
+import org.ekstep.analytics.util.Constants
 
 class TestDataExhaustJob extends SparkSpec(null) {
 
-    "DataExhaustJob" should "execute DataExhaustJob job and won't throw any Exception" in {
-        
-        val input = sc.parallelize(Array(("6a54bfa283de43a89086e69e2efdc9eb6750493d", "dataexhaust", "SUBMITTED")));
-        input.saveToCassandra("general_db", "jobs", SomeColumns("request_id","job_id","status"))
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/data-exhaust/test_data1.log"))))), null, None, "org.ekstep.analytics.model.DataExhaustModel", Option(Map("request_id" -> "6a54bfa283de43a89086e69e2efdc9eb6750493d", "tags" -> List("6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"), "local_path" -> "src/test/resources/data-exhaust/", "key" -> "data-exhaust/test/")), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDataExhaustJob"))
-        DataExhaustJob.main(JSONUtils.serialize(config))(Option(sc));
-        CommonUtil.deleteFile("src/test/resources/data-exhaust/6a54bfa283de43a89086e69e2efdc9eb6750493d.zip")
+    ignore should "execute DataExhaustJob job and won't throw any Exception" in {
+
+        val requests = Array(
+            JobRequest("partner1", "6a54bfa283de43a89086", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-12-21", "2016-12-23", List("e4d7a0063b665b7a718e8f7e4014e59e28642f8c"), None))),
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None),
+            JobRequest("partner1", "e69e2efdc9eb6750493d", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-12-21", "2016-12-23", List("e4d7a0063b665b7a718e8f7e4014e59e28642f8c"), Option(List("OE_ASSESS"))))),
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None));
+        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-read-bucket":"ekstep-datasets","dataset-read-prefix":"restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/"}}"""
+        DataExhaustJob.main(config)(Option(sc));
     }
 }

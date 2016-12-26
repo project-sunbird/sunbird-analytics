@@ -259,7 +259,7 @@ CREATE TABLE IF NOT EXISTS platform_db.job_request (
     job_id text,
     status text,
     request_data text,
-    locations list<text>,
+    location text,
     dt_file_created timestamp,
     dt_first_event timestamp,
     dt_last_event timestamp,

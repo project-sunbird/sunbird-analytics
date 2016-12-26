@@ -9,6 +9,7 @@ import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.S3Util
 import org.joda.time.LocalDate
 import java.util.Date
+import org.ekstep.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
@@ -16,13 +17,17 @@ import java.util.Date
 object S3DataFetcher {
 
     @throws(classOf[DataFetcherException])
-    def getObjectKeys(queries: Array[Query]): Buffer[String] = {
+    def getObjectKeys(queries: Array[Query]): Array[String] = {
 
-        var paths = ListBuffer[String]();
-        queries.foreach { query =>
-            paths ++= S3Util.search(getBucket(query.bucket), getPrefix(query.prefix), query.startDate, query.endDate, query.delta).filterNot { x => x.isEmpty() };
+        val keys = for(query <- queries) yield {
+            val paths = S3Util.search(getBucket(query.bucket), getPrefix(query.prefix), query.startDate, query.endDate, query.delta, query.datePattern.getOrElse("yyyy-MM-dd")).filterNot { x => x.isEmpty() };
+            if(query.excludePrefix.isDefined) {
+                paths.filter { x => !x.contains(query.excludePrefix.get) }
+            } else {
+                paths
+            }
         }
-        paths;
+        keys.flatMap { x => x.map { x => x } }
     }
     
     private def getBucket(bucket: Option[String]) : String = {

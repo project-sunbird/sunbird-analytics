@@ -239,4 +239,19 @@ class TestDataFilter extends SparkSpec {
         result1(0).id should be ("Two");
     }
     
+    it should "filter by genie tag" in {
+        val filteredEvents = DataFilter.filter(events, Filter("genieTag", "IN", Option(List("e4d7a0063b665b7a718e8f7e4014e59e28642f8c"))));
+        filteredEvents.count() should be (3);
+        
+        val filteredEvents2 = DataFilter.filter(events, Filter("genieTag", "IN", Option(List("e4d7a0063b665b7a718e8f7e4014e59e28642f9c"))));
+        filteredEvents2.count() should be (2);
+    }
+    
+    it should "filter by events by timestamp range" in {
+        
+        val date = CommonUtil.dateFormat.parseDateTime("2015-09-23");
+        val filteredEvents = DataFilter.filter(events, Filter("ts", "RANGE", Option(Map("start" -> date.withTimeAtStartOfDay().getMillis, "end" -> (date.withTimeAtStartOfDay().getMillis + 86400000)))));
+        filteredEvents.count() should be (3299);
+    }
+    
 }

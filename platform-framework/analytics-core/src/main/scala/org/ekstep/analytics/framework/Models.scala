@@ -24,8 +24,11 @@ class Ext(val stageId: String, val `type`: String) extends Serializable {}
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.beans.BeanInfo
+class EventMetadata(val sync_timestamp: String, val public: String) extends Serializable {}
+
+@scala.beans.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List()) extends AlgoInput with Input {}
+            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List(), val metadata: EventMetadata = null) extends AlgoInput with Input {}
 
 // Computed Event Model
 @scala.beans.BeanInfo
@@ -59,7 +62,7 @@ case class User(name: String, encoded_id: String, ekstep_id: String, gender: Str
 case class UserProfile(uid: String, gender: String, age: Int);
 
 // Analytics Framework Job Models
-case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None)
+case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None, excludePrefix: Option[String] = None, datePattern: Option[String] = None)
 @scala.beans.BeanInfo
 case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
 @scala.beans.BeanInfo
