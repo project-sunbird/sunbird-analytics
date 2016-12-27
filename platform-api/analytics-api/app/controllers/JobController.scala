@@ -32,24 +32,23 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 	def dataRequest() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
 		val result = ask(jobAPIActor, DataRequest(body, Context.sc, config)).mapTo[String];
-		result.map { x => 
-			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");	
+		result.map { x =>
+			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
 		}
 	}
-	
+
 	def getJob(clientKey: String, requestId: String) = Action.async { implicit request =>
 		val result = ask(jobAPIActor, GetDataRequest(clientKey, requestId, Context.sc, config)).mapTo[String];
-		result.map { x => 
-			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");	
+		result.map { x =>
+			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
 		}
 	}
-	
+
 	def getJobList(clientKey: String) = Action.async { implicit request =>
-		val limit = Integer.parseInt(request.getQueryString("fields").getOrElse(config.getString("data_exhaust.jobs.limit")))
+		val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.jobs.list.limit")))
 		val result = ask(jobAPIActor, DataRequestList(clientKey, limit, Context.sc, config)).mapTo[String];
-		result.map { x => 
-			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");	
+		result.map { x =>
+			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
 		}
-				
 	}
 }
