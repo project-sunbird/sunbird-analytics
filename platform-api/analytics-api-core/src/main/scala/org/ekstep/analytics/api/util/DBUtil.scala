@@ -14,7 +14,6 @@ object DBUtil {
 	
 	def getJobRequest(requestId: String, clientKey: String)(implicit sc: SparkContext): JobRequest = {
         val job = sc.cassandraTable[JobRequest](Constants.PLATFORML_DB, Constants.JOB_REQUEST).where("client_key= ?",clientKey).where("request_id=?",requestId).collect
-        println("job:", job.isEmpty);
         if (job.isEmpty) null; else job.last;
     }
 	
