@@ -77,8 +77,9 @@ object JobAPIService {
 	def getDataRequestList(clientKey: String, limit: Int)(implicit sc: SparkContext, config: Config): String = {
 		val currDate = DateTime.now();
 		val rdd = DBUtil.getJobRequestList(clientKey);
-		val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }.take(limit).map { x => _getJobStatusResponse(x) }
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.job.list", Map("count" -> Int.box(jobs.length), "jobs" -> jobs)));	
+		val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
+		val result = jobs.take(limit).map { x => _getJobStatusResponse(x) }
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.job.list", Map("count" -> Long.box(jobs.count()), "jobs" -> result)));	
 	}
 	
 	private def _validateReq(body: RequestBody): Map[String, String] = {
