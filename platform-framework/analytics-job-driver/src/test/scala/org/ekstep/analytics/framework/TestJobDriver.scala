@@ -25,7 +25,7 @@ object TestModel2 extends IBatchModel[MeasuredEvent, String] with Serializable {
 object TestModel3 extends IBatchModel[MeasuredEvent, String] with Serializable {
 
     def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
-        val contents = events.map { x => x.content_id.get }
+        val contents = events.map { x => x.content_id.getOrElse("") }
         //println(JSONUtils.serialize(contents))
         contents;
     }

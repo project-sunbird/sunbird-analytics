@@ -13,7 +13,7 @@ import org.ekstep.analytics.framework.DataFilter
 
 class TestDataExhaustModel extends SparkSpec(null) {
   
-    it should "generate zip file of all events and save to s3" in {
+    ignore should "generate zip file of all events and save to s3" in {
 
         populateCassandra();
         val rdd = loadFile[Event]("src/test/resources/data-exhaust/test_data1.log");
@@ -25,7 +25,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
         table.dt_last_event.get.getMillis should be(1479619192051L)
     }
     
-    it should "generate zip file of only assessment events and save to s3" in {
+    ignore should "generate zip file of only assessment events and save to s3" in {
 
         populateCassandra();
         val events = loadFile[Event]("src/test/resources/data-exhaust/test_data2.log");
@@ -38,7 +38,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
         table.dt_last_event.get.getMillis should be(1479629266000L)
     }
     
-    it should "check for given filter criteria that no data available" in {
+    ignore should "check for given filter criteria that no data available" in {
 
         populateCassandra();
         val rdd = loadFile[Event]("src/test/resources/data-exhaust/test_data3.log");
@@ -49,7 +49,7 @@ class TestDataExhaustModel extends SparkSpec(null) {
 //        table.locations.size should be(0)
     }
     
-    it should "Check for duplicate events if 2 tags are selected" in {
+    ignore should "Check for duplicate events if 2 tags are selected" in {
 
         populateCassandra();
         val rdd = loadFile[Event]("src/test/resources/data-exhaust/test_data4.log");
