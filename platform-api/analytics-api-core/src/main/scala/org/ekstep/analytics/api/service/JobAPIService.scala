@@ -93,10 +93,13 @@ object JobAPIService {
 			} else {
 				val endDate = filter.get.end_date.get
 				val startDate = filter.get.start_date.get
+				val days = CommonUtil.getDaysBetween(startDate, endDate)
 				if (CommonUtil.getPeriod(endDate) >= CommonUtil.getPeriod(CommonUtil.getToday)) 
 					Map("status" -> "false", "message" -> "end_date should be lesser than today's date.."); 
-				else if (30 < CommonUtil.getDaysBetween(startDate, endDate)) 
-					Map("status" -> "false", "message" -> "Date range should be < 30 days"); 
+				else if (0 > days) 
+					Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your start_date & end_date");
+				else if(30 < days)
+				    Map("status" -> "false", "message" -> "Date range should be < 30 days");
 				else Map("status" -> "true");	
 			}
 		}

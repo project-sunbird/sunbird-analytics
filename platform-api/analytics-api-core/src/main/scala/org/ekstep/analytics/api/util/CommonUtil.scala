@@ -162,9 +162,5 @@ object CommonUtil {
 	      f.setAccessible(true)
 	      a + (f.getName -> f.get(cc))
   }
-    
-    def main(args: Array[String]): Unit = {
-      println(getPeriod("2016-10-01"))
-    }
 
 }
