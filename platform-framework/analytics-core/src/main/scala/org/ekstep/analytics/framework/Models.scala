@@ -141,6 +141,16 @@ trait Stage extends Enumeration {
     val contentPlayed = Value
 }
 
+trait DataExStage extends Enumeration {
+    type DataExStage = Value;
+    val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, DOWNLOAD_ALL_OUTPUT_FILE, ZIPPING_ALL_FILE, UPDATE_RESPONSE_TO_DB = Value
+}
+
+trait JobStageStatus extends Enumeration {
+    type JobStageStatus = Value;
+	val COMPLETED, FAILED = Value
+}
+
 object OnboardStage extends Stage {
     override type Stage = Value
     val welcomeContent, addChild, firstLesson, gotoLibrary, searchLesson, loadOnboardPage = Value

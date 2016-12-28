@@ -24,6 +24,10 @@ import java.util.Date
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
+import org.ekstep.analytics.framework.DataExStage
+import org.ekstep.analytics.model.JobResponse
+
+case class JobStage(request_id: String, client_key: String, stage: String, stage_status: String)
 
 object DataExhaustJob extends optional.Application with IJob {
 
@@ -49,23 +53,72 @@ object DataExhaustJob extends optional.Application with IJob {
 
     private def execute(config: JobConfig)(implicit sc: SparkContext) = {
 
-        val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy/MM/dd").withZoneUTC();
         val modelParams = config.modelParams.get;
-        val requests = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") };
-        val requestMap = requests.map { x =>
-            {
-                val filter = JSONUtils.deserialize[RequestConfig](x.request_data).filter
-                (CommonUtil.dateFormat.parseDateTime(filter.start_date).withTimeAtStartOfDay().getMillis, CommonUtil.dateFormat.parseDateTime(filter.end_date).withTimeAtStartOfDay().getMillis)
-            }
-        };
-        val startDate = requestMap.sortBy(f => f._1, true).first()._1;
-        val endDate = requestMap.sortBy(f => f._2, false).first()._2;
-
-        val dataSetBucket = modelParams.get("dataset-read-bucket").getOrElse("ekstep-datasets").asInstanceOf[String];
-        val dataSetPrefix = modelParams.get("dataset-read-prefix").getOrElse("restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/").asInstanceOf[String];
-        val fetcher = Fetcher(config.search.`type`, None, Option(Array(Query(Option(dataSetBucket), Option(dataSetPrefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
-        val rdd = DataFetcher.fetchBatchData[String](fetcher).cache();
+        val requests = getAllRequest
+        val rdd = fetchAllData(requests, config, modelParams).cache
         _executeRequests(rdd.repartition(10), requests.collect(), modelParams);
+        rdd.unpersist(true)
+    }
+
+    def fetchAllData(requests: RDD[JobRequest], config: JobConfig, modelParams: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        try {
+            val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy/MM/dd").withZoneUTC();
+            val requestMap = requests.map { x =>
+                {
+                    val filter = JSONUtils.deserialize[RequestConfig](x.request_data).filter
+                    (CommonUtil.dateFormat.parseDateTime(filter.start_date).withTimeAtStartOfDay().getMillis, CommonUtil.dateFormat.parseDateTime(filter.end_date).withTimeAtStartOfDay().getMillis)
+                }
+            };
+            val startDate = requestMap.sortBy(f => f._1, true).first()._1;
+            val endDate = requestMap.sortBy(f => f._2, false).first()._2;
+
+            val dataSetBucket = modelParams.get("dataset-read-bucket").getOrElse("ekstep-datasets").asInstanceOf[String];
+            val dataSetPrefix = modelParams.get("dataset-read-prefix").getOrElse("restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/").asInstanceOf[String];
+            val fetcher = Fetcher(config.search.`type`, None, Option(Array(Query(Option(dataSetBucket), Option(dataSetPrefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
+            val data = DataFetcher.fetchBatchData[String](fetcher);
+            requests.map { x => JobStage(x.request_id, x.client_key, "FETCHING_DATA", "COMPLETED") }.saveAsCassandraTable(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status"))
+            data;
+        } catch {
+            case t: Throwable =>
+                requests.map { x => JobStage(x.request_id, x.client_key, "FETCHING_DATA", "FAILED") }.saveAsCassandraTable(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status"))
+                null;
+        }
+
+    }
+    def getAllRequest()(implicit sc: SparkContext): RDD[JobRequest] = {
+        try {
+            val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") };
+            jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED") }.saveAsCassandraTable(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status"))
+            jobReq;
+        } catch {
+            case t: Throwable => null;
+        }
+    }
+
+    private def downloadOutput(response: JobResponse, localPath: String)(implicit sc: SparkContext) {
+        try {
+            S3Util.download(response.bucket, response.prefix, localPath + "/")
+            CommonUtil.deleteFile(localPath + "/" + response.request_id + "_$folder$")
+            CommonUtil.deleteFile(localPath + "/_SUCCESS")
+            CommonUtil.zipFolder(localPath + ".zip", localPath)
+            CommonUtil.deleteDirectory(localPath);
+            DataExhaustJobModel.updateStage(response.request_id, response.client_key, "DOWNLOAD_AND_ZIP_OUTPUT_FILE", "COMPLETED")
+        } catch {
+            case t: Throwable => DataExhaustJobModel.updateStage(response.request_id, response.client_key, "DOWNLOAD_AND_ZIP_OUTPUT_FILE", "FAILED")
+        }
+    }
+
+    private def uploadZip(response: JobResponse, localPath: String)(implicit sc: SparkContext) {
+        try {
+            S3Util.uploadPublic(response.bucket, localPath + ".zip", response.prefix + ".zip");
+            S3Util.deleteObject(response.bucket, response.prefix);
+            S3Util.deleteObject(response.bucket, response.prefix + "_$folder$");
+            CommonUtil.deleteFile(localPath + ".zip")
+            DataExhaustJobModel.updateStage(response.request_id, response.client_key, "UPLOAD_ZIP", "COMPLETED")
+        } catch {
+            case t: Throwable =>
+                DataExhaustJobModel.updateStage(response.request_id, response.client_key, "UPLOAD_ZIP", "FAILED")
+        }
     }
 
     private def _executeRequests(data: RDD[String], requests: Array[JobRequest], config: Map[String, AnyRef])(implicit sc: SparkContext) = {
@@ -85,16 +138,8 @@ object DataExhaustJob extends optional.Application with IJob {
                 val response = DataExhaustJobModel.execute(data, Option(requestConfig)).collect().head;
                 println("response", response);
                 val localPath = config.getOrElse("tempLocalPath", "/tmp/dataexhaust").asInstanceOf[String] + "/" + response.request_id;
-                S3Util.download(response.bucket, response.prefix, localPath + "/")
-                
-                CommonUtil.deleteFile(localPath + "/" + response.request_id + "_$folder$")
-                CommonUtil.deleteFile(localPath + "/_SUCCESS")
-                CommonUtil.zipFolder(localPath + ".zip", localPath)
-                CommonUtil.deleteDirectory(localPath);
-                S3Util.uploadPublic(response.bucket, localPath + ".zip", response.prefix + ".zip");
-                S3Util.deleteObject(response.bucket, response.prefix);
-                S3Util.deleteObject(response.bucket, response.prefix + "_$folder$");
-                CommonUtil.deleteFile(localPath + ".zip")
+                downloadOutput(response, localPath)
+                uploadZip(response, localPath)
                 response
             })
 
@@ -104,9 +149,14 @@ object DataExhaustJob extends optional.Application with IJob {
             JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, Option(location),
                 Option(new DateTime(createdDate)), Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
                 Option(createdDate.plusDays(30)), Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
-                Option(inputEventsCount), Option(result._2.output_events), Option(stats.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None);
+                Option(inputEventsCount), Option(result._2.output_events), Option(stats.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLITED"));
         }
-        sc.makeRDD(jobResponses).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
+        val resRDD = sc.makeRDD(jobResponses)
+        try {
+            resRDD.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
+        } catch {
+            case t: Throwable =>
+                resRDD.map { x => JobStage(x.request_id, x.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED") }.saveAsCassandraTable(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status"))
+        }
     }
-    
 }
