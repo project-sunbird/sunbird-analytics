@@ -11,7 +11,7 @@ import org.ekstep.analytics.api.util.JSONUtils
 @RunWith(classOf[JUnitRunner])
 class ContentUsageListMetricsAPISpec extends BaseSpec {
 	
-	val apiURL = "/list/content";
+	val apiURL = "/metrics/list/content";
 	
 	"Content Usage List Metrics API" should {
 		"return error response when, there is invalid request"  in new WithApplication {
