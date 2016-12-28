@@ -89,7 +89,6 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
 
         val events = data.cache();
         val output_events = data.count;
-        println(output_events+ " : output event count")
         if (output_events > 0) {
             val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
             val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
