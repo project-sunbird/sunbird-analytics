@@ -30,6 +30,7 @@ class TestS3Util extends BaseSpec {
     
     it should "download multiple files from a directory in S3 bucket" in {
          S3Util.downloadFile("ekstep-dev-data-store", "test-data-session.log", "src/test/resources/session-batch-model", "testUpload/")
+         CommonUtil.createDirectory("src/test/resources/testDir/")
          S3Util.downloadFile("ekstep-dev-data-store", "test-data-session.log", "src/test/resources/testDir", "testUpload/")
          S3Util.downloadFile("ekstep-dev-data-store", "model/fm.model", "src/test/resources/testDir/")
          CommonUtil.deleteDirectory("src/test/resources/testDir/")
