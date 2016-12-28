@@ -2,6 +2,7 @@ package org.ekstep.analytics.api.util
 
 import org.joda.time.LocalDate
 import org.joda.time.Weeks
+import org.joda.time.Days
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.Response
 import org.joda.time.DateTime
@@ -28,7 +29,8 @@ object CommonUtil {
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
     @transient val weekPeriodLabel: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
     @transient val df: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZoneUTC();
-
+    @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
 
         val conf = new SparkConf().setAppName(appName);
@@ -135,5 +137,30 @@ object CommonUtil {
     def getMillis(): Long = {
     	DateTime.now(DateTimeZone.UTC).getMillis
     }
+    
+    def getToday(): String = {
+        dateFormat.print(new DateTime)
+    }
+    
+    def getPeriod(date: String): Int = {
+        try {
+            Integer.parseInt(date.replace("-", ""))  
+        } catch {
+          case t: Throwable => 0; // TODO: handle error
+        }
+    }
+    
+    def getDaysBetween(start: String, end: String): Int = {
+        val to = dateFormat.parseLocalDate(end)
+        val from = dateFormat.parseLocalDate(start)
+        Days.daysBetween(from, to).getDays()
+    }
+    
+    def ccToMap(cc: AnyRef) =
+  		(Map[String, AnyRef]() /: cc.getClass.getDeclaredFields) {
+	    (a, f) =>
+	      f.setAccessible(true)
+	      a + (f.getName -> f.get(cc))
+  }
 
 }

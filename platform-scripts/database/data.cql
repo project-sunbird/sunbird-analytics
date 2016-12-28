@@ -248,19 +248,18 @@ CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
     PRIMARY KEY (device_id, content_id)
 );
 
-CREATE KEYSPACE IF NOT EXISTS general_db WITH replication = {
+CREATE KEYSPACE IF NOT EXISTS platform_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
 };
 
-CREATE TABLE IF NOT EXISTS general_db.jobs (
-    client_id text,
+CREATE TABLE IF NOT EXISTS platform_db.job_request (
+    client_key text,
     request_id text,
     job_id text,
     status text,
     request_data text,
-    config text,
-    locations list<text>,
+    location text,
     dt_file_created timestamp,
     dt_first_event timestamp,
     dt_last_event timestamp,
@@ -275,5 +274,5 @@ CREATE TABLE IF NOT EXISTS general_db.jobs (
     latency int,
     execution_time bigint,
     err_message text,
-    PRIMARY KEY (request_id)
+    PRIMARY KEY (client_key, request_id)
 );

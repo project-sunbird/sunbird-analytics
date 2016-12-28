@@ -18,6 +18,7 @@ object Constants {
     val DEVICE_CONTENT_SUMMARY_FACT = "device_content_summary_fact";
     val DEVICE_RECOS = "device_recos";
     val CONTENT_KEY_SPACE_NAME = "content_db";
+    val PLATFORM_KEY_SPACE_NAME = "platform_db";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";
     val CONTENT_USAGE_SUMMARY_FACT = "content_usage_summary_fact";
@@ -26,6 +27,7 @@ object Constants {
     val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
     val CONTENT_TO_VEC = "content_to_vector";
+    val JOB_REQUEST = "job_request";
     
     val REGISTERED_TAGS = "registered_tags";
     

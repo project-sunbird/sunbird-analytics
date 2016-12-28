@@ -14,7 +14,7 @@ object Pom {
 
     def dependencies(pomDir: File): Seq[ModuleID] = {
         val list = (Process("mvn dependency:list", pomDir) !!)
-        val lines = list.split("\n").collect {
+        val lines = list.split("\n").filter(f => f.contains("analytics-core")).collect {
             case line if (line.startsWith(prefix)) => line.replace(prefix, "").trim
         }
         lines.map(parse).collect { case Some(dep) => dep }

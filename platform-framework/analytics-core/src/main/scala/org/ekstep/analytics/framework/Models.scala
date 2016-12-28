@@ -1,3 +1,4 @@
+
 package org.ekstep.analytics.framework
 
 import java.io.Serializable
@@ -24,8 +25,11 @@ class Ext(val stageId: String, val `type`: String) extends Serializable {}
 class EData(val eks: Eks, val ext: Ext) extends Serializable {}
 
 @scala.beans.BeanInfo
+class EventMetadata(val sync_timestamp: String, val public: String) extends Serializable {}
+
+@scala.beans.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List()) extends AlgoInput with Input {}
+            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List(), val metadata: EventMetadata = null) extends AlgoInput with Input {}
 
 // Computed Event Model
 @scala.beans.BeanInfo
@@ -37,11 +41,11 @@ case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid:
 @scala.beans.BeanInfo
 case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None);
 @scala.beans.BeanInfo
-case class PData(id: String, model: String, ver: String);
+case class PData(id: String, model: String, ver: String, pid: Option[String] = None);
 @scala.beans.BeanInfo
 case class DtRange(from: Long, to: Long);
 @scala.beans.BeanInfo
-case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange);
+case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange, status: Option[String] = None, client_id: Option[String] = None, attempt: Option[Int] = None);
 @scala.beans.BeanInfo
 case class MEEdata(eks: AnyRef);
 
@@ -59,7 +63,7 @@ case class User(name: String, encoded_id: String, ekstep_id: String, gender: Str
 case class UserProfile(uid: String, gender: String, age: Int);
 
 // Analytics Framework Job Models
-case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None)
+case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None, excludePrefix: Option[String] = None, datePattern: Option[String] = None)
 @scala.beans.BeanInfo
 case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
 @scala.beans.BeanInfo
@@ -125,6 +129,11 @@ object Period extends Enumeration {
 object Level extends Enumeration {
     type Level = Value
     val INFO, DEBUG, WARN, ERROR = Value
+}
+
+object JobStatus extends Enumeration {
+	type Status = Value;
+	val SUBMITTED, PROCESSING, COMPLETE, RETRY, FAILED = Value
 }
 
 trait Stage extends Enumeration {

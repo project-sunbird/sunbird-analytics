@@ -31,7 +31,7 @@ object DataFetcher {
         val keys: Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
                 JobLogger.log("Fetching the batch data from S3")
-                S3DataFetcher.getObjectKeys(search.queries.get).toArray;
+                S3DataFetcher.getObjectKeys(search.queries.get);
             case "local" =>
                 JobLogger.log("Fetching the batch data from Local file")
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
@@ -41,12 +41,12 @@ object DataFetcher {
         if (null == keys || keys.length == 0) {
             return sc.parallelize(Seq[T](), JobContext.parallelization);
         }
-
         JobLogger.log("Deserializing Input Data");
+        val isString = mf.runtimeClass.getName.equals("java.lang.String");
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
                 try {
-                    JSONUtils.deserialize[T](line);
+                    if(isString) line.asInstanceOf[T] else JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
                         JobLogger.log(ex.getMessage, Option(Map("date" -> date)));

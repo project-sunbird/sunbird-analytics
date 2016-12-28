@@ -61,6 +61,34 @@ object DataFilter {
     }
 
     @throws(classOf[DataFilterException])
+    def matches[T](event: T, filter: Filter): Boolean = {
+        if (null != filter) {
+            val value = getValue(event, filter.name);
+            Matcher.compare(value, filter);
+        } else {
+            true
+        }
+    }
+
+    @throws(classOf[DataFilterException])
+    def matches[T](event: T, filters: Array[Filter]): Boolean = {
+        if (null != filters) {
+            var valid = true;
+            Breaks.breakable {
+                filters.foreach { filter =>
+                    val value = getValue(event, filter.name);
+                    println(value, "value")
+                    valid = Matcher.compare(value, filter);
+                    if (!valid) Breaks.break;
+                }
+            }
+            valid;
+        } else {
+            true
+        }
+    }
+
+    @throws(classOf[DataFilterException])
     def filter[T](events: Buffer[T], filter: Filter): Buffer[T] = {
         if (null != filter) {
             events.filter { event =>
@@ -88,12 +116,19 @@ object DataFilter {
     private def getValue(event: Any, name: String): AnyRef = {
         name match {
             case "eventId" => getBeanProperty(event, "eid");
-            case "ts"      => getBeanProperty(event, "ts");
+            case "ts"      => CommonUtil.getTimestamp(getBeanProperty(event, "ts").asInstanceOf[String]).asInstanceOf[AnyRef];
+            case "eventts"  => 
+                CommonUtil.getTimestamp(getBeanProperty(event, "metadata.sync_timestamp").asInstanceOf[String]).asInstanceOf[AnyRef];
             case "gameId" =>
-                var gid = getBeanProperty(event, "edata.eks.gid");
+                val gid = getBeanProperty(event, "edata.eks.gid");
                 if (null == gid)
-                    gid = getBeanProperty(event, "gdata.id");
-                gid;
+                    getBeanProperty(event, "gdata.id");
+                else
+                    gid;
+            case "genieTag" =>
+                val tags = getBeanProperty(event, "tags").asInstanceOf[List[Map[String, List[String]]]];
+                val genieTagFilter = if (null != tags && tags.nonEmpty) tags.filter(f => f.contains("genie")) else List()
+                if (genieTagFilter.nonEmpty) genieTagFilter.last.get("genie").get; else List();
             case "gameVersion"      => getBeanProperty(event, "gdata.ver");
             case "userId"           => getBeanProperty(event, "uid");
             case "sessionId"        => getBeanProperty(event, "sid");
@@ -105,6 +140,8 @@ object DataFilter {
 
     private def getBeanProperty(event: Any, prop: String): AnyRef = {
         val obj = PropertyUtils.getProperty(event, prop);
+        println("prop", prop)
+        println("obj", obj)
         if (null != obj) {
             val objClass = obj.getClass.getName;
             objClass match {
