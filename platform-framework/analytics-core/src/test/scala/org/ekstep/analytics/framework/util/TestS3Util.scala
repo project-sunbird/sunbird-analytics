@@ -22,16 +22,16 @@ class TestS3Util extends BaseSpec {
     }
   
     it should "upload multiple files into S3 bucket" in {
-        S3Util.uploadDirectory("lpdev-ekstep", "testUpload/", "src/test/resources/session-batch-model")
-        val keys = S3Util.search("lpdev-ekstep", "testUpload/", None, None, None);
+        S3Util.uploadDirectory("ekstep-dev-data-store", "testUpload/", "src/test/resources/session-batch-model")
+        val keys = S3Util.search("ekstep-dev-data-store", "testUpload/", None, None, None);
         keys.length should be > 0;
-        S3Util.uploadDirectory("lpdev-ekstep", "testUpload/", "src/test/resources/test")
+        S3Util.uploadDirectory("ekstep-dev-data-store", "testUpload/", "src/test/resources/test")
     }
     
     it should "download multiple files from a directory in S3 bucket" in {
-         S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/session-batch-model", "testUpload/")
-         S3Util.downloadFile("lpdev-ekstep", "test-data-session.log", "src/test/resources/testDir", "testUpload/")
-         S3Util.downloadFile("sandbox-data-store", "model/fm.model", "src/test/resources/testDir/")
+         S3Util.downloadFile("ekstep-dev-data-store", "test-data-session.log", "src/test/resources/session-batch-model", "testUpload/")
+         S3Util.downloadFile("ekstep-dev-data-store", "test-data-session.log", "src/test/resources/testDir", "testUpload/")
+         S3Util.downloadFile("ekstep-dev-data-store", "model/fm.model", "src/test/resources/testDir/")
          CommonUtil.deleteDirectory("src/test/resources/testDir/")
     }
     
