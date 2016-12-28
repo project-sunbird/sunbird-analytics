@@ -2,28 +2,27 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET   /health   @controllers.Application.checkAPIhealth
-POST   /content-to-vec/:contentId   @controllers.Application.contentToVec(contentId: String)
-POST /recommendations @controllers.Application.recommendations
-POST /content-to-vec/train/model @controllers.Application.contentToVecTrainModel
-POST /recommendations/train/model @controllers.Application.recommendationsTrainModel
-POST /dataproduct/run/:job @controllers.Application.runJob(job: String)
-POST /dataproduct/replay/:job/:from/:to @controllers.Application.replayJob(job: String, from: String, to: String)
+# General APIs
+GET	/health @controllers.Application.checkAPIhealth
+POST /content/recommend @controllers.Application.recommendations
+
+# System APIs
+POST /content/vectors/:contentId   @controllers.Application.contentToVec(contentId: String)
+POST /train/content-to-vec @controllers.Application.contentToVecTrainModel
+POST /train/recommendations @controllers.Application.recommendationsTrainModel
+POST /run/:job @controllers.Application.runJob(job: String)
+POST /replay/:job/:from/:to @controllers.Application.replayJob(job: String, from: String, to: String)
 
 # Metrics APIs
-
 POST /metrics/content-usage @controllers.Metrics.contentUsage
 POST /metrics/content-popularity @controllers.Metrics.contentPopularity
 POST /metrics/item-usage @controllers.Metrics.itemUsage
 POST /metrics/genie-launch @controllers.Metrics.genieLaunch
-POST /list/content @controllers.Metrics.contentList
+POST /metrics/list/content @controllers.Metrics.contentList
+POST /metrics/tag/:tagId @controllers.Application.registerTag(tagId: String)
+DELETE /metrics/tag/delete/:tagId @controllers.Application.deleteTag(tagId: String)
 
-# Tag APIs
-
-POST /tag/:tagId @controllers.Application.registerTag(tagId: String)
-DELETE /tag/:tagId @controllers.Application.deleteTag(tagId: String)
-
-# Job lifecycle
-POST /data/request @controllers.JobController.dataRequest
-GET /data/request/:clientKey/:requestId/read @controllers.JobController.getJob(clientKey: String, requestId: String)
-GET /data/request/:clientKey/list @controllers.JobController.getJobList(clientKey: String)
+# Data Exhaust
+POST /dataset/request @controllers.JobController.dataRequest
+GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)
+GET /dataset/request/list/:clientKey @controllers.JobController.getJobList(clientKey: String)
