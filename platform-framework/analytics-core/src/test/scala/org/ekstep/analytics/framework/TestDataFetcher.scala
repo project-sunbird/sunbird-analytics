@@ -11,7 +11,7 @@ class TestDataFetcher extends SparkSpec {
     "DataFetcher" should "fetch the batch events matching query" in {
         
         val queries = Option(Array(
-            Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-01-01"))
+            Query(Option("ekstep-dev-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-01-01"))
         ));
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
         rdd.count should be (1701)
@@ -42,7 +42,7 @@ class TestDataFetcher extends SparkSpec {
     
     it should "fetch no file from S3 and return an empty RDD" in {
         val queries = Option(Array(
-            Query(Option("sandbox-data-store"), Option("abc/"), Option("2012-01-01"), Option("2012-02-01"))
+            Query(Option("ekstep-dev-data-store"), Option("abc/"), Option("2012-01-01"), Option("2012-02-01"))
         ));
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
         rdd.isEmpty() should be (true)
