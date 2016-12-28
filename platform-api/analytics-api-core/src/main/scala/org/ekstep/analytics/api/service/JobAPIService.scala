@@ -117,7 +117,7 @@ object JobAPIService {
 	private def _saveJobRequest(requestId: String, body: RequestBody)(implicit sc: SparkContext): JobResponse = {
 		val status = JobStatus.SUBMITTED.toString();
 		val jobSubmitted = DateTime.now()
-		val jobRequest = JobRequest(body.params.get.client_key, Option(requestId), Option("data-exhaust"), Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
+		val jobRequest = JobRequest(body.params.get.client_key, Option(requestId), None, Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
 		DBUtil.saveJobRequest(jobRequest);
 		JobResponse(requestId, status, jobSubmitted.getMillis, body.request);
 	}

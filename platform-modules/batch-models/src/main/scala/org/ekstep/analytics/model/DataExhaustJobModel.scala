@@ -49,7 +49,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
 
     def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DataExhaustJobInput] = {
 
-        val job_id = UUID.randomUUID();
+        //val job_id = UUID.randomUUID();
         val request_id = config.get("request_id").get.asInstanceOf[String];
         val client_key = config.get("client_key").get.asInstanceOf[String];
         val request = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("client_key = ? and request_id = ?", client_key, request_id).first();
@@ -89,6 +89,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
 
         val events = data.cache();
         val output_events = data.count;
+        println(output_events+ " : output event count")
         if (output_events > 0) {
             val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
             val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;

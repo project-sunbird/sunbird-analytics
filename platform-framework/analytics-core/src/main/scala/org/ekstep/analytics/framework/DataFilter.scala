@@ -77,6 +77,7 @@ object DataFilter {
             Breaks.breakable {
                 filters.foreach { filter =>
                     val value = getValue(event, filter.name);
+                    println(value, "value")
                     valid = Matcher.compare(value, filter);
                     if (!valid) Breaks.break;
                 }
@@ -139,6 +140,8 @@ object DataFilter {
 
     private def getBeanProperty(event: Any, prop: String): AnyRef = {
         val obj = PropertyUtils.getProperty(event, prop);
+        println("prop", prop)
+        println("obj", obj)
         if (null != obj) {
             val objClass = obj.getClass.getName;
             objClass match {
