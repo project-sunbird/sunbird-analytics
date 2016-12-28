@@ -36,8 +36,8 @@ class TestS3Util extends BaseSpec {
     }
     
     it should "get object from S3 bucket" in {
-        S3Util.getObject("sandbox-data-store", "model/fm.model")
-        val res = S3Util.getObject("sandbox-data-store", "fm.model")
+        S3Util.getObject("ekstep-dev-data-store", "model/fm.model")
+        val res = S3Util.getObject("ekstep-dev-data-store", "fm.model")
         res.length should be (0)
     }
 }
