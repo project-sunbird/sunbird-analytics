@@ -108,8 +108,8 @@ object JobAPIService {
 	private def _createJobResponse(job: JobRequest): JobResponse = {
 		val processed = List(JobStatus.COMPLETE.toString(), JobStatus.FAILED.toString()).contains(job.status);
 		val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
-        val output = if (processed) Option(JobOutput(job.location.getOrElse(""), job.file_size.getOrElse(0L), created, job.dt_first_event.get.getMillis, job.dt_last_event.get.getMillis, job.dt_expiration.get.getMillis)) else None;
-        val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, job.dt_job_processing.get.getMillis, job.dt_job_completed.get.getMillis, job.input_events.getOrElse(0), job.output_events.getOrElse(0), job.latency.getOrElse(0), job.execution_time.getOrElse(0L))) else None;
+        val output = if (processed) Option(JobOutput(job.location, job.file_size, Option(created), Option(job.dt_first_event.get.getMillis), Option(job.dt_last_event.get.getMillis), Option(job.dt_expiration.get.getMillis))) else Option(JobOutput());
+        val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, Option(job.dt_job_processing.get.getMillis), Option(job.dt_job_completed.get.getMillis), Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L)))) else Option(JobStats(job.dt_job_submitted.get.getMillis));
         val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
         JobResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats);
     }

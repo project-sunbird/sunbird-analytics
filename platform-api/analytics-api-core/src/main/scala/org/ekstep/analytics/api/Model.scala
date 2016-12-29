@@ -74,7 +74,7 @@ object APIIds {
 	val GET_DATA_REQUEST_LIST = "ekstep.analytics..dataset.request.list";
 }
 
-case class JobOutput(location: String, file_size: Long, dt_file_created: String, dt_first_event: Long, dt_last_event: Long, dt_expiration: Long);
-case class JobStats(dt_job_submitted: Long, dt_job_processing: Long, dt_job_completed: Long, input_events: Int, output_events: Int, latency: Int, execution_time: Long);
+case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
+case class JobStats(dt_job_submitted: Long, dt_job_processing:  Option[Long] = None, dt_job_completed:  Option[Long] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, latency: Option[Int] = None, execution_time: Option[Long] = None);
 case class JobResponse(request_id: String, status: String, last_updated: Long, request_data: Request, output: Option[JobOutput] = None, job_stats: Option[JobStats] = None, job_id: Option[String] = None);
 case class JobRequestEvent(eid: String, ets: Long, ver: String, context: Context, edata: MEEdata)
