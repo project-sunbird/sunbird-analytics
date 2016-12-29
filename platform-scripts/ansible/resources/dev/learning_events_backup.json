@@ -9,7 +9,7 @@
 	"zookeeper_quorum":"172.31.1.92:2181",
 	"max_file_size":"200000000",
 	"max_file_age":"3600",
-	"ostrich_port":"9998",
+	"ostrich_port":"9995",
 	"partition_prefix_enabled":"false",
 	"partition_prefix_key":"eid",
 	"partition_prefix_mapping":"{\"DEFAULT\":\"learning-events\"}",
