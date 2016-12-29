@@ -69,8 +69,9 @@ object Constants {
 }
 
 object APIIds {
-	val DATA_REQUEST = "ekstep.analytics.data.out";
-	val GET_DATA_REQUEST = "ekstep.analytics.job.info";
+	val DATA_REQUEST = "ekstep.analytics.dataset.request";
+	val GET_DATA_REQUEST = "ekstep.analytics..dataset.request.info";
+	val GET_DATA_REQUEST_LIST = "ekstep.analytics..dataset.request.list";
 }
 
 case class JobOutput(location: String, file_size: Long, dt_file_created: String, dt_first_event: Long, dt_last_event: Long, dt_expiration: Long);

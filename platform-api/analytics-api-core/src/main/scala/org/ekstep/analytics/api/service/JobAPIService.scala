@@ -74,7 +74,7 @@ object JobAPIService {
 		val rdd = DBUtil.getJobRequestList(clientKey);
 		val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
 		val result = jobs.take(limit).map { x => _createJobResponse(x) }
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.job.list", Map("count" -> Long.box(jobs.count()), "jobs" -> result)));	
+		JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.count()), "jobs" -> result)));	
 	}
 	
 	private def _validateReq(body: RequestBody): Map[String, String] = {
