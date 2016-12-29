@@ -39,7 +39,7 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
         println(keys1.length)
 
         for (key <- keys1) {
-            S3Util.deleteObject("lpdev-ekstep", key)
+            S3Util.deleteObject("lpdev-ekstep", key.replace("s3n://lpdev-ekstep/", ""))
         }
         S3Util.deleteObject("lpdev-ekstep", "data-exhaust/dev/273646_$folder$");
 
