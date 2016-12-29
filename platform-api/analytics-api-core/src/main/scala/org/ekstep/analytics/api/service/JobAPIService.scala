@@ -74,7 +74,7 @@ object JobAPIService {
 		val rdd = DBUtil.getJobRequestList(clientKey);
 		val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
 		val result = jobs.take(limit).map { x => _createJobResponse(x) }
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.job.list", Map("count" -> Long.box(jobs.count()), "jobs" -> result)));	
+		JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.count()), "jobs" -> result)));	
 	}
 	
 	private def _validateReq(body: RequestBody): Map[String, String] = {
@@ -108,8 +108,8 @@ object JobAPIService {
 	private def _createJobResponse(job: JobRequest): JobResponse = {
 		val processed = List(JobStatus.COMPLETE.toString(), JobStatus.FAILED.toString()).contains(job.status);
 		val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
-        val output = if (processed) Option(JobOutput(job.location.getOrElse(""), job.file_size.getOrElse(0L), created, job.dt_first_event.get.getMillis, job.dt_last_event.get.getMillis, job.dt_expiration.get.getMillis)) else None;
-        val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, job.dt_job_processing.get.getMillis, job.dt_job_completed.get.getMillis, job.input_events.getOrElse(0), job.output_events.getOrElse(0), job.latency.getOrElse(0), job.execution_time.getOrElse(0L))) else None;
+        val output = if (processed) Option(JobOutput(job.location, job.file_size, Option(created), Option(job.dt_first_event.get.getMillis), Option(job.dt_last_event.get.getMillis), Option(job.dt_expiration.get.getMillis))) else Option(JobOutput());
+        val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, Option(job.dt_job_processing.get.getMillis), Option(job.dt_job_completed.get.getMillis), Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L)))) else Option(JobStats(job.dt_job_submitted.get.getMillis));
         val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
         JobResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats);
     }
@@ -119,7 +119,7 @@ object JobAPIService {
 		val jobSubmitted = DateTime.now()
 		val jobRequest = JobRequest(body.params.get.client_key, Option(requestId), None, Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
 		DBUtil.saveJobRequest(jobRequest);
-		JobResponse(requestId, status, jobSubmitted.getMillis, body.request);
+		JobResponse(requestId, status, jobSubmitted.getMillis, body.request, Option(JobOutput()), Option(JobStats(jobSubmitted.getMillis)));
 	}
 	
 	private def _getRequestId(filter: Filter): String = {
