@@ -119,7 +119,7 @@ object JobAPIService {
 		val jobSubmitted = DateTime.now()
 		val jobRequest = JobRequest(body.params.get.client_key, Option(requestId), None, Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
 		DBUtil.saveJobRequest(jobRequest);
-		JobResponse(requestId, status, jobSubmitted.getMillis, body.request);
+		JobResponse(requestId, status, jobSubmitted.getMillis, body.request, Option(JobOutput()), Option(JobStats(jobSubmitted.getMillis)));
 	}
 	
 	private def _getRequestId(filter: Filter): String = {
