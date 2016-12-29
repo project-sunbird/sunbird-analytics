@@ -15,9 +15,8 @@ api_root: "{{ analytics.home }}/api"
 api_home: "{{ analytics.home }}/api/analytics-api-1.0"
 secor:
   artifact_dir: /mnt/secor
-  raw_home: "{{ user_home }}/secor-raw"
-  me_home: "{{ user_home }}/secor-me"
-  paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor-raw', '/mnt/secor-me', '/home/ec2-user/secor-raw', '/home/ec2-user/secor-me']
+  paths: ['/mnt/secor', '/mnt/secor/reports']
+  properties: ['secor.common', 'secor', 'secor.partition']
 api_args: -Dconfig.resource=qa.conf
 bucket: qa-data-store
 brokerlist: 172.31.1.92:9092
@@ -96,19 +95,9 @@ monit_jobs:
   joblog.log:
     hour: 2
     minute: 27
-secor_raw_job:
-  secor_raw:
-    hour: 23
-    minute: 57
-secor_me_job:
-  secor_me:
-    hour: 23
-    minute: 58
-
 
 cassandra:
   seeds: 172.31.18.88
   listen_address: 172.31.18.88
   rpc_address: 0.0.0.0
   broadcast_rpc_address: 172.31.18.88
-  
