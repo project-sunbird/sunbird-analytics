@@ -1,10 +1,10 @@
 {
 	"service_name":"raw-telemetry-backup",
-	"consumer_group":"sandbox.telemetry.unique.backup",
+	"consumer_group":"new-qa.telemetry.unique.backup",
 	"s3_base_path":"raw",
 	"timestamp_key":"@timestamp",
-	"topic":"sandbox.telemetry.unique",
-	"s3_bucket":"sandbox-data-store",
+	"topic":"new-qa.telemetry.unique",
+	"s3_bucket":"qa-data-store",
 	"kafka_broker_host":"172.31.1.92",
 	"zookeeper_quorum":"172.31.1.92:2181",
 	"max_file_size":"200000000",

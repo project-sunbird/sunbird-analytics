@@ -1,10 +1,10 @@
 {
 	"service_name":"derived-telemetry-backup",
-	"consumer_group":"sandbox.telemetry.derived.backup",
+	"consumer_group":"new-qa.telemetry.derived.backup",
 	"s3_base_path":"",
 	"timestamp_key":"syncts",
-	"topic":"sandbox.telemetry.derived",
-	"s3_bucket":"sandbox-data-store",
+	"topic":"new-qa.telemetry.derived",
+	"s3_bucket":"qa-data-store",
 	"kafka_broker_host":"172.31.1.92",
 	"zookeeper_quorum":"172.31.1.92:2181",
 	"max_file_size":"200000000",
