@@ -15,9 +15,8 @@ api_root: "{{ analytics.home }}/api"
 api_home: "{{ analytics.home }}/api/analytics-api-1.0"
 secor:
   artifact_dir: /mnt/secor
-  raw_home: "{{ user_home }}/secor-raw"
-  me_home: "{{ user_home }}/secor-me"
-  paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor-raw', '/mnt/secor-me', '/home/ec2-user/secor-raw', '/home/ec2-user/secor-me']
+  paths: ['/mnt/secor', '/mnt/secor/reports']
+  properties: ['log4j', 'secor.common', 'secor', 'secor.partition']
 api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
 brokerlist: 172.31.1.92:9092

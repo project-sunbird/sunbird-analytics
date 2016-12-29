@@ -1,80 +1,60 @@
 ---
-- name: Copy the config.zip properties artifact for secor-me
-  copy: src=config.zip dest=/home/ec2-user/secor-me owner=ec2-user group=ec2-user
+- name: Create secor service 
+  vars:
+    description: Secor service
+    script_dir: "{{ sbin_path }}"
+  template: src=secor-service.j2 dest={{ sbin_path }}/secor mode=755 owner=ec2-user group=ec2-user
   tags:
-    - secor-me
+    - provision-secor
 
+- name: Copy secor libraries
+  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ user_home }} owner=ec2-user group=ec2-user
+  tags:
+    - deploy-secor
 
-- name: Status of the secor-me service
-  command: "/home/ec2-user/sbin/secor-me status"
+- name: Unarchive secor libraries
+  unarchive: src={{ user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/{{ service_name }} copy=no group=ec2-user owner=ec2-user
+  tags:
+    - deploy-secor
+
+- name: Delete secor libraries
+  file: path={{ user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz state=absent
+  tags:
+    - deploy-secor
+
+- name: Copy secor libraries
+  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ user_home }} owner=ec2-user group=ec2-user
+  tags:
+    - deploy-secor
+
+- name: Copy secor properties
+  template: src={{ item }}.j2 dest=/mnt/{{ service_name }}/{{ item }}.properties mode=755 owner=ec2-user group=ec2-user
+  with_items: "{{ secor.properties }}"
+  tags:
+    - deploy-secor
+
+- name: Status of the secor service
+  command: "{{ sbin_path }}/secor {{ service_name }} status"
   register: secor_status
   tags:
-    - secor-me
+    - service-secor
 
-- name: Stop the secor-me service
-  command: "/home/ec2-user/sbin/secor-me stop"
+- name: Stop the secor service
+  command: "{{sbin_path}}/secor {{ service_name }} stop"
   when: "secor_status.stdout.find('RUNNING') != -1"
   async: 10
   poll: 5
   tags:
-    - secor-me
+    - service-secor
 
-
-- name: Unarchive config.zip artifact
-  command: "unzip -o config.zip"
-  args:
-       chdir: /home/ec2-user/secor-me
+- name: Delete the pid file
+  file: path={{ sbin_path }}/{{ service_name }}.pid state=absent
   tags:
-    - secor-me
+    - service-secor    
 
-- name: delete config.zip
-  file: path=/home/ec2-user/secor-me/config.zip state=absent
-  tags:
-    - secor-me
-
-- name: Start the secor-me service
-  command: "/home/ec2-user/sbin/secor-me start"
+- name: Start the secor service
+  command: "{{sbin_path}}/secor {{ service_name }} start"
   async: 20
   poll: 5
   tags:
-    - secor-me
-#**********************Secor-raw
-
-- name: Copy the config.zip properties artifact for secor-raw
-  copy: src=config.zip dest=/home/ec2-user/secor-raw owner=ec2-user group=ec2-user
-  tags:
-    - secor-raw
-
-- name: Status of the secor-raw service
-  command: "/home/ec2-user/sbin/secor-raw status"
-  register: secor_status
-  tags:
-    - secor-raw
-
-- name: Stop the secor-raw service
-  command: "/home/ec2-user/sbin/secor-raw stop"
-  when: "secor_status.stdout.find('RUNNING') != -1"
-  async: 10
-  poll: 5
-  tags:
-    - secor-raw
-
-- name: Unarchive config.zip artifact
-  command: unzip -o config.zip
-  args:
-       chdir: /home/ec2-user/secor-raw
-  tags:
-    - secor-raw
-
-- name: delete config.zip
-  file: path=/home/ec2-user/secor-raw/config.zip state=absent
-  tags:
-    - secor-raw
-
-
-- name: Start the secor-raw service
-  command: "/home/ec2-user/sbin/secor-raw start"
-  async: 20
-  poll: 5
-  tags:
-    - secor-raw
+    - service-secor
