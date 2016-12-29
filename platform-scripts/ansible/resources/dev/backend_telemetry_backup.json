@@ -13,5 +13,8 @@
 	"partition_prefix_enabled":"false",
 	"partition_prefix_key":"eid",
 	"partition_prefix_mapping":"{\"DEFAULT\":\"backup\"}",
-	"output_file_pattern":"{partition}-{currentTimestamp}.json"
+	"output_file_pattern":"{partition}-{currentTimestamp}.json",
+	"service_description":"Backend Telemetry Backup",
+	"service_monitor_schedule_hr":"23",
+	"service_monitor_schedule_min":"54"
 }

@@ -16,7 +16,7 @@ api_home: "{{ analytics.home }}/api/analytics-api-1.0"
 secor:
   artifact_dir: /mnt/secor
   paths: ['/mnt/secor', '/mnt/secor/reports']
-  properties: ['log4j', 'secor.common', 'secor', 'secor.partition']
+  properties: ['secor.common', 'secor', 'secor.partition']
 api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
 brokerlist: 172.31.1.92:9092
@@ -94,14 +94,6 @@ monit_jobs:
   joblog.log:
     hour: 2
     minute: 27
-secor_raw_job:
-  secor_raw:
-    hour: 23
-    minute: 57
-secor_me_job:
-  secor_me:
-    hour: 23
-    minute: 58
 
 cassandra:
   seeds: 172.31.25.29

@@ -1,17 +1,20 @@
 {
 	"service_name":"raw-telemetry-backup",
-	"consumer_group":"production.telemetry.unique.backup",
+	"consumer_group":"sandbox.telemetry.unique.backup",
 	"s3_base_path":"raw",
 	"timestamp_key":"@timestamp",
-	"topic":"production.telemetry.unique",
-	"s3_bucket":"prod-data-store",
-	"kafka_broker_host":"10.10.1.207",
-	"zookeeper_quorum":"10.10.1.207:2181",
+	"topic":"sandbox.telemetry.unique",
+	"s3_bucket":"sandbox-data-store",
+	"kafka_broker_host":"172.31.1.92",
+	"zookeeper_quorum":"172.31.1.92:2181",
 	"max_file_size":"200000000",
-	"max_file_age":"21600",
+	"max_file_age":"3600",
 	"ostrich_port":"9998",
 	"partition_prefix_enabled":"false",
 	"partition_prefix_key":"eid",
 	"partition_prefix_mapping":"{\"DEFAULT\":\"raw\"}",
-	"output_file_pattern":"{partition}-{currentTimestamp}.json"
+	"output_file_pattern":"{partition}-{currentTimestamp}.json",
+	"service_description":"Raw Telemetry Backup",
+	"service_monitor_schedule_hr":"23",
+	"service_monitor_schedule_min":"50"
 }

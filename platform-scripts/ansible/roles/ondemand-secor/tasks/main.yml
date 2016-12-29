@@ -7,6 +7,11 @@
   tags:
     - provision-secor
 
+- name: Copy monitoring script
+  template: src=monitor-secor.j2 dest={{ sbin_path }}/monitor-secor.sh mode=755 owner=ec2-user group=ec2-user
+  tags:
+    - provision-secor
+
 - name: Copy secor libraries
   copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ user_home }} owner=ec2-user group=ec2-user
   tags:
@@ -28,14 +33,14 @@
   tags:
     - deploy-secor
 
-- name: Copy secor libraries
-  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ user_home }} owner=ec2-user group=ec2-user
-  tags:
-    - deploy-secor
-
 - name: Copy secor properties
   template: src={{ item }}.j2 dest=/mnt/{{ service_name }}/{{ item }}.properties mode=755 owner=ec2-user group=ec2-user
   with_items: "{{ secor.properties }}"
+  tags:
+    - deploy-secor
+
+- name: Create monitoring cron job
+  cron: name={{ service_name }} minute={{ service_monitor_schedule_min }} hour={{ service_monitor_schedule_hr }}  job="{{ sbin_path }}/monitor-secor.sh {{ service_name }} {{ service_description }}"
   tags:
     - deploy-secor
 
