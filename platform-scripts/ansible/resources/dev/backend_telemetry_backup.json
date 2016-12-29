@@ -1,7 +1,7 @@
 {
 	"service_name":"backend-telemetry-backup",
 	"consumer_group":"sandbox.telemetry.backend.backup",
-	"s3_base_path":"backup",
+	"s3_base_path":"backend",
 	"timestamp_key":"ets",
 	"topic":"sandbox.telemetry.backend",
 	"s3_bucket":"sandbox-data-store",
@@ -12,7 +12,7 @@
 	"ostrich_port":"9996",
 	"partition_prefix_enabled":"false",
 	"partition_prefix_key":"eid",
-	"partition_prefix_mapping":"{\"DEFAULT\":\"backup\"}",
+	"partition_prefix_mapping":"{\"DEFAULT\":\"backend\"}",
 	"output_file_pattern":"{partition}-{currentTimestamp}.json",
 	"service_description":"Backend Telemetry Backup",
 	"service_monitor_schedule_hr":"23",
