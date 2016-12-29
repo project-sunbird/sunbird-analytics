@@ -2,3 +2,9 @@
 - hosts: secor
   roles:
     - secor
+
+- hosts: secor
+  roles:
+    - ubuntu-bootstrap
+  tags:
+    - provision-secor    

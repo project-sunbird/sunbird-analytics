@@ -1,40 +1,47 @@
 ---
+- name: Create secor directories
+  become: yes
+  file: path={{ item }} owner=analytics group=analytics state=directory
+  with_items: "{{ secor.paths }}"
+  tags:
+    - provision-secor
+
 - name: Create secor service 
   vars:
     description: Secor service
-    script_dir: "{{ sbin_path }}"
-  template: src=secor-service.j2 dest={{ sbin_path }}/secor mode=755 owner=ec2-user group=ec2-user
+    script_dir: "{{ secor.sbin_path }}"
+  template: src=secor-service.j2 dest={{ secor.sbin_path }}/secor mode=755 owner=analytics group=analytics
   tags:
     - provision-secor
 
 - name: Copy monitoring script
-  template: src=monitor-secor.j2 dest={{ sbin_path }}/monitor-secor.sh mode=755 owner=ec2-user group=ec2-user
+  template: src=monitor-secor.j2 dest={{ secor.sbin_path }}/monitor-secor.sh mode=755 owner=analytics group=analytics
   tags:
     - provision-secor
 
 - name: Copy secor libraries
-  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ user_home }} owner=ec2-user group=ec2-user
+  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ analytics_user_home }} owner=analytics group=analytics
   tags:
     - deploy-secor
 
 - name: Create service directory on EBS volume
   become: yes
-  file: path=/mnt/{{ service_name }}/logs owner=ec2-user group=ec2-user state=directory
+  file: path=/mnt/{{ service_name }}/logs owner=analytics group=analytics state=directory
   tags:
     - deploy-secor
 
 - name: Unarchive secor libraries
-  unarchive: src={{ user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/{{ service_name }} copy=no group=ec2-user owner=ec2-user
+  unarchive: src={{ analytics_user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/{{ service_name }} copy=no owner=analytics group=analytics
   tags:
     - deploy-secor
 
 - name: Delete secor libraries
-  file: path={{ user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz state=absent
+  file: path={{ analytics_user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz state=absent
   tags:
     - deploy-secor
 
 - name: Copy secor properties
-  template: src={{ item }}.j2 dest=/mnt/{{ service_name }}/{{ item }}.properties mode=755 owner=ec2-user group=ec2-user
+  template: src={{ item }}.j2 dest=/mnt/{{ service_name }}/{{ item }}.properties mode=755 owner=analytics group=analytics
   with_items: "{{ secor.properties }}"
   tags:
     - deploy-secor
@@ -45,13 +52,13 @@
     - deploy-secor
 
 - name: Status of the secor service
-  command: "{{ sbin_path }}/secor {{ service_name }} status"
+  command: "{{ secor.sbin_path }}/secor {{ service_name }} status"
   register: secor_status
   tags:
     - service-secor
 
 - name: Stop the secor service
-  command: "{{sbin_path}}/secor {{ service_name }} stop"
+  command: "{{ secor.sbin_path }}/secor {{ service_name }} stop"
   when: "secor_status.stdout.find('RUNNING') != -1"
   async: 10
   poll: 5
@@ -59,12 +66,12 @@
     - service-secor
 
 - name: Delete the pid file
-  file: path={{ sbin_path }}/{{ service_name }}.pid state=absent
+  file: path={{ secor.sbin_path }}/{{ service_name }}.pid state=absent
   tags:
     - service-secor    
 
 - name: Start the secor service
-  command: "{{sbin_path}}/secor {{ service_name }} start"
+  command: "{{ secor.sbin_path }}/secor {{ service_name }} start"
   async: 20
   poll: 5
   tags:
