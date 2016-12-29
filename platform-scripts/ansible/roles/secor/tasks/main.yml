@@ -47,7 +47,7 @@
     - deploy-secor
 
 - name: Create monitoring cron job
-  cron: name={{ service_name }} minute={{ service_monitor_schedule_min }} hour={{ service_monitor_schedule_hr }}  job="{{ sbin_path }}/monitor-secor.sh {{ service_name }} {{ service_description }}"
+  cron: name={{ service_name }} minute={{ service_monitor_schedule_min }} hour={{ service_monitor_schedule_hr }}  job="{{ sbin_path }}/monitor-secor.sh {{ service_name }} '{{ service_description }}'"
   tags:
     - deploy-secor
 
