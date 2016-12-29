@@ -36,8 +36,8 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
     val className = "org.ekstep.analytics.model.DataExhaustJobModel"
     override def name: String = "DataExhaustJobModel"
 
-    def updateStage(request_id: String, client_key: String, satage: String, status: String)(implicit sc: SparkContext) {
-        sc.makeRDD(Seq(JobStage(request_id, client_key, satage, status))).saveAsCassandraTable(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status"))
+    def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING")(implicit sc: SparkContext) {
+        sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
     }
 
     def getRequest(request_id: String, client_key: String)(implicit sc: SparkContext): RequestFilter = {
@@ -48,8 +48,8 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
             filter;
         } catch {
             case t: Throwable =>
-                updateStage(request_id, client_key, "FETCHING_THE_REQUEST", "FAILED")
-                null;
+                updateStage(request_id, client_key, "FETCHING_THE_REQUEST", "FAILED", "FAILED")
+                throw t;
         }
     }
 
@@ -102,8 +102,8 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
             filteredData;
         } catch {
             case t: Throwable =>
-                updateStage(request_id, client_key, "FILTERING_DATA", "FAILED")
-                null;
+                updateStage(request_id, client_key, "FILTERING_DATA", "FAILED", "FAILED")
+                throw t;
         }
     }
 
@@ -128,13 +128,13 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
                 updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "COMPLETED")
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, output_events, bucket, uploadPrefix, firstEventDate, lastEventDate)));
             } else {
-                updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "FAILED")
-                sc.makeRDD(List());
+                updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "COMPLETED")
+                sc.makeRDD(List(JobResponse(client_key, request_id, job_id, 0, bucket, null, 0L, 0L)));
             }
         } catch {
             case t: Throwable =>
-                updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "FAILED")
-                sc.makeRDD(List());
+                updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "FAILED", "FAILED")
+                throw t;
         }
 
     }

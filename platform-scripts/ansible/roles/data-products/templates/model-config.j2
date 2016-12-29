@@ -108,6 +108,9 @@ config() {
 		"gfa")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gfs/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieFunnelAggregatorModel","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Genie Funnel Aggregator Model","deviceMapping":true}'
 		;;
+		"data-exhaust")
+		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false}'
+		;;
 		"*")
 		echo "Unknown model code"
       	exit 1 # Command to come out of the program with status 1
