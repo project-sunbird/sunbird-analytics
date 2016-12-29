@@ -25,7 +25,7 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
         val jobRequest1 = JobRequest("dev-portal", "12334", None, "PROCESSING", request1, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, None, None)
 
         val request2 = """{"filter": {"start_date": "2016-11-19","end_date": "2016-11-20","tags": ["becb887fe82f24c644482eb30041da6d88bd8150"]}}"""
-        val jobRequest2 = JobRequest("dev-portal", "273645", None, "PROCESSING", request2, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, None, None)
+        val jobRequest2 = JobRequest("dev-portal", "273646", None, "PROCESSING", request2, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, None, None)
 
         //val rdd = sc.makeRDD(Seq(jobRequest1, jobRequest2))
         val rdd = sc.makeRDD(Seq(jobRequest2))
@@ -35,16 +35,16 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
         val fetcher = Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/data-exhaust/*")))))
         val data = DataFetcher.fetchBatchData[String](fetcher).cache();
 
-        val keys1 = S3Util.getPath("lpdev-ekstep", "data-exhaust/dev/273645")
+        val keys1 = S3Util.getPath("lpdev-ekstep", "data-exhaust/dev/273646")
         println(keys1.length)
 
         for (key <- keys1) {
             S3Util.deleteObject("lpdev-ekstep", key)
         }
-        S3Util.deleteObject("lpdev-ekstep", "data-exhaust/dev/273645_$folder$");
+        S3Util.deleteObject("lpdev-ekstep", "data-exhaust/dev/273646_$folder$");
 
         val requestConfig = Map(
-            "request_id" -> "273645",
+            "request_id" -> "273646",
             "client_key" -> "dev-portal",
             "job_id" -> UUID.randomUUID().toString(),
             "data-exhaust-bucket" -> "lpdev-ekstep",
@@ -55,8 +55,8 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
         val res = out.last
         res.output_events should be(3817)
         res.client_key should be("dev-portal")
-        res.request_id should be("273645")
-        val keys = S3Util.getAllKeys("lpdev-ekstep", "data-exhaust/dev/273645/")
+        res.request_id should be("273646")
+        val keys = S3Util.getAllKeys("lpdev-ekstep", "data-exhaust/dev/273646/")
         keys.length should not be (0)
     }
 }
