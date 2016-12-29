@@ -20,10 +20,6 @@ analytics
 api
 cassandra
 
-[secor:children]
-secor-raw
-secor-me
-
 [analytics:children]
 spark
 data-products
