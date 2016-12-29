@@ -132,7 +132,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, 0, bucket, null, 0L, 0L)));
             }
         } catch {
-            case t: Throwable =>
+            case t: Throwable => t.printStackTrace()
                 updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "FAILED", "FAILED")
                 throw t;
         }

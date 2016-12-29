@@ -19,8 +19,8 @@ import org.ekstep.analytics.framework.util.S3Util
 
 class TestDataExhaustJobModel extends SparkSpec(null) {
 
-    "DataExhaustJobModel" should "generate zip file of all events and save to s3" in {
-
+    //"DataExhaustJobModel" should "generate zip file of all events and save to s3" in {
+	ignore should "generate zip file of all events and save to s3" in {
         val request1 = """{"filter": {"start_date": "2016-11-17","end_date": "2016-11-18","tags": ["becb887fe82f24c644482eb30041da6d88bd8151"]}}"""
         val jobRequest1 = JobRequest("dev-portal", "12334", None, "PROCESSING", request1, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, None, None)
 

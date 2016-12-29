@@ -40,7 +40,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         S3Util.deleteObject("lpdev-ekstep", "data-exhaust/dev/1234.zip");
     }
 
-    it should "execute DataExhaustJob job and won't throw any Exception" in {
+    ignore should "execute DataExhaustJob job and won't throw any Exception" in {
 
         preProcess()
         postProcess()
