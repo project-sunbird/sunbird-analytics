@@ -14,9 +14,9 @@
 
 - name: Create service directory on EBS volume
   become: yes
-  file: path=/mnt/{{ service_name }} owner=ec2-user group=ec2-user state=directory
+  file: path=/mnt/{{ service_name }}/logs owner=ec2-user group=ec2-user state=directory
   tags:
-    - deploy-secor    
+    - deploy-secor
 
 - name: Unarchive secor libraries
   unarchive: src={{ user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/{{ service_name }} copy=no group=ec2-user owner=ec2-user
