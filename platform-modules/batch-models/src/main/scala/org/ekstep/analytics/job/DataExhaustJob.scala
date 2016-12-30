@@ -57,10 +57,12 @@ object DataExhaustJob extends optional.Application with IJob {
 
         val modelParams = config.modelParams.get;
         val requests = getAllRequest
-        val rdd = fetchAllData(requests, config, modelParams).cache
-        _executeRequests(rdd.repartition(10), requests.collect(), modelParams);
-        rdd.unpersist(true)
-        requests.unpersist(true)
+        if (null != requests) {
+            val rdd = fetchAllData(requests, config, modelParams).cache
+            _executeRequests(rdd.repartition(10), requests.collect(), modelParams);
+            rdd.unpersist(true)
+            requests.unpersist(true)
+        }
     }
 
     def fetchAllData(requests: RDD[JobRequest], config: JobConfig, modelParams: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
@@ -96,10 +98,15 @@ object DataExhaustJob extends optional.Application with IJob {
     def getAllRequest()(implicit sc: SparkContext): RDD[JobRequest] = {
         try {
             val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") }.cache;
-            jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
-            jobReq;
+            if (!jobReq.isEmpty()) {
+                jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
+                jobReq;
+            } else {
+                null;
+            }
+
         } catch {
-            case t: Throwable => throw t;
+            case t: Throwable => null;
         }
     }
 
@@ -188,7 +195,7 @@ object DataExhaustJob extends optional.Application with IJob {
                 }
             } catch {
                 case t: Throwable =>
-                    DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB","FAILED", "FAILED")
+                    DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED")
                     null
             }
         }
