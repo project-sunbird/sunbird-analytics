@@ -28,6 +28,10 @@ secor:
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=qa.conf
 bucket: qa-data-store
+dataset-read-bucket: ekstep-datasets-test
+data-exhaust-bucket: ekstep-public
+data-exhaust-prefix: qa/data-exhaust
+dataset-read-prefix: staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/
 brokerlist: 172.31.1.92:9092
 topic: new-qa.telemetry.derived
 spark:
