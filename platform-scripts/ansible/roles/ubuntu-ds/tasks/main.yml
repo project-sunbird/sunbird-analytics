@@ -1,0 +1,116 @@
+---
+- name: Install python-dev
+  become: yes
+  apt: name=python-dev state=present update_cache=yes
+  tags:
+    - provision-ds
+
+- name: Install pip
+  become: yes
+  apt: name=python-pip state=present
+  tags:
+    - provision-ds
+
+- name: Upgrade pip
+  become: yes
+  command: pip install --upgrade pip
+  tags:
+       - provision-ds
+
+# git is used only by data science provision if it requires by other services move it to bootstrap.
+- name: Install git
+  become: yes
+  apt: name=git state=present update_cache=yes
+  tags:
+    - provision-ds
+
+- name: Clone libfm from github
+  git: repo=https://github.com/srendle/libfm.git dest={{ analytics.home }}/libfm
+  tags:
+    - provision-ds
+
+- name: Run make of libfm
+  command: make all chdir={{ analytics.home }}/libfm
+  tags:
+    - provision-ds
+
+- name: Make a link for libfm
+  become: yes
+  file: src={{ analytics.home }}/libfm/bin/libFM dest=/usr/local/bin/libFM state=link
+  tags:
+    - provision-ds
+
+- name: Install python modules
+  become: yes
+  pip: chdir=/usr/bin name={{ item }} state=present
+  with_items: 
+            - nltk
+            - py2neo
+            - requests
+            - numpy
+            - langdetect
+            - simplejson
+            - mutagen
+            - pydub
+            - signalslot
+            - SpeechRecognition
+            - jsonschema
+            - scipy
+            - pandas
+            - validators
+            - networkx
+            - gensim
+            - pattern
+  tags:
+       - provision-ds
+
+- name: Download stopwords for content2vec
+  command: python -c "import nltk; nltk.download('stopwords')"
+  tags:
+       - provision-ds
+
+# deploy
+- name: Copy Python Library
+  copy: src=script.zip dest={{ analytics.home }}
+  tags:
+    - deploy-ds
+
+- name: Unarchive script.zip
+  unarchive: src={{ analytics.home }}/script.zip dest={{ analytics.home }}/ copy=no group={{ group }} owner={{ user }} creates={{ analytics.home }}/script
+  tags:
+   - deploy-ds
+
+- name: move files to GenieSearch
+  become: yes
+  command: cp -r {{ analytics.home }}/script/GenieSearch  {{ analytics.home }}/scripts/
+  tags:
+   - deploy-ds
+
+
+- name: move files to VidyavaniCnQ
+  become: yes
+  command: cp -r {{ analytics.home }}/script/VidyavaniCnQ  {{ analytics.home }}/scripts/
+  tags:
+   - deploy-ds
+
+
+- name: move files to vidyavaani
+  become: yes
+  command: cp -r {{ analytics.home }}/script/vidyavaani  {{ analytics.home }}/scripts/
+  tags:
+   - deploy-ds
+
+- name: Remove script.zip file
+  become: yes
+  file: path={{ analytics.home }}/{{ item }} state=absent
+  with_items:
+              - script
+              - script.zip
+  tags:
+    - deploy-ds
+
+- name: Replace Working directory line
+  become: yes
+  lineinfile: dest={{ analytics.home }}/scripts/vidyavaani/resources/config.properties regexp='^working_dir=' insertafter='^#working_dir=' line='working_dir=/mnt/data/analytics/content2vec' state=present
+  tags:
+    - deploy-ds

@@ -12,14 +12,21 @@ analytics:
   scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp','pre-comp-job']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-3.7"
 cql_path: "{{ analytics.home }}/apache-cassandra-3.7/bin/cqlsh"
-api_root: "{{ analytics.home }}/api"
-api_home: "{{ analytics.home }}/api/analytics-api-1.0"
+#api_root: "{{ analytics.home }}/api"
+#api_home: "{{ analytics.home }}/api/analytics-api-1.0"
+api:
+  sbin_path: "/home/analytics/sbin"
+  root_path: "{{ analytics.home }}/api"
+  artifact_dir: "{{ analytics.home }}/api/analytics-api-1.0"
+  paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/scripts/logs',
+    '/mnt/data/analytics/logs/services', '/mnt/data/analytics/logs/api-service', '/mnt/data/analytics/api', '/mnt/data/analytics/tmp', '/mnt/data/analytics/scripts/monitor-data']
+  service_args: -Dconfig.resource=dev.conf
 secor:
   sbin_path: "/home/analytics/sbin"
   artifact_dir: /mnt/secor
   paths: ['/mnt/secor', '/mnt/secor/reports']
   properties: ['secor.common', 'secor', 'secor.partition']
-api_args: -Dconfig.resource=dev.conf
+#api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
 brokerlist: 172.31.1.92:9092
 topic: sandbox.telemetry.derived

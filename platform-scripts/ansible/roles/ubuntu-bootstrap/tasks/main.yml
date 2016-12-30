@@ -55,3 +55,9 @@
   file: path={{ analytics_user_home }}/sbin owner=analytics group=analytics state=directory
   tags:
     - always
+
+- name: Install Development tools
+  become: yes
+  apt: name="build-essential" state=present
+  tags:
+    - always
