@@ -19,3 +19,4 @@
 - hosts: api
   roles:
     - api
+    - ubuntu-ds

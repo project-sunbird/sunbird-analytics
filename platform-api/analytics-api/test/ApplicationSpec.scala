@@ -71,7 +71,7 @@ class ApplicationSpec extends BaseSpec {
        
        "register tag" in new WithApplication {
     	   	val request = """ {} """
-			val response = post("/metrics/tag/4f04da601e244d31aa7b1daf91c46341",request);
+			val response = post("/metrics/tag/register/4f04da601e244d31aa7b1daf91c46341",request);
 			isOK(response);
        }
        
