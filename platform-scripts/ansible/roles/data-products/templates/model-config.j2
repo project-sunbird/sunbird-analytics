@@ -2,10 +2,10 @@
 
 config() {
 	bucket={{ bucket }}
-	dataset-read-bucket={{ dataset-read-bucket }}
-	data-exhaust-bucket={{ data-exhaust-bucket }}
-	data-exhaust-prefix={{ data-exhaust-prefix }}
-	dataset-read-prefix={{ dataset-read-prefix }}
+	datasetReadBucket={{ datasetReadBucket }}
+	dataExhaustBucket={{ dataExhaustBucket }}
+	dataExhaustPrefix={{ dataExhaustPrefix }}
+	datasetReadPrefix={{ datasetReadPrefix }}
 	brokerList={{ brokerlist }}
 	topic={{ topic }}
 	if [ -z "$2" ]; then endDate=$(date --date yesterday "+%Y-%m-%d"); else endDate=$2; fi

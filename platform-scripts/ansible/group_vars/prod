@@ -19,10 +19,10 @@ secor:
   me_home: "{{ user_home }}/secor-me"
   paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor-raw', '/mnt/secor-me', '/home/ec2-user/secor-raw', '/home/ec2-user/secor-me']
 api_args: -Dconfig.resource=prod.conf
-dataset-read-bucket: ekstep-datasets
-data-exhaust-bucket: ekstep-public
-data-exhaust-prefix: prod/data-exhaust
-dataset-read-prefix: restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/
+datasetReadBucket: ekstep-datasets
+dataExhaustBucket: ekstep-public
+dataExhaustPrefix: prod/data-exhaust
+datasetReadPrefix: restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/
 bucket: prod-data-store
 brokerlist: 10.10.1.207:9092
 topic: production.telemetry.derived

@@ -28,10 +28,10 @@ secor:
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
-dataset-read-bucket: ekstep-datasets-test
-data-exhaust-bucket: ekstep-public
-data-exhaust-prefix: dev/data-exhaust
-dataset-read-prefix: staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/
+datasetReadBucket: ekstep-datasets-test
+dataExhaustBucket: ekstep-public
+dataExhaustPrefix: dev/data-exhaust
+datasetReadPrefix: staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/
 brokerlist: 172.31.1.92:9092
 topic: sandbox.telemetry.derived
 spark:
