@@ -20,6 +20,10 @@ secor:
   paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor-raw', '/mnt/secor-me', '/home/ec2-user/secor-raw', '/home/ec2-user/secor-me']
 api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
+dataset-read-bucket: ekstep-datasets-test
+data-exhaust-bucket: ekstep-public
+data-exhaust-prefix: dev/data-exhaust
+dataset-read-prefix: staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/
 brokerlist: 172.31.1.92:9092
 topic: sandbox.telemetry.derived
 spark:

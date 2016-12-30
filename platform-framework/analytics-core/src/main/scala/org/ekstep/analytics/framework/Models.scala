@@ -132,8 +132,8 @@ object Level extends Enumeration {
 }
 
 object JobStatus extends Enumeration {
-	type Status = Value;
-	val SUBMITTED, PROCESSING, COMPLETE, RETRY, FAILED = Value
+    type Status = Value;
+    val SUBMITTED, PROCESSING, COMPLETE, RETRY, FAILED = Value
 }
 
 trait Stage extends Enumeration {
@@ -143,12 +143,12 @@ trait Stage extends Enumeration {
 
 trait DataExStage extends Enumeration {
     type DataExStage = Value;
-    val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, DOWNLOAD_AND_ZIP_OUTPUT_FILE, UPLOAD_ZIP, UPDATE_RESPONSE_TO_DB = Value
+    val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, SAVE_DATA_TO_LOCAL, DOWNLOAD_AND_ZIP_OUTPUT_FILE, UPLOAD_ZIP, UPDATE_RESPONSE_TO_DB = Value
 }
 
 trait JobStageStatus extends Enumeration {
     type JobStageStatus = Value;
-	val COMPLETED, FAILED = Value
+    val COMPLETED, FAILED = Value
 }
 
 object OnboardStage extends Stage {

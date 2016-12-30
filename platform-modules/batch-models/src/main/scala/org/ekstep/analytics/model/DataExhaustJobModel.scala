@@ -107,36 +107,50 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         }
     }
 
-    def algorithm(data: RDD[DataExhaustJobInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
+    private def saveData(path: String, events: RDD[DataExhaustJobInput], uploadPrefix: String, stage: String, config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
 
         val client_key = config.get("client_key").get.asInstanceOf[String];
         val request_id = config.get("request_id").get.asInstanceOf[String];
         val bucket = config.get("data-exhaust-bucket").get.asInstanceOf[String]
-        val prefix = config.get("data-exhaust-prefix").get.asInstanceOf[String]
         val job_id = config.get("job_id").get.asInstanceOf[String];
-
         try {
-            val events = data.cache();
-            val output_events = data.count;
+            val output_events = events.count
             if (output_events > 0) {
                 val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
-                val uploadPrefix = prefix + "/" + request_id;
-                val s3key = "s3n://" + bucket + "/" + uploadPrefix;
-                events.map { x => x.event }.saveAsTextFile(s3key);
-                events.unpersist(true);
-                updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "COMPLETED")
+                events.map { x => x.event }.saveAsTextFile(path);
+                updateStage(request_id, client_key, stage, "COMPLETED")
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, output_events, bucket, uploadPrefix, firstEventDate, lastEventDate)));
             } else {
-                updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "COMPLETED")
+                updateStage(request_id, client_key, stage, "COMPLETED")
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, 0, bucket, null, 0L, 0L)));
             }
         } catch {
-            case t: Throwable => t.printStackTrace()
-                updateStage(request_id, client_key, "SAVE_DATA_TO_S3", "FAILED", "FAILED")
+            case t: Throwable =>
+                updateStage(request_id, client_key, stage, "FAILED", "FAILED")
                 throw t;
         }
 
+    }
+    def algorithm(data: RDD[DataExhaustJobInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
+
+        val request_id = config.get("request_id").get.asInstanceOf[String];
+        val bucket = config.get("data-exhaust-bucket").get.asInstanceOf[String]
+        val prefix = config.get("data-exhaust-prefix").get.asInstanceOf[String]
+        val dispatch_to = config.getOrElse("dispatch-to", "local").asInstanceOf[String];
+
+        val events = data.cache
+        val res = dispatch_to match {
+            case "local" =>
+                val localPath = config.get("path").get.asInstanceOf[String] + "/" + request_id;
+                saveData(localPath, events, localPath, "SAVE_DATA_TO_LOCAL", config)
+            case "s3" =>
+                val uploadPrefix = prefix + "/" + request_id;
+                val key = "s3n://" + bucket + "/" + uploadPrefix;
+                saveData(key, events, uploadPrefix, "SAVE_DATA_TO_S3", config);
+        }
+        events.unpersist(true)
+        res;
     }
 
     def postProcess(data: RDD[JobResponse], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {

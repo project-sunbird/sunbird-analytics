@@ -26,6 +26,7 @@ import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
 import org.ekstep.analytics.framework.DataExStage
 import org.ekstep.analytics.model.JobResponse
+import java.io.File
 
 case class JobStage(request_id: String, client_key: String, stage: String, stage_status: String, status: String)
 
@@ -36,6 +37,7 @@ object DataExhaustJob extends optional.Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.log("Started executing Job")
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
+
         if (null == sc.getOrElse(null)) {
             JobContext.parallelization = 10;
             implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model));
@@ -73,9 +75,14 @@ object DataExhaustJob extends optional.Application with IJob {
             val startDate = requestMap.sortBy(f => f._1, true).first()._1;
             val endDate = requestMap.sortBy(f => f._2, false).first()._2;
 
-            val dataSetBucket = modelParams.get("dataset-read-bucket").getOrElse("ekstep-datasets").asInstanceOf[String];
-            val dataSetPrefix = modelParams.get("dataset-read-prefix").getOrElse("restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/").asInstanceOf[String];
-            val fetcher = Fetcher(config.search.`type`, None, Option(Array(Query(Option(dataSetBucket), Option(dataSetPrefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
+            val fetcher = config.search.`type`.toLowerCase() match {
+                case "s3" =>
+                    val dataSetBucket = modelParams.get("dataset-read-bucket").getOrElse("ekstep-datasets").asInstanceOf[String];
+                    val dataSetPrefix = modelParams.get("dataset-read-prefix").getOrElse("restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/").asInstanceOf[String];
+                    Fetcher(config.search.`type`, None, Option(Array(Query(Option(dataSetBucket), Option(dataSetPrefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
+                case "local" =>
+                    Fetcher("local", None, config.search.queries);
+            }
             val data = DataFetcher.fetchBatchData[String](fetcher);
             requests.map { x => JobStage(x.request_id, x.client_key, "FETCHING_DATA", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
             data;
@@ -138,13 +145,15 @@ object DataExhaustJob extends optional.Application with IJob {
                     "client_key" -> request.client_key,
                     "job_id" -> UUID.randomUUID().toString(),
                     "data-exhaust-bucket" -> config.getOrElse("data-exhaust-bucket", "lpdev-ekstep"),
-                    "data-exhaust-prefix" -> config.getOrElse("data-exhaust-bucket", "data-exhaust/dev"));
+                    "data-exhaust-prefix" -> config.getOrElse("data-exhaust-prefix", "data-exhaust/dev"),
+                    "dispatch-to" -> config.getOrElse("dispatch-to", "s3").asInstanceOf[String].toLowerCase(),
+                    "path" -> config.getOrElse("tempLocalPath", "/tmp/dataexhaust"));
 
                 val result = CommonUtil.time({
                     val response = DataExhaustJobModel.execute(data, Option(requestConfig)).collect().head;
                     println("response", response);
-                    if (response.output_events > 0) {
-                        val localPath = config.getOrElse("tempLocalPath", "/tmp/dataexhaust").asInstanceOf[String] + "/" + response.request_id;
+                    if (response.output_events > 0 && "s3".equals(requestConfig.get("dispatch-to"))) {
+                        val localPath = requestConfig.get("path").get.asInstanceOf[String] + "/" + response.request_id;
                         println(localPath)
                         downloadOutput(response, localPath)
                         uploadZip(response, localPath)
@@ -153,13 +162,24 @@ object DataExhaustJob extends optional.Application with IJob {
                 })
 
                 if (result._2.output_events > 0) {
-                    val stats = S3Util.getObjectDetails(result._2.bucket, result._2.prefix + ".zip");
-                    val location = "https://" + "s3-ap-southeast-1.amazonaws.com/" + result._2.bucket + "/" + result._2.prefix + ".zip";
-                    val createdDate = new DateTime(stats.get("createdDate").get.asInstanceOf[Date].getTime);
-                    JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, Option(location),
+
+                    val fileDetail = requestConfig.get("dispatch-to").get match {
+                        case "local" =>
+                            val file = new File(result._2.prefix)
+                            val dateTime = new Date(file.lastModified())
+                            val stats = Map("createdDate" -> dateTime, "size" -> file.length())
+                            (result._2.prefix, stats)
+                        case "s3" =>
+                            val stats = S3Util.getObjectDetails(result._2.bucket, result._2.prefix + ".zip");
+                            val loc = "https://" + "s3-ap-southeast-1.amazonaws.com/" + result._2.bucket + "/" + result._2.prefix + ".zip";
+                            (loc, stats)
+                    }
+
+                    val createdDate = new DateTime(fileDetail._2.get("createdDate").get.asInstanceOf[Date].getTime);
+                    JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, Option(fileDetail._1),
                         Option(new DateTime(createdDate)), Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
                         Option(createdDate.plusDays(30)), Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
-                        Option(inputEventsCount), Option(result._2.output_events), Option(stats.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
+                        Option(inputEventsCount), Option(result._2.output_events), Option(fileDetail._2.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
                 } else {
                     JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, None,
                         None, Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
@@ -168,6 +188,7 @@ object DataExhaustJob extends optional.Application with IJob {
                 }
             } catch {
                 case t: Throwable =>
+                    DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB","FAILED", "FAILED")
                     null
             }
         }
