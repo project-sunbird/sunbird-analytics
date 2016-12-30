@@ -16,7 +16,7 @@
     process_home: ""
     app_home: "/mnt/data/analytics/api/analytics-api-1.0"
     process_args: -- -cp '{{ api.artifact_dir }}/lib/*' {{ api.service_args }} play.core.server.ProdServerStart {{ api.artifact_dir }}
-  template: src=servicify-process.j2 dest={{ sbin_path }}/{{ script_name }} mode=755 owner={{ user }} group={{ group }}
+  template: src=servicify-process.j2 dest={{ sbin_path }}/{{ script_name }} mode=755 owner=analytics group=analytics
   tags:
     - provision-api
 
@@ -31,7 +31,7 @@
     - deploy-api
 
 - name: Unarchive api artifact
-  unarchive: src={{ api_root }}/analytics-api-1.0-dist.zip dest={{ api_root }} copy=no group={{ group }} owner={{ user }} mode=755
+  unarchive: src={{ api_root }}/analytics-api-1.0-dist.zip dest={{ api_root }} copy=no group=analytics owner=analytics mode=755
   tags:
     - deploy-api
 

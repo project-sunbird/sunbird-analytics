@@ -76,7 +76,7 @@
     - deploy-ds
 
 - name: Unarchive script.zip
-  unarchive: src={{ analytics.home }}/script.zip dest={{ analytics.home }}/ copy=no group={{ group }} owner={{ user }} creates={{ analytics.home }}/script
+  unarchive: src={{ analytics.home }}/script.zip dest={{ analytics.home }}/ copy=no group=analytics owner=analytics creates={{ analytics.home }}/script
   tags:
    - deploy-ds
 
