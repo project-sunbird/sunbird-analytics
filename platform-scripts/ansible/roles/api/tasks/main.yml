@@ -15,7 +15,7 @@
     process: "/usr/bin/java"
     process_home: ""
     app_home: "/mnt/data/analytics/api/analytics-api-1.0"
-    process_args: -- -cp '{{ api_home }}/lib/*' {{ api.service_args }} play.core.server.ProdServerStart {{ api_home }}
+    process_args: -- -cp '{{ api.artifact_dir }}/lib/*' {{ api.service_args }} play.core.server.ProdServerStart {{ api.artifact_dir }}
   template: src=servicify-process.j2 dest={{ sbin_path }}/{{ script_name }} mode=755 owner={{ user }} group={{ group }}
   tags:
     - provision-api
@@ -26,7 +26,7 @@
     - deploy-api
 
 - name: Remove lib directory
-  file: path={{ api_home }}/lib state=absent
+  file: path={{ api.artifact_dir }}/lib state=absent
   tags:
     - deploy-api
 
