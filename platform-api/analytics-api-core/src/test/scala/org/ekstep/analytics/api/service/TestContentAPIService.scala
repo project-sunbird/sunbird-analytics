@@ -23,7 +23,7 @@ class TestContentAPIService extends SparkSpec {
         super.afterAll();
     }
     
-    it should "enrich content and create content vectors" in {
+    ignore should "enrich content and create content vectors" in {
         val config = ConfigFactory.parseMap(Map("python.home" -> "",
         			"content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani").asJava)
         				.withFallback(ConfigFactory.load());
