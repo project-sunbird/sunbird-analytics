@@ -159,9 +159,9 @@ object DataExhaustJob extends optional.Application with IJob {
                 val result = CommonUtil.time({
                     val response = DataExhaustJobModel.execute(data, Option(requestConfig)).collect().head;
                     println("response", response);
-                    if (response.output_events > 0 && "s3".equals(requestConfig.get("dispatch-to"))) {
+                    val to = requestConfig.get("dispatch-to").get.asInstanceOf[String]
+                    if (response.output_events > 0 && "s3".equals(to)) {
                         val localPath = requestConfig.get("path").get.asInstanceOf[String] + "/" + response.request_id;
-                        println(localPath)
                         downloadOutput(response, localPath)
                         uploadZip(response, localPath)
                     }
@@ -195,6 +195,7 @@ object DataExhaustJob extends optional.Application with IJob {
                 }
             } catch {
                 case t: Throwable =>
+                    t.printStackTrace()
                     DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED")
                     null
             }
@@ -204,6 +205,7 @@ object DataExhaustJob extends optional.Application with IJob {
             resRDD.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
         } catch {
             case t: Throwable =>
+                t.printStackTrace()
                 resRDD.map { x => JobStage(x.request_id, x.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
         }
     }
