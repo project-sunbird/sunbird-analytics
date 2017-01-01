@@ -168,35 +168,42 @@ object DataExhaustJob extends optional.Application with IJob {
                     response
                 })
 
-                if (result._2.output_events > 0) {
+                val jobReq = try {
+                    if (result._2.output_events > 0) {
 
-                    val fileDetail = requestConfig.get("dispatch-to").get match {
-                        case "local" =>
-                            val file = new File(result._2.prefix)
-                            val dateTime = new Date(file.lastModified())
-                            val stats = Map("createdDate" -> dateTime, "size" -> file.length())
-                            (result._2.prefix, stats)
-                        case "s3" =>
-                            val stats = S3Util.getObjectDetails(result._2.bucket, result._2.prefix + ".zip");
-                            val loc = "https://" + "s3-ap-southeast-1.amazonaws.com/" + result._2.bucket + "/" + result._2.prefix + ".zip";
-                            (loc, stats)
+                        val fileDetail = requestConfig.get("dispatch-to").get match {
+                            case "local" =>
+                                val file = new File(result._2.prefix)
+                                val dateTime = new Date(file.lastModified())
+                                val stats = Map("createdDate" -> dateTime, "size" -> file.length())
+                                (result._2.prefix, stats)
+                            case "s3" =>
+                                val stats = S3Util.getObjectDetails(result._2.bucket, result._2.prefix + ".zip");
+                                val loc = "https://" + "s3-ap-southeast-1.amazonaws.com/" + result._2.bucket + "/" + result._2.prefix + ".zip";
+                                (loc, stats)
+                        }
+
+                        val createdDate = new DateTime(fileDetail._2.get("createdDate").get.asInstanceOf[Date].getTime);
+                        JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, Option(fileDetail._1),
+                            Option(new DateTime(createdDate)), Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
+                            Option(createdDate.plusDays(30)), Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
+                            Option(inputEventsCount), Option(result._2.output_events), Option(fileDetail._2.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
+                    } else {
+                        JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, None,
+                            None, Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
+                            None, Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
+                            Option(inputEventsCount), Option(result._2.output_events), None, Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
                     }
-
-                    val createdDate = new DateTime(fileDetail._2.get("createdDate").get.asInstanceOf[Date].getTime);
-                    JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, Option(fileDetail._1),
-                        Option(new DateTime(createdDate)), Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
-                        Option(createdDate.plusDays(30)), Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
-                        Option(inputEventsCount), Option(result._2.output_events), Option(fileDetail._2.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
-                } else {
-                    JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, None,
-                        None, Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
-                        None, Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
-                        Option(inputEventsCount), Option(result._2.output_events), None, Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
+                } catch {
+                    case t: Throwable =>
+                        t.printStackTrace() // TODO: handle error
+                        DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED")
+                        null
                 }
+                jobReq;
             } catch {
                 case t: Throwable =>
                     t.printStackTrace()
-                    DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED")
                     null
             }
         }
