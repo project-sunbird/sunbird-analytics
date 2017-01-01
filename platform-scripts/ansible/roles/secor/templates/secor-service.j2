@@ -29,7 +29,7 @@ start() {
     else
         printf "%-50s" "Starting $prog ..."
         cd $DAEMON_HOME
-        start-stop-daemon --start --quiet --background --name $service_name -d $DAEMON_HOME --exec $DAEMON $DAEMON_ARGS >$DAEMON_HOME/logs/service.log 2>&1
+        start-stop-daemon --start --quiet --background --name $service_name -d $DAEMON_HOME --exec $DAEMON $DAEMON_ARGS >/mnt/secor/logs/$service_name-service.log 2>&1
         sleep 10
         PID=`ps aux|grep -vE 'grep|runuser|bash'|grep -w "$GREP_KEY"|awk '{print $2}'`
         if [ -z "$PID" ]; then
