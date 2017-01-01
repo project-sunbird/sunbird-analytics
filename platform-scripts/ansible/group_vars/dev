@@ -24,7 +24,7 @@ api:
 secor:
   sbin_path: "/home/analytics/sbin"
   artifact_dir: /mnt/secor
-  paths: ['/mnt/secor', '/mnt/secor/reports']
+  paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor/logs']
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
