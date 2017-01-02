@@ -133,7 +133,7 @@ object Level extends Enumeration {
 
 object JobStatus extends Enumeration {
     type Status = Value;
-    val SUBMITTED, PROCESSING, COMPLETE, RETRY, FAILED = Value
+    val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
 }
 
 trait Stage extends Enumeration {

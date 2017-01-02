@@ -64,6 +64,7 @@ object JobAPIService {
 		if (null == job) {
 			CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
 		} else {
+		    println("Creating job response")
 			val jobStatusRes = _createJobResponse(job);
             JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.ccToMap(jobStatusRes)));
 		}
@@ -106,7 +107,7 @@ object JobAPIService {
     }
 	
 	private def _createJobResponse(job: JobRequest): JobResponse = {
-		val processed = List(JobStatus.COMPLETE.toString(), JobStatus.FAILED.toString()).contains(job.status);
+	    val processed = List(JobStatus.COMPLETED.toString(), JobStatus.FAILED.toString()).contains(job.status.get);
 		val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
         val output = if (processed) Option(JobOutput(job.location, job.file_size, Option(created), Option(job.dt_first_event.get.getMillis), Option(job.dt_last_event.get.getMillis), Option(job.dt_expiration.get.getMillis))) else Option(JobOutput());
         val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, Option(job.dt_job_processing.get.getMillis), Option(job.dt_job_completed.get.getMillis), Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L)))) else Option(JobStats(job.dt_job_submitted.get.getMillis));
