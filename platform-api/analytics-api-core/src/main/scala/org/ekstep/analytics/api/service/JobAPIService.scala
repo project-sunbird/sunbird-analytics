@@ -64,7 +64,6 @@ object JobAPIService {
 		if (null == job) {
 			CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
 		} else {
-		    println("Creating job response")
 			val jobStatusRes = _createJobResponse(job);
             JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.ccToMap(jobStatusRes)));
 		}

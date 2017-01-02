@@ -33,9 +33,10 @@ case class JobStage(request_id: String, client_key: String, stage: String, stage
 object DataExhaustJob extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
-
+    
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.log("Started executing Job")
+        JobLogger.init(className)
+        JobLogger.start("DataExhaust Job Started executing")
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
         if (null == sc.getOrElse(null)) {
@@ -50,7 +51,6 @@ object DataExhaustJob extends optional.Application with IJob {
             implicit val sparkContext: SparkContext = sc.getOrElse(null);
             execute(jobConfig);
         }
-        JobLogger.log("Job Completed.")
     }
 
     private def execute(config: JobConfig)(implicit sc: SparkContext) = {
@@ -196,7 +196,8 @@ object DataExhaustJob extends optional.Application with IJob {
                     }
                 } catch {
                     case t: Throwable =>
-                        t.printStackTrace() // TODO: handle error
+                        t.printStackTrace() 
+                        JobLogger.end("DataExhaust Job Completed.", "FAILED", Option(Map("date" -> "", "inputEvents" -> inputEventsCount)))
                         DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED")
                         null
                 }
@@ -210,9 +211,11 @@ object DataExhaustJob extends optional.Application with IJob {
         val resRDD = sc.makeRDD(jobResponses.filter { x => null != x })
         try {
             resRDD.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
+            JobLogger.end("DataExhaust Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> inputEventsCount, "outputEvents" -> "", "timeTaken" -> "")));
         } catch {
             case t: Throwable =>
                 t.printStackTrace()
+                JobLogger.end("DataExhaust Job Completed.", "FAILED", Option(Map("date" -> "", "inputEvents" -> inputEventsCount)))
                 resRDD.map { x => JobStage(x.request_id, x.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
         }
     }
