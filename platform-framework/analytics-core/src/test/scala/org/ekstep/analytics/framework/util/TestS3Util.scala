@@ -26,6 +26,13 @@ class TestS3Util extends BaseSpec {
         val keys = S3Util.search("lpdev-ekstep", "testUpload/", None, None, None);
         keys.length should be > 0;
         S3Util.uploadDirectory("lpdev-ekstep", "testUpload/", "src/test/resources/test")
+        S3Util.uploadPublic("lpdev-ekstep", "src/test/resources/session-batch-model/test-data-launch.log", "testUpload/test-data-launch.log");
+    }
+    
+    it should "upload file as public" in {
+        
+        S3Util.uploadPublic("lpdev-ekstep", "src/test/resources/session-batch-model/test-data-launch.log", "testUpload/test-data-launch.log");
+        
     }
     
     it should "download multiple files from a directory in S3 bucket" in {

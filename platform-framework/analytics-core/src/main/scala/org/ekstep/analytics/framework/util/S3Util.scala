@@ -16,6 +16,8 @@ import java.nio.file.Paths
 import org.jets3t.service.S3ServiceException
 import org.ekstep.analytics.framework.Level._
 import java.io.InputStream
+import java.util.Calendar
+import java.util.TimeZone
 
 object S3Util {
 
@@ -112,9 +114,8 @@ object S3Util {
 
     def uploadPublic(bucketName: String, filePath: String, key: String) {
 
-        val bucketAcl = s3Service.getBucketAcl(bucketName);
         val acl = new AccessControlList();
-        acl.setOwner(bucketAcl.getOwner);
+        acl.setOwner(s3Service.getBucket(bucketName).getOwner);
         acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ);
         val s3Object = new S3Object(new File(filePath));
         s3Object.setKey(key)
@@ -122,7 +123,19 @@ object S3Util {
         val fileObj = s3Service.putObject(bucketName, s3Object);
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
+    
+    def uploadPublicWithExpiry(bucketName: String, filePath: String, key: String, expiryInDays: Int): String = {
 
+        val s3Object = new S3Object(new File(filePath));
+        val fileObj = s3Service.putObject(bucketName, s3Object);
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal.add(Calendar.DAY_OF_YEAR, expiryInDays);
+        val expiryDate = cal.getTime();
+        val signedUrl = s3Service.createSignedGetUrl(bucketName, fileObj.getKey(), expiryDate, false);
+        JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag, "signedUrl" -> signedUrl)));
+        signedUrl;
+    }
+    
     def getAllKeys(bucketName: String, prefix: String): Array[String] = {
         val s3Objects = s3Service.listObjects(bucketName, prefix, null);
         s3Objects.map { x => x.getKey }
