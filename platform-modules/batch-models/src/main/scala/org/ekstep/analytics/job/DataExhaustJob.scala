@@ -35,7 +35,7 @@ object DataExhaustJob extends optional.Application with IJob {
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        JobLogger.init(className)
+        JobLogger.init("DataExhaustJob")
         JobLogger.start("DataExhaust Job Started executing")
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
@@ -211,7 +211,7 @@ object DataExhaustJob extends optional.Application with IJob {
         val resRDD = sc.makeRDD(jobResponses.filter { x => null != x })
         try {
             resRDD.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
-            JobLogger.end("DataExhaust Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> inputEventsCount, "outputEvents" -> "", "timeTaken" -> "")));
+            JobLogger.end("DataExhaust Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> inputEventsCount, "outputEvents" -> 0, "timeTaken" -> 0)));
         } catch {
             case t: Throwable =>
                 t.printStackTrace()
