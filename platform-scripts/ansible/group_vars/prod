@@ -33,6 +33,10 @@ spark:
   driver_extraJavaOptions: -Denv=prod
   executor_memory: 3g
 jobs:
+  data-exhaust:
+   hour: 0
+   minute: 5
+   state: present
   raw-telemetry-jobs:
    hour: 6
    minute: 20
