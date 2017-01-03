@@ -36,7 +36,7 @@ object DataExhaustJob extends optional.Application with IJob {
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.init("DataExhaustJob")
-        JobLogger.start("DataExhaust Job Started executing")
+        JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config)))
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
         if (null == sc.getOrElse(null)) {
