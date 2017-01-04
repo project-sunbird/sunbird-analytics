@@ -2,7 +2,6 @@
 <Configuration status="WARN">
 	<Properties>
 		<Property name="baseDir">logs</Property>
-		<!-- <Property name="baseDir">/mnt/data/analytics/logs</Property> --> <!-- Production Config -->
 	</Properties>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
@@ -21,7 +20,7 @@
 		</Async>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.ekstep.analytics" level="info" additivity="false">
+		<Logger name="org.ekstep.analytics.api" level="info" additivity="false">
 			<AppenderRef ref="Async"/>
 		</Logger>
 		<Root level="error">
