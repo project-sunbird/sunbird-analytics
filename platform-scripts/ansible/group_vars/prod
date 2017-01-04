@@ -34,8 +34,8 @@ spark:
   executor_memory: 3g
 jobs:
   data-exhaust:
-   hour: 0
-   minute: 5
+   hour: 5
+   minute: 0
    state: present
   raw-telemetry-jobs:
    hour: 6
