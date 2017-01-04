@@ -1,0 +1,8 @@
+---
+- name: run replay raw-telemetry jobs
+  shell: "nohup /mnt/data/analytics/scripts/run-job.sh raw-telemetry-jobs &"
+
+- name: run monitor for replay
+  shell: "/mnt/data/analytics/scripts/monitor-dp.sh /mnt/data/analytics/scripts/logs/joblog.log"
+  - pause:
+      minutes: 5
