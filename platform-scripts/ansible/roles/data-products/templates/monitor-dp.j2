@@ -130,7 +130,7 @@ echo "Total time taken: $total_time"
 echo "Total events generated: $total_events"
 
 if [$warnings == ""]; then
-data='{"channel": "{{ channel }}", "username": "{{ dp_username }}", "text":"*Jobs | Monitoring Report | '$today'*\nNumber of Completed Jobs: `'$comp_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```", "icon_emoji": ":ghost:"}'
+data='{"channel": "{{ channel }}", "username": "{{ dp_username }}", "text":"*Jobs | Monitoring Report | '$today'*\nNumber of Completed Jobs: `'$comp_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```\n\nMessage: 'Job Run Completed Successfully'", "icon_emoji": ":ghost:"}'
 else
 data='{"channel": "{{ channel }}", "username": "{{ dp_username }}", "text":"*Jobs | Monitoring Report | '$today'*\nNumber of Completed Jobs: `'$comp_num'` \nNumber of failed Jobs: `'$failed_num'` \nTotal time taken: `'$total_time'`\nTotal events generated: `'$total_events'`\n\nDetailed Report:\n```'$file_content'```\n\nWarnings: ```'$warnings'```", "icon_emoji": ":ghost:"}'
 fi
