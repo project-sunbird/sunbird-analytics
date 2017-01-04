@@ -3,7 +3,7 @@ package org.ekstep.analytics.model
 import org.apache.spark.ml.feature.{ OneHotEncoder, StringIndexer, RFormula }
 import org.apache.spark.ml.feature.QuantileDiscretizer
 import org.apache.spark.ml.feature.{ CountVectorizerModel, CountVectorizer, RegexTokenizer }
-import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.ml.linalg.Vector
 //import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
@@ -26,7 +26,7 @@ import scala.collection.mutable.ListBuffer
 import org.apache.spark.sql.types._
 import org.apache.spark.mllib.util.MLUtils
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.apache.spark.mllib.linalg.Vectors
+import org.apache.spark.ml.linalg.Vectors
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
 import org.apache.commons.lang3.StringUtils
@@ -48,23 +48,11 @@ import sys.process._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.adapter.ContentResponse
+import breeze.linalg.{ DenseVector => BDV }
+import org.apache.spark.mllib.stat.{ MultivariateStatisticalSummary, Statistics }
+import org.apache.spark.ml.linalg.SparseVector
 
-case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
-case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: cus_t, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf, lastPlayedContentVec: ContentToVector) extends AlgoInput with AlgoOutput with Output;
-case class DeviceRecos(device_id: String, scores: List[(String, Option[Double])]) extends AlgoOutput with Output
-case class ContentToVector(contentId: String, text_vec: Option[List[Double]], tag_vec: Option[List[Double]]);
-
-case class DeviceContextWithoutTransformations(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: ContentUsageSummaryFact, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf, c3_contentVec: ContentToVector) extends AlgoInput with AlgoOutput with Output;
-case class cus_t(t_publish_date: Option[Double], t_last_sync_date: Option[Double], t_total_ts: Option[Double], t_total_sessions: Option[Double], t_avg_ts_session: Option[Double], t_total_interactions: Option[Double], t_avg_interactions_min: Option[Double], t_total_devices: Option[Double], t_avg_sess_device: Option[Double]);
-case class dus_tf(t_start_time: Option[Double], t_end_time: Option[Double], t_num_days: Option[Double], t_total_launches: Option[Double], t_total_timespent: Option[Double],
-                  t_avg_num_launches: Option[Double], t_avg_time: Option[Double], t_num_contents: Option[Double], t_play_start_time: Option[Double], t_last_played_on: Option[Double],
-                  t_total_play_time: Option[Double], t_num_sessions: Option[Double], t_mean_play_time: Option[Double],
-                  t_mean_play_time_interval: Option[Double]);
-case class dcus_tf(content_id: String, t_num_sessions: Option[Double], t_total_interactions: Option[Double], t_avg_interactions_min: Option[Double],
-                   t_total_timespent: Option[Double], t_last_played_on: Option[Double], t_start_time: Option[Double],
-                   t_mean_play_time_interval: Option[Double], t_download_date: Option[Double], t_num_group_user: Option[Double], t_num_individual_user: Option[Double]);
-
-object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, Empty, Empty] with Serializable {
+object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, Empty, Empty] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.DeviceRecommendationTrainingModel"
     override def name(): String = "DeviceRecommendationTrainingModel"
@@ -102,11 +90,11 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val contentIds = contentModel.map(f => f._1).toArray;
         JobLogger.log("Content count", Option(Map("count" -> contentModel.size)), INFO, "org.ekstep.analytics.model");
         val contentModelB = sc.broadcast(contentModel);
-        
+
         //ContentToVector
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC).map { x => (x.contentId, x) }.collect().toMap;
         val contentVectorsB = sc.broadcast(contentVectors);
-        
+
         // device-specifications
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
@@ -128,19 +116,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val dcusO = dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
 
         dcus.unpersist(true);
-
-        // creating DeviceContext without transformations
-        val tag_dimensions = config.getOrElse("tag_dimensions", 50).asInstanceOf[Int];
-        val text_dimensions = config.getOrElse("text_dimensions", 50).asInstanceOf[Int];
-        val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
-        val inputDataPath = localPath + path + "RE-input"
-        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
-        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val file = new File(inputDataPath)
-        if (file.exists())
-            CommonUtil.deleteDirectory(inputDataPath)
-        val jsondata = createJSON(deviceContext, tag_dimensions, text_dimensions) //data.map { x => JSONUtils.serialize(x) }
-        jsondata.saveAsTextFile(inputDataPath)
 
         device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
@@ -173,7 +148,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     private def _createDF(data: RDD[DeviceContext], tag_dimensions: Int, text_dimensions: Int): RDD[Row] = {
         data.map { x =>
             val seq = ListBuffer[Any]();
-            //seq += x.did; // did
+            seq += x.did; // did
+            //seq += x.contentInFocus; // content1
             // Add c1 text vectors
             seq ++= (if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined) {
                 x.contentInFocusVec.text_vec.get.toSeq
@@ -270,7 +246,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
     private def _getStructType(tag_dimensions: Int, text_dimensions: Int): StructType = {
         val seq = ListBuffer[StructField]();
-        //seq += new StructField("did", StringType, false); // did
+        seq += new StructField("did", StringType, false); // did
         // Add c1 text vectors
         seq ++= _getStructField("c1_text", text_dimensions);
         // Add c1 tag vectors
@@ -339,10 +315,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         implicit val sqlContext = new SQLContext(sc);
-        //        implicit val spark = SparkSession
-        //            .builder()
-        //            .appName("RE training model")
-        //            .getOrCreate()
 
         import sqlContext.implicits._
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
@@ -361,8 +333,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val testRatio = config.getOrElse("testRatio", 0.2).asInstanceOf[Double];
         val dataLimit = config.getOrElse("dataLimit", -1).asInstanceOf[Int];
         val upload_model_s3 = config.getOrElse("upload_model_s3", true).asInstanceOf[Boolean];
-        val tag_dimensions = config.getOrElse("tag_dimensions", 50).asInstanceOf[Int];
-        val text_dimensions = config.getOrElse("text_dimensions", 50).asInstanceOf[Int];
+        val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
+        val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
 
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
@@ -376,14 +348,22 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
         val formula = new RFormula()
-            .setFormula("c1_total_ts ~ .")
+            .setFormula("c1_total_ts ~ . - did")
             .setFeaturesCol("features")
             .setLabelCol("label")
         JobLogger.log("applied the formula", None, INFO, "org.ekstep.analytics.model");
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
+        
+        val out = output.select("did", "label", "features").map { x => (x.getString(0), x.getDouble(1), x.getAs[Vector](2)) }.rdd
+        val vecSize = out.first()._3.toDense.size
 
-        val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
+        val meanTarget = out.map{f => (f._1,f._2)}.groupByKey().mapValues {x => ((x.sum/x.size), x.size)}
+        val aggregated = output.select("did", "features").rdd.map { case Row(k: String, v: SparseVector) => (k, BDV(v.toDense.values)) }.foldByKey(BDV(Array.fill(vecSize)(0.0)))(_ += _)
+
+        val finalOut = meanTarget.join(aggregated).map{x => (x._2._1._1, Vectors.dense(((1/x._2._1._2.toDouble) * x._2._2).toArray), x._2._1._2)}.toDF("label", "features", "count")
+
+        val labeledRDD = finalOut.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
         JobLogger.log("created labeledRDD", None, INFO, "org.ekstep.analytics.model");
 
         val dataStr = labeledRDD.map {
@@ -402,10 +382,10 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         }
 
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
+        //val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
 
         JobLogger.log("sampling used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val sampledUsedDataSet = if (dataLimit == -1) usedDataSet else sc.parallelize(usedDataSet.take(dataLimit))
+        val sampledUsedDataSet = if (dataLimit == -1) dataStr else sc.parallelize(dataStr.take(dataLimit))
         val trainDataSet = sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);
         val testDataSet = sampledUsedDataSet.sample(false, testRatio, System.currentTimeMillis().toInt);
 
@@ -418,7 +398,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         val script = s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -out $libfmOut -save_model $model_path"
         ScriptDispatcher.dispatch(script)
-        
+
         if (upload_model_s3) {
             JobLogger.log("Saving the model to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             S3Dispatcher.dispatch(null, Map("filePath" -> model_path, "bucket" -> bucket, "key" -> (key + model_name)))
@@ -431,141 +411,4 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         data;
     }
 
-    def createDeviceContextWithoutTransformation(device_spec: RDD[(DeviceId, DeviceSpec)], dus: RDD[(DeviceId, DeviceUsageSummary)], dcus: RDD[(DeviceId, Iterable[DeviceContentSummary])], contentVectors: Map[String, ContentToVector], contentUsage: Map[String, ContentUsageSummaryFact], contentModel: Map[String, ContentModel])(implicit sc: SparkContext): RDD[DeviceContextWithoutTransformations] = {
-
-        val contentModelB = sc.broadcast(contentModel)
-        val contentVectorsB = sc.broadcast(contentVectors)
-        val contentUsageB = sc.broadcast(contentUsage)
-
-        device_spec.leftOuterJoin(dus).leftOuterJoin(dcus).map { x =>
-            val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
-            DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, null)
-        }.map { x =>
-            val rand = new Random(System.currentTimeMillis());
-            x.content_list.map { y =>
-                {
-                    val randomContent: DeviceContentSummary = if (x.device_content.isEmpty) defaultDCUS else choose[(String, DeviceContentSummary)](x.device_content.toBuffer, rand)._2;
-                    val otherContentId: String = randomContent.content_id;
-                    val otherContentModel: ContentModel = if (null != otherContentId) contentModelB.value.getOrElse(otherContentId, null) else null;
-                    val contentInFocusVec = contentVectorsB.value.getOrElse(y._1, null);
-                    val otherContentModelVec = if (null != otherContentId) contentVectorsB.value.getOrElse(randomContent.content_id, null) else null;
-                    val contentInFocusUsageSummary = x.device_content.getOrElse(y._1, defaultDCUS);
-                    val contentInFocusSummary = contentUsageB.value.getOrElse(y._1, defaultCUS)
-                    val otherContentSummary = if (null != otherContentId) contentUsageB.value.getOrElse(otherContentId, defaultCUS) else defaultCUS;
-                    val c3_contentId = x.device_usage.last_played_content.getOrElse(null)
-                    val c3_contentVec = if (null != c3_contentId) contentVectorsB.value.getOrElse(c3_contentId, null) else null;
-                    DeviceContextWithoutTransformations(x.did.device_id, y._1, y._2, contentInFocusVec, contentInFocusUsageSummary, contentInFocusSummary, otherContentId, otherContentModel, otherContentModelVec, randomContent, otherContentSummary, x.device_usage, x.device_spec, null, null, null, c3_contentVec);
-                }
-            }
-        }.flatMap { x => x.map { f => f } }
-    }
-
-    def createJSON(data: RDD[DeviceContextWithoutTransformations], tag_dimensions: Int, text_dimensions: Int)(implicit sc: SparkContext): RDD[String] = {
-
-        data.map { x =>
-            val c1_text = if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined)
-                x.contentInFocusVec.text_vec.get.toSeq
-            else _getZeros(text_dimensions);
-
-            val c1_tag = if (null != x.contentInFocusVec && x.contentInFocusVec.tag_vec.isDefined)
-                x.contentInFocusVec.tag_vec.get.toSeq
-            else _getZeros(tag_dimensions);
-            val c2_text = if (null != x.otherContentModelVec && x.otherContentModelVec.text_vec.isDefined)
-                x.otherContentModelVec.text_vec.get.toSeq
-            else _getZeros(text_dimensions);
-            val c2_tag = if (null != x.otherContentModelVec && x.otherContentModelVec.tag_vec.isDefined)
-                x.otherContentModelVec.tag_vec.get.toSeq
-            else _getZeros(tag_dimensions)
-            val c3_text = if (null != x.c3_contentVec && x.c3_contentVec.text_vec.isDefined)
-                x.c3_contentVec.text_vec.get.toSeq
-            else _getZeros(text_dimensions);
-            val c3_tag = if (null != x.c3_contentVec && x.c3_contentVec.tag_vec.isDefined)
-                x.c3_contentVec.tag_vec.get.toSeq
-            else _getZeros(tag_dimensions)
-            val c2_downloaded = if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0
-            val c2_subject = if (null != x.otherContentModel) x.otherContentModel.subject.mkString(",") else "Unknown"
-            val c2_contentType = if (null != x.otherContentModel) x.contentInFocusModel.contentType else "Unknown"
-            val c2_language = if (null != x.otherContentModel) x.contentInFocusModel.languageCode.mkString(",") else "Unknown"
-            val psc = x.device_spec.primary_secondary_camera.split(",");
-            val ps = if (psc.length == 0) {
-                (0.0, 0.0);
-            } else if (psc.length == 1) {
-                (if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, 0.0);
-            } else {
-                (if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if (StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
-            }
-            val primary_camera = ps._1
-            val secondary_camera = ps._2
-
-            val dataMap = Map(
-                "did" -> x.did,
-                "c1_content_id" -> x.contentInFocus,
-                "c2_content_id" -> x.otherContentId,
-                "c3_content_id" -> x.device_usage.last_played_content.getOrElse(""),
-                "c1_text" -> c1_text,
-                "c1_tag" -> c1_tag,
-                "c1_total_ts" -> x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0),
-                "c1_subject" -> x.contentInFocusModel.subject.mkString(","),
-                "c1_contentType" -> x.contentInFocusModel.contentType,
-                "c1_language" -> x.contentInFocusModel.languageCode.mkString(","),
-                "c1_publish_date" -> x.contentInFocusSummary.m_publish_date.getMillis,
-                "c1_last_sync_date" -> x.contentInFocusSummary.m_last_sync_date.getMillis,
-                "c1_total_timespent" -> x.contentInFocusSummary.m_total_ts,
-                "c1_total_sessions" -> x.contentInFocusSummary.m_total_sessions,
-                "c1_avg_ts_session" -> x.contentInFocusSummary.m_avg_ts_session,
-                "c1_num_interactions" -> x.contentInFocusSummary.m_total_interactions,
-                "c1_mean_interactions_min" -> x.contentInFocusSummary.m_avg_interactions_min,
-                "c1_total_devices" -> x.contentInFocusSummary.m_total_devices,
-                "c1_avg_sess_devices" -> x.contentInFocusSummary.m_avg_sess_device,
-                "c2_text" -> c2_text,
-                "c2_tag" -> c2_tag,
-                "c2_total_ts" -> x.otherContentUsageSummary.total_timespent.getOrElse(0.0),
-                "c2_avg_interactions_min" -> x.otherContentUsageSummary.avg_interactions_min.getOrElse(0.0),
-                "c2_download_date" -> x.otherContentUsageSummary.download_date.getOrElse(0L),
-                "c2_downloaded" -> c2_downloaded,
-                "c2_last_played_on" -> x.otherContentUsageSummary.last_played_on.getOrElse(0L),
-                "c2_mean_play_time_interval" -> x.otherContentUsageSummary.mean_play_time_interval.getOrElse(0.0),
-                "c2_num_group_user" -> x.otherContentUsageSummary.num_group_user.getOrElse(0L),
-                "c2_num_individual_user" -> x.otherContentUsageSummary.num_individual_user.getOrElse(0L),
-                "c2_num_sessions" -> x.otherContentUsageSummary.num_sessions.getOrElse(0L),
-                "c2_start_time" -> x.otherContentUsageSummary.start_time.getOrElse(0L),
-                "c2_total_interactions" -> x.otherContentUsageSummary.total_interactions.getOrElse(0L),
-                "c2_subject" -> c2_subject,
-                "c2_contentType" -> c2_contentType,
-                "c2_language" -> c2_language,
-                "c2_publish_date" -> x.otherContentSummary.m_publish_date.getMillis,
-                "c2_last_sync_date" -> x.otherContentSummary.m_last_sync_date.getMillis,
-                "c2_total_timespent" -> x.otherContentSummary.m_total_ts,
-                "c2_total_sessions" -> x.otherContentSummary.m_total_sessions,
-                "c2_avg_ts_session" -> x.otherContentSummary.m_avg_ts_session,
-                "c2_num_interactions" -> x.otherContentSummary.m_total_interactions,
-                "c2_mean_interactions_min" -> x.otherContentSummary.m_avg_interactions_min,
-                "c2_total_devices" -> x.otherContentSummary.m_total_devices,
-                "c2_avg_sess_devices" -> x.otherContentSummary.m_avg_sess_device,
-                "total_timespent" -> x.device_usage.total_timespent.getOrElse(0.0),
-                "total_launches" -> x.device_usage.total_launches.getOrElse(0L),
-                "total_play_time" -> x.device_usage.total_play_time.getOrElse(0.0),
-                "avg_num_launches" -> x.device_usage.avg_num_launches.getOrElse(0.0),
-                "avg_time" -> x.device_usage.avg_time.getOrElse(0.0),
-                "end_time" -> x.device_usage.end_time.getOrElse(0L),
-                "last_played_on" -> x.device_usage.last_played_on.getOrElse(0L),
-                "mean_play_time" -> x.device_usage.mean_play_time.getOrElse(0.0),
-                "mean_play_time_interval" -> x.device_usage.mean_play_time_interval.getOrElse(0.0),
-                "num_contents" -> x.device_usage.num_contents.getOrElse(0L),
-                "num_days" -> x.device_usage.num_days.getOrElse(0L),
-                "num_sessions" -> x.device_usage.num_sessions.getOrElse(0L),
-                "play_start_time" -> x.device_usage.play_start_time.getOrElse(0L),
-                "start_time" -> x.device_usage.start_time.getOrElse(0L),
-                "c3_text" -> c3_text,
-                "c3_tag" -> c3_tag,
-                "device_spec" -> x.device_spec.make,
-                "screen_size" -> x.device_spec.screen_size,
-                "external_disk" -> x.device_spec.external_disk,
-                "internal_disk" -> x.device_spec.internal_disk,
-                "primary_camera" -> primary_camera,
-                "secondary_camera" -> secondary_camera)
-
-            JSONUtils.serialize(dataMap)
-        }
-    }
 }
