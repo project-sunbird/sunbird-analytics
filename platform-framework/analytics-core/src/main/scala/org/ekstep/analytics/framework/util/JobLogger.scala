@@ -23,7 +23,7 @@ object JobLogger {
         System.setProperty("logFilename", jobName.toLowerCase());
         val ctx = LogManager.getContext(false).asInstanceOf[LoggerContext];
         ctx.reconfigure();
-        if (StringUtils.equalsIgnoreCase(AppConf.getConfig("log4j.appender.kafka"), "true")) {
+        if (StringUtils.equalsIgnoreCase(AppConf.getConfig("log4j.appender.kafka.enable"), "true")) {
             val config = ctx.getConfiguration();
             val property = Property.createProperty("bootstrap.servers", AppConf.getConfig("log4j.appender.kafka.broker_host"));
             val layout = PatternLayout.createLayout(PatternLayout.DEFAULT_CONVERSION_PATTERN, null, config, null, Charset.defaultCharset(), false, false, null, null)

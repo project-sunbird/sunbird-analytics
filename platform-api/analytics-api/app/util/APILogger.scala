@@ -21,14 +21,10 @@ import com.typesafe.config.ConfigFactory
 
 object APILogger {
 	def init(jobName: String) = {
-		val apiConf = play.Play.application.configuration.underlying()
-			.withFallback(ConfigFactory.parseMap(Map(
-				"log4j.appender.kafka.enable" -> "false",
-				"log4j.appender.kafka.broker_host" -> "",
-				"log4j.appender.kafka.topic" -> "").asJava))
+		val apiConf = ConfigFactory.load();		
 		val ctx = LogManager.getContext(false).asInstanceOf[LoggerContext];
 		ctx.reconfigure();
-		if (StringUtils.equalsIgnoreCase(apiConf.getString("log4j.appender.kafka.enable"), "true")) {
+		if (apiConf.getBoolean("log4j.appender.kafka.enable")) {
 			val config = ctx.getConfiguration();
 			val property = Property.createProperty("bootstrap.servers", apiConf.getString("log4j.appender.kafka.broker_host"));
 			val layout = PatternLayout.createLayout(PatternLayout.DEFAULT_CONVERSION_PATTERN, null, config, null, Charset.defaultCharset(), false, false, null, null)
