@@ -108,7 +108,7 @@ config() {
 		"gfa")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gfs/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieFunnelAggregatorModel","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Genie Funnel Aggregator Model","deviceMapping":true}'
 		;;
-		"RE-training-aggregation") 
+		"re-training-aggregation") 
         echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.RETrainingModel","modelParams":{"bucket":"'$bucket'", "libfm.executable_path":"/usr/local/bin/", "libFMTrainConfig":"-dim 1,5,5 -iter 2000 -method als -task r -regular 1,1,0 -learn_rate 10 -seed 1000 -init_stdev 0.1", "localPath":"/mnt/data/analytics/RE-data", "key":"model/", "trainRatio":0.8, "testRatio":0.2, "dataLimit":-1, "live_content_limit":1000, "upload_model_s3":true, "num_bins":4, "tag_dimensions":15, "text_dimensions":15, "model_name":"fm.model"},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"RETrainingModel","deviceMapping":false}'
         ;;
 		"*")
