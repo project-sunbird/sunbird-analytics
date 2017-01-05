@@ -77,47 +77,47 @@ if [ "$failed_jobs" != "" ]; then
 fi
 
 if [[ ${output["LearnerSessionSummaryModel"]} != ${input["ItemUsageSummaryModel"]} ]]; then
-	warnings+="output of LearnerSessionSummaryModel NOT EQUALS to input of ItemUsageSummaryModel\n"   
+	warnings+="Output of LearnerSessionSummaryModel NOT EQUALS to Input of ItemUsageSummaryModel\n"   
 fi
 
 if [[ ${output["GenieLaunchSummaryModel"]} != ${input["GenieUsageSummaryModel"]} ]]; then
-	warnings+="output of GenieLaunchSummaryModel NOT EQUALS to input of GenieUsageSummaryModel\n"    
+	warnings+="Output of GenieLaunchSummaryModel NOT EQUALS to Input of GenieUsageSummaryModel\n"    
 fi
 
 if [[ ${output["GenieFunnelModel"]} != ${input["GenieFunnelAggregatorModel"]} ]]; then
-	warnings+="output of GenieFunnelModel NOT EQUALS to input of GenieFunnelAggregatorModel\n"   
+	warnings+="Output of GenieFunnelModel NOT EQUALS to Input of GenieFunnelAggregatorModel\n"   
 fi
 
 if [[ ${output["GenieLaunchSummaryModel"]} != ${input["GenieStageSummaryModel"]} ]]; then
-	warnings+="output of GenieLaunchSummaryModel NOT EQUALS to input of GenieStageSummaryModel\n"   
+	warnings+="Output of GenieLaunchSummaryModel NOT EQUALS to Input of GenieStageSummaryModel\n"   
 fi
 
 if [[ ${output["ItemUsageSummaryModel"]} != ${input["ItemSummaryModel"]} ]]; then
-	warnings+="output of ItemUsageSummaryModel NOT EQUALS to input of ItemSummaryModel\n"    
+	warnings+="Output of ItemUsageSummaryModel NOT EQUALS to Input of ItemSummaryModel\n"    
 fi
 
 if [[ ${output["LearnerSessionSummaryModel"]} != ${input["DeviceContentUsageSummaryModel"]} ]]; then
-	warnings+="output of LearnerSessionSummaryModel NOT EQUALS to input of DeviceContentUsageSummaryModel\n"    
+	warnings+="Output of LearnerSessionSummaryModel NOT EQUALS to Input of DeviceContentUsageSummaryModel\n"    
 fi
 
 if [[ ${output["GenieLaunchSummaryModel"]} != ${input["DeviceUsageSummaryModel"]} ]]; then
-	warnings+="output of GenieLaunchSummaryModel NOT EQUALS to input of DeviceUsageSummaryModel\n"    
+	warnings+="Output of GenieLaunchSummaryModel NOT EQUALS to Input of DeviceUsageSummaryModel\n"    
 fi
 
 if [[ ${output["GenieUsageSummaryModel"]} != ${input["UpdateGenieUsageDB"]} ]]; then
-	warnings+="output of GenieUsageSummaryModel NOT EQUALS to input of UpdateGenieUsageDB\n"    
+	warnings+="Output of GenieUsageSummaryModel NOT EQUALS to Input of UpdateGenieUsageDB\n"    
 fi
 
-if [[ ${output["ItemUsageSummaryModel"]} != ${input["UpdateItemSummaryDB"]} ]]; then
-	warnings+="output of ItemUsageSummaryModel NOT EQUALS to input of UpdateItemSummaryDB\n"    
+if [[ ${output["ItemSummaryModel"]} != ${input["UpdateItemSummaryDB"]} ]]; then
+	warnings+="Output of ItemSummaryModel NOT EQUALS to Input of UpdateItemSummaryDB\n"    
 fi
 
 if [[ ${output["ContentPopularitySummaryModel"]} != ${input["UpdateContentPopularityDB"]} ]]; then
-	warnings+="output of ContentPopularitySummaryModel NOT EQUALS to input of UpdateContentPopularityDB\n"    
+	warnings+="Output of ContentPopularitySummaryModel NOT EQUALS to Input of UpdateContentPopularityDB\n"    
 fi
 
 if [[ ${output["ContentUsageSummaryModel"]} != ${input["UpdateContentUsageDB"]} ]]; then
-	warnings+="output of ContentUsageSummaryModel NOT EQUALS to input of UpdateContentUsageDB\n"   
+	warnings+="Output of ContentUsageSummaryModel NOT EQUALS to Input of UpdateContentUsageDB\n"   
 fi
 
 echo -e $file_content > /mnt/data/analytics/scripts/monitor-data/dp-monitor-$today.csv
