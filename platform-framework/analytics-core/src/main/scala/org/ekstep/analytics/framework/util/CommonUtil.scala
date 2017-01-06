@@ -83,9 +83,6 @@ object CommonUtil {
 
     def setS3Conf(sc: SparkContext) = {
         JobLogger.log("Configuring S3 AccessKey& SecrateKey to SparkContext")
-        println("Home:", sys.env("HOME"));
-        println("AKID:", AppConf.getAwsKey());
-        println("sys env:", sys.env);
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
     }
