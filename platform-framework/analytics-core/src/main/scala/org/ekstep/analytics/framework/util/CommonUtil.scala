@@ -363,7 +363,8 @@ object CommonUtil {
     }
 
     def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
-        Option(metadata.getOrElse("tags", List[String]()).asInstanceOf[List[String]].toArray);
+        val tags = metadata.getOrElse("tags", List[String]());
+        if (null == tags) Option(Array[String]()) else Option(tags.asInstanceOf[List[String]].toArray);
     }
 
     def roundDouble(value: Double, precision: Int): Double = {
