@@ -51,6 +51,7 @@ import org.ekstep.analytics.adapter.ContentResponse
 import breeze.linalg.{ DenseVector => BDV }
 import org.apache.spark.mllib.stat.{ MultivariateStatisticalSummary, Statistics }
 import org.apache.spark.ml.linalg.SparseVector
+import org.apache.spark.sql.functions.countDistinct
 
 object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, Empty, Empty] with Serializable {
 
@@ -100,7 +101,10 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
 
         // Device Usage Summaries
-        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 } //.map { x => (x._1, x._2) }
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 }.filter { x => x.num_contents.getOrElse(0L)>5 } //.map { x => (x._1, x._2) }
+        val filtered_devices = device_usage.map{x => x.device_id}.collect()
+        val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
+        JobLogger.log("Device Usage with num_contents > 5 counts", Option(Map("count" -> device_usage.count())), INFO, "org.ekstep.analytics.model");
         // dus transformations
         val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage, num_bins)
         val dusB = dusT.map { x => (x._1, x._2) }.collect().toMap;
@@ -117,7 +121,7 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
 
         dcus.unpersist(true);
 
-        device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
+        f_device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.content_id, x) }.toMap;
             DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, dcT)
@@ -325,6 +329,7 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val logFile = completePath + "libfm.log"
         val libfmOut = completePath + "libfm.out"
         val model_path = completePath + model_name
+        val featureDetailFile = completePath + "features.text"
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/").asInstanceOf[String];
@@ -347,6 +352,12 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val df = sqlContext.createDataFrame(rdd, _getStructType(tag_dimensions, text_dimensions));
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
+        //println("columns count", df.columns.size)
+        val columns = df.columns//.foreach { x => println(x) }
+        val z = columns.map{x => (x, df.select(x).distinct().count())}
+        val features = sc.parallelize(z.map{x => x.toString().replace("(", "").replace(")", "")})
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> featureDetailFile)), features);
+
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ . - did")
             .setFeaturesCol("features")
@@ -362,7 +373,7 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val aggregated = output.select("did", "features").rdd.map { case Row(k: String, v: SparseVector) => (k, BDV(v.toDense.values)) }.foldByKey(BDV(Array.fill(vecSize)(0.0)))(_ += _)
 
         val finalOut = meanTarget.join(aggregated).map{x => (x._2._1._1, Vectors.dense(((1/x._2._1._2.toDouble) * x._2._2).toArray), x._2._1._2)}.toDF("label", "features", "count")
-
+        finalOut.show()
         val labeledRDD = finalOut.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
         JobLogger.log("created labeledRDD", None, INFO, "org.ekstep.analytics.model");
 
