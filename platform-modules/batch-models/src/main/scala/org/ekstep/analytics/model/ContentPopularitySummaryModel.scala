@@ -47,7 +47,8 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 	private def getContentPopularitySummary(event: Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
 		val dt_range = DtRange(CommonUtil.getEventTS(event), CommonUtil.getEventTS(event));
 		if ("GE_FEEDBACK".equals(event.eid)) {
-			val ck = ContentKey(period, contentId, tagId);
+			val cId = if ("all".equals(contentId)) contentId else event.edata.eks.context.getOrElse("id", contentId).asInstanceOf[String];
+			val ck = ContentKey(period, cId, tagId);
 			val gdata = event.gdata;
 			val comments = List(Map("comment" -> event.edata.eks.comments,  "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
 			val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef],  "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
