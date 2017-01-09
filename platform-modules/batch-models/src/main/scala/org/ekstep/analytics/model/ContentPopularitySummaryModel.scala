@@ -47,7 +47,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 	private def getContentPopularitySummary(event: Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
 		val dt_range = DtRange(CommonUtil.getEventTS(event), CommonUtil.getEventTS(event));
 		if ("GE_FEEDBACK".equals(event.eid)) {
-			val cId = if ("all".equals(contentId)) contentId else event.edata.eks.context.getOrElse("id", contentId).asInstanceOf[String];
+			val cId = getFeedbackContentId(event, contentId);
 			val ck = ContentKey(period, cId, tagId);
 			val gdata = event.gdata;
 			val comments = List(Map("comment" -> event.edata.eks.comments,  "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
@@ -68,6 +68,17 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 		} else {
 			Array();
 		}
+	}
+	
+	private def getFeedbackContentId(event: Event, default: String) : String = {
+		if ("all".equals(default)) default
+		else {
+			if (null == event.edata.eks.context) {
+				default
+			} else {
+				event.edata.eks.context.getOrElse("id", default).asInstanceOf[String]	
+			}
+		} 
 	}
 	
 	override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentPopularity] = {
