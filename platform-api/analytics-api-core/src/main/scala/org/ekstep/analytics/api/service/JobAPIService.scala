@@ -104,21 +104,25 @@ object JobAPIService {
         }
     }
 
+    private def getDateInMillis(date: DateTime): Option[Long] = {
+        if (null != date) Option(date.getMillis) else None
+    }
+
     private def _createJobResponse(job: JobRequest): JobResponse = {
         val processed = List(JobStatus.COMPLETED.toString(), JobStatus.FAILED.toString()).contains(job.status.get);
         val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
         val output = if (processed) {
-            val dt_first_event = job.dt_first_event.getOrElse(null)
-            val dfe = if (null != dt_first_event) Option(dt_first_event.getMillis) else None
-            val dt_last_event = job.dt_last_event.getOrElse(null)
-            val dle = if (null != dt_last_event) Option(dt_last_event.getMillis) else None
-
-            val dt_expiration = job.dt_expiration.getOrElse(null)
-            val de = if (null != dt_expiration) Option(dt_expiration.getMillis) else None
-
+            val dfe = getDateInMillis(job.dt_first_event.getOrElse(null))
+            val dle = getDateInMillis(job.dt_last_event.getOrElse(null))
+            val de = getDateInMillis(job.dt_expiration.getOrElse(null))
             Option(JobOutput(job.location, job.file_size, Option(created), dfe, dle, de))
         } else Option(JobOutput());
-        val stats = if (processed) Option(JobStats(job.dt_job_submitted.get.getMillis, Option(job.dt_job_processing.get.getMillis), Option(job.dt_job_completed.get.getMillis), Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L)))) else Option(JobStats(job.dt_job_submitted.get.getMillis));
+
+        val stats = if (processed) {
+            val djp = getDateInMillis(job.dt_job_processing.getOrElse(null))
+            val djc = getDateInMillis(job.dt_job_completed.getOrElse(null))
+            Option(JobStats(job.dt_job_submitted.get.getMillis, djp, djc, Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L))))
+        } else Option(JobStats(job.dt_job_submitted.get.getMillis))
         val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
         JobResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats);
     }
