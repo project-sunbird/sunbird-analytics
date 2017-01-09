@@ -18,7 +18,7 @@ object DBUtil {
     }
 	
 	def getJobRequestList(clientKey: String)(implicit sc: SparkContext): RDD[JobRequest] = {
-		sc.cassandraTable[JobRequest](Constants.PLATFORML_DB, Constants.JOB_REQUEST).where("client_key= ?",clientKey);
+		sc.cassandraTable[JobRequest](Constants.PLATFORML_DB, Constants.JOB_REQUEST).where("client_key= ?",clientKey).sortBy(f => f.dt_job_submitted.get.getMillis, false, 10);
 	}
 	
 	def saveJobRequest(jobRequest: JobRequest)(implicit sc: SparkContext) = {
