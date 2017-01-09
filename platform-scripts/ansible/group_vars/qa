@@ -31,7 +31,7 @@ bucket: qa-data-store
 datasetReadBucket: ekstep-datasets-test
 dataExhaustBucket: ekstep-public
 dataExhaustPrefix: qa/data-exhaust
-datasetReadPrefix: staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/
+datasetReadPrefix: new-qa/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/
 brokerlist: 172.31.1.92:9092
 topic: new-qa.telemetry.derived
 spark:
