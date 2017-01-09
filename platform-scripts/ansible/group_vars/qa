@@ -27,11 +27,11 @@ secor:
   paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor/logs']
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=qa.conf
-bucket: qa-data-store
 datasetReadBucket: ekstep-datasets-test
 dataExhaustBucket: ekstep-public
 dataExhaustPrefix: qa/data-exhaust
 datasetReadPrefix: new-qa/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/
+bucket: qa-data-store
 brokerlist: 172.31.1.92:9092
 topic: new-qa.telemetry.derived
 spark:
