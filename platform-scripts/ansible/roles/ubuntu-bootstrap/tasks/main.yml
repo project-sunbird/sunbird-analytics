@@ -62,6 +62,20 @@
   tags:
     - always
 
+- name: Update user profile
+  become: yes
+  become_user: analytics
+  lineinfile: dest={{ analytics_user_home }}/.profile line='export aws_key={{ lookup('env','lpa_aws_key') }}'  state=present insertafter=EOF create=yes
+  tags:
+    - always
+
+- name: Update user profile
+  become: yes
+  become_user: analytics
+  lineinfile: dest={{ analytics_user_home }}/.profile line='export aws_secret={{ lookup('env','lpa_aws_secret') }}' state=present insertafter=EOF create=yes
+  tags:
+    - always
+
 - name: Create sbin directory
   become: yes
   file: path={{ analytics_user_home }}/sbin owner=analytics group=analytics state=directory
