@@ -51,11 +51,13 @@
     - always
 
 - name: update /etc/environment
+  become: yes
   lineinfile: dest=/etc/environment line='aws_key={{ lookup('env','lpa_aws_key') }}'  state=present insertafter=EOF create=yes
   tags:
     - always
 
 - name: update /etc/environment
+  become: yes
   lineinfile: dest=/etc/environment line='aws_secret={{ lookup('env','lpa_aws_secret') }}' state=present insertafter=EOF create=yes
   tags:
     - always
