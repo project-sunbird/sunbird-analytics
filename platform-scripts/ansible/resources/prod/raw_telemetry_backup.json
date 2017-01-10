@@ -1,6 +1,6 @@
 {
 	"service_name":"raw-telemetry-backup",
-	"consumer_group":"production.telemetry.unique.backup",
+	"consumer_group":"secor-raw",
 	"s3_base_path":"raw",
 	"timestamp_key":"@timestamp",
 	"topic":"production.telemetry.unique",

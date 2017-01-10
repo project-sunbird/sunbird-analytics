@@ -74,14 +74,14 @@ class JobsAPISpec extends BaseSpec with Serializable {
             Await.result(response, 300.seconds);
             val rowRDD = Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal2") }
-            val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("COMPLETE"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now().plusDays(2))), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
+            val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("COMPLETED"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now().plusDays(2))), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
 
             rddJobRequest.saveToCassandra("platform_db", "job_request")
 
             val request1 = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal2" },"request": {"filter": {"start_date": "2016-11-05","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef8"]  }}}"""
             val response1 = post(url, request1);
 
-            contentAsString(response1) must contain(""""status":"COMPLETE"""")
+            contentAsString(response1) must contain(""""status":"COMPLETED"""")
         }
 
         "return status as failed when submitted job is failed" in new WithApplication {
@@ -114,10 +114,34 @@ class JobsAPISpec extends BaseSpec with Serializable {
             contentAsString(response) must contain(""""status":"PROCESSING"""")
         }
 
-        "return api status report - COMPLETE response" in new WithApplication {
+        "return api status report - COMPLETED response" in new WithApplication {
             val response = route(FakeRequest(GET, "/dataset/request/read/dev-portal2/84AA0563AB9FB887AE4AE362D6B4555C")).get
             status(response) must equalTo(OK)
-            contentAsString(response) must contain(""""status":"COMPLETE"""")
+            contentAsString(response) must contain(""""status":"COMPLETED"""")
+        }
+
+        "return file location when status as COMPLETED in response" in new WithApplication {
+            val response = route(FakeRequest(GET, "/dataset/request/read/dev-portal2/84AA0563AB9FB887AE4AE362D6B4555C")).get
+            status(response) must equalTo(OK)
+            contentAsString(response) must contain(""""location":"http://"""")
+        }
+
+        "return file size when status as COMPLETED in response" in new WithApplication {
+            val response = route(FakeRequest(GET, "/dataset/request/read/dev-portal2/84AA0563AB9FB887AE4AE362D6B4555C")).get
+            status(response) must equalTo(OK)
+            contentAsString(response) must contain(""""file_size":12333""")
+        }
+
+        "return latency when status as COMPLETED in response" in new WithApplication {
+            val response = route(FakeRequest(GET, "/dataset/request/read/dev-portal2/84AA0563AB9FB887AE4AE362D6B4555C")).get
+            status(response) must equalTo(OK)
+            contentAsString(response) must contain(""""latency":22345""")
+        }
+
+        "return execution time when status as COMPLETED in response" in new WithApplication {
+            val response = route(FakeRequest(GET, "/dataset/request/read/dev-portal2/84AA0563AB9FB887AE4AE362D6B4555C")).get
+            status(response) must equalTo(OK)
+            contentAsString(response) must contain(""""execution_time":12345""")
         }
 
         "return api status report - list response" in new WithApplication {

@@ -39,6 +39,16 @@
   tags:
     - analytics
 
+- name: Remove java-xmlbuilder 1.0 from Spark jars folder
+  file: path={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/java-xmlbuilder-1.0.jar state=absent
+  tags:
+    - analytics    
+
+- name: Download java-xmlbuilder 1.1 in to Spark jars folder
+  get_url: url=http://s3.jamesmurty.com/java-xmlbuilder/java-xmlbuilder-1.1.jar dest={{ analytics.home }}/spark-2.0.1-bin-hadoop2.7/jars/java-xmlbuilder-1.1.jar timeout=1000 force=no owner=ec2-user group=ec2-user
+  tags:
+    - analytics
+
 - name: remove SPARK_HOME
   lineinfile: dest=.bash_profile line='SPARK_HOME=/home/ec2-user/spark-1.6.2-bin-hadoop2.3' state=absent 
   tags:
