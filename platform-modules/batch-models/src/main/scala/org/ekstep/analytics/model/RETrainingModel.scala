@@ -99,12 +99,14 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         // device-specifications
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
-
+        // device_spec transformations
+        val device_specT = DeviceSpecTransformer.getTransformationByBinning(device_spec.map{x => x._2}, num_bins).map { x => (DeviceId(x._1), x._2) }
+        
         // Device Usage Summaries
-        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 }.filter { x => x.num_contents.getOrElse(0L)>5 } //.map { x => (x._1, x._2) }
-        val filtered_devices = device_usage.map{x => x.device_id}.collect()
-        val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
-        JobLogger.log("Device Usage with num_contents > 5 counts", Option(Map("count" -> device_usage.count())), INFO, "org.ekstep.analytics.model");
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 }//.filter { x => x.num_contents.getOrElse(0L)>5 } //.map { x => (x._1, x._2) }
+//        val filtered_devices = device_usage.map{x => x.device_id}.collect()
+//        val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
+//        JobLogger.log("Device Usage with num_contents > 5 counts", Option(Map("count" -> device_usage.count())), INFO, "org.ekstep.analytics.model");
         // dus transformations
         val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage, num_bins)
         val dusB = dusT.map { x => (x._1, x._2) }.collect().toMap;
@@ -121,7 +123,7 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
 
         dcus.unpersist(true);
 
-        f_device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
+        device_specT.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.content_id, x) }.toMap;
             DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, dcT)
@@ -373,7 +375,7 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val aggregated = output.select("did", "features").rdd.map { case Row(k: String, v: SparseVector) => (k, BDV(v.toDense.values)) }.foldByKey(BDV(Array.fill(vecSize)(0.0)))(_ += _)
 
         val finalOut = meanTarget.join(aggregated).map{x => (x._2._1._1, Vectors.dense(((1/x._2._1._2.toDouble) * x._2._2).toArray), x._2._1._2)}.toDF("label", "features", "count")
-        finalOut.show()
+//        finalOut.show()
         val labeledRDD = finalOut.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
         JobLogger.log("created labeledRDD", None, INFO, "org.ekstep.analytics.model");
 

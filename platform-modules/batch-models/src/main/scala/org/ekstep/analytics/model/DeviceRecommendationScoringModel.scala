@@ -95,12 +95,14 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         // device-specifications
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
-
+        // device_spec transformations
+        val device_specT = DeviceSpecTransformer.getTransformationByBinning(device_spec.map{x => x._2}, num_bins).map { x => (DeviceId(x._1), x._2) }
+        
         // Device Usage Summaries
-        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 }.filter { x => x.num_contents.getOrElse(0L)>5 } //.map { x => (x._1, x._2) }
-        val filtered_devices = device_usage.map{x => x.device_id}.collect()
-        val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
-        JobLogger.log("Device Usage with num_contents > 5 counts", Option(Map("count" -> device_usage.count())), INFO, "org.ekstep.analytics.model");
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 }//.filter { x => x.num_contents.getOrElse(0L)>5 } //.map { x => (x._1, x._2) }
+//        val filtered_devices = device_usage.map{x => x.device_id}.collect()
+//        val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
+//        JobLogger.log("Device Usage with num_contents > 5 counts", Option(Map("count" -> device_usage.count())), INFO, "org.ekstep.analytics.model");
         // dus transformations
         val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage, num_bins)
         val dusB = dusT.map { x => (x._1, x._2) }.collect().toMap;
@@ -117,7 +119,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
         dcus.unpersist(true);
         
-        f_device_spec.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
+        device_specT.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.content_id, x) }.toMap;
             DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, dcT)
@@ -370,8 +372,8 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val model_name = config.getOrElse("model_name", "fm.model").asInstanceOf[String]
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/").asInstanceOf[String];
-        val tag_dimensions = config.getOrElse("tag_dimensions", 50).asInstanceOf[Int];
-        val text_dimensions = config.getOrElse("text_dimensions", 50).asInstanceOf[Int];
+        val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
+        val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val upload_score_s3 = config.getOrElse("upload_score_s3", true).asInstanceOf[Boolean];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
