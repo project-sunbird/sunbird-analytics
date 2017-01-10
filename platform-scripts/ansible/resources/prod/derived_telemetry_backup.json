@@ -1,6 +1,6 @@
 {
 	"service_name":"derived-telemetry-backup",
-	"consumer_group":"production.telemetry.derived.backup",
+	"consumer_group":"secor-de",
 	"s3_base_path":"",
 	"timestamp_key":"syncts",
 	"topic":"production.telemetry.derived",
