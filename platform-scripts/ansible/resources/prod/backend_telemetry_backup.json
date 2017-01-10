@@ -14,7 +14,7 @@
 	"partition_prefix_key":"eid",
 	"partition_prefix_mapping":"{\"DEFAULT\":\"backup\"}",
 	"output_file_pattern":"{partition}-{currentTimestamp}.json",
-	"service_description":"Raw Telemetry Backup",
+	"service_description":"Backend Telemetry Backup",
 	"service_monitor_schedule_hr":"23",
 	"service_monitor_schedule_min":"50"
 }
