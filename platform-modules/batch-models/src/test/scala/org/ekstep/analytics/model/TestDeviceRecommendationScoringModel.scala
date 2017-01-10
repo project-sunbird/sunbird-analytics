@@ -70,7 +70,6 @@ class REScoringMock {
             DeviceSpec("9ea6702483ff7d4fcf9cb886d0ff0e1ebc25a044","","","Android 5.0.1","Micromax A065",-1.0,2.0,2.0,2.0,"2.0,2.0","abi: armeabi-v7a  ARMv7 Processor rev 4 (v7l)",1.0,List()),cus_t(Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0)),dus_tf(Option(0.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0),Option(0.0),Option(1.0),Option(0.0),Option(1.0),Option(1.0),Option(1.0),Option(1.0)),
             dcus_tf(null,None,None,None,None,None,None,None,None,None,None),null)) 
             
-    import org.ekstep.analytics.model.DeviceRecommendationScoringModel
     def preProcess()(implicit sc: SparkContext): RDD[DeviceContext] = {
         sc.makeRDD(x);
     }
