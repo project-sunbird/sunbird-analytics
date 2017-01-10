@@ -69,7 +69,7 @@ object PrecomputedViews {
         results.map { x =>
             val fileKey = view.filePrefix + "-" + x._1 + "-" + view.fileSuffix;
             OutputDispatcher.dispatch(Dispatcher(view.dispatchTo, view.dispatchParams ++ Map("key" -> fileKey, "file" -> fileKey)), x._2)
-        }
+        }.collect();
     }
 
 }
