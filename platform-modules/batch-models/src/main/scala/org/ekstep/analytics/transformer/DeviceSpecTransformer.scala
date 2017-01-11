@@ -3,7 +3,6 @@ package org.ekstep.analytics.transformer
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
-import org.ekstep.analytics.model.DevSpec
 import org.ekstep.analytics.updater.DeviceSpec
 import org.apache.commons.lang3.StringUtils
 
