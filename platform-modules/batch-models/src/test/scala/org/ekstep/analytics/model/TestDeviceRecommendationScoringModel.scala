@@ -76,7 +76,7 @@ class REScoringMock {
     def execute(events: RDD[DerivedEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[DeviceRecos] = {
         
         val config = jobParams.getOrElse(Map[String, AnyRef]());
-        val inputRDD = preProcess();
+        val inputRDD = DeviceRecommendationScoringModel.preProcess(events, config);
         JobContext.recordRDD(inputRDD);
         val outputRDD = DeviceRecommendationScoringModel.algorithm(inputRDD, config);
         JobContext.recordRDD(outputRDD);
