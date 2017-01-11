@@ -16,6 +16,8 @@ import java.nio.file.Paths
 import org.jets3t.service.S3ServiceException
 import org.ekstep.analytics.framework.Level._
 import java.io.InputStream
+import java.util.Calendar
+import java.util.TimeZone
 
 object S3Util {
 
@@ -48,22 +50,46 @@ object S3Util {
 
     def download(bucketName: String, prefix: String, localPath: String) {
 
-        val bucket = s3Service.getBucket(bucketName);
-        val objectArr = s3Service.listObjects(bucket, prefix, null)
+        val objectArr = s3Service.listObjects(bucketName, prefix, null)
         val objects = getAllKeys(bucketName, prefix)
         for (obj <- objectArr) {
             val key = obj.getKey
             val file = key.split("/").last
-            val fileObj = s3Service.getObject(bucket, key)
+            val fileObj = s3Service.getObject(bucketName, key)
             CommonUtil.copyFile(fileObj.getDataInputStream(), localPath, file);
+        }
+    }
+
+    def getObjectDetails(bucketName: String, key: String): Map[String, AnyRef] = {
+
+        try {
+            val s3object = s3Service.getObjectDetails(bucketName, key);
+            val bucket = s3Service.getBucket(bucketName);
+            Map(
+                "ETag" -> s3object.getETag,
+                "size" -> s3object.getContentLength.asInstanceOf[AnyRef],
+                "createdDate" -> s3object.getLastModifiedDate);
+        } catch {
+            case ex: S3ServiceException =>
+                println("Key not found in the given bucket", bucketName, key);
+                JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
+                Map();
+        }
+    }
+
+    def deleteObject(bucketName: String, key: String) = {
+        try {
+            s3Service.deleteObject(bucketName, key)
+        } catch {
+            case ex: S3ServiceException =>
+                JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
         }
     }
 
     def getObject(bucketName: String, key: String): Array[String] = {
 
-        val bucket = s3Service.getBucket(bucketName);
         try {
-            val fileObj = s3Service.getObject(bucket, key);
+            val fileObj = s3Service.getObject(bucketName, key);
             scala.io.Source.fromInputStream(fileObj.getDataInputStream()).getLines().toArray
         } catch {
             case ex: S3ServiceException =>
@@ -75,9 +101,8 @@ object S3Util {
 
     def downloadFile(bucketName: String, key: String, localPath: String, filePrefix: String = "") {
 
-        val bucket = s3Service.getBucket(bucketName);
         try {
-            val fileObj = s3Service.getObject(bucket, key)
+            val fileObj = s3Service.getObject(bucketName, key)
             val file = filePrefix + key.split("/").last
             CommonUtil.copyFile(fileObj.getDataInputStream(), localPath, file);
         } catch {
@@ -87,46 +112,46 @@ object S3Util {
         }
     }
 
-    /*
     def uploadPublic(bucketName: String, filePath: String, key: String) {
 
-        val bucketAcl = s3Service.getBucketAcl(bucketName);
         val acl = new AccessControlList();
-        acl.setOwner(bucketAcl.getOwner);
+        acl.setOwner(s3Service.getBucket(bucketName).getOwner);
         acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ);
         val s3Object = new S3Object(new File(filePath));
         s3Object.setKey(key)
         s3Object.setAcl(acl);
         val fileObj = s3Service.putObject(bucketName, s3Object);
-        JobLogger.debug("File upload successful", className, Option(Map("etag" -> fileObj.getETag)));
+        JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
+    
+    def uploadPublicWithExpiry(bucketName: String, filePath: String, key: String, expiryInDays: Int): String = {
 
-    def getMetadata(bucketName: String, key: String) {
-        val bucket = s3Service.getBucket(bucketName);
-        val s3Object = s3Service.getObjectDetails(bucket, key);
+        val s3Object = new S3Object(new File(filePath));
+        val fileObj = s3Service.putObject(bucketName, s3Object);
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal.add(Calendar.DAY_OF_YEAR, expiryInDays);
+        val expiryDate = cal.getTime();
+        val signedUrl = s3Service.createSignedGetUrl(bucketName, fileObj.getKey(), expiryDate, false);
+        JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag, "signedUrl" -> signedUrl)));
+        signedUrl;
     }
-    */
-
+    
     def getAllKeys(bucketName: String, prefix: String): Array[String] = {
-        val bucket = s3Service.getBucket(bucketName);
-        val s3Objects = s3Service.listObjects(bucket, prefix, null);
+        val s3Objects = s3Service.listObjects(bucketName, prefix, null);
         s3Objects.map { x => x.getKey }
     }
 
-    def search(bucketName: String, prefix: String, fromDate: Option[String] = None, toDate: Option[String] = None, delta: Option[Int] = None): Buffer[String] = {
-        var paths = ListBuffer[String]();
+    def search(bucketName: String, prefix: String, fromDate: Option[String] = None, toDate: Option[String] = None, delta: Option[Int] = None, pattern: String = "yyyy-MM-dd"): Array[String] = {
         val from = if (delta.nonEmpty) CommonUtil.getStartDate(toDate, delta.get) else fromDate;
         if (from.nonEmpty) {
-            val dates = CommonUtil.getDatesBetween(from.get, toDate);
-            dates.foreach { x =>
-                {
-                    paths ++= getPath(bucketName, prefix + x);
-                }
+            val dates = CommonUtil.getDatesBetween(from.get, toDate, pattern);
+            val paths = for (date <- dates) yield {
+                getPath(bucketName, prefix + date);
             }
+            paths.flatMap { x => x.map { x => x } };
         } else {
-            paths ++= getPath(bucketName, prefix);
+            getPath(bucketName, prefix);
         }
-        paths;
     }
 
     def getPath(bucket: String, prefix: String): Array[String] = {

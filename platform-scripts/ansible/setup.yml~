@@ -1,0 +1,27 @@
+---
+- hosts: secor
+  roles:
+    - common
+    - service
+
+- hosts: analytics
+  roles:
+    - common
+    - service
+    - spark
+
+- hosts: cassandra
+  roles:
+    - cassandra
+
+- hosts: api
+  roles:
+<<<<<<< HEAD
+    - common
+    - service
+    - neo4j-python
+    
+=======
+    - api
+    - ubuntu-ds
+>>>>>>> origin/master

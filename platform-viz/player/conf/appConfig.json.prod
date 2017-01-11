@@ -1,4 +1,0 @@
-{
-    "LP_URL": "http://10.10.1.193:8080/taxonomy-service",
-    "CASSANDRA_HOST": "10.10.1.224"
-}

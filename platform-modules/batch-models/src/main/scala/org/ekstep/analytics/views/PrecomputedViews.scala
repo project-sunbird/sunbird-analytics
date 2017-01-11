@@ -63,7 +63,7 @@ object PrecomputedViews {
         
     }
 
-    def precomputeMetrics[T <: CassandraTable](view: View, groupFn: (T) => String)(implicit mf: Manifest[T], sc: SparkContext) = {
+    def precomputeMetrics[T <: CassandraTable](view: View, groupFn: (T) => String)(implicit mf: Manifest[T], sc: SparkContext){
         val results = QueryProcessor.processQuery[T](view, groupFn);
 
         results.map { x =>

@@ -8,7 +8,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestDeviceUsageSummaryModel extends SparkSpec(null) {
 
-    "DeviceUsageSummaryModel" should "generate DeviceUsageSummary events from a sample file and pass all positive test cases " in {
+    "DeviceUsageSummaryModel" should "generate DeviceUsageSummary events from a sample file and pass all positive test cases" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE device_db.device_usage_summary;");
@@ -76,7 +76,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         eks3.get("end_time").get should be(Some(1460627674628L))
     }
 
-    it should "generate DeviceUsageSummary event with start_time = March 1st 2015 " in {
+    it should "generate DeviceUsageSummary event with start_time = March 1st 2015" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE device_db.device_usage_summary;");

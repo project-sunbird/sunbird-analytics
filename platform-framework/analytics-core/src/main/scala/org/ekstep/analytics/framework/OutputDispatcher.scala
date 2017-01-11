@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.dispatcher.FileDispatcher
+import org.apache.spark.SparkContext
 
 /**
  * @author Santhosh
@@ -20,40 +21,36 @@ object OutputDispatcher {
     implicit val className = "org.ekstep.analytics.framework.OutputDispatcher";
 
     @throws(classOf[DispatcherException])
-    def dispatch[T](outputs: Option[Array[Dispatcher]], events: RDD[T]): Long = {
+    private def _dispatch(dispatcher: Dispatcher, events: RDD[String])(implicit sc: SparkContext) = {
+        DispatcherFactory.getDispatcher(dispatcher).dispatch(dispatcher.params, events);
+    }
+
+    @throws(classOf[DispatcherException])
+    def dispatch[T](outputs: Option[Array[Dispatcher]], events: RDD[T])(implicit sc: SparkContext): Long = {
 
         if (outputs.isEmpty) {
             throw new DispatcherException("No output configurations found");
         }
-        val eventArr = stringify(events).collect();
-        if (eventArr.length != 0) {
-            outputs.get.foreach { dispatcher =>
-                JobLogger.log("Dispatching output", Option(dispatcher.to));
-                DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
-            }
-        } else {
-            JobLogger.log("No events produced for dispatch");
+        val eventArr = stringify(events);
+        outputs.get.foreach { dispatcher =>
+            JobLogger.log("Dispatching output", Option(dispatcher.to));
+            DispatcherFactory.getDispatcher(dispatcher).dispatch(dispatcher.params, eventArr);
         }
-        eventArr.length;
+        events.count;
 
     }
 
     @throws(classOf[DispatcherException])
-    def dispatch[T](dispatcher: Dispatcher, events: RDD[T]) = {
+    def dispatch[T](dispatcher: Dispatcher, events: RDD[T])(implicit sc: SparkContext): Long = {
 
         if (null == dispatcher) {
             throw new DispatcherException("No output configurations found");
         }
-        val eventArr = stringify(events).collect();
-        if (eventArr.length != 0) {
-            JobLogger.log("Dispatching output", Option(dispatcher.to));
-            DispatcherFactory.getDispatcher(dispatcher).dispatch(eventArr, dispatcher.params);
-        } else {
-            JobLogger.log("No events produced");
-            null;
-        }
+        val eventArr = stringify(events);
+        DispatcherFactory.getDispatcher(dispatcher).dispatch(dispatcher.params, eventArr);
+        events.count;
     }
-    
+
     @throws(classOf[DispatcherException])
     def dispatch[T](dispatcher: Dispatcher, events: Array[String]) = {
 

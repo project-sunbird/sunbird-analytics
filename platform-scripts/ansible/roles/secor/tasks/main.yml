@@ -1,83 +1,78 @@
 ---
-# tasks file for copy
-
-
-- name: Copy the secor artifact
-  copy: src=secor-me-1.0-bin.tar.gz dest={{ secor.artifact_dir }} owner=ec2-user group=ec2-user
+- name: Create secor directories
+  become: yes
+  file: path={{ item }} owner=analytics group=analytics state=directory
+  with_items: "{{ secor.paths }}"
   tags:
-    - secor-me
+    - provision-secor
 
-- name: Status of the secor-me service
-  command: "{{ sbin_path }}/secor-me status"
+- name: Create secor service 
+  vars:
+    description: Secor service
+    script_dir: "{{ secor.sbin_path }}"
+  template: src=secor-service.j2 dest={{ secor.sbin_path }}/secor mode=755 owner=analytics group=analytics
+  tags:
+    - provision-secor
+
+- name: Copy monitoring script
+  template: src=monitor-secor.j2 dest={{ secor.sbin_path }}/monitor-secor.sh mode=755 owner=analytics group=analytics
+  tags:
+    - provision-secor
+
+- name: Copy secor libraries
+  copy: src=secor-0.2-SNAPSHOT-bin.tar.gz dest={{ analytics_user_home }} owner=analytics group=analytics
+  tags:
+    - deploy-secor
+
+- name: Create service directory on EBS volume
+  become: yes
+  file: path=/mnt/{{ service_name }}/logs owner=analytics group=analytics state=directory
+  tags:
+    - deploy-secor
+
+- name: Unarchive secor libraries
+  unarchive: src={{ analytics_user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz dest=/mnt/{{ service_name }} copy=no owner=analytics group=analytics
+  tags:
+    - deploy-secor
+
+- name: Delete secor libraries
+  file: path={{ analytics_user_home }}/secor-0.2-SNAPSHOT-bin.tar.gz state=absent
+  tags:
+    - deploy-secor
+
+- name: Copy secor properties
+  template: src={{ item }}.j2 dest=/mnt/{{ service_name }}/{{ item }}.properties mode=755 owner=analytics group=analytics
+  with_items: "{{ secor.properties }}"
+  tags:
+    - deploy-secor
+
+- name: Create monitoring cron job
+  cron: name={{ service_name }} minute={{ service_monitor_schedule_min }} hour={{ service_monitor_schedule_hr }}  job="{{ secor.sbin_path }}/monitor-secor.sh {{ service_name }} '{{ service_description }}'"
+  tags:
+    - deploy-secor
+
+- name: Status of the secor service
+  command: "{{ secor.sbin_path }}/secor {{ service_name }} status"
   register: secor_status
   tags:
-    - secor-me
+    - service-secor
 
-- name: Stop the secor-me service
-  command: "{{ sbin_path }}/secor-me stop"
+- name: Stop the secor service
+  command: "{{ secor.sbin_path }}/secor {{ service_name }} stop"
   when: "secor_status.stdout.find('RUNNING') != -1"
   async: 10
   poll: 5
   tags:
-    - secor-me
+    - service-secor
 
-- name: Unarchive secor-me artifact
-  unarchive: src={{ secor.artifact_dir }}/secor-me-1.0-bin.tar.gz dest={{ secor.me_home }} copy=no group=ec2-user owner=ec2-user
+- name: Delete the pid file
+  file: path={{ secor.sbin_path }}/{{ service_name }}.pid state=absent
   tags:
-    - secor-me
+    - service-secor    
 
-- name: Start the secor-me service
-  command: "{{ sbin_path }}/secor-me restart"
+- name: Start the secor service
+  command: "{{ secor.sbin_path }}/secor {{ service_name }} start"
   async: 20
   poll: 5
   tags:
-    - secor-me
-
-- name: Copy the secor artifact
-  copy: src=secor-raw-1.0-bin.tar.gz dest={{ secor.artifact_dir }} owner=ec2-user group=ec2-user
-  tags:
-    - secor-raw
-
-- name: Status of the secor-raw service
-  command: "{{ sbin_path }}/secor-raw status"
-  register: secor_status
-  tags:
-    - secor-raw
-
-- name: Stop the secor-raw service
-  command: "{{ sbin_path }}/secor-raw stop"
-  when: "secor_status.stdout.find('RUNNING') != -1"
-  async: 10
-  poll: 5
-  tags:
-    - secor-raw
-
-- name: Unarchive secor-raw artifact
-  unarchive: src={{ secor.artifact_dir }}/secor-raw-1.0-bin.tar.gz dest={{ secor.raw_home }} copy=no group=ec2-user owner=ec2-user
-  tags:
-    - secor-raw
-
-- name: Start the secor-raw service
-  command: "{{ sbin_path }}/secor-raw restart"
-  async: 20
-  poll: 5
-  tags:
-    - secor-raw
-
-- name: Copy Scripts
-  template: src=monitor-secor.j2 dest={{ user_home }}/monitor-secor.sh mode=755 owner=ec2-user group=ec2-user
-  tags:
-    - secor-raw
-    - secor-me
-
-- name: Create cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh /mnt/secor-raw/logs/secor-raw.log raw"
-  with_dict: "{{ secor_raw_job }}"
-  tags:
-    - secor-raw
-
-- name: Create cron jobs
-  cron: name={{ item.key }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ user_home }}/monitor-secor.sh /mnt/secor-me/logs/secor-me.log me"
-  with_dict: "{{ secor_me_job }}"
-  tags:
-    - secor-me
+    - service-secor

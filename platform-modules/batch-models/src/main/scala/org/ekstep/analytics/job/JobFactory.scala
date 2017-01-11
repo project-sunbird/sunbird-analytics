@@ -115,6 +115,8 @@ object JobFactory {
                 GenieFunnelAggregatorJob
             case "re-training-aggregation" =>
                 RETrainingJob
+            case "data-exhaust" =>
+                DataExhaustJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

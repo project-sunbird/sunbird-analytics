@@ -8,6 +8,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.commons.lang3.StringUtils
 import java.nio.file.Files
 import java.nio.file.Paths
+import org.apache.spark.SparkContext
 
 /**
  * @author Santhosh
@@ -28,6 +29,10 @@ object FileDispatcher extends IDispatcher {
         events.foreach { x => { fw.write(x + "\n"); } };
         fw.close();
         events;
+    }
+    
+    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
+        dispatch(events.collect(), config);
     }
 
 }

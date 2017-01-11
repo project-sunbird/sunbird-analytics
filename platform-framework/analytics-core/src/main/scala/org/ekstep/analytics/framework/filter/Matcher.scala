@@ -21,6 +21,7 @@ object Matcher {
             case "ISNOTNULL"  => NotNullMatcher;
             case "ISNOTEMPTY" => NotEmptyMatcher;
             case "EQ"         => EqualsMatcher;
+            case "RANGE"      => RangeMatcher;
             case _ =>
                 throw new DataFilterException("Unknown filter operation found");
         }

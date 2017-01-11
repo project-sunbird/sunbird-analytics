@@ -374,15 +374,17 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val meanTarget = out.map{f => (f._1,f._2)}.groupByKey().mapValues {x => ((x.sum/x.size), x.size)}
         val aggregated = output.select("did", "features").rdd.map { case Row(k: String, v: SparseVector) => (k, BDV(v.toDense.values)) }.foldByKey(BDV(Array.fill(vecSize)(0.0)))(_ += _)
 
-        val finalOut = meanTarget.join(aggregated).map{x => (x._2._1._1, Vectors.dense(((1/x._2._1._2.toDouble) * x._2._2).toArray), x._2._1._2)}.toDF("label", "features", "count")
+        val finalOut = meanTarget.join(aggregated).map{x => (x._2._1._1, Vectors.dense(((1/x._2._1._2.toDouble) * x._2._2).toArray), x._2._1._2, x._1)}.toDF("label", "features", "count", "did")
 //        finalOut.show()
-        val labeledRDD = finalOut.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
+        val labeledRDD = finalOut.select("features", "label", "did").map { x => (x.getString(2), new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0))) }.rdd;
         JobLogger.log("created labeledRDD", None, INFO, "org.ekstep.analytics.model");
 
         val dataStr = labeledRDD.map {
-            case LabeledPoint(label, features) =>
+            case (did: String, LabeledPoint(label, features)) =>
 
                 val sb = new StringBuilder(label.toString)
+                sb += ' '
+                sb ++= did
                 val sv = features.toSparse;
                 val indices = sv.indices;
                 val values = sv.values;

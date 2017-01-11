@@ -144,12 +144,17 @@ object CommonUtil {
         val to = if (endDate.nonEmpty) dateFormat.parseLocalDate(endDate.get) else LocalDate.fromDateFields(new Date);
         Option(to.minusDays(delta).toString());
     }
+    
+    def getDatesBetween(fromDate: String, toDate: Option[String], pattern: String): Array[String] = {
+        val df: DateTimeFormatter = DateTimeFormat.forPattern(pattern).withZoneUTC();
+        val to = if (toDate.nonEmpty) df.parseLocalDate(toDate.get) else LocalDate.fromDateFields(new Date);
+        val from = df.parseLocalDate(fromDate);
+        val dates = datesBetween(from, to);
+        dates.map { x => df.print(x) }.toArray;
+    }
 
     def getDatesBetween(fromDate: String, toDate: Option[String]): Array[String] = {
-        val to = if (toDate.nonEmpty) dateFormat.parseLocalDate(toDate.get) else LocalDate.fromDateFields(new Date);
-        val from = dateFormat.parseLocalDate(fromDate);
-        val dates = datesBetween(from, to);
-        dates.map { x => dateFormat.print(x) }.toArray;
+        getDatesBetween(fromDate, toDate, "yyyy-MM-dd");
     }
 
     def daysBetween(from: LocalDate, to: LocalDate): Int = {
@@ -238,7 +243,7 @@ object CommonUtil {
         }
         path ++ ".gz";
     }
-    
+
     def zip(out: String, files: Iterable[String]) = {
         import java.io.{ BufferedInputStream, FileInputStream, FileOutputStream }
         import java.util.zip.{ ZipEntry, ZipOutputStream }
@@ -248,6 +253,26 @@ object CommonUtil {
         files.foreach { name =>
             zip.putNextEntry(new ZipEntry(name.split("/").last))
             val in = new BufferedInputStream(new FileInputStream(name))
+            var b = in.read()
+            while (b > -1) {
+                zip.write(b)
+                b = in.read()
+            }
+            in.close()
+            zip.closeEntry()
+        }
+        zip.close()
+    }
+
+    def zipFolder(outFile: String, dir: String) = {
+        import java.io.{ BufferedInputStream, FileInputStream, FileOutputStream }
+        import java.util.zip.{ ZipEntry, ZipOutputStream }
+
+        val zip = new ZipOutputStream(new FileOutputStream(outFile))
+        val files = new File(dir).listFiles();
+        files.foreach { file =>
+            zip.putNextEntry(new ZipEntry(file.getName.split("/").last))
+            val in = new BufferedInputStream(new FileInputStream(file))
             var b = in.read()
             while (b > -1) {
                 zip.write(b)
@@ -338,7 +363,8 @@ object CommonUtil {
     }
 
     def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
-        Option(metadata.getOrElse("tags", List[String]()).asInstanceOf[List[String]].toArray);
+    	val tags = metadata.getOrElse("tags", List[String]());
+        if (null == tags) Option(Array[String]()) else Option(tags.asInstanceOf[List[String]].toArray);
     }
 
     def roundDouble(value: Double, precision: Int): Double = {

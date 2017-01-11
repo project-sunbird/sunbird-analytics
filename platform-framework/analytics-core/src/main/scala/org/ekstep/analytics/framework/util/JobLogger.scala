@@ -9,6 +9,13 @@ import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.core.LoggerContext
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.conf.AppConf
+import org.apache.commons.lang3.StringUtils
+import org.apache.logging.log4j.core.appender.mom.kafka.KafkaAppender
+import org.apache.logging.log4j.core.config.Property
+import org.apache.logging.log4j.core.layout.PatternLayout
+import java.nio.charset.Charset
+import org.apache.logging.log4j.core.config.AppenderRef
 
 object JobLogger {
 
@@ -16,6 +23,17 @@ object JobLogger {
         System.setProperty("logFilename", jobName.toLowerCase());
         val ctx = LogManager.getContext(false).asInstanceOf[LoggerContext];
         ctx.reconfigure();
+        if (StringUtils.equalsIgnoreCase(AppConf.getConfig("log4j.appender.kafka.enable"), "true")) {
+            val config = ctx.getConfiguration();
+            val property = Property.createProperty("bootstrap.servers", AppConf.getConfig("log4j.appender.kafka.broker_host"));
+            val layout = PatternLayout.createLayout(PatternLayout.DEFAULT_CONVERSION_PATTERN, null, config, null, Charset.defaultCharset(), false, false, null, null)
+            val kafkaAppender = KafkaAppender.createAppender(layout, null, "KafkaAppender", false, AppConf.getConfig("log4j.appender.kafka.topic"), Array(property));
+            kafkaAppender.start();
+            config.addAppender(kafkaAppender);
+            val loggerConfig = config.getLoggers.get("org.ekstep.analytics");
+            loggerConfig.addAppender(kafkaAppender, null, null)
+            ctx.updateLoggers();
+        }
         JobContext.jobName = jobName;
     }
 

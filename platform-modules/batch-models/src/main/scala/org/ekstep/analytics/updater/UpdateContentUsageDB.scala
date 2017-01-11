@@ -49,7 +49,7 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
             val avg_ts_session = eksMap.get("avg_ts_session").get.asInstanceOf[Double]
             val total_interactions = eksMap.get("total_interactions").get.asInstanceOf[Int]
             val avg_interactions_min = eksMap.get("avg_interactions_min").get.asInstanceOf[Double]
-            val device_ids = eksMap.get("device_ids").get.asInstanceOf[List[String]];
+            val device_ids = eksMap.get("device_ids").getOrElse(List("")).asInstanceOf[List[String]];
 
             ContentUsageSummaryFact_T(period, contentId, tag, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), total_ts, total_sessions, avg_ts_session,
                 total_interactions, avg_interactions_min, device_ids);

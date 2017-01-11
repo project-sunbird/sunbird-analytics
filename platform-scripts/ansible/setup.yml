@@ -19,4 +19,6 @@
     - common
     - service
     - neo4j-python
-    
+    - api
+    - ubuntu-ds
+
