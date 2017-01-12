@@ -342,6 +342,7 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val upload_model_s3 = config.getOrElse("upload_model_s3", true).asInstanceOf[Boolean];
         val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
+        val saveFeatureFile = config.getOrElse("saveFeatureFile", false).asInstanceOf[Boolean];
 
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
@@ -354,12 +355,14 @@ object RETrainingModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, 
         val df = sqlContext.createDataFrame(rdd, _getStructType(tag_dimensions, text_dimensions));
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
-        //println("columns count", df.columns.size)
-        val columns = df.columns//.foreach { x => println(x) }
-        val z = columns.map{x => (x, df.select(x).distinct().count())}
-        val features = sc.parallelize(z.map{x => x.toString().replace("(", "").replace(")", "")})
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> featureDetailFile)), features);
-
+        if(saveFeatureFile){
+            JobLogger.log("Writing features with distinct value count into a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+            val columns = df.columns
+            val z = columns.map{x => (x, df.select(x).distinct().count())}
+            val features = sc.parallelize(z.map{x => x.toString().replace("(", "").replace(")", "")})
+            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> featureDetailFile)), features);
+        }
+        
         val formula = new RFormula()
             .setFormula("c1_total_ts ~ . - did")
             .setFeaturesCol("features")
