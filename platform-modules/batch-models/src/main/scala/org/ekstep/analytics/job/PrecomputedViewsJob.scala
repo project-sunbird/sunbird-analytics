@@ -18,10 +18,11 @@ object PrecomputedViewsJob extends Application {
 	implicit val className = "org.ekstep.analytics.job.PrecomputedViewsJob"
 	
 	def main() {
-		JobLogger.start("Started executing PrecomputedViewsJob")
+		JobLogger.start("Started executing PrecomputedViews Job")
 		val sc = CommonUtil.getSparkContext(JobContext.parallelization, className);
 		try {
 			PrecomputedViews.execute()(sc);
+			JobLogger.end("PrecomputedViews Job Completed.", "SUCCESS", None);
 		} catch {
             case ex: Exception =>
                 JobLogger.log(ex.getMessage, None, ERROR);
