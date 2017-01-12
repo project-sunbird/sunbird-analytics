@@ -353,7 +353,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val outputFile = config.getOrElse("outputFile", "/tmp/score.txt").asInstanceOf[String]
         val localPath = config.getOrElse("localPath", "/tmp/").asInstanceOf[String]
         val model = config.getOrElse("model", "fm.model").asInstanceOf[String]
-        val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
+        val bucket = config.getOrElse("bucket", "ekstep-dev-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
