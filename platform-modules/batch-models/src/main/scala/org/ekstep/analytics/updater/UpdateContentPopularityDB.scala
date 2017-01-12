@@ -42,9 +42,9 @@ object UpdateContentPopularityDB extends IBatchModelTemplate[DerivedEvent, Deriv
             val m_downloads = eksMap.get("m_downloads").getOrElse(0l).asInstanceOf[Number].longValue
             val m_side_loads = eksMap.get("m_side_loads").getOrElse(0l).asInstanceOf[Number].longValue
             val m_comments = eksMap.get("m_comments").getOrElse(List()).asInstanceOf[List[Map[String, AnyRef]]]
-            val comments = m_comments.map { f => (f.getOrElse("comment", "").asInstanceOf[String], f.getOrElse("time", 0L).asInstanceOf[Long])}
+            val comments = m_comments.map { f => (f.getOrElse("comment", "").asInstanceOf[String], f.getOrElse("time", 0L).asInstanceOf[Number].longValue())}
             val m_ratings = eksMap.get("m_ratings").getOrElse(List()).asInstanceOf[List[Map[String, AnyRef]]]
-            val ratings = m_ratings.map { f => (f.getOrElse("rating", 0.0).asInstanceOf[Double], f.getOrElse("time", 0L).asInstanceOf[Long])}
+            val ratings = m_ratings.map { f => (f.getOrElse("rating", 0.0).asInstanceOf[Double], f.getOrElse("time", 0L).asInstanceOf[Number].longValue())}
             val m_avg_rating = eksMap.get("m_avg_rating").get.asInstanceOf[Double]
             ContentPopularitySummaryFact_T(period, contentId, tag, m_downloads, m_side_loads, comments, ratings, m_avg_rating, new DateTime(x.context.date_range.to));
         }.cache();

@@ -18,10 +18,11 @@
 		</RollingFile>
 		<Async name="Async">
 			<AppenderRef ref="RollingFileAppender" />
+			
 		</Async>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.ekstep.analytics" level="info" additivity="false">
+		<Logger name="org.ekstep.analytics.api" level="info" additivity="false">
 			<AppenderRef ref="Async"/>
 		</Logger>
 		<Root level="error">

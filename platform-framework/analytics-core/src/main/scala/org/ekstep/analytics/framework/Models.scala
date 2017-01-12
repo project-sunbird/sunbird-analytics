@@ -16,7 +16,7 @@ class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
-          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String]) extends Serializable {}
+          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef]) extends Serializable {}
 
 @scala.beans.BeanInfo
 class Ext(val stageId: String, val `type`: String) extends Serializable {}
@@ -132,13 +132,23 @@ object Level extends Enumeration {
 }
 
 object JobStatus extends Enumeration {
-	type Status = Value;
-	val SUBMITTED, PROCESSING, COMPLETE, RETRY, FAILED = Value
+    type Status = Value;
+    val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
 }
 
 trait Stage extends Enumeration {
     type Stage = Value
     val contentPlayed = Value
+}
+
+trait DataExStage extends Enumeration {
+    type DataExStage = Value;
+    val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, SAVE_DATA_TO_LOCAL, DOWNLOAD_AND_ZIP_OUTPUT_FILE, UPLOAD_ZIP, UPDATE_RESPONSE_TO_DB = Value
+}
+
+trait JobStageStatus extends Enumeration {
+    type JobStageStatus = Value;
+    val COMPLETED, FAILED = Value
 }
 
 object OnboardStage extends Stage {

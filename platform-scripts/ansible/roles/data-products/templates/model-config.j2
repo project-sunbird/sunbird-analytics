@@ -2,6 +2,10 @@
 
 config() {
 	bucket={{ bucket }}
+	datasetReadBucket={{ datasetReadBucket }}
+	dataExhaustBucket={{ dataExhaustBucket }}
+	dataExhaustPrefix={{ dataExhaustPrefix }}
+	datasetReadPrefix={{ datasetReadPrefix }}
 	brokerList={{ brokerlist }}
 	topic={{ topic }}
 	if [ -z "$2" ]; then endDate=$(date --date yesterday "+%Y-%m-%d"); else endDate=$2; fi
@@ -107,6 +111,9 @@ config() {
 		;;
 		"gfa")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gfs/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieFunnelAggregatorModel","output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Genie Funnel Aggregator Model","deviceMapping":true}'
+		;;
+		"data-exhaust")
+		echo '{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-read-bucket":"'$datasetReadBucket'","dataset-read-prefix":"'$datasetReadPrefix'","data-exhaust-bucket":"'$dataExhaustBucket'","data-exhaust-prefix":"'$dataExhaustPrefix'", "tempLocalPath":"/mnt/data/analytics/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}'
 		;;
 		"*")
 		echo "Unknown model code"

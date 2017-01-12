@@ -363,7 +363,7 @@ object CommonUtil {
     }
 
     def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
-        val tags = metadata.getOrElse("tags", List[String]());
+    	val tags = metadata.getOrElse("tags", List[String]());
         if (null == tags) Option(Array[String]()) else Option(tags.asInstanceOf[List[String]].toArray);
     }
 
@@ -469,4 +469,11 @@ object CommonUtil {
         val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
         tempList.filter { x => registeredTags.contains(x) }.toArray;
     }
+    
+    def ccToMap(cc: AnyRef) =
+  		(Map[String, AnyRef]() /: cc.getClass.getDeclaredFields) {
+	    (a, f) =>
+	      f.setAccessible(true)
+	      a + (f.getName -> f.get(cc))
+  	}
 }

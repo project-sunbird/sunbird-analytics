@@ -16,7 +16,5 @@
 
 - hosts: api
   roles:
-    - common
-    - service
-    - neo4j-python
-    
+    - api
+    - ubuntu-ds

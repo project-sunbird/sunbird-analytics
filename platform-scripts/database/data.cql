@@ -274,5 +274,7 @@ CREATE TABLE IF NOT EXISTS platform_db.job_request (
     latency int,
     execution_time bigint,
     err_message text,
+    stage text,
+    stage_status text,
     PRIMARY KEY (client_key, request_id)
 );

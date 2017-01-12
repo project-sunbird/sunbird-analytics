@@ -1,0 +1,89 @@
+- name: Add Java repository to sources
+  action: apt_repository repo='ppa:webupd8team/java'
+  become: yes
+  tags:
+    - always
+
+- name: Autoaccept license for Java 8
+  debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+  become: yes
+  tags:
+    - always
+
+- name: Update APT package cache
+  action: apt update_cache=yes
+  become: yes
+  tags:
+    - always
+
+- name: Install Java 8
+  action: apt pkg=oracle-java8-installer state=latest install_recommends=yes
+  become: yes
+  tags:
+    - always
+
+- name: Set Java 8 Env
+  action: apt pkg=oracle-java8-set-default state=latest install_recommends=yes
+  become: yes
+  tags:
+    - always
+
+- name: Install AWS cli
+  action: apt pkg=awscli state=latest install_recommends=yes
+  become: yes
+  tags:
+    - always
+
+- name: Install zip
+  action: apt pkg=zip state=latest install_recommends=yes
+  become: yes
+  tags:
+    - always
+
+- name: Set locale LC_ALL=en_US.UTF-8
+  lineinfile: dest={{ analytics_user_home }}/.profile line='export LC_ALL=en_US.UTF-8'  state=present insertafter=EOF create=yes
+  tags:
+    - always
+
+- name: Set locale LANG=en_US.UTF-8
+  lineinfile: dest={{ analytics_user_home }}/.profile line='export LANG=en_US.UTF-8'  state=present insertafter=EOF create=yes
+  tags:
+    - always
+
+- name: update /etc/environment
+  become: yes
+  lineinfile: dest=/etc/environment line='aws_key={{ lookup('env','lpa_aws_key') }}'  state=present insertafter=EOF create=yes
+  tags:
+    - always
+
+- name: update /etc/environment
+  become: yes
+  lineinfile: dest=/etc/environment line='aws_secret={{ lookup('env','lpa_aws_secret') }}' state=present insertafter=EOF create=yes
+  tags:
+    - always
+
+- name: Update user profile
+  become: yes
+  become_user: analytics
+  lineinfile: dest={{ analytics_user_home }}/.bash_profile line='export aws_key={{ lookup('env','lpa_aws_key') }}'  state=present insertafter=EOF create=yes
+  tags:
+    - always
+
+- name: Update user profile
+  become: yes
+  become_user: analytics
+  lineinfile: dest={{ analytics_user_home }}/.bash_profile line='export aws_secret={{ lookup('env','lpa_aws_secret') }}' state=present insertafter=EOF create=yes
+  tags:
+    - always
+
+- name: Create sbin directory
+  become: yes
+  file: path={{ analytics_user_home }}/sbin owner=analytics group=analytics state=directory
+  tags:
+    - always
+
+- name: Install Development tools
+  become: yes
+  apt: name="build-essential" state=present
+  tags:
+    - always

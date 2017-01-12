@@ -46,7 +46,7 @@ case class Misconception(concept: String, count: Int);
 case class ItemUsageSummary(d_item_id: String, d_content_id: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_count: Option[Long] = Option(0), m_correct_res_count: Option[Long] = Option(0), m_inc_res_count: Option[Long] = Option(0), m_correct_res: Option[List[AnyRef]] = Option(List()), m_top5_incorrect_res: Option[List[InCorrectRes]] = Option(List()), m_avg_ts: Option[Double] = Option(0.0), m_top5_mmc: Option[List[Misconception]] = Option(List()))
 case class ItemUsageMetrics(override val d_period: Option[Int] = None, label: Option[String] = None, items: Option[List[ItemUsageSummary]] = Option(List())) extends Metrics;
 
-case class JobRequest(client_key: Option[String], request_id: Option[String], job_id: Option[String], status: Option[String], request_data: Option[String], iteration: Option[Int], dt_job_submitted: Option[DateTime] = None, location: Option[String] = None, dt_file_created: Option[DateTime] = None, dt_first_event: Option[DateTime] = None, dt_last_event: Option[DateTime] = None, dt_expiration: Option[DateTime] = None, dt_job_processing: Option[DateTime] = None, dt_job_completed: Option[DateTime] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, file_size: Option[Long] = None, latency: Option[Int] = None, execution_time: Option[Long] = None, err_message: Option[String] = None)
+case class JobRequest(client_key: Option[String], request_id: Option[String], job_id: Option[String], status: Option[String], request_data: Option[String], iteration: Option[Int], dt_job_submitted: Option[DateTime] = None, location: Option[String] = None, dt_file_created: Option[DateTime] = None, dt_first_event: Option[DateTime] = None, dt_last_event: Option[DateTime] = None, dt_expiration: Option[DateTime] = None, dt_job_processing: Option[DateTime] = None, dt_job_completed: Option[DateTime] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, file_size: Option[Long] = None, latency: Option[Int] = None, execution_time: Option[Long] = None, err_message: Option[String] = None, stage: Option[String] = None, stage_status: Option[String] = None)
 
 case class RecommendationContent(device_id: String, scores: List[(String, Double)])
 case class ContentVectors(content_vectors: Array[ContentVector]);
@@ -69,11 +69,12 @@ object Constants {
 }
 
 object APIIds {
-	val DATA_REQUEST = "ekstep.analytics.data.out";
-	val GET_DATA_REQUEST = "ekstep.analytics.job.info";
+	val DATA_REQUEST = "ekstep.analytics.dataset.request.submit";
+	val GET_DATA_REQUEST = "ekstep.analytics.dataset.request.info";
+	val GET_DATA_REQUEST_LIST = "ekstep.analytics.dataset.request.list";
 }
 
-case class JobOutput(location: String, file_size: Long, dt_file_created: String, dt_first_event: Long, dt_last_event: Long, dt_expiration: Long);
-case class JobStats(dt_job_submitted: Long, dt_job_processing: Long, dt_job_completed: Long, input_events: Int, output_events: Int, latency: Int, execution_time: Long);
+case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
+case class JobStats(dt_job_submitted: Long, dt_job_processing:  Option[Long] = None, dt_job_completed:  Option[Long] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, latency: Option[Int] = None, execution_time: Option[Long] = None);
 case class JobResponse(request_id: String, status: String, last_updated: Long, request_data: Request, output: Option[JobOutput] = None, job_stats: Option[JobStats] = None, job_id: Option[String] = None);
 case class JobRequestEvent(eid: String, ets: Long, ver: String, context: Context, edata: MEEdata)
