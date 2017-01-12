@@ -140,7 +140,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
     private def _doTrainContent2VecModel(scriptLoc: String, pythonExec: String, env: Map[String, String])(implicit sc: SparkContext, config: Map[String, AnyRef]) = {
 
         if (StringUtils.equalsIgnoreCase("true", config.getOrElse("content2vec.train_model", "true").asInstanceOf[String])) {
-            val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store").asInstanceOf[String];
+            val bucket = config.getOrElse("content2vec.s3_bucket", "ekstep-dev-data-store").asInstanceOf[String];
             val modelPath = config.getOrElse("content2vec.model_path", "model").asInstanceOf[String];
             val prefix = config.getOrElse("content2vec.s3_key_prefix", "model").asInstanceOf[String];
 
@@ -155,7 +155,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
     private def _doUpdateContentVectors(scriptLoc: String, pythonExec: String, contentId: String, env: Map[String, String])(implicit sc: SparkContext, config: Map[String, AnyRef]): RDD[String] = {
 
-        val bucket = config.getOrElse("content2vec.s3_bucket", "sandbox-data-store").asInstanceOf[String];
+        val bucket = config.getOrElse("content2vec.s3_bucket", "ekstep-dev-data-store").asInstanceOf[String];
         val modelPath = config.getOrElse("content2vec.model_path", "model").asInstanceOf[String];
         val prefix = config.getOrElse("content2vec.s3_key_prefix", "model").asInstanceOf[String];
         S3Util.download(bucket, prefix, modelPath)

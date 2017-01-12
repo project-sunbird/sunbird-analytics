@@ -18,7 +18,7 @@ class TestContentSideloadingSummarizer extends SparkSpec(null) {
     
     ignore should "execute the job from s3 data" in {
         
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-04-01"), Option("2016-04-30"))))), Option(Array(Filter("eventId","EQ",Option("GE_TRANSFER")))), None, "org.ekstep.analytics.model.ContentSideloadingSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("ContentSideloadingSummarizer"), Option(false))
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("ekstep-dev-data-store"), Option("raw/"), Option("2016-04-01"), Option("2016-04-30"))))), Option(Array(Filter("eventId","EQ",Option("GE_TRANSFER")))), None, "org.ekstep.analytics.model.ContentSideloadingSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("ContentSideloadingSummarizer"), Option(false))
         ContentSideloadingSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
 }

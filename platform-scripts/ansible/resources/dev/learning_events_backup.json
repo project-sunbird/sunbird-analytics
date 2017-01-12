@@ -4,7 +4,7 @@
 	"s3_base_path":"learning-events",
 	"timestamp_key":"createdOn",
 	"topic":"sandbox.learning.graph.events",
-	"s3_bucket":"sandbox-data-store",
+	"s3_bucket":"ekstep-dev-data-store",
 	"kafka_broker_host":"172.31.1.92",
 	"zookeeper_quorum":"172.31.1.92:2181",
 	"max_file_size":"200000000",

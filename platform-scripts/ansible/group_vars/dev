@@ -27,7 +27,7 @@ secor:
   paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor/logs']
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=dev.conf
-bucket: sandbox-data-store
+bucket: ekstep-dev-data-store
 datasetReadBucket: ekstep-datasets-test
 dataExhaustBucket: ekstep-public
 dataExhaustPrefix: dev/data-exhaust

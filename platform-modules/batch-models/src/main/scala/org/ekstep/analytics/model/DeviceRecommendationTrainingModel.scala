@@ -334,7 +334,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val logFile = config.getOrElse("logFile", "/tmp/libfm.log").asInstanceOf[String]
         val model = config.getOrElse("model", "/tmp/fm.model").asInstanceOf[String]
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
-        val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
+        val bucket = config.getOrElse("bucket", "ekstep-dev-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/fm.model").asInstanceOf[String];
         val libFMTrainConfig = config.getOrElse("libFMTrainConfig", "-dim 1,1,0 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100")
         val trainRatio = config.getOrElse("trainRatio", 0.8).asInstanceOf[Double];
