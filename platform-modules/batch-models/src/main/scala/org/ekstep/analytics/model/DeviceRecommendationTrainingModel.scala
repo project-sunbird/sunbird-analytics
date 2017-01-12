@@ -353,8 +353,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
         val model_name = config.getOrElse("model_name", "fm.model").asInstanceOf[String]
         val completePath = localPath + path
-        val trainDataFile = completePath + "train.dat.libfm"
-        val testDataFile = completePath + "test.dat.libfm"
+        val trainDataFile = completePath + "trainData/part-00000"
+        val testDataFile = completePath + "testData/part-00000"
         val logFile = completePath + "libfm.log"
         val libfmOut = completePath + "libfm.out"
         val featureDetailFile = completePath + "features.text"
@@ -425,12 +425,13 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val testDataSet = sampledUsedDataSet.sample(false, testRatio, System.currentTimeMillis().toInt);
 
         JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
+        trainDataSet.coalesce(1,true).saveAsTextFile(completePath+"trainData");
+        testDataSet.coalesce(1,true).saveAsTextFile(completePath+"testData");
+        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
+        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         //ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
-
         val script = s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -out $libfmOut -save_model $model_path"
         ScriptDispatcher.dispatch(script)
         
