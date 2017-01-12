@@ -30,7 +30,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
 
         val eksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap1.get("timeSpent").get.asInstanceOf[Double] should be(493.0)
-        eksMap1.get("time_stamp").get.asInstanceOf[Long] should be(1461567474000l)
+        eksMap1.get("time_stamp").get.asInstanceOf[Number].longValue() should be(1461567474000l)
         eksMap1.get("contentCount").get.asInstanceOf[Int] should not be (0)
     }
 
