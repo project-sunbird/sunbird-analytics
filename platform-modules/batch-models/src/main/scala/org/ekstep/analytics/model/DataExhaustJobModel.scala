@@ -62,7 +62,6 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
             Filter("genieTag", "IN", Option(requestFilter.tags))) ++ {
                 if (requestFilter.events.isDefined && requestFilter.events.get.nonEmpty) Array(Filter("eid", "IN", Option(requestFilter.events.get))) else Array[Filter]();
             }
-        println("Filters", JSONUtils.serialize(filters));
         data.map { x =>
             try {
                 val event = JSONUtils.deserialize[Event](x);

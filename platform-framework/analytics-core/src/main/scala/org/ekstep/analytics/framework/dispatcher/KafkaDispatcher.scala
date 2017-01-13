@@ -33,7 +33,6 @@ object KafkaDispatcher extends IDispatcher {
     }
 
     def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
-        println("Dispatching output to kafka sink");
         val brokerList = config.getOrElse("brokerList", null).asInstanceOf[String];
         val topic = config.getOrElse("topic", null).asInstanceOf[String];
         if (null == brokerList) {

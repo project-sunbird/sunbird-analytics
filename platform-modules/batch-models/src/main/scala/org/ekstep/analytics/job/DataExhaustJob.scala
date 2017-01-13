@@ -62,6 +62,8 @@ object DataExhaustJob extends optional.Application with IJob {
             _executeRequests(rdd.repartition(10), requests.collect(), modelParams);
             rdd.unpersist(true)
             requests.unpersist(true)
+        }else {
+            JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0)));
         }
     }
 
@@ -142,7 +144,6 @@ object DataExhaustJob extends optional.Application with IJob {
     private def _executeRequests(data: RDD[String], requests: Array[JobRequest], config: Map[String, AnyRef])(implicit sc: SparkContext) = {
 
         val inputEventsCount = data.count;
-        println("inputEventsCount", inputEventsCount);
         val jobResponses = for (request <- requests) yield {
 
             try {
@@ -158,7 +159,6 @@ object DataExhaustJob extends optional.Application with IJob {
 
                 val result = CommonUtil.time({
                     val response = DataExhaustJobModel.execute(data, Option(requestConfig)).collect().head;
-                    println("response", response);
                     val to = requestConfig.get("dispatch-to").get.asInstanceOf[String]
                     if (response.output_events > 0 && "s3".equals(to)) {
                         val localPath = requestConfig.get("path").get.asInstanceOf[String] + "/" + response.request_id;
