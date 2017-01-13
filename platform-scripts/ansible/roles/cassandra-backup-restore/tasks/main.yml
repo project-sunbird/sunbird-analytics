@@ -1,26 +1,34 @@
-- name: "check packages (debian)"
+- name: "Install required python packages (debian)"
+  become: yes
   action: apt pkg={{ item }} state=present update_cache=yes
-  with_items: 
+  with_items:
     - libffi-dev
     - libssl-dev
     - build-essential
     - python-dev
     - python-pip
     - lzop
-  
+  tags:
+    - provision-cassandra-backup
+
 - name: "Install Cassandra Snapshotter"
   become: yes
   command: pip install {{item}}
-  with_items: 
-    - cryptography 
+  with_items:
+    - cryptography
     - cassandra_snapshotter
+  tags:
+    - provision-cassandra-backup
 
-- name: copy the backup cassandra script
+- name: copy the cassandra backup script
   become: yes
-  template: copy=cassandra-backup.j2 dest={{analytics_user_home}}/cassandra-backup.j2  mode=0755
-
+  template: copy=cassandra-backup.j2 dest={{analytics_user_home}}/cassandra-backup.j2  mode=0755 owner=ec2-user group=ec2-user
+  tags:
+    - cassandra-backup
 
 - name: cron job to take backups
   become: yes
-  become_user: analytics
-  cron: name=cassandrabackup minute=24 hour=18  job="{{analytics_user_home}}/cassandra-backup.sh" 
+  become_user: ec2-user
+  cron: name=cassandrabackup minute={{cassandra_backup_cron_min}} hour={{cassandra_backup_cron_hour}}  job="{{analytics_user_home}}/cassandra-backup.sh"
+  tags:
+    - cassandra-backup

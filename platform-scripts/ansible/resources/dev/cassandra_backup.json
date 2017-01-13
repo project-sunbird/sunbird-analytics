@@ -1,0 +1,14 @@
+{
+	"cassandra_backup_bucket":"sandbox-data-store",
+	"s3_bucket_region":"ap-southeast-1",
+	"s3_base_path":"cassandra-cluster-backup",
+	"cassandra_backup_host":"172.31.25.29",
+	"cassandra_backup_keyspaces":"content_store",
+	"cassandra_conf_path":"/mnt/data/analytics/apache-cassandra-3.7/conf",
+	"cassandra_bin_path":"/mnt/data/analytics/apache-cassandra-3.7/bin",
+	"cassandra_backup_user":"ec2-user",
+	"cassandra_ssh_key":"~/.ssh/learning-platform.pem",
+	"cassandra_backup_service_log":"/mnt/data/analytics/logs",
+	"cassandra_backup_cron_hour":"0",
+	"cassandra_backup_cron_min":"30"
+}
