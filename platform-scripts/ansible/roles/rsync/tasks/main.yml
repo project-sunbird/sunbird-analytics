@@ -8,6 +8,7 @@
     cache_valid_time: 3600
   with_items: 
              - rsync
+             
 - name: generate script
   template:
     src: rsync-sync.j2

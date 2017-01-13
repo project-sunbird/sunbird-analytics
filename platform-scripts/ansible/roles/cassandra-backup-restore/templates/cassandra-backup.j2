@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+now=$(date "+%Y-%m-%d-%H-%M")
+/usr/local/bin/cassandra-snapshotter --s3-bucket-name=prod-data-store --s3-bucket-region=ap-southeast-1 --s3-base-path=cassandra-cluster-backup --aws-access-key-id=$aws_key --aws-secret-access-key=$aws_secret backup --hosts 10.10.1.62 --new-snapshot --keyspaces content_store --cassandra-conf-path=/etc/cassandra --user=ubuntu --sshkey=~/.ssh/learning-platform.pem > /mnt/data/analytics/logs/cassandra-backup-$now.log &
