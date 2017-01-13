@@ -46,7 +46,7 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data2.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
         events.length should be(6)
-        
+
         val onbs = events.filter { x => "GenieOnboarding".equals(x.dimensions.funnel.get) }
         val contentSearch = events.filter { x => "ContentSearch".equals(x.dimensions.funnel.get) }
 
@@ -92,10 +92,6 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data4.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
         events.length should be(4)
-        
-        for(e<-events){
-            println(JSONUtils.serialize(e))
-        }
 
         val onbEvents = events.filter { x => x.dimensions.onboarding.get == true }
 

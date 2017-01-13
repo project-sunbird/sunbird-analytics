@@ -39,13 +39,6 @@ object EventFieldExtractorModel extends IBatchModel[Event, String] with FieldExt
     def execute(events: RDD[Event], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
         serializeToCSV[Event](events, jobParams);
     }
-    
-//    def main(args: Array[String]): Unit = {
-//        val str = """[{"survey_codes":"aser007"},{"activation_keys":"ptm007"},{"partnerid":"org.ekstep.partner.pratham"}]""";
-//        println(JSONUtils.serialize(StringEscapeUtils.escapeCsv(str)));
-//        println(StringEscapeUtils.escapeJson(str));
-//    }
-    
 }
 
 object DerivedEventFieldExtractorModel extends IBatchModel[DerivedEvent, String] with FieldExtractorModel {
@@ -53,5 +46,4 @@ object DerivedEventFieldExtractorModel extends IBatchModel[DerivedEvent, String]
     def execute(events: RDD[DerivedEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
         serializeToCSV[DerivedEvent](events, jobParams);
     }
-
 }
