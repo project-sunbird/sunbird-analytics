@@ -357,7 +357,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val testDataFile = completePath + "testData/part-00000"
         val logFile = completePath + "libfm.log"
         val libfmOut = completePath + "libfm.out"
-        val featureDetailFile = completePath + "features.text"
+        val featureDetailFile = completePath + "featureDetails"
         val model_path = completePath + model_name
         val libfmExec = config.getOrElse("libfm.executable_path", "/usr/local/bin/") + "libFM";
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
@@ -387,7 +387,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             val columns = df.columns
             val z = columns.map{x => (x, df.select(x).distinct().count())}
             val features = sc.parallelize(z.map{x => x.toString().replace("(", "").replace(")", "")})
-            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> featureDetailFile)), features);
+            //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> featureDetailFile)), features);
+            features.coalesce(1,true).saveAsTextFile(featureDetailFile);
         }
         
         val formula = new RFormula()

@@ -50,11 +50,9 @@ import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.adapter.ContentResponse
 import java.io.File
 
-case class ScoringAlgoInput(dc: DeviceContext, dcWithoutTransformations: DeviceContextWithoutTransformations) extends AlgoInput
-case class DeviceContextkey(did: String, c1_contentId: String)
-case class DeviceContextWithScore(dc: DeviceContextWithoutTransformations, score: Double)
+case class IndexedScore(index: Long, score: Double)
 
-object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent, ScoringAlgoInput, DeviceRecos, DeviceRecos] with Serializable {
+object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.DeviceRecommendationScoringModel"
     override def name(): String = "DeviceRecommendationScoringModel"
@@ -66,13 +64,14 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val date = dateTime.toLocalDate()
     val time = dateTime.toLocalTime().toString("hh-mm")
     val path = "/scoring/" + date + "/" + time + "/"
+    val indexArray = ListBuffer[Long]()
 
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
         it(random_index);
     }
 
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ScoringAlgoInput] = {
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
         val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
@@ -125,9 +124,23 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         dcus.unpersist(true);
 
         // creating DeviceContext without transformations
+        val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
+        val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
+        val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
+        val inputDataPath = localPath + path + "RE-input"
         val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
-
-        val deviceContextT = device_specT.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
+        val deviceContextWithIndex = deviceContext.zipWithIndex().map { case (k, v) => (v, k) }
+        val deviceContextF = deviceContextWithIndex.filter { x => x._2.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
+        JobLogger.log("Saving index of DeviceContext with non zero ts", Option(Map("totalcount" -> deviceContextWithIndex.count(), "nonZeroCount" -> deviceContextF.count())), INFO, "org.ekstep.analytics.model");
+        deviceContextF.foreach { x => indexArray += x._1 }
+        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        val file = new File(inputDataPath)
+        if (file.exists())
+            CommonUtil.deleteDirectory(inputDataPath)
+        val jsondata = createJSON(deviceContextF, tag_dimensions, text_dimensions)
+        jsondata.saveAsTextFile(inputDataPath)
+        
+        device_specT.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.content_id, x) }.toMap;
             DeviceMetrics(x._1, contentModelB.value, x._2._1._2.getOrElse(defaultDUS), x._2._1._1, dc, dcT)
@@ -152,10 +165,6 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 }
             }
         }.flatMap { x => x.map { f => f } }
-
-        val dc = deviceContext.map { x => (DeviceContextkey(x.did, x.contentInFocus), x) }
-        val dcT = deviceContextT.map { x => (DeviceContextkey(x.did, x.contentInFocus), x) }
-        dcT.join(dc).map(f => ScoringAlgoInput(f._2._1, f._2._2))
     }
 
     private def _createDF(data: RDD[DeviceContext], tag_dimensions: Int, text_dimensions: Int): RDD[Row] = {
@@ -373,27 +382,26 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         }
     }
 
-    override def algorithm(data: RDD[ScoringAlgoInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
+    override def algorithm(data: RDD[DeviceContext], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         implicit val sqlContext = new SQLContext(sc);
 
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
-        val outputFile = localPath + path + "score.txt"
+        val outputFile = localPath + path + "scores"
         val inputDataPath = localPath + path + "RE-input"
+        val scoreDataPath = localPath + path + "RE-score"
         val model_name = config.getOrElse("model_name", "fm.model").asInstanceOf[String]
         val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/").asInstanceOf[String];
         val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
-        val upload_score_s3 = config.getOrElse("upload_score_s3", true).asInstanceOf[Boolean];
+        val upload_score_s3 = config.getOrElse("upload_score_s3", false).asInstanceOf[Boolean];
         val saveScoresTo = config.getOrElse("saveScoresTo", "both").asInstanceOf[String];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
-        val input = data.map { x => x.dc }
-
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val rdd: RDD[Row] = _createDF(input, tag_dimensions, text_dimensions);
+        val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val df = sqlContext.createDataFrame(rdd, _getStructType(tag_dimensions, text_dimensions));
         JobLogger.log("Created dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
@@ -415,30 +423,25 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("Running scoring algorithm", None, INFO, "org.ekstep.analytics.model");
         val scores = scoringAlgo(featureVector, localPath + path, model_name);
 
-        JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
-
         if (upload_score_s3) {
+            JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+            //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
+            scores.coalesce(1,true).saveAsTextFile(outputFile);
             JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             S3Dispatcher.dispatch(null, Map("filePath" -> outputFile, "bucket" -> bucket, "key" -> (key + "score.txt")))
         }
 
         JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val device_content = input.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
+        val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
         val scoresIndexed = scores.zipWithIndex().map { case (k, v) => (v, k) }
         val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
-        JobLogger.log("Number of devices for which scoring is done", Option(Map("Scored_devices" -> device_scores.count(), "devices_in_spec" -> input.map { x => x.device_spec.device_id }.distinct().count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        JobLogger.log("Number of devices for which scoring is done", Option(Map("Scored_devices" -> device_scores.count(), "devices_in_spec" -> data.map { x => x.device_spec.device_id }.distinct().count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
         if (saveScoresTo.equals("both") || saveScoresTo.equals("file")) {
-            JobLogger.log("saving input data without transformation where c1_total_ts>0.0 with scores in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-            val dc = data.map { x => x.dcWithoutTransformations }.map { x => (DeviceContextkey(x.did, x.contentInFocus), x) }
-            val sco = device_content.leftOuterJoin(scoresIndexed).map { x => (DeviceContextkey(x._2._1._1, x._2._1._2), x._2._2.get) }
-            val dcWithScore = dc.join(sco).map { x => DeviceContextWithScore(x._2._1, x._2._2) }.filter { x => x.dc.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
-            val file = new File(inputDataPath)
-            if (file.exists())
-                CommonUtil.deleteDirectory(inputDataPath)
-            val jsondata = createJSON(dcWithScore, tag_dimensions, text_dimensions);
-            jsondata.saveAsTextFile(inputDataPath)
+            val scoreData = device_content.leftOuterJoin(scoresIndexed).map { f =>
+                IndexedScore(f._1, f._2._2.get)
+            }.filter { x => indexArray.contains(x.index) }.map{x => JSONUtils.serialize(x)}
+            scoreData.saveAsTextFile(scoreDataPath);
         }
         device_scores.map { x =>
             DeviceRecos(x._1, x._2)
@@ -484,10 +487,10 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         }.flatMap { x => x.map { f => f } }
     }
 
-    def createJSON(data: RDD[DeviceContextWithScore], tag_dimensions: Int, text_dimensions: Int)(implicit sc: SparkContext): RDD[String] = {
+    def createJSON(data: RDD[(Long, DeviceContextWithoutTransformations)], tag_dimensions: Int, text_dimensions: Int)(implicit sc: SparkContext): RDD[String] = {
 
         data.map { f =>
-            val x = f.dc
+            val x = f._2
             val c1_text = if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined)
                 x.contentInFocusVec.text_vec.get.toSeq
             else _getZeros(text_dimensions);
@@ -523,6 +526,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             val secondary_camera = ps._2
 
             val dataMap = Map(
+                "index" -> f._1,
                 "did" -> x.did,
                 "c1_content_id" -> x.contentInFocus,
                 "c2_content_id" -> x.otherContentId,
@@ -588,8 +592,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 "external_disk" -> x.device_spec.external_disk,
                 "internal_disk" -> x.device_spec.internal_disk,
                 "primary_camera" -> primary_camera,
-                "secondary_camera" -> secondary_camera,
-                "score" -> f.score)
+                "secondary_camera" -> secondary_camera)
 
             JSONUtils.serialize(dataMap)
         }
