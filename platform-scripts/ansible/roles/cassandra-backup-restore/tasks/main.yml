@@ -21,14 +21,11 @@
     - provision-cassandra-backup
 
 - name: copy the cassandra backup script
-  become: yes
-  template: copy=cassandra-backup.j2 dest={{analytics_user_home}}/cassandra-backup.j2  mode=0755 owner=ec2-user group=ec2-user
+  template: copy=cassandra-backup.j2 dest={{user_home}}/cassandra-backup.sh  mode=755 owner=ec2-user group=ec2-user
   tags:
     - cassandra-backup
 
 - name: cron job to take backups
-  become: yes
-  become_user: ec2-user
   cron: name=cassandrabackup minute={{cassandra_backup_cron_min}} hour={{cassandra_backup_cron_hour}}  job="{{analytics_user_home}}/cassandra-backup.sh"
   tags:
     - cassandra-backup
