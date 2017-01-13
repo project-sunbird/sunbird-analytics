@@ -421,18 +421,26 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         JobLogger.log("sampling used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val sampledUsedDataSet = if (dataLimit == -1) usedDataSet else sc.parallelize(usedDataSet.take(dataLimit))
-        val trainDataSet = sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);
-        val testDataSet = sampledUsedDataSet.sample(false, testRatio, System.currentTimeMillis().toInt);
-
-        JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        trainDataSet.coalesce(1,true).saveAsTextFile(completePath+"trainData");
-        testDataSet.coalesce(1,true).saveAsTextFile(completePath+"testData");
+        
+        // to-do: Need to check for trainRatio = testRatio = 0.5
+        val trainDataSet = if(trainRatio == testRatio) sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt) else sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);
+        val testDataSet = if(trainRatio != testRatio) sampledUsedDataSet.sample(false, testRatio, System.currentTimeMillis().toInt) else null
+        
+        if(null != testDataSet){
+            JobLogger.log("Dispatching train and test datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+            trainDataSet.coalesce(1,true).saveAsTextFile(completePath+"trainData");
+            testDataSet.coalesce(1,true).saveAsTextFile(completePath+"testData");
+        }
+        else {
+            JobLogger.log("Dispatching only train datasets since trainRatio=testRatio", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+            trainDataSet.coalesce(1,true).saveAsTextFile(completePath+"trainData");
+        }
         //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
         //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         //ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
-        val script = s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -out $libfmOut -save_model $model_path"
+        val script = if(null != testDataSet) s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -out $libfmOut -save_model $model_path" else s"$libfmExec -train $trainDataFile -test $trainDataFile $libFMTrainConfig -rlog $logFile -out $libfmOut -save_model $model_path"
         ScriptDispatcher.dispatch(script)
         
         if (upload_model_s3) {
