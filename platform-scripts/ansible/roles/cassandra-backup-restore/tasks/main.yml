@@ -21,7 +21,7 @@
     - provision-cassandra-backup
 
 - name: copy the cassandra backup script
-  template: copy=cassandra-backup.j2 dest={{user_home}}/cassandra-backup.sh  mode=755 owner=ec2-user group=ec2-user
+  template: src=cassandra-backup.j2 dest={{user_home}}/cassandra-backup.sh  mode=755 owner=ec2-user group=ec2-user
   tags:
     - cassandra-backup
 
