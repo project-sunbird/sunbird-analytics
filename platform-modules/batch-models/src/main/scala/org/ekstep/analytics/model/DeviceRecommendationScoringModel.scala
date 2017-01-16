@@ -73,7 +73,6 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
-        val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
 
         // Content Usage Summaries
@@ -139,7 +138,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             CommonUtil.deleteDirectory(inputDataPath)
         val jsondata = createJSON(deviceContextF, tag_dimensions, text_dimensions)
         jsondata.saveAsTextFile(inputDataPath)
-        
+
         device_specT.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
             val dcT = dcusBB.value.getOrElse(x._1.device_id, Buffer[dcus_tf]()).map { x => (x.content_id, x) }.toMap;
@@ -398,6 +397,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val upload_score_s3 = config.getOrElse("upload_score_s3", false).asInstanceOf[Boolean];
         val saveScoresTo = config.getOrElse("saveScoresTo", "both").asInstanceOf[String];
+        val filterBlacklistedContents = config.getOrElse("filterBlacklistedContents", true).asInstanceOf[Boolean];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
@@ -426,7 +426,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         if (upload_score_s3) {
             JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
-            scores.coalesce(1,true).saveAsTextFile(outputFile);
+            scores.coalesce(1, true).saveAsTextFile(outputFile);
             JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             S3Dispatcher.dispatch(null, Map("filePath" -> outputFile, "bucket" -> bucket, "key" -> (key + "score.txt")))
         }
@@ -440,17 +440,22 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         if (saveScoresTo.equals("both") || saveScoresTo.equals("file")) {
             val scoreData = device_content.leftOuterJoin(scoresIndexed).map { f =>
                 IndexedScore(f._1, f._2._2.get)
-            }.filter { x => indexArray.contains(x.index) }.map{x => JSONUtils.serialize(x)}
+            }.filter { x => indexArray.contains(x.index) }.map { x => JSONUtils.serialize(x) }
             scoreData.saveAsTextFile(scoreDataPath);
         }
-        JobLogger.log("Fetching blacklisted contents from database", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val blacklistedContents = sc.cassandraTable[ContentId](Constants.CONTENT_KEY_SPACE_NAME, Constants.BLACKLISTED_CONTENTS).map{x => x.content_id}.collect()
-        JobLogger.log("Filtering scores for blacklisted contents", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val filtered_device_scores = device_scores.map { x =>
-            val filteredlist = x._2.filterNot(f => blacklistedContents.contains(f._1))
-            (x._1, filteredlist)
+
+        val final_scores = if (filterBlacklistedContents) {
+            JobLogger.log("Fetching blacklisted contents from database", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+            val blacklistedContents = sc.cassandraTable[ContentId](Constants.CONTENT_KEY_SPACE_NAME, Constants.BLACKLISTED_CONTENTS).map { x => x.content_id }.collect()
+            JobLogger.log("Filtering scores for blacklisted contents", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+            device_scores.map { x =>
+                val filteredlist = x._2.filterNot(f => blacklistedContents.contains(f._1))
+                (x._1, filteredlist)
+            }
         }
-        filtered_device_scores.map { x =>
+        else device_scores
+        JobLogger.log("Check for score count in unfilter and filter for blacklisted contents", Option(Map("unfiltered_scores" -> device_scores.first()._2.size, "filtered_scores_blacklisted" -> final_scores.first()._2.size, "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        final_scores.map { x =>
             DeviceRecos(x._1, x._2)
         }
     }

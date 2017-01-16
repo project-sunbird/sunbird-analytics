@@ -84,7 +84,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
-        val limit = config.getOrElse("live_content_limit", 1000).asInstanceOf[Int];
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
 
         // Content Usage Summaries
@@ -133,19 +132,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val dcusO = dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2));
 
         dcus.unpersist(true);
-
-        // creating DeviceContext without transformations
-//        val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
-//        val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
-//        val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
-//        val inputDataPath = localPath + path + "RE-input"
-//        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
-//        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-//        val file = new File(inputDataPath)
-//        if (file.exists())
-//            CommonUtil.deleteDirectory(inputDataPath)
-//        val jsondata = createJSON(deviceContext, tag_dimensions, text_dimensions) //data.map { x => JSONUtils.serialize(x) }
-//        jsondata.saveAsTextFile(inputDataPath)
 
         device_specT.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
@@ -344,10 +330,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         JobLogger.log("Running the algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         implicit val sqlContext = new SQLContext(sc);
-        //        implicit val spark = SparkSession
-        //            .builder()
-        //            .appName("RE training model")
-        //            .getOrCreate()
 
         import sqlContext.implicits._
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
@@ -387,7 +369,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             val columns = df.columns
             val z = columns.map{x => (x, df.select(x).distinct().count())}
             val features = sc.parallelize(z.map{x => x.toString().replace("(", "").replace(")", "")})
-            //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> featureDetailFile)), features);
             features.coalesce(1,true).saveAsTextFile(featureDetailFile);
         }
         
@@ -436,8 +417,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
             JobLogger.log("Dispatching only train datasets since trainRatio=testRatio", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             trainDataSet.coalesce(1,true).saveAsTextFile(completePath+"trainData");
         }
-        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> trainDataFile)), trainDataSet);
-        //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> testDataFile)), testDataSet);
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         //ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
