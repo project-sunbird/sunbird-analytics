@@ -443,11 +443,14 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             }.filter { x => indexArray.contains(x.index) }.map{x => JSONUtils.serialize(x)}
             scoreData.saveAsTextFile(scoreDataPath);
         }
-//        val blacklistedContents = sc.cassandraTable[ContentId](Constants.CONTENT_KEY_SPACE_NAME, "blacklisted_contents").collect()
-//        val x = device_scores.map { x =>
-//            val list = x._2.filterNot(f => blacklistedContents.contains(f._1))
-//        }
-        device_scores.map { x =>
+        JobLogger.log("Fetching blacklisted contents from database", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        val blacklistedContents = sc.cassandraTable[ContentId](Constants.CONTENT_KEY_SPACE_NAME, Constants.BLACKLISTED_CONTENTS).map{x => x.content_id}.collect()
+        JobLogger.log("Filtering scores for blacklisted contents", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        val filtered_device_scores = device_scores.map { x =>
+            val filteredlist = x._2.filterNot(f => blacklistedContents.contains(f._1))
+            (x._1, filteredlist)
+        }
+        filtered_device_scores.map { x =>
             DeviceRecos(x._1, x._2)
         }
     }
