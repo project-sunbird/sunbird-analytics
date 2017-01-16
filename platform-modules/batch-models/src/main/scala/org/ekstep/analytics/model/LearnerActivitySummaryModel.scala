@@ -78,7 +78,7 @@ object LearnerActivitySummaryModel extends IBatchModelTemplate[DerivedEvent, Lea
             val meanActiveTimeOnPlatform = meanTimeSpent;
             val activeHours = summaryEvents.map { f =>
                 try {
-                    (CommonUtil.getHourOfDay(f.get("start_time").get.asInstanceOf[Long], f.get("end_time").get.asInstanceOf[Long]))
+                    (CommonUtil.getHourOfDay(f.get("start_time").get.asInstanceOf[Number].longValue(), f.get("end_time").get.asInstanceOf[Number].longValue()))
                 } catch {
                     case ex: ClassCastException =>
                         null;

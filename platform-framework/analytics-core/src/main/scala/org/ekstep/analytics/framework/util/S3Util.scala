@@ -71,7 +71,6 @@ object S3Util {
                 "createdDate" -> s3object.getLastModifiedDate);
         } catch {
             case ex: S3ServiceException =>
-                println("Key not found in the given bucket", bucketName, key);
                 JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
                 Map();
         }
@@ -93,7 +92,6 @@ object S3Util {
             scala.io.Source.fromInputStream(fileObj.getDataInputStream()).getLines().toArray
         } catch {
             case ex: S3ServiceException =>
-                println("Key not found in the given bucket", bucketName, key);
                 JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
                 Array();
         }
@@ -107,7 +105,6 @@ object S3Util {
             CommonUtil.copyFile(fileObj.getDataInputStream(), localPath, file);
         } catch {
             case ex: S3ServiceException =>
-                println("Key not found in the given bucket", bucketName, key);
                 JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR)
         }
     }

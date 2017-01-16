@@ -44,9 +44,9 @@ object UpdateLearnerActivityDB extends IBatchModelTemplate[DerivedEvent, Derived
             val n_of_sess_on_pf = eks.getOrElse("numOfSessionsOnPlatform", 0).asInstanceOf[Int];
             val m_ts_on_an_act = eks.getOrElse("meanTimeSpentOnAnAct", Map()).asInstanceOf[Map[String, Double]];
             val m_count_on_an_act = eks.getOrElse("meanCountOfAct", Map()).asInstanceOf[Map[String, Double]];
-            val l_visit_ts = new DateTime(eks.getOrElse("last_visit_ts", 0L).asInstanceOf[Long]);
-            val sess_start_time = new DateTime(eks.getOrElse("start_ts", 0L).asInstanceOf[Long]);
-            val sess_end_time = new DateTime(eks.getOrElse("end_ts", 0L).asInstanceOf[Long]);
+            val l_visit_ts = new DateTime(eks.getOrElse("last_visit_ts", 0L).asInstanceOf[Number].longValue());
+            val sess_start_time = new DateTime(eks.getOrElse("start_ts", 0L).asInstanceOf[Number].longValue());
+            val sess_end_time = new DateTime(eks.getOrElse("end_ts", 0L).asInstanceOf[Number].longValue());
             val most_active_hr_of_the_day = eks.getOrElse("mostActiveHrOfTheDay", 0).asInstanceOf[Int];
             val top_k_content = eks.getOrElse("topKcontent", List[String]()).asInstanceOf[List[String]];
             val dp_start_time = new DateTime(event.context.date_range.from);

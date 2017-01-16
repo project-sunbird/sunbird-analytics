@@ -469,4 +469,11 @@ object CommonUtil {
         val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
         tempList.filter { x => registeredTags.contains(x) }.toArray;
     }
+    
+    def ccToMap(cc: AnyRef) =
+  		(Map[String, AnyRef]() /: cc.getClass.getDeclaredFields) {
+	    (a, f) =>
+	      f.setAccessible(true)
+	      a + (f.getName -> f.get(cc))
+  	}
 }
