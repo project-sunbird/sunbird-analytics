@@ -13,6 +13,8 @@ import scala.util.control.Breaks
 import org.ekstep.analytics.api.exception.ClientException
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.ContentCacheUtil
+import akka.actor.Props
+import akka.actor.Actor
 
 /**
  * @author mahesh
@@ -20,6 +22,9 @@ import org.ekstep.analytics.api.util.ContentCacheUtil
 
 object RecommendationAPIService {
 
+	def props = Props[RecommendationAPIService];
+    case class RecommendRequest(requestBody: String, sc: SparkContext, config: Config);
+	
 	def recommendations(requestBody: String)(implicit sc: SparkContext, config: Config): String = {
 
 		ContentCacheUtil.validateCache()(sc, config);
@@ -106,4 +111,13 @@ object RecommendationAPIService {
 	}
 	
 	
+}
+
+class RecommendationAPIService extends Actor {
+    import RecommendationAPIService._;
+
+    def receive = {
+        case RecommendRequest(requestBody: String, sc: SparkContext, config: Config) => 
+        	sender() ! recommendations(requestBody)(sc, config);
+    }
 }
