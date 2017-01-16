@@ -443,6 +443,10 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             }.filter { x => indexArray.contains(x.index) }.map{x => JSONUtils.serialize(x)}
             scoreData.saveAsTextFile(scoreDataPath);
         }
+//        val blacklistedContents = sc.cassandraTable[ContentId](Constants.CONTENT_KEY_SPACE_NAME, "blacklisted_contents").collect()
+//        val x = device_scores.map { x =>
+//            val list = x._2.filterNot(f => blacklistedContents.contains(f._1))
+//        }
         device_scores.map { x =>
             DeviceRecos(x._1, x._2)
         }
