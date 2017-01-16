@@ -15,7 +15,7 @@ import org.ekstep.analytics.util.Constants
 
 class TestDeviceRecommendationScoringJob extends SparkSpec(null) {
 
-    it should "execute the job and shouldn't throw any exception" in {
+    ignore should "execute the job and shouldn't throw any exception" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE device_db.device_usage_summary;");

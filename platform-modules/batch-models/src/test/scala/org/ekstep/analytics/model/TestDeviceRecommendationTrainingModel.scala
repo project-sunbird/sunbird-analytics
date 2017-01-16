@@ -32,7 +32,7 @@ class TestDeviceRecommendationTrainingModel extends SparkSpec(null) {
         }
 
         val me = DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "dataLimit" -> Int.box(5), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model", "upload_model_s3" -> false.asInstanceOf[AnyRef], "saveFeatureFile" -> true.asInstanceOf[AnyRef])))
-        //CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
+        CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
 
 }
