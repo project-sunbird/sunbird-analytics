@@ -59,24 +59,7 @@ object RecommendationAPIService {
 		} else {
 			List();
 		}
-		
-		val contentFilters = getContentFilter(contentId);
-		val result = if (contentFilters.isEmpty) {
-			recoContent;
-		} else {
-			recoContent.map(p => {
-				val filterScoreList = for (filter <- contentFilters) yield {
-					val valid = recoFilter(p, filter);
-					if (valid) 1 else 0;
-				};
-				val filterscore = filterScoreList.toList.sum;
-				(filterscore, p.get("reco_score").get.asInstanceOf[Double], p)
-			})
-			.sortBy(- _._1)
-			.sortBy(- _._2)
-			.map(x => x._3);
-		}
-		
+		val result = recoContent;
 		// if recommendataion is disabled then, always take limit from config otherwise user input.
 		 val limit =if (config.getBoolean("recommendation.enable")) reqBody.request.limit.getOrElse(config.getInt("service.search.limit")); 
 		 			else config.getInt("service.search.limit");
