@@ -35,8 +35,9 @@ object RecommendationAPIService {
 		val contentId = context.getOrElse("contentId", "").asInstanceOf[String];
 		val reqFilters = reqBody.request.filters.getOrElse(Map());
 
+		val language = if(StringUtils.isEmpty(dlang)) List() else List(dlang);
 		val filters: Array[(String, List[String], String)] = 
-			Array(("language", getValueAsList(reqFilters, "language"), "LIST"),
+			Array(("language", language, "LIST"),
 			("domain", getValueAsList(reqFilters, "subject"), "LIST"),
 			("contentType", getValueAsList(reqFilters, "contentType"), "STRING"),
 			("gradeLevel", getValueAsList(reqFilters, "gradeLevel"), "LIST"),
