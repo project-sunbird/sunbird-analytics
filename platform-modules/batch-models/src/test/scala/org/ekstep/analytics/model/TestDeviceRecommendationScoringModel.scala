@@ -14,28 +14,29 @@ import org.ekstep.analytics.updater.DeviceSpec
 
 class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     
-    "DeviceRecommendationScoringModel" should "load model with zero pairwise interactions and generate scores" in {
+//    "DeviceRecommendationScoringModel" should "load model with zero pairwise interactions and generate scores" in {
+  ignore should "load model with zero pairwise interactions and generate scores" in {
 
         val mockREScoring = new REScoringMock()
         mockREScoring.execute(null, Option(Map("model_name" -> "fm.model1", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "live_content_limit" -> Int.box(1000), "key" -> "model/test/")))
         CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
 
-    it should "load model with pairwise interactions and generate scores" in {
+    ignore should "load model with pairwise interactions and generate scores" in {
 
         val mockREScoring = new REScoringMock()
         mockREScoring.execute(null, Option(Map("model_name" -> "fm.model2", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "live_content_limit" -> Int.box(1000), "key" -> "model/test/")))
         CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
 
-    it should "load model with zero W0 and generate scores" in {
+    ignore should "load model with zero W0 and generate scores" in {
 
         val mockREScoring = new REScoringMock()
         mockREScoring.execute(null, Option(Map("model_name" -> "fm.model3", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "live_content_limit" -> Int.box(1000), "key" -> "model/test/")))
         CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
 
-    it should "load model with zero unary interactions and generate scores" in {
+    ignore should "load model with zero unary interactions and generate scores" in {
 
         val mockREScoring = new REScoringMock()
         mockREScoring.execute(null, Option(Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "live_content_limit" -> Int.box(1000), "key" -> "model/test/")))
