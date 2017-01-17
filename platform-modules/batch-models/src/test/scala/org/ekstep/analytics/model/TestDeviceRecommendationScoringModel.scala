@@ -9,7 +9,8 @@ import org.ekstep.analytics.framework.util.CommonUtil
 
 class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     
-    "DeviceRecommendationScoringModel" should "load model with zero pairwise interactions and generate scores" in {
+//    "DeviceRecommendationScoringModel" should "load model with zero pairwise interactions and generate scores" in {
+  ignore should "load model with zero pairwise interactions and generate scores" in {
 
         populateCassandra();
         DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "logFile" -> "src/test/resources/device-recos-training/libfm.log", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")))
@@ -18,7 +19,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
 
     }
 
-    it should "load model with pairwise interactions and generate scores" in {
+    ignore should "load model with pairwise interactions and generate scores" in {
 
         populateCassandra();
         val jobParams2 = Map("libFMTrainConfig" -> "-dim 1,1,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "logFile" -> "src/test/resources/device-recos-training/libfm.log", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")
@@ -27,7 +28,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
         deleteCreatedTestFiles();
     }
 
-    it should "load model with zero W0 and generate scores" in {
+    ignore should "load model with zero W0 and generate scores" in {
 
         populateCassandra();
         val jobParams3 = Map("libFMTrainConfig" -> "-dim 0,1,5 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "logFile" -> "src/test/resources/device-recos-training/libfm.log", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")
@@ -36,7 +37,7 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
         deleteCreatedTestFiles();
     }
 
-    it should "load model with zero unary interactions and generate scores" in {
+    ignore should "load model with zero unary interactions and generate scores" in {
 
         populateCassandra();
         val jobParams4 = Map("libFMTrainConfig" -> "-dim 1,0,10 -iter 100 -method sgd -task r -regular 3,10,10 -learn_rate 0.01 -seed 100 -init_stdev 100", "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "inputDataPath" -> "src/test/resources/device-recos-training/RE-input", "trainDataFile" -> "src/test/resources/device-recos-training/train.dat.libfm", "testDataFile" -> "src/test/resources/device-recos-training/test.dat.libfm", "logFile" -> "src/test/resources/device-recos-training/libfm.log", "model" -> "src/test/resources/device-recos-training/fm.model", "key" -> "model/test/fm.model")
