@@ -74,6 +74,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
+        val filterByNumContents = config.getOrElse("filterByNumContents", false).asInstanceOf[Boolean];
 
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
@@ -98,16 +99,25 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         // device-specifications
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
-        // device_spec transformations
-        val device_specT = DeviceSpecTransformer.getTransformationByBinning(device_spec.map { x => x._2 }, num_bins).map { x => (DeviceId(x._1), x._2) }
-
+        
         // Device Usage Summaries
-        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 } //.filter { x => x.num_contents.getOrElse(0L)>5 } //.map { x => (x._1, x._2) }
-        //        val filtered_devices = device_usage.map{x => x.device_id}.collect()
-        //        val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
-        //        JobLogger.log("Device Usage with num_contents > 5 counts", Option(Map("count" -> device_usage.count())), INFO, "org.ekstep.analytics.model");
+        val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 }
+
+        // Filter by num_contents>5 logic in dus
+        val final_dus_dsp = if (filterByNumContents) {
+            val filtered_device_usage = device_usage.filter { x => x.num_contents.getOrElse(0L) > 5 }
+            val filtered_devices = filtered_device_usage.map { x => x.device_id }.collect()
+            val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
+            JobLogger.log("Device Usage with num_contents > 5 count", Option(Map("count" -> filtered_device_usage.count())), INFO, "org.ekstep.analytics.model");
+            (filtered_device_usage, f_device_spec)
+        }
+        else (device_usage, device_spec)
+        JobLogger.log("Check for dus & dsp count in unfilter and filter for num_contents>5", Option(Map("unfiltered_dus" -> device_usage.count(), "unfiltered_dsp" -> device_spec.count(), "filtered_dus" -> final_dus_dsp._1.count(), "filtered_dsp" -> final_dus_dsp._2.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        // device_spec transformations
+        val device_specT = DeviceSpecTransformer.getTransformationByBinning(final_dus_dsp._2.map { x => x._2 }, num_bins).map { x => (DeviceId(x._1), x._2) }
+
         // dus transformations
-        val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage, num_bins)
+        val dusT = DeviceUsageTransformer.getTransformationByBinning(final_dus_dsp._1, num_bins)
         val dusB = dusT.map { x => (x._1, x._2) }.collect().toMap;
         val dusBB = sc.broadcast(dusB);
         val dusO = device_usage.map { x => (DeviceId(x.device_id), x) }
@@ -127,7 +137,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
         val inputDataPath = localPath + path + "RE-input"
-        val deviceContext = createDeviceContextWithoutTransformation(device_spec, device_usage.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
+        val deviceContext = createDeviceContextWithoutTransformation(final_dus_dsp._2, final_dus_dsp._1.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
         val deviceContextWithIndex = deviceContext.zipWithIndex().map { case (k, v) => (v, k) }
         val deviceContextF = deviceContextWithIndex.filter { x => x._2.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
         JobLogger.log("Saving index of DeviceContext with non zero ts", Option(Map("totalcount" -> deviceContextWithIndex.count(), "nonZeroCount" -> deviceContextF.count())), INFO, "org.ekstep.analytics.model");
@@ -452,8 +462,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 val filteredlist = x._2.filterNot(f => blacklistedContents.contains(f._1))
                 (x._1, filteredlist)
             }
-        }
-        else device_scores
+        } else device_scores
         JobLogger.log("Check for score count in unfilter and filter for blacklisted contents", Option(Map("unfiltered_scores" -> device_scores.first()._2.size, "filtered_scores_blacklisted" -> final_scores.first()._2.size, "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         final_scores.map { x =>
             DeviceRecos(x._1, x._2)

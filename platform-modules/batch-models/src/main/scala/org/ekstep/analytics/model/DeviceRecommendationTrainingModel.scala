@@ -85,6 +85,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
 
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
+        val filterByNumContents = config.getOrElse("filterByNumContents", false).asInstanceOf[Boolean];
 
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
@@ -109,16 +110,25 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         // device-specifications
         val device_spec = sc.cassandraTable[DeviceSpec](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE).map { x => (DeviceId(x.device_id), x) }
         val allDevices = device_spec.map(x => x._1).distinct; // TODO: Do we need distinct here???
-        // device_spec transformations
-        val device_specT = DeviceSpecTransformer.getTransformationByBinning(device_spec.map{x => x._2}, num_bins).map { x => (DeviceId(x._1), x._2) }
         
         // Device Usage Summaries
         val device_usage = allDevices.joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map { x => x._2 }//.filter { x => x.num_contents.getOrElse(0L)>5 } //.map { x => (x._1, x._2) }
-//        val filtered_devices = device_usage.map{x => x.device_id}.collect()
-//        val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
-//        JobLogger.log("Device Usage with num_contents > 5 counts", Option(Map("count" -> device_usage.count())), INFO, "org.ekstep.analytics.model");
+
+        // Filter by num_contents>5 logic in dus
+        val final_dus_dsp = if (filterByNumContents) {
+            val filtered_device_usage = device_usage.filter { x => x.num_contents.getOrElse(0L) > 5 }
+            val filtered_devices = filtered_device_usage.map { x => x.device_id }.collect()
+            val f_device_spec = device_spec.filter(f => filtered_devices.contains(f._1.device_id))
+            JobLogger.log("Device Usage with num_contents > 5 count", Option(Map("count" -> filtered_device_usage.count())), INFO, "org.ekstep.analytics.model");
+            (filtered_device_usage, f_device_spec)
+        }
+        else (device_usage, device_spec)
+        JobLogger.log("Check for dus & dsp count in unfilter and filter for num_contents>5", Option(Map("unfiltered_dus" -> device_usage.count(), "unfiltered_dsp" -> device_spec.count(), "filtered_dus" -> final_dus_dsp._1.count(), "filtered_dsp" -> final_dus_dsp._2.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        // device_spec transformations
+        val device_specT = DeviceSpecTransformer.getTransformationByBinning(final_dus_dsp._2.map { x => x._2 }, num_bins).map { x => (DeviceId(x._1), x._2) }
+        
         // dus transformations
-        val dusT = DeviceUsageTransformer.getTransformationByBinning(device_usage, num_bins)
+        val dusT = DeviceUsageTransformer.getTransformationByBinning(final_dus_dsp._1, num_bins)
         val dusB = dusT.map { x => (x._1, x._2) }.collect().toMap;
         val dusBB = sc.broadcast(dusB);
         val dusO = device_usage.map { x => (DeviceId(x.device_id), x) }
@@ -419,7 +429,6 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         }
 
         JobLogger.log("Running the training algorithm", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        //ScriptDispatcher.dispatch(Array(), Map("script" -> s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -save_model $model_path", "PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin")));
         val script = if(null != testDataSet) s"$libfmExec -train $trainDataFile -test $testDataFile $libFMTrainConfig -rlog $logFile -out $libfmOut -save_model $model_path" else s"$libfmExec -train $trainDataFile -test $trainDataFile $libFMTrainConfig -rlog $logFile -out $libfmOut -save_model $model_path"
         ScriptDispatcher.dispatch(script)
         
