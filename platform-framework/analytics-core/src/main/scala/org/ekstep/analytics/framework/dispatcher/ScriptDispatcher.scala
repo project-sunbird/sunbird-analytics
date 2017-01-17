@@ -6,6 +6,7 @@ import java.io.PrintWriter
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import sys.process._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 
@@ -16,6 +17,7 @@ object ScriptDispatcher extends IDispatcher {
 
     val className = "org.ekstep.analytics.framework.dispatcher.ScriptDispatcher"
 
+    @deprecated
     @throws(classOf[DispatcherException])
     def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
         val script = config.getOrElse("script", null).asInstanceOf[String];
@@ -48,6 +50,13 @@ object ScriptDispatcher extends IDispatcher {
     
     def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
         dispatch(events.collect(), config);
+    }
+
+    def dispatch(script: String): Int = {
+        if (null == script) {
+            throw new DispatcherException("script should not be empty")
+        }
+        script.!
     }
 
 }

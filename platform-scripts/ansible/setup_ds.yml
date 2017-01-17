@@ -1,4 +1,4 @@
 ---
-- hosts: spark
+- hosts: analytics
   roles: 
         - neo4j-python
