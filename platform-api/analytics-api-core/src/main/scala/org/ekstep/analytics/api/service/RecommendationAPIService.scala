@@ -29,11 +29,27 @@ object RecommendationAPIService {
 
 		ContentCacheUtil.validateCache()(sc, config);
 		val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
-		val context = reqBody.request.context.getOrElse(Map());
+		val contentId = reqBody.request.context.getOrElse(Map()).getOrElse("contentId", "").asInstanceOf[String];
+		// If contentID available in request return content recommendations otherwise, device recommendations. 
+		val result = if (StringUtils.isEmpty(contentId)) {
+			deviceRecommendations(reqBody);
+		} else {
+			contentRecommendations(reqBody);
+		}
+		// if recommendations is disabled then, always take limit from config otherwise user input.
+		 val limit =if (config.getBoolean("recommendation.enable")) reqBody.request.limit.getOrElse(config.getInt("service.search.limit")); 
+		 			else config.getInt("service.search.limit");
+		val respContent =result.take(limit)
+		
+		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(result.size))));
+	}
+
+	private def deviceRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): List[Map[String, Any]] = {
+		val context = requestBody.request.context.getOrElse(Map());
+		val contentId = context.getOrElse("contentId", "").asInstanceOf[String];
 		val did = context.getOrElse("did", "").asInstanceOf[String];
 		val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
-		val contentId = context.getOrElse("contentId", "").asInstanceOf[String];
-		val reqFilters = reqBody.request.filters.getOrElse(Map());
+		val reqFilters = requestBody.request.filters.getOrElse(Map());
 
 		val language = if(StringUtils.isEmpty(dlang)) List() else List(dlang);
 		val filters: Array[(String, List[String], String)] = 
@@ -49,8 +65,8 @@ object RecommendationAPIService {
 		}
 
 		val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
-		val recoContent = if (deviceRecos.count() > 0) {
-			deviceRecos.first.map(f => ContentCacheUtil.get.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
+		if (deviceRecos.count() > 0) {
+			deviceRecos.first.map(f => ContentCacheUtil.getREList.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
 				.filter(p => p.get("identifier").isDefined)
 				.filter(p => {
 					var valid = true;
@@ -65,15 +81,13 @@ object RecommendationAPIService {
 		} else {
 			List();
 		}
-		val result = recoContent;
-		// if recommendataion is disabled then, always take limit from config otherwise user input.
-		 val limit =if (config.getBoolean("recommendation.enable")) reqBody.request.limit.getOrElse(config.getInt("service.search.limit")); 
-		 			else config.getInt("service.search.limit");
-		val respContent =result.take(limit)
-		
-		JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(result.size))));
 	}
-
+	
+	private def contentRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): List[Map[String, Any]] = {
+		//TODO: implementation of content recommendations come here.
+		List();
+	}
+	
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {
 		if ("LIST".equals(filter._3)) {
 			val valueList = map.getOrElse(filter._1, List()).asInstanceOf[List[String]];
@@ -98,7 +112,7 @@ object RecommendationAPIService {
 	}
 	
 	private def getContentFilter(id: String): Array[(String, List[String], String)] = {
-		val content: Map[String, AnyRef] = ContentCacheUtil.get.getOrElse(id, Map());
+		val content: Map[String, AnyRef] = ContentCacheUtil.getREList.getOrElse(id, Map());
 		if (content.isEmpty) {
 			Array();
 		} else {

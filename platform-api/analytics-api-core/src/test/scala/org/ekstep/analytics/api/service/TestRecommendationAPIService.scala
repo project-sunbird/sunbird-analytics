@@ -97,7 +97,7 @@ class TestRecommendationAPIService extends SparkSpec {
     }
     
     it should "return content based context filtered content" in {
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"Hindi", "contentId" : "domain_63844"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"Hindi"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");

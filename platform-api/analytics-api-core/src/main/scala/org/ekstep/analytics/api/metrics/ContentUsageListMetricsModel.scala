@@ -28,7 +28,7 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 		}.map { x => 
 			val label = Option(CommonUtil.getPeriodLabel(periodEnum, x.d_period.get));
 			val contents = for(id <- x.m_contents.getOrElse(List())) yield {
-				ContentCacheUtil.get.getOrElse(id.toString, Map())
+				ContentCacheUtil.getContentList.getOrElse(id.toString, Map())
 			}
 			ContentUsageListMetrics(x.d_period, label, x.m_contents, Option(contents.filter(f => !f.isEmpty)));
 		};
