@@ -142,7 +142,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val deviceContextF = deviceContextWithIndex.filter { x => x._2.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
         JobLogger.log("Saving index of DeviceContext with non zero ts", Option(Map("totalcount" -> deviceContextWithIndex.count(), "nonZeroCount" -> deviceContextF.count())), INFO, "org.ekstep.analytics.model");
         deviceContextF.foreach { x => indexArray += x._1 }
-        JobLogger.log("saving input data in json format", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        JobLogger.log("saving input data in json format", Option(Map("indexArray count" -> indexArray.size , "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val file = new File(inputDataPath)
         if (file.exists())
             CommonUtil.deleteDirectory(inputDataPath)
@@ -342,7 +342,6 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     }
 
     def scoringAlgo(data: RDD[org.apache.spark.ml.linalg.DenseVector], localPath: String, model: String)(implicit sc: SparkContext): RDD[Double] = {
-        JobLogger.log(localPath + model, None, INFO, "org.ekstep.analytics.model")
         val modelData = sc.textFile(localPath + model).filter(!_.isEmpty()).collect()
 
         JobLogger.log("Fetching w0, wj, vj from model file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
@@ -435,7 +434,6 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
         if (upload_score_s3) {
             JobLogger.log("Dispatching scores to a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-            //OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputFile)), scores);
             scores.coalesce(1, true).saveAsTextFile(outputFile);
             JobLogger.log("Saving the score file to S3", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             S3Dispatcher.dispatch(null, Map("filePath" -> outputFile, "bucket" -> bucket, "key" -> (key + "score.txt")))
@@ -444,13 +442,14 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
         val scoresIndexed = scores.zipWithIndex().map { case (k, v) => (v, k) }
-        val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => x._2 }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
+        val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => (x._2._1._1, x._2._1._2, x._2._2) }.distinct.groupBy(x => x._1).mapValues(f => f.map(x => (x._2, x._3)).toList.sortBy(y => y._2).reverse)
         JobLogger.log("Number of devices for which scoring is done", Option(Map("Scored_devices" -> device_scores.count(), "devices_in_spec" -> data.map { x => x.device_spec.device_id }.distinct().count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
         if (saveScoresTo.equals("both") || saveScoresTo.equals("file")) {
             val scoreData = device_content.leftOuterJoin(scoresIndexed).map { f =>
                 IndexedScore(f._1, f._2._2.get)
             }.filter { x => indexArray.contains(x.index) }.map { x => JSONUtils.serialize(x) }
+            JobLogger.log("Number of device-content for which saving scores to a file", Option(Map("saving_Scores_index count" -> scoreData.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             scoreData.saveAsTextFile(scoreDataPath);
         }
 
@@ -463,7 +462,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 (x._1, filteredlist)
             }
         } else device_scores
-        JobLogger.log("Check for score count in unfilter and filter for blacklisted contents", Option(Map("unfiltered_scores" -> device_scores.first()._2.size, "filtered_scores_blacklisted" -> final_scores.first()._2.size, "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        JobLogger.log("Check for score count in unfilter and filter for blacklisted contents for first content", Option(Map("unfiltered_scores" -> device_scores.first()._2.size, "filtered_scores_blacklisted" -> final_scores.first()._2.size, "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         final_scores.map { x =>
             DeviceRecos(x._1, x._2)
         }
