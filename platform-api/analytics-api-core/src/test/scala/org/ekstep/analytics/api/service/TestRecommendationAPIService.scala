@@ -49,9 +49,11 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return error response on invalid request" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """;
-    	the[Exception] thrownBy {
-            RecommendationAPIService.recommendations(request)(sc, config);
-        } should have message "context required data is missing."
+    	val response = RecommendationAPIService.recommendations(request)(sc, config);
+    	val resp = JSONUtils.deserialize[Response](response);
+        resp.id should be ("ekstep.analytics.recommendations");
+        resp.params.status should be ("failed");
+        resp.params.errmsg should be ("context required data is missing.");
     }
     
     it should "retun only 3 contents" in {
