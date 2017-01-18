@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_specification (
 	cpu text,
 	num_sims double,
 	capabilities list<text>,
-	PRIMARY KEY (device_id,os,screen_size)
+	PRIMARY KEY (device_id)
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (

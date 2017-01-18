@@ -46,23 +46,23 @@ object RecommendationAPIService {
 
 	private def deviceRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): List[Map[String, Any]] = {
 		val context = requestBody.request.context.getOrElse(Map());
-		val contentId = context.getOrElse("contentId", "").asInstanceOf[String];
 		val did = context.getOrElse("did", "").asInstanceOf[String];
 		val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
+		if (context.isEmpty || StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
+			throw new ClientException("context required data is missing.");
+		}
+		val langName = ContentCacheUtil.getLanguageByCode(dlang);
+		if(StringUtils.isEmpty(langName)) {
+			throw new ClientException("dlang should be language code"); 
+		}
 		val reqFilters = requestBody.request.filters.getOrElse(Map());
-
-		val language = if(StringUtils.isEmpty(dlang)) List() else List(dlang);
 		val filters: Array[(String, List[String], String)] = 
-			Array(("language", language, "LIST"),
+			Array(("language", List(langName), "LIST"),
 			("domain", getValueAsList(reqFilters, "subject"), "LIST"),
 			("contentType", getValueAsList(reqFilters, "contentType"), "STRING"),
 			("gradeLevel", getValueAsList(reqFilters, "gradeLevel"), "LIST"),
 			("ageGroup", getValueAsList(reqFilters, "ageGroup"), "LIST"))
 			.filter(p => !p._2.isEmpty);
-
-		if (context.isEmpty || StringUtils.isBlank(did) || StringUtils.isBlank(dlang)) {
-			throw new ClientException("context required data is missing.");
-		}
 
 		val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
 		if (deviceRecos.count() > 0) {

@@ -35,7 +35,7 @@ class ApplicationSpec extends BaseSpec {
        }
        
        "return the recommendations - successful response" in new WithApplication {
-			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}, "filters": {"contentType": "Story"}}} """
+			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}, "filters": {"contentType": "Story"}}} """
 			post("/content/recommend", request)
 			val response = post("/content/recommend", request);
 			isOK(response);
@@ -83,7 +83,7 @@ class ApplicationSpec extends BaseSpec {
        }
        
        "recommendations - should return empty response when recommendations disabled" in new WithApplication {
-			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}, "filters": {"contentType": "Story"}}} """
+			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}, "filters": {"contentType": "Story"}}} """
 			post("/content/recommend", request)
 			val response = post("/content/recommend", request);
 			isOK(response);

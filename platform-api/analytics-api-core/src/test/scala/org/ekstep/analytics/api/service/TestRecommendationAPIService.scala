@@ -37,7 +37,7 @@ class TestRecommendationAPIService extends SparkSpec {
     }
     
     "RecommendationAPIService" should "return contents" in {
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}}} """;
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
@@ -55,7 +55,7 @@ class TestRecommendationAPIService extends SparkSpec {
     }
     
     it should "retun only 3 contents" in {
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"},"limit":3}} """;
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"},"limit":3}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
@@ -71,7 +71,7 @@ class TestRecommendationAPIService extends SparkSpec {
     }
     
     it should "return only 'Hindi' contents" in {
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"Hindi"},"filters":{"language":"Hindi"},"limit":100}} """;
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"hi"},"filters":{"language":"Hindi"},"limit":100}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
@@ -83,7 +83,7 @@ class TestRecommendationAPIService extends SparkSpec {
     }
     
     it should "return only 'Hindi Stories' content" in {
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"Hindi"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"hi"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
@@ -97,7 +97,7 @@ class TestRecommendationAPIService extends SparkSpec {
     }
     
     it should "return content based context filtered content" in {
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"Hindi"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"hi"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
@@ -113,7 +113,7 @@ class TestRecommendationAPIService extends SparkSpec {
     it should "update the cache" in {
 //    	val beforeTime = RecommendationAPIService.cacheTimestamp;
     	DateTimeUtils.setCurrentMillisFixed(DateTime.now(DateTimeZone.UTC).getMillis + TimeUnit.DAYS.toMillis(1)); // Fix the date-time to be returned by DateTime.now()
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"English"}}} """;
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
