@@ -31,7 +31,10 @@ class TestUpdateContentPopularityDB extends SparkSpec(null) {
   it should "update the content popularity updater db and check the updated fields" in {
     
     val rdd = loadFile[DerivedEvent]("src/test/resources/content-popularity-updater/cps.log");
-        val rdd2 = UpdateContentPopularityDB.execute(rdd, None);
+    val rdd1 = loadFile[DerivedEvent]("src/test/resources/content-popularity-updater/2017-01-10-1484116391128.json.gz");
+        
+    val rdd2 = UpdateContentPopularityDB.execute(rdd, None);
+    UpdateContentPopularityDB.execute(rdd1, None);
 	  
         // cumulative (period = 0)  
 //        val zeroPerContnetSumm = sc.cassandraTable[ContentPopularitySummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).where("d_content_id=?", "do_30080822").where("d_period=?", 0).where("d_tag=?", "all").first

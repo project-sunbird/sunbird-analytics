@@ -19,12 +19,10 @@ class TestJobAPIService extends SparkSpec {
     "JobAPIService" should "return response for data request" in {
         val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"filter":{"start_date":"2016-11-01","end_date":"2016-11-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
         val result = JobAPIService.dataRequest(request);
-        println("result:", result);
     }
 
     it should "return response for get data request" in {
         val result = JobAPIService.getDataRequest("dev-portal", "14621312DB7F8ED99BA1B16D8B430FAC");
-        println("result:", result);
     }
 
     it should "return the list of jobs in descending order" in {
@@ -47,9 +45,24 @@ class TestJobAPIService extends SparkSpec {
         val res = JSONUtils.deserialize[Response](jobs)
         val resultMap = res.result.get.asInstanceOf[Map[String, AnyRef]]
         val jobRes = resultMap.get("jobs").get.asInstanceOf[List[Map[String, AnyRef]]]
+        jobRes.length should be (2)
         
 //        jobRes.head.get("status").get.asInstanceOf[String] should be ("SUBMITTED")
 //        jobRes.last.get("status").get.asInstanceOf[String] should be ("COMPLETED")
+        
+        // fetch data with limit less than the number of record available  
+        val jobs2 = JobAPIService.getDataRequestList("partner1", 1)
+        val res2 = JSONUtils.deserialize[Response](jobs2)
+        val resultMap2 = res2.result.get.asInstanceOf[Map[String, AnyRef]]
+        val jobRes2 = resultMap2.get("jobs").get.asInstanceOf[List[Map[String, AnyRef]]]
+        jobRes2.length should be (1)
+        
+        // trying to fetch the record with a key for which data is not available
+        val jobs1 = JobAPIService.getDataRequestList("testKey", 10)
+        val res1 = JSONUtils.deserialize[Response](jobs1)
+        val resultMap1 = res1.result.get.asInstanceOf[Map[String, AnyRef]]
+        resultMap1.get("count").get.asInstanceOf[Int] should be (0)
+        
         
     }
 

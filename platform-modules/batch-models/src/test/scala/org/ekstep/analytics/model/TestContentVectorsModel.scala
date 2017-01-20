@@ -24,8 +24,8 @@ class TestContentVectorsModel extends SparkSpec(null) {
             "content2vec.corpus_path" -> "/tmp/content2vec/content_corpus",
             //"python.home" -> "/usr/local/bin/",
             "content2vec.download_path" -> "/tmp/content2vec/download",
-            "content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani",
-            "content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1)))
+            "content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani")
+            //"content2vec.search_request" -> Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "limit" -> 1)))
 
         val runTime = Runtime.getRuntime
         val scriptPath = jobParams.get("content2vec_scripts_path").get.asInstanceOf[String]

@@ -30,7 +30,7 @@ trait DeviceRecommendationTransformer[T, R] {
         result.map { x => (x.getString(0), x.getDouble(1)) };
     }
 
-    def getTransformationByBinning(rdd: RDD[T])(implicit sc: SparkContext): RDD[(String, R)]    
+    def getTransformationByBinning(rdd: RDD[T],  num_bins: Int)(implicit sc: SparkContext): RDD[(String, R)]    
 
     private def flattenColumn(df: DataFrame, colToSplit: String, cols: Array[String])(implicit sc: SparkContext): DataFrame = {
 

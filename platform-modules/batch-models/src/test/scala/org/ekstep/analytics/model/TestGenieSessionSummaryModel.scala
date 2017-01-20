@@ -37,7 +37,7 @@ class TestGenieSessionSummaryModel extends SparkSpec(null) {
         val eksMap2 = event2.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
         eksMap2.get("timeSpent").get.asInstanceOf[Double] should be(1)
-        eksMap2.get("time_stamp").get.asInstanceOf[Long] should be(1457787921000l)
+        eksMap2.get("time_stamp").get.asInstanceOf[Number].longValue() should be(1457787921000l)
         eksMap2.get("contentCount").get.asInstanceOf[Int] should be(0)
 
         CassandraConnector(sc.getConf).withSessionDo { session =>

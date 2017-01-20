@@ -182,6 +182,22 @@ CREATE TABLE IF NOT EXISTS content_db.registered_tags(
 	PRIMARY KEY (tag_id)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.blacklisted_contents(
+        content_id text,
+        PRIMARY KEY (content_id)
+);
+
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('org.ekstep.num.scrn.basic');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('do_30088866');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('numeracy_369');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('org.ekstep.aser');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('do_30088250');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('do_30014045');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('org.ekstep.delta');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('org.ekstep.esl1');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('do_30074519');
+INSERT INTO content_db.blacklisted_contents(content_id) VALUES ('domain_6444');
+
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
@@ -207,7 +223,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_specification (
 	cpu text,
 	num_sims double,
 	capabilities list<text>,
-	PRIMARY KEY (device_id,os,screen_size)
+	PRIMARY KEY (device_id)
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (

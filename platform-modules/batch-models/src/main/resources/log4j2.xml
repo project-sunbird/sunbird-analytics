@@ -2,6 +2,7 @@
 <Configuration status="WARN">
 	<Properties>
 		<Property name="baseDir">logs</Property>
+		<Property name="REDir">logs</Property>
 		<!-- <Property name="baseDir">/mnt/data/analytics/logs</Property> --> <!-- Production Config -->
 	</Properties>
 	<Appenders>
@@ -16,6 +17,14 @@
 				<TimeBasedTriggeringPolicy />
 			</Policies>
 		</RollingFile>
+		<RollingFile name="RE-RollingFileAppender" fileName="${sys:REDir}/joblog.log" filePattern="${REDir}/joblog-%d{MM-dd-yyyy}-%i.log">
+			<PatternLayout>
+				<Pattern>%m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+			</Policies>
+		</RollingFile>
 		<Async name="Async">
 			<AppenderRef ref="RollingFileAppender" />
 		</Async>
@@ -23,6 +32,9 @@
 	<Loggers>
 		<Logger name="org.ekstep.analytics" level="info" additivity="false">
 			<AppenderRef ref="Async"/>
+		</Logger>
+		<Logger name="org.ekstep.analytics.model" level="debug" additivity="false">
+			<AppenderRef ref="RE-RollingFileAppender"/>
 		</Logger>
 		<Root level="error">
 			<AppenderRef ref="Console" />
