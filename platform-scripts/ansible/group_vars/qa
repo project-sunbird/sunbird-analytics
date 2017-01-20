@@ -101,6 +101,14 @@ jobs:
     hour: 2
     minute: 26
     state: present
+  ctv:
+    hour: 2
+    minute: 35
+    state: present
+  device-recos-scoring:
+    hour: 2
+    minute: 50
+    state: present
 
 pre_jobs:
   pre_job:
@@ -112,6 +120,9 @@ monit_jobs:
   joblog.log:
     hour: 2
     minute: 27
+  RE-Jobs:
+    hour: 4
+    minute: 20
 
 cassandra:
   seeds: 172.31.18.88
