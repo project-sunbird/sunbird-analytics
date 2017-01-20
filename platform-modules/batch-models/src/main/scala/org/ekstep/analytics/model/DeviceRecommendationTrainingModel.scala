@@ -3,8 +3,7 @@ package org.ekstep.analytics.model
 import org.apache.spark.ml.feature.{ OneHotEncoder, StringIndexer, RFormula }
 import org.apache.spark.ml.feature.QuantileDiscretizer
 import org.apache.spark.ml.feature.{ CountVectorizerModel, CountVectorizer, RegexTokenizer }
-import org.apache.spark.mllib.linalg.Vector
-//import org.apache.spark.mllib.regression.LabeledPoint
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import com.datastax.spark.connector.cql.CassandraConnector
@@ -26,7 +25,7 @@ import scala.collection.mutable.ListBuffer
 import org.apache.spark.sql.types._
 import org.apache.spark.mllib.util.MLUtils
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.apache.spark.mllib.linalg.Vectors
+import org.apache.spark.ml.linalg.Vectors
 import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
 import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
 import org.apache.commons.lang3.StringUtils
@@ -48,6 +47,8 @@ import sys.process._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.adapter.ContentResponse
+import org.apache.spark.ml.linalg.SparseVector
+import breeze.linalg.{ DenseVector => BDV }
 
 case class DeviceMetrics(did: DeviceId, content_list: Map[String, ContentModel], device_usage: DeviceUsageSummary, device_spec: DeviceSpec, device_content: Map[String, DeviceContentSummary], dcT: Map[String, dcus_tf]);
 case class DeviceContext(did: String, contentInFocus: String, contentInFocusModel: ContentModel, contentInFocusVec: ContentToVector, contentInFocusUsageSummary: DeviceContentSummary, contentInFocusSummary: cus_t, otherContentId: String, otherContentModel: ContentModel, otherContentModelVec: ContentToVector, otherContentUsageSummary: DeviceContentSummary, otherContentSummary: ContentUsageSummaryFact, device_usage: DeviceUsageSummary, device_spec: DeviceSpec, otherContentSummaryT: cus_t, dusT: dus_tf, dcusT: dcus_tf, lastPlayedContentVec: ContentToVector) extends AlgoInput with AlgoOutput with Output;
@@ -74,7 +75,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
-    val time = dateTime.toLocalTime().toString("hh-mm")
+    val time = dateTime.toLocalTime().toString("HH-mm")
     val path = "/training/" + date + "/" + time + "/"
 
     def choose[A](it: Buffer[A], r: Random): A = {
@@ -174,7 +175,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     private def _createDF(data: RDD[DeviceContext], tag_dimensions: Int, text_dimensions: Int): RDD[Row] = {
         data.map { x =>
             val seq = ListBuffer[Any]();
-            //seq += x.did; // did
+            seq += x.did; // did
             // Add c1 text vectors
             seq ++= (if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined) {
                 x.contentInFocusVec.text_vec.get.toSeq
@@ -271,7 +272,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
     private def _getStructType(tag_dimensions: Int, text_dimensions: Int): StructType = {
         val seq = ListBuffer[StructField]();
-        //seq += new StructField("did", StringType, false); // did
+        seq += new StructField("did", StringType, false); // did
         // Add c1 text vectors
         seq ++= _getStructField("c1_text", text_dimensions);
         // Add c1 tag vectors
@@ -362,6 +363,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val saveFeatureFile = config.getOrElse("saveFeatureFile", false).asInstanceOf[Boolean];
+        val performAggreagation = config.getOrElse("performAggreagation", false).asInstanceOf[Boolean];
 
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
@@ -383,15 +385,15 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         }
         
         val formula = new RFormula()
-            .setFormula("c1_total_ts ~ .")
+            .setFormula("c1_total_ts ~ . - did")
             .setFeaturesCol("features")
             .setLabelCol("label")
         JobLogger.log("applied the formula", None, INFO, "org.ekstep.analytics.model");
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
 
-        val labeledRDD = output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
-        JobLogger.log("created labeledRDD", None, INFO, "org.ekstep.analytics.model");
+        val labeledRDD = if (performAggreagation) aggregateTrainingData(output) else output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd.filter { x => x.label > 0.0 };
+        JobLogger.log("created labeledRDD", Option(Map("LabeledRDD size(filtered)" -> labeledRDD.count())), INFO, "org.ekstep.analytics.model");
 
         val dataStr = labeledRDD.map {
             case LabeledPoint(label, features) =>
@@ -409,10 +411,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         }
 
         JobLogger.log("Creating training dataset", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val usedDataSet = dataStr.filter { x => !StringUtils.startsWith(x, "0.0") }
-
-        JobLogger.log("sampling used datasets", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val sampledUsedDataSet = if (dataLimit == -1) usedDataSet else sc.parallelize(usedDataSet.take(dataLimit))
+        val sampledUsedDataSet = if (dataLimit == -1) dataStr else sc.parallelize(dataStr.take(dataLimit))
         
         // to-do: Need to check for trainRatio = testRatio = 0.5
         val trainDataSet = if(trainRatio == testRatio) sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt) else sampledUsedDataSet.sample(false, trainRatio, System.currentTimeMillis().toInt);
@@ -442,5 +441,21 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
     override def postProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
         data;
+    }
+    
+    def aggregateTrainingData(df: DataFrame)(implicit sc: SparkContext): RDD[LabeledPoint] = {
+        
+        implicit val sqlContext = new SQLContext(sc);
+        import sqlContext.implicits._
+        JobLogger.log("Performing aggregation by did", None, INFO, "org.ekstep.analytics.model");
+        val out = df.select("did", "label", "features").map { x => (x.getString(0), x.getDouble(1), x.getAs[Vector](2)) }.rdd
+        val vecSize = out.first()._3.toDense.size
+        JobLogger.log("Filtering data with 0.0", Option(Map("Vector size" -> vecSize)), INFO, "org.ekstep.analytics.model");
+        val filteredOut = out.filter(f => f._2 > 0.0)
+        JobLogger.log("Count of filtered data with 0.0 and unfiltered data", Option(Map("unfiltered count" -> out.count(), "filtered count" -> filteredOut.count())), INFO, "org.ekstep.analytics.model");
+        val meanTarget = filteredOut.map{f => (f._1, f._2)}.groupByKey().mapValues {x => ((x.sum/x.size), x.size)}
+        val aggregated = filteredOut.map{x => (x._1, x._3)}.map { case (k: String, v: SparseVector) => (k, BDV(v.toDense.values)) }.foldByKey(BDV(Array.fill(vecSize)(0.0)))(_ += _)
+        val finalOut = meanTarget.join(aggregated).map{x => (x._2._1._1, Vectors.dense(((1/x._2._1._2.toDouble) * x._2._2).toArray), x._2._1._2, x._1)}.toDF("label", "features", "count", "did")
+        finalOut.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
     }
 }
