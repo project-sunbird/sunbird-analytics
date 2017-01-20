@@ -379,8 +379,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         if(saveFeatureFile){
             JobLogger.log("Writing features with distinct value count into a file", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             val columns = df.columns
-            val z = columns.map{x => (x, df.select(x).distinct().count())}
-            val features = sc.parallelize(z.map{x => x.toString().replace("(", "").replace(")", "")})
+            val z = columns.map{x => (x, df.select(x).rdd.distinct().count())}
+            val features = sc.parallelize(z.map{x => StringUtils.remove(StringUtils.chop(x.toString()), '(')})
             features.coalesce(1,true).saveAsTextFile(featureDetailFile);
         }
         
