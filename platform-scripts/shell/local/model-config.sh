@@ -10,8 +10,8 @@ config() {
 	   	"is")
 	   	echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ItemSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":8,"appName":"Item Summarizer","deviceMapping":false}'
 	   	;;
-                "precomputed")
-	   	echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.views.PrecomputedViews","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":""}}],"parallelization":8,"appName":"PrecomputedViews","deviceMapping":false}'
+        "precomp-views")
+	   	echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.views.PrecomputedViews","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":""}}],"parallelization":8,"appName":"Pre-computed Views","deviceMapping":false}'
 	   	;;
 	   	"dcus") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceContentUsageSummary","output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"DeviceContentUsageSummary","deviceMapping":false}'

@@ -101,12 +101,16 @@ jobs:
     hour: 7
     minute: 46
     state: present
+  precomp-views:
+    hour: 7
+    minute: 52
+    state: present
 
 pre_jobs:
   pre_job:
     hour: 7
     minute: 52
-  #state: present
+    state: absent
 
 monit_jobs:
   joblog.log:

@@ -83,7 +83,7 @@ object JobFactory {
                 GenieFunnelAggregatorJob
             case "data-exhaust" =>
                 DataExhaustJob
-            case "precomputed" =>
+            case "precomp-views" =>
                 PrecomputedViewsJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
