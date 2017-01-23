@@ -65,19 +65,12 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 prevEvent = x;
             }
 
-            var currStage: String = null;
-            var prevStage: String = null;
             stageList.foreach { x =>
-                if (currStage == null) {
-                    currStage = x._1;
+                if (stageMap.contains(x._1)) {
+                    stageMap.put(x._1, FunnelStageSummary(x._1, Option(stageMap.get(x._1).get.count.get + 1), Option(1)));
+                } else {
+                    stageMap.put(x._1, FunnelStageSummary(x._1, Option(1), Option(1)));
                 }
-                stageMap.put(currStage, FunnelStageSummary(currStage, stageMap.get(currStage).get.count, stageMap.get(currStage).get.stageInvoked));
-                if (currStage.equals(x._1)) {
-                    if (prevStage != currStage)
-                        stageMap.put(currStage, FunnelStageSummary(currStage, Option(stageMap.get(currStage).get.count.get + 1), Option(1)));
-                    currStage = null;
-                }
-                prevStage = x._1;
             }
         }
 
@@ -145,7 +138,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
 
     private def _getFunnelId(cdata: CData, stageId: String, subType: String): String = {
         val cdataType = cdata.`type`.get
-        if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else if ("ExploreContent".equals(stageId) && ("".equals(subType) || "ContentClicked".equals(subType))) "ExploreContent"; else "";
+        if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if (("ContentSearch".equals(stageId) || "ContentList".equals(stageId)) && "SearchPhrase".equals(subType)) "ContentSearch"; else if ("ExploreContent".equals(stageId) && ("".equals(subType) || "ContentClicked".equals(subType))) "ExploreContent"; else "";
     }
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GenieFunnelSession] = {
@@ -173,7 +166,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
                 GenieFunnelSession(did, x._1, x._2, funnel, events, x._5)
             };
         }.flatMap { x => x }.filter { x => !"".equals(x.funnel) };
-
+        
     }
 
     override def algorithm(data: RDD[GenieFunnelSession], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GenieFunnel] = {
