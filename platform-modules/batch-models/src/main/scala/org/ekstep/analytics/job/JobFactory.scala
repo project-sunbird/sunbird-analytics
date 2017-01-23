@@ -114,8 +114,6 @@ object JobFactory {
                 GenieFunnelSummarizer
             case "gfa" =>
                 GenieFunnelAggregatorJob
-            case "re-training-aggregation" =>
-                RETrainingJob
             case "data-exhaust" =>
                 DataExhaustJob
             case "precomputed" =>
