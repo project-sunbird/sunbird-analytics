@@ -8,6 +8,7 @@ import com.datastax.spark.connector._
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.api.ContentUsageSummaryFact
 import org.ekstep.analytics.api.Constants
+import com.datastax.spark.connector.cql.CassandraConnector
 
 case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[String] = None)
 
@@ -24,32 +25,43 @@ object HealthCheckAPIService {
         val response = CommonUtil.OK("ekstep.analytics-api.health", result)
         JSONUtils.serialize(response);
     }
+
+    private def checkCassandraConnection()(implicit sc: SparkContext): Boolean = {
+        try {
+            val connector = CassandraConnector(sc.getConf);
+            val session = connector.openSession();
+            session.close();
+            true;
+        } catch {
+            // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
+            // TODO: Need to get confirmation from amit.
+            case ex: Exception =>
+                false
+            // $COVERAGE-ON$    
+        }
+    }
+
     private def getChecks()(implicit sc: SparkContext): Array[ServiceHealthReport] = {
         try {
             val nums = Array(10, 5, 18, 4, 8, 56)
             val rdd = sc.parallelize(nums)
             rdd.sortBy(f => f).collect
             val sparkReport = ServiceHealthReport("Spark Cluster", true);
-            var cassReport: ServiceHealthReport = null
-            try {
-                sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_DB, Constants.CONTENT_SUMMARY_FACT_TABLE).where("d_content_id = ?", "org.ekstep.delta").count
-                cassReport = ServiceHealthReport("Cassandra Database", true);
-            } catch {
-            	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
-            	// TODO: Need to get confirmation from amit.
-                case ex: Exception =>
-                    cassReport = ServiceHealthReport("Cassandra Database", false, Option(ex.getMessage));
-                // $COVERAGE-ON$    
-            }
+            val cassReport = ServiceHealthReport("Cassandra Database", checkCassandraConnection());
             Array(sparkReport, cassReport);
         } catch {
-        	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
-        	// TODO: Need to get confirmation from amit.
+            // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
+            // TODO: Need to get confirmation from amit.
             case ex: Exception =>
                 val sparkReport = ServiceHealthReport("Spark Cluster", false, Option(ex.getMessage));
                 val cassReport = ServiceHealthReport("Cassandra Database", false, Option("Unknown.... because of Spark Cluster is not up"));
                 Array(sparkReport, cassReport);
-           // $COVERAGE-ON$
+            // $COVERAGE-ON$
         }
+    }
+    
+    def main(args: Array[String]): Unit = {
+        implicit val sc = CommonUtil.getSparkContext(10, "Test");
+        println(getHealthStatus);
     }
 }

@@ -39,7 +39,8 @@ class TestContentAdapter extends BaseSpec {
         ContentAdapter.getItemWrapper(Map[String, AnyRef]("identifier" -> "i123"));
     }
     
-    it should "get live contents form content model" in {
-        ContentAdapter.getLiveContent(5).length should be (5)
+    ignore should "get published contents form content model" in {
+        val contents = ContentAdapter.getPublishedContent();
+        println("count", contents.size, "sample", contents.head);
     }
 }

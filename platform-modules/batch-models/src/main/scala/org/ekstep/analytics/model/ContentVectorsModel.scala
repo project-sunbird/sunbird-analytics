@@ -18,14 +18,16 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.util.Constants
-
 import com.datastax.spark.connector.toRDDFunctions
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Level._
+import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.Level
 import org.ekstep.analytics.framework.util.JobLogger
 import java.net.URL
 import org.apache.commons.lang3.StringEscapeUtils
+import org.ekstep.analytics.util.ContentUsageSummaryFact
+import org.ekstep.analytics.adapter.ContentAdapter
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
@@ -43,12 +45,14 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
         val baseUrl = AppConf.getConfig("service.search.url");
         val searchUrl = s"$baseUrl/v2/search";
-        val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "limit" -> 1000));
-        val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
-        val resp = RestUtil.post[Response](searchUrl, JSONUtils.serialize(request));
-        val contentList = resp.result.getOrElse(Map("content" -> List())).getOrElse("content", List()).asInstanceOf[List[Map[String, AnyRef]]];
-        val contentRDD = sc.parallelize(contentList, 10).cache();
 
+        //val contentIds = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_tag = 'all' and d_period = 0").map { x => x.d_content_id }.distinct.collect().toList;
+        //val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
+        //val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
+
+        val contentList = ContentAdapter.getPublishedContent();
+        val contentRDD = sc.parallelize(contentList, 10).cache();
+        JobLogger.log("Content count", Option(Map("contentCount" -> contentList.size)), INFO);
         val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
         val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_").asInstanceOf[String];
         val downloadTime = CommonUtil.time {
@@ -70,15 +74,15 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         //contentToVecDummy(data, config);
     }
 
-//    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
-//        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
-//    }
+    //    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
+    //        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
+    //    }
 
     def contentToVec(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 
         implicit val jobConfig = config;
         //val scriptLoc = AppConf.getConfig("content2vec_scripts_path");
-        val scriptLoc = jobConfig.getOrElse("content2vec_scripts_path","").asInstanceOf[String];
+        val scriptLoc = jobConfig.getOrElse("content2vec_scripts_path", "").asInstanceOf[String];
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
 

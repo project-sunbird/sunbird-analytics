@@ -1,0 +1,65 @@
+---
+# tasks file for neo4j-python
+- name: install neo4j
+  get_url: url=http://dist.neo4j.org/neo4j-community-2.3.3-unix.tar.gz dest=/mnt/data/analytics/neo4j-community-2.3.3-unix.tar.gz timeout=1000 force=no owner=ec2-user 
+
+- name: Unarchive neo4j
+  unarchive: src=/mnt/data/analytics/neo4j-community-2.3.3-unix.tar.gz dest=/mnt/data/analytics copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/neo4j-community-2.3.3
+
+- name: install julia
+  get_url: url=https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz timeout=1000 force=no owner=ec2-user
+
+- name: Unarchive julia
+  unarchive: src=/mnt/data/analytics/julia-0.4.5-linux-x86_64.tar.gz dest=/mnt/data/analytics copy=no group=ec2-user owner=ec2-user creates=/mnt/data/analytics/julia-2ac304dfba
+
+- name: install gcc
+  become: yes
+  yum: name="@Development tools" state=present
+<<<<<<< HEAD
+=======
+  tags:
+       - always
+>>>>>>> origin/master
+
+- name: install gcc
+  become: yes
+  command: pip install --upgrade pip 
+  tags:
+       - always
+
+- name: add link
+  become: yes
+  file: src=/usr/local/bin/pip dest=/usr/bin/pip state=link
+  tags:
+       - always
+
+- name: install modules
+  become: yes
+  pip: chdir=/usr/bin name={{ item }} state=present
+  with_items: 
+            - nltk
+            - py2neo
+            - requests
+            - numpy
+            - langdetect
+            - simplejson
+            - mutagen
+            - pydub
+            - signalslot
+            - SpeechRecognition
+            - jsonschema
+            - scipy
+            - pandas
+            - validators
+            - networkx
+            - gensim
+  tags:
+       - always
+
+- name: type command
+  command: python -c "import nltk; nltk.download('stopwords')"
+  tags:
+       - always
+
+
+

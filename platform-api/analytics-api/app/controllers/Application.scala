@@ -29,6 +29,7 @@ import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
 import org.ekstep.analytics.api.service.DataProductManagementAPIService
 import org.ekstep.analytics.api.service.DataProductManagementAPIService
+import org.ekstep.analytics.api.service.RecommendationAPIService.RecommendRequest
 
 /**
  * @author mahesh
@@ -39,6 +40,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	implicit val className = "controllers.Application";
 	val contentAPIActor = system.actorOf(ContentAPIService.props, "content-api-service-actor");
 	val dpmgmtAPIActor = system.actorOf(DataProductManagementAPIService.props, "dpmgmt-api-service-actor");
+	val recommendAPIActor = system.actorOf(RecommendationAPIService.props, "recommendAPIActor");
 
 	def checkAPIhealth() = Action { implicit request =>
 		val response = HealthCheckAPIService.getHealthStatus()(Context.sc)
@@ -65,7 +67,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 
 	def recommendations() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
-		val futureRes = Future { RecommendationAPIService.recommendations(body)(Context.sc, config) };
+		val futureRes = ask(recommendAPIActor, RecommendRequest(body, Context.sc, config)).mapTo[String];
 		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
 		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
 		val response: Future[String] = firstCompleted.recoverWith {

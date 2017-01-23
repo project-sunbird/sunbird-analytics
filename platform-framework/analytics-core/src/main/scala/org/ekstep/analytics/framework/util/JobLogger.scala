@@ -37,44 +37,44 @@ object JobLogger {
         JobContext.jobName = jobName;
     }
 
-    private def logger(): Logger = {
-        LogManager.getLogger("org.ekstep.analytics.logger");
+    private def logger(name: String): Logger = {
+        LogManager.getLogger(name+".logger");
     }
 
-    private def info(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
-        logger.info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "INFO", msg, data)));
+    private def info(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
+        logger(name).info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "INFO", msg, data)));
     }
 
-    private def debug(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
-        logger.debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "DEBUG", msg, data)))
+    private def debug(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
+        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "DEBUG", msg, data)))
     }
 
-    private def error(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
-        logger.error(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "ERROR", msg, data)));
+    private def error(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
+        logger(name).error(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "ERROR", msg, data)));
     }
 
-    private def warn(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
-        logger.debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "WARN", msg, data)))
+    private def warn(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
+        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "WARN", msg, data)))
     }
 
-    def start(msg: String, data: Option[AnyRef] = None)(implicit className: String) = {
-        logger.info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_START", "INFO", msg, data)));
+    def start(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
+        logger(name).info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_START", "INFO", msg, data)));
     }
 
-    def end(msg: String, status: String, data: Option[AnyRef] = None)(implicit className: String) = {
-        logger.info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_END", "INFO", msg, data, Option(status))));
+    def end(msg: String, status: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
+        logger(name).info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_END", "INFO", msg, data, Option(status))));
     }
 
-    def log(msg: String, data: Option[AnyRef] = None, logLevel: Level = DEBUG)(implicit className: String) = {
+    def log(msg: String, data: Option[AnyRef] = None, logLevel: Level = DEBUG, name: String = "org.ekstep.analytics")(implicit className: String) = {
         logLevel match {
             case INFO =>
-                info(msg, data)
+                info(msg, data, name)
             case DEBUG =>
-                debug(msg, data)
+                debug(msg, data, name)
             case WARN =>
-                warn(msg, data)
+                warn(msg, data, name)
             case ERROR =>
-                error(msg, data)
+                error(msg, data, name)
         }
     }
 

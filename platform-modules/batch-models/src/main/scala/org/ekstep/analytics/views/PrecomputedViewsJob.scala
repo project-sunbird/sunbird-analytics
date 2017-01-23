@@ -11,7 +11,6 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.exception.JobNotFoundException
 import org.ekstep.analytics.framework.Level._
-import org.ekstep.analytics.views.PrecomputedViews
 import org.ekstep.analytics.framework.IJob
 import org.ekstep.analytics.framework.JobDriver
 
