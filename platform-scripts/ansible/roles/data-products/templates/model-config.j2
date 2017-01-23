@@ -107,7 +107,7 @@ config() {
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"gls/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieStageSummaryModel","output":[{"to":"console","params":{"printEvent":false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":10,"appName":"GenieStageSummaryModel","deviceMapping":false}'
 		;;
 		"precomp-views")
-	   	echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.views.PrecomputedViews","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":""}}],"parallelization":8,"appName":"Pre-computed Views","deviceMapping":false}'
+	   	echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.views.PrecomputedViews","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}}],"parallelization":10,"appName":"Pre-computed Views","deviceMapping":false}'
 	   	;;
 		"gfs")
 		echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.GenieFunnelModel","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"kafka","params":{"brokerList":"'$brokerList'","topic":"'$topic'"}}],"parallelization":8,"appName":"Genie Funnel Model","deviceMapping":true}'
