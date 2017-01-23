@@ -37,6 +37,8 @@ import org.ekstep.analytics.job.updater.ContentModelUpdater
 import org.ekstep.analytics.job.summarizer.GenieStageSummarizer
 import org.ekstep.analytics.job.summarizer.GenieFunnelSummarizer
 import org.ekstep.analytics.job.summarizer.GenieFunnelAggregatorJob
+import org.ekstep.analytics.job.summarizer.RETrainingJob
+import org.ekstep.analytics.views.PrecomputedViewsJob
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -114,6 +116,8 @@ object JobFactory {
                 GenieFunnelAggregatorJob
             case "data-exhaust" =>
                 DataExhaustJob
+            case "precomputed" =>
+                PrecomputedViewsJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
