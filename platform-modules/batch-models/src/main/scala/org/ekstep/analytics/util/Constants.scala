@@ -29,6 +29,7 @@ object Constants {
     val CONTENT_TO_VEC = "content_to_vector";
     val BLACKLISTED_CONTENTS = "blacklisted_contents";
     val JOB_REQUEST = "job_request";
+    val CONTENT_RECOS = "content_recos";
     
     val REGISTERED_TAGS = "registered_tags";
     

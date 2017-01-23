@@ -175,6 +175,12 @@ CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	PRIMARY KEY (content_id)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.content_recos(
+    content_id text,
+    scores list<frozen <tuple<text, double>>>,
+    PRIMARY KEY (content_id)
+);
+
 CREATE TABLE IF NOT EXISTS content_db.registered_tags(
 	tag_id text,
 	last_updated timestamp,
