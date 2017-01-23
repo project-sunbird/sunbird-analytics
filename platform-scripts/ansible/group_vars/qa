@@ -105,6 +105,10 @@ jobs:
     hour: 2
     minute: 35
     state: present
+  precomp-views:
+    hour: 2
+    minute: 30
+    state: present
   device-recos-scoring:
     hour: 3
     minute: 0
@@ -114,7 +118,7 @@ pre_jobs:
   pre_job:
     hour: 2
     minute: 30
-  #state: present
+    state: absent
     
 monit_jobs:
   joblog.log:

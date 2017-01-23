@@ -101,6 +101,10 @@ jobs:
     hour: 2
     minute: 26
     state: present
+  precomp-views:
+    hour: 2
+    minute: 30
+    state: present
   ctv:
     hour: 2
     minute: 35
@@ -114,6 +118,7 @@ pre_jobs:
   pre_job:
     hour: 2
     minute: 30
+    status: absent
 
 monit_jobs:
   joblog.log:

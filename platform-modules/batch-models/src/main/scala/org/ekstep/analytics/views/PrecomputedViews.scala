@@ -13,18 +13,24 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.Empty
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.IBatchModel
+import org.apache.spark.rdd.EmptyRDD
 
 case class View(keyspace: String, table: String, periodUpTo: Int, periodType: String, filePrefix: String, fileSuffix: String, dispatchTo: String, dispatchParams: Map[String, AnyRef]);
 
-object PrecomputedViews {
+object PrecomputedViews extends IBatchModel[String,String] with Serializable {
 
 	implicit val className = "org.ekstep.analytics.views.PrecomputedViews"
+	 override def name(): String = "PrecomputedViews";
 	
-    def execute()(implicit sc: SparkContext) {
+    def execute(events: RDD[String], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String] ={
         precomputeContentUsageMetrics();
         precomputeContentPopularityMetrics();
         precomputeGenieLaunchMetrics();
         precomputeItemUsageMetrics();
+        events
     }
     
     def precomputeContentUsageMetrics()(implicit sc: SparkContext) {
