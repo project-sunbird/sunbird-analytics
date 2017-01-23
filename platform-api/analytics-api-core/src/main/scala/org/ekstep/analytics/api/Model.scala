@@ -72,6 +72,11 @@ object APIIds {
 	val DATA_REQUEST = "ekstep.analytics.dataset.request.submit";
 	val GET_DATA_REQUEST = "ekstep.analytics.dataset.request.info";
 	val GET_DATA_REQUEST_LIST = "ekstep.analytics.dataset.request.list";
+	val CONTENT_USAGE = "ekstep.analytics.metrics.content-usage"
+	val CONTENT_POPULARITY ="ekstep.analytics.metrics.content-popularity"
+	val ITEM_USAGE = "ekstep.analytics.metrics.item-usage"
+	val CONTENT_LIST = "ekstep.analytics.content-list"
+	val GENIE_LUNCH = "ekstep.analytics.metrics.genie-launch"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
