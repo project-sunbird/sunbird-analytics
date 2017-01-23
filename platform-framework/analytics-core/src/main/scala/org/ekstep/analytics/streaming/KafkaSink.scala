@@ -18,7 +18,6 @@ object KafkaSink {
     def apply(config: java.util.Map[String, Object]): KafkaSink = {
         val f = () => {
             val producer = new KafkaProducer[String, String](config)
-            println("created producer with config", config);
             sys.addShutdownHook {
                 producer.close()
             }

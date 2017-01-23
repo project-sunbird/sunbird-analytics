@@ -12,11 +12,12 @@ class TestContentToVecJob extends SparkSpec(null) {
     it should "populate to ContentToVec DB" in {
         val jobParams = Map(
             "content2vec.s3_bucket" -> "sandbox-data-store",
-            "content2vec.s3_key_prefix" -> "model/",
+            "content2vec.s3_key_prefix" -> "content2vec/model/",
             "content2vec.model_path" -> "/tmp/content2vec/model",
             "content2vec.kafka_topic" -> "sandbox.learning.graph.events",
             "content2vec.kafka_broker_list" -> "localhost:9092",
             "content2vec.corpus_path" -> "/tmp/content2vec/content_corpus",
+            "content2vec.all_content_flag" -> "false",
             //"python.home" -> "/usr/local/bin/",
             "content2vec_scripts_path" -> "src/test/resources/python/main/vidyavaani",
             "content2vec.download_path" -> "/tmp/content2vec/download",
