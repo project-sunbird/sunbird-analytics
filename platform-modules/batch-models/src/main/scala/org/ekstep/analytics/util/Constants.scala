@@ -27,7 +27,7 @@ object Constants {
     val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact";
     val CONTENT_SIDELOADING_SUMMARY = "content_sideloading_summary";
     val CONTENT_TO_VEC = "content_to_vector";
-    val BLACKLISTED_CONTENTS = "blacklisted_contents";
+    val RECOMMENDATION_CONFIG = "recommendation_config";
     val JOB_REQUEST = "job_request";
     val CONTENT_RECOS = "content_recos";
     
