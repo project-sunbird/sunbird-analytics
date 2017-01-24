@@ -118,6 +118,9 @@ config() {
 		"data-exhaust")
 		echo '{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-read-bucket":"'$datasetReadBucket'","dataset-read-prefix":"'$datasetReadPrefix'","data-exhaust-bucket":"'$dataExhaustBucket'","data-exhaust-prefix":"'$dataExhaustPrefix'", "tempLocalPath":"/mnt/data/analytics/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}'
 		;;
+		"content-recos") 
+        echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.EndOfContentRecommendationModel","modelParams":{"method":"cosine", "norm":"none", "weight": 0.1, "filterBlacklistedContents":false},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"EndOfContentRecommendationModel","deviceMapping":false}'
+        ;;
 		"*")
 		echo "Unknown model code"
       	exit 1 # Command to come out of the program with status 1
