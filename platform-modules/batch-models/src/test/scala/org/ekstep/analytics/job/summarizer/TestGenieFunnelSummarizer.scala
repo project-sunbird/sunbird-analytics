@@ -11,7 +11,7 @@ class TestGenieFunnelSummarizer extends SparkSpec(null) {
     
   "GenieFunnelSummarizer" should "execute GenieFunnelModel and won't throw any Exception" in {
           
-      val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/genie-funnel/test/2016-12-15-1481816057482.json"))))), null, null, "org.ekstep.analytics.model.GenieFunnelModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestGenieFunnelSummarizer"), Option(true))
+      val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/genie-funnel/genie-funnel-data.log"))))), null, null, "org.ekstep.analytics.model.GenieFunnelModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestGenieFunnelSummarizer"), Option(true))
           GenieFunnelSummarizer.main(JSONUtils.serialize(config))(Option(sc));
       }
 }
