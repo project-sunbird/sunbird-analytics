@@ -89,9 +89,11 @@ class TestMetricsAPIService extends SparkSpec {
     
     it should "return error response on invalid request" in {
     	val request = """{"id":"ekstep.analytics.metrics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
-    	the[Exception] thrownBy {
-    		MetricsAPIService.contentUsage(JSONUtils.deserialize[MetricsRequestBody](request));
-        } should have message "period is missing or invalid."
+    	val response = MetricsAPIService.contentUsage(JSONUtils.deserialize[MetricsRequestBody](request))
+      val result = JSONUtils.deserialize[MetricsResponse](response)
+      result.responseCode should be("CLIENT_ERROR")
+    	result.params.errmsg should be("period is missing or invalid.")
+
     }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
@@ -137,16 +139,18 @@ class TestMetricsAPIService extends SparkSpec {
     
     it should "return error response on invalid request (without period)" in {
     	val request = """{"id":"ekstep.analytics.metrics.content-popularity","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
-    	the[Exception] thrownBy {
-    		MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request), Array());
-        } should have message "period is missing or invalid."
+    	val response = MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request), Array());
+      val result = JSONUtils.deserialize[MetricsResponse](response)
+      result.responseCode should be("CLIENT_ERROR")
+      result.params.errmsg should be("period is missing or invalid.")
     }
     
     it should "return error response on invalid request (without content_id)" in {
     	val request = """{"id":"ekstep.analytics.metrics.content-popularity","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
-    	the[Exception] thrownBy {
-    		MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request), Array());
-        } should have message "filter.content_id is missing."
+    	val response = MetricsAPIService.contentPopularity(JSONUtils.deserialize[MetricsRequestBody](request), Array());
+      val result = JSONUtils.deserialize[MetricsResponse](response)
+      result.responseCode should be("CLIENT_ERROR")
+      result.params.errmsg should be("filter.content_id is missing.")  
     }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
@@ -191,16 +195,18 @@ class TestMetricsAPIService extends SparkSpec {
     
     it should "return error response on invalid request(without period)" in {
     	val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
-    	the[Exception] thrownBy {
-    		MetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
-        } should have message "period is missing or invalid."
+    	val response = MetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+      val result = JSONUtils.deserialize[MetricsResponse](response)
+      result.responseCode should be("CLIENT_ERROR")
+      result.params.errmsg should be("period is missing or invalid.")
     }
     
     it should "return error response on invalid request(without content_id)" in {
     	val request = """{"id":"ekstep.analytics.metrics.item-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
-    	the[Exception] thrownBy {
-    		MetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
-        } should have message "filter.content_id is missing."
+    	val response = MetricsAPIService.itemUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+      val result = JSONUtils.deserialize[MetricsResponse](response)
+      result.responseCode should be("CLIENT_ERROR")
+      result.params.errmsg should be("filter.content_id is missing.")
     }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
@@ -272,9 +278,10 @@ class TestMetricsAPIService extends SparkSpec {
     
     it should "return error response on invalid request" in {
     	val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
-    	the[Exception] thrownBy {
-    		MetricsAPIService.genieLaunch(JSONUtils.deserialize[MetricsRequestBody](request));
-        } should have message "period is missing or invalid."
+    	val response = MetricsAPIService.genieLaunch(JSONUtils.deserialize[MetricsRequestBody](request));
+      val result = JSONUtils.deserialize[MetricsResponse](response)
+      result.responseCode should be("CLIENT_ERROR")
+      result.params.errmsg should be("period is missing or invalid.")
     }
     
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
@@ -319,9 +326,10 @@ class TestMetricsAPIService extends SparkSpec {
     
     it should "return error response on invalid request" in {
     	val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
-    	the[Exception] thrownBy {
-    		MetricsAPIService.contentList(JSONUtils.deserialize[MetricsRequestBody](request));
-        } should have message "period is missing or invalid."
+    	val response = MetricsAPIService.contentList(JSONUtils.deserialize[MetricsRequestBody](request));
+      val result = JSONUtils.deserialize[MetricsResponse](response)
+      result.responseCode should be("CLIENT_ERROR")
+      result.params.errmsg should be("period is missing or invalid.")
     }
 
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
