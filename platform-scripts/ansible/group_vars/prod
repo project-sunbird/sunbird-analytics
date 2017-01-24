@@ -105,6 +105,14 @@ jobs:
     hour: 7
     minute: 52
     state: present
+  ctv:
+    hour: 5
+    minute: 30
+    state: present
+  device-recos-scoring:
+    hour: 8
+    minute: 0
+    state: present
 
 pre_jobs:
   pre_job:
