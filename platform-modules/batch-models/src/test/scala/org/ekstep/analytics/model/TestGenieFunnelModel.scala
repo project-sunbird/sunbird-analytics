@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.DataFetcher
 
 class TestGenieFunnelModel extends SparkSpec(null) {
 
-    "GenieFunnelModel" should "Generates Funnel Summary" in {
+    ignore should "Generates Funnel Summary from S3" in {
 
         val queries = Option(Array(Query(Option("prod-data-store"), Option("raw/"), Option("2017-01-04"))));
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
