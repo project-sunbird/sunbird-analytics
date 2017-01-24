@@ -1,24 +1,20 @@
 package controllers
 
+import org.ekstep.analytics.api.service.JobAPIService
+import org.ekstep.analytics.api.service.JobAPIService.DataRequest
+import org.ekstep.analytics.api.service.JobAPIService.DataRequestList
+import org.ekstep.analytics.api.service.JobAPIService.GetDataRequest
+
 import akka.actor.ActorSystem
-import akka.pattern._
+import akka.actor.Props
+import akka.pattern.ask
+import akka.routing.FromConfig
 import context.Context
 import javax.inject.Inject
 import javax.inject.Singleton
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.Request
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
-import org.ekstep.analytics.api.ResponseCode
-import org.ekstep.analytics.api.exception.ClientException
-import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.api.service.JobAPIService
-import org.ekstep.analytics.api.service.JobAPIService.DataRequest
-import org.ekstep.analytics.api.service.JobAPIService.GetDataRequest
-import org.ekstep.analytics.api.service.JobAPIService.DataRequestList
 
 /**
  * @author mahesh
@@ -27,7 +23,7 @@ import org.ekstep.analytics.api.service.JobAPIService.DataRequestList
 @Singleton
 class JobController @Inject() (system: ActorSystem) extends BaseController {
 	implicit val className = "controllers.JobController";
-	val jobAPIActor = system.actorOf(JobAPIService.props, "jobApiActor");
+	val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor");
 
 	def dataRequest() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);

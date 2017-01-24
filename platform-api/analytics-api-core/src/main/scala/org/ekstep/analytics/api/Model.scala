@@ -64,6 +64,7 @@ object Constants {
 	val JOB_REQUEST = "job_request";
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
 	val DEVICE_RECOS_TABLE = "device_recos";
+	val CONTENT_RECOS_TABLE = "content_recos"
 	val CONTENT_TO_VEC = "content_to_vector";
 	val REGISTERED_TAGS = "registered_tags";
 }
@@ -73,6 +74,11 @@ object APIIds {
 	val DATA_REQUEST = "ekstep.analytics.dataset.request.submit";
 	val GET_DATA_REQUEST = "ekstep.analytics.dataset.request.info";
 	val GET_DATA_REQUEST_LIST = "ekstep.analytics.dataset.request.list";
+	val CONTENT_USAGE = "ekstep.analytics.metrics.content-usage"
+	val CONTENT_POPULARITY ="ekstep.analytics.metrics.content-popularity"
+	val ITEM_USAGE = "ekstep.analytics.metrics.item-usage"
+	val CONTENT_LIST = "ekstep.analytics.content-list"
+	val GENIE_LUNCH = "ekstep.analytics.metrics.genie-launch"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);

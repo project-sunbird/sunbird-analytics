@@ -35,7 +35,6 @@ import org.joda.time.DateTime
 
 object JobAPIService {
 
-    def props = Props[JobAPIService];
     case class DataRequest(request: String, sc: SparkContext, config: Config);
     case class GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config);
     case class DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config);
