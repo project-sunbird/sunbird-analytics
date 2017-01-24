@@ -63,13 +63,13 @@ class TestGenieFunnelModel extends SparkSpec(null) {
 
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data2.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
-        events.length should be(6)
+        events.length should be(8)
 
         val onbs = events.filter { x => "GenieOnboarding".equals(x.dimensions.funnel.get) }
         val contentSearch = events.filter { x => "ContentSearch".equals(x.dimensions.funnel.get) }
 
         onbs.length should be(2)
-        contentSearch.length should be(4)
+        contentSearch.length should be(6)
 
         val onb = onbs.head
 
@@ -109,7 +109,7 @@ class TestGenieFunnelModel extends SparkSpec(null) {
     it should "generates funnel summary, from a data having multiple funnel in multiple session and having onboarding funnel" in {
         val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data4.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
-        events.length should be(4)
+        events.length should be(6)
 
         val onbEvents = events.filter { x => x.dimensions.onboarding.get == true }
 
