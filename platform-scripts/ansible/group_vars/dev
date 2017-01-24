@@ -113,6 +113,10 @@ jobs:
     hour: 3
     minute: 0
     state: present
+  content-recos:
+    hour: 3
+    minute: 8
+    state: present
 
 pre_jobs:
   pre_job:
@@ -123,7 +127,7 @@ pre_jobs:
 monit_jobs:
   joblog.log:
     hour: 3
-    minute: 10
+    minute: 18
 
 cassandra:
   seeds: 172.31.25.29

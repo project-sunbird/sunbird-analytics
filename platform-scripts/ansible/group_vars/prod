@@ -113,6 +113,11 @@ jobs:
     hour: 8
     minute: 0
     state: present
+    
+  content-recos:
+    hour: 8
+    minute: 8
+    state: present
 
 pre_jobs:
   pre_job:
@@ -122,8 +127,8 @@ pre_jobs:
 
 monit_jobs:
   joblog.log:
-    hour: 7
-    minute: 50
+    hour: 8
+    minute: 18
 secor_raw_job:
   secor_raw:
     hour: 23
