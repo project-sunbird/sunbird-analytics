@@ -10,14 +10,32 @@ import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.OnboardStage
+import org.ekstep.analytics.framework.Query
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.Fetcher
+import org.ekstep.analytics.framework.DataFetcher
 
 class TestGenieFunnelModel extends SparkSpec(null) {
 
     "GenieFunnelModel" should "Generates Funnel Summary" in {
 
-        val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data.log");
+        val queries = Option(Array(Query(Option("prod-data-store"), Option("raw/"), Option("2017-01-04"))));
+        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
+
+        //val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-funnel-data.log");
         val events = GenieFunnelModel.execute(rdd, None).collect
-        events.length should be(4)
+        
+        val cidCount = events.map { x =>  
+            val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
+            val d = eksMap.get("downloadComplete").getOrElse(null)
+            val count = if(null!=d) d.asInstanceOf[FunnelStageSummary].count.get else 0
+            val cid =  eksMap.get("correlationID").get.asInstanceOf[String]
+            (cid, count)
+        }.filter{x => "09a6eb33-2573-4d0c-8a23-9586e3ef3ded".equals(x._1)}
+        
+        val totalCount = cidCount.map{x=> x._2}.sum
+        println("Count: "+totalCount)
+        //events.length should be(4)
     }
 
     it should "generates funnel summary, from a data having one funnel" in {
