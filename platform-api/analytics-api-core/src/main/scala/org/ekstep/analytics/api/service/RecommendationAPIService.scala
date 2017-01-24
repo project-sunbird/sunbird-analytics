@@ -28,7 +28,7 @@ object RecommendationAPIService {
 	def recommendations(requestBody: String)(implicit sc: SparkContext, config: Config): String = {
 		ContentCacheUtil.validateCache()(sc, config);
 		val reqBody = JSONUtils.deserialize[RequestBody](requestBody);
-		val contentId = reqBody.request.context.getOrElse(Map()).getOrElse("contentId", "").asInstanceOf[String];
+		val contentId = reqBody.request.context.getOrElse(Map()).getOrElse("contentid", "").asInstanceOf[String];
 		// If contentID available in request return content recommendations otherwise, device recommendations. 
 		if (StringUtils.isEmpty(contentId)) {
 			deviceRecommendations(reqBody);
@@ -84,7 +84,33 @@ object RecommendationAPIService {
 	}
 	
 	private def contentRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
-		JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
+		val context = requestBody.request.context.getOrElse(Map());
+	  val contentId = context.getOrElse("contentid", "").asInstanceOf[String];
+	  //JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
+	  val contentFilters = getContentFilter(contentId)
+	  val contentRecos = sc.cassandraTable[(List[(String, Double)])](Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).select("scores").where("content_id = ?", contentId);
+    println("content count : ", contentRecos.count())
+	  val contents = if (contentRecos.count() > 0) contentRecos.first.map(f => ContentCacheUtil.getREList.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2)) else List()
+    val result = if (contentFilters.isEmpty) {
+      contents;
+    } else {
+      contents.map(p => {
+        val filterScoreList = for (filter <- contentFilters) yield {
+          val valid = recoFilter(p, filter);
+          if (valid) 1 else 0;
+        };
+        val filterscore = filterScoreList.toList.sum;
+        (filterscore, p.get("reco_score").get.asInstanceOf[Double], p)
+      })
+      .sortBy(- _._1)
+      .sortBy(- _._2)
+      .map(x => x._3);
+    }
+    // if recommendations is disabled then, always take limit from config otherwise user input.
+	  val limit =if (config.getBoolean("recommendation.enable")) requestBody.request.limit.getOrElse(config.getInt("service.search.limit")); 
+		 		else config.getInt("service.search.limit");
+		val respContent =result.take(limit)
+	  JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(0))));
 	}
 	
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {

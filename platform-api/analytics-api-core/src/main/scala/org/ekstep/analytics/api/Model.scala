@@ -64,6 +64,7 @@ object Constants {
 	val JOB_REQUEST = "job_request";
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
 	val DEVICE_RECOS_TABLE = "device_recos";
+	val CONTENT_RECOS_TABLE = "content_recos"
 	val CONTENT_TO_VEC = "content_to_vector";
 	val REGISTERED_TAGS = "registered_tags";
 }
