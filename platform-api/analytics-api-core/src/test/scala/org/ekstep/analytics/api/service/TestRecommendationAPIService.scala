@@ -105,8 +105,7 @@ class TestRecommendationAPIService extends SparkSpec {
         val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
         content should not be empty 
         content
-			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") })
-			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("contentType", "").asInstanceOf[String].contains("Story") }) should have size(content.length)        
+			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") })        
     }
     
     it should "return content based context filtered content" in {
@@ -120,7 +119,6 @@ class TestRecommendationAPIService extends SparkSpec {
         content should not be empty 
         content
 			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("language", List()).asInstanceOf[List[String]].contains("Hindi") })
-			.filter({ x => x.asInstanceOf[Map[String, AnyRef]].getOrElse("contentType", "").asInstanceOf[String].contains("Story") }) should have size(content.length)
     }
     
     it should "update the cache" in {
