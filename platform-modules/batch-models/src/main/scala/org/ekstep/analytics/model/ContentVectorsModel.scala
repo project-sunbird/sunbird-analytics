@@ -51,7 +51,8 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         //val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
 
         val contentList = ContentAdapter.getPublishedContent();
-        val contentRDD = sc.parallelize(contentList, 10).cache();
+        
+        val contentRDD = if("true".equals(config.getOrElse("content2vec.all_content_flag","true"))) sc.parallelize(contentList, 10).cache(); else sc.parallelize(Array(contentList.last), 10).cache();
         JobLogger.log("Content count", Option(Map("contentCount" -> contentList.size)), INFO);
         val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
         val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_").asInstanceOf[String];

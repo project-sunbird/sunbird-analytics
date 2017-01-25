@@ -101,27 +101,29 @@ jobs:
     hour: 2
     minute: 26
     state: present
+  precomp-views:
+    hour: 2
+    minute: 30
+    state: present
   ctv:
     hour: 2
     minute: 35
     state: present
   device-recos-scoring:
-    hour: 2
-    minute: 50
+    hour: 3
+    minute: 0
     state: present
 
 pre_jobs:
   pre_job:
     hour: 2
     minute: 30
+    status: absent
 
 monit_jobs:
   joblog.log:
-    hour: 2
-    minute: 27
-  RE-Jobs:
-    hour: 4
-    minute: 20
+    hour: 3
+    minute: 10
 
 cassandra:
   seeds: 172.31.25.29

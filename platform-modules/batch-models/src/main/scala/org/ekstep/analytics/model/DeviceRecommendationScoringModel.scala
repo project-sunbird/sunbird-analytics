@@ -239,12 +239,6 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
             // Device Context Attributes
 
-            seq ++= Seq(x.dusT.t_total_timespent.getOrElse(0.0), x.dusT.t_total_launches.getOrElse(0.0), x.dusT.t_total_play_time.getOrElse(0.0),
-                x.dusT.t_avg_num_launches.getOrElse(0.0), x.dusT.t_avg_time.getOrElse(0.0), x.dusT.t_end_time.getOrElse(0.0),
-                x.dusT.t_last_played_on.getOrElse(0.0), x.dusT.t_mean_play_time.getOrElse(0.0), x.dusT.t_mean_play_time_interval.getOrElse(0.0),
-                x.dusT.t_num_contents.getOrElse(0.0), x.dusT.t_num_days.getOrElse(0.0), x.dusT.t_num_sessions.getOrElse(0.0), x.dusT.t_play_start_time.getOrElse(0.0),
-                x.dusT.t_start_time.getOrElse(0.0))
-
             // Add lastPlayedContent(c3) text vectors
             seq ++= (if (null != x.lastPlayedContentVec && x.lastPlayedContentVec.text_vec.isDefined) {
                 x.lastPlayedContentVec.text_vec.get.toSeq
@@ -258,16 +252,11 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 _getZeros(tag_dimensions);
             })
 
-            // Device Context Attributes
-            seq ++= Seq(x.device_spec.make, x.device_spec.screen_size, x.device_spec.external_disk, x.device_spec.internal_disk)
-            val psc = x.device_spec.primary_secondary_camera.split(",");
-            if (psc.length == 0) {
-                seq ++= Seq(0.0, 0.0);
-            } else if (psc.length == 1) {
-                seq ++= Seq(if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, 0.0);
-            } else {
-                seq ++= Seq(if (StringUtils.isBlank(psc(0))) 0.0 else psc(0).toDouble, if (StringUtils.isBlank(psc(1))) 0.0 else psc(1).toDouble);
-            }
+            seq ++= Seq(x.dusT.t_total_timespent.getOrElse(0.0), x.dusT.t_total_launches.getOrElse(0.0), x.dusT.t_total_play_time.getOrElse(0.0),
+                x.dusT.t_avg_num_launches.getOrElse(0.0), x.dusT.t_avg_time.getOrElse(0.0), x.dusT.t_end_time.getOrElse(0.0),
+                x.dusT.t_last_played_on.getOrElse(0.0), x.dusT.t_mean_play_time.getOrElse(0.0), x.dusT.t_mean_play_time_interval.getOrElse(0.0),
+                x.dusT.t_num_contents.getOrElse(0.0), x.dusT.t_num_days.getOrElse(0.0), x.dusT.t_num_sessions.getOrElse(0.0), x.dusT.t_play_start_time.getOrElse(0.0),
+                x.dusT.t_start_time.getOrElse(0.0))
 
             Row.fromSeq(seq);
         }
@@ -316,19 +305,17 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             new StructField("c2_total_devices", DoubleType, true), new StructField("c2_avg_sess_device", DoubleType, true));
 
         // Device Context Attributes
+        // Add c3 text vectors
+        seq ++= _getStructField("c3_text", text_dimensions);
+        // Add c3 tag vectors
+        seq ++= _getStructField("c3_tag", tag_dimensions);
+        
         seq ++= Seq(new StructField("total_timespent", DoubleType, true), new StructField("total_launches", DoubleType, true), new StructField("total_play_time", DoubleType, true),
             new StructField("avg_num_launches", DoubleType, true), new StructField("avg_time", DoubleType, true), new StructField("end_time", DoubleType, true),
             new StructField("last_played_on", DoubleType, true), new StructField("mean_play_time", DoubleType, true), new StructField("mean_play_time_interval", DoubleType, true),
             new StructField("num_contents", DoubleType, true), new StructField("num_days", DoubleType, true), new StructField("num_sessions", DoubleType, true),
             new StructField("play_start_time", DoubleType, true), new StructField("start_time", DoubleType, true))
-        // Add c3 text vectors
-        seq ++= _getStructField("c3_text", text_dimensions);
-        // Add c3 tag vectors
-        seq ++= _getStructField("c3_tag", tag_dimensions);
-
-        // Device Specification
-        seq ++= Seq(new StructField("device_spec", StringType, true), new StructField("screen_size", DoubleType, true), new StructField("external_disk", DoubleType, true), new StructField("internal_disk", DoubleType, true), new StructField("primary_camera", DoubleType, true), new StructField("secondary_camera", DoubleType, true))
-
+        
         new StructType(seq.toArray);
     }
 
@@ -421,7 +408,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("applied the formula", None, INFO, "org.ekstep.analytics.model");
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
-
+        
         val featureVector = output.select("features").rdd.map { x => x.getAs[org.apache.spark.ml.linalg.SparseVector](0).toDense }; //x.asInstanceOf[org.apache.spark.mllib.linalg.DenseVector] };
         JobLogger.log("created featureVector", None, INFO, "org.ekstep.analytics.model");
 
@@ -455,12 +442,16 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
         val final_scores = if (filterBlacklistedContents) {
             JobLogger.log("Fetching blacklisted contents from database", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-            val blacklistedContents = sc.cassandraTable[ContentId](Constants.CONTENT_KEY_SPACE_NAME, Constants.BLACKLISTED_CONTENTS).map { x => x.content_id }.collect()
-            JobLogger.log("Filtering scores for blacklisted contents", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-            device_scores.map { x =>
-                val filteredlist = x._2.filterNot(f => blacklistedContents.contains(f._1))
-                (x._1, filteredlist)
-            }
+            val blacklistedContents = sc.cassandraTable[BlacklistContents](Constants.PLATFORM_KEY_SPACE_NAME, Constants.RECOMMENDATION_CONFIG)
+            val contentsList = blacklistedContents.filter { x => x.config_key.equals("device_reco_blacklist") }
+            if (!contentsList.isEmpty()) {
+                JobLogger.log("Filtering scores for blacklisted contents", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+                val contents = contentsList.first().config_value
+                device_scores.map { x =>
+                    val filteredlist = x._2.filterNot(f => contents.contains(f._1))
+                    (x._1, filteredlist)
+                }
+            } else device_scores
         } else device_scores
         JobLogger.log("Check for score count in unfilter and filter for blacklisted contents for first content", Option(Map("unfiltered_scores" -> device_scores.first()._2.size, "filtered_scores_blacklisted" -> final_scores.first()._2.size, "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         final_scores.map { x =>
