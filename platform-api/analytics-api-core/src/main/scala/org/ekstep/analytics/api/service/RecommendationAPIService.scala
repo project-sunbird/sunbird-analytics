@@ -83,35 +83,35 @@ object RecommendationAPIService {
 		}
 	}
 	
-	private def contentRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
-		val context = requestBody.request.context.getOrElse(Map());
-	  val contentId = context.getOrElse("contentid", "").asInstanceOf[String];
-	  //JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
-	  val contentFilters = getContentFilter(contentId)
-	  val contentRecos = sc.cassandraTable[(List[(String, Double)])](Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).select("scores").where("content_id = ?", contentId);
-    println("content count : ", contentRecos.count())
-	  val contents = if (contentRecos.count() > 0) contentRecos.first.map(f => ContentCacheUtil.getREList.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2)) else List()
-    val result = if (contentFilters.isEmpty) {
-      contents;
+	 private def contentRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
+    val context = requestBody.request.context.getOrElse(Map());
+    val contentId = context.getOrElse("contentid", "").asInstanceOf[String];
+    val contentFilters = getContentFilter(contentId)
+    val contentRecos = sc.cassandraTable[(List[(String, Double)])](Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).select("scores").where("content_id = ?", contentId);
+
+    val result = if (contentRecos.count() > 0) {
+      contentRecos.first.map(f => ContentCacheUtil.getREList.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
+        .filter(p => p.get("identifier").isDefined)
+        .filter(p => {
+          var valid = true;
+          Breaks.breakable {
+            contentFilters.foreach { filter =>
+              valid = recoFilter(p, filter);
+              if (!valid) Breaks.break;
+            }
+          }
+          valid;
+        });
     } else {
-      contents.map(p => {
-        val filterScoreList = for (filter <- contentFilters) yield {
-          val valid = recoFilter(p, filter);
-          if (valid) 1 else 0;
-        };
-        val filterscore = filterScoreList.toList.sum;
-        (filterscore, p.get("reco_score").get.asInstanceOf[Double], p)
-      })
-      .sortBy(- _._1)
-      .sortBy(- _._2)
-      .map(x => x._3);
+      List();
     }
+
     // if recommendations is disabled then, always take limit from config otherwise user input.
-	  val limit =if (config.getBoolean("recommendation.enable")) requestBody.request.limit.getOrElse(config.getInt("service.search.limit")); 
-		 		else config.getInt("service.search.limit");
-		val respContent =result.take(limit)
-	  JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(0))));
-	}
+    val limit = if (config.getBoolean("recommendation.enable")) requestBody.request.limit.getOrElse(config.getInt("service.search.limit"));
+    else config.getInt("service.search.limit");
+    val respContent = result.take(limit)
+    JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(result.size))));
+  }
 	
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {
 		if ("LIST".equals(filter._3)) {
