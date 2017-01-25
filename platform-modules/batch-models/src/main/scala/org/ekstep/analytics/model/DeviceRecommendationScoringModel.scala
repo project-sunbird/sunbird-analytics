@@ -386,7 +386,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val inputDataPath = localPath + path + "RE-input"
         val scoreDataPath = localPath + path + "RE-score"
         val model_name = config.getOrElse("model_name", "fm.model").asInstanceOf[String]
-        val bucket = config.getOrElse("bucket", "sandbox-data-store").asInstanceOf[String];
+        val bucket = config.getOrElse("bucket", "ekstep-dev-data-store").asInstanceOf[String];
         val key = config.getOrElse("key", "model/").asInstanceOf[String];
         val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
