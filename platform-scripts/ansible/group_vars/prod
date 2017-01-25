@@ -27,6 +27,7 @@ secor:
   paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor/logs']
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=prod.conf
+dataExhaustPublicS3URL: https://s3-ap-southeast-1.amazonaws.com
 datasetReadBucket: ekstep-datasets
 dataExhaustBucket: ekstep-public
 dataExhaustPrefix: prod/data-exhaust

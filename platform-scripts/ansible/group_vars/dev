@@ -28,6 +28,7 @@ secor:
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
+dataExhaustPublicS3URL: https://s3-ap-southeast-1.amazonaws.com
 datasetReadBucket: ekstep-datasets-test
 dataExhaustBucket: ekstep-public
 dataExhaustPrefix: dev/data-exhaust

@@ -33,7 +33,7 @@ case class JobStage(request_id: String, client_key: String, stage: String, stage
 object DataExhaustJob extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
-    
+
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.init("DataExhaustJob")
         JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config)))
@@ -62,7 +62,7 @@ object DataExhaustJob extends optional.Application with IJob {
             _executeRequests(rdd.repartition(10), requests.collect(), modelParams);
             rdd.unpersist(true)
             requests.unpersist(true)
-        }else {
+        } else {
             JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0)));
         }
     }
@@ -179,7 +179,8 @@ object DataExhaustJob extends optional.Application with IJob {
                                 (result._2.prefix, stats)
                             case "s3" =>
                                 val stats = S3Util.getObjectDetails(result._2.bucket, result._2.prefix + ".zip");
-                                val loc = "https://" + "s3-ap-southeast-1.amazonaws.com/" + result._2.bucket + "/" + result._2.prefix + ".zip";
+                                val s3pubURL = config.getOrElse("data-exhaust-public-S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
+                                val loc = s3pubURL + "/" + result._2.bucket + "/" + result._2.prefix + ".zip";
                                 (loc, stats)
                         }
 
@@ -196,7 +197,7 @@ object DataExhaustJob extends optional.Application with IJob {
                     }
                 } catch {
                     case t: Throwable =>
-                        t.printStackTrace() 
+                        t.printStackTrace()
                         JobLogger.end("DataExhaust Job Completed.", "FAILED", Option(Map("date" -> "", "inputEvents" -> inputEventsCount)))
                         DataExhaustJobModel.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED")
                         null
