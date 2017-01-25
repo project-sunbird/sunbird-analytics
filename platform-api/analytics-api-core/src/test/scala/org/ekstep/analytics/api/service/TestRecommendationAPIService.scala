@@ -54,7 +54,6 @@ class TestRecommendationAPIService extends SparkSpec {
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("successful");
         val result = resp.result.get;
-        println("result : ", result)
         val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
         content should be (empty) 
     }

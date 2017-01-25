@@ -24,6 +24,7 @@ case class BlacklistContents(config_key: String, config_value: List[String])
 
 object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, ContentContext, ContentRecos, ContentRecos] with Serializable {
 
+    implicit val className = "org.ekstep.analytics.model.EndOfContentRecommendationModel"
     override def name: String = "EndOfContentRecommendationModel"
     
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentContext] = {
