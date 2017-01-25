@@ -69,7 +69,7 @@ class TestGenieFunnelModel extends SparkSpec(null) {
         val contentSearch = events.filter { x => "ContentSearch".equals(x.dimensions.funnel.get) }
 
         onbs.length should be(2)
-        contentSearch.length should be(6)
+        contentSearch.length should be(4)
 
         val onb = onbs.head
 
