@@ -62,7 +62,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
-    val time = dateTime.toLocalTime().toString("hh-mm")
+    val time = dateTime.toLocalTime().toString("HH-mm")
     val path = "/scoring/" + date + "/" + time + "/"
     val indexArray = ListBuffer[Long]()
 
@@ -391,13 +391,10 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val upload_score_s3 = config.getOrElse("upload_score_s3", false).asInstanceOf[Boolean];
-        val saveScoresTo = config.getOrElse("saveScoresTo", "both").asInstanceOf[String];
+        val saveScoresToFile = config.getOrElse("saveScoresToFile", true).asInstanceOf[Boolean];
         val filterBlacklistedContents = config.getOrElse("filterBlacklistedContents", true).asInstanceOf[Boolean];
-        val c1_ts_filter_value = config.getOrElse("c1_ts_filter_value", 0.0).asInstanceOf[Double];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
-        val filteredInput = data.filter { x => !(x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > c1_ts_filter_value) }.map{x => (x.did, x.contentInFocus)}.zipWithIndex().map { case (k, v) => (v, k) }
-        
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
@@ -412,10 +409,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
         
-        JobLogger.log("filter featureVector for already used content(filter c1_timespent > 0.0)", None, INFO, "org.ekstep.analytics.model");
-        val filteredVector = output.select("label", "features").rdd.map { x => (x.getDouble(0), x.getAs[org.apache.spark.ml.linalg.SparseVector](1).toDense) }.filter(f => !(f._1 > c1_ts_filter_value))
-        
-        val featureVector = filteredVector.map{x => x._2}
+        val featureVector = output.select("features").rdd.map { x => x.getAs[org.apache.spark.ml.linalg.SparseVector](0).toDense }; //x.asInstanceOf[org.apache.spark.mllib.linalg.DenseVector] };
         JobLogger.log("created featureVector", None, INFO, "org.ekstep.analytics.model");
 
         JobLogger.log("Downloading model from s3", None, INFO, "org.ekstep.analytics.model");
@@ -432,14 +426,14 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         }
 
         JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        //val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
+        val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
         val scoresIndexed = scores.zipWithIndex().map { case (k, v) => (v, k) }
-        JobLogger.log("device_content and scores with index count", Option(Map("device_content" -> filteredInput.count(), "scoresIndexed" -> scoresIndexed.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val device_scores = filteredInput.leftOuterJoin(scoresIndexed).map { x => (x._2._1._1, x._2._1._2, x._2._2) }.groupBy(x => x._1).mapValues(f => f.map(x => (x._2, x._3)).toList.sortBy(y => y._2).reverse)
+        JobLogger.log("device_content and scores with index count", Option(Map("device_content" -> device_content.count(), "scoresIndexed" -> scoresIndexed.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => (x._2._1._1, x._2._1._2, x._2._2) }.groupBy(x => x._1).mapValues(f => f.map(x => (x._2, x._3)).toList.sortBy(y => y._2).reverse)
         JobLogger.log("Number of devices for which scoring is done", Option(Map("Scored_devices" -> device_scores.count(), "devices_in_spec" -> data.map { x => x.device_spec.device_id }.distinct().count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
-        if (saveScoresTo.equals("both") || saveScoresTo.equals("file")) {
-            val scoreData = filteredInput.leftOuterJoin(scoresIndexed).map { f =>
+        if (saveScoresToFile) {
+            val scoreData = device_content.leftOuterJoin(scoresIndexed).map { f =>
                 IndexedScore(f._1, f._2._2.get)
             }.filter { x => indexArray.contains(x.index) }.map { x => JSONUtils.serialize(x) }
             JobLogger.log("Number of device-content for which saving scores to a file", Option(Map("saving_Scores_index count" -> scoreData.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
@@ -467,11 +461,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
-        val saveScoresTo = config.getOrElse("saveScoresTo", "both").asInstanceOf[String];
-        if (saveScoresTo.equals("both") || saveScoresTo.equals("table")) {
-            JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-            data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
-        }
+        val scoresTable = config.getOrElse("scoresTable", "device_recos_ds").asInstanceOf[String];
+        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, scoresTable)
         data;
     }
 
