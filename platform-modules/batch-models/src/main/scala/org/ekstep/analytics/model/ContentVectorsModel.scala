@@ -28,6 +28,8 @@ import java.net.URL
 import org.apache.commons.lang3.StringEscapeUtils
 import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.ekstep.analytics.adapter.ContentAdapter
+import org.apache.commons.io.FileUtils
+import java.io.File
 
 case class Params(resmsgid: String, msgid: String, err: String, status: String, errmsg: String);
 case class Response(id: String, ver: String, ts: String, params: Params, result: Option[Map[String, AnyRef]]);
@@ -54,14 +56,14 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         
         val contentRDD = if("true".equals(config.getOrElse("content2vec.all_content_flag","true"))) sc.parallelize(contentList, 10).cache(); else sc.parallelize(Array(contentList.last), 10).cache();
         JobLogger.log("Content count", Option(Map("contentCount" -> contentList.size)), INFO);
-        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp").asInstanceOf[String];
+        val downloadPath = config.getOrElse("content2vec.download_path", "/tmp/").asInstanceOf[String];
         val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_").asInstanceOf[String];
         val downloadTime = CommonUtil.time {
             val downloadRDD = contentRDD.map { x => x.getOrElse("downloadUrl", "").asInstanceOf[String] }.filter { x => StringUtils.isNotBlank(x) }.distinct;
             println("Total download files:", downloadRDD.count());
+            val localDownloadPath = if (downloadPath.endsWith(File.separator)) downloadPath else downloadPath + File.separator;
             downloadRDD.map { downloadUrl =>
-                val key = StringUtils.stripStart(CommonUtil.getPathFromURL(downloadUrl), "/");
-                S3Util.downloadFile("ekstep-public", key, downloadPath, downloadFilePrefix);
+                downloadECARFile(new URL(downloadUrl), localDownloadPath, downloadFilePrefix)
             }.collect; // Invoke the download
         }
         println("Time taken to download files(in secs):", (downloadTime._1 / 1000));
@@ -178,5 +180,16 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val dateRange = DtRange(ts, ts)
         val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId("AN_ENRICHED_CONTENT", null, null, dateRange, data.contentId);
         MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(data.contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data.jsonData)));
+    }
+    
+    private def downloadECARFile(url: URL, localPath: String, filePrefix: String = "") {
+    	val fileName = filePrefix + url.getFile.substring(url.getFile.lastIndexOf(File.separator)+1);
+	    val file = new File(localPath+fileName);
+    	try {
+	        FileUtils.copyURLToFile(url, file)
+    	} catch {
+    	  case t: Exception => 
+    	 	JobLogger.log("ECAR file download failed.", Option(Map("url" -> url, "localPath"-> file.getAbsolutePath, "message"-> t.getMessage)), ERROR)
+    	}
     }
 }
