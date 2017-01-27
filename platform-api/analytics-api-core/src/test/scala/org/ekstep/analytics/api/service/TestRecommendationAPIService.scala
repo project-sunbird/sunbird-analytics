@@ -58,7 +58,7 @@ class TestRecommendationAPIService extends SparkSpec {
         content should be (empty) 
     }
     
-    it should "return error response on invalid request" in {
+    it should "return error response on invalid request when request is empty" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
@@ -67,20 +67,40 @@ class TestRecommendationAPIService extends SparkSpec {
         resp.params.errmsg should be ("context required data is missing.");
     }
     
-    it should "retun only 3 contents" in {
-    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"},"limit":3}} """;
+    it should "return error response on invalid request when request context doesn't have did for content recommendation" in {
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"dlang": "en","contentid": "TestId1"}}} """;
     	val response = RecommendationAPIService.recommendations(request)(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
-        resp.params.status should be ("successful");
-        val result = resp.result.get;
-        val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
-        content should not be empty
-        if (config.getBoolean("recommendation.enable")) {
-        	content.size should be (3)	
-        } else {
-        	content.size should be (config.getInt("service.search.limit"))
-        }
+        resp.params.status should be ("failed");
+        resp.params.errmsg should be ("context required data is missing.");
+    }
+    
+    it should "return empty response on a request when request context contentid doesnot have recommended content" in {
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang": "en","contentid": "dot_123016"}}} """;
+    	val response = RecommendationAPIService.recommendations(request)(sc, config);
+    	val resp = JSONUtils.deserialize[Response](response);
+      resp.id should be ("ekstep.analytics.recommendations");
+      resp.params.status should be ("successful");
+      val result = resp.result.get;
+      val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
+      content should be (empty)
+    }
+    
+    it should "retun only 3 contents for device recommendation" in {
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"},"limit":3}} """;
+    	val response = RecommendationAPIService.recommendations(request)(sc, config);
+    	val resp = JSONUtils.deserialize[Response](response);
+      resp.id should be ("ekstep.analytics.recommendations");
+      resp.params.status should be ("successful");
+      val result = resp.result.get;
+      val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
+      content should not be empty
+      if (config.getBoolean("recommendation.enable")) {
+      	content.size should be (3)	
+      } else {
+      	content.size should be (config.getInt("service.search.limit"))
+      }
     }
     
     it should "return only 'Hindi' contents" in {
