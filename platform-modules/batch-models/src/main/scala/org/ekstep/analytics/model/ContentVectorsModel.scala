@@ -45,15 +45,8 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentAsString] = {
 
-        val baseUrl = AppConf.getConfig("service.search.url");
-        val searchUrl = s"$baseUrl/v2/search";
-
-        //val contentIds = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_tag = 'all' and d_period = 0").map { x => x.d_content_id }.distinct.collect().toList;
-        //val defRequest = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "identifier" -> contentIds), "exists" -> List("downloadUrl"), "limit" -> contentIds.size));
-        //val request = config.getOrElse("content2vec.search_request", defRequest).asInstanceOf[Map[String, AnyRef]];
-
         val contentList = ContentAdapter.getPublishedContent();
-        
+
         val contentRDD = if("true".equals(config.getOrElse("content2vec.all_content_flag","true"))) sc.parallelize(contentList, 10).cache(); else sc.parallelize(Array(contentList.last), 10).cache();
         JobLogger.log("Content count", Option(Map("contentCount" -> contentList.size)), INFO);
         val downloadPath = config.getOrElse("content2vec.download_path", "/tmp/").asInstanceOf[String];
@@ -74,17 +67,11 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
     override def algorithm(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
         contentToVec(data, config);
-        //contentToVecDummy(data, config);
     }
-
-    //    def contentToVecDummy(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
-    //        sc.makeRDD(Seq[ContentEnrichedJson](), 1);
-    //    }
 
     def contentToVec(data: RDD[ContentAsString], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentEnrichedJson] = {
 
         implicit val jobConfig = config;
-        //val scriptLoc = AppConf.getConfig("content2vec_scripts_path");
         val scriptLoc = jobConfig.getOrElse("content2vec_scripts_path", "").asInstanceOf[String];
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
