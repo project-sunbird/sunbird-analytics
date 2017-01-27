@@ -9,7 +9,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.annotation.tailrec
 
-case class ContentModel(id: String, subject: List[String], contentType: String, languageCode: List[String]);
+case class ContentModel(id: String, subject: List[String], contentType: String, languageCode: List[String], gradeList: List[String] = List[String]());
 
 case class ContentResult(count: Int, content: Array[Map[String, AnyRef]]);
 case class ContentResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: ContentResult);
@@ -47,7 +47,7 @@ object ContentAdapter extends BaseAdapter {
 
     def getPublishedContentForRE(): Array[ContentModel] = {
         val contents = getPublishedContent();
-        contents.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]]))
+        contents.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]], f.getOrElse("gradeLevel", List[String]()).asInstanceOf[List[String]]))
     }
 
     def _search(offset: Int, limit: Int): ContentResult = {
