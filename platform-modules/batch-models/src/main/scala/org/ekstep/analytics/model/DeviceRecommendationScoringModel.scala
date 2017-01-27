@@ -62,7 +62,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val defaultCUS = ContentUsageSummaryFact(0, null, null, new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
-    val time = dateTime.toLocalTime().toString("hh-mm")
+    val time = dateTime.toLocalTime().toString("HH-mm")
     val path = "/scoring/" + date + "/" + time + "/"
     val indexArray = ListBuffer[Long]()
 
@@ -391,7 +391,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val upload_score_s3 = config.getOrElse("upload_score_s3", false).asInstanceOf[Boolean];
-        val saveScoresTo = config.getOrElse("saveScoresTo", "both").asInstanceOf[String];
+        val saveScoresToFile = config.getOrElse("saveScoresToFile", true).asInstanceOf[Boolean];
         val filterBlacklistedContents = config.getOrElse("filterBlacklistedContents", true).asInstanceOf[Boolean];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
@@ -432,7 +432,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => (x._2._1._1, x._2._1._2, x._2._2) }.groupBy(x => x._1).mapValues(f => f.map(x => (x._2, x._3)).toList.sortBy(y => y._2).reverse)
         JobLogger.log("Number of devices for which scoring is done", Option(Map("Scored_devices" -> device_scores.count(), "devices_in_spec" -> data.map { x => x.device_spec.device_id }.distinct().count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
-        if (saveScoresTo.equals("both") || saveScoresTo.equals("file")) {
+        if (saveScoresToFile) {
             val scoreData = device_content.leftOuterJoin(scoresIndexed).map { f =>
                 IndexedScore(f._1, f._2._2.get)
             }.filter { x => indexArray.contains(x.index) }.map { x => JSONUtils.serialize(x) }
@@ -461,11 +461,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
-        val saveScoresTo = config.getOrElse("saveScoresTo", "both").asInstanceOf[String];
-        if (saveScoresTo.equals("both") || saveScoresTo.equals("table")) {
-            JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-            data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_RECOS)
-        }
+        val scoresTable = config.getOrElse("scoresTable", "device_recos_ds").asInstanceOf[String];
+        JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, scoresTable)
         data;
     }
 
