@@ -140,9 +140,9 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         val cdataType = cdata.`type`.get
         //if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if (("ContentSearch".equals(stageId) || "ContentList".equals(stageId)) && "SearchPhrase".equals(subType)) "ContentSearch"; else if ("ExploreContent".equals(stageId) && ("".equals(subType) || "ContentClicked".equals(subType))) "ExploreContent"; else "";
         //if ("ONBRDNG".equals(cdataType)) "GenieOnboarding"; else if ("org.ekstep.recommendation".equals(cdataType)) "ContentRecommendation"; else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) "ContentSearch"; else if ("ContentList".equals(stageId) && "SearchPhrase".equals(subType)) "ExploreContent"; else if ("ExploreContent".equals(stageId) && ("".equals(subType) || "ContentClicked".equals(subType))) "ExploreContent"; else "";
-        if ("ONBRDNG".equals(cdataType)) {
+        if ("ONBRDNG".equalsIgnoreCase(cdataType)) {
             "GenieOnboarding";
-        } else if ("org.ekstep.recommendation".equals(cdataType)) {
+        } else if ("org.ekstep.recommendation".equals(cdataType) || "api-ekstep.analytics.recommendations".equals(cdataType)) {
             "ContentRecommendation";
         } else if ("ContentSearch".equals(stageId) && "SearchPhrase".equals(subType)) {
             "ContentSearch";
