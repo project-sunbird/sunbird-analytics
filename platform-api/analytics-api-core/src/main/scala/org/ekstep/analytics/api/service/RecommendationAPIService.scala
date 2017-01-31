@@ -65,9 +65,22 @@ object RecommendationAPIService {
   }
 
   private def contentRecommendations(contentId: String, limit: Int)(implicit sc: SparkContext, config: Config): String = {
-    val contentFilters: Array[(String, List[String], String)] = getContentFilter(contentId)
-    val contentRecos = sc.cassandraTable[(List[(String, Double)])](Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).select("scores").where("content_id = ?", contentId);
-    getRecommendedContent(contentRecos, contentFilters, limit)
+	val content: Map[String, AnyRef] = ContentCacheUtil.getREList.getOrElse(contentId, Map());
+    if (content.isEmpty) {
+    	println("Given content is not live ContentID:" + contentId);
+        JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
+    } else {
+      val contentLanguage = getValueAsList(content, "language")
+      if (contentLanguage.isEmpty) {
+    	  println("Language value is empty for ContentID:" + contentId);
+    	  JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
+      } else {
+    	 val contentFilters: Array[(String, List[String], String)] = Array(("language", contentLanguage, "LIST"));
+    	 val contentRecos = sc.cassandraTable[(List[(String, Double)])](Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).select("scores").where("content_id = ?", contentId);
+         getRecommendedContent(contentRecos, contentFilters, limit)
+      }
+      
+    }
   }
 
   private def getRecommendedContent(records: RDD[List[(String, Double)]], filters: Array[(String, List[String], String)], limit: Int): String = {
@@ -112,15 +125,6 @@ object RecommendationAPIService {
       } else {
         value.get.asInstanceOf[List[String]];
       }
-    }
-  }
-
-  private def getContentFilter(id: String): Array[(String, List[String], String)] = {
-    val content: Map[String, AnyRef] = ContentCacheUtil.getREList.getOrElse(id, Map());
-    if (content.isEmpty) {
-      Array();
-    } else {
-      Array(("language", getValueAsList(content, "language"), "LIST"))
     }
   }
 
