@@ -12,6 +12,7 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         val me = EndOfContentRecommendationModel.execute(null, Option(Map("method" -> "cosine", "norm" -> "none", "weight" -> Double.box(0.1), "filterBlacklistedContents" -> true.asInstanceOf[AnyRef])))
         val table1 = sc.cassandraTable[ContentRecos](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_RECOS).where("content_id=?", "domain_64106").first
         table1.scores.size should be(1)
+        table1.scores.contains(table1.content_id) should be(false)
     }
     
     it should "save scores to cassandra without filtering blacklisted contents" in {
@@ -20,6 +21,7 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         val me = EndOfContentRecommendationModel.execute(null, Option(Map("method" -> "cosine", "norm" -> "none", "weight" -> Double.box(0.1))))
         val table1 = sc.cassandraTable[ContentRecos](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_RECOS).where("content_id=?", "domain_64106").first
         table1.scores.size should be(2)
+        table1.scores.contains(table1.content_id) should be(false)
     }
     
     it should "shouldn't throw any exception if blacklisted contents list is empty and filterBlacklistedContents is true " in {
@@ -39,6 +41,7 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         val me = EndOfContentRecommendationModel.execute(null, Option(Map("method" -> "cosine", "norm" -> "none", "weight" -> Double.box(0.1), "filterBlacklistedContents" -> true.asInstanceOf[AnyRef])))
         val table1 = sc.cassandraTable[ContentRecos](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_RECOS).where("content_id=?", "domain_64106").first
         table1.scores.size should be(2)
+        table1.scores.contains(table1.content_id) should be(false)
     }
     
     def populateDatabase() {
