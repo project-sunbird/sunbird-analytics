@@ -6,13 +6,6 @@
 GET	/health @controllers.Application.checkAPIhealth
 POST /content/recommend @controllers.Application.recommendations
 
-# System APIs
-POST /content/vectors/:contentId   @controllers.Application.contentToVec(contentId: String)
-POST /train/content-to-vec @controllers.Application.contentToVecTrainModel
-POST /train/recommendations @controllers.Application.recommendationsTrainModel
-POST /run/:job @controllers.Application.runJob(job: String)
-POST /replay/:job/:from/:to @controllers.Application.replayJob(job: String, from: String, to: String)
-
 # Metrics APIs
 POST /metrics/content-usage @controllers.Metrics.contentUsage
 POST /metrics/content-popularity @controllers.Metrics.contentPopularity

@@ -41,36 +41,6 @@ class ApplicationSpec extends BaseSpec {
 			isOK(response);
        }
        
-       "invoke content to vec on a content" in new WithApplication {
-			val request = """ {"id":"ekstep.analytics.content-to-vec","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{}} """
-			val response = post("/content/vectors/domain_63844", request);
-    	   	isOK(response);			
-       }
-       
-       "invoke content to vec train model" in new WithApplication {
-			val request = """ {} """
-			val response = post("/train/content-to-vec", request);
-			isOK(response);
-       }
-       
-       "invoke recommendations model training" in new WithApplication {
-			val request = """ {} """
-			val response = post("/train/recommendations", request);
-			isOK(response);
-       }
-       
-       "invoke run job" in new WithApplication {
-			val request = """ {} """
-			val response = post("/run/ss", request);
-			isOK(response);
-       }
-       
-       "invoke replay-job" in new WithApplication {
-			val request = """ {} """
-			val response = post("/replay/ss/2016-04-01/2016-04-03", request);
-			isOK(response);
-       }
-       
        "register tag" in new WithApplication {
     	   	val request = """ {} """
 			val response = post("/metrics/tag/register/4f04da601e244d31aa7b1daf91c46341",request);
