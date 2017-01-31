@@ -60,7 +60,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
                 val records = getData[T](contentId, tags, period.replace("LAST_", "").replace("_", "")).cache();
                 records;
             });
-            println(s"Timetaken to fetch data from S3 ($contentId, $tags, $period):", dataFetch._1);
             
             val aggregated = if ("ius".equals(metric())) dataFetch._2 else 
             	dataFetch._2.groupBy { x => x.d_period.get }.mapValues { x => x }.map(f => f._2).asInstanceOf[RDD[Iterable[Metrics]]]
@@ -130,7 +129,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
         val queriesS3 = filePaths.map { filePath => Query(Option(config.getString("metrics.search.params.bucket")), Option(filePath)) }
         val queriesLocal = filePaths.map { filePath => Query(None, None, None, None, None, None, None, None, None, Option(filePath)) }
 
-        println("filePaths:", filePaths.mkString(","));
         val search = config.getString("metrics.search.type") match {
             case "local" => Fetcher("local", None, Option(queriesLocal));
             case "s3"    => Fetcher("s3", None, Option(queriesS3));
