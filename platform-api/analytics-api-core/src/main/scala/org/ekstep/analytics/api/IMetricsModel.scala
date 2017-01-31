@@ -43,7 +43,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
     	val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
             _fetch(contentId, tags, period, fields);
         });
-        println(s"Timetaken to fetch API data ($contentId, $tag, $period):", timeTaken._1);
         timeTaken._2;
     }
 
