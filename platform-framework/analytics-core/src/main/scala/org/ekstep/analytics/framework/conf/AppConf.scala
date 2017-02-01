@@ -4,36 +4,23 @@ import java.util.Properties
 import java.io.FileInputStream
 import scala.io.Source
 import org.ekstep.analytics.framework.util.JobLogger
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigParseOptions
+import com.typesafe.config.ConfigResolveOptions
 
 object AppConf {
 
     implicit val className = "org.ekstep.analytics.framework.conf.AppConf";
 
-    var initialized = false;
-    var properties: Properties = null;
-
-    def init() {
-        if (!initialized) {
-            val key = getConfigKey;
-            JobLogger.log("Config file used", Option(Map("file" -> key)));
-            val is = getClass.getResourceAsStream(key)
-            properties = new Properties();
-            properties.load(is)
-            is.close()
-            initialized = true;
-        }
-    }
+    lazy val conf = ConfigFactory.load();
+    lazy val env = ConfigFactory.systemEnvironment();
 
     def getConfig(key: String): String = {
-        if (!initialized) {
-            init();
-        }
-        val prop = sys.env.getOrElse(key, "");
-        if (prop.nonEmpty) {
-            prop;
-        } else {
-            properties.getProperty(key, "");
-        }
+        if (env.hasPath(key))
+            env.getString(key);
+        else if (conf.hasPath(key))
+            conf.getString(key);
+        else "";
     }
 
     def getAwsKey(): String = {
@@ -42,11 +29,6 @@ object AppConf {
 
     def getAwsSecret(): String = {
         getConfig("aws_secret");
-    }
-
-    def getConfigKey(): String = {
-        val env = sys.props.getOrElse("env", "LOCAL");
-        "/" + env.toLowerCase() + ".config.properties";
     }
 
 }
