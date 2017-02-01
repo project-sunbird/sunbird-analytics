@@ -50,7 +50,7 @@ import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.adapter.ContentResponse
 import java.io.File
 
-case class IndexedScore(index: Long, score: Double)
+case class IndexedScore(did: String, c1_content_id: String, score: Double)
 
 object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent, DeviceContext, DeviceRecos, DeviceRecos] with Serializable {
 
@@ -393,8 +393,12 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val upload_score_s3 = config.getOrElse("upload_score_s3", false).asInstanceOf[Boolean];
         val saveScoresToFile = config.getOrElse("saveScoresToFile", true).asInstanceOf[Boolean];
         val filterBlacklistedContents = config.getOrElse("filterBlacklistedContents", true).asInstanceOf[Boolean];
+        val c1_ts_filter_value = config.getOrElse("c1_ts_filter_value", 0.0).asInstanceOf[Double];
         CommonUtil.deleteFile(localPath + key.split("/").last);
 
+        val filteredInput = data.zipWithIndex().map { case (k, v) => (v, k) }.filter { x => !(x._2.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > c1_ts_filter_value) }.map{x => (x._1, (x._2.did, x._2.contentInFocus))}//.zipWithIndex().map { case (k, v) => (v, k) }
+        JobLogger.log("Fetching did and contentId where c1_ts > 0.0", Option(Map("total size" -> data.count(), "filtered count" -> filteredInput.count())), INFO, "org.ekstep.analytics.model");
+        
         JobLogger.log("Creating dataframe and libfm data", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         val rdd: RDD[Row] = _createDF(data, tag_dimensions, text_dimensions);
         JobLogger.log("Creating RDD[Row]", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
@@ -408,9 +412,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("applied the formula", None, INFO, "org.ekstep.analytics.model");
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
-        
-        val featureVector = output.select("features").rdd.map { x => x.getAs[org.apache.spark.ml.linalg.SparseVector](0).toDense }; //x.asInstanceOf[org.apache.spark.mllib.linalg.DenseVector] };
-        JobLogger.log("created featureVector", None, INFO, "org.ekstep.analytics.model");
+               
+        val featureVector = output.select("features").rdd.map { x => x.getAs[org.apache.spark.ml.linalg.SparseVector](0).toDense }
+        JobLogger.log("created featureVector", Option(Map("featureVector rdd size" -> featureVector.count())), INFO, "org.ekstep.analytics.model");
 
         JobLogger.log("Downloading model from s3", None, INFO, "org.ekstep.analytics.model");
         S3Util.downloadFile(bucket, key + model_name, localPath + path)
@@ -426,16 +430,16 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         }
 
         JobLogger.log("Load the scores into memory and join with device content", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
         val scoresIndexed = scores.zipWithIndex().map { case (k, v) => (v, k) }
-        JobLogger.log("device_content and scores with index count", Option(Map("device_content" -> device_content.count(), "scoresIndexed" -> scoresIndexed.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
-        val device_scores = device_content.leftOuterJoin(scoresIndexed).map { x => (x._2._1._1, x._2._1._2, x._2._2) }.groupBy(x => x._1).mapValues(f => f.map(x => (x._2, x._3)).toList.sortBy(y => y._2).reverse)
+        JobLogger.log("device_content and scores with index count", Option(Map("device_content" -> filteredInput.count(), "scoresIndexed" -> scoresIndexed.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        val device_scores = filteredInput.leftOuterJoin(scoresIndexed).map { x => (x._2._1._1, x._2._1._2, x._2._2) }.groupBy(x => x._1).mapValues(f => f.map(x => (x._2, x._3)).toList.sortBy(y => y._2).reverse)
         JobLogger.log("Number of devices for which scoring is done", Option(Map("Scored_devices" -> device_scores.count(), "devices_in_spec" -> data.map { x => x.device_spec.device_id }.distinct().count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
         if (saveScoresToFile) {
+            val device_content = data.map { x => (x.did, x.contentInFocus, x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0)) }.zipWithIndex().map { case (k, v) => (v, k) }.filter { x => (x._2._3 > 0.0) }
             val scoreData = device_content.leftOuterJoin(scoresIndexed).map { f =>
-                IndexedScore(f._1, f._2._2.get)
-            }.filter { x => indexArray.contains(x.index) }.map { x => JSONUtils.serialize(x) }
+                IndexedScore(f._2._1._1, f._2._1._2, f._2._2.get)
+            }.map { x => JSONUtils.serialize(x) }
             JobLogger.log("Number of device-content for which saving scores to a file", Option(Map("saving_Scores_index count" -> scoreData.count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
             scoreData.saveAsTextFile(scoreDataPath);
         }
@@ -461,7 +465,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
-        val scoresTable = config.getOrElse("scoresTable", "device_recos_ds").asInstanceOf[String];
+        val scoresTable = config.getOrElse("scoresTable", "device_recos").asInstanceOf[String];
         JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, scoresTable)
         data;
