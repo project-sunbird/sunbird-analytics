@@ -20,18 +20,20 @@ object DeviceRecommendationScoringJob extends Application with IJob  {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         val conf = JSONUtils.deserialize[JobConfig](config)
         val localPath = conf.modelParams.get.getOrElse("localPath", "/tmp/").asInstanceOf[String];
-        initLoggingDir(localPath);
+        val dataTimeFolderStructure = conf.modelParams.get.getOrElse("dataTimeFolderStructure", true).asInstanceOf[Boolean];
+        initLoggingDir(localPath, dataTimeFolderStructure);
         JobLogger.log("Started executing Job", Option(Map("config" -> JSONUtils.deserialize[JobConfig](config))), INFO, "org.ekstep.analytics.model")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, DeviceRecommendationScoringModel);
         JobLogger.log("Job Completed.", None, INFO, "org.ekstep.analytics.model")
     }
     
-    def initLoggingDir(logPath: String) {
+    def initLoggingDir(logPath: String, dataTimeFolderStructure: Boolean) {
         val dateTime = new DateTime()
         val date = dateTime.toLocalDate()
         val time = dateTime.toLocalTime().toString("HH-mm")
-        val path = "/scoring/" + date + "/" + time + "/"
+        val path_default = "/scoring/" + date + "/" + time + "/"
+        val path = if(dataTimeFolderStructure) path_default else ""
         val logDir = logPath + path;
         System.setProperty("REDir", logDir);
         val ctx = LogManager.getContext(false).asInstanceOf[LoggerContext];

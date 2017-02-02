@@ -76,7 +76,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
     val time = dateTime.toLocalTime().toString("HH-mm")
-    val path = "/training/" + date + "/" + time + "/"
+    val path_default = "/training/" + date + "/" + time + "/"
 
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
@@ -331,6 +331,8 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
 
         import sqlContext.implicits._
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
+        val dataTimeFolderStructure = config.getOrElse("dataTimeFolderStructure", true).asInstanceOf[Boolean];
+        val path = if(dataTimeFolderStructure) path_default else ""
         val model_name = config.getOrElse("model_name", "fm.model").asInstanceOf[String]
         val completePath = localPath + path
         val trainDataFile = completePath + "trainData/part-00000"

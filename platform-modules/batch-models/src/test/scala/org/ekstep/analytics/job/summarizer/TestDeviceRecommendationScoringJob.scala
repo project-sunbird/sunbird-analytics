@@ -15,8 +15,7 @@ import org.ekstep.analytics.util.Constants
 
 class TestDeviceRecommendationScoringJob extends SparkSpec(null) {
 
-    //    "DeviceRecommendationScoringJob" should "execute the job and shouldn't throw any exception" in {
-    ignore should "execute the job and shouldn't throw any exception" in {
+    "DeviceRecommendationScoringJob" should "execute the job and shouldn't throw any exception" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE device_db.device_usage_summary;");
@@ -42,15 +41,8 @@ class TestDeviceRecommendationScoringJob extends SparkSpec(null) {
             session.execute("INSERT INTO content_db.content_to_vector(content_id, tag_vec, text_vec) VALUES ('domain_63844', [-0.002815, -0.00077, 0.00783, -0.003143, -0.008894, -0.003984, -0.001336, -0.005424, -0.000627, -0.000348, -0.000123, 0.009205, 0.003591, -0.001231, -0.008066] ,[-0.002815, -0.00077, 0.00783, -0.003143, -0.008894, -0.003984, -0.001336, -0.005424, -0.000627, -0.000348, -0.000123, 0.009205, 0.003591, -0.001231, -0.008066]);");
         }
 
-        //        val blacklistedContents = sc.parallelize(Array("org.ekstep.num.scrn.basic", "do_30088866", "numeracy_369", "org.ekstep.aser", "do_30088250", "do_30014045", "org.ekstep.delta", "org.ekstep.esl1", "do_30074519", "domain_6444")).map{x => ContentId(x)};
-        //        blacklistedContents.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, "blacklisted_contents")
-
-        val configS = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))), None, None, "org.ekstep.analytics.model.DeviceRecommendationScoringModel", Option(Map("model_name" -> "fm.model0", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "live_content_limit" -> Int.box(1000), "key" -> "model/test/")), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestREScoringJob"), Option(false))
-        //        val configT = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))), None, None, "org.ekstep.analytics.model.DeviceRecommendationTrainingModel", Option(Map("live_content_limit" -> Int.box(1000), "trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "libfm.executable_path" -> "src/test/resources/device-recos-training/libfm/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model0")), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceRecommendationJob"), Option(false))
-        //        DeviceRecommendationTrainingJob.main(JSONUtils.serialize(configT))(Option(sc));
+        val configS = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))))), None, None, "org.ekstep.analytics.model.DeviceRecommendationScoringModel", Option(Map("model_name" -> "fm.model0", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestREScoringJob"), Option(false))
         DeviceRecommendationScoringJob.main(JSONUtils.serialize(configS))(Option(sc));
-        //        CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
-        //        CommonUtil.deleteFile("src/test/resources/device-recos-training/fm.model");
-        //        CommonUtil.deleteFile("src/test/resources/device-recos-training/score.txt");
+        CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
 }

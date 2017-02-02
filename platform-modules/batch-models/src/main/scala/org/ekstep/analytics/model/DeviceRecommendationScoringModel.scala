@@ -63,7 +63,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val dateTime = new DateTime()
     val date = dateTime.toLocalDate()
     val time = dateTime.toLocalTime().toString("HH-mm")
-    val path = "/scoring/" + date + "/" + time + "/"
+    val path_default = "/scoring/" + date + "/" + time + "/"
     val indexArray = ListBuffer[Long]()
 
     def choose[A](it: Buffer[A], r: Random): A = {
@@ -75,6 +75,8 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
         val filterByNumContents = config.getOrElse("filterByNumContents", false).asInstanceOf[Boolean];
+        val dataTimeFolderStructure = config.getOrElse("dataTimeFolderStructure", true).asInstanceOf[Boolean];
+        val path = if(dataTimeFolderStructure) path_default else "" 
 
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
@@ -382,6 +384,8 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         implicit val sqlContext = new SQLContext(sc);
 
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
+        val dataTimeFolderStructure = config.getOrElse("dataTimeFolderStructure", true).asInstanceOf[Boolean];
+        val path = if(dataTimeFolderStructure) path_default else "" 
         val outputFile = localPath + path + "scores"
         val inputDataPath = localPath + path + "RE-input"
         val scoreDataPath = localPath + path + "RE-score"
