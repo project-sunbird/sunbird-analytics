@@ -1,6 +1,7 @@
 package controllers
 
 import org.ekstep.analytics.api.service.HealthCheckAPIService
+
 import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.api.service.TagService
 import org.ekstep.analytics.api.util._
@@ -27,6 +28,11 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
 import org.ekstep.analytics.api.service.RecommendationAPIService.RecommendRequest
+import akka.actor.Props
+import akka.routing.FromConfig
+import org.ekstep.analytics.api.service.HealthCheckAPIService.GetHealthStatus
+import org.ekstep.analytics.api.service.TagService.DeleteTag
+import org.ekstep.analytics.api.service.TagService.RegisterTag
 
 /**
  * @author mahesh
@@ -35,11 +41,15 @@ import org.ekstep.analytics.api.service.RecommendationAPIService.RecommendReques
 @Singleton
 class Application @Inject() (system: ActorSystem) extends BaseController {
 	implicit val className = "controllers.Application";
-	val recommendAPIActor = system.actorOf(RecommendationAPIService.props, "recommendAPIActor");
+	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor");
+	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor");
+	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor");
 
-	def checkAPIhealth() = Action { implicit request =>
-		val response = HealthCheckAPIService.getHealthStatus()(Context.sc)
-		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+	def checkAPIhealth() = Action.async { implicit request =>
+    val result = ask(healthCheckAPIActor, GetHealthStatus(Context.sc)).mapTo[String];
+    result.map { x =>
+      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+    }
 	}
 
 	def recommendations() = Action.async { implicit request =>
@@ -59,13 +69,17 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 		}
 	}
 	
-	def registerTag(tagId: String) = Action { implicit request =>
-		val response = TagService.registerTag(tagId)(Context.sc);
-		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+	def registerTag(tagId: String) = Action.async { implicit request =>
+		val result = ask(tagServiceAPIActor, RegisterTag(tagId, Context.sc)).mapTo[String];
+    result.map { x =>
+      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+    }
 	}
 
-	def deleteTag(tagId: String) = Action { implicit request =>
-		val response = TagService.deleteTag(tagId)(Context.sc);
-		Ok(response).withHeaders(CONTENT_TYPE -> "application/json");
+	def deleteTag(tagId: String) = Action.async { implicit request =>
+		val result = ask(tagServiceAPIActor, DeleteTag(tagId, Context.sc)).mapTo[String];
+    result.map { x =>
+      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+    }
 	}
 }
