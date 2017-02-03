@@ -444,7 +444,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val filteredOut = out.filter(f => f._2 > 0.0)
         JobLogger.log("Count of filtered data with 0.0 and unfiltered data", Option(Map("unfiltered count" -> out.count(), "filtered count" -> filteredOut.count())), INFO, "org.ekstep.analytics.model");
         val meanTarget = filteredOut.map{f => (f._1, f._2)}.groupByKey().mapValues {x => ((x.sum/x.size), x.size)}
-        val aggregated = filteredOut.map{x => (x._1, x._3)}.map { case (k: String, v: SparseVector) => (k, BDV(v.toDense.values)) }.foldByKey(BDV(Array.fill(vecSize)(0.0)))(_ += _)
+        val aggregated = filteredOut.map{x => (x._1, x._3)}.map { case (k: String, v: Vector) => (k, BDV(v.toDense.values)) }.foldByKey(BDV(Array.fill(vecSize)(0.0)))(_ += _)
         val finalOut = meanTarget.join(aggregated).map{x => (x._2._1._1, Vectors.dense(((1/x._2._1._2.toDouble) * x._2._2).toArray), x._2._1._2, x._1)}.toDF("label", "features", "count", "did")
         finalOut.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd;
     }
