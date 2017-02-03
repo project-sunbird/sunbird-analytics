@@ -64,7 +64,6 @@ if [ "$failed_jobs" != "" ]; then
 		#message=`grep -Po '(?<="localizedMessage":")[^"]*' <<< "$line"`
 		sub="BE_JOB_END"
 		eventsIn=`sed 's/.*","inputEvents":\(.*\)},".*/\1/' <<< "$line"`
-		eventsIn1=`sed 's/.*","inputEvents":\(.*\),"outputEvents":.*/\1/' <<< "$line"`
 		if [ "${eventsIn/$sub}" != "$eventsIn" ] ; then
   			eventsIn=0
   		fi
@@ -73,9 +72,9 @@ if [ "$failed_jobs" != "" ]; then
   			event_date=""
   		fi
   		echo "$event_date"
-  		input+=( [$model]=$eventsIn1 )
+  		input+=( [$model]=$eventsIn )
         output+=([$model]=$events )
-		file_content+="$model,$job_status,$eventsIn1,$events,$time_taken,$event_date\n"
+		file_content+="$model,$job_status,$eventsIn,$events,$time_taken,$event_date\n"
 	done <<< "$failed_jobs"
 fi
 

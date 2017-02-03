@@ -16,73 +16,47 @@ import org.ekstep.analytics.api.util.JSONUtils
 @RunWith(classOf[JUnitRunner])
 class ApplicationSpec extends BaseSpec {
 
-    "Application" should {
+    "Application" should new WithApplication {
 
-        "send 404 on a bad request" in new WithApplication {
+        "send 404 on a bad request" in {
             route(FakeRequest(GET, "/boum")) must beSome.which (status(_) == NOT_FOUND)
         }
 
-       "return api health status report - successful response" in new WithApplication {
+       "return api health status report - successful response" in {
            val response = route(FakeRequest(GET, "/health")).get
             status(response) must equalTo(OK)
        }
        
-       "return error response on invalid request(recommendations) - error response" in new WithApplication {
+       "return error response on invalid request(recommendations) - error response" in {
     		val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """
     		post("/content/recommend", request)
 			val response = post("/content/recommend", request);
 //    		hasClientError(response);
+    		status(response) must equalTo(OK)
        }
        
-       "return the recommendations - successful response" in new WithApplication {
+       "return the recommendations - successful response" in {
 			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}, "filters": {"contentType": "Story"}}} """
 			post("/content/recommend", request)
 			val response = post("/content/recommend", request);
 			isOK(response);
+			status(response) must equalTo(OK)
        }
        
-       "invoke content to vec on a content" in new WithApplication {
-			val request = """ {"id":"ekstep.analytics.content-to-vec","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{}} """
-			val response = post("/content/vectors/domain_63844", request);
-    	   	isOK(response);			
-       }
-       
-       "invoke content to vec train model" in new WithApplication {
-			val request = """ {} """
-			val response = post("/train/content-to-vec", request);
-			isOK(response);
-       }
-       
-       "invoke recommendations model training" in new WithApplication {
-			val request = """ {} """
-			val response = post("/train/recommendations", request);
-			isOK(response);
-       }
-       
-       "invoke run job" in new WithApplication {
-			val request = """ {} """
-			val response = post("/run/ss", request);
-			isOK(response);
-       }
-       
-       "invoke replay-job" in new WithApplication {
-			val request = """ {} """
-			val response = post("/replay/ss/2016-04-01/2016-04-03", request);
-			isOK(response);
-       }
-       
-       "register tag" in new WithApplication {
+       "register tag" in {
     	   	val request = """ {} """
 			val response = post("/metrics/tag/register/4f04da601e244d31aa7b1daf91c46341",request);
 			isOK(response);
+			status(response) must equalTo(OK)
        }
        
-       "un-register tag" in new WithApplication {
+       "un-register tag" in {
     	   	val response = route(FakeRequest(DELETE, "/metrics/tag/delete/4f04da601e244d31aa7b1daf91c46341")).get;
 			isOK(response);
+			status(response) must equalTo(OK)
        }
        
-       "recommendations - should return empty response when recommendations disabled" in new WithApplication {
+       "recommendations - should return empty response when recommendations disabled" in {
 			val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}, "filters": {"contentType": "Story"}}} """
 			post("/content/recommend", request)
 			val response = post("/content/recommend", request);

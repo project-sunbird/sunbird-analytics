@@ -85,6 +85,8 @@ object JobFactory {
                 DataExhaustJob
             case "precomp-views" =>
                 PrecomputedViewsJob
+            case "content-recos" =>
+                EndOfContentRecommendationJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

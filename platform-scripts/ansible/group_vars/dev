@@ -9,7 +9,7 @@ sbin_path: "{{ user_home }}/sbin"
 analytics:
   home: /mnt/data/analytics
   paths: ['/mnt/data/analytics', '/mnt/data/analytics/api', '/mnt/data/analytics/models', '/mnt/data/analytics/scripts/logs', '/mnt/data/analytics/reports', '/mnt/data/analytics/tmp', '/mnt/data/analytics/scripts/monitor-data']
-  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp','pre-comp-job']
+  scripts: ['model-config', 'replay-job', 'replay-updater', 'replay-utils', 'run-job', 'monitor-dp']
 cassandra_home: "{{ analytics.home }}/apache-cassandra-3.7"
 cql_path: "{{ analytics.home }}/apache-cassandra-3.7/bin/cqlsh"
 #api_root: "{{ analytics.home }}/api"
@@ -28,6 +28,7 @@ secor:
   properties: ['secor.common', 'secor', 'secor.partition']
 #api_args: -Dconfig.resource=dev.conf
 bucket: sandbox-data-store
+dataExhaustPublicS3URL: https://s3-ap-southeast-1.amazonaws.com
 datasetReadBucket: ekstep-datasets-test
 dataExhaustBucket: ekstep-public
 dataExhaustPrefix: dev/data-exhaust
@@ -113,17 +114,15 @@ jobs:
     hour: 3
     minute: 0
     state: present
-
-pre_jobs:
-  pre_job:
-    hour: 2
-    minute: 30
-    status: absent
+  content-recos:
+    hour: 3
+    minute: 8
+    state: present
 
 monit_jobs:
   joblog.log:
     hour: 3
-    minute: 10
+    minute: 18
 
 cassandra:
   seeds: 172.31.25.29

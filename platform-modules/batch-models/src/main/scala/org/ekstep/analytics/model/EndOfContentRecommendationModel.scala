@@ -17,6 +17,8 @@ import breeze.numerics._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.ContentId
+import org.ekstep.analytics.adapter.ContentAdapter
+import org.ekstep.analytics.adapter.ContentModel
 
 case class ContentRecos(content_id: String, scores: List[(String, Double)]) extends AlgoOutput with Output
 case class ContentContext(c1_ctv: ContentToVector, c2_ctv: ContentToVector) extends AlgoInput
@@ -24,6 +26,11 @@ case class BlacklistContents(config_key: String, config_value: List[String])
 
 object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, ContentContext, ContentRecos, ContentRecos] with Serializable {
 
+    implicit val className = "org.ekstep.analytics.model.EndOfContentRecommendationModel"
+    override def name: String = "EndOfContentRecommendationModel"
+    
+    val defaultContentModel = ContentModel("" , List(), "", List())
+    
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentContext] = {
 
         val contentVectors = sc.cassandraTable[ContentToVector](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_TO_VEC);
@@ -37,22 +44,35 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
         val norm = config.getOrElse("norm", "none").asInstanceOf[String]
         val weight = config.getOrElse("weight", 0.1).asInstanceOf[Double]
         val filterBlacklistedContents = config.getOrElse("filterBlacklistedContents", false).asInstanceOf[Boolean];
+        
+        //Content Model
+        val contentModel = ContentAdapter.getPublishedContentForRE().map { x => (x.id, x) }
+        val cm = sc.parallelize(contentModel)
+        val contentMap = contentModel.toMap;
 
         val scores = data.map { x => ((x.c1_ctv.contentId, x.c2_ctv.contentId), x) }.mapValues { x =>
             getContentSimilarity(x.c1_ctv, x.c2_ctv, method, norm, weight)
         }.groupBy(x => x._1._1).mapValues(f => f.map(x => (x._1._2, x._2)).toList.sortBy(y => y._2).reverse)
 
+        val filtered_scores = scores.leftOuterJoin(cm).mapValues{ x =>
+            val c1_subject = x._2.getOrElse(defaultContentModel).subject
+            val c1_grade = x._2.getOrElse(defaultContentModel).gradeList
+            val listF_sub = x._1.filter(f => c1_subject.exists { contentMap.get(f._1).getOrElse(defaultContentModel).subject.contains(_) })
+            val listF_grade = listF_sub.filter(f => c1_grade.exists { contentMap.get(f._1).getOrElse(defaultContentModel).gradeList.contains(_) })
+            listF_grade;
+        }
+        
         val final_scores = if (filterBlacklistedContents) {
-            val blacklistedContents = sc.cassandraTable[BlacklistContents](Constants.PLATFORM_KEY_SPACE_NAME, Constants.RECOMMENDATION_CONFIG) //.where("config_key=?", "content_reco_blacklist").first.config_value
-            val contentsList = blacklistedContents.filter { x => x.config_key.equals("content_reco_blacklist") } //.first().config_value
+            val blacklistedContents = sc.cassandraTable[BlacklistContents](Constants.PLATFORM_KEY_SPACE_NAME, Constants.RECOMMENDATION_CONFIG)
+            val contentsList = blacklistedContents.filter { x => x.config_key.equals("content_reco_blacklist") }
             if (!contentsList.isEmpty()) {
                 val contents = contentsList.first().config_value
-                scores.map { x =>
+                filtered_scores.map { x =>
                     val filteredlist = x._2.filterNot(f => contents.contains(f._1))
                     (x._1, filteredlist)
                 }
-            } else scores
-        } else scores
+            } else filtered_scores
+        } else filtered_scores
 
         final_scores.map { x =>
             ContentRecos(x._1, x._2)
