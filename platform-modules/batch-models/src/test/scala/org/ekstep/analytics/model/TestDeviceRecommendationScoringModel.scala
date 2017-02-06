@@ -16,6 +16,7 @@ import java.io.File
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.adapter.ContentAdapter
 
 class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     
@@ -74,7 +75,9 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "check preprocess method without filtering by num_contents and save json input data" in {
 
         populateDB();
+        val num_contents = ContentAdapter.getPublishedContentForRE().size
         val data = DeviceRecommendationScoringModel.preProcess(null, Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef], "key" -> "model/test/", "filterByNumContents" -> false.asInstanceOf[AnyRef]));
+        data.count() should be (num_contents*3)
         val inputfilePath = new File("src/test/resources/device-recos-training/RE-data/"+"RE-input")
         inputfilePath.exists() should be (true)
         val out = sc.textFile("src/test/resources/device-recos-training/RE-data/"+"RE-input")
@@ -85,7 +88,9 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
     it should "check preprocess method with filtering by num_contents and save json input data" in {
 
         populateDB();
+        val num_contents = ContentAdapter.getPublishedContentForRE().size
         val data = DeviceRecommendationScoringModel.preProcess(null, Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef], "key" -> "model/test/", "filterByNumContents" -> true.asInstanceOf[AnyRef]));
+        data.count() should be (num_contents*2)
         val inputfilePath = new File("src/test/resources/device-recos-training/RE-data/"+"RE-input")
         inputfilePath.exists() should be (true)
         val out = sc.textFile("src/test/resources/device-recos-training/RE-data/"+"RE-input")
