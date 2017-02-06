@@ -528,9 +528,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 x.c3_contentVec.tag_vec.get.toSeq
             else _getZeros(tag_dimensions)
             val c2_downloaded = if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0
-            val c2_subject = if (null != x.otherContentModel) x.otherContentModel.subject.mkString(",") else "Unknown"
+            val c2_subject = if (null != x.otherContentModel) x.otherContentModel.subject.mkString("+") else "Unknown"
             val c2_contentType = if (null != x.otherContentModel) x.contentInFocusModel.contentType else "Unknown"
-            val c2_language = if (null != x.otherContentModel) x.contentInFocusModel.languageCode.mkString(",") else "Unknown"
+            val c2_language = if (null != x.otherContentModel) x.contentInFocusModel.languageCode.mkString("+") else "Unknown"
             val psc = x.device_spec.primary_secondary_camera.split(",");
             val ps = if (psc.length == 0) {
                 (0.0, 0.0);
@@ -551,9 +551,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 "c1_text" -> c1_text,
                 "c1_tag" -> c1_tag,
                 "c1_total_ts" -> x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0),
-                "c1_subject" -> x.contentInFocusModel.subject.mkString(","),
+                "c1_subject" -> x.contentInFocusModel.subject.mkString("+"),
                 "c1_contentType" -> x.contentInFocusModel.contentType,
-                "c1_language" -> x.contentInFocusModel.languageCode.mkString(","),
+                "c1_language" -> x.contentInFocusModel.languageCode.mkString("+"),
                 "c1_publish_date" -> x.contentInFocusSummary.m_publish_date.getMillis,
                 "c1_last_sync_date" -> x.contentInFocusSummary.m_last_sync_date.getMillis,
                 "c1_total_timespent" -> x.contentInFocusSummary.m_total_ts,
