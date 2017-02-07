@@ -64,7 +64,6 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     val date = dateTime.toLocalDate()
     val time = dateTime.toLocalTime().toString("HH-mm")
     val path_default = "/scoring/" + date + "/" + time + "/"
-    val indexArray = ListBuffer[Long]()
 
     def choose[A](it: Buffer[A], r: Random): A = {
         val random_index = r.nextInt(it.size);
@@ -139,11 +138,8 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
         val inputDataPath = localPath + path + "RE-input"
         val deviceContext = createDeviceContextWithoutTransformation(final_dus_dsp._2, final_dus_dsp._1.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
-        val deviceContextWithIndex = deviceContext.zipWithIndex().map { case (k, v) => (v, k) }
-        val deviceContextF = deviceContextWithIndex.filter { x => x._2.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
-        JobLogger.log("Saving index of DeviceContext with non zero ts", Option(Map("totalcount" -> deviceContextWithIndex.count(), "nonZeroCount" -> deviceContextF.count())), INFO, "org.ekstep.analytics.model");
-        deviceContextF.foreach { x => indexArray += x._1 }
-        JobLogger.log("saving input data in json format", Option(Map("indexArray count" -> indexArray.size, "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
+        val deviceContextF = deviceContext.filter { x => x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
+        JobLogger.log("Saving index of DeviceContext with non zero ts", Option(Map("totalcount" -> deviceContext.count(), "nonZeroCount" -> deviceContextF.count())), INFO, "org.ekstep.analytics.model");
         val file = new File(inputDataPath)
         if (file.exists())
             CommonUtil.deleteDirectory(inputDataPath)
@@ -204,8 +200,8 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
             // Add c1 usage metrics
 
-            seq ++= Seq(x.contentInFocusSummary.t_publish_date.getOrElse(0.0), x.contentInFocusSummary.t_last_sync_date.getOrElse(0.0), x.contentInFocusSummary.t_total_ts.getOrElse(0.0), x.contentInFocusSummary.t_total_sessions.getOrElse(0.0), x.contentInFocusSummary.t_avg_ts_session.getOrElse(0.0),
-                x.contentInFocusSummary.t_total_interactions.getOrElse(0.0), x.contentInFocusSummary.t_avg_interactions_min.getOrElse(0.0), x.contentInFocusSummary.t_total_devices.getOrElse(0.0), x.contentInFocusSummary.t_avg_sess_device.getOrElse(0.0))
+            seq ++= Seq(x.contentInFocusSummary.t_publish_date.getOrElse(0.0).toString(), x.contentInFocusSummary.t_last_sync_date.getOrElse(0.0).toString(), x.contentInFocusSummary.t_total_ts.getOrElse(0.0).toString(), x.contentInFocusSummary.t_total_sessions.getOrElse(0.0).toString(), x.contentInFocusSummary.t_avg_ts_session.getOrElse(0.0).toString(),
+                x.contentInFocusSummary.t_total_interactions.getOrElse(0.0).toString(), x.contentInFocusSummary.t_avg_interactions_min.getOrElse(0.0).toString(), x.contentInFocusSummary.t_total_devices.getOrElse(0.0).toString(), x.contentInFocusSummary.t_avg_sess_device.getOrElse(0.0).toString())
 
             // Add c2 text vectors
             seq ++= (if (null != x.otherContentModelVec && x.otherContentModelVec.text_vec.isDefined) {
@@ -221,10 +217,10 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             })
 
             // Add c2 context attributes
-            seq ++= Seq(x.dcusT.t_total_timespent.getOrElse(0.0), x.dcusT.t_avg_interactions_min.getOrElse(0.0),
-                x.dcusT.t_download_date.getOrElse(0.0), if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.dcusT.t_last_played_on.getOrElse(0.0),
-                x.dcusT.t_mean_play_time_interval.getOrElse(0.0), x.dcusT.t_num_group_user.getOrElse(0.0), x.dcusT.t_num_individual_user.getOrElse(0.0),
-                x.dcusT.t_num_sessions.getOrElse(0.0), x.dcusT.t_start_time.getOrElse(0.0), x.dcusT.t_total_interactions.getOrElse(0.0))
+            seq ++= Seq(x.dcusT.t_total_timespent.getOrElse(0.0).toString(), x.dcusT.t_avg_interactions_min.getOrElse(0.0).toString(),
+                x.dcusT.t_download_date.getOrElse(0.0).toString(), if (x.otherContentUsageSummary.downloaded.getOrElse(false)) 1 else 0, x.dcusT.t_last_played_on.getOrElse(0.0).toString(),
+                x.dcusT.t_mean_play_time_interval.getOrElse(0.0).toString(), x.dcusT.t_num_group_user.getOrElse(0.0).toString(), x.dcusT.t_num_individual_user.getOrElse(0.0).toString(),
+                x.dcusT.t_num_sessions.getOrElse(0.0).toString(), x.dcusT.t_start_time.getOrElse(0.0).toString(), x.dcusT.t_total_interactions.getOrElse(0.0).toString())
 
             seq ++= (if (null != x.otherContentModel) {
                 Seq(x.otherContentModel.subject.mkString(","), x.contentInFocusModel.contentType, x.contentInFocusModel.languageCode.mkString(","))
@@ -234,8 +230,8 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
             // Add c2 usage metrics
 
-            seq ++= Seq(x.otherContentSummaryT.t_publish_date.getOrElse(0.0), x.otherContentSummaryT.t_last_sync_date.getOrElse(0.0), x.otherContentSummaryT.t_total_ts.getOrElse(0.0), x.otherContentSummaryT.t_total_sessions.getOrElse(0.0), x.otherContentSummaryT.t_avg_ts_session.getOrElse(0.0),
-                x.otherContentSummaryT.t_total_interactions.getOrElse(0.0), x.otherContentSummaryT.t_avg_interactions_min.getOrElse(0.0), x.otherContentSummaryT.t_total_devices.getOrElse(0.0), x.otherContentSummaryT.t_avg_sess_device.getOrElse(0.0))
+            seq ++= Seq(x.otherContentSummaryT.t_publish_date.getOrElse(0.0).toString(), x.otherContentSummaryT.t_last_sync_date.getOrElse(0.0).toString(), x.otherContentSummaryT.t_total_ts.getOrElse(0.0).toString(), x.otherContentSummaryT.t_total_sessions.getOrElse(0.0).toString(), x.otherContentSummaryT.t_avg_ts_session.getOrElse(0.0).toString(),
+                x.otherContentSummaryT.t_total_interactions.getOrElse(0.0).toString(), x.otherContentSummaryT.t_avg_interactions_min.getOrElse(0.0).toString(), x.otherContentSummaryT.t_total_devices.getOrElse(0.0).toString(), x.otherContentSummaryT.t_avg_sess_device.getOrElse(0.0).toString())
 
             //println(x.did, "x.device_usage.total_launches", x.device_usage.total_launches, x.device_usage.total_launches.getOrElse(0L).isInstanceOf[Long]);
             // TODO: x.device_usage.total_launches is being considered as Double - Debug further
@@ -254,11 +250,11 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 _getZeros(tag_dimensions);
             })
 
-            seq ++= Seq(x.dusT.t_total_timespent.getOrElse(0.0), x.dusT.t_total_launches.getOrElse(0.0), x.dusT.t_total_play_time.getOrElse(0.0),
-                x.dusT.t_avg_num_launches.getOrElse(0.0), x.dusT.t_avg_time.getOrElse(0.0), x.dusT.t_end_time.getOrElse(0.0),
-                x.dusT.t_last_played_on.getOrElse(0.0), x.dusT.t_mean_play_time.getOrElse(0.0), x.dusT.t_mean_play_time_interval.getOrElse(0.0),
-                x.dusT.t_num_contents.getOrElse(0.0), x.dusT.t_num_days.getOrElse(0.0), x.dusT.t_num_sessions.getOrElse(0.0), x.dusT.t_play_start_time.getOrElse(0.0),
-                x.dusT.t_start_time.getOrElse(0.0))
+            seq ++= Seq(x.dusT.t_total_timespent.getOrElse(0.0).toString(), x.dusT.t_total_launches.getOrElse(0.0).toString(), x.dusT.t_total_play_time.getOrElse(0.0).toString(),
+                x.dusT.t_avg_num_launches.getOrElse(0.0).toString(), x.dusT.t_avg_time.getOrElse(0.0).toString(), x.dusT.t_end_time.getOrElse(0.0).toString(),
+                x.dusT.t_last_played_on.getOrElse(0.0).toString(), x.dusT.t_mean_play_time.getOrElse(0.0).toString(), x.dusT.t_mean_play_time_interval.getOrElse(0.0).toString(),
+                x.dusT.t_num_contents.getOrElse(0.0).toString(), x.dusT.t_num_days.getOrElse(0.0).toString(), x.dusT.t_num_sessions.getOrElse(0.0).toString(), x.dusT.t_play_start_time.getOrElse(0.0).toString(),
+                x.dusT.t_start_time.getOrElse(0.0).toString())
 
             Row.fromSeq(seq);
         }
@@ -281,10 +277,10 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
         // Add c1 usage metrics
 
-        seq ++= Seq(new StructField("c1_publish_date", DoubleType, true),
-            new StructField("c1_last_sync_date", DoubleType, true), new StructField("c1_total_timespent", DoubleType, true), new StructField("c1_total_sessions", DoubleType, true),
-            new StructField("c1_avg_ts_session", DoubleType, true), new StructField("c1_num_interactions", DoubleType, true), new StructField("c1_mean_interactions_min", DoubleType, true),
-            new StructField("c1_total_devices", DoubleType, true), new StructField("c1_avg_sess_device", DoubleType, true));
+        seq ++= Seq(new StructField("c1_publish_date", StringType, true),
+            new StructField("c1_last_sync_date", StringType, true), new StructField("c1_total_timespent", StringType, true), new StructField("c1_total_sessions", StringType, true),
+            new StructField("c1_avg_ts_session", StringType, true), new StructField("c1_num_interactions", StringType, true), new StructField("c1_mean_interactions_min", StringType, true),
+            new StructField("c1_total_devices", StringType, true), new StructField("c1_avg_sess_device", StringType, true));
 
         // Add c2 text vectors
         seq ++= _getStructField("c2_text", text_dimensions);
@@ -292,19 +288,19 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         seq ++= _getStructField("c2_tag", tag_dimensions);
         // Add c2 context attributes
 
-        seq ++= Seq(new StructField("c2_total_ts", DoubleType, true), new StructField("c2_avg_interactions_min", DoubleType, true), new StructField("c2_download_date", DoubleType, true),
-            new StructField("c2_downloaded", IntegerType, true), new StructField("c2_last_played_on", DoubleType, true), new StructField("c2_mean_play_time_interval", DoubleType, true),
-            new StructField("c2_num_group_user", DoubleType, true), new StructField("c2_num_individual_user", DoubleType, true), new StructField("c2_num_sessions", DoubleType, true),
-            new StructField("c2_start_time", DoubleType, true), new StructField("c2_total_interactions", DoubleType, true))
+        seq ++= Seq(new StructField("c2_total_ts", StringType, true), new StructField("c2_avg_interactions_min", StringType, true), new StructField("c2_download_date", StringType, true),
+            new StructField("c2_downloaded", IntegerType, true), new StructField("c2_last_played_on", StringType, true), new StructField("c2_mean_play_time_interval", StringType, true),
+            new StructField("c2_num_group_user", StringType, true), new StructField("c2_num_individual_user", StringType, true), new StructField("c2_num_sessions", StringType, true),
+            new StructField("c2_start_time", StringType, true), new StructField("c2_total_interactions", StringType, true))
 
         seq ++= Seq(new StructField("c2_subject", StringType, true), new StructField("c2_contentType", StringType, true), new StructField("c2_language", StringType, true))
 
         // Add c2 usage metrics
 
-        seq ++= Seq(new StructField("c2_publish_date", DoubleType, true),
-            new StructField("c2_last_sync_date", DoubleType, true), new StructField("c2_total_timespent", DoubleType, true), new StructField("c2_total_sessions", DoubleType, true),
-            new StructField("c2_avg_ts_session", DoubleType, true), new StructField("c2_num_interactions", DoubleType, true), new StructField("c2_mean_interactions_min", DoubleType, true),
-            new StructField("c2_total_devices", DoubleType, true), new StructField("c2_avg_sess_device", DoubleType, true));
+        seq ++= Seq(new StructField("c2_publish_date", StringType, true),
+            new StructField("c2_last_sync_date", StringType, true), new StructField("c2_total_timespent", StringType, true), new StructField("c2_total_sessions", StringType, true),
+            new StructField("c2_avg_ts_session", StringType, true), new StructField("c2_num_interactions", StringType, true), new StructField("c2_mean_interactions_min", StringType, true),
+            new StructField("c2_total_devices", StringType, true), new StructField("c2_avg_sess_device", StringType, true));
 
         // Device Context Attributes
         // Add c3 text vectors
@@ -312,11 +308,11 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         // Add c3 tag vectors
         seq ++= _getStructField("c3_tag", tag_dimensions);
         
-        seq ++= Seq(new StructField("total_timespent", DoubleType, true), new StructField("total_launches", DoubleType, true), new StructField("total_play_time", DoubleType, true),
-            new StructField("avg_num_launches", DoubleType, true), new StructField("avg_time", DoubleType, true), new StructField("end_time", DoubleType, true),
-            new StructField("last_played_on", DoubleType, true), new StructField("mean_play_time", DoubleType, true), new StructField("mean_play_time_interval", DoubleType, true),
-            new StructField("num_contents", DoubleType, true), new StructField("num_days", DoubleType, true), new StructField("num_sessions", DoubleType, true),
-            new StructField("play_start_time", DoubleType, true), new StructField("start_time", DoubleType, true))
+        seq ++= Seq(new StructField("total_timespent", StringType, true), new StructField("total_launches", StringType, true), new StructField("total_play_time", StringType, true),
+            new StructField("avg_num_launches", StringType, true), new StructField("avg_time", StringType, true), new StructField("end_time", StringType, true),
+            new StructField("last_played_on", StringType, true), new StructField("mean_play_time", StringType, true), new StructField("mean_play_time_interval", StringType, true),
+            new StructField("num_contents", StringType, true), new StructField("num_days", StringType, true), new StructField("num_sessions", StringType, true),
+            new StructField("play_start_time", StringType, true), new StructField("start_time", StringType, true))
         
         new StructType(seq.toArray);
     }
@@ -504,10 +500,9 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         }.flatMap { x => x.map { f => f } }
     }
 
-    def createJSON(data: RDD[(Long, DeviceContextWithoutTransformations)], tag_dimensions: Int, text_dimensions: Int)(implicit sc: SparkContext): RDD[String] = {
+    def createJSON(data: RDD[DeviceContextWithoutTransformations], tag_dimensions: Int, text_dimensions: Int)(implicit sc: SparkContext): RDD[String] = {
 
-        data.map { f =>
-            val x = f._2
+        data.map { x =>
             val c1_text = if (null != x.contentInFocusVec && x.contentInFocusVec.text_vec.isDefined)
                 x.contentInFocusVec.text_vec.get.toSeq
             else _getZeros(text_dimensions);
@@ -543,7 +538,6 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
             val secondary_camera = ps._2
 
             val dataMap = Map(
-                "index" -> f._1,
                 "did" -> x.did,
                 "c1_content_id" -> x.contentInFocus,
                 "c2_content_id" -> x.otherContentId,
@@ -603,13 +597,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
                 "play_start_time" -> x.device_usage.play_start_time.getOrElse(0L),
                 "start_time" -> x.device_usage.start_time.getOrElse(0L),
                 "c3_text" -> c3_text,
-                "c3_tag" -> c3_tag,
-                "device_spec" -> x.device_spec.make,
-                "screen_size" -> x.device_spec.screen_size,
-                "external_disk" -> x.device_spec.external_disk,
-                "internal_disk" -> x.device_spec.internal_disk,
-                "primary_camera" -> primary_camera,
-                "secondary_camera" -> secondary_camera)
+                "c3_tag" -> c3_tag)
 
             JSONUtils.serialize(dataMap)
         }
