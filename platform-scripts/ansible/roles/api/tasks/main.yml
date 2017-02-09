@@ -45,6 +45,8 @@
   register: api_status
   tags:
     - service-api
+    - restart-service
+    - stop-service
 
 - name: Stop the api service
   command: "{{ api.sbin_path }}/api-service stop"
@@ -53,6 +55,8 @@
   poll: 5
   tags:
     - service-api
+    - restart-service
+    - stop-service
 
 - name: Start the api service
   command: "{{ api.sbin_path }}/api-service start"
@@ -60,3 +64,4 @@
   poll: 5
   tags:
     - service-api
+    - restart-service
