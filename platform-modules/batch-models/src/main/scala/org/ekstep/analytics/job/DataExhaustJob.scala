@@ -185,12 +185,12 @@ object DataExhaustJob extends optional.Application with IJob {
                         }
 
                         val createdDate = new DateTime(fileDetail._2.get("createdDate").get.asInstanceOf[Date].getTime);
-                        JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, Option(fileDetail._1),
+                        JobRequest(request.file_type, request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, Option(fileDetail._1),
                             Option(new DateTime(createdDate)), Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
                             Option(createdDate.plusDays(30)), Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
                             Option(inputEventsCount), Option(result._2.output_events), Option(fileDetail._2.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
                     } else {
-                        JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, None,
+                        JobRequest(request.file_type, request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", request.request_data, None,
                             None, Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
                             None, Option(0), request.dt_job_submitted, Option(dt_processing), Option(DateTime.now(DateTimeZone.UTC)),
                             Option(inputEventsCount), Option(result._2.output_events), None, Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));

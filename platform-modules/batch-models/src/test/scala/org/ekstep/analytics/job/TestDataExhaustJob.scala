@@ -60,9 +60,9 @@ class TestDataExhaustJob extends SparkSpec(null) {
         preProcess()
 
         val requests = Array(
-            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("becb887fe82f24c644482eb30041da6d88bd8150"), None))),
+            JobRequest("json","partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("becb887fe82f24c644482eb30041da6d88bd8150"), None))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None),
-            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("test-tag"), Option(List("OE_ASSESS"))))),
+            JobRequest("json","partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("test-tag"), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
@@ -106,7 +106,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
     it should "" in {
         val requests = Array(
-            JobRequest("test-key", "jsh3dg58f", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("becb887fe82f24c644482eb30041da6d88bd8150"), Option(List("OE_ASSESS"))))),
+            JobRequest("json","test-key", "jsh3dg58f", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("becb887fe82f24c644482eb30041da6d88bd8150"), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
@@ -131,9 +131,9 @@ class TestDataExhaustJob extends SparkSpec(null) {
         preProcess()
 
         val requests = Array(
-            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-09-01", "2016-09-10", List("dff9175fa217e728d86bc1f4d8f818f6d2959303"), None))),
+            JobRequest("json","partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-09-01", "2016-09-10", List("dff9175fa217e728d86bc1f4d8f818f6d2959303"), None))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None),
-            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("test-tag"), Option(List("OE_ASSESS"))))),
+            JobRequest("json","partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("test-tag"), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
