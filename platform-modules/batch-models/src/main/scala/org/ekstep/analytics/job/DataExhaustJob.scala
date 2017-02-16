@@ -155,8 +155,7 @@ object DataExhaustJob extends optional.Application with IJob {
                     "data-exhaust-bucket" -> config.getOrElse("data-exhaust-bucket", "lpdev-ekstep"),
                     "data-exhaust-prefix" -> config.getOrElse("data-exhaust-prefix", "data-exhaust/dev"),
                     "dispatch-to" -> config.getOrElse("dispatch-to", "s3").asInstanceOf[String].toLowerCase(),
-                    "path" -> config.getOrElse("tempLocalPath", "/tmp/dataexhaust"),
-                    "fileType" -> request.file_type);
+                    "path" -> config.getOrElse("tempLocalPath", "/tmp/dataexhaust"));
 
                 val result = CommonUtil.time({
                     val response = DataExhaustJobModel.execute(data, Option(requestConfig)).collect().head;
