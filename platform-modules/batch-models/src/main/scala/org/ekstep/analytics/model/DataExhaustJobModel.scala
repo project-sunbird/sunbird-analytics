@@ -1,23 +1,30 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework.Event
-import org.apache.spark.rdd.RDD
+import scala.reflect.runtime.universe
+
+
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework._
-import org.joda.time.DateTime
-import scala.collection.mutable.Buffer
-import org.apache.spark.HashPartitioner
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.AlgoInput
+import org.ekstep.analytics.framework.AlgoOutput
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.Filter
+import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil
-import java.io.File
-import org.apache.hadoop.io.compress.GzipCodec
-import com.datastax.spark.connector._
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
-import org.ekstep.analytics.util.Constants
-import java.util.UUID
+import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.job.JobStage
+import org.ekstep.analytics.util.Constants
+import org.joda.time.DateTime
+
+import com.datastax.spark.connector.SomeColumns
+import com.datastax.spark.connector.toNamedColumnRef
+import com.datastax.spark.connector.toRDDFunctions
+import com.datastax.spark.connector.toSparkContextFunctions
+import com.github.wnameless.json.flattener.FlattenMode
+import com.github.wnameless.json.flattener.JsonFlattener
+import org.ekstep.analytics.framework.Event
 
 case class JobRequest(file_type: String, client_key: String, request_id: String, job_id: Option[String], status: String, request_data: String,
                       location: Option[String], dt_file_created: Option[DateTime], dt_first_event: Option[DateTime], dt_last_event: Option[DateTime],
@@ -106,7 +113,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         }
     }
 
-    private def saveData(path: String, events: RDD[DataExhaustJobInput], uploadPrefix: String, stage: String, config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
+    private def saveData(fileType: String, path: String, events: RDD[DataExhaustJobInput], uploadPrefix: String, stage: String, config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
 
         val client_key = config.get("client_key").get.asInstanceOf[String];
         val request_id = config.get("request_id").get.asInstanceOf[String];
@@ -117,7 +124,13 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
             if (output_events > 0) {
                 val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
-                events.map { x => x.event }.saveAsTextFile(path);
+                //  type check for file type: json or csv
+                if(fileType.toLowerCase().equals("json")) {
+                  events.map { x => x.event }.saveAsTextFile(path); 
+                } else {
+                  val rdd = events.map { x => JSONUtils.deserialize[Event](x.event)}
+                  toCSV(rdd).coalesce(2).saveAsTextFile(path)
+                }
                 updateStage(request_id, client_key, stage, "COMPLETED")
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, output_events, bucket, uploadPrefix, firstEventDate, lastEventDate)));
             } else {
@@ -142,11 +155,11 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         val res = dispatch_to match {
             case "local" =>
                 val localPath = config.get("path").get.asInstanceOf[String] + "/" + request_id;
-                saveData(localPath, events, localPath, "SAVE_DATA_TO_LOCAL", config)
+                saveData(config.get("fileType").get.asInstanceOf[String], localPath, events, localPath, "SAVE_DATA_TO_LOCAL", config)
             case "s3" =>
                 val uploadPrefix = prefix + "/" + request_id;
                 val key = "s3n://" + bucket + "/" + uploadPrefix;
-                saveData(key, events, uploadPrefix, "SAVE_DATA_TO_S3", config);
+                saveData(config.get("fileType").get.asInstanceOf[String], key, events, uploadPrefix, "SAVE_DATA_TO_S3", config);
         }
         events.unpersist(true)
         res;
@@ -156,7 +169,14 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
 
         data;
     }
-
+    
+    def toCSV(rdd: RDD[Event])(implicit sc: SparkContext): RDD[String] = {
+        val data = rdd.map { x => JSONUtils.serialize(x) }.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
+        val dataMapRDD = data.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }
+        val header = sc.parallelize(Seq(dataMapRDD.first().keys.mkString(",")))
+        val rows = dataMapRDD.map(f => f.values.map { x => if(x.isInstanceOf[List[Any]]) JSONUtils.serialize(JSONUtils.serialize(x)) else x }.mkString(","));
+        header.union(rows)
+    }
     def main(args: Array[String]): Unit = {
         val requestId = "6a54bfa283de43a89086"
         val localPath = "/tmp/dataexhaust/6a54bfa283de43a89086"
