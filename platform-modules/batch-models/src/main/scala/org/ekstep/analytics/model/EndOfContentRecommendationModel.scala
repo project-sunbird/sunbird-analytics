@@ -84,8 +84,7 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
             val c1_grade = x._2.getOrElse(defaultContentModel).gradeList
             val listF_sub = x._1.filter(f => c1_subject.exists { contentMap.get(f._1).getOrElse(defaultContentModel).subject.contains(_) })
             val listF_grade = listF_sub.filter(f => c1_grade.exists { contentMap.get(f._1).getOrElse(defaultContentModel).gradeList.contains(_) })
-            val feature_list = getTuple(listF_grade, features_t, sorting_order)
-            val sorted_list = feature_list.sortBy(f => f._3).reverse.map(x => (x._1, x._2))
+            val sorted_list = getSortedList(listF_grade, features_t, sorting_order)
             sorted_list;
         }
         
@@ -136,30 +135,32 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
         vec1 * vec2
     }
     
-    def getTuple(score: List[(String, Double)], filter_features: Map[String, ContentFeatures_t], sorting_order: List[String]): List[(String, Double, (Double, Double, Double, Double))] = {
+    def getSortedList(score: List[(String, Double)], features: Map[String, ContentFeatures_t], sorting_order: List[String]): List[(String, Double)] = {
         
-        score.map{x =>
-            (x._1, x._2, createTuple(x._1, x._2, filter_features.get(x._1).get, sorting_order))
+        val ls = score.map{x =>
+            (x._1, x._2, getSortedFeatures(x._1, x._2, features.get(x._1).get, sorting_order))
         }
+        val sorted_ls = ls.sortBy(f => f._3).reverse.map(x => (x._1, x._2))
+        sorted_ls;
     }
     
-    def createTuple(id: String, simi_score: Double, filter_feature: ContentFeatures_t, sorting_order: List[String]): (Double, Double, Double, Double) = {
+    def getSortedFeatures(id: String, simi_score: Double, features: ContentFeatures_t, sorting_order: List[String]): (Double, Double, Double, Double) = {
         
-        val value1 = getValue(sorting_order(0), simi_score, filter_feature)
-        val value2 = getValue(sorting_order(1), simi_score, filter_feature)
-        val value3 = getValue(sorting_order(2), simi_score, filter_feature)
-        val value4 = getValue(sorting_order(3), simi_score, filter_feature)
+        val value1 = getValue(sorting_order(0), simi_score, features)
+        val value2 = getValue(sorting_order(1), simi_score, features)
+        val value3 = getValue(sorting_order(2), simi_score, features)
+        val value4 = getValue(sorting_order(3), simi_score, features)
         (value1, value2, value3, value4);
     }
     
-    def getValue(key: String, simi_score: Double, filter_feature: ContentFeatures_t): Double = {
+    def getValue(key: String, simi_score: Double, features: ContentFeatures_t): Double = {
         key match {
             case "rel.num_downloads" =>
-                filter_feature.num_downloads;
+                features.num_downloads;
             case "rel.avg_rating" =>
-                filter_feature.avg_rating;
+                features.avg_rating;
             case "eng.total_interactions" =>
-                filter_feature.total_interactions;
+                features.total_interactions;
             case "simi.score" =>
                 simi_score;
             case _ =>

@@ -44,12 +44,27 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         table1.scores.map(x => x._1).contains(table1.content_id) should be(false)
     }
     
+    it should "check sorting implementation" in {
+        
+        val scores = List(("content1", 0.99), ("content2", 0.80), ("content3", 0.69), ("content4", 0.49), ("content5", 0.09), ("content6", 1.09))
+        val features = Map("content1" -> ContentFeatures_t("content1", 0.0, 0.1, 0.4), "content2" -> ContentFeatures_t("content2", 0.4, 0.1, 0.9), "content3" -> ContentFeatures_t("content3", 0.4, 0.1, 0.4), "content4" -> ContentFeatures_t("content4", 0.8, 0.1, 0.4), "content5" -> ContentFeatures_t("content5", 0.8, 0.3, 0.1), "content6" -> ContentFeatures_t("content6", 0.8, 0.3, 0.1))
+        val sorting_order = List("rel.num_downloads", "rel.avg_rating", "eng.total_interactions", "simi.score")
+        val me = EndOfContentRecommendationModel.getSortedList(scores, features, sorting_order)
+        me(0)._1 should be("content6")
+        me(1)._1 should be("content5")
+        me(2)._1 should be("content4")
+        me(3)._1 should be("content2")
+        me(4)._1 should be("content3")
+        me(5)._1 should be("content1")
+    }
+    
     def populateDatabase() {
         
         CassandraConnector(sc.getConf).withSessionDo { session =>
             
             session.execute("TRUNCATE content_db.content_to_vector;");
             session.execute("TRUNCATE content_db.content_recos;");
+            session.execute("TRUNCATE platform_db.recommendation_config");
             session.execute("TRUNCATE content_db.content_usage_summary_fact;");
             session.execute("TRUNCATE content_db.content_sideloading_summary;");
             session.execute("INSERT INTO content_db.content_to_vector(content_id, tag_vec, text_vec) VALUES ('domain_64106', [-0.002815, -0.00077, 0.00783, -0.003143, -0.008894, -0.003984, -0.001336, -0.005424, -0.000627, -0.000348, -0.000123, 0.009205, 0.003591, -0.001231, -0.008066] ,[-0.002815, -0.00077, 0.00783, -0.003143, -0.008894, -0.003984, -0.001336, -0.005424, -0.000627, -0.000348, -0.000123, 0.009205, 0.003591, -0.001231, -0.008066]);");
