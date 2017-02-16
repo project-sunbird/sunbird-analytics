@@ -74,6 +74,13 @@ object CommonUtil {
         if (!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
+        if (!conf.contains("spark.neo4j.bolt.url")) {
+            println(AppConf.getConfig("spark.neo4j.bolt.url"))
+            conf.set("spark.neo4j.bolt.url", AppConf.getConfig("spark.neo4j.bolt.url"))
+            conf.set("spark.neo4j.bolt.user", AppConf.getConfig("spark.neo4j.bolt.user"))
+            conf.set("spark.neo4j.bolt.password", AppConf.getConfig("spark.neo4j.bolt.password"))
+        }
+
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
@@ -144,7 +151,7 @@ object CommonUtil {
         val to = if (endDate.nonEmpty) dateFormat.parseLocalDate(endDate.get) else LocalDate.fromDateFields(new Date);
         Option(to.minusDays(delta).toString());
     }
-    
+
     def getDatesBetween(fromDate: String, toDate: Option[String], pattern: String): Array[String] = {
         val df: DateTimeFormatter = DateTimeFormat.forPattern(pattern).withZoneUTC();
         val to = if (toDate.nonEmpty) df.parseLocalDate(toDate.get) else LocalDate.fromDateFields(new Date);
@@ -363,7 +370,7 @@ object CommonUtil {
     }
 
     def getTags(metadata: Map[String, AnyRef]): Option[Array[String]] = {
-    	val tags = metadata.getOrElse("tags", List[String]());
+        val tags = metadata.getOrElse("tags", List[String]());
         if (null == tags) Option(Array[String]()) else Option(tags.asInstanceOf[List[String]].toArray);
     }
 
@@ -469,11 +476,11 @@ object CommonUtil {
         val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
         tempList.filter { x => registeredTags.contains(x) }.toArray;
     }
-    
+
     def ccToMap(cc: AnyRef) =
-  		(Map[String, AnyRef]() /: cc.getClass.getDeclaredFields) {
-	    (a, f) =>
-	      f.setAccessible(true)
-	      a + (f.getName -> f.get(cc))
-  	}
+        (Map[String, AnyRef]() /: cc.getClass.getDeclaredFields) {
+            (a, f) =>
+                f.setAccessible(true)
+                a + (f.getName -> f.get(cc))
+        }
 }
