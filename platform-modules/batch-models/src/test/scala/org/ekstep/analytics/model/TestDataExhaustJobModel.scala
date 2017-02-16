@@ -26,7 +26,7 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
             CommonUtil.deleteDirectory(path)
     }
 
-    "DataExhaustJobModel" should "generate zip file of all events and save to local" in {
+    "DataExhaustJobModel" should "generate zip file of all events and save to local in json format" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE platform_db.job_request");
@@ -53,7 +53,8 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
             "data-exhaust-bucket" -> "lpdev-ekstep",
             "data-exhaust-prefix" -> "data-exhaust/dev",
             "dispatch-to" -> "local",
-            "path" -> "/tmp/dataexhaust");
+            "path" -> "/tmp/dataexhaust",
+            "fileType" -> "json");
 
         val out = DataExhaustJobModel.execute(data, Option(requestConfig)).collect
         out.length should be(1)
@@ -61,7 +62,48 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
         res.output_events should be(3817)
         res.client_key should be("dev-portal")
         res.request_id should be("273646")
-        
+        val files1 = new File("/tmp/dataexhaust/273646").listFiles()
+        files1.length should not be (0)
+        deleteLocalFile("/tmp/dataexhaust/273646")
+
+    }
+    
+    "DataExhaustJobModel" should "generate zip file of all events and save to local in csv format" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE platform_db.job_request");
+        }
+
+        //        val request1 = """{"filter": {"start_date": "2016-11-17","end_date": "2016-11-18","tags": ["becb887fe82f24c644482eb30041da6d88bd8151"]}}"""
+        //        val jobRequest1 = JobRequest("dev-portal", "12334", None, "PROCESSING", request1, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, None, None)
+
+        val request2 = """{"filter": {"start_date": "2016-11-19","end_date": "2016-11-20","tags": ["becb887fe82f24c644482eb30041da6d88bd8150"]}}"""
+        val jobRequest2 = JobRequest("json","dev-portal", "273646", None, "PROCESSING", request2, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, Option("FETCHING_DATA"), Option("COMPLETED"))
+
+        //val rdd = sc.makeRDD(Seq(jobRequest1, jobRequest2))
+        val rdd = sc.makeRDD(Seq(jobRequest2))
+
+        rdd.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+
+        val fetcher = Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/data-exhaust/*")))))
+        val data = DataFetcher.fetchBatchData[String](fetcher).cache();
+
+        val requestConfig = Map(
+            "request_id" -> "273646",
+            "client_key" -> "dev-portal",
+            "job_id" -> UUID.randomUUID().toString(),
+            "data-exhaust-bucket" -> "lpdev-ekstep",
+            "data-exhaust-prefix" -> "data-exhaust/dev",
+            "dispatch-to" -> "local",
+            "path" -> "/tmp/dataexhaust",
+            "fileType" -> "csv");
+
+        val out = DataExhaustJobModel.execute(data, Option(requestConfig)).collect
+        out.length should be(1)
+        val res = out.last
+        res.output_events should be(3817)
+        res.client_key should be("dev-portal")
+        res.request_id should be("273646")
         val files1 = new File("/tmp/dataexhaust/273646").listFiles()
         files1.length should not be (0)
         deleteLocalFile("/tmp/dataexhaust/273646")
