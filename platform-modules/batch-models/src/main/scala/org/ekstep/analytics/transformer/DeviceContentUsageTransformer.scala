@@ -33,6 +33,6 @@ object DeviceContentUsageTransformer extends DeviceRecommendationTransformer[Dev
         val f10 = indexedRDD.map { x => (x._1, x._2.num_individual_user.getOrElse(0L).toDouble) };
         val f10_t = binning(f10, num_bins);
         val x = f1_t.join(f2_t).join(f3_t).join(f4_t).join(f5_t).join(f6_t).join(f7_t).join(f8_t).join(f9_t).join(f10_t)
-        indexedRDD.leftOuterJoin(x).map(f => (f._1, dcus_tf(f._2._1.content_id, Option(f._2._2.get._1._1._1._1._1._1._1._1._1), Option(f._2._2.get._1._1._1._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._2), Option(f._2._2.get._1._1._1._2), Option(f._2._2.get._1._1._2), Option(f._2._2.get._1._2), Option(f._2._2.get._2))));
+        indexedRDD.leftOuterJoin(x).map(f => (f._2._1.device_id, dcus_tf(f._2._1.content_id, Option(f._2._2.get._1._1._1._1._1._1._1._1._1), Option(f._2._2.get._1._1._1._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._1._2), Option(f._2._2.get._1._1._1._1._2), Option(f._2._2.get._1._1._1._2), Option(f._2._2.get._1._1._2), Option(f._2._2.get._1._2), Option(f._2._2.get._2))));
     }
 }

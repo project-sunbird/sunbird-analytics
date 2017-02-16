@@ -5,6 +5,7 @@ import org.ekstep.analytics.util.ContentUsageSummaryFact
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.ekstep.analytics.model.ContentFeatures
 
 class TestContentUsageTransformer extends SparkSpec(null) {
 
@@ -22,6 +23,14 @@ class TestContentUsageTransformer extends SparkSpec(null) {
         val table = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
         val out = ContentUsageTransformer.getTransformationByBinning(table, 4)
         out.count() should be(table.count())
+    }
+    
+    it should "perform binning on ContentFeatures" in {
+
+        val in = List(ContentFeatures("domain_63844", 5, 10.0, 10), ContentFeatures("domain_83844", 50, 100.0, 20), ContentFeatures("domain_43844", 25, 40.0, 4), ContentFeatures("domain_23844", 500, 120.0, 150))
+        val input = sc.parallelize(in)
+        val out = ContentUsageTransformer.getBinningForEOC(input, 10, 10, 10)
+        out.count() should be(input.count())
     }
 
 }

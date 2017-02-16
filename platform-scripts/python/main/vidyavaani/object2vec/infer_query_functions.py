@@ -71,9 +71,9 @@ def get_vector_dimension():
     return n_dim
 
 
-def get_norm_vec(vector_list):
-    if not  all(v == 0 for v in vector_list):
-        x = np.array(vector_list).reshape(1,50)
+def get_norm_vec(vector_list, dimension):
+    if not all(v == 0 for v in vector_list):
+        x = np.array(vector_list).reshape(1, dimension)
 #         t = x.transpose()
 #         dot_product = math.sqrt(np.dot(x, t))
         norm_vector = x/np.linalg.norm(x)
@@ -244,7 +244,7 @@ def infer_query(inferFlag, model_loc, op_dir):
                 q_vec = model.infer_vector(query, alpha=0.1, min_alpha=0.0001,steps=20)
                 # q_vec=model.infer_vector(query.split(' '),alpha=0.1, min_alpha=0.0001, steps=5)
                 vector_list = np.array(q_vec).tolist()
-                vector_list = get_norm_vec(vector_list)
+                vector_list = get_norm_vec(vector_list, n_dim)
                 if not lang == 'tags':
                     vector_dict['text_vec'] = vector_list
                     logging.info('Vectors for text retrieved')
@@ -419,11 +419,11 @@ def infer_query_LSA(inferFlag, model_loc, op_dir):
                 n_dim = model.num_topics
                 if not lang == 'tags':
                     vector_list = sparseToDense(model[tfidf_dict_text[folder]], model.num_topics)
-                    vector_dict['text_vec'] = get_normalized_list(vector_list.tolist())
+                    vector_dict['text_vec'] = get_norm_vec(vector_list.tolist(), n_dim)
                     logging.info('Vectors for text retrieved')
                 else:
                     vector_list = sparseToDense(model[tfidf_dict_tags[folder]], model.num_topics)
-                    vector_dict['tag_vec'] = get_normalized_list(vector_list.tolist())
+                    vector_dict['tag_vec'] = get_norm_vec(vector_list.tolist(), n_dim)
                     # logging.info(vector_list)
                     logging.info('Vectors for tags retrieved')
             vector_dict['contentId'] = folder

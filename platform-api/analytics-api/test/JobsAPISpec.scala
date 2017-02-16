@@ -61,7 +61,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
             val response = post(url, request);
             val rowRDD = Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal1") }
-            val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("PROCESSING"), x.request_data, x.iteration, x.dt_job_submitted, x.location, x.dt_file_created, x.dt_first_event, x.dt_last_event, x.dt_expiration, x.dt_job_processing, x.dt_job_completed, x.input_events, x.output_events, x.file_size, x.latency, x.execution_time, x.err_message, x.stage, x.stage_status) }
+            val rddJobRequest = filterRDD.map { x => JobRequest(x.file_type, x.client_key, x.request_id, x.job_id, Some("PROCESSING"), x.request_data, x.iteration, x.dt_job_submitted, x.location, x.dt_file_created, x.dt_first_event, x.dt_last_event, x.dt_expiration, x.dt_job_processing, x.dt_job_completed, x.input_events, x.output_events, x.file_size, x.latency, x.execution_time, x.err_message, x.stage, x.stage_status) }
             Await.result(response, 300 second)
             rddJobRequest.saveToCassandra("platform_db", "job_request")
 
@@ -77,7 +77,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
             Await.result(response, 300.seconds);
             val rowRDD = Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal2") }
-            val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("COMPLETED"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now().plusDays(2))), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
+            val rddJobRequest = filterRDD.map { x => JobRequest(x.file_type, x.client_key, x.request_id, x.job_id, Some("COMPLETED"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now().plusDays(2))), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
 
             rddJobRequest.saveToCassandra("platform_db", "job_request")
 
@@ -95,7 +95,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
 
             val rowRDD = Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal4") }
-            val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("FAILED"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
+            val rddJobRequest = filterRDD.map { x => JobRequest(x.file_type, x.client_key, x.request_id, x.job_id, Some("FAILED"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
 
             rddJobRequest.saveToCassandra("platform_db", "job_request")
 

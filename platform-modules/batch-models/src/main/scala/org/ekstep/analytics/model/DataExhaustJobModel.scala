@@ -19,7 +19,7 @@ import org.ekstep.analytics.util.Constants
 import java.util.UUID
 import org.ekstep.analytics.job.JobStage
 
-case class JobRequest(client_key: String, request_id: String, job_id: Option[String], status: String, request_data: String,
+case class JobRequest(file_type: String, client_key: String, request_id: String, job_id: Option[String], status: String, request_data: String,
                       location: Option[String], dt_file_created: Option[DateTime], dt_first_event: Option[DateTime], dt_last_event: Option[DateTime],
                       dt_expiration: Option[DateTime], iteration: Option[Int], dt_job_submitted: DateTime, dt_job_processing: Option[DateTime],
                       dt_job_completed: Option[DateTime], input_events: Option[Long], output_events: Option[Long], file_size: Option[Long], latency: Option[Int],

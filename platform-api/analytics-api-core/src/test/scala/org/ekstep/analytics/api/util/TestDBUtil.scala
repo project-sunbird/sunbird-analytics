@@ -20,9 +20,9 @@ class TestDBUtil extends SparkSpec {
         val request_data2 = """{"filter":{"start_date":"2016-11-19","end_date":"2016-11-20","tags":["test-tag"],"events":["OE_ASSESS"]}}"""
         
         val requests = Array(
-            JobRequest(Option("partner1"), Option("1234"), None, Option("SUBMITTED"), Option(request_data1),
+            JobRequest("json",Option("partner1"), Option("1234"), None, Option("SUBMITTED"), Option(request_data1),
                 Option(1), Option(DateTime.now()), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),
-            JobRequest(Option("partner1"), Option("273645"), Option("test-job-id"), Option("COMPLETED"), Option(request_data2),
+            JobRequest("json", Option("partner1"), Option("273645"), Option("test-job-id"), Option("COMPLETED"), Option(request_data2),
                 Option(1), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), Option("https://test-location"), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), None, None, None, None, None, Option(123234), Option(532), Option(12343453L), None, None, None, None, None));
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORML_DB, Constants.JOB_REQUEST)
         

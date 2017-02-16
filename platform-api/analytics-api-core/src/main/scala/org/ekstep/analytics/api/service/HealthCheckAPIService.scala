@@ -9,11 +9,15 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.api.ContentUsageSummaryFact
 import org.ekstep.analytics.api.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
+import akka.actor.Props
+import akka.actor.Actor
 
 case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[String] = None)
 
 object HealthCheckAPIService {
-
+  
+    case class GetHealthStatus(sc: SparkContext)
+  
     def getHealthStatus()(implicit sc: SparkContext): String = {
 
         val checks = getChecks()
@@ -64,4 +68,12 @@ object HealthCheckAPIService {
         implicit val sc = CommonUtil.getSparkContext(10, "Test");
         println(getHealthStatus);
     }
+}
+
+class HealthCheckAPIService extends Actor {
+	import HealthCheckAPIService._;
+
+	def receive = {
+		case GetHealthStatus(sc: SparkContext) => sender() ! getHealthStatus()(sc);
+	}
 }
