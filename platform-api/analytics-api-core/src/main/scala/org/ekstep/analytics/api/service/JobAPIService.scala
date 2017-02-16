@@ -89,6 +89,8 @@ object JobAPIService {
         Map("status" -> "false", "message" -> "invalid type: should be [csv, json].");
       } else if (fileType != null && fileType.equals(FileType.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
         Map("status" -> "false", "message" -> "events should contains only one event.");
+      }else if (fileType != null && fileType.equals(FileType.CSV) && (filter.get.events.get.length.equals(1) && !(filter.get.events.get.contains("OE_ASSESS") || filter.get.events.get.contains("OE_ITEM_RESPONSE")))) {
+        Map("status" -> "false", "message" -> "events should be [OE_ASSESS, OE_ITEM_RESPONSE].");
       } else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty || filter.get.tags.isEmpty) {
         val message = if (params.get.client_key.isEmpty) "client_key is empty"
         else if (filter.get.tags.isEmpty)
