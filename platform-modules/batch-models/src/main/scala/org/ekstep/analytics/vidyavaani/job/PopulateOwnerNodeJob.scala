@@ -43,7 +43,7 @@ object PopulateOwnerNodeJob extends optional.Application with IJob {
     private def _clearOwnerNode()(implicit neo: Neo4j) = {
 
         // Clearing the Relation with Owner nodes
-        val rel = neo.cypher("MATCH ()-[r:CreatedBy]-() DELETE r").loadRowRdd
+        val rel = neo.cypher("MATCH ()-[r:createdBy]-() DELETE r").loadRowRdd
         println(rel.count)
         val rdd = neo.cypher("MATCH (n:Owner) DELETE n").loadRowRdd
         println(rdd.count)
@@ -64,13 +64,13 @@ object PopulateOwnerNodeJob extends optional.Application with IJob {
             val id = o._1
             val owner = o._2
             //println(owner, id)
-            val script = s"CREATE (o:Owner {name: '${owner.replace("'", "")}', ownerId: '${id}'})"
+            val script = s"CREATE (o:Owner {name: '${owner.replace("'", "")}', IL_UNIQUE_ID: '${id}'})"
             neo.cypher(script).loadRowRdd.collect
         }
     }
 
     private def _createRelation()(implicit neo: Neo4j) = {
-        val script = """MATCH (a:domain), (b:Owner) WHERE a.IL_FUNC_OBJECT_TYPE = 'Content' AND EXISTS(a.portalOwner) AND a.portalOwner = b.ownerId CREATE (a)-[r:CreatedBy]->(b)"""
+        val script = """MATCH (a:domain), (b:Owner) WHERE a.IL_FUNC_OBJECT_TYPE = 'Content' AND EXISTS(a.portalOwner) AND a.portalOwner = b.IL_UNIQUE_ID CREATE (a)-[r:createdBy]->(b)"""
         neo.cypher(script).loadRowRdd.collect
     }
 }
