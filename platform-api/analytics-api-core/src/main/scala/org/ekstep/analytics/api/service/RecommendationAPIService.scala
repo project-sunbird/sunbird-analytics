@@ -100,11 +100,19 @@ object RecommendationAPIService {
 		} else {
 			List();
 		}
+		val newlimit = if(result.size < limit) result.size else limit
+		val recommenededContentLimit = Math.ceil(newlimit / 10.0).toInt 
+		val randomContentLimit = newlimit - recommenededContentLimit
 		// if recommendations is disabled then, always take limit from config otherwise user input.
-		val respContent = result.take(limit)
-		JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(result.size))));
+		val respContent = result.take(recommenededContentLimit).union(randomContent(randomContentLimit, result))
+		JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(respContent.size))));
 	}
-
+	
+	private def randomContent(limit: Int, result: List[Map[String, Any]]): List[Map[String, Any]] = {
+	  //TODO: write logic to select random(surprise) content
+	  result.takeRight(limit)
+	}
+	
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {
 		if ("LIST".equals(filter._3)) {
 			val valueList = map.getOrElse(filter._1, List()).asInstanceOf[List[String]];
