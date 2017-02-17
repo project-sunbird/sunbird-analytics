@@ -125,11 +125,11 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
                 val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
                 //  type check for file type: json or csv
-                if(fileType.toLowerCase().equals("json")) {
-                  events.map { x => x.event }.saveAsTextFile(path); 
-                } else {
+                if(fileType.toLowerCase().equals("csv")) {
                   val rdd = events.map { x => JSONUtils.deserialize[Event](x.event)}
                   toCSV(rdd).coalesce(2).saveAsTextFile(path)
+                } else {
+                  events.map { x => x.event }.saveAsTextFile(path);
                 }
                 updateStage(request_id, client_key, stage, "COMPLETED")
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, output_events, bucket, uploadPrefix, firstEventDate, lastEventDate)));
@@ -152,14 +152,15 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         val dispatch_to = config.getOrElse("dispatch-to", "local").asInstanceOf[String];
 
         val events = data.cache
+        val fileType = config.get("fileType").get.asInstanceOf[String]
         val res = dispatch_to match {
             case "local" =>
                 val localPath = config.get("path").get.asInstanceOf[String] + "/" + request_id;
-                saveData(config.get("fileType").get.asInstanceOf[String], localPath, events, localPath, "SAVE_DATA_TO_LOCAL", config)
+                saveData(fileType, localPath, events, localPath, "SAVE_DATA_TO_LOCAL", config)
             case "s3" =>
                 val uploadPrefix = prefix + "/" + request_id;
                 val key = "s3n://" + bucket + "/" + uploadPrefix;
-                saveData(config.get("fileType").get.asInstanceOf[String], key, events, uploadPrefix, "SAVE_DATA_TO_S3", config);
+                saveData(fileType, key, events, uploadPrefix, "SAVE_DATA_TO_S3", config);
         }
         events.unpersist(true)
         res;
