@@ -58,6 +58,20 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         me(5)._1 should be("content1")
     }
     
+    it should "throw unknown method found exception" in {
+        
+        a[Exception] should be thrownBy {
+            EndOfContentRecommendationModel.execute(null, Option(Map("method" -> "sine")))
+        }
+    }
+    
+    it should "throw unknown feature name found exception" in {
+        
+        a[Exception] should be thrownBy {
+            EndOfContentRecommendationModel.execute(null, Option(Map("sorting_order" -> List("num_downloads", "rel.avg_rating", "eng.total_interactions", "simi.score"))))
+        }
+    }
+    
     def populateDatabase() {
         
         CassandraConnector(sc.getConf).withSessionDo { session =>
@@ -86,6 +100,7 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
             session.execute("INSERT INTO content_db.content_sideloading_summary(content_id, num_downloads, total_count, num_sideloads, origin_map, avg_depth) VALUES ('domain_55065', 1000, 15, 5, {}, 0.5);");
             session.execute("INSERT INTO content_db.content_sideloading_summary(content_id, num_downloads, total_count, num_sideloads, origin_map, avg_depth) VALUES ('domain_70615', 50000, 15, 5, {}, 0.5);");
             session.execute("INSERT INTO content_db.content_sideloading_summary(content_id, num_downloads, total_count, num_sideloads, origin_map, avg_depth) VALUES ('org.ekstep.aser', 1, 15, 5, {}, 0.5);");
+            session.execute("INSERT INTO content_db.content_popularity_summary_fact(d_period, d_tag, d_content_id, m_downloads, m_side_loads, m_comments, m_ratings, m_avg_rating) VALUES (0, 'all' ,'domain_64106', 10, 0, [], [], 4.8);");
         }
     }
 }

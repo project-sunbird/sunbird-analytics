@@ -146,11 +146,11 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
     
     def getSortedFeatures(id: String, simi_score: Double, features: ContentFeatures_t, sorting_order: List[String]): (Double, Double, Double, Double) = {
         
-        val value1 = getValue(sorting_order(0), simi_score, features)
-        val value2 = getValue(sorting_order(1), simi_score, features)
-        val value3 = getValue(sorting_order(2), simi_score, features)
-        val value4 = getValue(sorting_order(3), simi_score, features)
-        (value1, value2, value3, value4);
+        val feat1 = getValue(sorting_order(0), simi_score, features)
+        val feat2 = getValue(sorting_order(1), simi_score, features)
+        val feat3 = getValue(sorting_order(2), simi_score, features)
+        val feat4 = getValue(sorting_order(3), simi_score, features)
+        (feat1, feat2, feat3, feat4);
     }
     
     def getValue(key: String, simi_score: Double, features: ContentFeatures_t): Double = {
