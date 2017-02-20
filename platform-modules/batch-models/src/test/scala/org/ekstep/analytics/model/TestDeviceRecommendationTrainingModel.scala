@@ -32,7 +32,7 @@ class TestDeviceRecommendationTrainingModel extends SparkSpec(null) {
         val date = dateTime.toLocalDate()
         val time = dateTime.toLocalTime().toString("HH-mm")
         val path_default = "/training/" + date + "/" + time + "/" 
-        val me = DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "dataLimit" -> Int.box(5), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model", "upload_model_s3" -> false.asInstanceOf[AnyRef], "saveFeatureFile" -> true.asInstanceOf[AnyRef], "performAggreagation" -> true.asInstanceOf[AnyRef], "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef])))
+        val me = DeviceRecommendationTrainingModel.execute(null, Option(Map("trainRatio" -> Double.box(1.0), "testRatio" -> Double.box(1.0), "dataLimit" -> Int.box(5), "libfm.executable_path" -> "src/test/resources/device-recos-training/", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "key" -> "model/test/", "model_name" -> "fm.model", "upload_model_s3" -> false.asInstanceOf[AnyRef], "saveFeatureFile" -> true.asInstanceOf[AnyRef], "performAggregation" -> true.asInstanceOf[AnyRef], "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef])))
         val filePath = new File("src/test/resources/device-recos-training/RE-data/"+path_default)
         filePath.exists() should be (false)
         val featurefilePath = new File("src/test/resources/device-recos-training/RE-data/"+"featureDetails")
