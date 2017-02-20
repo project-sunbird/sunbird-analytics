@@ -45,7 +45,7 @@ object JobAPIService {
     val isValid = _validateReq(body)
     if ("true".equals(isValid.get("status").get)) {
       val fileType = if (body.request.`type` == null || body.request.`type`.isEmpty()) FileType.JSON else body.request.`type`
-      val requestId = _getRequestId(body.request.filter.get);
+      val requestId = _getRequestId(body.request.filter.get, fileType);
       val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
       val jobResponse = if (null == job) {
         _saveJobRequest(requestId, body)
@@ -143,10 +143,10 @@ object JobAPIService {
     JobResponse(requestId, status, jobSubmitted.getMillis, body.request, Option(JobOutput()), Option(JobStats(jobSubmitted.getMillis)));
   }
 
-  private def _getRequestId(filter: Filter): String = {
+  private def _getRequestId(filter: Filter, fileType: String): String = {
     Sorting.quickSort(filter.tags.getOrElse(Array()));
     Sorting.quickSort(filter.events.getOrElse(Array()));
-    val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString).mkString("|");
+    val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString, fileType).mkString("|");
     MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
   }
 
