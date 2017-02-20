@@ -104,7 +104,7 @@ object RecommendationAPIService {
 		}
 		val newlimit = if(result.size < limit) result.size else limit
 		val index = config.getInt("recommendation.index")
-		val serendipityFactor = config.getDouble("recommendation.serendipityFactor")
+		val serendipityFactor = config.getDouble("recommendation.serendipity_factor")
 		
 		val recommenededContentLimit = Math.ceil(newlimit / serendipityFactor).toInt 
 		val randomContentLimit = newlimit - recommenededContentLimit
