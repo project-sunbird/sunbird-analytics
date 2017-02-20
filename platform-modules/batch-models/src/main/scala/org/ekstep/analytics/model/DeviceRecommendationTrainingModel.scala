@@ -351,7 +351,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val tag_dimensions = config.getOrElse("tag_dimensions", 15).asInstanceOf[Int];
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val saveFeatureFile = config.getOrElse("saveFeatureFile", false).asInstanceOf[Boolean];
-        val performAggreagation = config.getOrElse("performAggreagation", false).asInstanceOf[Boolean];
+        val performAggregation = config.getOrElse("performAggregation", false).asInstanceOf[Boolean];
 
         CommonUtil.deleteFile(trainDataFile);
         CommonUtil.deleteFile(testDataFile);
@@ -381,7 +381,7 @@ object DeviceRecommendationTrainingModel extends IBatchModelTemplate[DerivedEven
         val output = formula.fit(df).transform(df)
         JobLogger.log("executing formula.fit(resultDF).transform(resultDF)", None, INFO, "org.ekstep.analytics.model");
 
-        val labeledRDD = if (performAggreagation) aggregateTrainingData(output) else output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd.filter { x => x.label > 0.0 };
+        val labeledRDD = if (performAggregation) aggregateTrainingData(output) else output.select("features", "label").map { x => new LabeledPoint(x.getDouble(1), x.getAs[org.apache.spark.ml.linalg.Vector](0)) }.rdd.filter { x => x.label > 0.0 };
         JobLogger.log("created labeledRDD", Option(Map("LabeledRDD size(filtered)" -> labeledRDD.count())), INFO, "org.ekstep.analytics.model");
 
         val dataStr = labeledRDD.map {
