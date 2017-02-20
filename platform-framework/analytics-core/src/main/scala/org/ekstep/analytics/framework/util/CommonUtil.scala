@@ -75,7 +75,6 @@ object CommonUtil {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
         if (!conf.contains("spark.neo4j.bolt.url")) {
-            println(AppConf.getConfig("spark.neo4j.bolt.url"))
             conf.set("spark.neo4j.bolt.url", AppConf.getConfig("spark.neo4j.bolt.url"))
             conf.set("spark.neo4j.bolt.user", AppConf.getConfig("spark.neo4j.bolt.user"))
             conf.set("spark.neo4j.bolt.password", AppConf.getConfig("spark.neo4j.bolt.password"))

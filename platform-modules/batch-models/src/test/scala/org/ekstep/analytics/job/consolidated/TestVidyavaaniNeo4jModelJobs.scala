@@ -4,5 +4,7 @@ import org.ekstep.analytics.model.SparkSpec
 
 class TestVidyavaaniNeo4jModelJobs extends SparkSpec(null) {
     
-    VidyavaaniNeo4jModelJobs.main("{}")(Option(sc));
+    it should "run Vidyavaani Neo4j Enhancement Jobs and does not throw any exception" in {
+        VidyavaaniNeo4jModelJobs.main("{}")(Option(sc));    
+    }
 }
