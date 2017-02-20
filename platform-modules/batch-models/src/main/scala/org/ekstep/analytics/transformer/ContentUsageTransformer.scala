@@ -36,11 +36,11 @@ object ContentUsageTransformer extends DeviceRecommendationTransformer[ContentUs
         .mapValues(f => cus_t(Option(f._1._1._1._1._1._1._1._1), Option(f._1._1._1._1._1._1._1._2), Option(f._1._1._1._1._1._1._2), Option(f._1._1._1._1._1._2), Option(f._1._1._1._1._2), Option(f._1._1._1._2), Option(f._1._1._2), Option(f._1._2), Option(f._2)));
     }
     
-    def getBinningForEOC(rdd: RDD[ContentFeatures], num_bins_usage: Int, num_bins_rating: Int, num_bins_interactions: Int)(implicit sc: SparkContext): RDD[ContentFeatures_t] = {
+    def getBinningForEOC(rdd: RDD[ContentFeatures], num_bins_downloads: Int, num_bins_rating: Int, num_bins_interactions: Int)(implicit sc: SparkContext): RDD[ContentFeatures_t] = {
         
         implicit val sqlContext = new SQLContext(sc);
         val f1 = rdd.map { x => (x.content_id, x.num_downloads.toDouble) };
-        val f1_t = binning(f1, num_bins_usage);
+        val f1_t = binning(f1, num_bins_downloads);
         val f2 = rdd.map { x => (x.content_id, x.avg_rating) };
         val f2_t = binning(f2, num_bins_rating);
         val f3 = rdd.map { x => (x.content_id, x.total_interactions.toDouble) };

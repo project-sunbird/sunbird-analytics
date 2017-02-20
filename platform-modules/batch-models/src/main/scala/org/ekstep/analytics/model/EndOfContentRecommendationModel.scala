@@ -28,7 +28,6 @@ case class ContentContext(c1_ctv: ContentToVector, c2_ctv: ContentToVector) exte
 case class BlacklistContents(config_key: String, config_value: List[String])
 case class ContentFeatures(content_id: String, num_downloads: Long, avg_rating: Double, total_interactions: Long)
 case class ContentFeatures_t(content_id: String, num_downloads: Double, avg_rating: Double, total_interactions: Double)
-case class Features(content_id: String, feat: Map[String, List[Double]])
 
 object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, ContentContext, ContentRecos, ContentRecos] with Serializable {
 
@@ -51,10 +50,10 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
         val norm = config.getOrElse("norm", "none").asInstanceOf[String]
         val weight = config.getOrElse("weight", 0.1).asInstanceOf[Double]
         val filterBlacklistedContents = config.getOrElse("filterBlacklistedContents", false).asInstanceOf[Boolean];
-        val num_bins_usage = config.getOrElse("num_bins_usage", 10).asInstanceOf[Int];
+        val num_bins_downloads = config.getOrElse("num_bins_downloads", 10).asInstanceOf[Int];
         val num_bins_rating = config.getOrElse("num_bins_rating", 10).asInstanceOf[Int];
         val num_bins_interactions = config.getOrElse("num_bins_interactions", 10).asInstanceOf[Int];
-        val sorting_order = config.getOrElse("sorting_order", List("rel", "eng", "ss")).asInstanceOf[List[String]];
+        val sorting_order = config.getOrElse("sorting_order", List("rel.num_downloads", "rel.avg_rating", "eng.total_interactions", "simi.score")).asInstanceOf[List[String]];
         
         //Content Model
         val contentModel = ContentAdapter.getPublishedContentForRE().map { x => (x.id, x) }
@@ -74,9 +73,7 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
         val css = contentSideloading.map{x => (x.content_id, x.num_downloads)}
         
         val features = cm.leftOuterJoin(css).leftOuterJoin(cps).leftOuterJoin(cus).map{x => ContentFeatures(x._1, x._2._1._1._2.getOrElse(0L), x._2._1._2.getOrElse(0.0), x._2._2.getOrElse(0L))}
-        val features_t = ContentUsageTransformer.getBinningForEOC(features, num_bins_usage, num_bins_rating, num_bins_interactions).map{x => (x.content_id, x)}.collect().toMap
-
-        val feat = features_t.map{x => (x._1, Features(x._1, Map("rel" -> List(x._2.num_downloads, x._2.avg_rating), "eng" -> List(x._2.total_interactions))))}
+        val features_t = ContentUsageTransformer.getBinningForEOC(features, num_bins_downloads, num_bins_rating, num_bins_interactions).map{x => (x.content_id, x)}.collect().toMap
         
         val scores = data.map { x => ((x.c1_ctv.contentId, x.c2_ctv.contentId), x) }.mapValues { x =>
             getContentSimilarity(x.c1_ctv, x.c2_ctv, method, norm, weight)
@@ -87,11 +84,8 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
             val c1_grade = x._2.getOrElse(defaultContentModel).gradeList
             val listF_sub = x._1.filter(f => c1_subject.exists { contentMap.get(f._1).getOrElse(defaultContentModel).subject.contains(_) })
             val listF_grade = listF_sub.filter(f => c1_grade.exists { contentMap.get(f._1).getOrElse(defaultContentModel).gradeList.contains(_) })
-            val feature_list = listF_grade.map{x => (x, feat.getOrElse(x._1, Features(x._1, null)))}.map(x => (x._1._1, Features(x._1._1, x._2.feat + ("ss" -> List(x._1._2)))))
-            val feature_list_score = feature_list.map{x => (x._1, List(x._2.feat.getOrElse(sorting_order(0), List()), x._2.feat.getOrElse(sorting_order(1), List()), x._2.feat.getOrElse(sorting_order(2), List())).flatten)}
-            val sorted_list = feature_list_score.sortBy(f => (f._2(0), f._2(1), f._2(2), f._2(3))).reverse
-//            val out_list = sorted_list.map(x => (x._1, x._2(3)))
-            listF_grade;
+            val sorted_list = getSortedList(listF_grade, features_t, sorting_order)
+            sorted_list;
         }
         
         val final_scores = if (filterBlacklistedContents) {
@@ -139,5 +133,38 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
         val vec1 = new DenseVector(x.toArray).t
         val vec2 = new DenseVector(y.toArray)
         vec1 * vec2
+    }
+    
+    def getSortedList(score: List[(String, Double)], features: Map[String, ContentFeatures_t], sorting_order: List[String]): List[(String, Double)] = {
+        
+        val ls = score.map{x =>
+            (x._1, x._2, getSortedFeatures(x._1, x._2, features.get(x._1).get, sorting_order))
+        }
+        val sorted_ls = ls.sortBy(f => f._3).reverse.map(x => (x._1, x._2))
+        sorted_ls;
+    }
+    
+    def getSortedFeatures(id: String, simi_score: Double, features: ContentFeatures_t, sorting_order: List[String]): (Double, Double, Double, Double) = {
+        
+        val feat1 = getValue(sorting_order(0), simi_score, features)
+        val feat2 = getValue(sorting_order(1), simi_score, features)
+        val feat3 = getValue(sorting_order(2), simi_score, features)
+        val feat4 = getValue(sorting_order(3), simi_score, features)
+        (feat1, feat2, feat3, feat4);
+    }
+    
+    def getValue(key: String, simi_score: Double, features: ContentFeatures_t): Double = {
+        key match {
+            case "rel.num_downloads" =>
+                features.num_downloads;
+            case "rel.avg_rating" =>
+                features.avg_rating;
+            case "eng.total_interactions" =>
+                features.total_interactions;
+            case "simi.score" =>
+                simi_score;
+            case _ =>
+                throw new Exception("Unknown feature name found");
+        }
     }
 }

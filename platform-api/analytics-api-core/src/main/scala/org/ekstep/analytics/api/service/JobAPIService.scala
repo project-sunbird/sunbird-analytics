@@ -48,7 +48,7 @@ object JobAPIService {
       val requestId = _getRequestId(body.request.filter.get);
       val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
       val jobResponse = if (null == job) {
-        _saveJobRequest(requestId, body, fileType.toLowerCase())
+        _saveJobRequest(requestId, body)
       } else {
         _createJobResponse(job)
       }
@@ -89,6 +89,8 @@ object JobAPIService {
         Map("status" -> "false", "message" -> "invalid type: should be [csv, json].");
       } else if (fileType != null && fileType.equals(FileType.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
         Map("status" -> "false", "message" -> "events should contains only one event.");
+      }else if (fileType != null && fileType.equals(FileType.CSV) && (filter.get.events.get.length.equals(1) && !(filter.get.events.get.contains("OE_ASSESS") || filter.get.events.get.contains("OE_ITEM_RESPONSE")))) {
+        Map("status" -> "false", "message" -> "events should be [OE_ASSESS, OE_ITEM_RESPONSE].");
       } else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty || filter.get.tags.isEmpty) {
         val message = if (params.get.client_key.isEmpty) "client_key is empty"
         else if (filter.get.tags.isEmpty)
@@ -133,10 +135,10 @@ object JobAPIService {
     JobResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats);
   }
 
-  private def _saveJobRequest(requestId: String, body: RequestBody, fileFormat: String)(implicit sc: SparkContext): JobResponse = {
+  private def _saveJobRequest(requestId: String, body: RequestBody)(implicit sc: SparkContext): JobResponse = {
     val status = JobStatus.SUBMITTED.toString();
     val jobSubmitted = DateTime.now()
-    val jobRequest = JobRequest(fileFormat, body.params.get.client_key, Option(requestId), None, Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
+    val jobRequest = JobRequest(body.params.get.client_key, Option(requestId), None, Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
     DBUtil.saveJobRequest(jobRequest);
     JobResponse(requestId, status, jobSubmitted.getMillis, body.request, Option(JobOutput()), Option(JobStats(jobSubmitted.getMillis)));
   }
