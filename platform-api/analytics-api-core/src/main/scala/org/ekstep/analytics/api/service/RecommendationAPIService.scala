@@ -106,10 +106,10 @@ object RecommendationAPIService {
 		val index = config.getInt("recommendation.index")
 		val serendipityFactor = config.getDouble("recommendation.serendipity_factor")
 		
-		val recommenededContentLimit = Math.ceil(newlimit / serendipityFactor).toInt 
-		val randomContentLimit = newlimit - recommenededContentLimit
+		val rndCntLimit = Math.ceil((newlimit * serendipityFactor)/100.0).toInt 
+		val recommenededCntLimit = newlimit - rndCntLimit
 		// if recommendations is disabled then, always take limit from config otherwise user input.
-		val respContent = result.take(recommenededContentLimit).union(randomContent(randomContentLimit, index, result))
+		val respContent = result.take(recommenededCntLimit).union(randomContent(rndCntLimit, index, result))
 		JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(respContent.size))));
 	}
 	
