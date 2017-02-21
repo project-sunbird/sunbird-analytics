@@ -38,7 +38,7 @@ object ContentCacheUtil {
 	def validateCache()(implicit sc: SparkContext, config: Config) {
 
 		val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
-		if (cacheTimestamp < timeAtStartOfDay || true) {
+		if (cacheTimestamp < timeAtStartOfDay) {
 			println("cacheTimestamp:" + cacheTimestamp, "timeAtStartOfDay:" + timeAtStartOfDay, " ### Resetting content cache...### ");
 			if (!contentListBroadcastMap.isEmpty) contentListBroadcastMap.empty;
 			if (!recommendListBroadcastMap.isEmpty) recommendListBroadcastMap.empty;
