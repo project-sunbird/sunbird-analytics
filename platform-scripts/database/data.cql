@@ -260,7 +260,6 @@ CREATE KEYSPACE IF NOT EXISTS platform_db WITH replication = {
 };
 
 CREATE TABLE IF NOT EXISTS platform_db.job_request (
-	file_type text,
     client_key text,
     request_id text,
     job_id text,
