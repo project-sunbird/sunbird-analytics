@@ -74,10 +74,10 @@ object CommonUtil {
         if (!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
-        if (!conf.contains("spark.neo4j.bolt.url")) {
-            conf.set("spark.neo4j.bolt.url", AppConf.getConfig("spark.neo4j.bolt.url"))
-            conf.set("spark.neo4j.bolt.user", AppConf.getConfig("spark.neo4j.bolt.user"))
-            conf.set("spark.neo4j.bolt.password", AppConf.getConfig("spark.neo4j.bolt.password"))
+        if (!conf.contains("neo4j.bolt.url")) {
+            conf.set("spark.neo4j.bolt.url", AppConf.getConfig("neo4j.bolt.url"))
+            conf.set("spark.neo4j.bolt.user", AppConf.getConfig("neo4j.bolt.user"))
+            conf.set("spark.neo4j.bolt.password", AppConf.getConfig("neo4j.bolt.password"))
         }
 
         // $COVERAGE-ON$
