@@ -148,6 +148,8 @@ object DataExhaustJob extends optional.Application with IJob {
 
             try {
                 val dt_processing = DateTime.now(DateTimeZone.UTC);
+                val requestData = JSONUtils.deserialize[Map[String, AnyRef]](request.request_data);
+                val fileType = requestData.getOrElse("type", "json").asInstanceOf[String]
                 val requestConfig = Map(
                     "request_id" -> request.request_id,
                     "client_key" -> request.client_key,
@@ -156,7 +158,7 @@ object DataExhaustJob extends optional.Application with IJob {
                     "data-exhaust-prefix" -> config.getOrElse("data-exhaust-prefix", "data-exhaust/dev"),
                     "dispatch-to" -> config.getOrElse("dispatch-to", "s3").asInstanceOf[String].toLowerCase(),
                     "path" -> config.getOrElse("tempLocalPath", "/tmp/dataexhaust"),
-                    "fileType" -> request.file_type);
+                    "fileType" -> fileType);
 
 
                 val result = CommonUtil.time({

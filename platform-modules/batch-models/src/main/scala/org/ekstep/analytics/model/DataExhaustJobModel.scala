@@ -125,7 +125,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
                 val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
                 //  type check for file type: json or csv
-                if(fileType.toLowerCase().equals("csv")) {
+                if(fileType.equalsIgnoreCase("csv")) {
                   val rdd = events.map { x => JSONUtils.deserialize[Event](x.event)}
                   toCSV(rdd).coalesce(2).saveAsTextFile(path)
                 } else {
