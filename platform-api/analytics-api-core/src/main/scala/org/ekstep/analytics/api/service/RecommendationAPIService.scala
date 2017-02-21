@@ -63,7 +63,7 @@ object RecommendationAPIService {
 		println("config : " , config.getString("service.search.limit"))
 	  val filters: Array[(String, List[String], String)] = Array(("language", List(langName), "LIST"));
 		val deviceRecos = sc.cassandraTable[(List[(String, Double)])](Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).select("scores").where("device_id = ?", did);
-		getRecommendedContent(deviceRecos, filters, limit)
+		getRecommendedContent(deviceRecos, filters, limit, false)
 	}
 
 	private def contentRecommendations(contentId: String, limit: Int)(implicit sc: SparkContext, config: Config): String = {
@@ -79,13 +79,13 @@ object RecommendationAPIService {
 			} else {
 				val contentFilters: Array[(String, List[String], String)] = Array(("language", contentLanguage, "LIST"));
 				val contentRecos = sc.cassandraTable[(List[(String, Double)])](Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).select("scores").where("content_id = ?", contentId);
-				getRecommendedContent(contentRecos, contentFilters, limit)
+				getRecommendedContent(contentRecos, contentFilters, limit, true)
 			}
 
 		}
 	}
 
-	private def getRecommendedContent(records: RDD[List[(String, Double)]], filters: Array[(String, List[String], String)], limit: Int)(implicit sc: SparkContext, config: Config): String = {
+	private def getRecommendedContent(records: RDD[List[(String, Double)]], filters: Array[(String, List[String], String)], limit: Int, isCntReco: Boolean)(implicit sc: SparkContext, config: Config): String = {
 		val result = if (records.count() > 0) {
 			records.first.map(f => ContentCacheUtil.getREList.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
 				.filter(p => p.get("identifier").isDefined)
@@ -109,8 +109,8 @@ object RecommendationAPIService {
 		val rndCntLimit = Math.ceil((newlimit * serendipityFactor)/100.0).toInt 
 		val recommenededCntLimit = newlimit - rndCntLimit
 		// if recommendations is disabled then, always take limit from config otherwise user input.
-		val respContent = result.take(recommenededCntLimit).union(randomContent(rndCntLimit, index, result))
-		JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(respContent.size))));
+		val respContent = if(isCntReco) result.take(recommenededCntLimit).union(randomContent(rndCntLimit, index, result)) else result.take(newlimit)
+		JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(result.size))));
 	}
 	
 	private def randomContent(limit: Int, index: Int, result: List[Map[String, Any]]): List[Map[String, Any]] = {
