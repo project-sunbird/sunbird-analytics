@@ -140,6 +140,22 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>com.pygmalios</groupId>
+			<artifactId>reactiveinflux-spark_2.11</artifactId>
+			<version>1.4.0.10.0.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.paulgoldbaum</groupId>
+			<artifactId>scala-influxdb-client_2.11</artifactId>
+			<version>0.5.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.typesafe.netty/netty-http-pipelining -->
+		<dependency>
+			<groupId>com.typesafe.netty</groupId>
+			<artifactId>netty-http-pipelining</artifactId>
+			<version>1.1.4</version>
+		</dependency>
 
 	</dependencies>
 

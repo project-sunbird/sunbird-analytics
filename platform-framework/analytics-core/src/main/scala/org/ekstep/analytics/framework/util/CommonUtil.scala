@@ -74,6 +74,9 @@ object CommonUtil {
         if (!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
+        if (!conf.contains("reactiveinflux.url")) {
+            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
+        }
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);

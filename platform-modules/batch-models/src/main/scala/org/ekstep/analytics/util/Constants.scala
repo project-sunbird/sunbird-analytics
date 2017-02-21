@@ -30,6 +30,9 @@ object Constants {
     val RECOMMENDATION_CONFIG = "recommendation_config";
     val JOB_REQUEST = "job_request";
     val CONTENT_RECOS = "content_recos";
+    val INFLUX_DB_NAME = "example123"
+    val LOCAL_HOST = "localhost"
+    val INFLUX_DB_PORT = 8086
     
     val REGISTERED_TAGS = "registered_tags";
     
