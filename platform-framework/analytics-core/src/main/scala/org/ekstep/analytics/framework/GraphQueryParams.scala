@@ -1,14 +1,18 @@
-package org.ekstep.analytics.util
+package org.ekstep.analytics.framework
 
-object Neo4jQueryConstants {
+object GraphQueryParams {
+	val UNIQUE_KEY = "IL_UNIQUE_ID"
+	
 	val CREATE = "CREATE";
 	val MERGE = "MERGE"
 	val MATCH = "MATCH";
+	val RETURN = "RETURN";
 	val DETACH_DELETE = "DETACH DELETE"
-	val WHERE = "WHERE "
+	
 	val OPEN_CURLY_BRACKETS = "{";
 	val CLOSE_CURLY_BRACKETS = "}";
 	val OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE = "(ee:";
+	val OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON = "(ee";
 	val OPEN_COMMON_BRACKETS = "(";
 	val CLOSE_COMMON_BRACKETS = ")";
 	val COLON = ": ";

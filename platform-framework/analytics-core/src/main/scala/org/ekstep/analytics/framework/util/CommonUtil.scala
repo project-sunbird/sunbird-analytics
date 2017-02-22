@@ -43,6 +43,7 @@ import org.ekstep.analytics.framework.Level._
 import java.io.InputStream
 import java.nio.file.CopyOption
 import java.net.URL
+import org.neo4j.driver.v1._;
 
 object CommonUtil {
 
@@ -85,6 +86,18 @@ object CommonUtil {
         setS3Conf(sc);
         JobLogger.log("Spark Context initialized");
         sc;
+    }
+    
+    def getGraphDbSession() : Session = {
+    	val authToken = AuthTokens.basic(AppConf.getConfig("neo4j.bolt.user"), AppConf.getConfig("neo4j.bolt.password"));
+    	val driver = GraphDatabase.driver(AppConf.getConfig("neo4j.bolt.url"), authToken);
+    	JobLogger.log("Graph DB Session initialized");
+		driver.session();
+    }
+    
+    def closeGraphDbSession()(implicit session: Session) {
+    	JobLogger.log("Closing Graph DB Session")
+    	session.close();
     }
 
     def setS3Conf(sc: SparkContext) = {
