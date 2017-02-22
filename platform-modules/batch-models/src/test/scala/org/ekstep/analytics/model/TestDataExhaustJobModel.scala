@@ -54,7 +54,7 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
             "data-exhaust-prefix" -> "data-exhaust/dev",
             "dispatch-to" -> "local",
             "path" -> "/tmp/dataexhaust",
-            "fileType" -> "json");
+            "output_format" -> "json");
 
         val out = DataExhaustJobModel.execute(data, Option(requestConfig)).collect
         out.length should be(1)
@@ -96,7 +96,7 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
             "data-exhaust-prefix" -> "data-exhaust/dev",
             "dispatch-to" -> "local",
             "path" -> "/tmp/dataexhaust",
-            "fileType" -> "csv");
+            "output_format" -> "csv");
 
         val out = DataExhaustJobModel.execute(data, Option(requestConfig)).collect
         out.length should be(1)

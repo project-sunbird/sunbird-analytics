@@ -126,7 +126,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
                 //  type check for file type: json or csv
                 if(fileType.equalsIgnoreCase("csv")) {
-                  val rdd = events.map { x => JSONUtils.deserialize[Event](x.event)}
+                  val rdd = events.map { x => x.event}
                   toCSV(rdd).coalesce(2).saveAsTextFile(path)
                 } else {
                   events.map { x => x.event }.saveAsTextFile(path);
@@ -152,7 +152,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         val dispatch_to = config.getOrElse("dispatch-to", "local").asInstanceOf[String];
 
         val events = data.cache
-        val fileType = config.get("fileType").get.asInstanceOf[String]
+        val fileType = config.get("output_format").get.asInstanceOf[String]
         val res = dispatch_to match {
             case "local" =>
                 val localPath = config.get("path").get.asInstanceOf[String] + "/" + request_id;
@@ -171,8 +171,8 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         data;
     }
     
-    def toCSV(rdd: RDD[Event])(implicit sc: SparkContext): RDD[String] = {
-        val data = rdd.map { x => JSONUtils.serialize(x) }.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
+    def toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
+        val data = rdd.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
         val dataMapRDD = data.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }
         val header = sc.parallelize(Seq(dataMapRDD.first().keys.mkString(",")))
         val rows = dataMapRDD.map(f => f.values.map { x => if(x.isInstanceOf[List[Any]]) JSONUtils.serialize(JSONUtils.serialize(x)) else x }.mkString(","));
