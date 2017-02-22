@@ -44,7 +44,7 @@ object JobAPIService {
     val body = JSONUtils.deserialize[RequestBody](request);
     val isValid = _validateReq(body)
     if ("true".equals(isValid.get("status").get)) {
-      val output_format = if (body.request.output_format == null || body.request.output_format.get.isEmpty()) FileType.JSON else body.request.output_format.get
+      val output_format = body.request.output_format.getOrElse(FileType.JSON)
       val requestId = _getRequestId(body.request.filter.get, output_format);
       val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
       val jobResponse = if (null == job) {
@@ -80,7 +80,7 @@ object JobAPIService {
   private def _validateReq(body: RequestBody): Map[String, String] = {
     val params = body.params
     val filter = body.request.filter;
-    val output_format = body.request.output_format
+    val output_format = body.request.output_format.getOrElse(FileType.JSON)
     if (filter.isEmpty || params.isEmpty) {
       val message = if (filter.isEmpty) "filter is empty" else "filter is empty";
       Map("status" -> "false", "message" -> message);
