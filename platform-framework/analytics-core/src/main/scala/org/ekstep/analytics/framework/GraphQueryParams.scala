@@ -39,3 +39,9 @@ object GraphQueryParams {
 	val VERSION_PROPERTIES_KEY_PREFIX = " { VP_KEY_";
 	val VERSION_PROPERTIES_VALUE_PREFIX = " { VP_VALUE_";
 }
+
+object RelationshipDirection extends Enumeration {
+	type Direction = Value;
+	val OUTGOING, INCOMING, BIDIRECTIONAL = Value
+	
+}

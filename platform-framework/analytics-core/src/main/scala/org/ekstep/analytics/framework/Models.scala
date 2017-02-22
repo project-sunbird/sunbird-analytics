@@ -123,6 +123,7 @@ trait CassandraTable extends AnyRef with Serializable;
 
 /* Neo4j case classes */
 case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
+case class GraphRelation(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = Option(Map())) extends Serializable;
 
 object Period extends Enumeration {
     type Period = Value

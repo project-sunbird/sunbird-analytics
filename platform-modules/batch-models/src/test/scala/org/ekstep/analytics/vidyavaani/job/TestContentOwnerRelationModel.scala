@@ -6,20 +6,9 @@ import org.ekstep.analytics.model.SparkGraphSpec
 
 class TestContentOwnerRelationModel extends SparkGraphSpec(null) {
   
-    it should "Clear all Owner Nodes in Neo4j" in {
-        
-//        val neo = Neo4j(sc)
-//        val rel = neo.cypher("MATCH ()-[r:createdBy]-() DELETE r").loadRowRdd
-//        rel.count should be (0)
-//        val rdd = neo.cypher("MATCH (n:Owner) DELETE n").loadRowRdd
-//        rdd.count should be (0)
-        
+    it should "create Owner nodes and 'createdBy' relation with contents" in {
+
         ContentOwnerRelationModel.main("{}")(Option(sc));
-        
-        
-//        val owner = neo.cypher("MATCH (n:Owner) Return n").loadRowRdd
-//        owner.count should be > (0L)
-//        val relations = neo.cypher("MATCH ()-[r:createdBy]-() Return r").loadRowRdd
-//        relations.count should be > (0L)      
+              
     }
 }
