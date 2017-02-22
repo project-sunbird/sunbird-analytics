@@ -5,6 +5,7 @@ object Neo4jQueryConstants {
 	val MERGE = "MERGE"
 	val MATCH = "MATCH";
 	val DETACH_DELETE = "DETACH DELETE"
+	val WHERE = "WHERE "
 	val OPEN_CURLY_BRACKETS = "{";
 	val CLOSE_CURLY_BRACKETS = "}";
 	val OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE = "(ee:";

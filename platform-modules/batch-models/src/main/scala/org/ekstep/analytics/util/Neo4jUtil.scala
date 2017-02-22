@@ -23,18 +23,18 @@ object Neo4jUtil {
     }
 
     def addRelation(startNodeId: String, endNodeId: String, relation: String, relationProperties: Option[Map[String, AnyRef]] = None)(implicit neo: Neo4j) {
-
+        
     }
 
     def deleteRelation(startNodeId: String, endNodeId: String, relation: String)(implicit neo: Neo4j) {
-
+        
     }
 
     def deleteAllRelations(startNodeType: String, endNodeType: String, relation: String)(implicit neo: Neo4j) {
 
     }
     
-    private def removeKeyQuotes(query: String) : String = {
+    def removeKeyQuotes(query: String) : String = {
     	val regex = """"(\w+)":""";
     	return query.replaceAll(regex, "$1:")
     }

@@ -3,7 +3,7 @@ package org.ekstep.analytics.vidyavaani.job
 import org.ekstep.analytics.model.SparkSpec
 import org.neo4j.spark.Neo4j
 
-class TestPopulateOwnerNodeJob extends SparkSpec(null) {
+class TestContentOwnerRelationModel extends SparkSpec(null) {
   
     it should "Clear all Owner Nodes in Neo4j" in {
         
@@ -13,7 +13,7 @@ class TestPopulateOwnerNodeJob extends SparkSpec(null) {
         val rdd = neo.cypher("MATCH (n:Owner) DELETE n").loadRowRdd
         rdd.count should be (0)
         
-        PopulateOwnerNodeJob.main("{}")(Option(sc));
+        ContentOwnerRelationModel.main("{}")(Option(sc));
         
         
         val owner = neo.cypher("MATCH (n:Owner) Return n").loadRowRdd
