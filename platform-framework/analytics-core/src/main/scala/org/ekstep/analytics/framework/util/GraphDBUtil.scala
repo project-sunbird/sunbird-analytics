@@ -5,6 +5,10 @@ import org.ekstep.analytics.framework.DataNode
 import org.neo4j.driver.v1.Session
 import org.neo4j.driver.v1.Record
 import scala.collection.JavaConverters._
+import org.apache.commons.lang3.StringUtils
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.JobContext
+import org.apache.spark.SparkContext
 
 object GraphDBUtil {
 	
@@ -19,6 +23,22 @@ object GraphDBUtil {
     	val query = createQuery.toString
     	executeQuery(query);
     }
+	
+	def createNodes(nodes: RDD[DataNode])(implicit session: Session) {
+		val fullQuery = StringBuilder.newBuilder;
+		fullQuery.append(CREATE)
+		val nodesQuery = nodes.map { x => 
+			val nodeQuery = StringBuilder.newBuilder;
+			nodeQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(x.identifier).append(COLON)
+			.append(x.labels.get.mkString(":"))
+			val props = removeKeyQuotes(JSONUtils.serialize(Map(UNIQUE_KEY -> x.identifier) ++ x.metadata.getOrElse(Map())));
+			nodeQuery.append(props).append(CLOSE_COMMON_BRACKETS);
+			nodeQuery.toString
+		}.collect().mkString(",")
+		val query = fullQuery.append(nodesQuery).toString
+		println("Query:", query);
+		executeQuery(query)
+	}
 
     def deleteNodes(metadata: Option[Map[String, AnyRef]], labels: Option[List[String]])(implicit session: Session) {
     	if (metadata.isEmpty && labels.isEmpty) {
@@ -55,7 +75,7 @@ object GraphDBUtil {
 
     }
     
-    def findNodes(metadata: Map[String, AnyRef], labels: Option[List[String]])(implicit session: Session) : List[DataNode] = {
+    def findNodes(metadata: Map[String, AnyRef], labels: Option[List[String]])(implicit sc: SparkContext, session: Session) : RDD[DataNode] = {
     	val findQuery = StringBuilder.newBuilder;
 		findQuery.append(MATCH)
 		if(labels.isEmpty) 
@@ -69,7 +89,7 @@ object GraphDBUtil {
 		val query = findQuery.toString;
 		JobLogger.log("Neo4j Query:" + query);
 		val result = session.run(query);
-		if (null != result) {
+		val nodes = if (null != result) {
 			val nodes = result.list().toArray().map(x => x.asInstanceOf[Record]).map { x => x.get(DEFAULT_CYPHER_NODE_OBJECT).asNode() }
 			.map { x => 
 				val metadata = getMetadata(x);
@@ -81,7 +101,7 @@ object GraphDBUtil {
 		} else {
 			List();
 		}
-		
+		sc.parallelize(nodes, JobContext.parallelization)
     }
     
     private def getMetadata(node: org.neo4j.driver.v1.types.Node) : Map[String, AnyRef] = {

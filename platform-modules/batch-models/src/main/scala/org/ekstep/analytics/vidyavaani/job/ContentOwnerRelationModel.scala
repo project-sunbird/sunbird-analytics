@@ -51,7 +51,7 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
 
     private def _createOwnerNode()(implicit sc: SparkContext, session: Session) = {
         
-    	val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain"))) 
+    	val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain"))); 
 
     	val owners = contentNodes.map { x => x.metadata.getOrElse(Map()) }
     	.map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("owner", "").asInstanceOf[String]))
@@ -62,8 +62,10 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
     		val name = if(namesList.isEmpty) identifier else namesList.last._2;
     		DataNode(identifier, Option(Map("name" -> name)), Option(List(NODE_NAME)));
     	}
-
-    	owners.map { x => GraphDBUtil.createNode(x) };
+    	
+    	GraphDBUtil.createNodes(owners)
+    	
+    	
     }
 
     private def _createRelation()(implicit session: Session) = {

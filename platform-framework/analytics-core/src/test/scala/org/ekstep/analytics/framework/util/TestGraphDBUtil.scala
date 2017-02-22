@@ -13,7 +13,7 @@ class TestGraphDBUtil extends SparkGraphSpec {
 	
 	"GraphDBUtil" should "find a node" in {
 		val nodes = GraphDBUtil.findNodes(Map(), Option(List("User")));
-		println("Nodes:", nodes.length);
+		println("Nodes:", nodes.count);
 	}
 	
 	"GraphDBUtil" should "delete a node" in {
