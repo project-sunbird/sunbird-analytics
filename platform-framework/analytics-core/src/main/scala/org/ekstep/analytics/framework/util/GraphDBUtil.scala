@@ -31,7 +31,7 @@ object GraphDBUtil {
     		else 
     			deleteQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(labels.get.mkString(":"))
     			
-    		val props = removeKeyQuotes(JSONUtils.serialize(metadata));
+    		val props = removeKeyQuotes(JSONUtils.serialize(metadata.getOrElse(Map())));
     		deleteQuery.append(props).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
         	.append(DETACH_DELETE).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT);
     		
