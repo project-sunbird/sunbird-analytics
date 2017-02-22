@@ -85,7 +85,7 @@ object RecommendationAPIService {
 		}
 	}
 
-	private def getRecommendedContent(records: RDD[List[(String, Double)]], filters: Array[(String, List[String], String)], limit: Int, isCntReco: Boolean)(implicit sc: SparkContext, config: Config): String = {
+	private def getRecommendedContent(records: RDD[List[(String, Double)]], filters: Array[(String, List[String], String)], limit: Int, isContentReco: Boolean)(implicit sc: SparkContext, config: Config): String = {
 		val result = if (records.count() > 0) {
 			records.first.map(f => ContentCacheUtil.getREList.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
 				.filter(p => p.get("identifier").isDefined)
@@ -102,20 +102,20 @@ object RecommendationAPIService {
 		} else {
 			List();
 		}
-		val newlimit = if(result.size < limit) result.size else limit
+
 		val index = config.getInt("recommendation.index")
 		val serendipityFactor = config.getDouble("recommendation.serendipity_factor")
-		
-		val rndCntLimit = Math.ceil((newlimit * serendipityFactor)/100.0).toInt 
-		val recommenededCntLimit = newlimit - rndCntLimit
+		val serendipityContentLimit = Math.ceil((limit * serendipityFactor)/100.0).toInt 
+		val recoContentLimit = limit - serendipityContentLimit
+		val surpriseContentIndex = index + recoContentLimit - 1
+		val surpriseContentLimit = surpriseContentIndex + serendipityContentLimit
 		// if recommendations is disabled then, always take limit from config otherwise user input.
-		val respContent = if(isCntReco) result.take(recommenededCntLimit).union(randomContent(rndCntLimit, index, result)) else result.take(newlimit)
+		val respContent = if(isContentReco) {
+		  if(result.size <= surpriseContentLimit) result.take(limit) else result.take(recoContentLimit).union(result.slice(surpriseContentIndex, surpriseContentLimit))
+		} else {
+		  result.take(limit)
+		}
 		JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> respContent, "count" -> Int.box(result.size))));
-	}
-	
-	private def randomContent(limit: Int, index: Int, result: List[Map[String, Any]]): List[Map[String, Any]] = {
-	  val endLimit = limit + index
-	  if(result.size < endLimit) result.takeRight(limit) else result.slice(index, endLimit)
 	}
 	
 	private def recoFilter(map: Map[String, Any], filter: (String, List[String], String)): Boolean = {

@@ -152,8 +152,17 @@ class TestRecommendationAPIService extends SparkSpec {
         val result = resp.result.get;
         val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
         content should not be empty 
-//        val afterTime = RecommendationAPIService.cacheTimestamp;
-//    	beforeTime should not equals(afterTime)
+    }
+    
+    it should "return response on a request when request limit is more than the total recommended content" in {
+    	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang": "en","contentid": "dot_123016"}, "limit":30}} """;
+    	val response = RecommendationAPIService.recommendations(request)(sc, config);
+    	val resp = JSONUtils.deserialize[Response](response);
+      resp.id should be ("ekstep.analytics.recommendations");
+      resp.params.status should be ("successful");
+      val result = resp.result.get;
+      val content = result.get("content").get.asInstanceOf[List[Map[String, AnyRef]]];
+      content should be (empty)
     }
     
 }
