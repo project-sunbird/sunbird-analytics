@@ -28,7 +28,7 @@ import org.ekstep.analytics.framework.JobStatus
 import org.ekstep.analytics.api.JobStats
 import org.ekstep.analytics.api.APIIds
 import org.joda.time.DateTime
-import org.ekstep.analytics.api.FileType
+import org.ekstep.analytics.api.OutputFormat
 
 /**
  * @author mahesh
@@ -44,7 +44,7 @@ object JobAPIService {
     val body = JSONUtils.deserialize[RequestBody](request);
     val isValid = _validateReq(body)
     if ("true".equals(isValid.get("status").get)) {
-      val output_format = body.request.output_format.getOrElse(FileType.JSON)
+      val output_format = body.request.output_format.getOrElse(OutputFormat.JSON)
       val requestId = _getRequestId(body.request.filter.get, output_format);
       val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
       val jobResponse = if (null == job) {
@@ -80,16 +80,16 @@ object JobAPIService {
   private def _validateReq(body: RequestBody): Map[String, String] = {
     val params = body.params
     val filter = body.request.filter;
-    val output_format = body.request.output_format.getOrElse(FileType.JSON)
+    val output_format = body.request.output_format.getOrElse(OutputFormat.JSON)
     if (filter.isEmpty || params.isEmpty) {
       val message = if (filter.isEmpty) "filter is empty" else "filter is empty";
       Map("status" -> "false", "message" -> message);
     } else {
-      if (output_format != null && !output_format.isEmpty && !(output_format.equals(FileType.CSV) || output_format.equals(FileType.JSON))) {
+      if (output_format != null && !output_format.isEmpty && !(output_format.equals(OutputFormat.CSV) || output_format.equals(OutputFormat.JSON))) {
         Map("status" -> "false", "message" -> "invalid type: should be [csv, json].");
-      } else if (output_format != null && output_format.equals(FileType.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
+      } else if (output_format != null && output_format.equals(OutputFormat.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
         Map("status" -> "false", "message" -> "events should contains only one event.");
-      }else if (output_format != null && output_format.equals(FileType.CSV) && (filter.get.events.get.length.equals(1) && !(filter.get.events.get.contains("OE_ASSESS") || filter.get.events.get.contains("OE_ITEM_RESPONSE")))) {
+      }else if (output_format != null && output_format.equals(OutputFormat.CSV) && (filter.get.events.get.length.equals(1) && !(filter.get.events.get.contains("OE_ASSESS") || filter.get.events.get.contains("OE_ITEM_RESPONSE")))) {
         Map("status" -> "false", "message" -> "events should be [OE_ASSESS, OE_ITEM_RESPONSE].");
       } else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty || filter.get.tags.isEmpty) {
         val message = if (params.get.client_key.isEmpty) "client_key is empty"
