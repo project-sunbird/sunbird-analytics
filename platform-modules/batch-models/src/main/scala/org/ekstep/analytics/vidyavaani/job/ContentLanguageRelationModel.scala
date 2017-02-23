@@ -17,6 +17,7 @@ import scala.collection.JavaConversions._
 object ContentLanguageRelationModel extends optional.Application with IJob {
   
     val NODE_NAME = "Language";
+    val RELATION = "belongsTo";
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
@@ -24,7 +25,7 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
 
         if (null == sc.getOrElse(null)) {
             JobContext.parallelization = 10;
-            implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Neo4j Model"));
+            implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Graph Model"));
             try {
                 execute()
             } catch {
@@ -64,7 +65,7 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
     	.map{ f =>
     		val startNode = DataNode(f._1.toLowerCase(), None, Option(List(NODE_NAME)));
     		val endNode = DataNode(f._2, None, Option(List("domain")));
-    		GraphRelation(startNode, endNode, "belongsTo", RelationshipDirection.INCOMING.toString);
+    		GraphRelation(startNode, endNode, RELATION, RelationshipDirection.INCOMING.toString);
     	};
     	GraphDBUtil.addRelations(languageContentRels);
     }

@@ -16,6 +16,7 @@ import org.ekstep.analytics.framework.GraphRelation
 object ContentOwnerRelationModel extends optional.Application with IJob {
 
 	val NODE_NAME = "Owner";
+	val RELATION = "createdBy"
 
 	def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
@@ -23,7 +24,7 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
 
 		if (null == sc.getOrElse(null)) {
 			JobContext.parallelization = 10;
-			implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Neo4j Model"));
+			implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Graph Model"));
 			try {
 				execute()
 			} catch {
@@ -66,7 +67,7 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
 			.map { f =>
 				val startNode = DataNode(f._1, None, Option(List("Owner")));
 				val endNode = DataNode(f._2, None, Option(List("domain")));
-				GraphRelation(startNode, endNode, "createdBy", RelationshipDirection.INCOMING.toString);
+				GraphRelation(startNode, endNode, RELATION, RelationshipDirection.INCOMING.toString);
 			};
 		GraphDBUtil.addRelations(ownerContentRels);
 
