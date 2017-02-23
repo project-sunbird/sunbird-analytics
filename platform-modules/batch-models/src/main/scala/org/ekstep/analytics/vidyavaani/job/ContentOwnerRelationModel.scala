@@ -74,17 +74,10 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
     	.map{ f =>
     		val startNode = DataNode(f._1, None, Option(List("Owner")));
     		val endNode = DataNode(f._2, None, Option(List("domain")));
-    		GraphRelation(startNode, endNode, "createdBy", RelationshipDirection.OUTGOING.toString);
+    		GraphRelation(startNode, endNode, "createdBy", RelationshipDirection.INCOMING.toString);
     	};
     	GraphDBUtil.addRelations(ownerContentRels);
     	
     }
 
-    private def _createRelation()(implicit session: Session) = {
-        val script = """MATCH (a:domain), (b:Owner) WHERE a.IL_FUNC_OBJECT_TYPE = 'Content' AND EXISTS(a.portalOwner) AND a.portalOwner = b.IL_UNIQUE_ID CREATE (a)-[r:createdBy]->(b)"""
-        val startNode = DataNode("org.ekstep.takeoff", None, Option(List("domain")));
-        val endNode = DataNode("EkStep", None, Option(List("Owner")));
-//        GraphDBUtil.addRelation(startNode, endNode, "createdBy", RelationshipDirection.OUTGOING.toString, None);
-//        GraphDBUtil.addRelation(startNode, endNode, relation, relationProperties)
-    }
 }

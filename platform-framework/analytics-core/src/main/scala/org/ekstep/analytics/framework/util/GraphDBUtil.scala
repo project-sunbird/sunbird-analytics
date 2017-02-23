@@ -63,7 +63,7 @@ object GraphDBUtil {
 		relQueries.filter { x => StringUtils.isNotBlank(x) }.map { x => executeQuery(x) };
 	}
 	
-	def addRelationQuery(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = None): String = {
+	private def addRelationQuery(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = None): String = {
 		if (null != startNode && null != endNode && StringUtils.isNotBlank(relation) && StringUtils.isNotBlank(direction)) {
 			val fullQuery = StringBuilder.newBuilder;
 			fullQuery.append(MATCH).append(getLabelsQuery(startNode.labels));

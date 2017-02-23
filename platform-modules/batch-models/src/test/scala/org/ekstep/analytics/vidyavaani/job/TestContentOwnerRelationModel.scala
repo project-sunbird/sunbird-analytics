@@ -9,6 +9,5 @@ class TestContentOwnerRelationModel extends SparkGraphSpec(null) {
     it should "create Owner nodes and 'createdBy' relation with contents" in {
 
         ContentOwnerRelationModel.main("{}")(Option(sc));
-              
     }
 }
