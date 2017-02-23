@@ -14,10 +14,10 @@ case class ContentResponse(id: String, ver: String, ts: String, params: Params, 
 case class LanguageResult(languages: Array[Map[String, AnyRef]]);
 case class LanguageResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: LanguageResult);
 
-// TODO: Need to refactor this file. Reduce case classes, combine broadcast objects. Proper error handling. 
+// TODO: Need to refactor this file. Reduce case classes, combine objects. Proper error handling. 
 object ContentCacheUtil {
-	private var contentListBroadcastMap: Map[String, Map[String, AnyRef]] = Map();
-	private var recommendListBroadcastMap: Map[String, Map[String, AnyRef]] = Map();
+	private var contentListMap: Map[String, Map[String, AnyRef]] = Map();
+	private var recommendListMap: Map[String, Map[String, AnyRef]] = Map();
 	private var languageMap: Map[String, String] = Map();
 	private var cacheTimestamp: Long = 0L;
 
@@ -29,8 +29,8 @@ object ContentCacheUtil {
 		} catch {
 			case ex: Throwable =>
 				println("Error at ContentCacheUtil.initCache:" +ex.getMessage);
-				contentListBroadcastMap = Map();
-				recommendListBroadcastMap = Map();
+				contentListMap = Map();
+				recommendListMap = Map();
 				languageMap = Map();
 		}
 	}
@@ -40,19 +40,19 @@ object ContentCacheUtil {
 		val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
 		if (cacheTimestamp < timeAtStartOfDay) {
 			println("cacheTimestamp:" + cacheTimestamp, "timeAtStartOfDay:" + timeAtStartOfDay, " ### Resetting content cache...### ");
-			if (!contentListBroadcastMap.isEmpty) contentListBroadcastMap.empty;
-			if (!recommendListBroadcastMap.isEmpty) recommendListBroadcastMap.empty;
+			if (!contentListMap.isEmpty) contentListMap.empty;
+			if (!recommendListMap.isEmpty) recommendListMap.empty;
 			if (!languageMap.isEmpty) languageMap.empty;
 			initCache();
 		}
 	}
 	
 	def getContentList() : Map[String, Map[String, AnyRef]] = {
-		contentListBroadcastMap;
+		contentListMap;
 	}
 	
 	def getREList() : Map[String, Map[String, AnyRef]] = {
-		recommendListBroadcastMap;
+		recommendListMap;
 	}
 	
 	def getLanguageByCode(code: String) : String = {
@@ -66,9 +66,9 @@ object ContentCacheUtil {
 	private def prepareContentCache()(implicit sc: SparkContext, config: Config) {
 		val contentList = getPublishedContent().toList;
 		val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
-		contentListBroadcastMap = contentMap;
-		println("Cached Content List count:", contentListBroadcastMap.size);
-		prepareREBroadcastMap(contentList)
+		contentListMap = contentMap;
+		println("Cached Content List count:", contentListMap.size);
+		prepareREMap(contentList)
 	}
 	
 	private def prepareLanguageCache()(implicit sc: SparkContext, config: Config) {
@@ -78,11 +78,11 @@ object ContentCacheUtil {
 		println("Cached Langauge List count:", languageMap.size);
 	}
 	
-	private def prepareREBroadcastMap(contentList:  List[Map[String, AnyRef]])(implicit sc: SparkContext, config: Config) = {
+	private def prepareREMap(contentList:  List[Map[String, AnyRef]])(implicit sc: SparkContext, config: Config) = {
 		val contentMap = contentList.filterNot(f => StringUtils.equals(f.getOrElse("visibility", "").asInstanceOf[String], "Parent"))
 			.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap
-		recommendListBroadcastMap = contentMap;
-		println("Cached RE List count:", recommendListBroadcastMap.size);
+		recommendListMap = contentMap;
+		println("Cached RE List count:", recommendListMap.size);
 	}
 	
 	private def getLanguages()(implicit config: Config): Array[Map[String, AnyRef]] = {

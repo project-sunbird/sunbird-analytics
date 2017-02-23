@@ -113,7 +113,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         }
     }
 
-    private def saveData(fileType: String, path: String, events: RDD[DataExhaustJobInput], uploadPrefix: String, stage: String, config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
+    private def saveData(outputFormat: String, path: String, events: RDD[DataExhaustJobInput], uploadPrefix: String, stage: String, config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
 
         val client_key = config.get("client_key").get.asInstanceOf[String];
         val request_id = config.get("request_id").get.asInstanceOf[String];
@@ -125,7 +125,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
                 val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
                 //  type check for file type: json or csv
-                if(fileType.equalsIgnoreCase("csv")) {
+                if(outputFormat.equalsIgnoreCase("csv")) {
                   val rdd = events.map { x => x.event}
                   toCSV(rdd).coalesce(2).saveAsTextFile(path)
                 } else {
@@ -152,15 +152,15 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
         val dispatch_to = config.getOrElse("dispatch-to", "local").asInstanceOf[String];
 
         val events = data.cache
-        val fileType = config.get("output_format").get.asInstanceOf[String]
+        val outputFormat = config.get("output_format").get.asInstanceOf[String]
         val res = dispatch_to match {
             case "local" =>
                 val localPath = config.get("path").get.asInstanceOf[String] + "/" + request_id;
-                saveData(fileType, localPath, events, localPath, "SAVE_DATA_TO_LOCAL", config)
+                saveData(outputFormat, localPath, events, localPath, "SAVE_DATA_TO_LOCAL", config)
             case "s3" =>
                 val uploadPrefix = prefix + "/" + request_id;
                 val key = "s3n://" + bucket + "/" + uploadPrefix;
-                saveData(fileType, key, events, uploadPrefix, "SAVE_DATA_TO_S3", config);
+                saveData(outputFormat, key, events, uploadPrefix, "SAVE_DATA_TO_S3", config);
         }
         events.unpersist(true)
         res;
