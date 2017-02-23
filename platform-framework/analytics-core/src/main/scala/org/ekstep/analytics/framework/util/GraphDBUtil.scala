@@ -11,22 +11,24 @@ import org.ekstep.analytics.framework.JobContext
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.GraphRelation
+import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.ekstep.analytics.framework.conf.AppConf
 
 object GraphDBUtil {
 
 	implicit val className = "org.ekstep.analytics.framework.util.GraphDBUtil"
 
-	def createNode(node: DataNode)(implicit session: Session) {
+	def createNode(node: DataNode)(implicit sc: SparkContext) {
 		val props = removeKeyQuotes(JSONUtils.serialize(Map(UNIQUE_KEY -> node.identifier) ++ node.metadata.getOrElse(Map())));
 		val createQuery = StringBuilder.newBuilder;
 		createQuery.append(CREATE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE)
 			.append(node.labels.get.mkString(":")).append(props).append(CLOSE_COMMON_BRACKETS)
 
 		val query = createQuery.toString
-		executeQuery(query);
+		GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 	}
 
-	def createNodes(nodes: RDD[DataNode])(implicit session: Session) {
+	def createNodes(nodes: RDD[DataNode])(implicit sc: SparkContext) {
 		val fullQuery = StringBuilder.newBuilder;
 		fullQuery.append(CREATE)
 		val nodesQuery = nodes.map { x =>
@@ -38,10 +40,10 @@ object GraphDBUtil {
 			nodeQuery.toString
 		}.collect().mkString(",")
 		val query = fullQuery.append(nodesQuery).toString
-		executeQuery(query)
+		GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 	}
 
-	def deleteNodes(metadata: Option[Map[String, AnyRef]], labels: Option[List[String]])(implicit session: Session) {
+	def deleteNodes(metadata: Option[Map[String, AnyRef]], labels: Option[List[String]])(implicit sc: SparkContext) {
 		if (metadata.isEmpty && labels.isEmpty) {
 			JobLogger.log("GraphDBUtil.deleteNodes - No metadata or labels to delete nodes.");
 		} else {
@@ -53,17 +55,17 @@ object GraphDBUtil {
 				.append(DETACH_DELETE).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT);
 
 			val query = deleteQuery.toString;
-			executeQuery(query);
+			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 		}
 
 	}
 
-	def addRelations(relations: RDD[GraphRelation])(implicit session: Session) {
-		val relQueries = relations.map { x => addRelationQuery(x.startNode, x.endNode, x.relation, x.direction, x.metadata) }.collect().toList;
-		relQueries.filter { x => StringUtils.isNotBlank(x) }.map { x => executeQuery(x) };
+	def addRelations(relations: RDD[GraphRelation])(implicit sc: SparkContext) {
+		val relQueries = relations.map { x => addRelationQuery(x.startNode, x.endNode, x.relation, x.direction, x.metadata) }.filter { x => StringUtils.isNotBlank(x) };
+		GraphQueryDispatcher.dispatch(getGraphDBConfig, relQueries)
 	}
 	
-	private def addRelationQuery(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = None): String = {
+	def addRelationQuery(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = None): String = {
 		if (null != startNode && null != endNode && StringUtils.isNotBlank(relation) && StringUtils.isNotBlank(direction)) {
 			val fullQuery = StringBuilder.newBuilder;
 			fullQuery.append(MATCH).append(getLabelsQuery(startNode.labels));
@@ -162,6 +164,12 @@ object GraphDBUtil {
 	private def removeKeyQuotes(query: String): String = {
 		val regex = """"(\w+)":""";
 		return query.replaceAll(regex, "$1:")
+	}
+	
+	private def getGraphDBConfig() : Map[String, String] = {
+		Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
+			"user" -> AppConf.getConfig("neo4j.bolt.user"),
+			"password" -> AppConf.getConfig("neo4j.bolt.password"));
 	}
 
 }
