@@ -43,7 +43,6 @@ import org.ekstep.analytics.framework.Level._
 import java.io.InputStream
 import java.nio.file.CopyOption
 import java.net.URL
-import org.neo4j.driver.v1._;
 
 object CommonUtil {
 
@@ -75,29 +74,12 @@ object CommonUtil {
         if (!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
-        if (!conf.contains("neo4j.bolt.url")) {
-            conf.set("spark.neo4j.bolt.url", AppConf.getConfig("neo4j.bolt.url"))
-            conf.set("spark.neo4j.bolt.user", AppConf.getConfig("neo4j.bolt.user"))
-            conf.set("spark.neo4j.bolt.password", AppConf.getConfig("neo4j.bolt.password"))
-        }
 
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
         JobLogger.log("Spark Context initialized");
         sc;
-    }
-    
-    def getGraphDbSession() : Session = {
-    	val authToken = AuthTokens.basic(AppConf.getConfig("neo4j.bolt.user"), AppConf.getConfig("neo4j.bolt.password"));
-    	val driver = GraphDatabase.driver(AppConf.getConfig("neo4j.bolt.url"), authToken);
-    	JobLogger.log("Graph DB Session initialized");
-		driver.session();
-    }
-    
-    def closeGraphDbSession()(implicit session: Session) {
-    	JobLogger.log("Closing Graph DB Session")
-    	session.close();
     }
 
     def setS3Conf(sc: SparkContext) = {

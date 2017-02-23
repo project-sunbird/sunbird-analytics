@@ -2,8 +2,6 @@ package org.ekstep.analytics.framework.util
 
 import org.ekstep.analytics.framework.GraphQueryParams._
 import org.ekstep.analytics.framework.DataNode
-import org.neo4j.driver.v1.Session
-import org.neo4j.driver.v1.Record
 import scala.collection.JavaConverters._
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.rdd.RDD
@@ -12,7 +10,7 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.GraphRelation
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
-import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.conf.AppConf 
 
 object GraphDBUtil {
 
@@ -83,15 +81,15 @@ object GraphDBUtil {
 		}
 	}
 
-	def deleteRelation(startNodeId: String, endNodeId: String, relation: String)(implicit session: Session) {
+	def deleteRelation(startNodeId: String, endNodeId: String, relation: String)(implicit sc: SparkContext) {
 
 	}
 
-	def deleteAllRelations(startNodeType: String, endNodeType: String, relation: String)(implicit session: Session) {
+	def deleteAllRelations(startNodeType: String, endNodeType: String, relation: String)(implicit sc: SparkContext) {
 
 	}
 
-	def findNodes(metadata: Map[String, AnyRef], labels: Option[List[String]], limit: Option[Int] = None)(implicit sc: SparkContext, session: Session): RDD[DataNode] = {
+	def findNodes(metadata: Map[String, AnyRef], labels: Option[List[String]], limit: Option[Int] = None)(implicit sc: SparkContext): RDD[DataNode] = {
 		val findQuery = StringBuilder.newBuilder;
 		findQuery.append(MATCH).append(getLabelsQuery(labels))
 
@@ -101,10 +99,9 @@ object GraphDBUtil {
 		if(!limit.isEmpty) findQuery.append(" LIMIT "+limit.get)
 		
 		val query = findQuery.toString;
-		JobLogger.log("Neo4j Query:" + query);
-		val result = session.run(query);
+		val result = GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 		val nodes = if (null != result) {
-			result.list().toArray().map(x => x.asInstanceOf[Record])
+			result.list().toArray().map(x => x.asInstanceOf[org.neo4j.driver.v1.Record])
 				.map { x => x.get(DEFAULT_CYPHER_NODE_OBJECT).asNode() }
 				.map { x => toDataNode(x) }.toList
 		} else {
@@ -126,15 +123,6 @@ object GraphDBUtil {
 			metadata = metadata ++ Map(k -> v.asInstanceOf[AnyRef])
 		}
 		metadata;
-	}
-
-	private def executeQuery(query: String)(implicit session: Session) {
-		try {
-			JobLogger.log("Neo4j Query:" + query);
-			session.run(query)
-		} catch {
-			case t: Throwable => t.printStackTrace() // TODO: handle error
-		}
 	}
 
 	private def getRelationQuery(relation: String, direction: String) : String = {

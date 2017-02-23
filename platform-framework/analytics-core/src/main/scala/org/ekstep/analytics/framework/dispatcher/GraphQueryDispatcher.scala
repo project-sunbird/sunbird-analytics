@@ -5,6 +5,7 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.streaming.GraphQuerySink
 import org.ekstep.analytics.framework.exception.DispatcherException
+import org.neo4j.driver.v1.StatementResult
 
 object GraphQueryDispatcher  extends IDispatcher {
 
@@ -14,9 +15,9 @@ object GraphQueryDispatcher  extends IDispatcher {
         queries.foreach { query => graphQuerySink.value.run(query) };
 	}
 	
-	def dispatch(config: Map[String, String], query: String)(implicit sc: SparkContext) = {
+	def dispatch(config: Map[String, String], query: String)(implicit sc: SparkContext) : StatementResult = {
 		val graphQuerySink = sc.broadcast(GraphQuerySink(config));
-		val result = graphQuerySink.value.run(query);
+		graphQuerySink.value.run(query);
 	}
 	
 	def dispatch(queries: Array[String], config: Map[String, AnyRef]) : Array[String] = {

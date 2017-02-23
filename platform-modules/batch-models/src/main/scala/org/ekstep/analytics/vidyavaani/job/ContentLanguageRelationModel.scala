@@ -4,13 +4,11 @@ import org.ekstep.analytics.framework.IJob
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil
-import org.neo4j.spark._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.DataNode
 import org.ekstep.analytics.framework.util.GraphDBUtil
-import org.neo4j.driver.v1.Session
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.GraphRelation
@@ -27,30 +25,26 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
         if (null == sc.getOrElse(null)) {
             JobContext.parallelization = 10;
             implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Neo4j Model"));
-            implicit val session: Session = CommonUtil.getGraphDbSession();
             try {
                 execute()
             } catch {
                 case t: Throwable => t.printStackTrace()
             } finally {
-            	CommonUtil.closeGraphDbSession();
                 CommonUtil.closeSparkContext();
             }
         } else {
             implicit val sparkContext: SparkContext = sc.getOrElse(null);
-            implicit val session: Session = CommonUtil.getGraphDbSession();
             execute();
-            CommonUtil.closeGraphDbSession();
         }
     }
     
-    private def execute()(implicit sc: SparkContext, session: Session) {
+    private def execute()(implicit sc: SparkContext) {
 
         GraphDBUtil.deleteNodes(None, Option(List(NODE_NAME)))
         _createLanguageNodeWithRelation();
     }
     
-    private def _createLanguageNodeWithRelation()(implicit sc: SparkContext, session: Session) = {
+    private def _createLanguageNodeWithRelation()(implicit sc: SparkContext) = {
         val limit = if(StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit"))) 
         		Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None 
         

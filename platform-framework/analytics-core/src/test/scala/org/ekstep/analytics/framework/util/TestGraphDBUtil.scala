@@ -2,9 +2,9 @@ package org.ekstep.analytics.framework.util
 
 import org.ekstep.analytics.framework.BaseSpec
 import org.ekstep.analytics.framework.DataNode
-import org.ekstep.analytics.framework.SparkGraphSpec
+import org.ekstep.analytics.framework.SparkSpec
 
-class TestGraphDBUtil extends SparkGraphSpec {
+class TestGraphDBUtil extends SparkSpec {
   "GraphDBUtil" should "create a node" in {
 		val node = DataNode("analytics_test_node", Option(Map("name"-> "Analytics")), Option(List("User")))
 		GraphDBUtil.createNode(node);
