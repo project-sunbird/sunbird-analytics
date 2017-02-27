@@ -38,7 +38,7 @@ case class RequestOutput(request_id: String, output_events: Int)
 case class DataExhaustJobInput(eventDate: Long, event: String) extends AlgoInput;
 case class JobResponse(client_key: String, request_id: String, job_id: String, output_events: Long, bucket: String, prefix: String, first_event_date: Long, last_event_date: Long);
 
-object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Serializable {
+object DataExhaustJobModel extends IBatchModel[String, JobResponse] with FieldExtractorModel {
 
     val className = "org.ekstep.analytics.model.DataExhaustJobModel"
     override def name: String = "DataExhaustJobModel"
@@ -174,9 +174,10 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
     def toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
         val data = rdd.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
         val dataMapRDD = data.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }
-        val header = sc.parallelize(Seq(dataMapRDD.first().keys.mkString(",")))
-        val rows = dataMapRDD.map(f => f.values.map { x => if(x.isInstanceOf[List[Any]]) JSONUtils.serialize(JSONUtils.serialize(x)) else x }.mkString(","));
-        header.union(rows)
+        val headers = sc.parallelize(Seq(dataMapRDD.first().keys.mkString(",")))
+        serializeToCSV(dataMapRDD, Option(Map("headers" -> headers)));
+//        val rows = dataMapRDD.map(f => f.values.map { x => if(x.isInstanceOf[List[Any]]) JSONUtils.serialize(JSONUtils.serialize(x)) else x }.mkString(","));
+//        header.union(rows)
     }
     def main(args: Array[String]): Unit = {
         val requestId = "6a54bfa283de43a89086"

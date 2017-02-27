@@ -106,7 +106,7 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
         res.request_id should be("273646")
         val files1 = new File("/tmp/dataexhaust/273646").listFiles()
         files1.length should not be (0)
-        deleteLocalFile("/tmp/dataexhaust/273646")
+//        deleteLocalFile("/tmp/dataexhaust/273646")
 
     }
 }
