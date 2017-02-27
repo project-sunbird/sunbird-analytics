@@ -17,7 +17,7 @@ trait IRecommendations {
 	def fetch(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String;
 
 	def getLimit(requestBody: RequestBody)(implicit config: Config): Int = {
-		val default = config.getInt("service.search.limit");
+		val default = config.getInt("recommendation.limit");
 		if (config.getBoolean("recommendation.enable")) requestBody.request.limit.getOrElse(default); else default;
 	}
 	
