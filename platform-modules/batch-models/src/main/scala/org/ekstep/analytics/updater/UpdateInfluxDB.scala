@@ -33,7 +33,7 @@ object UpdateInfluxDB extends IBatchModelTemplate[Items, Items, Items, Items] wi
         val filtereditems = data.filter { x => periods.contains(x.period) }
         import com.pygmalios.reactiveinflux.spark._
         // create database if not created
-        checkdatabase(Constants.ALTER_RETENTION_POLICY)
+        checkdatabase
         //converting data to line protocol.........
         val genie1 = genieRdd.map { x => Point(time = new DateTime(weekTomilliSeconds(x.d_period.toString())), measurement = "genie_metrics", tags = Map("d_tag" -> x.d_tag, "week" -> x.d_period.toString()), fields = Map("m_total_sessions" -> x.m_total_sessions.toDouble, "m_total_ts" -> x.m_total_ts)) }
         val content1 = contentRdd.map { x => Point(time = new DateTime(weekTomilliSeconds(x.d_period.toString())), measurement = "content_metrics", tags = Map("d_tag" -> x.d_tag, "week" -> x.d_period.toString()), fields = Map("m_total_sessions" -> x.m_total_sessions.toDouble, "m_total_ts" -> x.m_total_ts)) }
@@ -64,18 +64,23 @@ object UpdateInfluxDB extends IBatchModelTemplate[Items, Items, Items, Items] wi
         cld.getTimeInMillis;
     }
 
-    def checkdatabase(change: String) = {
+    def checkdatabase = {
         import com.paulgoldbaum.influxdbclient._
         import scala.concurrent.ExecutionContext.Implicits.global
         val influxdb = InfluxDB.connect(Constants.LOCAL_HOST, Constants.INFLUX_DB_PORT.toInt)
         val database = influxdb.selectDatabase(Constants.INFLUX_DB_NAME)
         val res = Await.result(database.exists(), 10 seconds)
         if (res != true) {
+            databaseCreation
+        } else {
+            database.drop()
+            databaseCreation
+        }
+
+        def databaseCreation = {
             database.create()
             database.createRetentionPolicy(Constants.RETENTION_POLICY_NAME, Constants.RETENTION_POLICY_DURATION, Constants.RETENTION_POLICY_REPLICATION.toInt, true)
-        }
-        if ((res == true) && (change == "YES")) {
-            database.alterRetentionPolicy(Constants.RETENTION_POLICY_NAME, Constants.RETENTION_POLICY_DURATION, Constants.RETENTION_POLICY_REPLICATION.toInt, true)
+
         }
     }
 
