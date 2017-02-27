@@ -17,7 +17,7 @@ import scala.collection.JavaConversions._
 object ContentLanguageRelationModel extends optional.Application with IJob {
   
     val NODE_NAME = "Language";
-    val RELATION = "belongsTo";
+    val RELATION = "expressedIn";
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
@@ -52,14 +52,14 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
     	val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit); 
     	
     	val languages = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-    	.map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[java.lang.String]])).flatMap { x => x }.distinct()
+    	.map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]])).flatMap { x => x }.distinct()
     	.map { f => 
     		DataNode(f.toLowerCase(), Option(Map("name" -> f)), Option(List(NODE_NAME)));
     	}
     	GraphDBUtil.createNodes(languages);
     	
     	val languageContentRels = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-    	.map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[java.lang.String]], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
+    	.map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
     	.map(f => for(i <- f._1) yield (i, f._2)).flatMap(f => f)
     	.filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
     	.map{ f =>
