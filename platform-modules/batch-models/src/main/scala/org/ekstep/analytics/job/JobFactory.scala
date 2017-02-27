@@ -87,6 +87,8 @@ object JobFactory {
                 PrecomputedViewsJob
             case "content-recos" =>
                 EndOfContentRecommendationJob
+            case "influxdb-updater" =>
+                InfluxDBUpdater    
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
