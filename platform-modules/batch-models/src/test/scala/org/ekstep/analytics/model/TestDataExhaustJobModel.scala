@@ -74,14 +74,10 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
             session.execute("TRUNCATE platform_db.job_request");
         }
 
-        //        val request1 = """{"filter": {"start_date": "2016-11-17","end_date": "2016-11-18","tags": ["becb887fe82f24c644482eb30041da6d88bd8151"]}}"""
-        //        val jobRequest1 = JobRequest("dev-portal", "12334", None, "PROCESSING", request1, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, None, None)
+        val request = """{"filter": {"start_date": "2016-11-19","end_date": "2016-11-20","tags": ["becb887fe82f24c644482eb30041da6d88bd8150"], "events":["OE_ASSESS"]}}"""
+        val jobRequest = JobRequest("dev-portal", "273646", None, "PROCESSING", request, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, Option("FETCHING_DATA"), Option("COMPLETED"))
 
-        val request2 = """{"filter": {"start_date": "2016-11-19","end_date": "2016-11-20","tags": ["becb887fe82f24c644482eb30041da6d88bd8150"]}}"""
-        val jobRequest2 = JobRequest("dev-portal", "273646", None, "PROCESSING", request2, None, None, None, None, None, Option(1), DateTime.now(), None, None, None, None, None, None, None, None, Option("FETCHING_DATA"), Option("COMPLETED"))
-
-        //val rdd = sc.makeRDD(Seq(jobRequest1, jobRequest2))
-        val rdd = sc.makeRDD(Seq(jobRequest2))
+        val rdd = sc.makeRDD(Seq(jobRequest))
 
         rdd.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
@@ -101,12 +97,12 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
         val out = DataExhaustJobModel.execute(data, Option(requestConfig)).collect
         out.length should be(1)
         val res = out.last
-        res.output_events should be(3817)
+        res.output_events should be(95)
         res.client_key should be("dev-portal")
         res.request_id should be("273646")
         val files1 = new File("/tmp/dataexhaust/273646").listFiles()
         files1.length should not be (0)
-//        deleteLocalFile("/tmp/dataexhaust/273646")
+        deleteLocalFile("/tmp/dataexhaust/273646")
 
     }
 }

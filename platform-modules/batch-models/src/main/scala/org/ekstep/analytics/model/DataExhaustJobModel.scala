@@ -25,6 +25,7 @@ import com.datastax.spark.connector.toSparkContextFunctions
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
 import org.ekstep.analytics.framework.Event
+import org.apache.commons.lang3.StringEscapeUtils
 
 case class JobRequest(client_key: String, request_id: String, job_id: Option[String], status: String, request_data: String,
                       location: Option[String], dt_file_created: Option[DateTime], dt_first_event: Option[DateTime], dt_last_event: Option[DateTime],
@@ -38,7 +39,7 @@ case class RequestOutput(request_id: String, output_events: Int)
 case class DataExhaustJobInput(eventDate: Long, event: String) extends AlgoInput;
 case class JobResponse(client_key: String, request_id: String, job_id: String, output_events: Long, bucket: String, prefix: String, first_event_date: Long, last_event_date: Long);
 
-object DataExhaustJobModel extends IBatchModel[String, JobResponse] with FieldExtractorModel {
+object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Serializable {
 
     val className = "org.ekstep.analytics.model.DataExhaustJobModel"
     override def name: String = "DataExhaustJobModel"
@@ -105,7 +106,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with FieldEx
         try {
             val filteredData = filterEvent(data, requestFilter);
             updateStage(request_id, client_key, "FILTERING_DATA", "COMPLETED")
-            filteredData;
+            filteredData
         } catch {
             case t: Throwable =>
                 updateStage(request_id, client_key, "FILTERING_DATA", "FAILED", "FAILED")
@@ -124,13 +125,10 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with FieldEx
             if (output_events > 0) {
                 val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
+                val rawEventsRDD = events.map { x => x.event };
                 //  type check for file type: json or csv
-                if(outputFormat.equalsIgnoreCase("csv")) {
-                  val rdd = events.map { x => x.event}
-                  toCSV(rdd).coalesce(2).saveAsTextFile(path)
-                } else {
-                  events.map { x => x.event }.saveAsTextFile(path);
-                }
+                val outputRDD = if(outputFormat.equalsIgnoreCase("csv")) _toCSV(rawEventsRDD) else rawEventsRDD;
+                outputRDD.saveAsTextFile(path);
                 updateStage(request_id, client_key, stage, "COMPLETED")
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, output_events, bucket, uploadPrefix, firstEventDate, lastEventDate)));
             } else {
@@ -145,7 +143,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with FieldEx
 
     }
     def algorithm(data: RDD[DataExhaustJobInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
-
+    	
         val request_id = config.get("request_id").get.asInstanceOf[String];
         val bucket = config.get("data-exhaust-bucket").get.asInstanceOf[String]
         val prefix = config.get("data-exhaust-prefix").get.asInstanceOf[String]
@@ -167,17 +165,21 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with FieldEx
     }
 
     def postProcess(data: RDD[JobResponse], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
-
         data;
     }
     
-    def toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
+    private def _toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
         val data = rdd.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
         val dataMapRDD = data.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }
-        val headers = sc.parallelize(Seq(dataMapRDD.first().keys.mkString(",")))
-        serializeToCSV(dataMapRDD, Option(Map("headers" -> headers)));
-//        val rows = dataMapRDD.map(f => f.values.map { x => if(x.isInstanceOf[List[Any]]) JSONUtils.serialize(JSONUtils.serialize(x)) else x }.mkString(","));
-//        header.union(rows)
+        val headers = dataMapRDD.map(f => f.keys).flatMap { x => x }.distinct().collect();
+        val rows = dataMapRDD.map { x =>
+            for (f <- headers) yield {
+            	StringEscapeUtils.escapeCsv(JSONUtils.serialize(x.getOrElse(f, "")));
+            }
+        }.map { x => x.mkString(",") }.collect();
+        
+        val csv = Array(headers.mkString(",")) ++ rows;
+        sc.parallelize(csv, 1);
     }
     def main(args: Array[String]): Unit = {
         val requestId = "6a54bfa283de43a89086"
