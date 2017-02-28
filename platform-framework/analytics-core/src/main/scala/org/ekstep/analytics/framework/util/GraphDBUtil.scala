@@ -125,7 +125,7 @@ object GraphDBUtil {
 		metadata;
 	}
 
-	private def getRelationQuery(relation: String, direction: String) : String = {
+	def getRelationQuery(relation: String, direction: String) : String = {
 		if (StringUtils.equals(RelationshipDirection.OUTGOING.toString, direction))
 			"-[r:" + relation + "]->";
 		else if (StringUtils.equals(RelationshipDirection.INCOMING.toString, direction))

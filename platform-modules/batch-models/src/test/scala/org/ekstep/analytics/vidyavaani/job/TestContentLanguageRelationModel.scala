@@ -4,47 +4,63 @@ import org.ekstep.analytics.model.SparkSpec
 import org.neo4j.spark.Neo4j
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.ekstep.analytics.framework.util.GraphDBUtil
+import org.ekstep.analytics.framework.GraphQueryParams._
+import org.ekstep.analytics.framework.RelationshipDirection
 
 class TestContentLanguageRelationModel extends SparkSpec(null) {
 
-    it should "create Language nodes and 'belongsTo' relation with contents and pass the test cases" in {
+    it should "create Language nodes and 'expressedIn' relation with contents and pass the test cases" in {
 
         val graphConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
-        val query1 = "match (n: domain) - [r: expressedIn] - (l: Language) delete r"
-        GraphQueryDispatcher.dispatch(graphConfig, query1);
-        val query2 = "match (n: Language) delete n"
-        GraphQueryDispatcher.dispatch(graphConfig, query2);
+        val getNodesQuery = StringBuilder.newBuilder;
+        getNodesQuery.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
+        .append(ContentLanguageRelationModel.NODE_NAME).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN)
+        .append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT)
+        
+        val getRelationsQuery = getRelQuery("domain", "Language")
+            
+        GraphDBUtil.deleteNodes(None, Option(List(ContentLanguageRelationModel.NODE_NAME)))
+        
+        val langNodesBefore = GraphQueryDispatcher.dispatch(graphConfig, getNodesQuery.toString()).list;
+        langNodesBefore.size() should be(0)
 
-        val query3 = "match (n: Language) return n"
-        val delOwn = GraphQueryDispatcher.dispatch(graphConfig, query3).list;
-        delOwn.size() should be(0)
-
-        val query4 = "match (n: domain) - [r: expressedIn] - (l: Language) return r"
-        val delConOwn = GraphQueryDispatcher.dispatch(graphConfig, query4).list;
-        delConOwn.size should be(0)
+        val contentLangRelBefore = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
+        contentLangRelBefore.size should be(0)
 
         ContentLanguageRelationModel.main("{}")(Option(sc));
 
-        val query5 = "match (n: Language) return n"
-        val Own = GraphQueryDispatcher.dispatch(graphConfig, query5).list;
-        Own.size() should be > (0)
+        val langNodesAfter = GraphQueryDispatcher.dispatch(graphConfig, getNodesQuery.toString()).list;
+        langNodesAfter.size() should be > (0)
 
-        val conOwn = GraphQueryDispatcher.dispatch(graphConfig, query4).list;
-        conOwn.size should be > (0)
+        val contentLangRelAfter = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
+        contentLangRelAfter.size should be > (0)
 
-        val query6 = "match (l: Language) - [r: expressedIn] -> (n: domain) return r"
-        val LanguageContentRels = GraphQueryDispatcher.dispatch(graphConfig, query6).list;
-        LanguageContentRels.size should be(0)
+        val languageContentRelQuery = getRelQuery("Language", "domain")
+        val languageContentRels = GraphQueryDispatcher.dispatch(graphConfig, languageContentRelQuery).list;
+        languageContentRels.size should be(0)
 
-        val query7 = "match (l: Language) - [r: expressedIn] -> (l: Language) return r"
-        val LanguageLanguageRels = GraphQueryDispatcher.dispatch(graphConfig, query7).list;
-        LanguageLanguageRels.size should be(0)
+        val languageLanguageRelQuery = getRelQuery("Language", "Language")
+        val languageLanguageRels = GraphQueryDispatcher.dispatch(graphConfig, languageLanguageRelQuery).list;
+        languageLanguageRels.size should be(0)
 
-        val query8 = "match (n: domain) - [r: expressedIn] -> (n: domain) return r"
-        val contentContentRels = GraphQueryDispatcher.dispatch(graphConfig, query8).list;
+        val contentContentRelQuery = getRelQuery("domain", "domain")
+        val contentContentRels = GraphQueryDispatcher.dispatch(graphConfig, contentContentRelQuery).list;
         contentContentRels.size should be(0)
+    }
+    
+    def getRelQuery(startNode: String, endNode: String): String = {
+        
+        val relationsQuery = StringBuilder.newBuilder;
+        relationsQuery.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
+        .append(startNode).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
+        .append(GraphDBUtil.getRelationQuery(ContentLanguageRelationModel.RELATION, RelationshipDirection.OUTGOING.toString)).append(BLANK_SPACE)
+        .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(endNode)
+        .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_RELATION_OBJECT)
+        
+        relationsQuery.toString();
     }
 }
