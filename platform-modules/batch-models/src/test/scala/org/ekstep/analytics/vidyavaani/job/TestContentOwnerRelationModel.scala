@@ -4,6 +4,9 @@ import org.ekstep.analytics.model.SparkSpec
 import org.neo4j.spark.Neo4j
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.GraphDBUtil
+import org.ekstep.analytics.framework.GraphQueryParams._
+import org.ekstep.analytics.framework.RelationshipDirection
 
 class TestContentOwnerRelationModel extends SparkSpec(null) {
 
@@ -13,38 +16,51 @@ class TestContentOwnerRelationModel extends SparkSpec(null) {
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
-        val query1 = "match (n: domain) - [r: createdBy] - (o: Owner) delete r"
-        GraphQueryDispatcher.dispatch(graphConfig, query1);
-        val query2 = "match (n: Owner) delete n"
-        GraphQueryDispatcher.dispatch(graphConfig, query2);
+        val getNodesQuery = StringBuilder.newBuilder;
+        getNodesQuery.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
+        .append(ContentOwnerRelationModel.NODE_NAME).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN)
+        .append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT)
+        
+        val getRelationsQuery = getRelQuery("domain", "Owner")
+        
+        GraphDBUtil.deleteNodes(None, Option(List(ContentOwnerRelationModel.NODE_NAME)))
+        
+        val ownerNodesBefore = GraphQueryDispatcher.dispatch(graphConfig, getNodesQuery.toString()).list;
+        ownerNodesBefore.size() should be(0)
 
-        val query3 = "match (n: Owner) return n"
-        val delOwn = GraphQueryDispatcher.dispatch(graphConfig, query3).list;
-        delOwn.size() should be(0)
-
-        val query4 = "match (n: domain) - [r: createdBy] - (o: Owner) return r"
-        val delConOwn = GraphQueryDispatcher.dispatch(graphConfig, query4).list;
-        delConOwn.size should be(0)
+        val contentOwnerRelBefore = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
+        contentOwnerRelBefore.size should be(0)
 
         ContentOwnerRelationModel.main("{}")(Option(sc));
 
-        val query5 = "match (n: Owner) return n"
-        val Own = GraphQueryDispatcher.dispatch(graphConfig, query5).list;
-        Own.size() should be > (0)
+        val ownerNodesAfter = GraphQueryDispatcher.dispatch(graphConfig, getNodesQuery.toString()).list;
+        ownerNodesAfter.size() should be > (0)
 
-        val conOwn = GraphQueryDispatcher.dispatch(graphConfig, query4).list;
-        conOwn.size should be > (0)
+        val contentOwnerRelAfter = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
+        contentOwnerRelAfter.size should be > (0)
 
-        val query6 = "match (o: Owner) - [r: createdBy] -> (n: domain) return r"
-        val ownerContentRels = GraphQueryDispatcher.dispatch(graphConfig, query6).list;
+        val ownerContentRelQuery = getRelQuery("Owner", "domain")
+        val ownerContentRels = GraphQueryDispatcher.dispatch(graphConfig, ownerContentRelQuery).list;
         ownerContentRels.size should be(0)
 
-        val query7 = "match (o: Owner) - [r: createdBy] -> (o: Owner) return r"
-        val ownerOwnerRels = GraphQueryDispatcher.dispatch(graphConfig, query7).list;
+        val ownerOwnerRelQuery = getRelQuery("Owner", "Owner")
+        val ownerOwnerRels = GraphQueryDispatcher.dispatch(graphConfig, ownerOwnerRelQuery).list;
         ownerOwnerRels.size should be(0)
 
-        val query8 = "match (n: domain) - [r: createdBy] -> (n: domain) return r"
-        val contentContentRels = GraphQueryDispatcher.dispatch(graphConfig, query8).list;
+        val contentContentRelQuery = getRelQuery("domain", "domain")
+        val contentContentRels = GraphQueryDispatcher.dispatch(graphConfig, contentContentRelQuery).list;
         contentContentRels.size should be(0)
+    }
+    
+    def getRelQuery(startNode: String, endNode: String): String = {
+        
+        val relationsQuery = StringBuilder.newBuilder;
+        relationsQuery.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
+        .append(startNode).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
+        .append(GraphDBUtil.getRelationQuery(ContentOwnerRelationModel.RELATION, RelationshipDirection.OUTGOING.toString)).append(BLANK_SPACE)
+        .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(endNode)
+        .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_RELATION_OBJECT)
+        
+        relationsQuery.toString();
     }
 }
