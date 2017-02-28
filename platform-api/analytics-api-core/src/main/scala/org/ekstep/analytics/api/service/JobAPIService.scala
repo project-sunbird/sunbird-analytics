@@ -52,7 +52,7 @@ object JobAPIService {
       } else {
         _createJobResponse(job)
       }
-      val response = CommonUtil.ccToMap(jobResponse)
+      val response = CommonUtil.caseClassToMap(jobResponse)
       JSONUtils.serialize(CommonUtil.OK(APIIds.DATA_REQUEST, response));
     } else {
       CommonUtil.errorResponseSerialized(APIIds.DATA_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
@@ -65,7 +65,7 @@ object JobAPIService {
       CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
     } else {
       val jobStatusRes = _createJobResponse(job);
-      JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.ccToMap(jobStatusRes)));
+      JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.caseClassToMap(jobStatusRes)));
     }
   }
 

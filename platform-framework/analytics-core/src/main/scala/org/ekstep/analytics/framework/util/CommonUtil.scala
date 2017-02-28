@@ -471,10 +471,10 @@ object CommonUtil {
         tempList.filter { x => registeredTags.contains(x) }.toArray;
     }
 
-    def ccToMap(cc: AnyRef) =
-        (Map[String, AnyRef]() /: cc.getClass.getDeclaredFields) {
-            (a, f) =>
-                f.setAccessible(true)
-                a + (f.getName -> f.get(cc))
+    def caseClassToMap(ccObj: AnyRef) =
+        (Map[String, AnyRef]() /: ccObj.getClass.getDeclaredFields) {
+            (map, field) =>
+                field.setAccessible(true)
+                map + (field.getName -> field.get(ccObj))
         }
 }
