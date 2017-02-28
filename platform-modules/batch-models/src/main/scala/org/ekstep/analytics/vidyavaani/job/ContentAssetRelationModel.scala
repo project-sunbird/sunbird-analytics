@@ -10,7 +10,7 @@ import org.neo4j.driver.v1.Session
 import com.datastax.spark.connector._
 import org.joda.time.DateTime
 import scala.xml.XML
-import org.ekstep.analytics.framework.GraphRelation
+import org.ekstep.analytics.framework.Relation
 import org.ekstep.analytics.framework.DataNode
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.util.GraphDBUtil
@@ -47,7 +47,7 @@ object ContentAssetRelationModel extends optional.Application with IJob {
                 val startNode = DataNode(x._1, None, Option(List("domain")));
                 x._2.map { x =>
                     val endNode = DataNode(x, None, Option(List("domain")));
-                    GraphRelation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
+                    Relation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
                 }
             }.flatMap { x => x }
 

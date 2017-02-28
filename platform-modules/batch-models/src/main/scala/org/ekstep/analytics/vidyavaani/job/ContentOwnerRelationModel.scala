@@ -11,7 +11,7 @@ import org.ekstep.analytics.framework.DataNode
 import org.ekstep.analytics.framework.util.GraphDBUtil
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.RelationshipDirection
-import org.ekstep.analytics.framework.GraphRelation
+import org.ekstep.analytics.framework.Relation
 
 object ContentOwnerRelationModel extends optional.Application with IJob {
 
@@ -67,7 +67,7 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
 			.map { f =>
 				val startNode = DataNode(f._1, None, Option(List("Owner")));
 				val endNode = DataNode(f._2, None, Option(List("domain")));
-				GraphRelation(startNode, endNode, RELATION, RelationshipDirection.INCOMING.toString);
+				Relation(startNode, endNode, RELATION, RelationshipDirection.INCOMING.toString);
 			};
 		GraphDBUtil.addRelations(ownerContentRels);
 

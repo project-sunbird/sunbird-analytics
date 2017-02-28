@@ -8,9 +8,9 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.JobContext
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.RelationshipDirection
-import org.ekstep.analytics.framework.GraphRelation
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.framework.conf.AppConf 
+import org.ekstep.analytics.framework.Relation
 
 object GraphDBUtil {
 
@@ -58,7 +58,7 @@ object GraphDBUtil {
 
 	}
 
-	def addRelations(relations: RDD[GraphRelation])(implicit sc: SparkContext) {
+	def addRelations(relations: RDD[Relation])(implicit sc: SparkContext) {
 		val relQueries = relations.map { x => addRelationQuery(x.startNode, x.endNode, x.relation, x.direction, x.metadata) }.filter { x => StringUtils.isNotBlank(x) };
 		GraphQueryDispatcher.dispatch(getGraphDBConfig, relQueries)
 	}
