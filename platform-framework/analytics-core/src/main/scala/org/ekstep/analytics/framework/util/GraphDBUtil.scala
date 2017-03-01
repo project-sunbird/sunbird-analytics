@@ -28,17 +28,19 @@ object GraphDBUtil {
 
 	def createNodes(nodes: RDD[DataNode])(implicit sc: SparkContext) {
 		val fullQuery = StringBuilder.newBuilder;
-		fullQuery.append(CREATE)
-		val nodesQuery = nodes.map { x =>
-			val nodeQuery = StringBuilder.newBuilder;
-			nodeQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(x.identifier).append(COLON)
-				.append(x.labels.get.mkString(":"))
-			val props = removeKeyQuotes(JSONUtils.serialize(Map(UNIQUE_KEY -> x.identifier) ++ x.metadata.getOrElse(Map())));
-			nodeQuery.append(props).append(CLOSE_COMMON_BRACKETS);
-			nodeQuery.toString
-		}.collect().mkString(",")
-		val query = fullQuery.append(nodesQuery).toString
-		GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		if (!nodes.isEmpty) {
+			fullQuery.append(CREATE)
+			val nodesQuery = nodes.map { x =>
+				val nodeQuery = StringBuilder.newBuilder;
+				nodeQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(x.identifier).append(COLON)
+					.append(x.labels.get.mkString(":"))
+				val props = removeKeyQuotes(JSONUtils.serialize(Map(UNIQUE_KEY -> x.identifier) ++ x.metadata.getOrElse(Map())));
+				nodeQuery.append(props).append(CLOSE_COMMON_BRACKETS);
+				nodeQuery.toString
+			}.collect().mkString(",")
+			val query = fullQuery.append(nodesQuery).toString
+			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);	
+		}
 	}
 
 	def deleteNodes(metadata: Option[Map[String, AnyRef]], labels: Option[List[String]])(implicit sc: SparkContext) {

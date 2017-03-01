@@ -9,8 +9,9 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.GraphQueryParams._
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.SparkGraphSpec
 
-class TestGraphDBUtil extends SparkSpec {
+class TestGraphDBUtil extends SparkGraphSpec {
 
   "GraphDBUtil" should "Create single User node" in {
     GraphDBUtil.deleteNodes(None, Option(List("User")));
@@ -20,7 +21,7 @@ class TestGraphDBUtil extends SparkSpec {
     nodes.count() should be(1)
   }
 
-  it should "create multiple User nodes" in {
+  "GraphDBUtil" should "create multiple User nodes" in {
     GraphDBUtil.deleteNodes(None, Option(List("User")));
     val node1 = DataNode("analytics_test_node_1", Option(Map("name" -> "Analytics_1")), Option(List("User")))
     val node2 = DataNode("analytics_test_node_2", Option(Map("name" -> "Analytics_2")), Option(List("User")))

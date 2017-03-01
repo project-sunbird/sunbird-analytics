@@ -1,10 +1,10 @@
 package org.ekstep.analytics.vidyavaani.job
 
-import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.ekstep.analytics.model.SparkGraphSpec
 
-class TestContentAssetRelationModel extends SparkSpec(null) {
+class TestContentAssetRelationModel extends SparkGraphSpec(null) {
   
     it should "create relation between asset & content and pass the test cases" in {
         

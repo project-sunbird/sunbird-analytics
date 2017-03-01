@@ -6,7 +6,9 @@ import org.neo4j.driver.v1.AuthTokens
 import org.neo4j.driver.v1.GraphDatabase
 import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
-import org.neo4j.driver.v1.Driver
+import org.neo4j.driver.v1.Driver 
+import org.ekstep.analytics.framework.conf.AppConf
+import org.apache.commons.lang3.StringUtils
 
 class GraphQuerySink(createSession: () => Driver) extends Serializable  {
 	
@@ -27,18 +29,23 @@ class GraphQuerySink(createSession: () => Driver) extends Serializable  {
 object GraphQuerySink {
 	def apply(config: Map[String, AnyRef]): GraphQuerySink = {
         val f = () => {
-        	val session = getDriver(config)
+        	val driver = getDriver(config)
             sys.addShutdownHook {
                 //session.close()
             }
-            session;
+            driver;
         }
         new GraphQuerySink(f);
     }
 	
 	private def getDriver(config: Map[String, AnyRef]) : Driver = {
-		val authToken = AuthTokens.basic(config.getOrElse("user", "neo4j").asInstanceOf[String], config.getOrElse("password", "neo4j").asInstanceOf[String]);
-		val driver = GraphDatabase.driver(config.getOrElse("url", "bolt://localhost:7687").asInstanceOf[String], authToken);
-		driver;
+		val isEmbedded = AppConf.getConfig("graph.service.embedded.enable");
+		if (StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded)) {
+			val dbConfig = org.neo4j.driver.v1.Config.build().withEncryptionLevel(org.neo4j.driver.v1.Config.EncryptionLevel.NONE).toConfig(); 
+			GraphDatabase.driver(config.getOrElse("url", "bolt://localhost:7687").asInstanceOf[String], dbConfig)	
+		} else {
+			val authToken = AuthTokens.basic(config.getOrElse("user", "neo4j").asInstanceOf[String], config.getOrElse("password", "neo4j").asInstanceOf[String]);
+			GraphDatabase.driver(config.getOrElse("url", "bolt://localhost:7687").asInstanceOf[String], authToken);	
+		}
 	}
 }
