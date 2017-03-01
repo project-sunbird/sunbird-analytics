@@ -27,6 +27,7 @@ import org.ekstep.analytics.api.util.CommonUtil.monthPeriod
 import org.ekstep.analytics.api.util.CommonUtil.weekPeriod
 import org.ekstep.analytics.api.util.CommonUtil.weekPeriodLabel
 import org.ekstep.analytics.framework.util.CommonUtil.getPeriods
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class Items(period: Int, template_id: String, number_of_Items: Double) extends Input with AlgoInput with AlgoOutput with Output
 object UpdateInfluxDB extends IBatchModelTemplate[Items, Items, Items, Items] with Serializable {
@@ -34,7 +35,7 @@ object UpdateInfluxDB extends IBatchModelTemplate[Items, Items, Items, Items] wi
     override def name: String = "UpdateInfluxDB"
 
     override def preProcess(data: RDD[Items], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Items] = {
-        val periods = getPeriods(Constants.PERIOD_TYPE, Constants.PERIODS.toInt).toList
+        val periods = getPeriods(AppConf.getConfig("period_type"), AppConf.getConfig("periods").toInt).toList
         val genieUsageSummaryFact = sc.cassandraTable[GenieUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.GENIE_LAUNCH_SUMMARY_FACT).where("d_period IN?", periods).map { x => x }
         val contentUsageSummaryFact = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period IN?", periods).map { x => x }
         val filtereditems = data.filter { x => periods.contains(x.period) }
@@ -69,20 +70,20 @@ object UpdateInfluxDB extends IBatchModelTemplate[Items, Items, Items, Items] wi
     def checkdatabase = {
         import com.paulgoldbaum.influxdbclient._
         import scala.concurrent.ExecutionContext.Implicits.global
-        val influxdb = InfluxDB.connect(Constants.LOCAL_HOST, Constants.INFLUX_DB_PORT.toInt)
-        val database = influxdb.selectDatabase(Constants.INFLUX_DB_NAME)
+        val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
+        val database = influxdb.selectDatabase(AppConf.getConfig("reactiveinflux.db.name"))
         val res = Await.result(database.exists(), 10 seconds)
         if (res != true) {
             databaseCreation
         }
         def databaseCreation = {
             database.create()
-            database.createRetentionPolicy(Constants.RETENTION_POLICY_NAME, Constants.RETENTION_POLICY_DURATION, Constants.RETENTION_POLICY_REPLICATION.toInt, true)
+            database.createRetentionPolicy(AppConf.getConfig("retention_policy_name"), AppConf.getConfig("retention_policy_duration"), AppConf.getConfig("retention_policy_replication").toInt, true)
         }
     }
 
     def getPeriods(periodType: String, periodUpTo: Int): Array[Int] = {
-        if (periodType == "ALL") {
+        if (periodType.equals("ALL")) {
             val week = CommonUtil.getPeriods("WEEK", periodUpTo)
             val month = CommonUtil.getPeriods("MONTH", periodUpTo)
             val day = CommonUtil.getPeriods("DAY", periodUpTo)
@@ -98,7 +99,7 @@ object UpdateInfluxDB extends IBatchModelTemplate[Items, Items, Items, Items] wi
         val genie = genieRdd.map { x => Point(time = new DateTime(periodTomilliSeconds(x.d_period.toString())), measurement = "genie_metrics", tags = Map("d_tag" -> x.d_tag, "week" -> x.d_period.toString()), fields = Map("m_total_sessions" -> x.m_total_sessions.toDouble, "m_total_ts" -> x.m_total_ts)) }
         val content = contentRdd.map { x => Point(time = new DateTime(periodTomilliSeconds(x.d_period.toString())), measurement = "content_metrics", tags = Map("d_tag" -> x.d_tag, "week" -> x.d_period.toString(), "d_content" -> x.d_content_id), fields = Map("m_total_sessions" -> x.m_total_sessions.toDouble, "m_total_ts" -> x.m_total_ts)) }
         val items = filtereditems.map { x => Point(time = new DateTime(periodTomilliSeconds(x.period.toString())), measurement = "item_metrics", tags = Map("template_id" -> x.template_id, "week" -> x.period.toString()), fields = Map("number_of_items" -> x.number_of_Items)) }
-        implicit val params = ReactiveInfluxDbName(Constants.INFLUX_DB_NAME)
+        implicit val params = ReactiveInfluxDbName(AppConf.getConfig("reactiveinflux.db.name"))
         implicit val awaitAtMost = 10.second
         val metrics = genie.union(content).union(items)
         metrics.saveToInflux()

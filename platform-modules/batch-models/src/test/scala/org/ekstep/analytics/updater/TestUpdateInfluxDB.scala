@@ -10,6 +10,7 @@ import com.paulgoldbaum.influxdbclient._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestUpdateInfluxDB extends SparkSpec(null) {
     "UpdateInfluxDB" should "update the influxdb" in {
@@ -26,8 +27,8 @@ class TestUpdateInfluxDB extends SparkSpec(null) {
         }
         val rdd = loadFile[Items]("src/test/resources/influxDB-updater/item-metrics.json");
         val rdd2 = UpdateInfluxDB.execute(rdd, None);
-        val influxdb = InfluxDB.connect(Constants.LOCAL_HOST, Constants.INFLUX_DB_PORT.toInt)
-        val database = influxdb.selectDatabase(Constants.INFLUX_DB_NAME)
+        val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
+        val database = influxdb.selectDatabase(AppConf.getConfig("reactiveinflux.db.name"))
         val result = database.query("SELECT * FROM content_metrics")
         val res = Await.result(result, 5 seconds)
         res.series.head.columns(0) should be("time")

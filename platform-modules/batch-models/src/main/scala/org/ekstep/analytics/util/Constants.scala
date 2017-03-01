@@ -30,18 +30,7 @@ object Constants {
     val RECOMMENDATION_CONFIG = "recommendation_config";
     val JOB_REQUEST = "job_request";
     val CONTENT_RECOS = "content_recos";
-    val INFLUX_DB_NAME = AppConf.getConfig("reactiveinflux.db.name")
-    val LOCAL_HOST = AppConf.getConfig("reactiveinflux.host")
-    val INFLUX_DB_PORT = AppConf.getConfig("reactiveinflux.port")
-    val PERIODS = AppConf.getConfig("periods")
-    val RETENTION_POLICY_NAME = AppConf.getConfig("retention_policy_name")
-    val RETENTION_POLICY_DURATION = AppConf.getConfig("retention_policy_duration")
-    val RETENTION_POLICY_REPLICATION = AppConf.getConfig("retention_policy_replication")
-    val RETENTION_POLICY_BOOLEAN = AppConf.getConfig("retention_policy_boolean")
-    val ALTER_RETENTION_POLICY = AppConf.getConfig("alter_retention_policy")
     val REGISTERED_TAGS = "registered_tags";
-    val PERIOD_TYPE = AppConf.getConfig("period_type")
-    
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
 

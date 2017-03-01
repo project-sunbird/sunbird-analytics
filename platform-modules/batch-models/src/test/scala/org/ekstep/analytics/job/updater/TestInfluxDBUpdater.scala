@@ -15,6 +15,7 @@ import java.sql.Date
 import org.joda.time.DateTime
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestInfluxDBUpdater extends SparkSpec(null) {
    "InfluxDBUpdater" should "execute the job" in {
@@ -31,8 +32,8 @@ class TestInfluxDBUpdater extends SparkSpec(null) {
         }
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/item-metrics.json"))))), None, None, "org.ekstep.analytics.updater.InfluxDBUpdater", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestInfluxDBUpdater"), Option(false))
         InfluxDBUpdater.main(JSONUtils.serialize(config))(Option(sc));
-        val influxdb = InfluxDB.connect(Constants.LOCAL_HOST, Constants.INFLUX_DB_PORT.toInt)
-        val database = influxdb.selectDatabase(Constants.INFLUX_DB_NAME)
+        val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
+        val database = influxdb.selectDatabase(AppConf.getConfig("reactiveinflux.db.name"))
         val result = database.query("SELECT * FROM content_metrics")
         val res = Await.result(result, 10 seconds)
         res.series.head.columns.size should be(6)
