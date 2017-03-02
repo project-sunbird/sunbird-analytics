@@ -10,16 +10,16 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import org.apache.commons.lang3.StringUtils
 
-
 class SparkGraphSpec(override val file: String = "src/test/resources/sample_telemetry.log") extends SparkSpec(file) {
 
-    var graphDb: GraphDatabaseService = null
+	var graphDb: GraphDatabaseService = null
+	val testDataPath ="src/test/resources/vidyavaani-data/"
 
-    override def beforeAll() {
-        super.beforeAll();
-        if (embeddedMode) {
-        	println("Starting Embedded Neo4j...");
-	        val bolt = GraphDatabaseSettings.boltConnector("0");
+	override def beforeAll() {
+		super.beforeAll();
+		if (embeddedMode) {
+			println("Starting Embedded Neo4j...");
+			val bolt = GraphDatabaseSettings.boltConnector("0");
 			graphDb = new GraphDatabaseFactory()
 				.newEmbeddedDatabaseBuilder(new File(AppConf.getConfig("graph.service.embedded.dbpath")))
 				.setConfig(bolt.`type`, "BOLT")
@@ -29,20 +29,40 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 			sys.addShutdownHook {
 				graphDb.shutdown();
 			}
-			importCsvToCassandra(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, Array("content_id","body","last_updated_on","oldbody"), "src/test/resources/graph-db-neo4j/content_data.csv")
-        }
-    }
+			importCsvToCassandra(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, Array("content_id", "body", "last_updated_on", "oldbody"), testDataPath + "content_data.csv")
+			prepareTestGraph(graphDb);
+		}
+	}
 
-    override def afterAll() {
-        super.afterAll();
-        if(embeddedMode) {
-        	println("Stopping Embedded Neo4j...");
-        	if (null != graphDb) graphDb.shutdown();
-        }
-    }
-    
-    private def embeddedMode() : Boolean = {
-    	val isEmbedded = AppConf.getConfig("graph.service.embedded.enable");
-    	StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
-    }
+	override def afterAll() {
+		super.afterAll();
+		if (embeddedMode) {
+			println("Stopping Embedded Neo4j...");
+			if (null != graphDb) graphDb.shutdown();
+		}
+	}
+
+	private def embeddedMode(): Boolean = {
+		val isEmbedded = AppConf.getConfig("graph.service.embedded.enable");
+		StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
+	}
+
+	private def prepareTestGraph(graphDb: GraphDatabaseService) {
+		println("Preparing Test Graph");
+		val tx = graphDb.beginTx();
+		try {
+			graphDb.execute("MATCH (n) DETACH DELETE n");
+			val nodes = sc.textFile(testDataPath + "datanodes.json", 1);
+			println("Nodes:", nodes.count());
+			val queries = nodes.map { x => s"CREATE (n:domain $x) return n" }.collect();
+			queries.map { query => graphDb.execute(query) };
+			tx.success();
+		} catch {
+			case t: Throwable =>
+				t.printStackTrace();
+				tx.failure();
+		} finally {
+			tx.close();
+		}
+	}
 }

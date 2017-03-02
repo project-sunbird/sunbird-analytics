@@ -47,6 +47,7 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
             try {
                 val headers = JSONUtils.serialize(tableHeaders).replace("[", "(").replace("]", ")")
                 val cql = s"COPY $keyspace.$table $headers FROM '$file' WITH HEADER = true"
+                println("cql:", cql);
                 session.execute(cql);
             } catch {
                 case t: Throwable => t.printStackTrace()
