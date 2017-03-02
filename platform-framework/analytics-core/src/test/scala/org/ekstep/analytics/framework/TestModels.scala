@@ -13,6 +13,16 @@ class TestModels extends BaseSpec {
         val event = new Event("OE_TEST", "2015-09-23T09:32:11+05:30", 0L, "2015-09-23T09:32:11+05:30", "1.0", gdata, "569b2478-c8da-4e21-8887-a0dfc2b47d7a", "569b2478-c8da-4e21-8887-a0dfc2b47d7a", "569b2478-c8da-4e21-8887-a0dfc2b47d7a", edata)
 
         event.eid should be("OE_TEST");
+        
+        JobStatus.values.size should be(5)
+        OnboardStage.values.size should be(7)
+        OtherStage.values.size should be(5)
+        TestDataExStage.values.size should be(9)
+        TestJobStageStatus.values.size should be(2)
     }
 
 }
+
+object TestDataExStage extends DataExStage
+
+object TestJobStageStatus extends JobStageStatus

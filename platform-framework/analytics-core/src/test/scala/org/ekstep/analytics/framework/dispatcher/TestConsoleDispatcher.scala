@@ -12,6 +12,9 @@ class TestConsoleDispatcher extends BaseSpec {
         val events = ConsoleDispatcher.dispatch(Array[String]("test"), Map[String, AnyRef]());
         events.length should be (1);
         events(0) should be ("test");
+        
+        val out = ConsoleDispatcher.dispatch(Array[String]("test"), Map("printEvent" -> false.asInstanceOf[AnyRef]));
+        out.length should be (1);
     }
   
 }

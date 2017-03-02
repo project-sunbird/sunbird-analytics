@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.mutable.Buffer
+import org.joda.time.DateTime
 
 @scala.beans.BeanInfo
 case class Test(id: String, value: Option[String], optValue: Option[String]);
@@ -267,6 +268,17 @@ class TestDataFilter extends SparkSpec {
         
         val filteredEventsWithTags = DataFilter.filter(events, Filter("tags", "RANGE", None));
         filteredEventsWithTags.count() should be (0);
+    }
+    
+    it should "check matches method" in {
+        val inputEvent = loadFile[Event]("src/test/resources/sample_telemetry_3.log")
+        val date = new DateTime()
+        val filters: Array[Filter] = Array(
+            Filter("eventts", "RANGE", Option(Map("start" -> 0L, "end" -> date.getMillis))),
+            Filter("genieTag", "IN", Option("")))
+        DataFilter.matches(inputEvent.first(), filters) should be(false)
+        DataFilter.matches(inputEvent.first(), Filter("eventts", "RANGE", Option(Map("start" -> 0L, "end" -> date.getMillis)))) should be(true)
+        DataFilter.matches(inputEvent.first(), Array[Filter]()) should be(true)
     }
     
 }

@@ -1,6 +1,8 @@
 package org.ekstep.analytics.framework.util
 
 import org.ekstep.analytics.framework.BaseSpec
+import org.jets3t.service.S3ServiceException
+import org.jets3t.service.ServiceException
 
 /**
  * @author Santhosh
@@ -40,5 +42,27 @@ class TestS3Util extends BaseSpec {
         S3Util.getObject("ekstep-dev-data-store", "model/fm.model")
         val res = S3Util.getObject("ekstep-dev-data-store", "fm.model")
         res.length should be (0)
+    }
+    
+    it should "check uploadPublic with & without expiry into s3" in {
+        S3Util.uploadPublic("ekstep-dev-data-store", "src/test/resources/sample_telemetry.log", "testUpload/")
+        S3Util.uploadPublicWithExpiry("ekstep-dev-data-store", "src/test/resources/sample_telemetry.log", "testUpload/", 2)
+    }
+    
+    it should "check getObjectDetails method" in {
+        S3Util.getObjectDetails("ekstep-dev-data-store", "testUpload/test-data-launch.log")
+//        a[S3ServiceException] should be thrownBy {
+//            S3Util.getObjectDetails("ekstep-dev-data-store", "testUpload1/test-data-launch.log")
+//        }
+    }
+    
+    it should "check deleteObject method" in {
+        val keys = S3Util.search("ekstep-dev-data-store", "testUpload/test-data-launch.log", None, None, None);
+        keys.length should be > 0;  
+        S3Util.deleteObject("ekstep-dev-data-store", "testUpload/test-data-launch.log")
+        val keysAfter = S3Util.search("ekstep-dev-data-store", "testUpload/test-data-launch.log", None, None, None);
+        keysAfter.length should be (0);
+        
+//        S3Util.deleteObject("ekstep-dev-data-store", "testUpload/test-data-launch-test.log")
     }
 }

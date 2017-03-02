@@ -165,9 +165,13 @@ class TestCommonUtil extends BaseSpec {
         val tags1 = CommonUtil.getTags(metaData1).get
         tags1.length should be (2)
         
-        val metaData2 = Map("activation_keys" -> "ptm007")
+        val metaData2 = Map("activation_keys" -> "ptm007", "tags" -> null)
         val tags2 = CommonUtil.getTags(metaData2).get
         tags2.length should be (0)
+        
+        val metaData3 = Map("activation_keys" -> "ptm007")
+        val tags3 = CommonUtil.getTags(metaData3).get
+        tags3.length should be (0)
         
         CommonUtil.daysBetween(new DateTime(1451650400000L).toLocalDate(), new DateTime(1454650400000L).toLocalDate()) should be (35);
         } catch {
@@ -207,5 +211,17 @@ class TestCommonUtil extends BaseSpec {
         val derivedEvent3 = JSONUtils.deserialize[DerivedEvent](dEvent3);
         val out = CommonUtil.getValidTags(derivedEvent3, Array("test"))
         out.length should be (1)
+        
+        //zip
+        CommonUtil.zip("src/test/resources/test.zip", List("src/test/resources/sample_telemetry.log", "src/test/resources/sample_telemetry_2.log"))
+        new File("src/test/resources/test.zip").isFile() should be(true)
+        CommonUtil.deleteFile("src/test/resources/test.zip");
+        //zip folder
+        CommonUtil.zipFolder("src/test/resources/zipFolderTest.zip", "src/test/resources/session-batch-model")
+        new File("src/test/resources/zipFolderTest.zip").isFile() should be(true)
+        CommonUtil.deleteFile("src/test/resources/zipFolderTest.zip");
+        
+        //ccToMap
+        val x = CommonUtil.ccToMap(DerivedEvent)
     }
 }
