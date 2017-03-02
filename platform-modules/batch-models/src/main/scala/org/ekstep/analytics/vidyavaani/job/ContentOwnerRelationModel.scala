@@ -49,7 +49,7 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
             _createOwnerNodeWithRelation();
         })
 
-        JobLogger.end("ContentLanguageRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
+        JobLogger.end("ContentOwnerRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
     }
 
     private def _createOwnerNodeWithRelation()(implicit sc: SparkContext) = {
