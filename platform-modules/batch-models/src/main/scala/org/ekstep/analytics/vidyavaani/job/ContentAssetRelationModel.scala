@@ -16,7 +16,7 @@ import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.util.GraphDBUtil
 import org.ekstep.analytics.util.Constants
 
-case class ContentData(content_id: String, body: Array[Byte], last_updated_on: DateTime, oldbody: Option[Array[Byte]]);
+case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: DateTime, oldbody: Option[Array[Byte]]);
 
 object ContentAssetRelationModel extends optional.Application with IJob {
 
@@ -43,7 +43,7 @@ object ContentAssetRelationModel extends optional.Application with IJob {
     }
 
     private def execute()(implicit sc: SparkContext) {
-        val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE).map { x => (x.content_id, getAssetIds(new String(x.body, "UTF-8"))) }
+        val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE).filter { x => !x.body.isEmpty }.map { x => (x.content_id, getAssetIds(new String(x.body.getOrElse(Array()), "UTF-8"))) }
             .filter { x => x._2.nonEmpty }.map { x =>
                 val startNode = DataNode(x._1, None, Option(List("domain")));
                 x._2.map { x =>
