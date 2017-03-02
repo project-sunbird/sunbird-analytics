@@ -33,11 +33,11 @@
 			<version>${spark.version}</version>
 			<scope>provided</scope>
 			<exclusions>
-		    	<exclusion>
-		    		<artifactId>jets3t</artifactId>
-		    		<groupId>net.java.dev.jets3t</groupId>
-		    	</exclusion>
-		    </exclusions>
+				<exclusion>
+					<artifactId>jets3t</artifactId>
+					<groupId>net.java.dev.jets3t</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -79,9 +79,9 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>com.typesafe</groupId>
-		    <artifactId>config</artifactId>
-		    <version>1.3.0</version>
+			<groupId>com.typesafe</groupId>
+			<artifactId>config</artifactId>
+			<version>1.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.scalatest</groupId>
@@ -100,34 +100,51 @@
 			<version>2.5</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.hadoop</groupId>
-		    <artifactId>hadoop-client</artifactId>
-		    <version>2.7.3</version>
-		    <scope>provided</scope>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-client</artifactId>
+			<version>2.7.3</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.hadoop</groupId>
-		    <artifactId>hadoop-common</artifactId>
-		    <version>2.7.3</version>
-		    <scope>provided</scope>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+			<version>2.7.3</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.hadoop</groupId>
-		    <artifactId>hadoop-aws</artifactId>
-		    <version>2.7.3</version>
-		    <scope>provided</scope>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-aws</artifactId>
+			<version>2.7.3</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>com.fasterxml.jackson.core</groupId>
-		    <artifactId>jackson-annotations</artifactId>
-		    <version>2.7.8</version>
-		    <scope>provided</scope>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.7.8</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>net.java.dev.jets3t</groupId>
-		    <artifactId>jets3t</artifactId>
-		    <version>0.9.4</version>
-		    <scope>provided</scope>
+			<groupId>net.java.dev.jets3t</groupId>
+			<artifactId>jets3t</artifactId>
+			<version>0.9.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j.driver</groupId>
+			<artifactId>neo4j-java-driver</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>3.0.8</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.neo4j</groupId>
+		    <artifactId>neo4j-bolt</artifactId>
+		    <version>3.0.8</version>
+		    <scope>test</scope>
 		</dependency>
 	</dependencies>
 

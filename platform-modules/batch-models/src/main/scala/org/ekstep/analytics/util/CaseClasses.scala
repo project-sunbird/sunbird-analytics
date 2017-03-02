@@ -50,3 +50,4 @@ case class ContentUsageSummaryView(d_period: Int, d_content_id: String, d_tag: S
 case class ContentPopularitySummaryView(d_period: Int, d_content_id: String, d_tag: String, m_downloads: Long, m_side_loads: Long, m_comments: List[(String, Long)], m_ratings: List[(Double, Long)], m_avg_rating: Double) extends CassandraTable
 case class GenieLaunchSummaryView(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_total_devices: Long, m_avg_sess_device: Double, m_avg_ts_session: Long, m_contents: List[String]) extends CassandraTable
 case class ItemUsageSummaryView(d_period: Int, d_content_id: String, d_tag: String, d_item_id: String, m_total_ts: Double, m_total_count: Int, m_correct_res_count: Int, m_inc_res_count: Int, m_correct_res: List[String], m_top5_incorrect_res: List[(String,List[String], Int)], m_avg_ts: Double, m_top5_mmc: List[(String, Int)]) extends CassandraTable
+

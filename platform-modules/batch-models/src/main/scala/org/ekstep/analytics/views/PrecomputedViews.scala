@@ -80,7 +80,7 @@ object PrecomputedViews extends IBatchModel[String,String] with Serializable {
             val fileKey = view.filePrefix + "-" + x._1 + "-" + view.fileSuffix;
             OutputDispatcher.dispatch(Dispatcher(view.dispatchTo, view.dispatchParams ++ Map("key" -> fileKey, "file" -> fileKey)), x._2)
         }.count();
-        val data = CommonUtil.ccToMap(view);
+        val data = CommonUtil.caseClassToMap(view);
         JobLogger.log("Precomputed metrics pushed.", Option(data ++ Map("count" -> count)), INFO);
     }
 
