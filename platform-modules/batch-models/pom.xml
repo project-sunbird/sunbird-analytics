@@ -32,16 +32,16 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.slf4j</groupId>
-		    <artifactId>slf4j-api</artifactId>
-		    <version>1.7.16</version>
-		    <scope>provided</scope>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.16</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>io.dropwizard.metrics</groupId>
-		    <artifactId>metrics-core</artifactId>
-		    <version>3.1.2</version>
-		    <scope>provided</scope>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>3.1.2</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
@@ -49,19 +49,19 @@
 			<version>${spark.version}</version>
 			<scope>provided</scope>
 			<exclusions>
-		    	<exclusion>
-		    		<artifactId>jets3t</artifactId>
-		    		<groupId>net.java.dev.jets3t</groupId>
-		    	</exclusion>
-		    	<exclusion>
-		    		<groupId>org.slf4j</groupId>
-		    		<artifactId>slf4j-api</artifactId>
-		    	</exclusion>
-		    	<exclusion>
-		    		<groupId>io.dropwizard.metrics</groupId>
-		    		<artifactId>metrics-core</artifactId>
-		    	</exclusion>
-		    </exclusions>
+				<exclusion>
+					<artifactId>jets3t</artifactId>
+					<groupId>net.java.dev.jets3t</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.dropwizard.metrics</groupId>
+					<artifactId>metrics-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
@@ -82,16 +82,16 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>net.java.dev.jets3t</groupId>
-		    <artifactId>jets3t</artifactId>
-		    <version>0.9.4</version>
-		    <scope>provided</scope>
+			<groupId>net.java.dev.jets3t</groupId>
+			<artifactId>jets3t</artifactId>
+			<version>0.9.4</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.httpcomponents</groupId>
-		    <artifactId>httpclient</artifactId>
-		    <version>4.5.2</version>
-		    <scope>test</scope>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.2</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.scalatest</groupId>
@@ -107,15 +107,15 @@
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core -->
 		<dependency>
-		    <groupId>com.datastax.cassandra</groupId>
-		    <artifactId>cassandra-driver-core</artifactId>
-		    <version>3.1.0</version>
-		    <exclusions>
-		    	<exclusion>
-		    		<groupId>com.google.guava</groupId>
-    				<artifactId>guava</artifactId>
-		    	</exclusion>
-		    </exclusions>
+			<groupId>com.datastax.cassandra</groupId>
+			<artifactId>cassandra-driver-core</artifactId>
+			<version>3.1.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.datastax.spark</groupId>
@@ -156,9 +156,24 @@
 			<artifactId>netty-http-pipelining</artifactId>
 			<version>1.1.4</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.github.wnameless</groupId>
+			<artifactId>json-flattener</artifactId>
+			<version>0.2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>3.0.8</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.neo4j</groupId>
+		    <artifactId>neo4j-bolt</artifactId>
+		    <version>3.0.8</version>
+		    <scope>test</scope>
+		</dependency>
 	</dependencies>
-
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>

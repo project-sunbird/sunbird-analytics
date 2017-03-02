@@ -73,6 +73,22 @@ class TestJobDriver extends FlatSpec with Matchers {
         implicit val sc: SparkContext = null;
         JobDriver.run("batch", JSONUtils.serialize(jobConfig), new TestModel);
     }
+    
+    it should "check batch job driver handling exception" in {
+        val jobConfig = JobConfig(
+            Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/test_1.log"))))),
+            Option(Array(Filter("eventId", "EQ", Option("GE_TRANSFER")))),
+            None,
+            "org.ekstep.analytics.framework.TestModel",
+            Option(Map()),
+            Option(Array(Dispatcher("cons", Map("printEvent" -> false.asInstanceOf[AnyRef])))),
+            Option(8),
+            None,
+            Option(true))
+
+        implicit val sc: SparkContext = null;
+        JobDriver.run("batch", JSONUtils.serialize(jobConfig), new TestModel);
+    }
 
     it should "invoke stream job driver" in {
         val jobConfig = JobConfig(Fetcher("stream", None, None), None, None, "", None, None, None, None)

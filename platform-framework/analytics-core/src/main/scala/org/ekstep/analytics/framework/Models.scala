@@ -101,9 +101,9 @@ case class Game(identifier: String, code: String, subject: String, objectType: S
 
 // Domain Models
 case class Concept(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]]);
-case class Relation(startNodeId: String, endNodeId: String, startNodeType: String, endNodeType: String, relationType: String)
-case class DomainMap(concepts: Array[Concept], relations: Array[Relation])
-case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[Relation]);
+case class DomainRelation(startNodeId: String, endNodeId: String, startNodeType: String, endNodeType: String, relationType: String)
+case class DomainMap(concepts: Array[Concept], relations: Array[DomainRelation])
+case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[DomainRelation]);
 case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult);
 
 // Common models for all data products
@@ -120,6 +120,10 @@ case class InCorrectRes(resp: String, mmc: List[String], count: Int) extends Inp
 case class Misconception(value: String, count: Int) extends Input with AlgoInput;
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 trait CassandraTable extends AnyRef with Serializable;
+
+/* Neo4j case classes */
+case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
+case class Relation(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = Option(Map())) extends Serializable;
 
 object Period extends Enumeration {
     type Period = Value

@@ -56,16 +56,22 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
         val sorting_order = config.getOrElse("sorting_order", List("rel.num_downloads", "rel.avg_rating", "eng.total_interactions", "simi.score")).asInstanceOf[List[String]];
         
         //Content Model
-        val contentModel = ContentAdapter.getPublishedContentForRE().map { x => (x.id, x) }
-        val cm = sc.parallelize(contentModel)
-        val contentMap = contentModel.toMap;
+        val contentModel = ContentAdapter.getPublishedContentForRE()
+        val cm = sc.parallelize(contentModel.map { x => (x.id, x) })
+
+        // creating subject-grade-content map
+        val subject_list = contentModel.map{x => x.subject}.flatMap { x => x }.toList.distinct
+        val grade_list = contentModel.map{x => x.gradeList}.flatMap { x => x }.toList.distinct
+        val sub_grade_list = subject_list ++ grade_list
+        val sub_grade_content_list = for(i <- sub_grade_list) yield (i, contentModel.filter(f => f.subject.contains(i) || f.gradeList.contains(i)).map(x => x.id))
+        val sub_grade_content_map = sub_grade_content_list.map(x => (x._1, x._2.toList)).toMap
         
         // Content Usage Summaries
-        val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
+        val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x };
         val cus = contentUsageSummaries.map{x => (x.d_content_id, x.m_total_interactions)}
         
         // Content Popularity Summaries
-        val contentpopularitySummaries = sc.cassandraTable[ContentPopularitySummaryFact2](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
+        val contentpopularitySummaries = sc.cassandraTable[ContentPopularitySummaryFact2](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x };
         val cps = contentpopularitySummaries.map{x => (x.d_content_id, x.m_avg_rating)}
         
         // Content sideloading Summaries
@@ -82,9 +88,11 @@ object EndOfContentRecommendationModel extends IBatchModelTemplate[Empty, Conten
         val filtered_scores = scores.leftOuterJoin(cm).mapValues{ x =>
             val c1_subject = x._2.getOrElse(defaultContentModel).subject
             val c1_grade = x._2.getOrElse(defaultContentModel).gradeList
-            val listF_sub = x._1.filter(f => c1_subject.exists { contentMap.get(f._1).getOrElse(defaultContentModel).subject.contains(_) })
-            val listF_grade = listF_sub.filter(f => c1_grade.exists { contentMap.get(f._1).getOrElse(defaultContentModel).gradeList.contains(_) })
-            val sorted_list = getSortedList(listF_grade, features_t, sorting_order)
+            val subF_list = c1_subject.map(x => sub_grade_content_map.get(x).get).flatMap { x => x }
+            val gradeF_list = c1_grade.map(x => sub_grade_content_map.get(x).get).flatMap { x => x }
+            val final_list_contents = subF_list.intersect(gradeF_list)
+            val filtered_list = x._1.filter(f => final_list_contents.contains(f._1))
+            val sorted_list = getSortedList(filtered_list, features_t, sorting_order)
             sorted_list;
         }
         

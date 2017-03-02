@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.mutable.Buffer
+import org.joda.time.DateTime
 
 @scala.beans.BeanInfo
 case class Test(id: String, value: Option[String], optValue: Option[String]);
@@ -247,11 +248,37 @@ class TestDataFilter extends SparkSpec {
         filteredEvents2.count() should be (2);
     }
     
-    it should "filter by events by timestamp range" in {
+    it should "filter events using range" in {
         
         val date = CommonUtil.dateFormat.parseDateTime("2015-09-23");
         val filteredEvents = DataFilter.filter(events, Filter("ts", "RANGE", Option(Map("start" -> date.withTimeAtStartOfDay().getMillis, "end" -> (date.withTimeAtStartOfDay().getMillis + 86400000)))));
         filteredEvents.count() should be (3299);
+        
+        val filteredEventsWithRatingExists = DataFilter.filter(events, Filter("edata.eks.rating", "RANGE", Option(Map("start" -> 0.0, "end" -> 1.0))));
+        filteredEventsWithRatingExists.count() should be (7437);
+        
+        val filteredEventsWithRating = DataFilter.filter(events, Filter("edata.eks.rating", "RANGE", Option(Map("start" -> 5.0, "end" -> 10.0))));
+        filteredEventsWithRating.count() should be (0);
+        
+        val filteredEventsWithScore = DataFilter.filter(events, Filter("edata.eks.score", "RANGE", Option(Map("start" -> 2))));
+        filteredEventsWithScore.count() should be (0);
+        
+        val filteredEventsWithScoreExists = DataFilter.filter(events, Filter("edata.eks.score", "RANGE", Option(Map("start" -> 1, "end" -> 2))));
+        filteredEventsWithScoreExists.count() should be (1074);
+        
+        val filteredEventsWithTags = DataFilter.filter(events, Filter("tags", "RANGE", None));
+        filteredEventsWithTags.count() should be (0);
+    }
+    
+    it should "check matches method" in {
+        val inputEvent = loadFile[Event]("src/test/resources/sample_telemetry_3.log")
+        val date = new DateTime()
+        val filters: Array[Filter] = Array(
+            Filter("eventts", "RANGE", Option(Map("start" -> 0L, "end" -> date.getMillis))),
+            Filter("genieTag", "IN", Option("")))
+        DataFilter.matches(inputEvent.first(), filters) should be(false)
+        DataFilter.matches(inputEvent.first(), Filter("eventts", "RANGE", Option(Map("start" -> 0L, "end" -> date.getMillis)))) should be(true)
+        DataFilter.matches(inputEvent.first(), Array[Filter]()) should be(true)
     }
     
 }

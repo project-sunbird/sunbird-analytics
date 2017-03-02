@@ -6,6 +6,9 @@ import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 import org.ekstep.analytics.job.consolidated._
 import org.ekstep.analytics.views.PrecomputedViewsJob
+import org.ekstep.analytics.vidyavaani.job.ContentOwnerRelationModel
+import org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel
+import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -87,8 +90,16 @@ object JobFactory {
                 PrecomputedViewsJob
             case "content-recos" =>
                 EndOfContentRecommendationJob
+            case "content-own-rel" =>
+                ContentOwnerRelationModel
+            case "content-lang-rel" =>
+                ContentLanguageRelationModel
+            case "content-asset-rel" =>
+                ContentAssetRelationModel
+            case "vidyavaani-jobs" =>
+                VidyavaaniModelJobs
             case "influxdb-updater" =>
-                InfluxDBUpdater    
+                InfluxDBUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
