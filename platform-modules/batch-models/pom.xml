@@ -158,13 +158,6 @@
 		    <scope>test</scope>
 		</dependency>
 	</dependencies>
-	<repositories>
-		<!-- list of other repositories -->
-		<repository>
-			<id>SparkPackagesRepo</id>
-			<url>http://dl.bintray.com/spark-packages/maven</url>
-		</repository>
-	</repositories>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
