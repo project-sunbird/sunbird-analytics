@@ -15,14 +15,19 @@ import org.ekstep.analytics.framework.DataNode
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.util.GraphDBUtil
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class ContentData(content_id: String, body: Array[Byte], last_updated_on: DateTime, oldbody: Option[Array[Byte]]);
 
 object ContentAssetRelationModel extends optional.Application with IJob {
 
     val RELATION = "uses";
+    implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
+
+        JobLogger.init("ContentAssetRelationModel")
+        JobLogger.start("ContentAssetRelationModel Started executing", Option(Map("config" -> config)))
 
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
@@ -43,16 +48,19 @@ object ContentAssetRelationModel extends optional.Application with IJob {
     }
 
     private def execute()(implicit sc: SparkContext) {
-        val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE).map { x => (x.content_id, getAssetIds(new String(x.body, "UTF-8"))) }
-            .filter { x => x._2.nonEmpty }.map { x =>
-                val startNode = DataNode(x._1, None, Option(List("domain")));
-                x._2.map { x =>
-                    val endNode = DataNode(x, None, Option(List("domain")));
-                    Relation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
-                }
-            }.flatMap { x => x }
+        val time = CommonUtil.time({
+            val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE).map { x => (x.content_id, getAssetIds(new String(x.body, "UTF-8"))) }
+                .filter { x => x._2.nonEmpty }.map { x =>
+                    val startNode = DataNode(x._1, None, Option(List("domain")));
+                    x._2.map { x =>
+                        val endNode = DataNode(x, None, Option(List("domain")));
+                        Relation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
+                    }
+                }.flatMap { x => x }
 
-        GraphDBUtil.addRelations(data);
+            GraphDBUtil.addRelations(data);
+        })
+        JobLogger.end("ContentAssetRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
     }
 
     private def getAssetIds(body: String): Array[String] = {
