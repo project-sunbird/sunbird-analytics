@@ -57,7 +57,6 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 		try {
 			graphDb.execute("MATCH (n) DETACH DELETE n");
 			val nodes = sc.textFile(testDataPath + "datanodes.json", 1);
-			println("Nodes:", nodes.count());
 			val queries = nodes.map { x => s"CREATE (n:domain $x) return n" }.collect();
 			queries.map { query => graphDb.execute(query) };
 			tx.success();
