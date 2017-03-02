@@ -222,6 +222,6 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.deleteFile("src/test/resources/zipFolderTest.zip");
         
         //ccToMap
-        val x = CommonUtil.ccToMap(DerivedEvent)
+        val x = CommonUtil.caseClassToMap(DerivedEvent)
     }
 }
