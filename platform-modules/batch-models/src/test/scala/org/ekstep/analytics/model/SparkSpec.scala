@@ -41,19 +41,4 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
         }
         sc.textFile(file, 1).map { line => JSONUtils.deserialize[T](line) }.filter { x => x != null }.cache();
     }
-
-    def importCsvToCassandra(keyspace: String, table: String, tableHeaders: Array[String], file: String) {
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            try {
-                val headers = JSONUtils.serialize(tableHeaders).replace("[", "(").replace("]", ")")
-                val cql = s"COPY $keyspace.$table $headers FROM '$file' WITH HEADER = true"
-                println("cql:", cql);
-                session.execute(cql);
-            } catch {
-                case t: Throwable => t.printStackTrace()
-            } finally {
-                session.close();
-            }
-        }
-    }
 }
