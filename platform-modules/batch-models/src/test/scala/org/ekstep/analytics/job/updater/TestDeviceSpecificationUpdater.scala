@@ -16,7 +16,7 @@ class TestDeviceSpecificationUpdater extends SparkSpec(null) {
     }
     
     ignore should "execute the job from s3 data" in {
-        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-04-14"))))), Option(Array(Filter("eventId","EQ",Option("GE_GENIE_START")))), None, "org.ekstep.analytics.model.DeviceSpecification", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("DeviceSpecificationUpdater"), Option(false))
+        val config = JobConfig(Fetcher("s3", None, Option(Array(Query(Option("ekstep-dev-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-04-14"))))), Option(Array(Filter("eventId","EQ",Option("GE_GENIE_START")))), None, "org.ekstep.analytics.model.DeviceSpecification", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("DeviceSpecificationUpdater"), Option(false))
         DeviceSpecificationUpdater.main(JSONUtils.serialize(config))(Option(sc));
     }
 }

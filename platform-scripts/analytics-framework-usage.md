@@ -440,7 +440,7 @@ CommonUtil.setS3Conf(sc);
 implicit val sparkContext = sc; // Re-assign the spark context as an implicit variable. Framework is designed to expect sc as implicit variable
 
 // Read some data form S3
-val queries = Option(Array(Query(Option("sandbox-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-01-04"))));
+val queries = Option(Array(Query(Option("ekstep-dev-data-store"), Option("raw/"), Option("2016-01-01"), Option("2016-01-04"))));
 val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
 // Print the count on the console
 rdd.count();

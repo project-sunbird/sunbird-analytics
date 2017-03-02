@@ -24,7 +24,7 @@ abstract class BaseController extends Controller {
 			"content2vec.enrich_content" -> "true",
 			"content2vec.content_corpus" -> "true",
 			"content2vec.train_model" -> "false",
-			"content2vec.s3_bucket" -> "sandbox-data-store",
+			"content2vec.s3_bucket" -> "ekstep-dev-data-store",
 			"content2vec.model_path" -> "model",
 			"content2vec.s3_key_prefix" -> "model",
 			"content2vec.infer_all" -> "false",

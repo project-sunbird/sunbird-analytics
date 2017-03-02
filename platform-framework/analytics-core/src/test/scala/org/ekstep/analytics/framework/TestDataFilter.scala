@@ -247,11 +247,26 @@ class TestDataFilter extends SparkSpec {
         filteredEvents2.count() should be (2);
     }
     
-    it should "filter by events by timestamp range" in {
+    it should "filter events using range" in {
         
         val date = CommonUtil.dateFormat.parseDateTime("2015-09-23");
         val filteredEvents = DataFilter.filter(events, Filter("ts", "RANGE", Option(Map("start" -> date.withTimeAtStartOfDay().getMillis, "end" -> (date.withTimeAtStartOfDay().getMillis + 86400000)))));
         filteredEvents.count() should be (3299);
+        
+        val filteredEventsWithRatingExists = DataFilter.filter(events, Filter("edata.eks.rating", "RANGE", Option(Map("start" -> 0.0, "end" -> 1.0))));
+        filteredEventsWithRatingExists.count() should be (7437);
+        
+        val filteredEventsWithRating = DataFilter.filter(events, Filter("edata.eks.rating", "RANGE", Option(Map("start" -> 5.0, "end" -> 10.0))));
+        filteredEventsWithRating.count() should be (0);
+        
+        val filteredEventsWithScore = DataFilter.filter(events, Filter("edata.eks.score", "RANGE", Option(Map("start" -> 2))));
+        filteredEventsWithScore.count() should be (0);
+        
+        val filteredEventsWithScoreExists = DataFilter.filter(events, Filter("edata.eks.score", "RANGE", Option(Map("start" -> 1, "end" -> 2))));
+        filteredEventsWithScoreExists.count() should be (1074);
+        
+        val filteredEventsWithTags = DataFilter.filter(events, Filter("tags", "RANGE", None));
+        filteredEventsWithTags.count() should be (0);
     }
     
 }
