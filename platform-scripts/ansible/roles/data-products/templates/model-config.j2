@@ -122,6 +122,18 @@ config() {
 		"content-recos") 
         echo '{"search":{"type":"s3","queries":[{"bucket":"'$bucket'","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.EndOfContentRecommendationModel","modelParams":{"method":"cosine", "norm":"none", "weight": 0.1, "filterBlacklistedContents":false},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"EndOfContentRecommendationModel","deviceMapping":false}'
         ;;
+        "content-own-rel")
+        echo '{}'
+        ;;
+        "content-lang-rel")
+        echo '{}'
+        ;;
+        "content-asset-rel")
+        echo '{}'
+        ;;
+        "vidyavaani-jobs")
+        echo '{}'
+        ;;
 		"*")
 		echo "Unknown model code"
       	exit 1 # Command to come out of the program with status 1
