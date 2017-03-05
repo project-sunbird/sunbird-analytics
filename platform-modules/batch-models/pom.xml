@@ -146,6 +146,11 @@
 			<version>1.4.0.10.0.4.1</version>
 		</dependency>
 		<dependency>
+		    <groupId>com.typesafe.netty</groupId>
+		    <artifactId>netty-http-pipelining</artifactId>
+		    <version>1.1.4</version>
+		</dependency>
+		<dependency>
 			<groupId>com.github.wnameless</groupId>
 			<artifactId>json-flattener</artifactId>
 			<version>0.2.4</version>
