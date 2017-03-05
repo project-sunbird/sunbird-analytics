@@ -32,9 +32,7 @@ object Constants {
     val RECOMMENDATION_CONFIG = "recommendation_config";
     val JOB_REQUEST = "job_request";
     val CONTENT_RECOS = "content_recos";
-    
     val REGISTERED_TAGS = "registered_tags";
-    
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
 
