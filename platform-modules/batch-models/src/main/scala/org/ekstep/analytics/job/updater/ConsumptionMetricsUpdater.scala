@@ -33,8 +33,8 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 	val ALL_PERIOD_TYPES = List("MONTH", "WEEK", "DAY");
 
 	def main(config: String)(implicit sc: Option[SparkContext] = None) {
-		JobLogger.init("DataExhaustJob")
-		JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config)))
+		JobLogger.init("ConsumptionMetricsUpdater")
+		JobLogger.start("ConsumptionMetricsUpdater Job Started executing", Option(Map("config" -> config)))
 		val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
 		if (null == sc.getOrElse(null)) {
@@ -64,6 +64,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 		implicit val params = ReactiveInfluxDbName(AppConf.getConfig("reactiveinflux.database"))
         implicit val awaitAtMost = Integer.parseInt("10").second
         metrics.saveToInflux()
+        JobLogger.end("ConsumptionMetricsUpdater Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> metrics.count(), "outputEvents" -> metrics.count(), "timeTaken" -> 0)));
 	}
 
 	private def getGenieMetrics(periodType: String, periodUpTo: Int)(implicit sc: SparkContext): RDD[Point] = {
