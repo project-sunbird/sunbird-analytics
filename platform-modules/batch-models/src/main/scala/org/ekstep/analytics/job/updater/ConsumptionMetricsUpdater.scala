@@ -70,7 +70,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 	private def getGenieMetrics(periodType: String, periodUpTo: Int)(implicit sc: SparkContext): RDD[Point] = {
 		val periods = CommonUtil.getPeriods(periodType, periodUpTo).toList;
 		val genieRdd = sc.cassandraTable[GenieUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.GENIE_LAUNCH_SUMMARY_FACT).where("d_period IN?", periods).map { x => x };
-		val metrics = genieRdd.map { x => Point(time = getDateTime(periodType, x.d_period.toString), measurement = GENIE_METRICS, tags = Map("env" -> AppConf.getConfig("application.env"), "tag" -> x.d_tag), fields = Map("sessions" -> x.m_total_sessions.toDouble, "timespent" -> x.m_total_ts)) };
+		val metrics = genieRdd.map { x => Point(time = getDateTime(periodType, x.d_period.toString), measurement = GENIE_METRICS, tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> periodType.toLowerCase(), "tag" -> x.d_tag), fields = Map("sessions" -> x.m_total_sessions.toDouble, "timespent" -> x.m_total_ts)) };
 		metrics
 	}
 
