@@ -98,8 +98,8 @@ object JobFactory {
                 ContentAssetRelationModel
             case "vidyavaani-jobs" =>
                 VidyavaaniModelJobs
-            case "influxdb-updater" =>
-                InfluxDBUpdater
+            case "consumption-metrics" =>
+            	ConsumptionMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
