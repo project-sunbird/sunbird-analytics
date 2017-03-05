@@ -3,10 +3,8 @@ import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.DerivedEvent
-import com.paulgoldbaum.influxdbclient.InfluxDB
 import scala.concurrent.Await
 import org.ekstep.analytics.util.Constants
-import com.paulgoldbaum.influxdbclient._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import com.datastax.spark.connector.cql.CassandraConnector
