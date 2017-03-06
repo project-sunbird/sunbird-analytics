@@ -5,13 +5,25 @@ import json
 import time
 import warnings
 import logging
+import ConfigParser
+import os
+import sys
+environment = sys.argv[1]
+
+# getting paths from config file
+config = ConfigParser.SafeConfigParser()
+config.read('config.properties')
+# environment = config.get('Environment', 'environ')
+environment_path = config.get('Environment_Path', environment)
+
 warnings.filterwarnings("ignore")
 logging.basicConfig(filename='concept_coverage_across_content.log',
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
+
 def get_concept_df():
-    url_numeracy = "https://api.ekstep.in/learning/v2/domains/numeracy/concepts"
-    url_literacy = "https://api.ekstep.in/learning/v2/domains/literacy/concepts"
+    url_numeracy = environment_path+"/learning/v2/domains/numeracy/concepts"
+    url_literacy = environment_path+"/learning/v2/domains/literacy/concepts"
     resp_num = requests.get(url_numeracy).json()
     resp_lit = requests.get(url_literacy).json()
 
@@ -62,7 +74,7 @@ def get_depth(x, concept_df):
 
 
 def get_content_df():
-    url = "https://api.ekstep.in/learning/v2/content/list"
+    url = environment_path+"/learning/v2/content/list"
     payload = "{\"request\": {\"search\": {\"status\": [\"Live\"],\"limit\": 2000}}}"
     headers = {
         'content-type': "application/json",
@@ -157,7 +169,11 @@ def add_details_to_sorted_df(df_micro_used_sorted, df_micro, concept_df):
 # save dataframe in text file
 def save_dataframe(df, filename):
     list_records = json.loads(df.to_json(orient='records'))
-    outfile = open(filename, "w")
+    if not os.path.exists('metrics'):
+        os.makedirs('metrics')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, 'metrics', filename)
+    outfile = open(file_path, "w")
     print >> outfile, "\n".join(str(i) for i in list_records)
     outfile.close()
 

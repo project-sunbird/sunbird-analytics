@@ -9,11 +9,23 @@ import warnings
 import json
 import logging
 import time
+import ConfigParser
+import os
+import sys
+environment = sys.argv[1]
+
+# getting paths from config file
+config = ConfigParser.SafeConfigParser()
+config.read('config.properties')
+# environment = config.get('Environment', 'environ')
+environment_path = config.get('Environment_Path', environment)
+
 warnings.filterwarnings("ignore")
 logging.basicConfig(filename='template_usage_by_items.log',
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
-url = "https://api.ekstep.in/learning/v2/content/search"
+
+url = environment_path+"/learning/v2/content/search"
 payload = "{\n\"request\": { \n\"search\": " \
           "{\n\"contentType\": [\"Template\"],\n\"fields\":" \
           " [\"name\", \"downloadUrl\", \"code\", \"mediaType\", \"status\",\"templateType\"]\n}\n  }\n}"
@@ -27,7 +39,7 @@ response = requests.request("POST", url, data=payload, headers=headers).json()
 n = len(response['result']['content'])
 template_id = response['result']['content'][0]['identifier']
 
-url = "https://api.ekstep.in/search/v2/search"
+url = environment_path+"/search/v2/search"
 
 payload = "{\r\n    \"request\": {\r\n        \"filters\":{\r\n            \"objectType\": [\"AssessmentItem\"],\r\n            \"template_id\": [\"domain_7355\"],\r\n            \"status\": []\r\n        },\r\n        \"limit\": 1\r\n    }\r\n}"
 headers = {
@@ -78,7 +90,7 @@ for templateDict in dictList:
     # lst_itemName.append(lst_temp)
 
 logging.info('getting item info')
-url = "https://api.ekstep.in//search/v2/search"
+url = environment_path+"/search/v2/search"
 
 payload = "{\r\n    \"request\": {\r\n        \"filters\":{\r\n            \"objectType\": [\"AssessmentItem\"]," \
           "\r\n            \"status\": []\r\n        },\r\n        \"facets\": [\"template_id\"]," \
@@ -125,7 +137,12 @@ df_detail_sorted = df_detail_sorted[['template_id', 'items']]
 
 list_records = json.loads(df_detail_sorted.to_json(orient='records'))
 file_name = time.strftime("%Y-%m-%d") + '_template_usage_by_items.json'
-outfile = open(file_name, "w")
+
+if not os.path.exists('metrics'):
+    os.makedirs('metrics')
+current_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(current_dir, 'metrics', file_name)
+outfile = open(file_path, "w")
 print >> outfile, "\n".join(str(i) for i in list_records)
 outfile.close()
 logging.info('output saved')

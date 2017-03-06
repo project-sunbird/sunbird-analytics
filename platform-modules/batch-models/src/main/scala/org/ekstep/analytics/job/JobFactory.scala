@@ -99,7 +99,9 @@ object JobFactory {
             case "vidyavaani-jobs" =>
                 VidyavaaniModelJobs
             case "consumption-metrics" =>
-            	ConsumptionMetricsUpdater
+                ConsumptionMetricsUpdater
+            case "creation-metrics" =>
+                CreationMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
