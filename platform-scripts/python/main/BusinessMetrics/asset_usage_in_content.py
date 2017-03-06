@@ -192,6 +192,7 @@ def main():
     # df_assets_sorted = sort_df_assets(df_assets, content_df)
     # df_assets_sorted.to_csv('df_assets.csv')
     df_assets_2_sorted = get_assets_details(dict_content_body)
+    df_assets_2_sorted.columns = ['asset_id', 'contents']
     filename = time.strftime("%Y-%m-%d") + '_asset_usage_in_content.json'
     save_dataframe(df_assets_2_sorted, filename)
     logging.info('saved to json')

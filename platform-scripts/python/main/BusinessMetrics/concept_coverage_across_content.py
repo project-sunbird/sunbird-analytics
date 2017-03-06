@@ -188,7 +188,7 @@ def main():
     # df_micro.to_csv('fixing.csv')
     df_micro = add_concept_usage_count(content_df, df_micro, lst_all_concept)
     df_micro_used_sorted = create_sorted_df(df_micro)
-    df_micro_used_sorted.columns = ['concept', 'times_used']
+    df_micro_used_sorted.columns = ['concept_id', 'contents']
     # df_micro_used_sorted = add_details_to_sorted_df(df_micro_used_sorted, df_micro, concept_df)
     filename = time.strftime("%Y-%m-%d") + '_concept_coverage_across_content.json'
     save_dataframe(df_micro_used_sorted, filename)
