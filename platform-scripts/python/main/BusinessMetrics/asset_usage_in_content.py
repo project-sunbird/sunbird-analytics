@@ -198,6 +198,7 @@ def main():
     filename = time.strftime("%Y-%m-%d") + '_asset_usage_in_content.json'
     save_dataframe(df_assets_2_sorted, filename)
     logging.info('saved to json')
+    print "Generated metrics of asset usage in contents..."
 
 main()
 

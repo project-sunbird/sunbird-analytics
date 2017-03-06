@@ -147,3 +147,4 @@ outfile = open(file_path, "w")
 print >> outfile, "\n".join(str(i) for i in list_records)
 outfile.close()
 logging.info('output saved')
+print "Generated metrics of template usage by items..."

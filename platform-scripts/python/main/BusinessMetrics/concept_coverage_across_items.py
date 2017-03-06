@@ -184,6 +184,7 @@ def main():
     filename = time.strftime("%Y-%m-%d") + '_concept_coverage_across_items.json'
     save_dataframe(df_mc_sorted, filename)
     logging.info('saved to json')
+    print "Generated metrics of concept coverage across items..."
 
 main()
 

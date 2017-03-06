@@ -149,5 +149,6 @@ def main():
     # df_template_sorted.to_csv('template_usage_by_content.csv')
     filename = time.strftime("%Y-%m-%d") + '_template_usage_by_content.json'
     save_dataframe(df_template_sorted, filename)
+    print "Generated metrics of template usage by contents..."
 
 main()

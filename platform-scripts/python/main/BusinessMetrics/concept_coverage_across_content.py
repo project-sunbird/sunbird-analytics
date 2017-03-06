@@ -195,5 +195,6 @@ def main():
     filename = time.strftime("%Y-%m-%d") + '_concept_coverage_across_content.json'
     save_dataframe(df_micro_used_sorted, filename)
     logging.info('saved to json')
+    print "Generated metrics of concept coverage across contents..."
 
 main()
