@@ -26,7 +26,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
     it should "store data into InfluxDB" in {
         val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
         val database = influxdb.selectDatabase(AppConf.getConfig("reactiveinflux.database"))
-        val result = database.query("SELECT * FROM template")
+        val result = database.query("SELECT * FROM template_metrics")
         val res = Await.result(result, 5 seconds)
         res.series.head.columns.size should be(5)
     }

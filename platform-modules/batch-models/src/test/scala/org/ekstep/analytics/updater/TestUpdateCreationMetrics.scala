@@ -17,12 +17,12 @@ import com.paulgoldbaum.influxdbclient._
 
 class TestUpdateCreationMetrics extends SparkSpec(null) {
     "UpdateCreationMetrics" should "push data into influxDB" in {
-        val rdd = loadFile[CreationMerics]("src/test/resources/influxDB-updater/asset.json");
+        val rdd = loadFile[CreationMerics]("src/test/resources/influxDB-updater/concepts.json");
         val rdd2 = CreationMetricsUpdater.execute(rdd, None);
         val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
         val database = influxdb.selectDatabase(AppConf.getConfig("reactiveinflux.database"))
-        val result = database.query("SELECT * FROM asset")
+        val result = database.query("SELECT * FROM concept_metrics")
         val res = Await.result(result, 5 seconds)
-        res.series.head.columns.size should be(4)
+        res.series.head.columns.size should be(5)
     }
 }
