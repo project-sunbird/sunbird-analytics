@@ -15,13 +15,13 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import com.paulgoldbaum.influxdbclient._
 
 class TestConsumptionMetricsUpdater extends SparkSpec(null) {
-	"ConsumptionMetricsUpdater" should "execute the job" in {
-		val config = JobConfig(Fetcher("local", None, None), None, None, "org.ekstep.analytics.updater.ConsumptionMetricsUpdater", Option(Map("periodType"-> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("Consumption Metrics Updater"), Option(false))
-		val strConfig = JSONUtils.serialize(config);
-		println(strConfig);
-		ConsumptionMetricsUpdater.main(strConfig)(Option(sc));
+    "ConsumptionMetricsUpdater" should "execute the job" in {
+        val config = JobConfig(Fetcher("local", None, None), None, None, "org.ekstep.analytics.updater.ConsumptionMetricsUpdater", Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("Consumption Metrics Updater"), Option(false))
+        val strConfig = JSONUtils.serialize(config);
+        println(strConfig);
+        ConsumptionMetricsUpdater.main(strConfig)(Option(sc));
     }
-	
+
     it should "check the database columns" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_usage_summary_fact;");
