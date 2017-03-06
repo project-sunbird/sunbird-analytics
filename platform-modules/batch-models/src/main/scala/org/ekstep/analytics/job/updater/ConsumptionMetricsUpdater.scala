@@ -84,7 +84,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
     		case "WEEK"	=> 
     			val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
             	val firstDay = weekPeriodLabel.parseDateTime(week)
-            	val lastDay = firstDay.plusDays(7);
+            	val lastDay = firstDay.plusDays(6);
             	lastDay.withTimeAtStartOfDay();
     		case "MONTH"      => monthPeriod.parseDateTime(period).withTimeAtStartOfDay();
     	}
