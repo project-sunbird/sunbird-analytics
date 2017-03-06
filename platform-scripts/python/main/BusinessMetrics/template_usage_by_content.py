@@ -143,7 +143,7 @@ def main():
     df_template_sorted = df_template_sorted.reset_index()
     # df_template_sorted = df_template_sorted[['Template_id', 'Template_Name', 'Number_of_content', 'content_list']]
     df_template_sorted = df_template_sorted[['Template_id', 'Number_of_content']]
-    df_template_sorted.columns = ['template_id', 'content']
+    df_template_sorted.columns = ['template_id', 'contents']
     # df_template_sorted.to_csv('template_usage_by_content.csv')
     filename = time.strftime("%Y-%m-%d") + '_template_usage_by_content.json'
     save_dataframe(df_template_sorted, filename)

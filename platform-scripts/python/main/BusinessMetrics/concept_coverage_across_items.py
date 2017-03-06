@@ -175,7 +175,7 @@ def main():
     logging.info('df item retrieved')
     df_mc_sorted = add_concept_info(df_item)
     logging.info('concepts added')
-    df_mc_sorted.columns = ['concept', 'times_used']
+    df_mc_sorted.columns = ['concept_id', 'items']
     # concept_df = get_concept_df()
     # logging.info('concept model retrieved')
     # df_mc_sorted = add_concept_details(df_mc_sorted, concept_df, df_item)
