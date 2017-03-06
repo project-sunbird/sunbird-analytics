@@ -21,6 +21,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
 		println(strConfig);
 		ConsumptionMetricsUpdater.main(strConfig)(Option(sc));
     }
+	
     it should "check the database columns" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_usage_summary_fact;");

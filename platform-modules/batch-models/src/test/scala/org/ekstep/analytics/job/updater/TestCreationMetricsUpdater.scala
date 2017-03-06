@@ -21,6 +21,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         println(strConfig);
         CreationMetricsUpdater.main(strConfig)(Option(sc));
     }
+    
     it should "store items into InfluxDB" in {
         val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
         val database = influxdb.selectDatabase(AppConf.getConfig("reactiveinflux.database"))

@@ -20,6 +20,7 @@ import org.apache.spark.rdd.RDD
 import scala.concurrent.duration._
 import com.pygmalios.reactiveinflux._
 import com.datastax.spark.connector._
+
 /**
  * @author mahesh
  */
