@@ -6,13 +6,24 @@ import time
 import warnings
 import logging
 import re
+import ConfigParser
+import os
+import sys
+environment = sys.argv[1]
+
+# getiing paths from config file
+config = ConfigParser.SafeConfigParser()
+config.read('config.properties')
+# environment = config.get('Environment', 'environ')
+environment_path = config.get('Environment_Path', environment)
+
 warnings.filterwarnings("ignore")
 logging.basicConfig(filename='asset_usage_in_content.log',
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
 def get_content_df():
-    url = "https://api.ekstep.in/learning/v2/content/list"
+    url = environment_path+"/learning/v2/content/list"
     payload = "{\"request\": {\"search\": {\"status\": [\"Live\"],\"limit\": 2000}}}"
     headers = {
         'content-type': "application/json",
@@ -32,7 +43,7 @@ def get_content_dict(content_df):
     for i in range(content_df.shape[0]):
         contentID = content_df.identifier.iloc[i]
     #     print contentID
-        url = "https://api.ekstep.in/learning/v2/content/" + contentID
+        url = environment_path+"/learning/v2/content/" + contentID
     #     print url
         querystring = {"fields":"body"}
         payload = "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"file\"\r\n\r\n\r\n-----011000010111000001101001--"
@@ -165,7 +176,11 @@ def get_assets_details(dict_content_body):
 # save dataframe in text file
 def save_dataframe(df, filename):
     list_records = json.loads(df.to_json(orient='records'))
-    outfile = open(filename, "w")
+    if not os.path.exists('metrics'):
+        os.makedirs('metrics')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, 'metrics', filename)
+    outfile = open(file_path, "w")
     print >> outfile, "\n".join(str(i) for i in list_records)
     outfile.close()
 
