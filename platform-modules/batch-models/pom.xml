@@ -103,6 +103,7 @@
 			<groupId>com.paulgoldbaum</groupId>
 			<artifactId>scala-influxdb-client_2.11</artifactId>
 			<version>0.5.2</version>
+			<scope>test</scope>
 		</dependency>
 		<!-- -->
 		<dependency>
