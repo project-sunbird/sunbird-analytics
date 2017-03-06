@@ -6,10 +6,11 @@ import json
 import time
 import warnings
 import logging
-import ast
 import ConfigParser
 import os
+import ast
 import sys
+from json_load import *
 environment = sys.argv[1]
 
 # getting paths from config file
@@ -157,7 +158,7 @@ def add_concept_details(df_mc_sorted, concept_df, df_item):
 
 # save dataframe in text file
 def save_dataframe(df, filename):
-    list_records = json.loads(df.to_json(orient='records'))
+    list_records = json_loads_byteified(df.to_json(orient='records'))
     if not os.path.exists('metrics'):
         os.makedirs('metrics')
     current_dir = os.path.dirname(os.path.abspath(__file__))

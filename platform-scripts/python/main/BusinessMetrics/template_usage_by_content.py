@@ -13,6 +13,8 @@ import time
 import ConfigParser
 import os
 import sys
+import ast
+from json_load import *
 environment = sys.argv[1]
 # getiing paths from config file
 config = ConfigParser.SafeConfigParser()
@@ -108,7 +110,7 @@ def get_template_info(content_df):
 
 # save dataframe in text file
 def save_dataframe(df, filename):
-    list_records = json.loads(df.to_json(orient='records'))
+    list_records = json_loads_byteified(df.to_json(orient='records'))
     if not os.path.exists('metrics'):
         os.makedirs('metrics')
     current_dir = os.path.dirname(os.path.abspath(__file__))

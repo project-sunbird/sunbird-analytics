@@ -8,6 +8,8 @@ import logging
 import ConfigParser
 import os
 import sys
+import ast
+from json_load import *
 environment = sys.argv[1]
 
 # getting paths from config file
@@ -168,7 +170,7 @@ def add_details_to_sorted_df(df_micro_used_sorted, df_micro, concept_df):
 
 # save dataframe in text file
 def save_dataframe(df, filename):
-    list_records = json.loads(df.to_json(orient='records'))
+    list_records = json_loads_byteified(df.to_json(orient='records'))
     if not os.path.exists('metrics'):
         os.makedirs('metrics')
     current_dir = os.path.dirname(os.path.abspath(__file__))

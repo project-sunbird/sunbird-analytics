@@ -12,6 +12,7 @@ import time
 import ConfigParser
 import os
 import sys
+from json_load import *
 environment = sys.argv[1]
 
 # getting paths from config file
@@ -135,9 +136,9 @@ df_detail_sorted = df_detail_sorted.reset_index()
 # df_detail_sorted = df_detail_sorted[['Template_id', 'Template_Name', 'Item ids', 'Number of Items']]
 df_detail_sorted = df_detail_sorted[['template_id', 'items']]
 
-list_records = json.loads(df_detail_sorted.to_json(orient='records'))
+list_records = json_loads_byteified(df_detail_sorted.to_json(orient='records'))
 file_name = time.strftime("%Y-%m-%d") + '_template_usage_by_items.json'
-
+# print list_records
 if not os.path.exists('metrics'):
     os.makedirs('metrics')
 current_dir = os.path.dirname(os.path.abspath(__file__))
