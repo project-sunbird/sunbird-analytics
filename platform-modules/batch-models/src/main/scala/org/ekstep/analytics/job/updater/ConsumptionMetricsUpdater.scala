@@ -62,7 +62,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 		}
 		import com.pygmalios.reactiveinflux.spark._
 		implicit val params = ReactiveInfluxDbName(AppConf.getConfig("reactiveinflux.database"))
-        implicit val awaitAtMost = Integer.parseInt("10").second
+        implicit val awaitAtMost = Integer.parseInt(AppConf.getConfig("reactiveinflux.awaitatmost")).second
         metrics.saveToInflux()
         JobLogger.end("ConsumptionMetricsUpdater Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> metrics.count(), "outputEvents" -> metrics.count(), "timeTaken" -> 0)));
 	}
