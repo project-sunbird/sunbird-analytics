@@ -99,6 +99,11 @@
 			<version>2.2.4</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.paulgoldbaum</groupId>
+			<artifactId>scala-influxdb-client_2.11</artifactId>
+			<version>0.5.2</version>
+		</dependency>
 		<!-- -->
 		<dependency>
 			<groupId>optional</groupId>
@@ -146,9 +151,9 @@
 			<version>1.4.0.10.0.4.1</version>
 		</dependency>
 		<dependency>
-		    <groupId>com.typesafe.netty</groupId>
-		    <artifactId>netty-http-pipelining</artifactId>
-		    <version>1.1.4</version>
+			<groupId>com.typesafe.netty</groupId>
+			<artifactId>netty-http-pipelining</artifactId>
+			<version>1.1.4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.wnameless</groupId>
@@ -162,10 +167,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.neo4j</groupId>
-		    <artifactId>neo4j-bolt</artifactId>
-		    <version>3.0.8</version>
-		    <scope>test</scope>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-bolt</artifactId>
+			<version>3.0.8</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
