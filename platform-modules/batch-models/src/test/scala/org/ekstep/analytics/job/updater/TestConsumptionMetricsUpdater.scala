@@ -34,7 +34,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (201611, 'all' ,'domain_63844', 0, 0, 0, bigintAsBlob(3), 1459641600, 1452038407000, 1452038407000, 4, 0, 0, 20);");
     }
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
             queryResult.result.isEmpty should be(false)
         }
@@ -42,7 +42,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
 
     it should "check count of coulmns in fluxdb table" in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
             queryResult.result.singleSeries.columns.size should be(7)
         }
@@ -50,7 +50,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
 
     it should "validate table name" in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
             queryResult.result.singleSeries.name should be("content_metrics")
         }
@@ -58,7 +58,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
 
     it should "generate first coulmn as time " in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
             queryResult.result.singleSeries.columns(0) should be("time")
         }
@@ -66,7 +66,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
     
     it should "validate timespent for period in content_metrics " in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT timespent FROM content_metrics where period = 'day' ")
             queryResult.rows.map { x => x.mkString.split(",")(1).trim() } should be(List("20"))
         }

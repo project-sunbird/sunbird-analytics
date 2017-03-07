@@ -23,7 +23,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
     
     "CreationMetricsUpdater" should "push data into influxDB" in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
             queryResult.result.isEmpty should be(false)
         }
@@ -31,7 +31,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
 
     it should "check count of coulmns in influxdb table" in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
             queryResult.result.singleSeries.columns.size should be(5)
         }
@@ -39,7 +39,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
 
     it should "generate first coulmn as time " in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
             queryResult.result.singleSeries.columns(0) should be("time")
         }
@@ -47,7 +47,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
 
     it should "validate contents for template_id " in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT contents FROM template_metrics where template_id = 'id6' ")
             queryResult.rows.map { x => x.mkString.split(",")(1).trim() } should be(List("2"))
         }

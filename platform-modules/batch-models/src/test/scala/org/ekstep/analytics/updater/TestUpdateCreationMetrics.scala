@@ -14,7 +14,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/concepts.json");
         CreationMetricsUpdater.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM concept_metrics")
             queryResult.result.isEmpty should be(false)
         }
@@ -24,7 +24,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
         CreationMetricsUpdater.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
             queryResult.result.singleSeries.columns.size should be(5)
         }
@@ -34,7 +34,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
         CreationMetricsUpdater.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
             queryResult.result.singleSeries.name should be("template_metrics")
         }
@@ -44,7 +44,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
         CreationMetricsUpdater.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
             queryResult.result.singleSeries.columns(0) should be("time")
         }
@@ -52,7 +52,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
     
     it should "validate items for concept_id " in {
         implicit val awaitAtMost = 10.seconds
-        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT items FROM concept_metrics where concept_id = 'id7'")
             queryResult.rows.map { x => x.mkString.split(",")(1).trim() } should be(List("22"))
         }
