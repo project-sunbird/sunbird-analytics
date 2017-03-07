@@ -10,13 +10,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.updater.CreationMetrics
 import scala.concurrent.duration._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.paulgoldbaum.influxdbclient._
 
 class TestUpdateCreationMetrics extends SparkSpec(null) {
-    "UpdateCreationMetrics" should "push data into influxDB" in {
+    ignore should "push data into influxDB" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/concepts.json");
         val rdd2 = CreationMetricsUpdater.execute(rdd, None);
         val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
