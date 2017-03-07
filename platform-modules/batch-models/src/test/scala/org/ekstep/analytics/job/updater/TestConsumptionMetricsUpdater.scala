@@ -15,14 +15,14 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import com.paulgoldbaum.influxdbclient._
 
 class TestConsumptionMetricsUpdater extends SparkSpec(null) {
-    "ConsumptionMetricsUpdater" should "execute the job" in {
+    ignore should "execute the job" in {
         val config = JobConfig(Fetcher("local", None, None), None, None, "org.ekstep.analytics.updater.ConsumptionMetricsUpdater", Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("Consumption Metrics Updater"), Option(false))
         val strConfig = JSONUtils.serialize(config);
         println(strConfig);
         ConsumptionMetricsUpdater.main(strConfig)(Option(sc));
     }
 
-    it should "check the database columns" in {
+    ignore should "check the database columns" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_usage_summary_fact;");
             session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (0, 'all' ,'domain_63844', 0, 0, 0, bigintAsBlob(3), 1459641600, 1452038407000, 1452038407000, 4, 0, 0, 20);");
