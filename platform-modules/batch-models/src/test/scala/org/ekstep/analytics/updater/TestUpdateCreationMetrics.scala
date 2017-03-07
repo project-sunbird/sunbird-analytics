@@ -1,27 +1,52 @@
 package org.ekstep.analytics.updater
 
-import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.framework.Period._
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.DerivedEvent
+import java.net.URI
 import scala.concurrent.Await
-import org.ekstep.analytics.util.Constants
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.conf.AppConf
-import scala.concurrent.duration._
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.paulgoldbaum.influxdbclient._
+import org.ekstep.analytics.model.SparkSpec
+import com.pygmalios.reactiveinflux._
 
 class TestUpdateCreationMetrics extends SparkSpec(null) {
-    ignore should "push data into influxDB" in {
+    "UpdateCreationMetrics" should "push data into influxDB" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/concepts.json");
-        val rdd2 = CreationMetricsUpdater.execute(rdd, None);
-        val influxdb = InfluxDB.connect(AppConf.getConfig("reactiveinflux.host"), AppConf.getConfig("reactiveinflux.port").toInt)
-        val database = influxdb.selectDatabase(AppConf.getConfig("reactiveinflux.database"))
-        val result = database.query("SELECT * FROM concept_metrics")
-        val res = Await.result(result, 5 seconds)
-        res.series.head.columns.size should be(5)
+        CreationMetricsUpdater.execute(rdd, None);
+        implicit val awaitAtMost = 10.seconds
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+            val queryResult = db.query("SELECT * FROM concept_metrics")
+            queryResult.result.isEmpty should be(false)
+        }
+    }
+
+    it should "check count of coulmns in fluxdb table" in {
+        val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
+        CreationMetricsUpdater.execute(rdd, None);
+        implicit val awaitAtMost = 10.seconds
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+            val queryResult = db.query("SELECT * FROM template_metrics")
+            queryResult.result.singleSeries.columns.size should be(5)
+        }
+    }
+
+    it should "validate table name" in {
+        val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
+        CreationMetricsUpdater.execute(rdd, None);
+        implicit val awaitAtMost = 10.seconds
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+            val queryResult = db.query("SELECT * FROM template_metrics")
+            queryResult.result.singleSeries.name should be("template_metrics")
+        }
+    }
+
+    it should "generate first coulmn as time " in {
+        val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
+        CreationMetricsUpdater.execute(rdd, None);
+        implicit val awaitAtMost = 10.seconds
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+            val queryResult = db.query("SELECT * FROM template_metrics")
+            queryResult.result.singleSeries.columns(0) should be("time")
+        }
     }
 }
