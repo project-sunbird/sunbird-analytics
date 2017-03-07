@@ -41,9 +41,9 @@ object CreationMetricsUpdater extends IBatchModelTemplate[CreationMerics, Creati
         val concept = data.filter { x => !(x.concept_id.isEmpty) }.groupBy { x => x.concept_id.get }.mapValues { x => x.map { x => ((x.contents.getOrElse(0), x.items.getOrElse(0))) }.reduce((a, b) => (a._1 + b._1, a._2 + b._2)) }.map { case (id, (content, item)) => (id, content, item) }
         val asset = data.filter { x => !(x.asset_id.isEmpty) }.groupBy { x => x.asset_id.get }.mapValues { x => x.map { x => x.contents.getOrElse(0) }.reduce((a, b) => (a + b)) } 
         
-        val template_metrics = template.map { x => Point(time = DateTime.now().withTimeAtStartOfDay(), measurement = TEMPLATE, tags = Map("env" -> AppConf.getConfig("application.env"), "template_id" -> x._1), fields = Map("contents" -> x._2.toDouble, "items" -> x._3.toDouble)) }
-        val concept_metrics = concept.map { x => Point(time = DateTime.now().withTimeAtStartOfDay(), measurement = CONCEPT, tags = Map("env" -> AppConf.getConfig("application.env"), "concept_id" -> x._1), fields = Map("contents" -> x._2.toDouble, "items" -> x._3.toDouble)) }
-        val asset_metrics = asset.map { x => Point(time = DateTime.now().withTimeAtStartOfDay(), measurement = ASSET, tags = Map("env" -> AppConf.getConfig("application.env"), "asset_id" -> x._1), fields = Map("contents" -> x._2.toDouble)) }
+        val template_metrics = template.map { x => Point(time = DateTime.now().withTimeAtStartOfDay(), measurement = TEMPLATE, tags = Map("env" -> AppConf.getConfig("application.env"), "template_id" -> x._1), fields = Map("contents" -> x._2, "items" -> x._3)) }
+        val concept_metrics = concept.map { x => Point(time = DateTime.now().withTimeAtStartOfDay(), measurement = CONCEPT, tags = Map("env" -> AppConf.getConfig("application.env"), "concept_id" -> x._1), fields = Map("contents" -> x._2, "items" -> x._3)) }
+        val asset_metrics = asset.map { x => Point(time = DateTime.now().withTimeAtStartOfDay(), measurement = ASSET, tags = Map("env" -> AppConf.getConfig("application.env"), "asset_id" -> x._1), fields = Map("contents" -> x._2)) }
         val metrics = template_metrics.union(concept_metrics).union(asset_metrics)
         metrics.saveToInflux()
         data

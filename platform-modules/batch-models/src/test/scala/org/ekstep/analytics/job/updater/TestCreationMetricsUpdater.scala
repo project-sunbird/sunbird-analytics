@@ -19,7 +19,6 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
     "CreationMetricsUpdater" should "execute the job" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/template.json")),Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/asset.json"))))), None, None, "org.ekstep.analytics.updater.ConsumptionMetricsUpdater", Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("Consumption Metrics Updater"), Option(false))
         val strConfig = JSONUtils.serialize(config);
-        println(strConfig);
         CreationMetricsModelUpdater.main(strConfig)(Option(sc));
     }
     
