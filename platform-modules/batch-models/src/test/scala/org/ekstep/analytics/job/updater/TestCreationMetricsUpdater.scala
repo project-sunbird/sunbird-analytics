@@ -44,4 +44,12 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
             queryResult.result.singleSeries.columns(0) should be("time")
         }
     }
+
+    it should "validate contents for template_id " in {
+        implicit val awaitAtMost = 10.seconds
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+            val queryResult = db.query("SELECT contents FROM template_metrics where template_id = 'id6' ")
+            queryResult.rows.map { x => x.mkString.split(",")(1).trim() } should be(List("2"))
+        }
+    }
 }

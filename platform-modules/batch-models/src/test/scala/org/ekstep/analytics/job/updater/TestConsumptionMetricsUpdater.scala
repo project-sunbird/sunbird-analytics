@@ -63,4 +63,12 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
             queryResult.result.singleSeries.columns(0) should be("time")
         }
     }
+    
+    it should "validate timespent for period in content_metrics " in {
+        implicit val awaitAtMost = 10.seconds
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+            val queryResult = db.query("SELECT timespent FROM content_metrics where period = 'day' ")
+            queryResult.rows.map { x => x.mkString.split(",")(1).trim() } should be(List("20"))
+        }
+    }
 }

@@ -20,7 +20,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
         }
     }
 
-    it should "check count of coulmns in fluxdb table" in {
+    it should "check count of coulmns in influxdb table" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
         CreationMetricsUpdater.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
@@ -47,6 +47,14 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
             queryResult.result.singleSeries.columns(0) should be("time")
+        }
+    }
+    
+    it should "validate items for concept_id " in {
+        implicit val awaitAtMost = 10.seconds
+        syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.localhost")), AppConf.getConfig("reactiveinflux.database")) { db =>
+            val queryResult = db.query("SELECT items FROM concept_metrics where concept_id = 'id7'")
+            queryResult.rows.map { x => x.mkString.split(",")(1).trim() } should be(List("22"))
         }
     }
 }
