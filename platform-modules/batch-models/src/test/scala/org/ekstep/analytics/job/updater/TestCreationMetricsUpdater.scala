@@ -14,9 +14,10 @@ import java.net.URI
 import com.pygmalios.reactiveinflux._
 import org.joda.time.DateTime
 import scala.concurrent.duration._
+import org.joda.time.DateTimeUtils
 
 class TestCreationMetricsUpdater extends SparkSpec(null) {
-
+    DateTimeUtils.setCurrentMillisFixed(1487788200000L);
     val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/template.json")), Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/asset.json"))))), None, None, "org.ekstep.analytics.updater.ConsumptionMetricsUpdater", Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("Consumption Metrics Updater"), Option(false))
     val strConfig = JSONUtils.serialize(config);
     CreationMetricsModelUpdater.main(strConfig)(Option(sc));
@@ -49,9 +50,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT contents FROM template_metrics where template_id = 'id6' ")
-            // TODO: This is a temp solution we have to fix the date in beforeAll and cleanup measuremets in influxDB.
-            val contents = queryResult.rows.map { x => x.mkString.split(",")(1).trim() }.toList
-             contents(0) should be("2")
+            queryResult.row.mkString.split(",")(1).trim()(0) should be('2')
         }
     }
 }

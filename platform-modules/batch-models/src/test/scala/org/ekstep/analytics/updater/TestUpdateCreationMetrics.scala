@@ -8,8 +8,10 @@ import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.model.SparkSpec
 import com.pygmalios.reactiveinflux._
+import org.joda.time.DateTimeUtils
 
 class TestUpdateCreationMetrics extends SparkSpec(null) {
+    DateTimeUtils.setCurrentMillisFixed(1487788200000L);
     "UpdateCreationMetrics" should "push data into influxDB" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/concepts.json");
         CreationMetricsUpdater.execute(rdd, None);
@@ -54,9 +56,8 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT items FROM concept_metrics where concept_id = 'id7'")
-            // TODO: This is a temp solution we have to fix the date in beforeAll and cleanup measuremets in influxDB.
-            val items  = queryResult.rows.map { x => x.mkString.split(",")(1).trim() }.toList;
-            items(0) should be("22");
+            queryResult.row.mkString.split(",")(1).trim() should be("22")
+
         }
     }
 }
