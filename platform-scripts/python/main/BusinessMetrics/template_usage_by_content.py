@@ -103,6 +103,7 @@ def get_template_info(content_df):
 
     for i in range(len(content_df.identifier)):
         identifier = content_df.identifier.iloc[i]
+        # this should be environment specific.
         base_url = "https://api.ekstep.in/learning/v2/content/"
         url = base_url + identifier
         template = get_template_id(url)
