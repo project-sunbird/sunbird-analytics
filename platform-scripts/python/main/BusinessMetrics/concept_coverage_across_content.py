@@ -8,18 +8,21 @@ import logging
 import ConfigParser
 import os
 import sys
-import ast
-from json_load import *
 environment = sys.argv[1]
+root = os.path.dirname(os.path.abspath(__file__))
+# changing working directory
+os.chdir(root)
 
 # getting paths from config file
 config = ConfigParser.SafeConfigParser()
 config.read('config.properties')
-# environment = config.get('Environment', 'environ')
 environment_path = config.get('Environment_Path', environment)
-
+log_folder = config.get('logfile', 'log_dir')
+if not os.path.exists(log_folder):
+    os.makedirs(log_folder)
+log_path = os.path.join(log_folder, 'concept_coverage_across_content.log')
 warnings.filterwarnings("ignore")
-logging.basicConfig(filename='concept_coverage_across_content.log',
+logging.basicConfig(filename=log_path,
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
@@ -76,17 +79,33 @@ def get_depth(x, concept_df):
 
 
 def get_content_df():
-    url = environment_path+"/learning/v2/content/list"
-    payload = "{\"request\": {\"search\": {\"status\": [\"Live\"],\"limit\": 2000}}}"
+    # url = environment_path+"/learning/v2/content/list"
+    # payload = "{\"request\": {\"search\": {\"status\": [\"Live\"],\"limit\": 2000}}}"
+    # headers = {
+    #     'content-type': "application/json",
+    #     'user-id': "mahesh",
+    #     'cache-control': "no-cache",
+    #     'postman-token': "d0fafff9-911a-9a91-2016-cfc4714cf543"
+    # }
+    # resp = requests.request("POST", url, data=payload, headers=headers).json()
+    # content_list = resp["result"]["content"]
+    # content_df = pd.DataFrame(content_list)
+
+    url = environment_path+"/search/v2/search"
+
+    payload = "{\r\n    \"request\": {\r\n        \"filters\":{\r\n            \"objectType\": [\"Concept\"],\r\n            \"status\": [\"Live\",\"Retired\",\"Draft\"]\r\n        },\r\n        \"limit\": 1000\r\n    }\r\n}"
     headers = {
         'content-type': "application/json",
-        'user-id': "mahesh",
+        'user-id': "ilimi",
+        'accept-encoding': "UTF-8",
+        'accept-charset': "UTF-8",
         'cache-control': "no-cache",
-        'postman-token': "d0fafff9-911a-9a91-2016-cfc4714cf543"
+        'postman-token': "3e89d6cb-f2fe-9319-4bec-242c49443a7e"
     }
-    resp = requests.request("POST", url, data=payload, headers=headers).json()
-    content_list = resp["result"]["content"]
-    content_df = pd.DataFrame(content_list)
+
+    response = requests.request("POST", url, data=payload, headers=headers).json()
+    conceptlist = response["result"]["concepts"]
+    content_df = pd.DataFrame(conceptlist)
     return content_df
 
 
@@ -170,31 +189,41 @@ def add_details_to_sorted_df(df_micro_used_sorted, df_micro, concept_df):
 
 # save dataframe in text file
 def save_dataframe(df, filename):
-    list_records = json_loads_byteified(df.to_json(orient='records'))
+    # list_records = json_loads_byteified(df.to_json(orient='records'))
+    list_records = df.to_json(orient='records')[1:-1].replace('},{', '}\n{')
     if not os.path.exists('metrics'):
         os.makedirs('metrics')
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, 'metrics', filename)
-    outfile = open(file_path, "w")
-    print >> outfile, "\n".join(str(i) for i in list_records)
-    outfile.close()
+    file_path = os.path.join(root, 'metrics', filename)
+    # outfile = open(file_path, "w")
+    # print >> outfile, "\n".join(str(i) for i in list_records)
+    # outfile.close()
+    with open(file_path, 'w') as f:
+        f.write(list_records)
 
 
 def main():
-    concept_df = get_concept_df()
-    logging.info('concept model retrieved')
-    concept_df, lst_all_concept = add_concept_details(concept_df)
-    content_df = get_content_df()
-    logging.info('content model retrieved')
-    df_micro = create_content_usage_df(content_df, lst_all_concept)
-    # df_micro.to_csv('fixing.csv')
-    df_micro = add_concept_usage_count(content_df, df_micro, lst_all_concept)
-    df_micro_used_sorted = create_sorted_df(df_micro)
-    df_micro_used_sorted.columns = ['concept_id', 'contents']
+    try:
+        concept_df = get_concept_df()
+    except:
+        logging.error('unable to retrieve concept model')
+        exit()
+    # logging.info('concept model retrieved')
+    # concept_df, lst_all_concept = add_concept_details(concept_df)
+    # content_df = get_content_df()
+    # logging.info('content model retrieved')
+    # df_micro = create_content_usage_df(content_df, lst_all_concept)
+    # # df_micro.to_csv('fixing.csv')
+    # df_micro = add_concept_usage_count(content_df, df_micro, lst_all_concept)
+    # df_micro_used_sorted = create_sorted_df(df_micro)
+    concept_df['no_contents'] = concept_df['contents'].apply(lambda x: 0 if isNaN(x) else len(x))
+    concept_df = concept_df[['identifier', 'no_contents']]
+    concept_df.columns = ['concept_id', 'contents']
+    concept_df = concept_df.sort_values(['contents'], ascending=[False])
+    concept_df = concept_df.reset_index()
+    concept_df = concept_df[['concept_id', 'contents']]
     # df_micro_used_sorted = add_details_to_sorted_df(df_micro_used_sorted, df_micro, concept_df)
     filename = time.strftime("%Y-%m-%d") + '_concept_coverage_across_content.json'
-    save_dataframe(df_micro_used_sorted, filename)
+    save_dataframe(concept_df, filename)
     logging.info('saved to json')
-    print "Generated metrics of concept coverage across contents..."
 
 main()

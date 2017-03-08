@@ -9,18 +9,21 @@ import re
 import ConfigParser
 import os
 import sys
-import ast
-from json_load import *
 environment = sys.argv[1]
+root = os.path.dirname(os.path.abspath(__file__))
+# changing working directory
+os.chdir(root)
 
-# getiing paths from config file
+# getting paths from config file
 config = ConfigParser.SafeConfigParser()
 config.read('config.properties')
-# environment = config.get('Environment', 'environ')
 environment_path = config.get('Environment_Path', environment)
-
+log_folder = config.get('logfile', 'log_dir')
+if not os.path.exists(log_folder):
+    os.makedirs(log_folder)
+log_path = os.path.join(log_folder, 'asset_usage_in_content.log')
 warnings.filterwarnings("ignore")
-logging.basicConfig(filename='asset_usage_in_content.log',
+logging.basicConfig(filename=log_path,
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
@@ -55,10 +58,12 @@ def get_content_dict(content_df):
             'cache-control': "no-cache",
             'postman-token': "0892cf6d-004a-3c20-1f18-194340f5dc7f"
             }
-
-        response = requests.request("GET", url, data=payload, headers=headers, params=querystring)
-        resp = response.json()
         try:
+            response = requests.request("GET", url, data=payload, headers=headers, params=querystring)
+            resp = response.json()
+        # except:
+        #     continue
+        # try:
             body = resp["result"]["content"]["body"]
             dict_content_body[contentID] = body
         except:
@@ -177,18 +182,23 @@ def get_assets_details(dict_content_body):
 
 # save dataframe in text file
 def save_dataframe(df, filename):
-    list_records = json_loads_byteified(df.to_json(orient='records'))
+    # list_records = json_loads_byteified(df.to_json(orient='records'))
+    list_records = df.to_json(orient='records')[1:-1].replace('},{', '}\n{')
     if not os.path.exists('metrics'):
         os.makedirs('metrics')
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, 'metrics', filename)
-    outfile = open(file_path, "w")
-    print >> outfile, "\n".join(str(i) for i in list_records)
-    outfile.close()
+    file_path = os.path.join(root, 'metrics', filename)
+    # outfile = open(file_path, "w")
+    # print >> outfile, "\n".join(str(i) for i in list_records)
+    # outfile.close()
+    with open(file_path, 'w') as f:
+        f.write(list_records)
 
 
 def main():
-    content_df = get_content_df()
+    try:
+        content_df = get_content_df()
+    except:
+        logging.error('unable to retrieve content model')
     dict_content_body = get_content_dict(content_df)
     # df_assets = count_assets(content_df, dict_content_body)
     # df_assets_sorted = sort_df_assets(df_assets, content_df)
@@ -198,7 +208,6 @@ def main():
     filename = time.strftime("%Y-%m-%d") + '_asset_usage_in_content.json'
     save_dataframe(df_assets_2_sorted, filename)
     logging.info('saved to json')
-    print "Generated metrics of asset usage in contents..."
 
 main()
 

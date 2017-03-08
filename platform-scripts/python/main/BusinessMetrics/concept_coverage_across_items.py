@@ -8,19 +8,23 @@ import warnings
 import logging
 import ConfigParser
 import os
-import ast
 import sys
-from json_load import *
+import ast
 environment = sys.argv[1]
+root = os.path.dirname(os.path.abspath(__file__))
+# changing working directory
+os.chdir(root)
 
 # getting paths from config file
 config = ConfigParser.SafeConfigParser()
 config.read('config.properties')
-# environment = config.get('Environment', 'environ')
 environment_path = config.get('Environment_Path', environment)
-
+log_folder = config.get('logfile', 'log_dir')
+if not os.path.exists(log_folder):
+    os.makedirs(log_folder)
+log_path = os.path.join(log_folder, 'concept_coverage_across_items.log')
 warnings.filterwarnings("ignore")
-logging.basicConfig(filename='concept_coverage_across_items.log',
+logging.basicConfig(filename=log_path,
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
@@ -87,38 +91,60 @@ def get_itemIDs(x, df_item):
 
 
 def get_item_df():
-    url = environment_path+"/learning/v1/assessmentitem/search"
+    # url = environment_path+"/learning/v1/assessmentitem/search"
 
-    payload = "{\n  \"request\": {\n    \"startPosition\": 0,\n    \"resultSize\": 11270\n  }\n}"
+    # payload = "{\n  \"request\": {\n    \"startPosition\": 0,\n    \"resultSize\": 11270\n  }\n}"
+    # headers = {
+    #     'content-type': "application/json",
+    #     'user-id': "ilimi",
+    #     'cache-control': "no-cache",
+    #     'postman-token': "01d02b22-9e73-5968-3daf-63a177e1e20d"
+    #     }
+    #
+    # response = requests.request("POST", url, data=payload, headers=headers)
+    # resp = response.json()
+    # try:
+    #     itemList = resp["result"]["assessment_items"]
+    #     df_item = pd.DataFrame(itemList)
+    #     return df_item
+    # except:
+    #     return resp['responseCode']
+    url = environment_path+"/search/v2/search"
+
+    payload = "{\r\n    \"request\": {\r\n        \"filters\":{\r\n            \"objectType\": [\"AssessmentItem\"],\r\n            \"status\": []\r\n        },\r\n        \"limit\": 10000\r\n    }\r\n}"
     headers = {
         'content-type': "application/json",
         'user-id': "ilimi",
+        'accept-encoding': "UTF-8",
+        'accept-charset': "UTF-8",
         'cache-control': "no-cache",
-        'postman-token': "01d02b22-9e73-5968-3daf-63a177e1e20d"
-        }
-
-    response = requests.request("POST", url, data=payload, headers=headers)
-    resp = response.json()
+        'postman-token': "8f3ceabe-f633-8cbb-020c-13dcd3b52b6d"
+    }
     try:
-        itemList = resp["result"]["assessment_items"]
-        df_item = pd.DataFrame(itemList)
+        response = requests.request("POST", url, data=payload, headers=headers).json()
+        itemlist = response["result"]["items"]
+        df_item = pd.DataFrame(itemlist)
         return df_item
     except:
-        return resp['responseCode']
+        return 'unable to retrieve items'
 
 
 def add_concept_info(df_item):
 
-    df_item['micro_concept'] = df_item['concepts'].apply(lambda x: x if isNaN(x) else get_microConcepts(x))
-
-    array_mc = df_item.micro_concept.unique()
+    # df_item['micro_concept'] = df_item['concepts'].apply(lambda x: x if isNaN(x) else get_microConcepts(x))
+    # print df_item['micro_concept'].apply(lambda x: 0 if isNaN(x) else len(x))
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    # array_mc = df_item.micro_concept.unique()
+    cleanedList = [x for x in list(df_item.concepts) if not isNaN(x)]
+    array_mc = list(set(flatten(cleanedList)))
     df_mc = pd.DataFrame({'micro_concept': array_mc,
                           'number': 0})
 
     for i in range((df_item.shape)[0]):
         for j in range((df_mc.shape)[0]):
-            if df_mc['micro_concept'].iloc[j] == df_item['micro_concept'].iloc[i]:
-                df_mc.loc[j, 'number'] += 1
+            if not isNaN(df_item['concepts'].iloc[i]):
+                if df_mc['micro_concept'].iloc[j] in df_item['concepts'].iloc[i]:
+                    df_mc.loc[j, 'number'] += 1
 
     df_mc_sorted = df_mc.sort_values(['number'], ascending=[False])
     df_mc_sorted = df_mc_sorted.reset_index()
@@ -142,6 +168,24 @@ def get_concept_df():
     concept_df.is_copy = False
     return concept_df
 
+def get_concept_df_new():
+    url = environment_path+"/search/v2/search"
+
+    payload = "{\r\n    \"request\": {\r\n        \"filters\":{\r\n            \"objectType\": [\"Concept\"],\r\n            \"status\": [\"Live\",\"Retired\",\"Draft\"]\r\n        },\r\n        \"limit\": 1000\r\n    }\r\n}"
+    headers = {
+        'content-type': "application/json",
+        'user-id': "ilimi",
+        'accept-encoding': "UTF-8",
+        'accept-charset': "UTF-8",
+        'cache-control': "no-cache",
+        'postman-token': "3e89d6cb-f2fe-9319-4bec-242c49443a7e"
+    }
+
+    response = requests.request("POST", url, data=payload, headers=headers).json()
+    conceptlist = response["result"]["concepts"]
+    conceptDF = pd.DataFrame(conceptlist)
+    return conceptDF
+
 
 def add_concept_details(df_mc_sorted, concept_df, df_item):
 
@@ -158,33 +202,38 @@ def add_concept_details(df_mc_sorted, concept_df, df_item):
 
 # save dataframe in text file
 def save_dataframe(df, filename):
-    list_records = json_loads_byteified(df.to_json(orient='records'))
+    # list_records = json_loads_byteified(df.to_json(orient='records'))
+    list_records = df.to_json(orient='records')[1:-1].replace('},{', '}\n{')
     if not os.path.exists('metrics'):
         os.makedirs('metrics')
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, 'metrics', filename)
-    outfile = open(file_path, "w")
-    print >> outfile, "\n".join(str(i) for i in list_records)
-    outfile.close()
+    file_path = os.path.join(root, 'metrics', filename)
+    # outfile = open(file_path, "w")
+    # print >> outfile, "\n".join(str(i) for i in list_records)
+    # outfile.close()
+    with open(file_path, 'w') as f:
+        f.write(list_records)
 
 
 def main():
     df_item = get_item_df()
     if type(df_item) == str or type(df_item) == unicode:
         logging.error(df_item)
-        return
+        exit()
     logging.info('df item retrieved')
-    df_mc_sorted = add_concept_info(df_item)
+    try:
+        df_mc_sorted = add_concept_info(df_item)
+    except:
+        logging.error('unable to add concept info')
+        exit()
     logging.info('concepts added')
     df_mc_sorted.columns = ['concept_id', 'items']
-    # concept_df = get_concept_df()
-    # logging.info('concept model retrieved')
-    # df_mc_sorted = add_concept_details(df_mc_sorted, concept_df, df_item)
-    # logging.info('concept details added')
+    # # concept_df = get_concept_df()
+    # # logging.info('concept model retrieved')
+    # # df_mc_sorted = add_concept_details(df_mc_sorted, concept_df, df_item)
+    # # logging.info('concept details added')
     filename = time.strftime("%Y-%m-%d") + '_concept_coverage_across_items.json'
     save_dataframe(df_mc_sorted, filename)
     logging.info('saved to json')
-    print "Generated metrics of concept coverage across items..."
 
 main()
 

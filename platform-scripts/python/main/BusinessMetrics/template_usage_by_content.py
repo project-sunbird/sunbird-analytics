@@ -13,17 +13,21 @@ import time
 import ConfigParser
 import os
 import sys
-import ast
-from json_load import *
 environment = sys.argv[1]
-# getiing paths from config file
+root = os.path.dirname(os.path.abspath(__file__))
+# changing working directory
+os.chdir(root)
+
+# getting paths from config file
 config = ConfigParser.SafeConfigParser()
 config.read('config.properties')
-# environment = config.get('Environment', 'environ')
 environment_path = config.get('Environment_Path', environment)
-
+log_folder = config.get('logfile', 'log_dir')
+if not os.path.exists(log_folder):
+    os.makedirs(log_folder)
+log_path = os.path.join(log_folder, 'template_usage_by_content.log')
 warnings.filterwarnings("ignore")
-logging.basicConfig(filename='template_usage_by_content.log',
+logging.basicConfig(filename=log_path,
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
 # to get unique list
@@ -110,20 +114,28 @@ def get_template_info(content_df):
 
 # save dataframe in text file
 def save_dataframe(df, filename):
-    list_records = json_loads_byteified(df.to_json(orient='records'))
+    # list_records = json_loads_byteified(df.to_json(orient='records'))
+    list_records = df.to_json(orient='records')[1:-1].replace('},{', '}\n{')
     if not os.path.exists('metrics'):
         os.makedirs('metrics')
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, 'metrics', filename)
-    outfile = open(file_path, "w")
-    print >> outfile, "\n".join(str(i) for i in list_records)
-    outfile.close()
+    file_path = os.path.join(root, 'metrics', filename)
+    # outfile = open(file_path, "w")
+    # print >> outfile, "\n".join(str(i) for i in list_records)
+    # outfile.close()
+    with open(file_path, 'w') as f:
+        f.write(list_records)
+
 
 def main():
-    content_df = get_content_df()
-    logging.info('content model retrieved')
-    content_df, template_dict = get_template_info(content_df)
-    logging.info('template info retrieved')
+    try:
+        content_df = get_content_df()
+        logging.info('content model retrieved')
+        content_df, template_dict = get_template_info(content_df)
+        logging.info('template info retrieved')
+    except:
+        logging.error('unable to retrieve content and template model')
+        exit()
+
     lst_template = uniqfy_list(list(content_df.template_id))  # list of templates
     df_template = pd.DataFrame(
         {'Template_id': lst_template, 'Template_Name': '', 'Number_of_content': '', 'content_list': ''})
@@ -149,6 +161,5 @@ def main():
     # df_template_sorted.to_csv('template_usage_by_content.csv')
     filename = time.strftime("%Y-%m-%d") + '_template_usage_by_content.json'
     save_dataframe(df_template_sorted, filename)
-    print "Generated metrics of template usage by contents..."
 
 main()

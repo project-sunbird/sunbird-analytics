@@ -12,17 +12,22 @@ import time
 import ConfigParser
 import os
 import sys
-from json_load import *
 environment = sys.argv[1]
+root = os.path.dirname(os.path.abspath(__file__))
+# changing working directory
+os.chdir(root)
 
 # getting paths from config file
 config = ConfigParser.SafeConfigParser()
 config.read('config.properties')
-# environment = config.get('Environment', 'environ')
 environment_path = config.get('Environment_Path', environment)
+log_folder = config.get('logfile', 'log_dir')
+if not os.path.exists(log_folder):
+    os.makedirs(log_folder)
+log_path = os.path.join(log_folder, 'template_usage_by_items.log')
 
 warnings.filterwarnings("ignore")
-logging.basicConfig(filename='template_usage_by_items.log',
+logging.basicConfig(filename=log_path,
                     format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
@@ -36,9 +41,13 @@ headers = {
     'cache-control': "no-cache",
     'postman-token': "8bf218f2-5965-4b8c-aa14-7e5c457ffe93"
     }
-response = requests.request("POST", url, data=payload, headers=headers).json()
-n = len(response['result']['content'])
-template_id = response['result']['content'][0]['identifier']
+try:
+    response = requests.request("POST", url, data=payload, headers=headers).json()
+    n = len(response['result']['content'])
+    template_id = response['result']['content'][0]['identifier']
+except:
+    logging.error('no response from api call')
+    exit()
 
 url = environment_path+"/search/v2/search"
 
@@ -67,9 +76,9 @@ for templateDict in dictList:
     template_id = templateDict['identifier']
     template_name = templateDict['name']
     payload = payload_prefix + template_id + payload_suffix
-    responseItem = requests.request("POST", url, data=payload, headers=headers).json()
     # itemDict = responseItem['result']['assessment_items']
     try:
+        responseItem = requests.request("POST", url, data=payload, headers=headers).json()
         count = responseItem['result']['count']
     except:
         count = 0
@@ -104,9 +113,12 @@ headers = {
     'cache-control': "no-cache",
     'postman-token': "83285590-f013-3bec-6ca6-ecb18ef046f7"
     }
-
-response = requests.request("POST", url, data=payload, headers=headers).json()
-template_dict = response['result']['facets'][0]['values']
+try:
+    response = requests.request("POST", url, data=payload, headers=headers).json()
+    template_dict = response['result']['facets'][0]['values']
+except:
+    logging.error('no response from api call')
+    exit()
 
 template_dict_final = {}
 for i in range(len(template_dict)):
@@ -135,16 +147,20 @@ df_detail_sorted = df_detail.sort_values(['items'], ascending=[False])
 df_detail_sorted = df_detail_sorted.reset_index()
 # df_detail_sorted = df_detail_sorted[['Template_id', 'Template_Name', 'Item ids', 'Number of Items']]
 df_detail_sorted = df_detail_sorted[['template_id', 'items']]
-
-list_records = json_loads_byteified(df_detail_sorted.to_json(orient='records'))
 file_name = time.strftime("%Y-%m-%d") + '_template_usage_by_items.json'
-# print list_records
-if not os.path.exists('metrics'):
-    os.makedirs('metrics')
-current_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(current_dir, 'metrics', file_name)
-outfile = open(file_path, "w")
-print >> outfile, "\n".join(str(i) for i in list_records)
-outfile.close()
-logging.info('output saved')
-print "Generated metrics of template usage by items..."
+
+
+def save_dataframe(df, filename):
+    # list_records = json_loads_byteified(df.to_json(orient='records'))
+    list_records = df.to_json(orient='records')[1:-1].replace('},{', '}\n{')
+    if not os.path.exists('metrics'):
+        os.makedirs('metrics')
+    file_path = os.path.join(root, 'metrics', filename)
+    # outfile = open(file_path, "w")
+    # print >> outfile, "\n".join(str(i) for i in list_records)
+    # outfile.close()
+    with open(file_path, 'w') as f:
+        f.write(list_records)
+
+save_dataframe(df_detail_sorted, file_name)
+logging.info('saved to json')
