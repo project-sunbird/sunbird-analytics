@@ -39,7 +39,7 @@ object GraphDBUtil {
 				nodeQuery.toString
 			}.collect().mkString(",")
 			val query = fullQuery.append(nodesQuery).toString
-			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);	
+			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 		}
 	}
 
@@ -72,10 +72,10 @@ object GraphDBUtil {
 			fullQuery.append(getPropsQuery(startNode)).append(")").append(COMMA)
 			fullQuery.append(getLabelsQuery(endNode.labels, "aa"))
 			fullQuery.append(getPropsQuery(endNode)).append(")")
-			fullQuery.append(BLANK_SPACE).append(MERGE).append(BLANK_SPACE);
+			fullQuery.append(BLANK_SPACE).append(CREATE).append(BLANK_SPACE);
 			fullQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(CLOSE_COMMON_BRACKETS)
 			fullQuery.append(getRelationQuery(relation, direction)).append(OPEN_COMMON_BRACKETS).append("aa").append(CLOSE_COMMON_BRACKETS);
-
+			
 			fullQuery.toString;
 		} else {
 			JobLogger.log("GraphDBUtil.addRelation - required parameters missing");

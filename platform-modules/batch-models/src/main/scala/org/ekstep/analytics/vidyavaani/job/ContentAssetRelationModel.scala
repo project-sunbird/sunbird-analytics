@@ -16,6 +16,7 @@ import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.util.GraphDBUtil
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JobLogger
+import org.apache.commons.lang3.StringUtils
 
 case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: DateTime, oldbody: Option[Array[Byte]]);
 
@@ -79,7 +80,7 @@ object ContentAssetRelationModel extends optional.Application with IJob {
             val mediaList = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body).get("theme").get.get("manifest").get.asInstanceOf[Map[String, AnyRef]].get("media").get.asInstanceOf[List[Map[String, AnyRef]]];
             mediaList.map { x =>
                 JSONUtils.serialize(x.getOrElse("assetId", ""))
-            }.filter { x => !"".equals(x) }.toArray
+            }.filter { x => StringUtils.isNotBlank(x) }.toArray
         }
 
     }
