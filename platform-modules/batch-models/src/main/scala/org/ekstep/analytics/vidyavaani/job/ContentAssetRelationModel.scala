@@ -50,7 +50,7 @@ object ContentAssetRelationModel extends optional.Application with IJob {
 
     private def execute()(implicit sc: SparkContext) {
         val time = CommonUtil.time({
-            val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE).filter { x => !x.body.isEmpty }.map { x => (x.content_id, getAssetIds(x.content_id, new String(x.body.getOrElse(Array()), "UTF-8"))) }
+            val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE).filter { x => !x.body.isEmpty }.map { x => (x.content_id, getAssetIds(new String(x.body.getOrElse(Array()), "UTF-8"))) }
                 .filter { x => x._2.nonEmpty }.map { x =>
                     val startNode = DataNode(x._1, None, Option(List("domain")));
                     x._2.map { x =>
@@ -63,8 +63,7 @@ object ContentAssetRelationModel extends optional.Application with IJob {
         JobLogger.end("ContentAssetRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
     }
 
-    private def getAssetIds(contentId: String, body: String): Array[String] = {
-    	println("contentId:", contentId);
+    private def getAssetIds(body: String): List[String] = {
         if (body.startsWith("<")) {
             val dom = XML.loadString(body)
             val els = dom \ "manifest" \ "media"
@@ -74,14 +73,14 @@ object ContentAssetRelationModel extends optional.Application with IJob {
                 if (node != null)
                     node.text
                 else "";
-            }.filter { x => !"".equals(x) }.toArray
+            }.filter { x => !"".equals(x) }.toList
             assestIds;
         } else {
             val ecmlJson = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body);
             val mediaList= getMediaList(ecmlJson);
             mediaList.map { x =>
                 JSONUtils.serialize(x.getOrElse("assetId", ""))
-            }.filter { x => StringUtils.isNotBlank(x) }.toArray
+            }.filter { x => StringUtils.isNotBlank(x) }
         }
 
     }
