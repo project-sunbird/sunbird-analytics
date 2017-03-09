@@ -76,20 +76,10 @@ object ContentAssetRelationModel extends optional.Application with IJob {
             }.filter { x => !"".equals(x) }.toArray
             assestIds;
         } else {
-            var assestIds: Array[String] = Array()
-            var mediaList: List[Map[String, AnyRef]] = List()
-            try {
-                mediaList = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body).get("theme").get.get("manifest").get.asInstanceOf[Map[String, AnyRef]].get("media").get.asInstanceOf[List[Map[String, AnyRef]]];
-                assestIds = mediaList.map { x =>
-                    x.getOrElse("assetId", "").asInstanceOf[String]
-                }.filter { x => !"".equals(x) }.toArray
-                assestIds;
-            } catch {
-                case t: Throwable => t.printStackTrace() // TODO: handle error
-                println(JSONUtils.serialize(mediaList))
-                assestIds;
-            }
-
+            val mediaList = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body).get("theme").get.get("manifest").get.asInstanceOf[Map[String, AnyRef]].get("media").get.asInstanceOf[List[Map[String, AnyRef]]];
+            mediaList.map { x =>
+                JSONUtils.serialize(x.getOrElse("assetId", ""))
+            }.filter { x => !"".equals(x) }.toArray
         }
 
     }
