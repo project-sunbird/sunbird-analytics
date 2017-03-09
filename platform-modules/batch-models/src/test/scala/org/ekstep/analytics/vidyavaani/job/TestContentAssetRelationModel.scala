@@ -22,7 +22,6 @@ class TestContentAssetRelationModel extends SparkGraphSpec(null) {
         ContentAssetRelationModel.main("{}")(Option(sc));
         
         val conOwn = GraphQueryDispatcher.dispatch(graphConfig, query2).list;
-        println("Size:",conOwn.size());
         conOwn.size should be > (0)
 
         val query3 = "match (n1: domain) <- [r: uses] - (n2: domain) where n2.contentType = 'Asset' return r"

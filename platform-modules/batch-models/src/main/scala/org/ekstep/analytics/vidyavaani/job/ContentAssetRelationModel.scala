@@ -79,6 +79,7 @@ object ContentAssetRelationModel extends optional.Application with IJob {
         } else {
             val ecmlJson = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body);
             val mediaList= getMediaList(ecmlJson);
+            println("mediaList:", mediaList);
             mediaList.map { x =>
                 JSONUtils.serialize(x.getOrElse("assetId", ""))
             }.filter { x => StringUtils.isNotBlank(x) }.toArray
