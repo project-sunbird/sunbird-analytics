@@ -77,11 +77,19 @@ object ContentAssetRelationModel extends optional.Application with IJob {
             }.filter { x => !"".equals(x) }.toArray
             assestIds;
         } else {
-            val mediaList = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body).get("theme").get.get("manifest").get.asInstanceOf[Map[String, AnyRef]].get("media").get.asInstanceOf[List[Map[String, AnyRef]]];
+            val ecmlJson = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body);
+            val mediaList= getMediaList(ecmlJson);
             mediaList.map { x =>
                 JSONUtils.serialize(x.getOrElse("assetId", ""))
             }.filter { x => StringUtils.isNotBlank(x) }.toArray
         }
 
+    }
+    
+    private def getMediaList(ecmlJson: Map[String, Map[String, AnyRef]]) : List[Map[String, AnyRef]] = {
+    	val content = ecmlJson.getOrElse("theme", Map());
+    	val manifest = content.getOrElse("manifest", Map()).asInstanceOf[Map[String, AnyRef]];
+    	val mediaList = manifest.getOrElse("media", List()).asInstanceOf[List[Map[String, AnyRef]]];
+    	mediaList;
     }
 }
