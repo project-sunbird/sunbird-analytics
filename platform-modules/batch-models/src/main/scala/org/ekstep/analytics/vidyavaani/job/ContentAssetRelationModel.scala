@@ -73,11 +73,11 @@ object ContentAssetRelationModel extends optional.Application with IJob {
 				val els = dom \ "manifest" \ "media"
 
 				val assestIds = els.map { x =>
-					val node = x.attribute("asset_id").getOrElse(null)
+					val node = x.attribute("asset_id").getOrElse(x.attribute("assetId").getOrElse(null))
 					if (node != null)
 						node.text
 					else "";
-				}.filter { x => !"".equals(x) }.toList
+				}.filter { x => StringUtils.isNotBlank(x) }.toList
 				assestIds;
 			} else {
 				ECMLUtil.getAssetIds(body);

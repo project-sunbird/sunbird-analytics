@@ -91,7 +91,6 @@ object GraphDBUtil {
 			fullQuery.append("(aa)")
 			fullQuery.append(BLANK_SPACE).append("DELETE").append(BLANK_SPACE).append("r");
 			val query = fullQuery.toString;
-			println("Query:", query);
 			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 		} else {
 			JobLogger.log("GraphDBUtil.deleteRelation - required parameters missing");
