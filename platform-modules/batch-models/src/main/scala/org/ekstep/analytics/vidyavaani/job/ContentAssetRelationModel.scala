@@ -50,6 +50,7 @@ object ContentAssetRelationModel extends optional.Application with IJob {
 
 	private def execute()(implicit sc: SparkContext) {
 		val time = CommonUtil.time({
+			GraphDBUtil.deleteRelation(RELATION, RelationshipDirection.OUTGOING.toString, None)
 			val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
 				.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
 				.map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }.map { x =>
