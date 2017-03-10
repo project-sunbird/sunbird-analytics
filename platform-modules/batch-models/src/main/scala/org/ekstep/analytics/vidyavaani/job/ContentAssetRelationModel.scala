@@ -18,77 +18,84 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.commons.lang3.StringUtils
 
-case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: DateTime, oldbody: Option[Array[Byte]]);
+case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
 
 object ContentAssetRelationModel extends optional.Application with IJob {
 
-    val RELATION = "uses";
-    implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
+	val RELATION = "uses";
+	implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
 
-    def main(config: String)(implicit sc: Option[SparkContext] = None) {
+	def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
-        JobLogger.init("ContentAssetRelationModel")
-        JobLogger.start("ContentAssetRelationModel Started executing", Option(Map("config" -> config)))
+		JobLogger.init("ContentAssetRelationModel")
+		JobLogger.start("ContentAssetRelationModel Started executing", Option(Map("config" -> config)))
 
-        val jobConfig = JSONUtils.deserialize[JobConfig](config);
+		val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
-        if (null == sc.getOrElse(null)) {
-            JobContext.parallelization = 10;
-            implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Neo4j Model"));
-            try {
-                execute()
-            } catch {
-                case t: Throwable => t.printStackTrace()
-            } finally {
-                CommonUtil.closeSparkContext();
-            }
-        } else {
-            implicit val sparkContext: SparkContext = sc.getOrElse(null);
-            execute();
-        }
-    }
+		if (null == sc.getOrElse(null)) {
+			JobContext.parallelization = 10;
+			implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Neo4j Model"));
+			try {
+				execute()
+			} catch {
+				case t: Throwable => t.printStackTrace()
+			} finally {
+				CommonUtil.closeSparkContext();
+			}
+		} else {
+			implicit val sparkContext: SparkContext = sc.getOrElse(null);
+			execute();
+		}
+	}
 
-    private def execute()(implicit sc: SparkContext) {
-        val time = CommonUtil.time({
-            val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE).filter { x => !x.body.isEmpty }.map { x => (x.content_id, getAssetIds(new String(x.body.getOrElse(Array()), "UTF-8"))) }
-                .filter { x => x._2.nonEmpty }.map { x =>
-                    val startNode = DataNode(x._1, None, Option(List("domain")));
-                    x._2.map { x =>
-                        val endNode = DataNode(x, None, Option(List("domain")));
-                        Relation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
-                    }
-                }.flatMap { x => x }
-            GraphDBUtil.addRelations(data);
-        })
-        JobLogger.end("ContentAssetRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
-    }
+	private def execute()(implicit sc: SparkContext) {
+		val time = CommonUtil.time({
+			val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
+				.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
+				.map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }.map { x =>
+					val startNode = DataNode(x._1, None, Option(List("domain")));
+					x._2.map { x =>
+						val endNode = DataNode(x, None, Option(List("domain")));
+						Relation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
+					}
+				}.flatMap { x => x }
+			GraphDBUtil.addRelations(data);
+		})
+		JobLogger.end("ContentAssetRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
+	}
 
-    private def getAssetIds(body: String): List[String] = {
-        if (body.startsWith("<")) {
-            val dom = XML.loadString(body)
-            val els = dom \ "manifest" \ "media"
+	private def getAssetIds(body: String, contentId: String): List[String] = {
+		try {
+			if (body.startsWith("<")) {
+				val dom = XML.loadString(body)
+				val els = dom \ "manifest" \ "media"
 
-            val assestIds = els.map { x =>
-                val node = x.attribute("asset_id").getOrElse(null)
-                if (node != null)
-                    node.text
-                else "";
-            }.filter { x => !"".equals(x) }.toList
-            assestIds;
-        } else {
-            val ecmlJson = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body);
-            val mediaList= getMediaList(ecmlJson);
-            mediaList.map { x =>
-                JSONUtils.serialize(x.getOrElse("assetId", ""))
-            }.filter { x => StringUtils.isNotBlank(x) }
-        }
+				val assestIds = els.map { x =>
+					val node = x.attribute("asset_id").getOrElse(null)
+					if (node != null)
+						node.text
+					else "";
+				}.filter { x => !"".equals(x) }.toList
+				assestIds;
+			} else {
+				val ecmlJson = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body);
+				val mediaList = getMediaList(ecmlJson);
+				mediaList.map { x =>
+					x.getOrElse("assetId", x.getOrElse("asset_id", "")).asInstanceOf[String]
+				}.filter { x => StringUtils.isNotBlank(x) }
+			}
+		} catch {
+			case t: Throwable =>
+				println("Unable to fetch Asset Ids for contentId:", contentId);
+				t.printStackTrace();
+				List();
+		}
+	}
 
-    }
-    
-    private def getMediaList(ecmlJson: Map[String, Map[String, AnyRef]]) : List[Map[String, AnyRef]] = {
-    	val content = ecmlJson.getOrElse("theme", Map());
-    	val manifest = content.getOrElse("manifest", Map()).asInstanceOf[Map[String, AnyRef]];
-    	val mediaList = manifest.getOrElse("media", List()).asInstanceOf[List[Map[String, AnyRef]]];
-    	mediaList;
-    }
+	private def getMediaList(ecmlJson: Map[String, Map[String, AnyRef]]): List[Map[String, AnyRef]] = {
+		val content = ecmlJson.getOrElse("theme", Map());
+		val manifest = content.getOrElse("manifest", Map()).asInstanceOf[Map[String, AnyRef]];
+		val mediaList = manifest.getOrElse("media", List()).asInstanceOf[List[Map[String, AnyRef]]];
+		mediaList;
+	}
 }
