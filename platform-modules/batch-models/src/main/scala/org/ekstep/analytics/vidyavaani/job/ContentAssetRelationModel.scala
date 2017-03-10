@@ -17,6 +17,7 @@ import org.ekstep.analytics.framework.util.GraphDBUtil
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.util.ECMLUtil
 
 case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
 
@@ -79,24 +80,12 @@ object ContentAssetRelationModel extends optional.Application with IJob {
 				}.filter { x => !"".equals(x) }.toList
 				assestIds;
 			} else {
-				val ecmlJson = JSONUtils.deserialize[Map[String, Map[String, AnyRef]]](body);
-				val mediaList = getMediaList(ecmlJson);
-				mediaList.map { x =>
-					x.getOrElse("assetId", x.getOrElse("asset_id", "")).asInstanceOf[String]
-				}.filter { x => StringUtils.isNotBlank(x) }
+				ECMLUtil.getAssetIds(body);
 			}
 		} catch {
 			case t: Throwable =>
-				println("Unable to fetch Asset Ids for contentId:", contentId);
-				t.printStackTrace();
+				println("Unable to parse OR fetch Asset Ids for contentId:"+ contentId + " :: Error" + t.getMessage);
 				List();
 		}
-	}
-
-	private def getMediaList(ecmlJson: Map[String, Map[String, AnyRef]]): List[Map[String, AnyRef]] = {
-		val content = ecmlJson.getOrElse("theme", Map());
-		val manifest = content.getOrElse("manifest", Map()).asInstanceOf[Map[String, AnyRef]];
-		val mediaList = manifest.getOrElse("media", List()).asInstanceOf[List[Map[String, AnyRef]]];
-		mediaList;
 	}
 }
