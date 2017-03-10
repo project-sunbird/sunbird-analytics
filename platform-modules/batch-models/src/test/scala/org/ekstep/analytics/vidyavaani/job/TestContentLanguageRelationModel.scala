@@ -15,28 +15,36 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
-        val getNodesQuery = StringBuilder.newBuilder;
-        getNodesQuery.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
-        .append(ContentLanguageRelationModel.NODE_NAME).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN)
-        .append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT)
-        
         val getRelationsQuery = getRelQuery("domain", "Language")
-            
+        
+        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
+        contentNodes.count() should be(7)
+        
         GraphDBUtil.deleteNodes(None, Option(List(ContentLanguageRelationModel.NODE_NAME)))
         
-        val langNodesBefore = GraphQueryDispatcher.dispatch(graphConfig, getNodesQuery.toString()).list;
-        langNodesBefore.size() should be(0)
+        val langNodesBefore = GraphDBUtil.findNodes(Map(), Option(List(ContentLanguageRelationModel.NODE_NAME)));
+        langNodesBefore.count() should be(0)
 
         val contentLangRelBefore = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
         contentLangRelBefore.size should be(0)
 
         ContentLanguageRelationModel.main("{}")(Option(sc));
 
-        val langNodesAfter = GraphQueryDispatcher.dispatch(graphConfig, getNodesQuery.toString()).list;
-        langNodesAfter.size() should be > (0)
+        val langNodesAfter = GraphDBUtil.findNodes(Map(), Option(List(ContentLanguageRelationModel.NODE_NAME)));
+        langNodesAfter.count() should be(3)
 
         val contentLangRelAfter = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
-        contentLangRelAfter.size should be > (0)
+        contentLangRelAfter.size should be(7)
+        
+        // check for relation between specific content & language
+        val query1 = getRelTypeQuery("domain", "org.ekstep.ra_ms_52d058e969702d5fe1ae0f00", "Language", "other")
+        val rel1 = GraphQueryDispatcher.dispatch(graphConfig, query1).list;
+        rel1.size() should be(1)
+        rel1.get(0).asMap().get("type(r)") should be("expressedIn")
+        
+        val query2 = getRelTypeQuery("domain", "page_1_image_0", "Language", "marathi")
+        val rel2 = GraphQueryDispatcher.dispatch(graphConfig, query2).list;
+        rel2.size() should be(0)
 
         val languageContentRelQuery = getRelQuery("Language", "domain")
         val languageContentRels = GraphQueryDispatcher.dispatch(graphConfig, languageContentRelQuery).list;
@@ -61,5 +69,20 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
         .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_RELATION_OBJECT)
         
         relationsQuery.toString();
+    }
+    
+    def getRelTypeQuery(startNode: String, startNodeUniqueId: String, endNode: String, endNodeUniqueId: String): String = {
+        
+        val query = StringBuilder.newBuilder;
+        query.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
+        .append(startNode).append(OPEN_CURLY_BRACKETS).append(BLANK_SPACE).append("IL_UNIQUE_ID:").append(SINGLE_QUOTE).append(startNodeUniqueId).append(SINGLE_QUOTE)
+        .append(BLANK_SPACE).append(CLOSE_CURLY_BRACKETS).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
+        .append("-[r]->").append(BLANK_SPACE)
+        .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(endNode).append(BLANK_SPACE)
+        .append(OPEN_CURLY_BRACKETS).append(BLANK_SPACE).append("IL_UNIQUE_ID:").append(SINGLE_QUOTE).append(endNodeUniqueId).append(SINGLE_QUOTE)
+        .append(BLANK_SPACE).append(CLOSE_CURLY_BRACKETS)
+        .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append("type").append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_RELATION_OBJECT).append(CLOSE_COMMON_BRACKETS)
+
+        query.toString();
     }
 }
