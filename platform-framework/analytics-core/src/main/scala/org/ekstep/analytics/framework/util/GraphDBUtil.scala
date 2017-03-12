@@ -39,7 +39,7 @@ object GraphDBUtil {
 				nodeQuery.toString
 			}.collect().mkString(",")
 			val query = fullQuery.append(nodesQuery).toString
-			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);	
+			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 		}
 	}
 
@@ -72,10 +72,10 @@ object GraphDBUtil {
 			fullQuery.append(getPropsQuery(startNode)).append(")").append(COMMA)
 			fullQuery.append(getLabelsQuery(endNode.labels, "aa"))
 			fullQuery.append(getPropsQuery(endNode)).append(")")
-			fullQuery.append(BLANK_SPACE).append(MERGE).append(BLANK_SPACE);
+			fullQuery.append(BLANK_SPACE).append(CREATE).append(BLANK_SPACE);
 			fullQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(CLOSE_COMMON_BRACKETS)
 			fullQuery.append(getRelationQuery(relation, direction)).append(OPEN_COMMON_BRACKETS).append("aa").append(CLOSE_COMMON_BRACKETS);
-
+			
 			fullQuery.toString;
 		} else {
 			JobLogger.log("GraphDBUtil.addRelation - required parameters missing");
@@ -83,8 +83,18 @@ object GraphDBUtil {
 		}
 	}
 
-	def deleteRelation(startNodeId: String, endNodeId: String, relation: String)(implicit sc: SparkContext) {
-
+	// TODO: This API will delete the given relation from the Graph. We have to enhance this API.
+	def deleteRelation(relation: String, direction: String, metadata: Option[Map[String, AnyRef]])(implicit sc: SparkContext) {
+		if (StringUtils.isNotBlank(relation) && StringUtils.isNotBlank(direction)) {
+			val fullQuery = StringBuilder.newBuilder;
+			fullQuery.append(MATCH).append("(ee)").append(getRelationQuery(relation, direction))
+			fullQuery.append("(aa)")
+			fullQuery.append(BLANK_SPACE).append("DELETE").append(BLANK_SPACE).append("r");
+			val query = fullQuery.toString;
+			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		} else {
+			JobLogger.log("GraphDBUtil.deleteRelation - required parameters missing");
+		}
 	}
 
 	def deleteAllRelations(startNodeType: String, endNodeType: String, relation: String)(implicit sc: SparkContext) {

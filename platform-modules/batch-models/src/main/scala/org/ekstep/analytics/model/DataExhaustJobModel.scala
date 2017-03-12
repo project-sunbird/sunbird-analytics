@@ -2,7 +2,6 @@ package org.ekstep.analytics.model
 
 import scala.reflect.runtime.universe
 
-
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.AlgoInput
@@ -127,7 +126,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
                 val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
                 val rawEventsRDD = events.map { x => x.event };
                 //  type check for file type: json or csv
-                val outputRDD = if(outputFormat.equalsIgnoreCase("csv")) _toCSV(rawEventsRDD) else rawEventsRDD;
+                val outputRDD = if (outputFormat.equalsIgnoreCase("csv")) _toCSV(rawEventsRDD) else rawEventsRDD;
                 outputRDD.saveAsTextFile(path);
                 updateStage(request_id, client_key, stage, "COMPLETED")
                 sc.makeRDD(List(JobResponse(client_key, request_id, job_id, output_events, bucket, uploadPrefix, firstEventDate, lastEventDate)));
@@ -143,7 +142,7 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
 
     }
     def algorithm(data: RDD[DataExhaustJobInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
-    	
+
         val request_id = config.get("request_id").get.asInstanceOf[String];
         val bucket = config.get("data-exhaust-bucket").get.asInstanceOf[String]
         val prefix = config.get("data-exhaust-prefix").get.asInstanceOf[String]
@@ -167,17 +166,29 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
     def postProcess(data: RDD[JobResponse], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
         data;
     }
-    
+
     private def _toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
         val data = rdd.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
         val dataMapRDD = data.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }
         val headers = dataMapRDD.map(f => f.keys).flatMap { x => x }.distinct().collect();
         val rows = dataMapRDD.map { x =>
             for (f <- headers) yield {
-            	StringEscapeUtils.escapeCsv(JSONUtils.serialize(x.getOrElse(f, "")));
+                val value = x.getOrElse(f, "")
+                if (value.isInstanceOf[List[AnyRef]]) {
+                    StringEscapeUtils.escapeCsv(JSONUtils.serialize(value));
+                } else if (value.isInstanceOf[Long]) {
+                    StringEscapeUtils.escapeCsv(value.asInstanceOf[Long].toString());
+                } else if (value.isInstanceOf[Double]) {
+                    StringEscapeUtils.escapeCsv(value.asInstanceOf[Double].toString());
+                } else if (value.isInstanceOf[Integer]) {
+                    StringEscapeUtils.escapeCsv(value.asInstanceOf[Integer].toString());
+                } else {
+                    StringEscapeUtils.escapeCsv(value.asInstanceOf[String]);
+                }
+
             }
         }.map { x => x.mkString(",") }.collect();
-        
+
         val csv = Array(headers.mkString(",")) ++ rows;
         sc.parallelize(csv, 1);
     }

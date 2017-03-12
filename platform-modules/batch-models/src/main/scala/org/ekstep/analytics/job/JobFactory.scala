@@ -9,6 +9,7 @@ import org.ekstep.analytics.views.PrecomputedViewsJob
 import org.ekstep.analytics.vidyavaani.job.ContentOwnerRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
+import org.ekstep.analytics.updater.CreationMetricsUpdater
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -99,7 +100,9 @@ object JobFactory {
             case "vidyavaani-jobs" =>
                 VidyavaaniModelJobs
             case "consumption-metrics" =>
-            	ConsumptionMetricsUpdater
+                ConsumptionMetricsUpdater
+            case "creation-metrics" =>
+                CreationMetricsModelUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
