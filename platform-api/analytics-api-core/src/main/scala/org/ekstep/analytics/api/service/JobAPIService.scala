@@ -29,17 +29,21 @@ import org.ekstep.analytics.api.JobStats
 import org.ekstep.analytics.api.APIIds
 import org.joda.time.DateTime
 import org.ekstep.analytics.api.OutputFormat
+import org.apache.commons.lang3.StringUtils
 
 /**
  * @author mahesh
  */
 
+// TODO: Need to refactor the entire Service.
 object JobAPIService {
 
   case class DataRequest(request: String, sc: SparkContext, config: Config);
   case class GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config);
   case class DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config);
 
+  
+  
   def dataRequest(request: String)(implicit sc: SparkContext, config: Config): String = {
     val body = JSONUtils.deserialize[RequestBody](request);
     val isValid = _validateReq(body)
@@ -48,9 +52,18 @@ object JobAPIService {
       val requestId = _getRequestId(body.request.filter.get, outputFormat);
       val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
       val jobResponse = if (null == job) {
-        _saveJobRequest(requestId, body)
+        _saveJobRequest(requestId, body.params.get.client_key.get, body.request);
       } else {
-        _createJobResponse(job)
+    	if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
+    		val retryLimit = config.getInt("data_exhaust.retry.limit");
+    		val attempts = job.iteration.getOrElse(0);
+    		if (attempts < retryLimit) 
+    			_saveJobRequest(requestId, body.params.get.client_key.get, body.request,  attempts);
+    		else
+    			_createJobResponse(job)
+    	} else {
+    		_createJobResponse(job)	
+    	}
       }
       val response = CommonUtil.caseClassToMap(jobResponse)
       JSONUtils.serialize(CommonUtil.OK(APIIds.DATA_REQUEST, response));
@@ -132,15 +145,15 @@ object JobAPIService {
       Option(JobStats(job.dt_job_submitted.get.getMillis, djp, djc, Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L))))
     } else Option(JobStats(job.dt_job_submitted.get.getMillis))
     val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
-    JobResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, output, stats);
+    JobResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, job.iteration.getOrElse(0), output, stats);
   }
 
-  private def _saveJobRequest(requestId: String, body: RequestBody)(implicit sc: SparkContext): JobResponse = {
-    val status = JobStatus.SUBMITTED.toString();
-    val jobSubmitted = DateTime.now()
-    val jobRequest = JobRequest(body.params.get.client_key, Option(requestId), None, Option(status), Option(JSONUtils.serialize(body.request)), Option(1), Option(jobSubmitted))
+  private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobResponse = {
+    val status = JobStatus.SUBMITTED.toString()
+	val jobSubmitted = DateTime.now()
+    val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted))
     DBUtil.saveJobRequest(jobRequest);
-    JobResponse(requestId, status, jobSubmitted.getMillis, body.request, Option(JobOutput()), Option(JobStats(jobSubmitted.getMillis)));
+    JobResponse(requestId, status, jobSubmitted.getMillis, request, iteration, Option(JobOutput()), Option(JobStats(jobSubmitted.getMillis)));
   }
 
   private def _getRequestId(filter: Filter, outputFormat: String): String = {
