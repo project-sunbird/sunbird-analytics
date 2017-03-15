@@ -13,6 +13,7 @@ import org.joda.time.DateTimeZone
 import java.util.concurrent.TimeUnit
 import com.typesafe.config.ConfigFactory
 import org.ekstep.analytics.api.RequestBody
+import org.ekstep.analytics.api.recommend.ContentCreationRecommendations
 
 /**
  * @author mahesh
@@ -166,4 +167,20 @@ class TestRecommendationAPIService extends SparkSpec {
       content should be (empty)
     }
     
+    it should "return authorid when request having authorid" in {
+        val request = """ {"id":"ekstep.analytics.recommendations.contentcreation","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"authorid": "author1"}}} """;
+        val response = ContentCreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
+        val resp = JSONUtils.deserialize[Response](response);
+        val result = resp.result.get;
+        val context = result.get("context").get.asInstanceOf[Map[String, AnyRef]];
+        context.get("authorid").get should be("author1")
+    }
+
+    it should "return error when request not having authorid" in {
+        val request = """ {"id":"ekstep.analytics.recommendations.contentcreation","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """;
+        val response = ContentCreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
+        val resp = JSONUtils.deserialize[Response](response);
+        resp.params.status should be("failed");
+        resp.params.errmsg should be("context required data is missing.");
+    }
 }
