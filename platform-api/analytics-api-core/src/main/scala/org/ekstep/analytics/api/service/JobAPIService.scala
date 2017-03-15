@@ -22,7 +22,6 @@ import java.security.MessageDigest
 import scala.util.Sorting
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.api.JobRequestEvent
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.JobStatus
 import org.ekstep.analytics.api.JobStats
@@ -46,24 +45,8 @@ object JobAPIService {
 		val body = JSONUtils.deserialize[RequestBody](request);
 		val isValid = _validateReq(body)
 		if ("true".equals(isValid.get("status").get)) {
-			val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
-			val requestId = _getRequestId(body.request.filter.get, outputFormat);
-			val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
-			val jobResponse = if (null == job) {
-				_saveJobRequest(requestId, body.params.get.client_key.get, body.request);
-			} else {
-				if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
-					val retryLimit = config.getInt("data_exhaust.retry.limit");
-					val attempts = job.iteration.getOrElse(0);
-					if (attempts < retryLimit)
-						_saveJobRequest(requestId, body.params.get.client_key.get, body.request, attempts);
-					else
-						_createJobResponse(job)
-				} else {
-					_createJobResponse(job)
-				}
-			}
-			val response = CommonUtil.caseClassToMap(jobResponse)
+			val job = upsertRequest(body);
+			val response = CommonUtil.caseClassToMap(_createJobResponse(job))
 			JSONUtils.serialize(CommonUtil.OK(APIIds.DATA_REQUEST, response));
 		} else {
 			CommonUtil.errorResponseSerialized(APIIds.DATA_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
@@ -88,6 +71,21 @@ object JobAPIService {
 		JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.count()), "jobs" -> result)));
 	}
 
+	private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
+		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
+		val requestId = _getRequestId(body.request.filter.get, outputFormat);
+		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
+		if (null == job) {
+			_saveJobRequest(requestId, body.params.get.client_key.get, body.request);
+		} else {
+			if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
+				val retryLimit = config.getInt("data_exhaust.retry.limit");
+				val attempts = job.iteration.getOrElse(0);
+				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, body.request, attempts); else job
+			} else job
+		}
+	}
+	
 	private def _validateReq(body: RequestBody): Map[String, String] = {
 		val params = body.params
 		val filter = body.request.filter;
@@ -136,22 +134,23 @@ object JobAPIService {
 			val de = getDateInMillis(job.dt_expiration.getOrElse(null))
 			Option(JobOutput(job.location, job.file_size, Option(created), dfe, dle, de))
 		} else Option(JobOutput());
-
+		
+		val djp = getDateInMillis(job.dt_job_processing.getOrElse(null))
+		val djc = getDateInMillis(job.dt_job_completed.getOrElse(null))
 		val stats = if (processed) {
-			val djp = getDateInMillis(job.dt_job_processing.getOrElse(null))
-			val djc = getDateInMillis(job.dt_job_completed.getOrElse(null))
 			Option(JobStats(job.dt_job_submitted.get.getMillis, djp, djc, Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L))))
 		} else Option(JobStats(job.dt_job_submitted.get.getMillis))
 		val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
-		JobResponse(job.request_id.get, job.status.get, CommonUtil.getMillis, request, job.iteration.getOrElse(0), output, stats);
+		val lastupdated = djc.getOrElse(djp.getOrElse(job.dt_job_submitted.get.getMillis));
+		JobResponse(job.request_id.get, job.status.get, lastupdated, request, job.iteration.getOrElse(0), output, stats);
 	}
 
-	private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobResponse = {
+	private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
 		val status = JobStatus.SUBMITTED.toString()
 		val jobSubmitted = DateTime.now()
 		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted))
 		DBUtil.saveJobRequest(jobRequest);
-		JobResponse(requestId, status, jobSubmitted.getMillis, request, iteration, Option(JobOutput()), Option(JobStats(jobSubmitted.getMillis)));
+		jobRequest;
 	}
 
 	private def _getRequestId(filter: Filter, outputFormat: String): String = {
@@ -161,12 +160,6 @@ object JobAPIService {
 		MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
 	}
 
-	private def _getJobRequestEvent(requestId: String, body: RequestBody): JobRequestEvent = {
-		val client_id = body.params.get.client_key.get
-		val filter = body.request.filter
-		val eksMap = Map("request_id" -> requestId, "job_id" -> "data-exhaust", "filter" -> filter.get)
-		JobRequestEvent("BE_JOB_REQUEST", System.currentTimeMillis(), "1.0", Context(PData("AnalyticsAPIPipeline", null, "1.0", Option("")), None, null, null, Option(JobStatus.SUBMITTED.toString), Option(client_id), Option(1)), MEEdata(eksMap))
-	}
 }
 
 class JobAPIService extends Actor {
