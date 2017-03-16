@@ -3,46 +3,39 @@ package org.ekstep.analytics.framework.util
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
+import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.Paths.get
 import java.nio.file.StandardCopyOption
-import java.text.SimpleDateFormat
+import java.security.MessageDigest
 import java.util.Date
 import java.util.zip.GZIPOutputStream
+
 import scala.collection.mutable.ListBuffer
+
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.DtRange
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.JobConfig
+import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 import org.joda.time.Days
 import org.joda.time.LocalDate
+import org.joda.time.Weeks
 import org.joda.time.Years
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
-import org.json4s.DefaultFormats
-import org.json4s.jackson.JsonMethods
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
-import scala.collection.mutable.Buffer
-import org.joda.time.Hours
-import org.joda.time.DateTimeZone
-import java.security.MessageDigest
-import org.apache.log4j.Logger
-import org.ekstep.analytics.framework.Period._
-import org.joda.time.Weeks
-import org.ekstep.analytics.framework.Level._
-import java.io.InputStream
-import java.nio.file.CopyOption
-import java.net.URL
 
 object CommonUtil {
 
@@ -71,9 +64,11 @@ object CommonUtil {
             JobLogger.log("Master not found. Setting it to local[*]")
             conf.setMaster("local[*]");
         }
-        if (!conf.contains("spark.cassandra.connection.host")) {
+       
+        if (!conf.contains("spark.cassandra.connection.host")) 
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
-        }
+        if(AppConf.getConfig("cassandra.service.embedded.enable").toBoolean)
+          conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
         if (!conf.contains("reactiveinflux.url")) {
             conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
         }
