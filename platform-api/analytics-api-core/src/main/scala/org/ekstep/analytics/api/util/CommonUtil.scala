@@ -18,6 +18,7 @@ import org.apache.spark.SparkConf
 import org.ekstep.analytics.api.ResponseCode
 import com.typesafe.config.Config
 import org.ekstep.analytics.framework.Period._
+import com.typesafe.config.ConfigFactory
 
 /**
  * @author Santhosh
@@ -32,7 +33,7 @@ object CommonUtil {
     @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
     
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
-
+        val appConf = ConfigFactory.load();
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
@@ -42,6 +43,9 @@ object CommonUtil {
         if (!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", "127.0.0.1")
         }
+        if(appConf.getBoolean("cassandra.service.embedded.enable"))
+          conf.set("spark.cassandra.connection.port", appConf.getString("cassandra.service.embedded.connection.port"))
+   
         // $COVERAGE-ON$
         new SparkContext(conf);
     }
