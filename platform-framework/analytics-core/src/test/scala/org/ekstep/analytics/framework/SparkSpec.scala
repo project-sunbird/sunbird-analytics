@@ -36,6 +36,8 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
 
     override def afterAll() {
         CommonUtil.closeSparkContext();
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+        EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
     }
 
     def loadFile[T](file: String)(implicit mf: Manifest[T]): RDD[T] = {
