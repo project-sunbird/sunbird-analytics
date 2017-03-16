@@ -11,36 +11,43 @@ import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.APIIds
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.ResponseCode
+import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 
 object ContentCreationRecommendations extends IRecommendations {
 
     def isValidRequest(requestBody: RequestBody): Validation = {
-        Validation(true);
+        val context = requestBody.request.context.getOrElse(Map());
+        val authorid = context.getOrElse("authorid", "").asInstanceOf[String];
+        if (StringUtils.isEmpty(authorid))
+            Validation(false, Option("authorid should be present"));
+        else
+            Validation(true);
     }
-    
+
     def fetch(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
-        if (hasRequired(requestBody)) {
+        val validation = isValidRequest(requestBody)
+        if (validation.value) {
             val context = requestBody.request.context.getOrElse(Map());
             val authorId = context.getOrElse("authorid", "").asInstanceOf[String];
-            val authorContext = getauthorContext(authorId)
-            JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_CREATION, Map[String, AnyRef]("recommendations" -> List(), "context" -> authorContext, "count" -> Int.box(5))));
+            //val result1 = GraphQueryDispatcher.dispatch(getGraphDBConfig, "query");
+            //val ls = result1.list().toArray().map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map { x => x.asInstanceOf[Map[String, AnyRef]] }.toList
+            val list = List(Map("langage" -> "Hindi", "concept" -> "LO52", "contenttype" -> "Story", "gradelevel" -> "Grade 1"), Map("langage" -> "Hindi", "concept" -> "LO54", "contenttype" -> "worksheet", "gradelevel" -> "Grade 4"))
+            val result = applyLimit(list, list.size, getLimit(requestBody))
+            JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_CREATION, Map[String, AnyRef]("recommendations" -> result, "context" -> Map("authorid" -> authorId), "count" -> Int.box(list.size))));
         } else {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_CREATION, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
         }
     }
 
     def applyLimit(contents: List[Map[String, Any]], total: Int, limit: Int)(implicit config: Config): List[Map[String, Any]] = {
-        return null
+        contents.take(limit);
     }
 
-    private def hasRequired(requestBody: RequestBody): Boolean = {
-        val context = requestBody.request.context.getOrElse(Map());
-        val authorid = context.get("authorid");
-        if (authorid.isEmpty) false else true;
+    private def getGraphDBConfig(): Map[String, String] = {
+        Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
+            "user" -> AppConf.getConfig("neo4j.bolt.user"),
+            "password" -> AppConf.getConfig("neo4j.bolt.password"));
     }
-
-    private def getauthorContext(authorId: String): Map[String, Any] = {
-        Map("authorid" -> authorId)
-    }
-
 }
