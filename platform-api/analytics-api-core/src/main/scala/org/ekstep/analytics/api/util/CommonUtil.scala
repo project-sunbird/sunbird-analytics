@@ -18,9 +18,11 @@ import org.joda.time.LocalDate
 import org.joda.time.Weeks
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
+import org.apache.commons.lang3.StringUtils
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+
 
 /**
  * @author Santhosh
@@ -42,13 +44,18 @@ object CommonUtil {
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
-            conf.set("spark.cassandra.connection.host", "127.0.0.1")
+            conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
-        if(AppConf.getConfig("cassandra.service.embedded.enable").toBoolean)
+        if(embeddedCassandraMode)
           conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
    
         // $COVERAGE-ON$
         new SparkContext(conf);
+    }
+    
+    private def embeddedCassandraMode() : Boolean = {
+    	val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable");
+    	StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {

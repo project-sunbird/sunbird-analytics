@@ -36,6 +36,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
+import org.apache.commons.lang3.StringUtils
 
 object CommonUtil {
 
@@ -67,7 +68,7 @@ object CommonUtil {
        
         if (!conf.contains("spark.cassandra.connection.host")) 
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
-        if(AppConf.getConfig("cassandra.service.embedded.enable").toBoolean)
+        if(embeddedCassandraMode)
           conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
         if (!conf.contains("reactiveinflux.url")) {
             conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
@@ -78,7 +79,12 @@ object CommonUtil {
         JobLogger.log("Spark Context initialized");
         sc;
     }
-
+    
+    private def embeddedCassandraMode() : Boolean = {
+    	val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable");
+    	StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
+    }
+    
     def setS3Conf(sc: SparkContext) = {
         JobLogger.log("Configuring S3 AccessKey& SecrateKey to SparkContext")
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());

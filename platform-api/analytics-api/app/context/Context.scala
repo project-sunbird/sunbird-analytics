@@ -23,7 +23,6 @@ object Context {
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
             conf.set("spark.cassandra.connection.host", play.Play.application.configuration.getString("spark.cassandra.connection.host"))
-            conf.set("spark.cassandra.connection.port", "9142")
         }
         if(play.Play.application.configuration.getBoolean("cassandra.service.embedded.enable"))
           conf.set("spark.cassandra.connection.port", play.Play.application.configuration.getString("cassandra.service.embedded.connection.port"))
