@@ -40,8 +40,6 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
     
     
     "ConsumptionMetricsUpdater" should "push data into influxDB" in {
-          println("sdkalsjdkv;asodvn;acsodlcn;adsjnc;ajskdnc;j")
-        
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
