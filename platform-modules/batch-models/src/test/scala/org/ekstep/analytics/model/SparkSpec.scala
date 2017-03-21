@@ -1,11 +1,7 @@
 package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.spark.rdd.RDD
-import org.cassandraunit.CQLDataLoader
-import org.cassandraunit.dataset.cql.FileCQLDataSet
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.conf.AppConf
@@ -27,21 +23,16 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
     implicit var sc: SparkContext = null;
 
     override def beforeAll() {
+    	super.beforeAll();
         JobLogger.init("org.ekstep.analytics.test-cases");
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
-        events = loadFile[Event](file)
-        val connector = CassandraConnector(sc.getConf);
-        val session = connector.openSession();
-        val dataLoader = new CQLDataLoader(session);
-        dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
+        events = loadFile[Event](file);
     }
 
     override def afterAll() {
         JobContext.cleanUpRDDs();
         CommonUtil.closeSparkContext();
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-        EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+        super.afterAll()
     }
 
     def loadFile[T](file: String)(implicit mf: Manifest[T]): RDD[T] = {

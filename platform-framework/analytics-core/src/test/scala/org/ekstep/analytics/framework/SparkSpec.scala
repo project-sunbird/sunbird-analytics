@@ -10,11 +10,6 @@ import org.json4s.string2JsonInput
 import org.scalatest.BeforeAndAfterAll
 import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-import org.cassandraunit.CQLDataLoader
-import org.cassandraunit.dataset.cql.FileCQLDataSet
-import com.datastax.spark.connector.cql.CassandraConnector
-import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * @author Santhosh
@@ -25,19 +20,12 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
     implicit var sc: SparkContext = null;
 
     override def beforeAll() {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
         events = loadFile[Event](file)
-        val connector = CassandraConnector(sc.getConf);
-        val session = connector.openSession();
-        val dataLoader = new CQLDataLoader(session);
-        dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
     }
 
     override def afterAll() {
         CommonUtil.closeSparkContext();
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-        EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
     }
 
     def loadFile[T](file: String)(implicit mf: Manifest[T]): RDD[T] = {
