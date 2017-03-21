@@ -10,8 +10,6 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import org.apache.commons.lang3.StringUtils
 import com.datastax.spark.connector._
-import org.cassandraunit.CQLDataLoader
-import org.cassandraunit.dataset.cql.FileCQLDataSet
 
 case class ContentData(content_id: String, body: Array[Byte], last_updated_on: Long, oldbody: Array[Byte]);
 
@@ -34,10 +32,6 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 			sys.addShutdownHook {
 				graphDb.shutdown();
 			}
-			val connector = CassandraConnector(sc.getConf);
-      val session = connector.openSession()
-      val dataLoader = new CQLDataLoader(session);
-      dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.lp_cql_path"), true, true));
 			importContentData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, testDataPath + "content_data.csv")
 			prepareTestGraph(graphDb);
 		}

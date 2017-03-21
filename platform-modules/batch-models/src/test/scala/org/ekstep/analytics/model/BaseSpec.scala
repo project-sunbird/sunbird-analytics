@@ -21,6 +21,7 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 		val session = connector.openSession();
 		val dataLoader = new CQLDataLoader(session);
 		dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
+		dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.lp_cql_path"), true, true));
 	}
 
 	override def afterAll() {
