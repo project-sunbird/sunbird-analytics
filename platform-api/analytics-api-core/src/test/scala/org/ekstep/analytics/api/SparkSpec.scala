@@ -24,12 +24,8 @@ class SparkSpec extends BaseSpec with BeforeAndAfterAll {
   implicit val config = ConfigFactory.load();		
   
   override def beforeAll() {
-    EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+    super.beforeAll();
     sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
-    val connector = CassandraConnector(sc.getConf);
-    val session = connector.openSession();
-    val dataLoader = new CQLDataLoader(session);
-    dataLoader.load(new FileCQLDataSet(config.getString("cassandra.cql_path"), true, true));
   }
 
   override def afterAll() {
