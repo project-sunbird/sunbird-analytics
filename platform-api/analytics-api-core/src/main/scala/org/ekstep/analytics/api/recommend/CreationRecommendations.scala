@@ -29,7 +29,7 @@ import org.ekstep.analytics.framework.util.GraphDBUtil
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-object ContentCreationRecommendations extends IRecommendations {
+object CreationRecommendations extends IRecommendations {
 
     def isValidRequest(requestBody: RequestBody): Validation = {
         val context = requestBody.request.context.getOrElse(Map());
@@ -45,17 +45,16 @@ object ContentCreationRecommendations extends IRecommendations {
         if (validation.value) {
             val context = requestBody.request.context.getOrElse(Map());
             val authorId = context.getOrElse("uid", "").asInstanceOf[String];
-
-            val language = List("Hindi", "English", "Telugu", "Tamil", "Kannada", "Marati")
+            val language = List("hi", "en", "te", "ta", "ka", "ma")
             val concept = List("LO52", "LO89", "LO23", "LO18", "LO34", "LO521")
-            val contenttype = List("Story", "WorkSheet", "Template", "Game")
-            val gradelevel = List("Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6")
+            val contenttype = List("Story", "WorkSheet", "Game")
+            val gradelevel = List("Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5")
             var contents = new ListBuffer[Map[String, String]]()
             for (a <- 1 to getLimit(requestBody)) {
-                contents += Map("langage" -> Random.shuffle(language).head, "concept" -> Random.shuffle(concept).head, "contenttype" -> Random.shuffle(contenttype).head, "gradelevel" -> Random.shuffle(gradelevel).head)
+                contents += Map("type"->"Content", "langauge" -> Random.shuffle(language).head, "concept" -> Random.shuffle(concept).head, "contentType" -> Random.shuffle(contenttype).head, "gradeLevel" -> Random.shuffle(gradelevel).head)
             }
             val result = applyLimit(contents.toList, contents.size, getLimit(requestBody))
-            JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_CREATION, Map[String, AnyRef]("recommendations" -> result, "context" -> Map("uid" -> authorId), "count" -> Int.box(contents.size))));
+            JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_CREATION, Map[String, AnyRef]("context" -> Map("uid" -> authorId), "requests" -> result)));
         } else {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_CREATION, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
         }
@@ -63,11 +62,5 @@ object ContentCreationRecommendations extends IRecommendations {
 
     def applyLimit(contents: List[Map[String, Any]], total: Int, limit: Int)(implicit config: Config): List[Map[String, Any]] = {
         contents.take(limit);
-    }
-
-    private def getGraphDBConfig(): Map[String, String] = {
-        Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
     }
 }
