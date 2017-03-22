@@ -69,6 +69,23 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 		}
 	}
 	
+	def creationRecommendations() = Action.async { implicit request =>
+		val body: String = Json.stringify(request.body.asJson.get);
+		val futureRes = ask(recommendAPIActor, RecommendRequest(body, Context.sc, config)).mapTo[String];
+		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
+		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
+		val response: Future[String] = firstCompleted.recoverWith {
+			case ex: ClientException =>
+				Future { CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) };
+		};
+		response.map { resp =>
+			play.Logger.info(request + " body - " + body + "\n\t => " + resp);
+			val result = if (resp.contains(ResponseCode.CLIENT_ERROR.toString()) || config.getBoolean("recommendation.enable")) resp
+			else JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.creation.recommendations", Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
+			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
+		}
+	}
+	
 	def registerTag(tagId: String) = Action.async { implicit request =>
 		val result = ask(tagServiceAPIActor, RegisterTag(tagId, Context.sc)).mapTo[String];
     result.map { x =>
