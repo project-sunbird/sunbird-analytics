@@ -85,7 +85,7 @@ object APIIds {
 	val ITEM_USAGE = "ekstep.analytics.metrics.item-usage"
 	val CONTENT_LIST = "ekstep.analytics.content-list"
 	val GENIE_LUNCH = "ekstep.analytics.metrics.genie-launch"
-	val CONTENT_CREATION = "ekstep.analytics.recommendations.contentcreation"
+	val CONTENT_CREATION = "ekstep.analytics.creation.recommendations"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
