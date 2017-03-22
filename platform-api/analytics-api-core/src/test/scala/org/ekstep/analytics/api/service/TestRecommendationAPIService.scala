@@ -13,21 +13,15 @@ import org.joda.time.DateTimeZone
 import java.util.concurrent.TimeUnit
 import com.typesafe.config.ConfigFactory
 import org.ekstep.analytics.api.RequestBody
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.factory.GraphDatabaseSettings
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.GraphDatabaseService
-import org.ekstep.analytics.api.RequestBody
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.api.RecommendationContent
-import org.ekstep.analytics.framework.SparkGraphSpec
 import org.ekstep.analytics.api.recommend.CreationRecommendations
 
 /**
  * @author mahesh
  */
 
-class TestRecommendationAPIService extends SparkGraphSpec {
+class TestRecommendationAPIService extends SparkSpec {
 
 	override def beforeAll() {
         super.beforeAll()
@@ -175,7 +169,7 @@ class TestRecommendationAPIService extends SparkGraphSpec {
       content should be (empty)
     }
     
-    it should "return authorid when request having authorid" in {
+    ignore should "return authorid when request having authorid" in {
         val request = """ {"id":"ekstep.analytics.recommendations.contentcreation","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "author1"},"filters": { },"limit": 10}} """;
         val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
         val resp = JSONUtils.deserialize[Response](response);
@@ -185,7 +179,7 @@ class TestRecommendationAPIService extends SparkGraphSpec {
         context.get("uid").get should be("author1")
     }
 
-    it should "return error when request not having authorid" in {
+    ignore should "return error when request not having authorid" in {
         val request = """ {"id":"ekstep.analytics.recommendations.contentcreation","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """;
         val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
         val resp = JSONUtils.deserialize[Response](response);
