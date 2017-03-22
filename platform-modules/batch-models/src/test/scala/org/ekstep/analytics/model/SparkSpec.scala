@@ -2,18 +2,16 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.json4s.DefaultFormats
-import org.json4s.jackson.JsonMethods
-import org.json4s.jvalue2extractable
-import org.json4s.string2JsonInput
-import org.scalatest.BeforeAndAfterAll
-import com.fasterxml.jackson.core.JsonParseException
-import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.logging.log4j.Logger
 import org.ekstep.analytics.framework.JobContext
+import org.scalatest.BeforeAndAfterAll
+
 import com.datastax.spark.connector.cql.CassandraConnector
 
 /**
@@ -25,14 +23,16 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
     implicit var sc: SparkContext = null;
 
     override def beforeAll() {
+    	super.beforeAll();
         JobLogger.init("org.ekstep.analytics.test-cases");
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
-        events = loadFile[Event](file)
+        events = loadFile[Event](file);
     }
 
     override def afterAll() {
         JobContext.cleanUpRDDs();
         CommonUtil.closeSparkContext();
+        super.afterAll()
     }
 
     def loadFile[T](file: String)(implicit mf: Manifest[T]): RDD[T] = {

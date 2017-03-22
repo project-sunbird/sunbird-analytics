@@ -19,7 +19,7 @@ import org.ekstep.analytics.api.RequestBody
  */
 
 class TestRecommendationAPIService extends SparkSpec {
-	val config = ConfigFactory.load();
+
 	override def beforeAll() {
         super.beforeAll()
         // Load test data

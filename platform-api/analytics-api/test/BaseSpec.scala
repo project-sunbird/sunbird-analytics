@@ -1,19 +1,25 @@
-import play.api.mvc.Result
 import scala.concurrent.Future
 
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.junit.runner._
+import org.specs2.mutable.Specification
 
-import play.api.libs.json._
-import play.api.http._
-import play.api.test._
-import play.api.test.Helpers._
-import org.ekstep.analytics.api.util.JSONUtils
+import com.typesafe.config.ConfigFactory
+
+import play.api.libs.json.Json
+import play.api.mvc.Result
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
+import play.api.test.Helpers.OK
+import play.api.test.Helpers.POST
+import play.api.test.Helpers.contentAsString
+import play.api.test.Helpers.contentType
+import play.api.test.Helpers.defaultAwaitTimeout
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
 
 
 class BaseSpec extends Specification {
 	
+  implicit val config = ConfigFactory.load();
 	def post(apiURL: String, request: String): Future[Result] = {
 		route(FakeRequest(POST, apiURL, FakeHeaders(Seq(("content-type", "application/json"))), Json.toJson(Json.parse(request)))).get
 	}

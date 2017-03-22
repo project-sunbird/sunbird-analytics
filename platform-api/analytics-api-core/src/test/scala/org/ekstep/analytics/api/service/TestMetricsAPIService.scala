@@ -12,7 +12,6 @@ import org.ekstep.analytics.api.util.ContentCacheUtil
 
 class TestMetricsAPIService extends SparkSpec {
 
-    implicit val config = ConfigFactory.load();
     override def beforeAll() {
         super.beforeAll()
         DateTimeUtils.setCurrentMillisFixed(1474963510000L); // Fix the date-time to be returned by DateTime.now() to 20160927

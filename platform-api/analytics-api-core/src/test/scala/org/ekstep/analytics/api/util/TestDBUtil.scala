@@ -11,9 +11,9 @@ class TestDBUtil extends SparkSpec {
     
     it should "fetch list of jobs in a descending order" in {
         
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM platform_db.job_request WHERE client_key='partner1'");
-        }
+        val connector = CassandraConnector(sc.getConf);
+        val session = connector.openSession();
+        session.execute("DELETE FROM platform_db.job_request WHERE client_key='partner1'");
         
         val request_data1 = """{"filter":{"start_date":"2016-11-19","end_date":"2016-11-20","tags":["becb887fe82f24c644482eb30041da6d88bd8150"]}}"""
         val request_data2 = """{"filter":{"start_date":"2016-11-19","end_date":"2016-11-20","tags":["test-tag"],"events":["OE_ASSESS"]}}"""
