@@ -28,8 +28,8 @@ import org.ekstep.analytics.api.recommend.CreationRecommendations
  */
 
 class TestRecommendationAPIService extends SparkGraphSpec {
-    val config = ConfigFactory.load();
-    override def beforeAll() {
+
+	override def beforeAll() {
         super.beforeAll()
         // Load test data
         val rdd = loadFile[RecommendationContent]("src/test/resources/device-recos/test_device_recos.log");

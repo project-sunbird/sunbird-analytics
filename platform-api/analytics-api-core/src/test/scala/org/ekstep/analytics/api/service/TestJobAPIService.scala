@@ -11,10 +11,9 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.api.util.JSONUtils
 import org.ekstep.analytics.api.Response 
 import org.ekstep.analytics.api.JobResponse
+import org.apache.commons.lang3.StringUtils
 
 class TestJobAPIService extends SparkSpec {
-
-    implicit val config = ConfigFactory.load();
 
     "JobAPIService" should "return response for data request" in {
         val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
@@ -57,6 +56,31 @@ class TestJobAPIService extends SparkSpec {
         val result = JobAPIService.dataRequest(request);
         val response = JSONUtils.deserialize[Response](result)
         response.params.status should be("failed")
+    }
+    
+    "JobAPIService" should "submit the failed request for retry" in {
+    	val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"filter":{"events":["OE_ASSESS"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
+        val result = JobAPIService.dataRequest(request);
+        val response = JSONUtils.deserialize[Response](result)
+        val requestId = response.result.getOrElse(Map()).getOrElse("request_id", "").asInstanceOf[String];
+        StringUtils.isNotEmpty(requestId) should be(true);
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+        	val query = "UPDATE platform_db.job_request SET status='FAILED' WHERE client_key='dev-portal' AND request_id='"+requestId+"'"
+            session.execute(query);
+        }
+        val getResult = JobAPIService.getDataRequest("dev-portal", requestId);
+        val getResponse = JSONUtils.deserialize[Response](getResult);
+        val failStatus = getResponse.result.getOrElse(Map()).getOrElse("status", "").asInstanceOf[String];
+        StringUtils.isNotEmpty(failStatus) should be(true);
+        failStatus should be("FAILED");
+        val result2 = JobAPIService.dataRequest(request);
+        val response2 = JSONUtils.deserialize[Response](result2);
+        val status = response.result.getOrElse(Map()).getOrElse("status", "").asInstanceOf[String];
+        status should be("SUBMITTED");
+    }
+    
+    "JobAPIService" should "not submit the permanently failed/max attempts reached request while doing retry" in {
+    	
     }
     
     it should "return response for get data request" in {

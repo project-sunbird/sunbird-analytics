@@ -23,17 +23,34 @@ import scala.concurrent.{ Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success }
 import scala.util.Random
+import org.ekstep.analytics.api.util.CommonUtil
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper
+import org.cassandraunit.CQLDataLoader
+import org.cassandraunit.dataset.cql.FileCQLDataSet
+import org.ekstep.analytics.framework.conf.AppConf
+import org.scalatest.BeforeAndAfterAll
 
 @RunWith(classOf[JUnitRunner])
 class JobsAPISpec extends BaseSpec with Serializable {
 	
 	val url = "/dataset/request/submit";
 	
-    "Job Request API" should new WithApplication {
+	def beforeAll() {
+		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+    val sc = Context.sc
+    val connector = CassandraConnector(sc.getConf);
+    val session = connector.openSession();
+    val dataLoader = new CQLDataLoader(session);
+    dataLoader.load(new FileCQLDataSet(config.getString("cassandra.cql_path"), true, true));
+    session.execute("TRUNCATE platform_db.job_request");
+	}
 
-        CassandraConnector(Context.sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE platform_db.job_request");
-        }
+	def afterAll() {
+		EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+		EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+	}
+	
+    "Job Request API" should new WithApplication {
 
         "return error response on invalid request - error response" in {
             val request = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal" },"request": {"filter": {"start_date": "2016-11-20","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]  }}}"""

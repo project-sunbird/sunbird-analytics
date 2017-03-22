@@ -1,23 +1,28 @@
 package org.ekstep.analytics.api.util
 
+import java.util.UUID
+
+import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import org.ekstep.analytics.api.Params
+import org.ekstep.analytics.api.Range
+import org.ekstep.analytics.api.Response
+import org.ekstep.analytics.api.ResponseCode
+import org.ekstep.analytics.framework.Period._
+import org.ekstep.analytics.framework.conf.AppConf
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+import org.joda.time.Days
+import org.joda.time.Duration
 import org.joda.time.LocalDate
 import org.joda.time.Weeks
-import org.joda.time.Days
-import org.joda.time.DateTimeZone
-import org.ekstep.analytics.api.Response
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.DateTimeFormat
-import org.ekstep.analytics.api.Params
-import java.util.UUID
-import org.ekstep.analytics.api.RequestBody
-import org.joda.time.Duration
-import org.ekstep.analytics.api.Range
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.ekstep.analytics.api.ResponseCode
+import org.joda.time.format.DateTimeFormatter
+import org.apache.commons.lang3.StringUtils
+
 import com.typesafe.config.Config
-import org.ekstep.analytics.framework.Period._
+import com.typesafe.config.ConfigFactory
+
 
 /**
  * @author Santhosh
@@ -32,7 +37,6 @@ object CommonUtil {
     @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
     
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
-
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
@@ -40,10 +44,18 @@ object CommonUtil {
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
-            conf.set("spark.cassandra.connection.host", "127.0.0.1")
+            conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         }
+        if(embeddedCassandraMode)
+          conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
+   
         // $COVERAGE-ON$
         new SparkContext(conf);
+    }
+    
+    private def embeddedCassandraMode() : Boolean = {
+    	val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable");
+    	StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
