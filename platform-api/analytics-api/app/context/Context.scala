@@ -11,6 +11,7 @@ import org.ekstep.analytics.api.util.ContentCacheUtil
 object Context {
 
     var sc: SparkContext = null;
+    val appConfig = play.Play.application.configuration.underlying();
 
     def setSparkContext() = {
         Logger.info("Starting spark context")
@@ -22,10 +23,12 @@ object Context {
             conf.setMaster("local[*]");
         }
         if (!conf.contains("spark.cassandra.connection.host")) {
-            conf.set("spark.cassandra.connection.host", play.Play.application.configuration.getString("spark.cassandra.connection.host"))
+            conf.set("spark.cassandra.connection.host", appConfig.getString("spark.cassandra.connection.host"))
         }
-        if(play.Play.application.configuration.getBoolean("cassandra.service.embedded.enable"))
-          conf.set("spark.cassandra.connection.port", play.Play.application.configuration.getString("cassandra.service.embedded.connection.port"))
+        
+        if(appConfig.hasPath("cassandra.service.embedded.enable") && appConfig.getBoolean("cassandra.service.embedded.enable"))
+        	conf.set("spark.cassandra.connection.port", appConfig.getString("cassandra.service.embedded.connection.port"))
+          
         // $COVERAGE-ON$
         sc = new SparkContext(conf);
         setS3Conf(sc);
@@ -63,7 +66,7 @@ object Context {
     	// $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
         closeSparkContext();
         setSparkContext();
-        ContentCacheUtil.initCache()(Context.sc, play.Play.application.configuration.underlying());
+        ContentCacheUtil.initCache()(Context.sc, appConfig);
         // $COVERAGE-ON$
     }
 

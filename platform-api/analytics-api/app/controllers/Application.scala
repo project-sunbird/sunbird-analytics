@@ -27,12 +27,13 @@ import org.ekstep.analytics.framework.Level._
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
-import org.ekstep.analytics.api.service.RecommendationAPIService.RecommendRequest
 import akka.actor.Props
 import akka.routing.FromConfig
 import org.ekstep.analytics.api.service.HealthCheckAPIService.GetHealthStatus
 import org.ekstep.analytics.api.service.TagService.DeleteTag
 import org.ekstep.analytics.api.service.TagService.RegisterTag
+import org.ekstep.analytics.api.service.RecommendationAPIService.Consumption
+import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
 
 /**
  * @author mahesh
@@ -54,7 +55,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 
 	def recommendations() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
-		val futureRes = ask(recommendAPIActor, RecommendRequest(body, Context.sc, config)).mapTo[String];
+		val futureRes = ask(recommendAPIActor, Consumption(body, Context.sc, config)).mapTo[String];
 		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
 		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
 		val response: Future[String] = firstCompleted.recoverWith {
@@ -65,6 +66,20 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 			play.Logger.info(request + " body - " + body + "\n\t => " + resp);
 			val result = if (resp.contains(ResponseCode.CLIENT_ERROR.toString()) || config.getBoolean("recommendation.enable")) resp
 			else JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
+			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
+		}
+	}
+	
+	def creationRecommendations() = Action.async { implicit request =>
+		val body: String = Json.stringify(request.body.asJson.get);
+		val futureRes = ask(recommendAPIActor, Creation(body, Context.sc, config)).mapTo[String];
+		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
+		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
+		val response: Future[String] = firstCompleted.recoverWith {
+			case ex: ClientException =>
+				Future { CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) };
+		};
+		response.map { result =>
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
 		}
 	}

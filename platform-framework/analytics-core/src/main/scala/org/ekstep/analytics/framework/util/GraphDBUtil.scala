@@ -101,13 +101,14 @@ object GraphDBUtil {
 
 	}
 
-	def findNodes(metadata: Map[String, AnyRef], labels: Option[List[String]], limit: Option[Int] = None)(implicit sc: SparkContext): RDD[DataNode] = {
+	def findNodes(metadata: Map[String, AnyRef], labels: Option[List[String]], limit: Option[Int] = None, where: Option[String] = None)(implicit sc: SparkContext): RDD[DataNode] = {
 		val findQuery = StringBuilder.newBuilder;
 		findQuery.append(MATCH).append(getLabelsQuery(labels))
 
 		val props = removeKeyQuotes(JSONUtils.serialize(metadata));
 		findQuery.append(props).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
-			.append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT);
+		if (!where.isEmpty) findQuery.append(where.get).append(BLANK_SPACE)
+		findQuery.append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT);
 		if(!limit.isEmpty) findQuery.append(" LIMIT "+limit.get)
 		
 		val query = findQuery.toString;
