@@ -6,10 +6,10 @@ import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 import org.ekstep.analytics.job.consolidated._
 import org.ekstep.analytics.views.PrecomputedViewsJob
-import org.ekstep.analytics.vidyavaani.job.ContentOwnerRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
 import org.ekstep.analytics.updater.CreationMetricsUpdater
+import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -92,7 +92,7 @@ object JobFactory {
             case "content-recos" =>
                 EndOfContentRecommendationJob
             case "content-own-rel" =>
-                ContentOwnerRelationModel
+                AuthorRelationsModel
             case "content-lang-rel" =>
                 ContentLanguageRelationModel
             case "content-asset-rel" =>

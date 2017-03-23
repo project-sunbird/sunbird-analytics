@@ -14,16 +14,19 @@ import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.Relation
 import org.ekstep.analytics.framework.util.JobLogger
 
-object ContentOwnerRelationModel extends optional.Application with IJob {
+object AuthorRelationsModel extends optional.Application with IJob {
 
-    val NODE_NAME = "Owner";
-    val RELATION = "createdBy"
-    implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentOwnerRelationModel"
+    val NODE_NAME = "User";
+    val CONTENT_AUTHOR_RELATION = "createdBy"
+    val CONTENT_CONCEPT_RELATION = "associatedTo"
+    val AUTHOR_CONCEPT_RELATION = "uses"
+
+    implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
-        JobLogger.init("ContentOwnerRelationModel")
-        JobLogger.start("ContentOwnerRelationModel Started executing", Option(Map("config" -> config)))
+        JobLogger.init("AuthorRelationsModel")
+        JobLogger.start("AuthorRelationsModel Started executing", Option(Map("config" -> config)))
 
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
@@ -46,13 +49,14 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
     private def execute()(implicit sc: SparkContext) {
         val time = CommonUtil.time({
             GraphDBUtil.deleteNodes(None, Option(List(NODE_NAME)))
-            _createOwnerNodeWithRelation();
+            _createAuthorNodeWithRelation();
+            _createAuthorConceptRelation();
         })
 
-        JobLogger.end("ContentOwnerRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
+        JobLogger.end("AuthorRelationsModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
     }
 
-    private def _createOwnerNodeWithRelation()(implicit sc: SparkContext) = {
+    private def _createAuthorNodeWithRelation()(implicit sc: SparkContext) = {
         val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
             Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
 
@@ -65,7 +69,7 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
                 val identifier = f._1;
                 val namesList = f._2.filter(p => !StringUtils.isBlank(p._2));
                 val name = if (namesList.isEmpty) identifier else namesList.last._2;
-                DataNode(identifier, Option(Map("name" -> name)), Option(List(NODE_NAME)));
+                DataNode(identifier, Option(Map("name" -> name, "type" -> "author")), Option(List(NODE_NAME)));
             }
 
         GraphDBUtil.createNodes(owners);
@@ -74,12 +78,31 @@ object ContentOwnerRelationModel extends optional.Application with IJob {
             .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
             .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
             .map { f =>
-                val startNode = DataNode(f._1, None, Option(List("Owner")));
+                val startNode = DataNode(f._1, None, Option(List("User")));
                 val endNode = DataNode(f._2, None, Option(List("domain")));
-                Relation(startNode, endNode, RELATION, RelationshipDirection.INCOMING.toString);
+                Relation(startNode, endNode, CONTENT_AUTHOR_RELATION, RelationshipDirection.INCOMING.toString);
             };
         GraphDBUtil.addRelations(ownerContentRels);
 
     }
 
+    def _createAuthorConceptRelation()(implicit sc: SparkContext) = {
+        val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
+            Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
+        val authorNodes = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List("User")), limit).collect;
+        
+        
+        val authorConceptRelations = authorNodes.map { x =>
+            val author = x
+            val metadata2 = Map("IL_FUNC_OBJECT_TYPE" -> "Content")
+            val relatedContents = GraphDBUtil.findRelatedNodes(CONTENT_AUTHOR_RELATION, RelationshipDirection.INCOMING.toString, Map("type" -> "author", "IL_UNIQUE_ID" -> author.identifier), metadata2, "User", "domain", limit)
+            relatedContents.map { x =>
+                val meta2 = Map("IL_FUNC_OBJECT_TYPE" -> "Concept")
+                val label = "domain"
+                GraphDBUtil.findRelatedNodes(CONTENT_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString, Map("IL_UNIQUE_ID" -> x.identifier), meta2, label, label, limit)
+            }.flatMap { x => x }.map { x => Relation(author, x, AUTHOR_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString) }
+        }.flatMap { x => x }
+        println("Done")
+        GraphDBUtil.addRelations(sc.parallelize(authorConceptRelations));
+    }
 }

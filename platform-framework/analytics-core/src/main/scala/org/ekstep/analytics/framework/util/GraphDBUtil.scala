@@ -171,5 +171,27 @@ object GraphDBUtil {
 			"user" -> AppConf.getConfig("neo4j.bolt.user"),
 			"password" -> AppConf.getConfig("neo4j.bolt.password"));
 	}
+	
+	def findRelatedNodes(relation: String, direction: String, metadata1: Map[String, AnyRef], metadata2: Map[String, AnyRef], label1: String, label2: String, limit: Option[Int] = None)(implicit sc: SparkContext): List[DataNode] = {
+        val findQuery = StringBuilder.newBuilder;
+		findQuery.append(MATCH).append(getLabelsQuery(Option(List(label1))))
+
+		val props1 = removeKeyQuotes(JSONUtils.serialize(metadata1));
+		val props2 = removeKeyQuotes(JSONUtils.serialize(metadata2));
+		findQuery.append(props1).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(getRelationQuery(relation, direction)).append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(label2).append(props2)
+		.append(CLOSE_COMMON_BRACKETS).append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT_II);
+		
+		if(!limit.isEmpty) findQuery.append(" LIMIT "+limit.get)
+		
+		val query = findQuery.toString;
+		val result = GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		if (null != result) {
+			result.list().toArray().map(x => x.asInstanceOf[org.neo4j.driver.v1.Record])
+				.map { x => x.get(DEFAULT_CYPHER_NODE_OBJECT_II).asNode() }
+				.map { x => toDataNode(x) }.toList
+		} else {
+			List();
+		}
+    }
 
 }

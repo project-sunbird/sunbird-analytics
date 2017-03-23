@@ -2,11 +2,11 @@ package org.ekstep.analytics.job.consolidated
 
 import org.ekstep.analytics.framework.IJob
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.vidyavaani.job.ContentOwnerRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
 
 object VidyavaaniModelJobs extends optional.Application with IJob {
 
@@ -17,7 +17,7 @@ object VidyavaaniModelJobs extends optional.Application with IJob {
         JobLogger.start("VidyavaaniModelJobs Started executing", Option(Map("config" -> config)))
 
         val time = CommonUtil.time({
-            val jobs = List(ContentOwnerRelationModel, ContentLanguageRelationModel, ContentAssetRelationModel)
+            val jobs = List(AuthorRelationsModel, ContentLanguageRelationModel, ContentAssetRelationModel)
             for (job <- jobs) {
                 job.main(config)
             }
