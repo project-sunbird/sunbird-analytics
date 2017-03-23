@@ -5,7 +5,7 @@
 # General APIs
 GET	/health @controllers.Application.checkAPIhealth
 POST /content/recommend @controllers.Application.recommendations
-POST content/creation/recommend @controllers.Application.creationRecommendations
+POST /content/creation/recommend @controllers.Application.creationRecommendations
 
 # Metrics APIs
 POST /metrics/content-usage @controllers.Metrics.contentUsage

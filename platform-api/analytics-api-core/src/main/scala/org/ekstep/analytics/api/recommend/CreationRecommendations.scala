@@ -45,19 +45,27 @@ object CreationRecommendations extends IRecommendations {
         if (validation.value) {
             val context = requestBody.request.context.getOrElse(Map());
             val authorId = context.getOrElse("uid", "").asInstanceOf[String];
-            val language = List("hi", "en", "te", "ta", "ka", "ma")
-            val concept = List("LO52", "LO89", "LO23", "LO18", "LO34", "LO521")
-            val contenttype = List("Story", "WorkSheet", "Game")
-            val gradelevel = List("Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5")
-            var contents = new ListBuffer[Map[String, String]]()
-            for (a <- 1 to getLimit(requestBody)) {
-                contents += Map("type"->"Content", "langauge" -> Random.shuffle(language).head, "concept" -> Random.shuffle(concept).head, "contentType" -> Random.shuffle(contenttype).head, "gradeLevel" -> Random.shuffle(gradelevel).head)
-            }
-            val result = applyLimit(contents.toList, contents.size, getLimit(requestBody))
-            JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_CREATION, Map[String, AnyRef]("context" -> Map("uid" -> authorId), "requests" -> result)));
+            val result = getMockResponse(getLimit(requestBody));
+            JSONUtils.serialize(CommonUtil.OK(APIIds.CREATION_RECOMMENDATIONS, Map[String, AnyRef]("requests" -> result)));
         } else {
-            CommonUtil.errorResponseSerialized(APIIds.CONTENT_CREATION, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
+            CommonUtil.errorResponseSerialized(APIIds.CREATION_RECOMMENDATIONS, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
         }
+    }
+    
+    private def getMockResponse(limit: Int) : List[Map[String, String]] = {
+    	val languages = List("Kannada","Punjabi","Odia","Hindi","Assamese","Tamil","Gujarati","English","Telugu","Bengali","Marathi");
+        val concepts = List("Num:C2:SC1","Num:C4:SC6","Num:C1:SC2:MC12","Num:C1:SC3:MC5","Num:C2:SC1:MC6","Num:C3:SC6","Num:C1:SC2:MC3","Num:C1:SC2:MC20","Num:C1:SC3:MC13","Num:C2:SC1:MC14","Num:C1:SC3","Num:C1:SC2:MC11","Num:C4:SC7","Num:C2:SC1:MC5","Num:C1:SC3:MC6","Num:C3:SC5","Num:C1:SC2:MC19","Num:C1:SC2:MC4","Num:C2:SC1:MC13","Num:C1:SC3:MC14","Num:C4:SC4","Num:C1:SC2:MC10","Num:C2:SC3","Num:C1:SC3:MC7");
+        val contentTypes = List("Story", "WorkSheet", "Game");
+        val gradeLevels = List("Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5");
+        val random = scala.util.Random
+        val mockResponse = for (i <- 1 to limit) yield {
+        	Map("type" -> "Content", 
+        		"language" -> languages(random.nextInt(languages.size)), 
+        		"concept" -> concepts(random.nextInt(concepts.size)), 
+        		"contentType" -> contentTypes(random.nextInt(contentTypes.size)), 
+        		"gradeLevel" -> gradeLevels(random.nextInt(gradeLevels.size)));
+        };
+        mockResponse.toList
     }
 
     def applyLimit(contents: List[Map[String, Any]], total: Int, limit: Int)(implicit config: Config): List[Map[String, Any]] = {

@@ -42,7 +42,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     "RecommendationAPIService" should "return device specific contents" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("successful");
@@ -53,7 +53,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     "RecommendationAPIService" should "return content specific contents" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en", "contentid":"TestContent"}}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("successful");
@@ -64,7 +64,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return error response on invalid request when request is empty" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{}}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("failed");
@@ -73,7 +73,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return error response on invalid request when request context doesn't have did for content recommendation" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"dlang": "en","contentid": "TestId1"}}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("failed");
@@ -82,7 +82,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return empty response on a request when request context contentid doesnot have recommended content" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang": "en","contentid": "dot_123016"}}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
       resp.id should be ("ekstep.analytics.recommendations");
       resp.params.status should be ("successful");
@@ -93,7 +93,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "retun only 3 contents for device recommendation" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"},"limit":3}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
       resp.id should be ("ekstep.analytics.recommendations");
       resp.params.status should be ("successful");
@@ -109,7 +109,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return only 'Hindi' contents" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"hi"},"filters":{"language":"Hindi"},"limit":100}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("successful");
@@ -121,7 +121,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return only 'Hindi Stories' content" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"hi"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("successful");
@@ -134,7 +134,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return content based context filtered content" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"2016-05-19T09:23:44.212+00:00","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"hi"},"filters":{"language":"Hindi", "contentType": "Story"},"limit":100}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("successful");
@@ -149,7 +149,7 @@ class TestRecommendationAPIService extends SparkSpec {
 //    	val beforeTime = RecommendationAPIService.cacheTimestamp;
     	DateTimeUtils.setCurrentMillisFixed(DateTime.now(DateTimeZone.UTC).getMillis + TimeUnit.DAYS.toMillis(1)); // Fix the date-time to be returned by DateTime.now()
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang":"en"}}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
         resp.id should be ("ekstep.analytics.recommendations");
         resp.params.status should be ("successful");
@@ -160,7 +160,7 @@ class TestRecommendationAPIService extends SparkSpec {
     
     it should "return response on a request when request limit is more than the total recommended content" in {
     	val request = """ {"id":"ekstep.analytics.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"did":"5edf49c4-313c-4f57-fd52-9bfe35e3b7d6","dlang": "en","contentid": "dot_123016"}, "limit":30}} """;
-    	val response = RecommendationAPIService.recommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
+    	val response = RecommendationAPIService.consumptionRecommendations(JSONUtils.deserialize[RequestBody](request))(sc, config);
     	val resp = JSONUtils.deserialize[Response](response);
       resp.id should be ("ekstep.analytics.recommendations");
       resp.params.status should be ("successful");

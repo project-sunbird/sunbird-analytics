@@ -27,11 +27,12 @@ object RecommendationAPIService {
 	val CONTENT_RECO = "Content";
 	
 	def props = Props[RecommendationAPIService];
-	case class RecommendRequest(requestBody: String, sc: SparkContext, config: Config);
+	case class Consumption(requestBody: String, sc: SparkContext, config: Config);
+	case class Creation(requestBody: String, sc: SparkContext, config: Config);
 	
-	def recommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
+	def consumptionRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
 		ContentCacheUtil.validateCache()(sc, config);
-		if (hasRequired(requestBody)) {
+		if (hasRequired(requestBody, "CONSUMPTION")) {
 			val recoType = 	recommendType(requestBody);
 			if (StringUtils.equals(DEVICE_RECO, recoType)) 
 				DeviceRecommendations.fetch(requestBody);
@@ -41,26 +42,40 @@ object RecommendationAPIService {
 			CommonUtil.errorResponseSerialized(APIIds.RECOMMENDATIONS, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
 		}
 	}
+	
+	def creationRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
+		if (hasRequired(requestBody, "CREATION")) {
+			CreationRecommendations.fetch(requestBody);
+		} else {
+			CommonUtil.errorResponseSerialized(APIIds.CREATION_RECOMMENDATIONS, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
+		}
+	}
 
-	private def hasRequired(requestBody: RequestBody): Boolean = {
+	private def hasRequired(requestBody: RequestBody, action: String): Boolean = {
 		val context = requestBody.request.context.getOrElse(Map());
-		val did = context.get("did");
-		val dlang = context.get("dlang");
-		if (did.isEmpty || dlang.isEmpty) false else true;
+		if (StringUtils.equals("CONSUMPTION", action)) {
+			val did = context.get("did");
+			val dlang = context.get("dlang");
+			if (did.isEmpty || dlang.isEmpty) false else true;
+		} else if (StringUtils.equals("CREATION", action)) {
+			val uid = context.get("uid");
+			if (uid.isEmpty) false else true;
+		} else false;
 	}
 	
 	private def recommendType(requestBody: RequestBody) : String = {
 		if (requestBody.request.context.getOrElse(Map()).get("contentid").isEmpty) DEVICE_RECO else CONTENT_RECO;
 	}
-	
-
 }
 
 class RecommendationAPIService extends Actor {
 	import RecommendationAPIService._;
 
 	def receive = {
-		case RecommendRequest(requestBody: String, sc: SparkContext, config: Config) =>
-			sender() ! recommendations(JSONUtils.deserialize[RequestBody](requestBody))(sc, config);
+		case Consumption(requestBody: String, sc: SparkContext, config: Config) =>
+			sender() ! consumptionRecommendations(JSONUtils.deserialize[RequestBody](requestBody))(sc, config);
+			
+		case Creation(requestBody: String, sc: SparkContext, config: Config) =>
+			sender() ! creationRecommendations(JSONUtils.deserialize[RequestBody](requestBody))(sc, config);
 	}
 }
