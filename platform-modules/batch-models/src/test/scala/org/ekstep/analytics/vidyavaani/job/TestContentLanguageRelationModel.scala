@@ -17,8 +17,8 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
 
         val getRelationsQuery = getRelQuery("domain", "Language")
         
-        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
-        contentNodes.count() should be(7)
+        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), None, Option("WHERE ee.contentType IN ['Story', 'Game', 'Collection', 'Worksheet']"));
+        contentNodes.count() should be(3)
         
         GraphDBUtil.deleteNodes(None, Option(List(ContentLanguageRelationModel.NODE_NAME)))
         
@@ -32,9 +32,10 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
 
         val langNodesAfter = GraphDBUtil.findNodes(Map(), Option(List(ContentLanguageRelationModel.NODE_NAME)));
         langNodesAfter.count() should be(3)
+        langNodesAfter.first().metadata.get.get("contentCount").get should be(1)
 
         val contentLangRelAfter = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
-        contentLangRelAfter.size should be(7)
+        contentLangRelAfter.size should be(3)
         
         // check for relation between specific content & language
         val query1 = getRelTypeQuery("domain", "org.ekstep.ra_ms_52d058e969702d5fe1ae0f00", "Language", "other")
