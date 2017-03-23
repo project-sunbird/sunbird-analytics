@@ -58,7 +58,7 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
         val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
             Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
 
-        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit);
+        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit, Option("WHERE ee.contentType IN ['Story', 'Game', 'Collection', 'Worksheet']"));
         val contentLanguage = contentNodes.map { x => x.metadata.getOrElse(Map()) }
             .map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
             .map(f => for (i <- f._1) yield (i, f._2)).flatMap(f => f)
