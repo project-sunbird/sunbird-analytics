@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.framework.conf.AppConf 
 import org.ekstep.analytics.framework.Relation
+import org.ekstep.analytics.framework.UpdateDataNode
 
 object GraphDBUtil {
 
@@ -59,6 +60,51 @@ object GraphDBUtil {
 				.append(DETACH_DELETE).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT);
 
 			val query = deleteQuery.toString;
+			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		}
+
+	}
+	
+	def updateNode(metadata: Option[Map[String, AnyRef]], labels: Option[List[String]], propertyName: String, propertyValue: AnyRef)(implicit sc: SparkContext) {
+		if (metadata.isEmpty && labels.isEmpty) {
+			JobLogger.log("GraphDBUtil.updateNode - No metadata or labels to update nodes.");
+		} else {
+			val updateQuery = StringBuilder.newBuilder;
+			updateQuery.append(MATCH).append(getLabelsQuery(labels))
+
+			val props = removeKeyQuotes(JSONUtils.serialize(metadata.getOrElse(Map())));
+			updateQuery.append(props).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
+				.append(SET).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT)
+				.append(DOT).append(propertyName).append(BLANK_SPACE).append(EQUALS)
+				.append(BLANK_SPACE).append(propertyValue);
+
+			val query = updateQuery.toString;
+			println(query)
+			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		}
+
+	}
+	
+	def updateNodes(nodes: RDD[UpdateDataNode])(implicit sc: SparkContext) {
+	  val fullQuery = StringBuilder.newBuilder;
+		if (!nodes.isEmpty) {
+			fullQuery.append(MATCH)
+			val nodesQuery = nodes.map { x =>
+				val nodeQuery = StringBuilder.newBuilder;
+				nodeQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(x.identifier).append(COLON)
+					.append(x.labels.get.mkString(":"))
+				val props = removeKeyQuotes(JSONUtils.serialize(x.metadata.getOrElse(Map())));
+				nodeQuery.append(props).append(CLOSE_COMMON_BRACKETS);
+				nodeQuery.toString
+			}.collect().mkString(",")
+			val setsQuery = nodes.map { x =>
+				val setQuery = StringBuilder.newBuilder;
+				setQuery.append(DEFAULT_CYPHER_NODE_OBJECT).append(x.identifier)
+					.append(DOT).append(x.propertyName).append(EQUALS).append(x.propertyValue)
+				setQuery.toString
+			}.collect().mkString(",")
+			val query = fullQuery.append(nodesQuery).append(BLANK_SPACE).append(SET).append(BLANK_SPACE).append(setsQuery).toString
+			println(query)
 			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 		}
 

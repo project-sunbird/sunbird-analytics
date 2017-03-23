@@ -18,6 +18,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.util.ECMLUtil
+import org.ekstep.analytics.framework.UpdateDataNode
 
 case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
 
@@ -54,14 +55,20 @@ object ContentAssetRelationModel extends optional.Application with IJob {
 			GraphDBUtil.deleteRelation(RELATION, RelationshipDirection.OUTGOING.toString, None)
 			val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
 				.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
-				.map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }.map { x =>
+				.map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }
+			
+			val assetContents = data.map(x => x._2.map(f => (f, x._1))).flatMap(f => f).groupByKey().map(f => (f._1, f._2.size))
+			val updateQueries = assetContents.map(x => UpdateDataNode(x._1, "contentCount", x._2.asInstanceOf[AnyRef], Option(Map("IL_UNIQUE_ID" -> x._1)), Option(List("domain"))))
+			GraphDBUtil.updateNodes(updateQueries)
+		
+			val relationsData = data.map { x =>
 					val startNode = DataNode(x._1, None, Option(List("domain")));
 					x._2.map { x =>
 						val endNode = DataNode(x, None, Option(List("domain")));
 						Relation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
 					}
 				}.flatMap { x => x }
-			GraphDBUtil.addRelations(data);
+			GraphDBUtil.addRelations(relationsData);
 		})
 		JobLogger.end("ContentAssetRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
 	}

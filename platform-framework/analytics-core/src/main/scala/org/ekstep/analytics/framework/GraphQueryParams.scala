@@ -8,6 +8,7 @@ object GraphQueryParams {
 	val MATCH = "MATCH";
 	val RETURN = "RETURN";
 	val DETACH_DELETE = "DETACH DELETE"
+	val SET = "SET"
 	
 	val OPEN_CURLY_BRACKETS = "{";
 	val CLOSE_CURLY_BRACKETS = "}";
