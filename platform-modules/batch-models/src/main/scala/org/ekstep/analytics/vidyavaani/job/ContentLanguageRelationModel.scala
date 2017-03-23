@@ -61,7 +61,7 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit, Option("WHERE ee.contentType IN ['Story', 'Game', 'Collection', 'Worksheet']"));
         val contentLanguage = contentNodes.map { x => x.metadata.getOrElse(Map()) }
             .map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
-            .map(f => for (i <- f._1) yield (i, f._2)).flatMap(f => f)
+            .map(f => for (i <- f._1) yield (i.toLowerCase(), f._2)).flatMap(f => f)
             .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
         
         val languages = contentLanguage.groupByKey().map(f => (f._1, f._2.size))
