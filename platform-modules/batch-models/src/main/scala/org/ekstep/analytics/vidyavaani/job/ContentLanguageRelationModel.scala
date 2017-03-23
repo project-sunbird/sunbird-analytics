@@ -59,19 +59,18 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
             Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
 
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit);
-
-        val languages = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-            .map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]])).flatMap { x => x }.distinct()
-            .map { f =>
-                DataNode(f.toLowerCase(), Option(Map("name" -> f)), Option(List(NODE_NAME)));
-            }
-        GraphDBUtil.createNodes(languages);
-
-        val languageContentRels = contentNodes.map { x => x.metadata.getOrElse(Map()) }
+        val contentLanguage = contentNodes.map { x => x.metadata.getOrElse(Map()) }
             .map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
             .map(f => for (i <- f._1) yield (i, f._2)).flatMap(f => f)
             .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
+        
+        val languages = contentLanguage.groupByKey().map(f => (f._1, f._2.size))
             .map { f =>
+                DataNode(f._1.toLowerCase(), Option(Map("name" -> f._1, "contentCount" -> f._2.asInstanceOf[AnyRef])), Option(List(NODE_NAME)));
+            }
+        GraphDBUtil.createNodes(languages);
+            
+        val languageContentRels = contentLanguage.map { f =>
                 val startNode = DataNode(f._1.toLowerCase(), None, Option(List(NODE_NAME)));
                 val endNode = DataNode(f._2, None, Option(List("domain")));
                 Relation(startNode, endNode, RELATION, RelationshipDirection.INCOMING.toString);

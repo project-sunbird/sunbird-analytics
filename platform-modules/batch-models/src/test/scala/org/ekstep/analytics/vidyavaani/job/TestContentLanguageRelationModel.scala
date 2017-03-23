@@ -32,6 +32,7 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
 
         val langNodesAfter = GraphDBUtil.findNodes(Map(), Option(List(ContentLanguageRelationModel.NODE_NAME)));
         langNodesAfter.count() should be(3)
+        langNodesAfter.first().metadata.get.get("contentCount").get should be(5)
 
         val contentLangRelAfter = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
         contentLangRelAfter.size should be(7)
