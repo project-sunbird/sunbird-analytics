@@ -57,7 +57,10 @@ object ContentAssetRelationModel extends optional.Application with IJob {
 				.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
 				.map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }
 			
-			val assetContents = data.map(x => x._2.map(f => (f, x._1))).flatMap(f => f).groupByKey().map(f => (f._1, f._2.size))
+			val assetNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content", "contentType" -> "Asset"), Option(List("domain")))
+			  .map { x => x.metadata.getOrElse(Map()) }.map(f => (f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
+			  .filter(f => StringUtils.isNoneBlank(f)).collect();
+			val assetContents = data.map(x => x._2.map(f => (f, x._1))).flatMap(f => f).groupByKey().map(f => (f._1, f._2.size)).filter(f => assetNodes.contains(f._1))
 			val updateQueries = assetContents.map(x => UpdateDataNode(x._1, "contentCount", x._2.asInstanceOf[AnyRef], Option(Map("IL_UNIQUE_ID" -> x._1)), Option(List("domain"))))
 			GraphDBUtil.updateNodes(updateQueries)
 		

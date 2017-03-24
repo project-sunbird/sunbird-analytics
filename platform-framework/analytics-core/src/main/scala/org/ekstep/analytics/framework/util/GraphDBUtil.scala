@@ -104,7 +104,6 @@ object GraphDBUtil {
 				setQuery.toString
 			}.collect().mkString(",")
 			val query = fullQuery.append(nodesQuery).append(BLANK_SPACE).append(SET).append(BLANK_SPACE).append(setsQuery).toString
-			println(query)
 			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 		}
 
