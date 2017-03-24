@@ -16,6 +16,10 @@ object GraphDBUtil {
 
 	implicit val className = "org.ekstep.analytics.framework.util.GraphDBUtil"
 
+	def executeQuery(query: String)(implicit sc: SparkContext) {
+		GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+	}
+	
 	def createNode(node: DataNode)(implicit sc: SparkContext) {
 		val props = removeKeyQuotes(JSONUtils.serialize(Map(UNIQUE_KEY -> node.identifier) ++ node.metadata.getOrElse(Map())));
 		val createQuery = StringBuilder.newBuilder;
