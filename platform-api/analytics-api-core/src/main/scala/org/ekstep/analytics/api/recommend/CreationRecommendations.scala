@@ -45,8 +45,9 @@ object CreationRecommendations extends IRecommendations {
         if (validation.value) {
             val context = requestBody.request.context.getOrElse(Map());
             val authorId = context.getOrElse("uid", "").asInstanceOf[String];
-            val requestRecos = sc.cassandraTable[(List[Map[String, Any]])](Constants.PLATFORML_DB, Constants.REQUEST_RECOS_TABLE).select("requests").where("uid = ?", authorId);
-            val result = requestRecos.flatMap {x => x}.collect().toList
+            val requests = sc.cassandraTable[(List[Map[String, Any]])](Constants.PLATFORML_DB, Constants.REQUEST_RECOS_TABLE).select("requests").where("uid = ?", authorId);
+            val requestRecos = requests.flatMap {x => x}.collect().toList
+            val result = applyLimit(requestRecos, requestRecos.size, getLimit(requestBody));
             JSONUtils.serialize(CommonUtil.OK(APIIds.CREATION_RECOMMENDATIONS, Map[String, AnyRef]("requests" -> result)));
         } else {
             CommonUtil.errorResponseSerialized(APIIds.CREATION_RECOMMENDATIONS, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
