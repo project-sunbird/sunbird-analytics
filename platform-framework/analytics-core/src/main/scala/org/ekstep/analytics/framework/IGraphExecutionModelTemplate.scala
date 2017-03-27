@@ -70,8 +70,7 @@ trait IGraphExecutionModelTemplate extends IBatchModel[String, String] {
 		val tx = session.beginTransaction();
 		try {
 			for (query <- queries.filter { x => StringUtils.isNotEmpty(x) }.collect()) {
-				println(query);
-				tx.run(query);	
+				tx.run(query);
 			}
 			tx.success();
 		} catch {
