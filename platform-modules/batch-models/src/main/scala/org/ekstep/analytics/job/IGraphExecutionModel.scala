@@ -41,6 +41,7 @@ trait IGraphExecutionModel extends IGraphExecutionModelTemplate with optional.Ap
 	private def _execute(jobConfig: JobConfig)(implicit sparkContext: SparkContext) = {
 		val input = sparkContext.emptyRDD[String];
         execute(input, jobConfig.modelParams);
+        JobContext.cleanUpRDDs();
         JobLogger.end(name + " processing complete", "SUCCESS", Option(Map( "timeTaken" -> Double.box(0))));
 	}
 }

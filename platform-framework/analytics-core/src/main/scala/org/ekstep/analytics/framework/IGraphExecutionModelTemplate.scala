@@ -11,7 +11,9 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.CommonUtil
 
-case class CypherQuery(query: String)  extends Input with Output with AlgoInput
+/**
+ * @author mahesh
+ */
 
 trait IGraphExecutionModelTemplate extends IBatchModel[String, String] {
 
