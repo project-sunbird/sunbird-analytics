@@ -60,9 +60,10 @@ object AuthorRelationsModel extends optional.Application with IJob {
         val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
             Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
 
+        // TODO: Most of the VV data products fetching content nodes. If possible move it to IGraphExecutionModel.
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit);
 
-        val owners = contentNodes.map { x => x.metadata.getOrElse(Map()) }
+        val users = contentNodes.map { x => x.metadata.getOrElse(Map()) }
             .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("owner", "").asInstanceOf[String]))
             .groupBy(f => f._1).filter(p => !StringUtils.isBlank(p._1))
             .map { f =>
@@ -72,8 +73,10 @@ object AuthorRelationsModel extends optional.Application with IJob {
                 DataNode(identifier, Option(Map("name" -> name, "type" -> "author")), Option(List(NODE_NAME)));
             }
 
-        GraphDBUtil.createNodes(owners);
+        GraphDBUtil.createNodes(users);
+        // TODO: Create required indexes for User node.
 
+        // TODO: Write a single query for this.
         val ownerContentRels = contentNodes.map { x => x.metadata.getOrElse(Map()) }
             .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
             .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
@@ -91,7 +94,7 @@ object AuthorRelationsModel extends optional.Application with IJob {
             Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
         val authorNodes = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List("User")), limit).collect;
         
-        
+        // TODO: Write a single query for this.
         val authorConceptRelations = authorNodes.map { x =>
             val author = x
             val metadata2 = Map("IL_FUNC_OBJECT_TYPE" -> "Content")
@@ -102,7 +105,7 @@ object AuthorRelationsModel extends optional.Application with IJob {
                 GraphDBUtil.findRelatedNodes(CONTENT_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString, Map("IL_UNIQUE_ID" -> x.identifier), meta2, label, label, limit)
             }.flatMap { x => x }.map { x => Relation(author, x, AUTHOR_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString) }
         }.flatMap { x => x }
-        println("Done")
+
         GraphDBUtil.addRelations(sc.parallelize(authorConceptRelations));
     }
 }
