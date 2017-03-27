@@ -31,9 +31,9 @@ object GraphDBUtil {
 		GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
 	}
 
-	def createNodes(nodes: RDD[DataNode])(implicit sc: SparkContext) {
-		val fullQuery = StringBuilder.newBuilder;
+	def createNodesQuery(nodes: RDD[DataNode]): String = {
 		if (!nodes.isEmpty) {
+			val fullQuery = StringBuilder.newBuilder;
 			fullQuery.append(CREATE)
 			val nodesQuery = nodes.map { x =>
 				val nodeQuery = StringBuilder.newBuilder;
@@ -43,9 +43,14 @@ object GraphDBUtil {
 				nodeQuery.append(props).append(CLOSE_COMMON_BRACKETS);
 				nodeQuery.toString
 			}.collect().mkString(",")
-			val query = fullQuery.append(nodesQuery).toString
+			fullQuery.append(nodesQuery).toString
+		} else "";
+	}
+	
+	def createNodes(nodes: RDD[DataNode])(implicit sc: SparkContext) {
+		val query = createNodesQuery(nodes);
+		if (StringUtils.isNotBlank(query)) 
 			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
-		}
 	}
 
 	def deleteNodes(metadata: Option[Map[String, AnyRef]], labels: Option[List[String]])(implicit sc: SparkContext) {

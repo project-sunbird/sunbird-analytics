@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils
  */
 class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 	override def beforeAll() {
+		System.setProperty("cassandra.unsafesystem", "true");
 		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
 		val connector = CassandraConnector(getSparkConf());
 		val session = connector.openSession();
