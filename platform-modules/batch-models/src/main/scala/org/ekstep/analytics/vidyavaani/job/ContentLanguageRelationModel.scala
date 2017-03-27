@@ -61,7 +61,7 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
     private def algorithm(graphDBConfig: Map[String, String])(implicit sc: SparkContext) = {
 
         val contentNodes = GraphQueryDispatcher.dispatch(graphDBConfig, findQuery);
-        val res = contentNodes.list().map { x => (x.get("n.language").asList(), x.get("n.IL_UNIQUE_ID").asString()) }
+        val res = contentNodes.list().map { x => (x.get("n.language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], x.get("n.IL_UNIQUE_ID", "").asInstanceOf[String]) }
           .map(f => for (i <- f._1) yield (i.toString().toLowerCase(), f._2)).flatMap(f => f)
           .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
         val contentLanguage = sc.parallelize(res)
