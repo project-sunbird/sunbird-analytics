@@ -22,7 +22,7 @@ object ContentLanguageRelationModel extends optional.Application with IJob {
     val RELATION = "expressedIn";
     implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel"
     val findQuery =  "MATCH (n:domain) where n.IL_FUNC_OBJECT_TYPE = 'Content' AND n.contentType IN ['Story', 'Game', 'Collection', 'Worksheet'] return n.language, n.IL_UNIQUE_ID" 
-    val realtionQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (l:Language{}) WHERE n.contentType IN ['Story', 'Game', 'Collection', 'Worksheet'] AND l.IL_UNIQUE_ID IN extract(language IN n.language | lower(language)) CREATE (n)-[r:expressedIn]->(l) RETURN r"
+    val realtionQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (l:Language{}) WHERE lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND l.IL_UNIQUE_ID IN extract(language IN n.language | lower(language)) CREATE (n)-[r:expressedIn]->(l) RETURN r"
     val deleteQuery = "MATCH (l:Language{}) DETACH DELETE l"
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
