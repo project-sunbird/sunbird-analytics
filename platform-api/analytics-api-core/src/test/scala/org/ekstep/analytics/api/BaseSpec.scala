@@ -18,7 +18,8 @@ import org.scalatest.BeforeAndAfterAll
 class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll{
   
   override def beforeAll() {
-		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        System.setProperty("cassandra.unsafesystem", "true")
+		EmbeddedCassandraServerHelper.startEmbeddedCassandra(20000L);
 		val connector = CassandraConnector(getSparkConf());
 		val session = connector.openSession();
 		val dataLoader = new CQLDataLoader(session);

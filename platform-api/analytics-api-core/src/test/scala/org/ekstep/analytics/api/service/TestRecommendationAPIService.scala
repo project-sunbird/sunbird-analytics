@@ -210,21 +210,21 @@ class TestRecommendationAPIService extends SparkSpec {
     }
 
     it should "return requests when request body having limit less than actual results" in {
-        val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d6"},"filters": { },"limit": 1}} """;
+        val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d0"},"filters": { },"limit": 3}} """;
         val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
         val resp = JSONUtils.deserialize[Response](response);
         val result = resp.result.get;
         val requests = result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
-        requests.length should be (1)
+        requests.length should be(3)
     }
     
     it should "return default requests when request body not provided with limit" in {
-        val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d6"},"filters": { }}} """;
+        val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d0"},"filters": { }}} """;
         val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
         val resp = JSONUtils.deserialize[Response](response);
         val result = resp.result.get;
         val requests = result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
-        requests.length should be (2)
+        requests.length should be(10)
     }
 
 }
