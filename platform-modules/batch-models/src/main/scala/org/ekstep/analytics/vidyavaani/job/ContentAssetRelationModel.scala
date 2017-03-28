@@ -48,7 +48,7 @@ object ContentAssetRelationModel extends IGraphExecutionModel with Serializable 
                 GraphDBUtil.addRelationQuery(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString)
             }
         }.flatMap { x => x }
-        ppQueries.union(relationsData).union(sc.parallelize(Seq(updateAssetNodeQuery), JobContext.parallelization));
+        ppQueries.union(relationsData)//.union(sc.parallelize(Seq(updateAssetNodeQuery), JobContext.parallelization));
     }
 
     private def getAssetIds(body: String, contentId: String): List[String] = {
