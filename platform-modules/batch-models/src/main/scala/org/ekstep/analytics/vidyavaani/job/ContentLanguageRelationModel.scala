@@ -29,7 +29,7 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 	
 
 	val findQuery = "MATCH (n:domain) where n.IL_FUNC_OBJECT_TYPE = 'Content' AND n.contentType IN ['Story', 'Game', 'Collection', 'Worksheet'] return n.language, n.IL_UNIQUE_ID"
-	val realtionQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (l:Language{}) WHERE lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND l.IL_UNIQUE_ID IN extract(language IN n.language | lower(language)) CREATE (n)-[r:expressedIn]->(l) RETURN r"
+	val relationQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (l:Language{}) WHERE lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND l.IL_UNIQUE_ID IN extract(language IN n.language | lower(language)) CREATE (n)-[r:expressedIn]->(l) RETURN r"
 	val deleteQuery = "MATCH (l:Language{}) DETACH DELETE l"
 
 	
@@ -50,7 +50,7 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 				DataNode(f._1.toLowerCase(), Option(Map("name" -> f._1, "contentCount" -> f._2.asInstanceOf[AnyRef])), Option(List(NODE_NAME)));
 			}
 			
-		ppQueries.union(sc.parallelize(Seq(GraphDBUtil.createNodesQuery(languages), realtionQuery), JobContext.parallelization));
+		ppQueries.union(sc.parallelize(Seq(GraphDBUtil.createNodesQuery(languages), relationQuery), JobContext.parallelization));
 	}
 
 }
