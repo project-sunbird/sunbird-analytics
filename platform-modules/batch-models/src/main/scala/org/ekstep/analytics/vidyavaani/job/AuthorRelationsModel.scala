@@ -14,59 +14,32 @@ import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.Relation
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.ekstep.analytics.job.IGraphExecutionModel
+import org.apache.spark.rdd.RDD
+import scala.collection.JavaConversions._
 
-object AuthorRelationsModel extends optional.Application with IJob {
+object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
 
     val NODE_NAME = "User";
     val CONTENT_AUTHOR_RELATION = "createdBy"
-    val AUTHOR_CONCEPT_RELATION = "uses"
-    
-    val INDEX_QUERY = "CREATE INDEX ON :User(type)"
+
+    val DELETE_AUTHOR_QUERY = "MATCH(ee:User{type: 'author'}) DETACH DELETE ee"
+    //val INDEX_QUERY = "CREATE INDEX ON :User(type)"
+    val CONTENT_AUTHOR_REL_QUERY = "MATCH (c:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (u:User{type:'author'}) WHERE c.portalOwner = u.IL_UNIQUE_ID CREATE (c)-[r:createdBy]->(u) RETURN r"
     val AUTHOR_CONCEPT_REL_QUERY = "MATCH (A:User {type:'author'}), (C:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH path = (C)<-[:associatedTo]-(f:domain{IL_FUNC_OBJECT_TYPE:'Content',status:'Live'})-[:createdBy]->(A) WITH A, C, CASE WHEN path is null THEN 0 ELSE COUNT(path) END AS overlap MERGE (C)-[:usedBy{support:overlap}]->(A)"
-    val AUTHOR_CONCEPT_REL_DEL_QUERY = "MATCH (n: domain{IL_FUNC_OBJECT_TYPE:'Concept'})-[r:usedBy]->(m: User{type:'author'}) delete r;"
-    
-    implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
-    def main(config: String)(implicit sc: Option[SparkContext] = None) {
+    override def name(): String = "ContentLanguageRelationModel";
+    override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
-        JobLogger.init("AuthorRelationsModel")
-        JobLogger.start("AuthorRelationsModel Started executing", Option(Map("config" -> config)))
-
-        val jobConfig = JSONUtils.deserialize[JobConfig](config);
-
-        if (null == sc.getOrElse(null)) {
-            JobContext.parallelization = 10;
-            implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Graph Model"));
-            try {
-                execute()
-            } catch {
-                case t: Throwable => t.printStackTrace()
-            } finally {
-                CommonUtil.closeSparkContext();
-            }
-        } else {
-            implicit val sparkContext: SparkContext = sc.getOrElse(null);
-            execute();
-        }
+    override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        sc.parallelize(Seq(DELETE_AUTHOR_QUERY), JobContext.parallelization);
     }
 
-    private def execute()(implicit sc: SparkContext) {
-        val time = CommonUtil.time({
-            GraphDBUtil.deleteNodes(None, Option(List(NODE_NAME)))
-            _createAuthorNodeWithRelation();
-            _createAuthorConceptRelation();
-        })
+    override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.end("AuthorRelationsModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
-    }
+        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
 
-    private def _createAuthorNodeWithRelation()(implicit sc: SparkContext) = {
-        val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
-            Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
-
-        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit);
-
-        val owners = contentNodes.map { x => x.metadata.getOrElse(Map()) }
+        val authorNodes = contentNodes.map { x => x.metadata.getOrElse(Map()) }
             .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("owner", "").asInstanceOf[String]))
             .groupBy(f => f._1).filter(p => !StringUtils.isBlank(p._1))
             .map { f =>
@@ -76,31 +49,7 @@ object AuthorRelationsModel extends optional.Application with IJob {
                 DataNode(identifier, Option(Map("name" -> name, "type" -> "author")), Option(List(NODE_NAME)));
             }
 
-        GraphDBUtil.createNodes(owners);
-
-        val ownerContentRels = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-            .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
-            .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
-            .map { f =>
-                val startNode = DataNode(f._1, None, Option(List("User")));
-                val endNode = DataNode(f._2, None, Option(List("domain")));
-                Relation(startNode, endNode, CONTENT_AUTHOR_RELATION, RelationshipDirection.INCOMING.toString);
-            };
-        GraphDBUtil.addRelations(ownerContentRels);
-
-    }
-
-    def _createAuthorConceptRelation()(implicit sc: SparkContext) = {
-        
-        val config = Map("url" -> AppConf.getConfig("neo4j.bolt.url"), "user" -> AppConf.getConfig("neo4j.bolt.user"), "password" -> AppConf.getConfig("neo4j.bolt.password"));
-        
-        // Deleteing usedBy relation between Concept -> Author
-        GraphQueryDispatcher.dispatch(config, AUTHOR_CONCEPT_REL_DEL_QUERY)
-        
-        // Indexing Author node
-        GraphQueryDispatcher.dispatch(config, INDEX_QUERY)
-        
-        // Adding relation between Concept -> Author
-        GraphQueryDispatcher.dispatch(config, AUTHOR_CONCEPT_REL_QUERY)       
+        val authorQuery = GraphDBUtil.createNodesQuery(authorNodes)
+        ppQueries.union(sc.parallelize(Seq(authorQuery, CONTENT_AUTHOR_REL_QUERY, AUTHOR_CONCEPT_REL_QUERY), JobContext.parallelization));
     }
 }

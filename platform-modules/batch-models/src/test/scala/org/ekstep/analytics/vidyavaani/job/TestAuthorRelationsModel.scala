@@ -14,17 +14,23 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
         val graphConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
-     
-        val getRelationsQuery = getRelQuery("domain", AuthorRelationsModel.NODE_NAME)
+
+        val associatedToRelQuery = "MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r"
+        val associatedToDeleteQuery = "MATCH ()-[r:associatedTo]->() DELETE r"
+        GraphQueryDispatcher.dispatch(graphConfig, associatedToDeleteQuery)
+        GraphQueryDispatcher.dispatch(graphConfig, associatedToRelQuery)
         
+        val getRelationsQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Content'} ) -[r:createdBy]-> (aa: User {type: 'author'}) RETURN r"
+        val getConceptAuthorRelQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Concept'} ) -[r:usedBy]-> (aa: User {type: 'author'}) RETURN r"
+
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
         contentNodes.count() should be(7)
-        
+
         GraphDBUtil.deleteNodes(None, Option(List(AuthorRelationsModel.NODE_NAME)))
 
         val authorNodesBefore = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List(AuthorRelationsModel.NODE_NAME)));
         authorNodesBefore.count() should be(0)
-        
+
         val contentAuthorRelBefore = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
         contentAuthorRelBefore.size should be(0)
 
@@ -32,7 +38,7 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
 
         val authorNodesAfter = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List(AuthorRelationsModel.NODE_NAME)));
         authorNodesAfter.count() should be(1)
-      
+
         val contentAuthorRelAfter = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
         contentAuthorRelAfter.size should be(3)
 
@@ -41,11 +47,11 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
         val rel1 = GraphQueryDispatcher.dispatch(graphConfig, query1).list;
         rel1.size() should be(1)
         rel1.get(0).asMap().get("type(r)") should be("createdBy")
-        
+
         val query2 = getRelTypeQuery("domain", "page_1_image_0", "User", "290")
         val rel2 = GraphQueryDispatcher.dispatch(graphConfig, query2).list;
         rel2.size() should be(0)
-        
+
         val authorContentRelQuery = getRelQuery(AuthorRelationsModel.NODE_NAME, "domain")
         val authorContentRels = GraphQueryDispatcher.dispatch(graphConfig, authorContentRelQuery).list;
         authorContentRels.size should be(0)
@@ -57,31 +63,35 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
         val contentContentRelQuery = getRelQuery("domain", "domain")
         val contentContentRels = GraphQueryDispatcher.dispatch(graphConfig, contentContentRelQuery).list;
         contentContentRels.size should be(0)
+
+        val conceptAuthRels = GraphQueryDispatcher.dispatch(graphConfig, getConceptAuthorRelQuery).list;
+        conceptAuthRels.size should be(1)
+
     }
-    
+
     def getRelQuery(startNode: String, endNode: String): String = {
-        
+
         val relationsQuery = StringBuilder.newBuilder;
         relationsQuery.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
-        .append(startNode).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
-        .append(GraphDBUtil.getRelationQuery(AuthorRelationsModel.CONTENT_AUTHOR_RELATION, RelationshipDirection.OUTGOING.toString)).append(BLANK_SPACE)
-        .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(endNode)
-        .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_RELATION_OBJECT)
-        
+            .append(startNode).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
+            .append(GraphDBUtil.getRelationQuery(AuthorRelationsModel.CONTENT_AUTHOR_RELATION, RelationshipDirection.OUTGOING.toString)).append(BLANK_SPACE)
+            .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(endNode)
+            .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_RELATION_OBJECT)
+
         relationsQuery.toString();
     }
-    
+
     def getRelTypeQuery(startNode: String, startNodeUniqueId: String, endNode: String, endNodeUniqueId: String): String = {
-        
+
         val query = StringBuilder.newBuilder;
         query.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
-        .append(startNode).append(OPEN_CURLY_BRACKETS).append(BLANK_SPACE).append("IL_UNIQUE_ID:").append(SINGLE_QUOTE).append(startNodeUniqueId).append(SINGLE_QUOTE)
-        .append(BLANK_SPACE).append(CLOSE_CURLY_BRACKETS).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
-        .append("-[r]->").append(BLANK_SPACE)
-        .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(endNode).append(BLANK_SPACE)
-        .append(OPEN_CURLY_BRACKETS).append(BLANK_SPACE).append("IL_UNIQUE_ID:").append(SINGLE_QUOTE).append(endNodeUniqueId).append(SINGLE_QUOTE)
-        .append(BLANK_SPACE).append(CLOSE_CURLY_BRACKETS)
-        .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append("type").append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_RELATION_OBJECT).append(CLOSE_COMMON_BRACKETS)
+            .append(startNode).append(OPEN_CURLY_BRACKETS).append(BLANK_SPACE).append("IL_UNIQUE_ID:").append(SINGLE_QUOTE).append(startNodeUniqueId).append(SINGLE_QUOTE)
+            .append(BLANK_SPACE).append(CLOSE_CURLY_BRACKETS).append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
+            .append("-[r]->").append(BLANK_SPACE)
+            .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append(endNode).append(BLANK_SPACE)
+            .append(OPEN_CURLY_BRACKETS).append(BLANK_SPACE).append("IL_UNIQUE_ID:").append(SINGLE_QUOTE).append(endNodeUniqueId).append(SINGLE_QUOTE)
+            .append(BLANK_SPACE).append(CLOSE_CURLY_BRACKETS)
+            .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append("type").append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_RELATION_OBJECT).append(CLOSE_COMMON_BRACKETS)
 
         query.toString();
     }
