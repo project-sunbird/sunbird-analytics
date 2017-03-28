@@ -21,7 +21,7 @@ object ConceptLanguageRelationModel extends IGraphExecutionModel with Serializab
     val RELATION = "usedIn";
     
     val relationQuery = "MATCH (l:Language), (c:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH p=(l)<-[ln:expressedIn]-(n:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(c) WHERE lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] WITH c, l, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS cc MERGE (c)-[r:usedIn{contentCount: cc}]->(l) RETURN r"
-    val deleteRelQuery = "MATCH ()-[r:usedIn]->() DELETE r"
+    val deleteRelQuery = "MATCH (c:domain{IL_FUNC_OBJECT_TYPE:'Concept'})-[r:usedIn]->(l:Language) DELETE r"
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
         sc.parallelize(Seq(deleteRelQuery), JobContext.parallelization);

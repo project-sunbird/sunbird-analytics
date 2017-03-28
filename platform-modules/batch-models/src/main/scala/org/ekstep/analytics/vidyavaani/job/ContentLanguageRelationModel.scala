@@ -27,10 +27,9 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 	val NODE_NAME = "Language";
 	val RELATION = "expressedIn";
 	
-
-	val findQuery = "MATCH (n:domain) where n.IL_FUNC_OBJECT_TYPE = 'Content' AND n.contentType IN ['Story', 'Game', 'Collection', 'Worksheet'] return n.language, n.IL_UNIQUE_ID"
-	val relationQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (l:Language{}) WHERE lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND l.IL_UNIQUE_ID IN extract(language IN n.language | lower(language)) CREATE (n)-[r:expressedIn]->(l) RETURN r"
-	val deleteQuery = "MATCH (l:Language{}) DETACH DELETE l"
+	val deleteQuery = "MATCH (l:Language{}) DETACH DELETE l";
+	val findQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE: 'Content'}) where lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] return n.language, n.IL_UNIQUE_ID"
+	val relationQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (l:Language{}) WHERE lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND l.IL_UNIQUE_ID IN extract(language IN n.language | lower(language)) CREATE (n)-[r:expressedIn]->(l) RETURN r";
 
 	
 	override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {

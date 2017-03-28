@@ -25,7 +25,7 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
 
     val DELETE_AUTHOR_QUERY = "MATCH(ee:User{type: 'author'}) DETACH DELETE ee"
     //val INDEX_QUERY = "CREATE INDEX ON :User(type)"
-    val CONTENT_AUTHOR_REL_QUERY = "MATCH (c:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (u:User{type:'author'}) WHERE c.portalOwner = u.IL_UNIQUE_ID CREATE (c)-[r:createdBy]->(u) RETURN r"
+    val CONTENT_AUTHOR_REL_QUERY = "MATCH (c:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (u:User{type:'author'}) WHERE u.IL_UNIQUE_ID = c.portalOwner CREATE (c)-[r:createdBy]->(u) RETURN r"
     val AUTHOR_CONCEPT_REL_QUERY = "MATCH (A:User {type:'author'}), (C:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH path = (C)<-[:associatedTo]-(f:domain{IL_FUNC_OBJECT_TYPE:'Content',status:'Live'})-[:createdBy]->(A) WITH A, C, CASE WHEN path is null THEN 0 ELSE COUNT(path) END AS overlap MERGE (C)-[:usedBy{support:overlap}]->(A)"
 
     override def name(): String = "ContentLanguageRelationModel";
