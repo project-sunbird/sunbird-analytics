@@ -15,11 +15,6 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
-        val associatedToRelQuery = "MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r"
-        val associatedToDeleteQuery = "MATCH ()-[r:associatedTo]->() DELETE r"
-        GraphQueryDispatcher.dispatch(graphConfig, associatedToDeleteQuery)
-        GraphQueryDispatcher.dispatch(graphConfig, associatedToRelQuery)
-        
         val getRelationsQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Content'} ) -[r:createdBy]-> (aa: User {type: 'author'}) RETURN r"
         val getConceptAuthorRelQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Concept'} ) -[r:usedBy]-> (aa: User {type: 'author'}) RETURN r"
 
