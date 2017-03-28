@@ -29,8 +29,8 @@ object ContentAssetRelationModel extends IGraphExecutionModel with Serializable 
     val RELATION = "uses";
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
 
-    val deleteRelQuery = "MATCH (n1: domain) - [r: uses] -> (n2: domain) where n2.contentType = 'Asset' DELETE r"
-    val updateAssetNodeQuery = "MATCH (a:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Asset'}), (c:domain{IL_FUNC_OBJECT_TYPE:'Content'}) MATCH p=(a)<-[r:uses]-(c) WHERE lower(c.contentType) IN ['story', 'game', 'collection', 'worksheet']  WITH a, COUNT(p) AS cc SET a.contentCount = cc"
+    val deleteRelQuery = "MATCH (cnt: domain) - [r: uses] -> (ast: domain) where ast.contentType = 'Asset' DELETE r"
+    val updateAssetNodeQuery = "MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Asset'}), (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) MATCH p=(ast)<-[r:uses]-(cnt) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH ast, COUNT(p) AS cc SET ast.contentCount = cc"
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
         sc.parallelize(Seq(deleteRelQuery), JobContext.parallelization);

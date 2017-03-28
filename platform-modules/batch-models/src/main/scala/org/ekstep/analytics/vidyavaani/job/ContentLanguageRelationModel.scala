@@ -27,11 +27,10 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 	val NODE_NAME = "Language";
 	val RELATION = "expressedIn";
 	
-	val deleteQuery = "MATCH (l:Language{}) DETACH DELETE l";
-	val findQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE: 'Content'}) where lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] return n.language, n.IL_UNIQUE_ID"
-	val relationQuery = "MATCH (n:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (l:Language{}) WHERE lower(n.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND l.IL_UNIQUE_ID IN extract(language IN n.language | lower(language)) CREATE (n)-[r:expressedIn]->(l) RETURN r";
+	val deleteQuery = "MATCH (lan:Language{}) DETACH DELETE lan";
+	val findQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] RETURN cnt.language, cnt.IL_UNIQUE_ID"
+	val relationQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (lan:Language{}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] AND lan.IL_UNIQUE_ID IN extract(language IN cnt.language | lower(language)) CREATE (cnt)-[r:expressedIn]->(lan) RETURN r";
 
-	
 	override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
 		sc.parallelize(Seq(deleteQuery), JobContext.parallelization);
 	}
@@ -39,7 +38,7 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 	override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
 
 		val contentNodes = GraphQueryDispatcher.dispatch(graphDBConfig, findQuery);
-		val res = contentNodes.list().map { x => (x.get("n.language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], x.get("n.IL_UNIQUE_ID", "").asInstanceOf[String]) }
+		val res = contentNodes.list().map { x => (x.get("cnt.language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], x.get("cnt.IL_UNIQUE_ID", "").asInstanceOf[String]) }
 			.map(f => for (i <- f._1) yield (i.toString().toLowerCase(), f._2)).flatMap(f => f)
 			.filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
 		val contentLanguage = sc.parallelize(res)
@@ -48,7 +47,6 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 			.map { f =>
 				DataNode(f._1.toLowerCase(), Option(Map("name" -> f._1, "contentCount" -> f._2.asInstanceOf[AnyRef])), Option(List(NODE_NAME)));
 			}
-			
 		ppQueries.union(sc.parallelize(Seq(GraphDBUtil.createNodesQuery(languages), relationQuery), JobContext.parallelization));
 	}
 
