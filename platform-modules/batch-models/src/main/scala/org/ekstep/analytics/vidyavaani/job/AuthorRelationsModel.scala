@@ -13,14 +13,18 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.Relation
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 
 object AuthorRelationsModel extends optional.Application with IJob {
 
     val NODE_NAME = "User";
     val CONTENT_AUTHOR_RELATION = "createdBy"
-    val CONTENT_CONCEPT_RELATION = "associatedTo"
     val AUTHOR_CONCEPT_RELATION = "uses"
-
+    
+    val INDEX_QUERY = "CREATE INDEX ON :User(type)"
+    val AUTHOR_CONCEPT_REL_QUERY = "MATCH (A:User {type:'author'}), (C:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH path = (C)<-[:associatedTo]-(f:domain{IL_FUNC_OBJECT_TYPE:'Content',status:'Live'})-[:createdBy]->(A) WITH A, C, CASE WHEN path is null THEN 0 ELSE COUNT(path) END AS overlap MERGE (C)-[:usedBy{support:overlap}]->(A)"
+    val AUTHOR_CONCEPT_REL_DEL_QUERY = "MATCH (n: domain{IL_FUNC_OBJECT_TYPE:'Concept'})-[r:usedBy]->(m: User{type:'author'}) delete r;"
+    
     implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
@@ -87,22 +91,16 @@ object AuthorRelationsModel extends optional.Application with IJob {
     }
 
     def _createAuthorConceptRelation()(implicit sc: SparkContext) = {
-        val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
-            Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
-        val authorNodes = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List("User")), limit).collect;
         
+        val config = Map("url" -> AppConf.getConfig("neo4j.bolt.url"), "user" -> AppConf.getConfig("neo4j.bolt.user"), "password" -> AppConf.getConfig("neo4j.bolt.password"));
         
-        val authorConceptRelations = authorNodes.map { x =>
-            val author = x
-            val metadata2 = Map("IL_FUNC_OBJECT_TYPE" -> "Content")
-            val relatedContents = GraphDBUtil.findRelatedNodes(CONTENT_AUTHOR_RELATION, RelationshipDirection.INCOMING.toString, Map("type" -> "author", "IL_UNIQUE_ID" -> author.identifier), metadata2, "User", "domain", limit)
-            relatedContents.map { x =>
-                val meta2 = Map("IL_FUNC_OBJECT_TYPE" -> "Concept")
-                val label = "domain"
-                GraphDBUtil.findRelatedNodes(CONTENT_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString, Map("IL_UNIQUE_ID" -> x.identifier), meta2, label, label, limit)
-            }.flatMap { x => x }.map { x => Relation(author, x, AUTHOR_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString) }
-        }.flatMap { x => x }
-        println("Done")
-        GraphDBUtil.addRelations(sc.parallelize(authorConceptRelations));
+        // Deleteing usedBy relation between Concept -> Author
+        GraphQueryDispatcher.dispatch(config, AUTHOR_CONCEPT_REL_DEL_QUERY)
+        
+        // Indexing Author node
+        GraphQueryDispatcher.dispatch(config, INDEX_QUERY)
+        
+        // Adding relation between Concept -> Author
+        GraphQueryDispatcher.dispatch(config, AUTHOR_CONCEPT_REL_QUERY)       
     }
 }
