@@ -11,8 +11,6 @@ class TestConceptLanguageRelationModel extends SparkGraphSpec(null) {
         val graphConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
-        val associatedToRelQuery = "MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r"
-        val associatedToDeleteQuery = "MATCH ()-[r:associatedTo]->() DELETE r"
         val deleteQuery = "MATCH ()-[r:usedIn]->() DELETE r"
         val relQuery = "MATCH (c: domain{IL_FUNC_OBJECT_TYPE:'Concept'})-[r:usedIn]->(l: Language) RETURN r"
         val findLanguageNodesQuery = "MATCH (l:Language) RETURN l"
@@ -25,9 +23,7 @@ class TestConceptLanguageRelationModel extends SparkGraphSpec(null) {
         concepts.size() should be(1)
         val languages = GraphQueryDispatcher.dispatch(graphConfig, findLanguageNodesQuery).list;
         languages.size() should be(3)
-        
-        GraphQueryDispatcher.dispatch(graphConfig, associatedToDeleteQuery)
-        GraphQueryDispatcher.dispatch(graphConfig, associatedToRelQuery)
+
         GraphQueryDispatcher.dispatch(graphConfig, deleteQuery)
         
         val conceptLangRelBefore = GraphQueryDispatcher.dispatch(graphConfig, relQuery).list;
