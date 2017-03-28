@@ -174,12 +174,9 @@ class TestRecommendationAPIService extends SparkSpec {
       content should be (empty)
     }
     
-    it should "return requests when request having valid uid" in {
+    it should "return recommendations when request having valid uid" in {
         val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d6"},"filters": { },"limit": 10}} """;
-        val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
-        val resp = JSONUtils.deserialize[Response](response);
-        val result = resp.result.get;
-        val requests = result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
+        val requests = getResult(request)
         requests.length should be (2)
     }
 
@@ -191,40 +188,38 @@ class TestRecommendationAPIService extends SparkSpec {
         resp.params.errmsg should be("context required data is missing.");
     }
     
-    it should "return empty request when uid not there in database" in {
+    it should "return empty recommendations when uid not there in database" in {
         val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d7"},"filters": { },"limit": 10}} """;
-        val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
-        val resp = JSONUtils.deserialize[Response](response);
-        val result = resp.result.get;
-        val requests = result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
-        requests should be(empty)      
+        val requests = getResult(request)
+        requests should be (empty)
     }
     
-    it should "return requests when request body having limit more than actual results" in {
+    it should "return recommendations when request body having limit more than actual results" in {
         val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d6"},"filters": { },"limit": 100}} """;
-        val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
-        val resp = JSONUtils.deserialize[Response](response);
-        val result = resp.result.get;
-        val requests = result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
+        val requests = getResult(request)
         requests.length should be < (100)
     }
 
-    it should "return requests when request body having limit less than actual results" in {
+    it should "return recommendations when request body having limit less than actual results" in {
         val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d0"},"filters": { },"limit": 3}} """;
-        val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
-        val resp = JSONUtils.deserialize[Response](response);
-        val result = resp.result.get;
-        val requests = result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
-        requests.length should be(3)
+        val requests = getResult(request)
+        requests(0).get("contentType").get should be("Game")
+        requests(0).get("type").get should be("Content")
+        requests(0).get("gradeLevel").get should be(List("Grade 2"))
+        requests.length should be (3)
     }
-    
-    it should "return default requests when request body not provided with limit" in {
+
+    it should "return default recommendations when request body not provided with limit" in {
         val request = """ {"id":"ekstep.analytics.creation.recommendations","ver":"1.0","ts":"YYYY-MM-DDThh:mm:ssZ+/-nn.nn","request":{"context":{"uid": "5edf49c4-313c-4f57-fd52-9bfe35e3b7d0"},"filters": { }}} """;
+        val requests = getResult(request)
+        requests.length should be(10)
+    }
+
+    private def getResult(request: String): List[Map[String, AnyRef]] = {
         val response = CreationRecommendations.fetch(JSONUtils.deserialize[RequestBody](request))(sc, config);
         val resp = JSONUtils.deserialize[Response](response);
         val result = resp.result.get;
-        val requests = result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
-        requests.length should be(10)
+        result.get("requests").get.asInstanceOf[List[Map[String, AnyRef]]];
     }
 
 }
