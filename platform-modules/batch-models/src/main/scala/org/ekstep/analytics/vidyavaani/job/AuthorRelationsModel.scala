@@ -21,21 +21,34 @@ import scala.collection.JavaConversions._
 object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
 
     val NODE_NAME = "User";
-    val CONTENT_AUTHOR_RELATION = "createdBy"
+    val CONTENT_AUTHOR_RELATION = "createdBy";
+    
+    val optimizationQueries = Seq("CREATE INDEX ON :User(type)");
 
-    val DELETE_AUTHOR_QUERY = "MATCH(ee:User{type: 'author'}) DETACH DELETE ee"
-    //val INDEX_QUERY = "CREATE INDEX ON :User(type)"
-    val CONTENT_AUTHOR_REL_QUERY = "MATCH (c:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (u:User{type:'author'}) WHERE u.IL_UNIQUE_ID = c.portalOwner CREATE (c)-[r:createdBy]->(u) RETURN r"
-    //val AUTHOR_CONCEPT_REL_QUERY = "MATCH (A:User {type:'author'}), (C:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH path = (C)<-[:associatedTo]-(f:domain{IL_FUNC_OBJECT_TYPE:'Content',status:'Live'})-[:createdBy]->(A) WITH A, C, CASE WHEN path is null THEN 0 ELSE COUNT(path) END AS overlap MERGE (C)-[:usedBy{support:overlap}]->(A)"
-    val AUTHOR_CONCEPT_REL_QUERY = "MATCH (usr :User {type:'author'}), (cnc :domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH path = (usr)<-[:createdBy]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH cnc, usr, CASE WHEN path is null THEN 0 ELSE COUNT(path) END AS cc MERGE (cnc)<-[r:uses{contentCount: cc}]-(usr) RETURN r"
-    val SET_CONTENT_COUNT_IN_AUTHOR = "match (usr: User {type:'author'}) <- [r:createdBy] - (cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] WITH usr,count(cnt) as rels SET usr.contentCount = rels"
-    val SET_LIVE_CONTENT_COUNT_IN_AUTHOR = "match (usr: User {type:'author'}) <- [r:createdBy] - (cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', status:'Live'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] WITH usr,count(cnt) as rels SET usr.liveContentCount = rels"
+    // Cleanup Queries:
+    val cleanupQueries = Seq("MATCH (usr :User {type:'author'})<-[r:createdBy]-(cnt :domain{IL_FUNC_OBJECT_TYPE:'Content'}) DELETE r", // To delete Content-createdBy->User:author relation.
+    					"MATCH (usr :User {type:'author'})-[r:uses]->(cnc :domain{IL_FUNC_OBJECT_TYPE:'Concept'}) DELETE r", // To delete User-uses->Concept relation.
+    					"MATCH (usr:User {type:'author'})-[r:createdIn]->(lan:Language) DELETE r", // To delete User-createdIn->Language relation.
+    					"MATCH(ee:User{type: 'author'}) DETACH DELETE ee");  // To delete user nodes along with its relations.
+    
+    
+    // Algorithm Queries
+    val algorithmQueries = Seq("MATCH (usr:User{type:'author'}), (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE usr.IL_UNIQUE_ID = cnt.portalOwner MERGE (cnt)-[r:createdBy]->(usr)", // To create Content-createBy->User:author relation.
+    					"MATCH (usr:User {type:'author'})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH usr,count(cnt) as cc SET usr.contentCount = cc", // To set contentCount property value on User:author node.
+    					"MATCH (usr:User {type:'author'})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] WITH usr,count(cnt) as cc SET usr.liveContentCount = cc", // To set liveContentCount property value on User:author node.
+    					"MATCH (usr:User {type:'author'}), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) MERGE (usr)-[r:uses{contentCount:0, liveContentCount:0}]->(cnc)", // To create User:author-uses->Concept relation with default property values.
+    					"MATCH (usr:User {type:'author'}), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) MATCH path = (usr)<-[:createdBy]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc), (usr)-[r:uses]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH r, count(cnt) AS cc SET r.contentCount=cc", // To set contentCount property value on User:author-uses->Concept relation. 
+    					"MATCH (usr:User {type:'author'}), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) MATCH path = (usr)<-[:createdBy]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc), (usr)-[r:uses]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] WITH r, count(cnt) AS cc SET r.liveContentCount=cc",  // To set liveContentCount property value on User:author-uses->Concept relation.
+    					"MATCH p=(usr: User {type:'author'})-[r:uses]-(cnc: domain{IL_FUNC_OBJECT_TYPE:'Concept'}) WHERE r.contentCount > 0 WITH usr, count(p) AS cncCount SET usr.conceptsCount=cncCount", // To set conceptCount property value on User:author.
+    					"MATCH (usr :User {type:'author'}), (lan:Language) MERGE (usr)-[r:createdIn{contentCount:0, liveContentCount:0}]->(lan)", // To create User:author-createdIn->Language relation with default property values.
+    					"MATCH (usr:User {type:'author'}), (lan:Language), (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (usr)-[r:createdIn]->(lan) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] AND cnt.portalOwner = usr.IL_UNIQUE_ID AND lan.IL_UNIQUE_ID IN extract(language IN cnt.language | lower(language)) WITH r, count(cnt) AS cc SET r.contentCount=cc", // To set contentCount property value on User:author-createdIn->Language relation.
+    					"MATCH (usr:User {type:'author'}), (lan:Language), (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (usr)-[r:createdIn]->(lan) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] AND cnt.portalOwner = usr.IL_UNIQUE_ID AND lan.IL_UNIQUE_ID IN extract(language IN cnt.language | lower(language)) WITH r, count(cnt) AS lcc SET r.liveContentCount=lcc"); // To set liveContentCount property value on User:author-createdIn->Language relation.
     
     override def name(): String = "ContentLanguageRelationModel";
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-        sc.parallelize(Seq(DELETE_AUTHOR_QUERY), JobContext.parallelization);
+        sc.parallelize(cleanupQueries, JobContext.parallelization);
     }
 
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
@@ -53,6 +66,6 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
             }
 
         val authorQuery = GraphDBUtil.createNodesQuery(authorNodes)
-        ppQueries.union(sc.parallelize(Seq(authorQuery, CONTENT_AUTHOR_REL_QUERY, AUTHOR_CONCEPT_REL_QUERY, SET_CONTENT_COUNT_IN_AUTHOR, SET_LIVE_CONTENT_COUNT_IN_AUTHOR), JobContext.parallelization));
+        ppQueries.union(sc.parallelize(Seq(authorQuery) ++ algorithmQueries, JobContext.parallelization));
     }
 }
