@@ -33,14 +33,20 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
 
         ContentLanguageRelationModel.main("{}")(Option(sc));
 
-        // After ContentLanguageRelationModel execution check for number of Language nodes created and contentCount field for first node.
+        // Check for number of Language nodes created.
         val langNodesAfter = GraphQueryDispatcher.dispatch(graphConfig, findLanguageNodesQuery).list();
         langNodesAfter.size() should be(3)
-        langNodesAfter.get(0).get("l").asMap().get("contentCount") should be(1)
-        langNodesAfter.get(0).get("l").asMap().get("liveContentCount") should be(1)
+
+        // Check for contentCount and liveContentCount
+        val queryForEng = "MATCH (l: Language { IL_UNIQUE_ID:'english' }) RETURN l"
+        val eng = GraphQueryDispatcher.dispatch(graphConfig, queryForEng).list();
+        eng.get(0).get("l").asMap().get("contentCount") should be(1)
+        eng.get(0).get("l").asMap().get("liveContentCount") should be(1)
         
-        langNodesAfter.get(1).get("l").asMap().get("contentCount") should be(1)
-        langNodesAfter.get(1).get("l").asMap().get("liveContentCount") should be(0)
+        val queryForOther = "MATCH (l: Language { IL_UNIQUE_ID:'other' }) RETURN l"
+        val other = GraphQueryDispatcher.dispatch(graphConfig, queryForOther).list();
+        other.get(0).get("l").asMap().get("contentCount") should be(1)
+        other.get(0).get("l").asMap().get("liveContentCount") should be(0)
 
         val contentLangRelAfter = GraphQueryDispatcher.dispatch(graphConfig, contentLangRelationsQuery).list;
         contentLangRelAfter.size should be(3)
