@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.util.GraphDBUtil
 import org.ekstep.analytics.framework.GraphQueryParams._
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.model.SparkGraphSpec
+import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestAuthorRelationsModel extends SparkGraphSpec(null) {
 
@@ -61,6 +62,13 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
 
         val conceptAuthRels = GraphQueryDispatcher.dispatch(graphConfig, getConceptAuthorRelQuery).list;
         conceptAuthRels.size should be(1)
+
+        //val author = GraphQueryDispatcher.dispatch(graphConfig, "MATCH (u:User {IL_UNIQUE_ID:'290'}) RETURN u").next();
+        //         println("authors:",author.size());
+        //         println("author.get(0):", JSONUtils.serialize(author.get(0)));
+        //         println("author.get(0)", author.get(0).get("u"));
+        //        author.get(0).get("u").asMap().get("contentCount") should be(3)
+        //        author.get(0).get("u").asMap().get("liveContentCount") should be(1)
 
     }
 

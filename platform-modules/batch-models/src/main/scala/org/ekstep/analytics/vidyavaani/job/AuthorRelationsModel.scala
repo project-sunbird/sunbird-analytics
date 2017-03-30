@@ -27,7 +27,9 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
     //val INDEX_QUERY = "CREATE INDEX ON :User(type)"
     val CONTENT_AUTHOR_REL_QUERY = "MATCH (c:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (u:User{type:'author'}) WHERE u.IL_UNIQUE_ID = c.portalOwner CREATE (c)-[r:createdBy]->(u) RETURN r"
     val AUTHOR_CONCEPT_REL_QUERY = "MATCH (A:User {type:'author'}), (C:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH path = (C)<-[:associatedTo]-(f:domain{IL_FUNC_OBJECT_TYPE:'Content',status:'Live'})-[:createdBy]->(A) WITH A, C, CASE WHEN path is null THEN 0 ELSE COUNT(path) END AS overlap MERGE (C)-[:usedBy{support:overlap}]->(A)"
-
+    val SET_CONTENT_COUNT_IN_AUTHOR = "match (usr: User {type:'author'}) <- [r:createdBy] - (cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] WITH usr,count(cnt) as rels SET usr.contentCount = rels"
+    val SET_LIVE_CONTENT_COUNT_IN_AUTHOR = "match (usr: User {type:'author'}) <- [r:createdBy] - (cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', status:'Live'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] WITH usr,count(cnt) as rels SET usr.liveContentCount = rels"
+    
     override def name(): String = "ContentLanguageRelationModel";
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
@@ -50,6 +52,6 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
             }
 
         val authorQuery = GraphDBUtil.createNodesQuery(authorNodes)
-        ppQueries.union(sc.parallelize(Seq(authorQuery, CONTENT_AUTHOR_REL_QUERY, AUTHOR_CONCEPT_REL_QUERY), JobContext.parallelization));
+        ppQueries.union(sc.parallelize(Seq(authorQuery, CONTENT_AUTHOR_REL_QUERY, AUTHOR_CONCEPT_REL_QUERY, SET_CONTENT_COUNT_IN_AUTHOR, SET_LIVE_CONTENT_COUNT_IN_AUTHOR), JobContext.parallelization));
     }
 }

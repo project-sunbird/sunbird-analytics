@@ -7,6 +7,7 @@ import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
+import org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel
 
 object VidyavaaniModelJobs extends optional.Application with IJob {
 
@@ -17,7 +18,7 @@ object VidyavaaniModelJobs extends optional.Application with IJob {
         JobLogger.start("VidyavaaniModelJobs Started executing", Option(Map("config" -> config)))
 
         val time = CommonUtil.time({
-            val jobs = List(AuthorRelationsModel, ContentLanguageRelationModel, ContentAssetRelationModel)
+            val jobs = List(AuthorRelationsModel, ContentLanguageRelationModel, ContentAssetRelationModel, ConceptLanguageRelationModel)
             for (job <- jobs) {
                 job.main(config)
             }
