@@ -42,10 +42,10 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 		val contentNodes = GraphQueryDispatcher.dispatch(graphDBConfig, findQuery);
 		val res = contentNodes.list().map { x => (x.get("cnt.language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]]) }
 			.flatMap(f => f).filter(f => StringUtils.isNoneBlank(f))
-		val contentLanguage = sc.parallelize(res).distinct()
+		val contentLanguage = sc.parallelize(res).map { x => x.toLowerCase() }.distinct()
 
-		val languages = contentLanguage.map { f =>
-				DataNode(f.toLowerCase(), Option(Map("name" -> f)), Option(List(NODE_NAME)));
+		val languages = contentLanguage.map { langName =>
+				DataNode(langName, Option(Map("name" -> langName)), Option(List(NODE_NAME)));
 		}
 		ppQueries.union(sc.parallelize(Seq(GraphDBUtil.createNodesQuery(languages), relationQuery, contentCountUpdateQuery, liveContentCountUpdateQuery), JobContext.parallelization));
 	}
