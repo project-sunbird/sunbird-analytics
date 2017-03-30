@@ -35,6 +35,13 @@ class TestContentAssetRelationModel extends SparkGraphSpec(null) {
         val rel2 = GraphQueryDispatcher.dispatch(graphConfig, query2).list;
         rel2.size() should be(1)
         rel2.get(0).get("a").asMap().get("contentCount") should be(3)
+        rel2.get(0).get("a").asMap().get("liveContentCount") should be(1)
+        
+        val query3 = "MATCH (a: domain{ IL_UNIQUE_ID:'page_4_image_0' }) RETURN a"
+        val rel3 = GraphQueryDispatcher.dispatch(graphConfig, query3).list;
+        rel3.size() should be(1)
+        rel3.get(0).get("a").asMap().get("contentCount") should be(3)
+        rel3.get(0).get("a").asMap().get("liveContentCount") should be(1)
 
         val assetContentRelQuery = "match (n1: domain) <- [r: uses] - (n2: domain) where n2.contentType = 'Asset' return r"
         val assetContentRels = GraphQueryDispatcher.dispatch(graphConfig, assetContentRelQuery).list;
