@@ -39,11 +39,13 @@ class TestConceptLanguageRelationModel extends SparkGraphSpec(null) {
         val res1 = GraphQueryDispatcher.dispatch(graphConfig, query1).list();
         res1.size() should be(1)
         res1.get(0).get("r").asMap().get("contentCount") should be(0)
+        res1.get(0).get("r").asMap().get("liveContentCount") should be(0)
         
         val query2 = "MATCH (n: domain{ IL_UNIQUE_ID:'Num:C1:SC1' }) -[r:usedIn]-> (l: Language { IL_UNIQUE_ID:'english' }) RETURN r"
         val res2 = GraphQueryDispatcher.dispatch(graphConfig, query2).list();
         res2.size() should be(1)
         res2.get(0).get("r").asMap().get("contentCount") should be(1)
+        res2.get(0).get("r").asMap().get("liveContentCount") should be(1)
         
     }
 }
