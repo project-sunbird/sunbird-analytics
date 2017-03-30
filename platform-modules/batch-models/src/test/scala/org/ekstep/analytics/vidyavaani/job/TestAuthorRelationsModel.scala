@@ -17,7 +17,7 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
         val getRelationsQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Content'} ) -[r:createdBy]-> (aa: User {type: 'author'}) RETURN r"
-        val getConceptAuthorRelQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Concept'} ) -[r:usedBy]-> (aa: User {type: 'author'}) RETURN r"
+        val getConceptAuthorRelQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Concept'} ) <-[r:uses]- (aa: User {type: 'author'}) RETURN r"
 
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
         contentNodes.count() should be(7)
