@@ -48,6 +48,7 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        executeQueries(sc.parallelize(optimizationQueries, JobContext.parallelization));
         sc.parallelize(cleanupQueries, JobContext.parallelization);
     }
 
