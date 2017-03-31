@@ -293,3 +293,10 @@ CREATE TABLE IF NOT EXISTS platform_db.recommendation_config(
 
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
+
+CREATE TABLE IF NOT EXISTS platform_db.job_config(
+    catetory text,
+    config_key text,
+    config_value text,
+    PRIMARY KEY (catetory, config_key)
+);
