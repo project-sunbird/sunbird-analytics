@@ -20,16 +20,19 @@ object ConceptLanguageRelationModel extends IGraphExecutionModel with Serializab
     
     val RELATION = "usedIn";
     
-    val relationQuery = "MATCH (lan:Language), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS cc MERGE (cnc)-[r:usedIn{contentCount: cc}]->(lan) RETURN r"
-    val liveContentCountUpdateQuery = "MATCH (lan:Language), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS lcc MATCH (cnc)-[r:usedIn]->(lan) SET r.liveContentCount = lcc"
-    val deleteRelQuery = "MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'})-[r:usedIn]->(lan:Language) DELETE r"
+    // Cleanup Queries:
+    val cleanupQueries = Seq("MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'})-[r:usedIn]->(lan:Language) DELETE r");
+    
+    // Algorithm Queries
+    val algorithmQueries = Seq("MATCH (lan:Language), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS cc MERGE (cnc)-[r:usedIn{contentCount: cc}]->(lan) RETURN r",
+            "MATCH (lan:Language), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS lcc MATCH (cnc)-[r:usedIn]->(lan) SET r.liveContentCount = lcc");
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-        sc.parallelize(Seq(deleteRelQuery), JobContext.parallelization);
+        sc.parallelize(cleanupQueries, JobContext.parallelization);
     }
 
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-        ppQueries.union(sc.parallelize(Seq(relationQuery, liveContentCountUpdateQuery), JobContext.parallelization));
+        ppQueries.union(sc.parallelize(algorithmQueries, JobContext.parallelization));
     }
 
 }

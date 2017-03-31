@@ -27,14 +27,18 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 	val NODE_NAME = "Language";
 	val RELATION = "expressedIn";
 	
-	val deleteQuery = "MATCH (lan:Language{}) DETACH DELETE lan";
-	val findQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] RETURN cnt.language"
-	val relationQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (lan:Language{}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] AND lan.IL_UNIQUE_ID IN extract(language IN cnt.language | lower(language)) CREATE (cnt)-[r:expressedIn]->(lan) RETURN r";
-	val contentCountUpdateQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}), (lan:Language{}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS cc SET lan.contentCount = cc"
-	val liveContentCountUpdateQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}), (lan:Language{}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] OPTIONAL MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS lcc SET lan.liveContentCount = lcc"
-	
+	// Cleanup Queries:
+  val cleanupQueries = Seq("MATCH (lan:Language{}) DETACH DELETE lan"); // To delete language nodes along with its relations. 
+
+  // Algorithm Queries
+  val algorithmQueries = Seq("MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (lan:Language{}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] AND lan.IL_UNIQUE_ID IN extract(language IN cnt.language | lower(language)) CREATE (cnt)-[r:expressedIn]->(lan) RETURN r", // To create Content-expressedIn->Language relation
+          "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}), (lan:Language{}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS cc SET lan.contentCount = cc", // To set contentCount property value on Language node.
+          "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}), (lan:Language{}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] OPTIONAL MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS lcc SET lan.liveContentCount = lcc"); // To set liveContentCount property value on Language node.
+  
+  val findQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] RETURN cnt.language"
+
 	override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-		sc.parallelize(Seq(deleteQuery), JobContext.parallelization);
+		sc.parallelize(cleanupQueries, JobContext.parallelization);
 	}
 
 	override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
@@ -47,7 +51,7 @@ object ContentLanguageRelationModel extends IGraphExecutionModel with Serializab
 		val languages = contentLanguage.map { langName =>
 				DataNode(langName, Option(Map("name" -> langName)), Option(List(NODE_NAME)));
 		}
-		ppQueries.union(sc.parallelize(Seq(GraphDBUtil.createNodesQuery(languages), relationQuery, contentCountUpdateQuery, liveContentCountUpdateQuery), JobContext.parallelization));
+		ppQueries.union(sc.parallelize(Seq(GraphDBUtil.createNodesQuery(languages)) ++ algorithmQueries, JobContext.parallelization));
 	}
 
 }
