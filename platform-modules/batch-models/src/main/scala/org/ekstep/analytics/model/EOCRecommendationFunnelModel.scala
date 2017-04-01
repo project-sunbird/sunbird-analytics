@@ -30,6 +30,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
             Query(Option("ekstep-dev-data-store"), Option("raw/"), Option("2017-01-01"), Option("2017-03-25"))));
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
         val rdd1 = DataFilter.filter(rdd, Array(Filter("eid", "EQ", Option("OE_INTERACT")), Filter("edata.eks.id", "EQ", Option("gc_relatedcontent"))))
+        //rdd1.foreach { x => println(JSONUtils.serialize(x)) }
         val rdd2 = rdd.filter { x => (x.eid.equals("OE_START") || x.eid.equals("OE_END") || x.eid.equals("GE_INTERACT") || x.eid.equals("GE_SERVICE_API_CALL")) }
         val rdd3 = rdd1.union(rdd2)
         val rdd4 = rdd3.groupBy { x => (x.did, x.uid) }
@@ -49,50 +50,73 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
             val dtRange = DtRange(startTimestamp, endTimestamp);
             var value = 0
             var consumed = 0
-            var contentList = new ListBuffer[String]()
+            var contentList = List[String]()
             var contentCount = 0
             var downloadInit = 0
             var downloadComplete = 0
-            var eidList = new ListBuffer[String]()
             var played = 0
-            x.events.foreach { x =>
+            var playedContentId = ""
+            var eofFunnel = EOCFunnel(x.uid, x.did, dtRange, 0, List(), 0, 0, 0, 0)
 
-                /*if (x.eid.equals("OE_START") && eidList(eidList.size ).equals("OE_END")) {
-                    played = 1
-                }*/
+            x.events.foreach { x =>
                 if (x.eid.equals("OE_START")) {
                     value = 1
-
+                    if (x.gdata.id.equals(playedContentId)) {
+                        played = 1
+                    } else {
+                        played = 0
+                    }
                 }
+
                 if (value == 1) {
+
                     x.eid match {
 
+                        case "GE_SERVICE_API_CALL" =>
+                            consumed = 1
+
+                        case "OE_INTERACT" =>
+
+                            val contentMap = x.edata.eks.values
+                            if (contentMap.isEmpty) {
+                                contentList = List()
+                                contentCount = 0
+                            } else {
+                                contentList = contentMap(1).asInstanceOf[Map[String, List[String]]].getOrElse("ContentIDsDisplayed", List())
+
+                                contentCount = contentList.size
+                                val positionClicked = contentMap(0).asInstanceOf[Map[String, Double]].getOrElse("PositionClicked", 0.0).toInt
+
+                                playedContentId = contentList(positionClicked - 1)
+                            }
+
                         case "GE_INTERACT" =>
+
                             if (x.edata.eks.subtype.equals("ContentDownload-Initiate")) {
 
                                 downloadInit = 1
                             }
-                            if (x.edata.eks.subtype.equals("ContentDownload-Initiate")) {
+                            if (x.edata.eks.subtype.equals("ContentDownload-Success")) {
                                 downloadComplete = 1
                             }
-                            eidList += x.eid
-                        case "OE_INTERACT" =>
-                            consumed = 1
-                            contentList = x.edata.eks.values.asInstanceOf[Map[String, AnyRef]].getOrElse("ContentIDsDisplayed", "").asInstanceOf[ListBuffer[String]]
-                            contentCount = contentList.size
-                            eidList += x.eid
+
                         case "OE_END" =>
 
+                            eofFunnel = EOCFunnel(x.uid, x.did, dtRange, consumed, contentList, contentCount, downloadInit, downloadComplete, played)
                             value = 0
-                            eidList += x.eid
+                            consumed = 0
+                            contentList = List[String]()
+                            contentCount = 0
+                            downloadInit = 0
+                            downloadComplete = 0
+
                         case _ =>
 
                     }
-
                 }
 
             }
-            EOCFunnel(x.uid, x.did, dtRange, consumed, contentList.toList, contentCount, downloadInit, downloadComplete, played)
+            eofFunnel
 
         }
 
