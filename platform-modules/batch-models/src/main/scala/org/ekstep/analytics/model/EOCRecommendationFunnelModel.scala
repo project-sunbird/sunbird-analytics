@@ -14,6 +14,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.mutable.ListBuffer
 import org.apache.commons.lang3.StringUtils
+import scala.collection.mutable.Buffer
 
 case class EOCFunnel(uid: String, did: String, dtRange: DtRange, consumed: Int, contentShown: List[AnyRef], contentCount: Int, downloadInit: Int, downloadComplete: Int, played: Int) extends AlgoOutput
 case class EventsGroup(uid: String, did: String, events: List[Event]) extends AlgoInput
@@ -23,15 +24,13 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
     override def name: String = "EOCRecommendationFunnelModel"
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsGroup] = {
-        println("Preprocessing start.......")
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
         val queries = Option(Array(
             Query(Option("ekstep-dev-data-store"), Option("raw/"), Option("2017-01-01"), Option("2017-03-25"))));
-        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
-        val rdd1 = DataFilter.filter(rdd, Array(Filter("eid", "EQ", Option("OE_INTERACT")), Filter("edata.eks.id", "EQ", Option("gc_relatedcontent"))))
-        //rdd1.foreach { x => println(JSONUtils.serialize(x)) }
-        val rdd2 = rdd.filter { x => (x.eid.equals("OE_START") || x.eid.equals("OE_END") || x.eid.equals("GE_INTERACT") || x.eid.equals("GE_SERVICE_API_CALL")) }
+        // val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
+        val rdd1 = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("OE_INTERACT")), Filter("edata.eks.id", "EQ", Option("gc_relatedcontent"))))
+        val rdd2 = data.filter { x => (x.eid.equals("OE_START") || x.eid.equals("OE_END") || x.eid.equals("GE_INTERACT") || x.eid.equals("GE_SERVICE_API_CALL")) }
         val rdd3 = rdd1.union(rdd2)
         val rdd4 = rdd3.groupBy { x => (x.did, x.uid) }
         val rdd5 = rdd4.map { x => (x._1, x._2.toList.sortBy { x => x.`@timestamp` }) }.map { case ((did, uid), list) => (did, uid, list) }
@@ -48,7 +47,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
             val startTimestamp = CommonUtil.getEventTS(geStart)
             val endTimestamp = CommonUtil.getEventTS(geEnd)
             val dtRange = DtRange(startTimestamp, endTimestamp);
-            var value = 0
+            var oeStart = 0
             var consumed = 0
             var contentList = List[String]()
             var contentCount = 0
@@ -56,44 +55,48 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
             var downloadComplete = 0
             var played = 0
             var playedContentId = ""
-            var eofFunnel = EOCFunnel(x.uid, x.did, dtRange, 0, List(), 0, 0, 0, 0)
-
-            x.events.foreach { x =>
+            var oeEnd = 0
+            var list = Buffer[EOCFunnel]()
+            var oe_EndCount = 0
+            val lastOccuranceOE_END = x.events.filter { x => x.eid.equals("OE_END") }.size
+            x.events.map { x =>
                 if (x.eid.equals("OE_START")) {
-                    value = 1
+                    oeStart = 1
                     if (x.gdata.id.equals(playedContentId)) {
                         played = 1
                     } else {
                         played = 0
                     }
+                    if (oeEnd == 1) {
+                        list += EOCFunnel(x.uid, x.did, dtRange, consumed, contentList, contentCount, downloadInit, downloadComplete, played)
+
+                        consumed = 0
+                        contentList = List[String]()
+                        contentCount = 0
+                        downloadInit = 0
+                        downloadComplete = 0
+                        played = 0
+                        oeEnd = 0
+                    }
                 }
-
-                if (value == 1) {
-
+                if (oeStart == 1) {
                     x.eid match {
-
                         case "GE_SERVICE_API_CALL" =>
                             consumed = 1
-
                         case "OE_INTERACT" =>
-
                             val contentMap = x.edata.eks.values
                             if (contentMap.isEmpty) {
                                 contentList = List()
                                 contentCount = 0
                             } else {
                                 contentList = contentMap(1).asInstanceOf[Map[String, List[String]]].getOrElse("ContentIDsDisplayed", List())
-
                                 contentCount = contentList.size
                                 val positionClicked = contentMap(0).asInstanceOf[Map[String, Double]].getOrElse("PositionClicked", 0.0).toInt
-
                                 playedContentId = contentList(positionClicked - 1)
                             }
 
                         case "GE_INTERACT" =>
-
                             if (x.edata.eks.subtype.equals("ContentDownload-Initiate")) {
-
                                 downloadInit = 1
                             }
                             if (x.edata.eks.subtype.equals("ContentDownload-Success")) {
@@ -101,24 +104,22 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                             }
 
                         case "OE_END" =>
-
-                            eofFunnel = EOCFunnel(x.uid, x.did, dtRange, consumed, contentList, contentCount, downloadInit, downloadComplete, played)
-                            value = 0
-                            consumed = 0
-                            contentList = List[String]()
-                            contentCount = 0
-                            downloadInit = 0
-                            downloadComplete = 0
+                            oe_EndCount += 1
+                            if (lastOccuranceOE_END == oe_EndCount) {
+                                list += EOCFunnel(x.uid, x.did, dtRange, consumed, contentList, contentCount, downloadInit, downloadComplete, played)
+                                oe_EndCount = 0
+                            }
+                            oeStart = 0
+                            oeEnd = 1
 
                         case _ =>
 
                     }
                 }
+                list
+            }.last
 
-            }
-            eofFunnel
-
-        }
+        }.flatMap { x => x }
 
     }
 
@@ -141,6 +142,4 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
         }
     }
 }
-        
-
-    
+ 
