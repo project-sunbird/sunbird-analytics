@@ -17,19 +17,24 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.job.IGraphExecutionModel
 import org.apache.spark.rdd.RDD
 import scala.collection.JavaConversions._
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.Job_Config
+import org.ekstep.analytics.util.Constants
+
+case class AlgorithmInput(cleanupQueries: List[String], algorithmQueries: List[String])
 
 object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
 
     val NODE_NAME = "User";
     val CONTENT_AUTHOR_RELATION = "createdBy";
     
-    val optimizationQueries = Seq("CREATE INDEX ON :User(type)");
+//    val optimizationQueries = Seq("CREATE INDEX ON :User(type)");
 
     // Cleanup Queries:
-    val cleanupQueries = Seq("MATCH (usr :User {type:'author'})<-[r:createdBy]-(cnt :domain{IL_FUNC_OBJECT_TYPE:'Content'}) DELETE r", // To delete Content-createdBy->User:author relation.
-    					"MATCH (usr :User {type:'author'})-[r:uses]->(cnc :domain{IL_FUNC_OBJECT_TYPE:'Concept'}) DELETE r", // To delete User-uses->Concept relation.
-    					"MATCH (usr:User {type:'author'})-[r:createdIn]->(lan:Language) DELETE r", // To delete User-createdIn->Language relation.
-    					"MATCH(ee:User{type: 'author'}) DETACH DELETE ee");  // To delete user nodes along with its relations.
+//    val cleanupQueries = Seq("MATCH (usr :User {type:'author'})<-[r:createdBy]-(cnt :domain{IL_FUNC_OBJECT_TYPE:'Content'}) DELETE r", // To delete Content-createdBy->User:author relation.
+//    					"MATCH (usr :User {type:'author'})-[r:uses]->(cnc :domain{IL_FUNC_OBJECT_TYPE:'Concept'}) DELETE r", // To delete User-uses->Concept relation.
+//    					"MATCH (usr:User {type:'author'})-[r:createdIn]->(lan:Language) DELETE r", // To delete User-createdIn->Language relation.
+//    					"MATCH(ee:User{type: 'author'}) DETACH DELETE ee");  // To delete user nodes along with its relations.
     
     
     // Algorithm Queries
@@ -48,6 +53,10 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "content-own-rel").first//VVJobsConfig("content-own-rel", optimizationQueries.toList, cleanupQueries.toList, algorithmQueries.toList)
+        val optimizationQueries = job_config.config_value.get("optimizationQueries").get
+        val cleanupQueries = job_config.config_value.get("cleanupQueries").get
+        val algorithmQueries = job_config.config_value.get("algorithmQueries").get
         executeQueries(sc.parallelize(optimizationQueries, JobContext.parallelization));
         sc.parallelize(cleanupQueries, JobContext.parallelization);
     }
