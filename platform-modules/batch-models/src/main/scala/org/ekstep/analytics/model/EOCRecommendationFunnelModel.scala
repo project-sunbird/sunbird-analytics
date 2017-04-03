@@ -55,25 +55,25 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
             var oe_EndCount = 0
             val lastOccuranceOE_END = x.events.filter { x => x.eid.equals("OE_END") }.size
             x.events.map { x =>
-                if (x.eid.equals("OE_START")) {
-                    oeStart = 1
-                    val played = if (x.gdata.id.equals(playedContentId)) 1 else 0
 
-                    if (oeEnd == 1) {
-                        list += EOCFunnel(x.uid, x.did, x.sid, x.gdata.id, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, played)
-                        consumed = 0
-                        contentShown = List[String]()
-                        contentCount = 0
-                        downloadInit = 0
-                        downloadComplete = 0
-                        oeEnd = 0
-                    }
-                }
-                if (oeStart == 1) {
+                x.eid match {
 
-                    x.eid match {
+                    case "OE_START" =>
+                        oeStart = 1
+                        val played = if (x.gdata.id.equals(playedContentId)) 1 else 0
 
-                        case "OE_INTERACT" =>
+                        if (oeEnd == 1) {
+                            list += EOCFunnel(x.uid, x.did, x.sid, x.gdata.id, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, played)
+                            consumed = 0
+                            contentShown = List[String]()
+                            contentCount = 0
+                            downloadInit = 0
+                            downloadComplete = 0
+                            oeEnd = 0
+                        }
+
+                    case "OE_INTERACT" =>
+                        if (oeStart == 1) {
                             consumed = 1
                             val contentMap = x.edata.eks.values
                             if (contentMap.nonEmpty) {
@@ -91,16 +91,20 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                             }
 
                             contentCount = if (contentMap.isEmpty) 0 else contentShown.size
+                        }
 
-                        case "GE_INTERACT" =>
+                    case "GE_INTERACT" =>
+                        if (oeStart == 1) {
                             if (x.edata.eks.subtype.equals("ContentDownload-Initiate")) {
                                 downloadInit = 1
                             }
                             if (x.edata.eks.subtype.equals("ContentDownload-Success")) {
                                 downloadComplete = 1
                             }
+                        }
 
-                        case "OE_END" =>
+                    case "OE_END" =>
+                        if (oeStart == 1) {
                             oe_EndCount += 1
                             if (lastOccuranceOE_END == oe_EndCount) {
                                 list += EOCFunnel(x.uid, x.did, x.sid, x.gdata.id, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, 0)
@@ -108,11 +112,11 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                             }
                             oeStart = 0
                             oeEnd = 1
+                        }
+                    case _ =>
 
-                        case _ =>
-
-                    }
                 }
+
                 list
             }.last
 
