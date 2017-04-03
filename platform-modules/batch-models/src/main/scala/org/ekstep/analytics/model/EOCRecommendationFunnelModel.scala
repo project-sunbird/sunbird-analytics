@@ -24,9 +24,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
     override def name: String = "EOCRecommendationFunnelModel"
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsGroup] = {
-        val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
-        val jobConfig = sc.broadcast(config);
-        val rdd = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("GE_SERVICE_API_CALL")), Filter("edata.eks.method", "EQ", Option("getRelatedContent"))))    
+        val rdd = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("GE_SERVICE_API_CALL")), Filter("edata.eks.method", "EQ", Option("getRelatedContent"))))
         val rdd1 = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("OE_INTERACT")), Filter("edata.eks.id", "EQ", Option("gc_relatedcontent"))))
         val rdd2 = data.filter { x => (x.eid.equals("OE_START") || x.eid.equals("OE_END") || x.eid.equals("GE_INTERACT")) }
         val rdd3 = rdd.union(rdd1).union(rdd2)
@@ -84,7 +82,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                             contentShown = if (contentMap.isEmpty) List() else contentMap(1).asInstanceOf[Map[String, List[String]]].getOrElse("ContentIDsDisplayed", List())
                             contentCount = if (contentMap.isEmpty) 0 else contentShown.size
                             val positionClicked = contentMap(0).asInstanceOf[Map[String, Double]].getOrElse("PositionClicked", 0.0).toInt
-                            playedContentId = contentShown(positionClicked - 1)
+                            playedContentId = if (contentShown.isEmpty) "" else contentShown(positionClicked - 1)
 
                         case "GE_INTERACT" =>
                             if (x.edata.eks.subtype.equals("ContentDownload-Initiate")) {
