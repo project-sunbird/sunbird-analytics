@@ -12,6 +12,9 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import scala.collection.JavaConversions._
 import org.ekstep.analytics.job.IGraphExecutionModel
 import org.apache.spark.rdd.RDD
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.Job_Config
+import org.ekstep.analytics.util.Constants
 
 object ConceptLanguageRelationModel extends IGraphExecutionModel with Serializable {
 
@@ -19,20 +22,15 @@ object ConceptLanguageRelationModel extends IGraphExecutionModel with Serializab
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel"
     
     val RELATION = "usedIn";
-    
-    // Cleanup Queries:
-    val cleanupQueries = Seq("MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'})-[r:usedIn]->(lan:Language) DELETE r");
-    
-    // Algorithm Queries
-    val algorithmQueries = Seq("MATCH (lan:Language), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS cc MERGE (cnc)-[r:usedIn{contentCount: cc}]->(lan) RETURN r",
-            "MATCH (lan:Language), (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS lcc MATCH (cnc)-[r:usedIn]->(lan) SET r.liveContentCount = lcc");
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-        sc.parallelize(cleanupQueries, JobContext.parallelization);
+        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "concept-lan-rel").first
+        val queries = job_config.config_value.get("cleanupQueries").get ++ job_config.config_value.get("algorithmQueries").get
+        sc.parallelize(queries, JobContext.parallelization);
     }
 
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-        ppQueries.union(sc.parallelize(algorithmQueries, JobContext.parallelization));
+        ppQueries;
     }
 
 }

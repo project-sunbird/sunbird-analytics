@@ -21,23 +21,22 @@ import org.ekstep.analytics.framework.util.ECMLUtil
 import org.ekstep.analytics.framework.UpdateDataNode
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.job.IGraphExecutionModel
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.Job_Config
+import org.ekstep.analytics.util.Constants
 
 case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
 
 object ContentAssetRelationModel extends IGraphExecutionModel with Serializable {
 
     val RELATION = "uses";
+    var algorithmQueries: List[String] = List();
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
-
-    // Cleanup Queries:
-    val cleanupQueries = Seq("MATCH (cnt: domain) - [r: uses] -> (ast: domain) where ast.contentType = 'Asset' DELETE r"); // To delete Content-uses->Asset relations.
-    
-    // Algorithm Queries
-    val algorithmQueries = Seq("MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Asset'}) SET ast.contentCount=0, ast.liveContentCount=0;",
-            "MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Asset'}), (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) MATCH p=(ast)<-[r:uses]-(cnt) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] WITH ast, COUNT(p) AS cc SET ast.contentCount = cc",
-            "MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Asset'}), (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) MATCH p=(ast)<-[r:uses]-(cnt) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Live'] WITH ast, COUNT(p) AS lcc SET ast.liveContentCount = lcc");
    
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "content-asset-rel").first
+        val cleanupQueries = job_config.config_value.get("cleanupQueries").get
+        algorithmQueries = job_config.config_value.get("algorithmQueries").get
         sc.parallelize(cleanupQueries, JobContext.parallelization);
     }
 
