@@ -10,11 +10,10 @@ import org.ekstep.analytics.framework.IJob
  */
 
 object EOCRecommendationFunnelSummarizer extends Application with IJob {
-
-    implicit val className = "org.ekstep.analytics.job.summarizer.EOCRecommendationFunnelSummarizer"
-
-    def main(config: String)(implicit sc: Option[SparkContext] = None) {
+	implicit val className = "org.ekstep.analytics.job.summarizer.EOCRecommendationFunnelSummarizer"
+	
+	def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        //        JobDriver.run("batch", config, EOCRecommendationFunnelModel);
+        JobDriver.run("batch", config, EOCRecommendationFunnelModel);
     }
-} 
+}

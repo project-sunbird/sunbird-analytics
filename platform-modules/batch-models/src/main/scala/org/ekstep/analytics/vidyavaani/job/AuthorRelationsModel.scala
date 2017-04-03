@@ -13,56 +13,37 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.framework.Relation
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.ekstep.analytics.job.IGraphExecutionModel
+import org.apache.spark.rdd.RDD
+import scala.collection.JavaConversions._
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.Job_Config
+import org.ekstep.analytics.util.Constants
 
-object AuthorRelationsModel extends optional.Application with IJob {
+object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
 
     val NODE_NAME = "User";
-    val CONTENT_AUTHOR_RELATION = "createdBy"
-    val CONTENT_CONCEPT_RELATION = "associatedTo"
-    val AUTHOR_CONCEPT_RELATION = "uses"
+    val CONTENT_AUTHOR_RELATION = "createdBy";
+    var algorithmQueries: List[String] = List();
+    
+    override def name(): String = "ContentLanguageRelationModel";
+    override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
-    implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
-
-    def main(config: String)(implicit sc: Option[SparkContext] = None) {
-
-        JobLogger.init("AuthorRelationsModel")
-        JobLogger.start("AuthorRelationsModel Started executing", Option(Map("config" -> config)))
-
-        val jobConfig = JSONUtils.deserialize[JobConfig](config);
-
-        if (null == sc.getOrElse(null)) {
-            JobContext.parallelization = 10;
-            implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Graph Model"));
-            try {
-                execute()
-            } catch {
-                case t: Throwable => t.printStackTrace()
-            } finally {
-                CommonUtil.closeSparkContext();
-            }
-        } else {
-            implicit val sparkContext: SparkContext = sc.getOrElse(null);
-            execute();
-        }
+    override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "content-own-rel").first
+        val optimizationQueries = job_config.config_value.get("optimizationQueries").get
+        val cleanupQueries = job_config.config_value.get("cleanupQueries").get
+        algorithmQueries = job_config.config_value.get("algorithmQueries").get
+        executeQueries(sc.parallelize(optimizationQueries, JobContext.parallelization));
+        sc.parallelize(cleanupQueries, JobContext.parallelization);
     }
 
-    private def execute()(implicit sc: SparkContext) {
-        val time = CommonUtil.time({
-            GraphDBUtil.deleteNodes(None, Option(List(NODE_NAME)))
-            _createAuthorNodeWithRelation();
-            _createAuthorConceptRelation();
-        })
+    override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
 
-        JobLogger.end("AuthorRelationsModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
-    }
+        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
 
-    private def _createAuthorNodeWithRelation()(implicit sc: SparkContext) = {
-        val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
-            Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
-
-        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit);
-
-        val owners = contentNodes.map { x => x.metadata.getOrElse(Map()) }
+        val authorNodes = contentNodes.map { x => x.metadata.getOrElse(Map()) }
             .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("owner", "").asInstanceOf[String]))
             .groupBy(f => f._1).filter(p => !StringUtils.isBlank(p._1))
             .map { f =>
@@ -72,37 +53,7 @@ object AuthorRelationsModel extends optional.Application with IJob {
                 DataNode(identifier, Option(Map("name" -> name, "type" -> "author")), Option(List(NODE_NAME)));
             }
 
-        GraphDBUtil.createNodes(owners);
-
-        val ownerContentRels = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-            .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
-            .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
-            .map { f =>
-                val startNode = DataNode(f._1, None, Option(List("User")));
-                val endNode = DataNode(f._2, None, Option(List("domain")));
-                Relation(startNode, endNode, CONTENT_AUTHOR_RELATION, RelationshipDirection.INCOMING.toString);
-            };
-        GraphDBUtil.addRelations(ownerContentRels);
-
-    }
-
-    def _createAuthorConceptRelation()(implicit sc: SparkContext) = {
-        val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
-            Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
-        val authorNodes = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List("User")), limit).collect;
-        
-        
-        val authorConceptRelations = authorNodes.map { x =>
-            val author = x
-            val metadata2 = Map("IL_FUNC_OBJECT_TYPE" -> "Content")
-            val relatedContents = GraphDBUtil.findRelatedNodes(CONTENT_AUTHOR_RELATION, RelationshipDirection.INCOMING.toString, Map("type" -> "author", "IL_UNIQUE_ID" -> author.identifier), metadata2, "User", "domain", limit)
-            relatedContents.map { x =>
-                val meta2 = Map("IL_FUNC_OBJECT_TYPE" -> "Concept")
-                val label = "domain"
-                GraphDBUtil.findRelatedNodes(CONTENT_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString, Map("IL_UNIQUE_ID" -> x.identifier), meta2, label, label, limit)
-            }.flatMap { x => x }.map { x => Relation(author, x, AUTHOR_CONCEPT_RELATION, RelationshipDirection.OUTGOING.toString) }
-        }.flatMap { x => x }
-        println("Done")
-        GraphDBUtil.addRelations(sc.parallelize(authorConceptRelations));
+        val authorQuery = GraphDBUtil.createNodesQuery(authorNodes)
+        ppQueries.union(sc.parallelize(Seq(authorQuery) ++ algorithmQueries, JobContext.parallelization));
     }
 }

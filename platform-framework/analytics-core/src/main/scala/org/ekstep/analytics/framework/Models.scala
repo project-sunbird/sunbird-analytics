@@ -125,6 +125,7 @@ trait CassandraTable extends AnyRef with Serializable;
 case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
 case class Relation(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = Option(Map())) extends Serializable;
 case class UpdateDataNode(identifier: String, propertyName: String, propertyValue: AnyRef, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
+case class Job_Config(category: String, config_key: String, config_value: Map[String, List[String]])
 
 object Period extends Enumeration {
     type Period = Value

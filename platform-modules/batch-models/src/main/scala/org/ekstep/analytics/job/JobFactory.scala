@@ -10,6 +10,7 @@ import org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
 import org.ekstep.analytics.updater.CreationMetricsUpdater
 import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
+import org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -97,6 +98,8 @@ object JobFactory {
                 ContentLanguageRelationModel
             case "content-asset-rel" =>
                 ContentAssetRelationModel
+            case "concept-lan-rel" =>
+                ConceptLanguageRelationModel
             case "vidyavaani-jobs" =>
                 VidyavaaniModelJobs
             case "consumption-metrics" =>

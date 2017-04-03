@@ -19,83 +19,62 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.util.ECMLUtil
 import org.ekstep.analytics.framework.UpdateDataNode
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.job.IGraphExecutionModel
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.Job_Config
+import org.ekstep.analytics.util.Constants
 
 case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
 
-object ContentAssetRelationModel extends optional.Application with IJob {
+object ContentAssetRelationModel extends IGraphExecutionModel with Serializable {
 
-	val RELATION = "uses";
-	implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
+    val RELATION = "uses";
+    var algorithmQueries: List[String] = List();
+    override implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
+   
+    override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "content-asset-rel").first
+        val cleanupQueries = job_config.config_value.get("cleanupQueries").get
+        algorithmQueries = job_config.config_value.get("algorithmQueries").get
+        sc.parallelize(cleanupQueries, JobContext.parallelization);
+    }
 
-	def main(config: String)(implicit sc: Option[SparkContext] = None) {
+    override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
+            .map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
+            .map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }
 
-		JobLogger.init("ContentAssetRelationModel")
-		JobLogger.start("ContentAssetRelationModel Started executing", Option(Map("config" -> config)))
+        val relationsData = data.map { x =>
+            val startNode = DataNode(x._1, None, Option(List("domain")));
+            x._2.map { x =>
+                val endNode = DataNode(x, None, Option(List("domain")));
+                GraphDBUtil.addRelationQuery(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString)
+            }
+        }.flatMap { x => x }
+        ppQueries.union(relationsData).union(sc.parallelize(algorithmQueries, JobContext.parallelization));
+    }
 
-		val jobConfig = JSONUtils.deserialize[JobConfig](config);
+    private def getAssetIds(body: String, contentId: String): List[String] = {
+        try {
+            if (body.startsWith("<")) {
+                val dom = XML.loadString(body)
+                val els = dom \ "manifest" \ "media"
 
-		if (null == sc.getOrElse(null)) {
-			JobContext.parallelization = 10;
-			implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Neo4j Model"));
-			try {
-				execute()
-			} catch {
-				case t: Throwable => t.printStackTrace()
-			} finally {
-				CommonUtil.closeSparkContext();
-			}
-		} else {
-			implicit val sparkContext: SparkContext = sc.getOrElse(null);
-			execute();
-		}
-	}
-
-	private def execute()(implicit sc: SparkContext) {
-		val time = CommonUtil.time({
-			GraphDBUtil.deleteRelation(RELATION, RelationshipDirection.OUTGOING.toString, None)
-			val data = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
-				.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
-				.map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }
-			
-			val assetNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content", "contentType" -> "Asset"), Option(List("domain")))
-			  .map { x => x.metadata.getOrElse(Map()) }.map(f => (f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
-			  .filter(f => StringUtils.isNoneBlank(f)).collect();
-			val assetContents = data.map(x => x._2.map(f => (f, x._1))).flatMap(f => f).groupByKey().map(f => (f._1, f._2.size)).filter(f => assetNodes.contains(f._1))
-			val updateQueries = assetContents.map(x => UpdateDataNode(x._1, "contentCount", x._2.asInstanceOf[AnyRef], Option(Map("IL_UNIQUE_ID" -> x._1)), Option(List("domain"))))
-			GraphDBUtil.updateNodes(updateQueries)
-		
-			val relationsData = data.map { x =>
-					val startNode = DataNode(x._1, None, Option(List("domain")));
-					x._2.map { x =>
-						val endNode = DataNode(x, None, Option(List("domain")));
-						Relation(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString);
-					}
-				}.flatMap { x => x }
-			GraphDBUtil.addRelations(relationsData);
-		})
-		JobLogger.end("ContentAssetRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
-	}
-
-	private def getAssetIds(body: String, contentId: String): List[String] = {
-		try {
-			if (body.startsWith("<")) {
-				val dom = XML.loadString(body)
-				val els = dom \ "manifest" \ "media"
-
-				val assestIds = els.map { x =>
-					val node = x.attribute("asset_id").getOrElse(x.attribute("assetId").getOrElse(null))
-					if (node != null)
-						node.text
-					else "";
-				}.filter { x => StringUtils.isNotBlank(x) }.toList
-				assestIds;
-			} else {
-				ECMLUtil.getAssetIds(body);
-			}
-		} catch {
-			case t: Throwable =>
-				println("Unable to parse OR fetch Asset Ids for contentId:"+ contentId + " :: Error" + t.getMessage);
-				List();
-		}
-	}
+                val assestIds = els.map { x =>
+                    val node = x.attribute("asset_id").getOrElse(x.attribute("assetId").getOrElse(null))
+                    if (node != null)
+                        node.text
+                    else "";
+                }.filter { x => StringUtils.isNotBlank(x) }.toList
+                assestIds;
+            } else {
+                ECMLUtil.getAssetIds(body);
+            }
+        } catch {
+            case t: Throwable =>
+                println("Unable to parse OR fetch Asset Ids for contentId:" + contentId + " :: Error: " + t.getMessage);
+                List();
+        }
+    }
 }

@@ -15,79 +15,41 @@ import org.ekstep.analytics.framework.Relation
 import scala.collection.JavaConversions._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.ekstep.analytics.job.IGraphExecutionModel
+import org.apache.spark.rdd.RDD
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.Job_Config
+import org.ekstep.analytics.util.Constants
 
-object ContentLanguageRelationModel extends optional.Application with IJob {
+object ContentLanguageRelationModel extends IGraphExecutionModel with Serializable {
+
+    override def name(): String = "ContentLanguageRelationModel";
+    override implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel";
 
     val NODE_NAME = "Language";
     val RELATION = "expressedIn";
-    implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel"
-//    val findQuery =  "MATCH(n:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE n.contentType IN ['Story', 'Game', 'Collection', 'Worksheet'] RETURN n"
-    val findQuery =  "MATCH (n:domain) where n.IL_FUNC_OBJECT_TYPE = 'Content' AND n.contentType IN ['Story', 'Game', 'Collection', 'Worksheet'] return n.language, n.IL_UNIQUE_ID" 
-    
-    def main(config: String)(implicit sc: Option[SparkContext] = None) {
+    var algorithmQueries: List[String] = List();
 
-        JobLogger.init("ContentLanguageRelationModel")
-        JobLogger.start("ContentLanguageRelationModel Started executing", Option(Map("config" -> config)))
+    val findQuery = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: 'Content'}) WHERE lower(cnt.contentType)IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status IN ['Draft', 'Review', 'Live'] RETURN cnt.language"
 
-        val jobConfig = JSONUtils.deserialize[JobConfig](config);
-
-        if (null == sc.getOrElse(null)) {
-            JobContext.parallelization = 10;
-            implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse("Vidyavaani Graph Model"));
-            try {
-                execute()
-            } catch {
-                case t: Throwable => t.printStackTrace()
-            } finally {
-                CommonUtil.closeSparkContext();
-            }
-        } else {
-            implicit val sparkContext: SparkContext = sc.getOrElse(null);
-            execute();
-        }
+    override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
+        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "content-lang-rel").first
+        val cleanupQueries = job_config.config_value.get("cleanupQueries").get
+        algorithmQueries = job_config.config_value.get("algorithmQueries").get
+        sc.parallelize(cleanupQueries, JobContext.parallelization);
     }
 
-    private def execute()(implicit sc: SparkContext) {
+    override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
 
-        val time = CommonUtil.time({
-            cleanUp();
-            algorithm();
-        })
-
-        JobLogger.end("ContentLanguageRelationModel Completed", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1)));
-    }
-
-    private def algorithm()(implicit sc: SparkContext) = {
-        val limit = if (StringUtils.isNotBlank(AppConf.getConfig("graph.content.limit")))
-            Option(Integer.parseInt(AppConf.getConfig("graph.content.limit"))) else None
-
-        val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"), "user" -> AppConf.getConfig("neo4j.bolt.user"), "password" -> AppConf.getConfig("neo4j.bolt.password"));
         val contentNodes = GraphQueryDispatcher.dispatch(graphDBConfig, findQuery);
-        val res = contentNodes.list().map { x => (x.get("n.language").asList(), x.get("n.IL_UNIQUE_ID").asString()) }
-          .map(f => for (i <- f._1) yield (i.toString().toLowerCase(), f._2)).flatMap(f => f)
-          .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
-        val contentLanguage = sc.parallelize(res)
-//        val contentNodes = GraphDBUtil.executeQuery(findQuery, "n") //GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")), limit, Option("WHERE ee.contentType IN ['Story', 'Game', 'Collection', 'Worksheet']"));
-//        val contentLanguage = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-//            .map(f => (f.getOrElse("language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]], f.getOrElse("IL_UNIQUE_ID", "").asInstanceOf[String]))
-//            .map(f => for (i <- f._1) yield (i.toLowerCase(), f._2)).flatMap(f => f)
-//            .filter(f => StringUtils.isNoneBlank(f._1) && StringUtils.isNoneBlank(f._2))
-        
-        val languages = contentLanguage.groupByKey().map(f => (f._1, f._2.size))
-            .map { f =>
-                DataNode(f._1.toLowerCase(), Option(Map("name" -> f._1, "contentCount" -> f._2.asInstanceOf[AnyRef])), Option(List(NODE_NAME)));
-            }
-        GraphDBUtil.createNodes(languages);
-            
-        val languageContentRels = contentLanguage.map { f =>
-                val startNode = DataNode(f._1.toLowerCase(), None, Option(List(NODE_NAME)));
-                val endNode = DataNode(f._2, None, Option(List("domain")));
-                Relation(startNode, endNode, RELATION, RelationshipDirection.INCOMING.toString);
-            };
-        GraphDBUtil.addRelations(languageContentRels);
+        val res = contentNodes.list().map { x => (x.get("cnt.language", new java.util.ArrayList()).asInstanceOf[java.util.List[String]]) }
+            .flatMap(f => f).filter(f => StringUtils.isNoneBlank(f))
+        val contentLanguage = sc.parallelize(res).map { x => x.toLowerCase() }.distinct()
+
+        val languages = contentLanguage.map { langName =>
+            DataNode(langName, Option(Map("name" -> langName)), Option(List(NODE_NAME)));
+        }
+        ppQueries.union(sc.parallelize(Seq(GraphDBUtil.createNodesQuery(languages)) ++ algorithmQueries, JobContext.parallelization));
     }
-    
-    private def cleanUp()(implicit sc: SparkContext) {
-        GraphDBUtil.deleteNodes(None, Option(List(NODE_NAME)))
-    }
+
 }

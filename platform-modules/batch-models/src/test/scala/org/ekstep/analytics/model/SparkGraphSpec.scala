@@ -41,7 +41,10 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 		super.afterAll();
 		if (embeddedMode) {
 			println("Stopping Embedded Neo4j...");
-			if (null != graphDb) graphDb.shutdown();
+			if (null != graphDb) {
+			    graphDb.execute("MATCH ()-[r:associatedTo]->() DELETE r")
+			    graphDb.shutdown();
+			}
 		}
 	}
 	
@@ -59,6 +62,7 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 			val nodes = sc.textFile(testDataPath + "datanodes.json", 1);
 			val queries = nodes.map { x => s"CREATE (n:domain $x) return n" }.collect();
 			queries.map { query => graphDb.execute(query) };
+			graphDb.execute("MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r")
 			tx.success();
 		} catch {
 			case t: Throwable =>

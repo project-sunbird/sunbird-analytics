@@ -64,7 +64,8 @@ object RecommendationAPIService {
 	}
 	
 	private def recommendType(requestBody: RequestBody) : String = {
-		if (requestBody.request.context.getOrElse(Map()).get("contentid").isEmpty) DEVICE_RECO else CONTENT_RECO;
+		val contentId = requestBody.request.context.getOrElse(Map()).getOrElse("contentid", "").asInstanceOf[String]
+		if (StringUtils.isEmpty(contentId)) DEVICE_RECO else CONTENT_RECO;
 	}
 }
 
