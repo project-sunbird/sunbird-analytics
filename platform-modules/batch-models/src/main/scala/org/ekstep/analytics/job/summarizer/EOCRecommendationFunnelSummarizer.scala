@@ -4,6 +4,7 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.JobDriver
 import optional.Application
 import org.ekstep.analytics.framework.IJob
+import org.ekstep.analytics.model.EOCRecommendationFunnelModel
 
 /**
  * @author mahesh

@@ -16,8 +16,8 @@ import scala.collection.mutable.ListBuffer
 import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.Buffer
 
-case class EOCFunnel(uid: String, did: String, dtRange: DtRange, consumed: Int, contentShown: List[AnyRef], contentCount: Int, downloadInit: Int, downloadComplete: Int, played: Int) extends AlgoOutput
-case class EventsGroup(uid: String, did: String, events: List[Event]) extends AlgoInput
+case class EOCFunnel(uid: String, did: String, sid: String, contentid: String, dtRange: DtRange, consumed: Int, contentShown: List[AnyRef], contentCount: Int, downloadInit: Int, downloadComplete: Int, played: Int) extends AlgoOutput
+case class EventsGroup(uid: String, did: String, sid: String, events: Buffer[Event]) extends AlgoInput
 object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGroup, EOCFunnel, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.EOCRecommendationFunnelModel"
@@ -28,9 +28,9 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
         val rdd1 = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("OE_INTERACT")), Filter("edata.eks.id", "EQ", Option("gc_relatedcontent"))))
         val rdd2 = data.filter { x => (x.eid.equals("OE_START") || x.eid.equals("OE_END") || x.eid.equals("GE_INTERACT")) }
         val rdd3 = rdd.union(rdd1).union(rdd2)
-        val rdd4 = rdd3.groupBy { x => (x.did, x.uid) }
-        val rdd5 = rdd4.map { x => (x._1, x._2.toList.sortBy { x => x.`@timestamp` }) }.map { case ((did, uid), list) => (did, uid, list) }
-        rdd5.map { x => EventsGroup(x._1, x._2, x._3) }
+        val rdd4 = rdd3.groupBy { x => (x.did, x.uid, x.sid) }
+        val rdd5 = rdd4.map { x => (x._1, x._2.toList.sortBy { x => x.`@timestamp` }) }.map { case ((did, uid, sid), list) => (did, uid, sid, list) }
+        rdd5.map { x => EventsGroup(x._1, x._2, x._3, x._4.toBuffer) }
 
     }
 
@@ -60,7 +60,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                     val played = if (x.gdata.id.equals(playedContentId)) 1 else 0
 
                     if (oeEnd == 1) {
-                        list += EOCFunnel(x.uid, x.did, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, played)
+                        list += EOCFunnel(x.uid, x.did, x.sid, x.gdata.id, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, played)
                         consumed = 0
                         contentShown = List[String]()
                         contentCount = 0
@@ -103,7 +103,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                         case "OE_END" =>
                             oe_EndCount += 1
                             if (lastOccuranceOE_END == oe_EndCount) {
-                                list += EOCFunnel(x.uid, x.did, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, 0)
+                                list += EOCFunnel(x.uid, x.did, x.sid, x.gdata.id, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, 0)
                                 oe_EndCount = 0
                             }
                             oeStart = 0
@@ -121,20 +121,19 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
     }
 
     override def postProcess(data: RDD[EOCFunnel], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME__EOC_RECOMMENDATION_FUNNEL", null, config.getOrElse("granularity", "EVENT").asInstanceOf[String], summary.dtRange, summary.did);
+            val mid = CommonUtil.getMessageId("ME_EOC_RECOMMENDATION_FUNNEL", summary.uid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dtRange, summary.did + summary.sid + summary.contentid);
             val measures = Map(
                 "consumed" -> summary.consumed,
-                "contentShown" -> summary.contentShown,
+                "contentRecommended" -> summary.contentShown,
                 "contentCount" -> summary.contentCount,
-                "downloadInit" -> summary.downloadInit,
+                "downloadInitiated" -> summary.downloadInit,
                 "downloadComplete" -> summary.downloadComplete,
-                "played" -> summary.played)
+                "contentPlayed" -> summary.played)
 
-            MeasuredEvent("ME__EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), 0L, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), 0L, "1.0", mid, summary.uid, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "EOCRecommendationFunnelSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "EVENT").asInstanceOf[String], summary.dtRange),
-                Dimensions(Option(summary.uid), Option(summary.did), None, None, None, None, None, None, None),
+                Dimensions(Option(summary.uid), Option(summary.did), None, None, None, None, None, None, None, None, None, Option(summary.contentid)),
                 MEEdata(measures), None);
         }
 

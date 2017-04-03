@@ -22,12 +22,12 @@ class TestEOCRecommendationFunnelModel extends SparkSpec(null) {
 
     it should "show Contentlist values if events having OE_INTERACT in between OE_START and OE_END" in {
 
-        eocEvents(0).edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentShown").get.asInstanceOf[List[String]](1) should be("numeracy_365")
+        eocEvents(0).edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentRecommended").get.asInstanceOf[List[String]](1) should be("numeracy_365")
     }
 
     it should "show download initiated value as 1 if content download is initiated" in {
 
-        eocEvents(3).edata.eks.asInstanceOf[Map[String, AnyRef]].get("downloadInit").get.asInstanceOf[Int] should be(1)
+        eocEvents(3).edata.eks.asInstanceOf[Map[String, AnyRef]].get("downloadInitiated").get.asInstanceOf[Int] should be(1)
     }
 
     it should "show download complete value as 1 if content download is completed" in {
@@ -41,12 +41,12 @@ class TestEOCRecommendationFunnelModel extends SparkSpec(null) {
     }
 
     it should "show content played value as 0 if content is not played" in {
-        eocEvents(5).edata.eks.asInstanceOf[Map[String, AnyRef]].get("played").get.asInstanceOf[Int] should be(0)
+        eocEvents(5).edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentPlayed").get.asInstanceOf[Int] should be(0)
     }
 
     it should "show content played value as 1 if content is played" in {
-        
-        eocEvents(0).edata.eks.asInstanceOf[Map[String, AnyRef]].get("played").get.asInstanceOf[Int] should be(1)
+
+        eocEvents(0).edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentPlayed").get.asInstanceOf[Int] should be(1)
     }
 
     private def eocEvents: Array[MeasuredEvent] = {
