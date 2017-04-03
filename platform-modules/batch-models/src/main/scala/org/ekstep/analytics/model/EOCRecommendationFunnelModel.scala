@@ -42,9 +42,9 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
             val syncts = CommonUtil.getEventSyncTS(geEnd)
             val startTimestamp = CommonUtil.getEventTS(geStart)
             val endTimestamp = CommonUtil.getEventTS(geEnd)
-            val dtRange = DtRange(startTimestamp, endTimestamp);
-            var oeStart = 0
+            val dtRange = DtRange(startTimestamp, endTimestamp)
             var consumed = 0
+            var oeStart = 0
             var contentShown = List[String]()
             var contentCount = 0
             var downloadInit = 0
@@ -61,7 +61,6 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
 
                     if (oeEnd == 1) {
                         list += EOCFunnel(x.uid, x.did, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, played)
-
                         consumed = 0
                         contentShown = List[String]()
                         contentCount = 0
@@ -74,15 +73,24 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
 
                     x.eid match {
 
-                        case "GE_SERVICE_API_CALL" =>
-                            consumed = 1
-
                         case "OE_INTERACT" =>
+                            consumed = 1
                             val contentMap = x.edata.eks.values
-                            contentShown = if (contentMap.isEmpty) List() else contentMap(1).asInstanceOf[Map[String, List[String]]].getOrElse("ContentIDsDisplayed", List())
+                            if (contentMap.nonEmpty) {
+                                val dispMap = contentMap.filter { x =>
+                                    val map = x.asInstanceOf[Map[String, AnyRef]]
+                                    map.contains("ContentIDsDisplayed")
+                                }
+                                contentShown = if (dispMap.isEmpty) List() else dispMap.last.asInstanceOf[Map[String, List[String]]].get("ContentIDsDisplayed").get
+                                val pos = contentMap.filter { x =>
+                                    val map = x.asInstanceOf[Map[String, AnyRef]]
+                                    map.contains("PositionClicked")
+                                }
+                                val positionClicked = pos.last.asInstanceOf[Map[String, Double]].get("PositionClicked").get.toInt
+                                playedContentId = if (contentShown.isEmpty) "" else contentShown(positionClicked - 1)
+                            }
+
                             contentCount = if (contentMap.isEmpty) 0 else contentShown.size
-                            val positionClicked = contentMap(0).asInstanceOf[Map[String, Double]].getOrElse("PositionClicked", 0.0).toInt
-                            playedContentId = if (contentShown.isEmpty) "" else contentShown(positionClicked - 1)
 
                         case "GE_INTERACT" =>
                             if (x.edata.eks.subtype.equals("ContentDownload-Initiate")) {
