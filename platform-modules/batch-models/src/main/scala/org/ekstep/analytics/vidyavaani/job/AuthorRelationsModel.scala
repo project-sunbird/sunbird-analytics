@@ -27,7 +27,7 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
     val CONTENT_AUTHOR_RELATION = "createdBy";
     var algorithmQueries: List[String] = List();
     
-    override def name(): String = "ContentLanguageRelationModel";
+    override def name(): String = "AuthorRelationsModel";
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
