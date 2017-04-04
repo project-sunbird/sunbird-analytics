@@ -291,18 +291,18 @@ CREATE TABLE IF NOT EXISTS platform_db.recommendation_config(
     PRIMARY KEY (config_key)
 );
 
-CREATE TABLE IF NOT EXISTS platform_db.request_recos(
-    uid text,
-    requests list<frozen<requests>>,
-    PRIMARY KEY (uid)
-);
-
 CREATE TYPE IF NOT EXISTS platform_db.requests(
      grade_level list<text>,
      concepts list<text>,
      content_type text,
      language Map<text,text>,
      type text 
+);
+
+CREATE TABLE IF NOT EXISTS platform_db.request_recos(
+    uid text,
+    requests list<frozen<requests>>,
+    PRIMARY KEY (uid)
 );
 
 
