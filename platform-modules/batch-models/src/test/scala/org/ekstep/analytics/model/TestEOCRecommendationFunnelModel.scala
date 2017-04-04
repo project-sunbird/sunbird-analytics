@@ -7,9 +7,11 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 
 class TestEOCRecommendationFunnelModel extends SparkSpec(null) {
 
+    /*
     "EOCRecommendationFunnelModel" should "generate empty values if events having only OE_START and OE_END " in {
        
         eocEvents(4).edata.eks.asInstanceOf[Map[String, AnyRef]].get("consumed").get.asInstanceOf[Int] should be(0)
@@ -47,6 +49,14 @@ class TestEOCRecommendationFunnelModel extends SparkSpec(null) {
     it should "show content played value as 1 if content is played" in {
 
         eocEvents(0).edata.eks.asInstanceOf[Map[String, AnyRef]].get("contentPlayed").get.asInstanceOf[Int] should be(1)
+    }*/
+    
+    "EOCRecommendationFunnelModel" should "run the funnel summarizer on telemetry and produce EOC funnels" in {
+
+        val rdd = loadFile[Event]("src/test/resources/genie-funnel/genie-eoc-funnel-data.json.gz");
+        val rdd2 = EOCRecommendationFunnelModel.execute(rdd, None);
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "logs/output.log")), rdd2);
+        rdd2.count() should be (69);
     }
 
     private def eocEvents: Array[MeasuredEvent] = {

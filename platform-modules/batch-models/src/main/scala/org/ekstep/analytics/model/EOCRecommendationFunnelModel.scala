@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
 import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.Buffer
 
-case class EOCFunnel(uid: String, did: String, sid: String, contentid: String, dtRange: DtRange, consumed: Int, contentShown: List[AnyRef], contentCount: Int, downloadInit: Int, downloadComplete: Int, played: Int) extends AlgoOutput
+case class EOCFunnel(var uid: String,var did: String,var sid: String,var contentId: String, var contentViewed: String,var startDate: Long,var endDate: Long,var consumed: Int,var contentShown: List[AnyRef],var contentCount: Int,var downloadInit: Int,var downloadComplete: Int,var played: Int) extends AlgoOutput
 case class EventsGroup(uid: String, did: String, sid: String, events: Buffer[Event]) extends AlgoInput
 object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGroup, EOCFunnel, MeasuredEvent] with Serializable {
 
@@ -24,120 +24,108 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
     override def name: String = "EOCRecommendationFunnelModel"
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsGroup] = {
-        val rdd = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("GE_SERVICE_API_CALL")), Filter("edata.eks.method", "EQ", Option("getRelatedContent"))))
+        
+        val rdd = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("GE_SERVICE_API_CALL")), Filter("edata.eks.method", "EQ", Option("getRelatedContent"))));
         val rdd1 = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("OE_INTERACT")), Filter("edata.eks.id", "EQ", Option("gc_relatedcontent"))))
         val rdd2 = data.filter { x => (x.eid.equals("OE_START") || x.eid.equals("OE_END") || x.eid.equals("GE_INTERACT")) }
         val rdd3 = rdd.union(rdd1).union(rdd2)
         val rdd4 = rdd3.groupBy { x => (x.did, x.uid, x.sid) }
         val rdd5 = rdd4.map { x => (x._1, x._2.toList.sortBy { x => x.`@timestamp` }) }.map { case ((did, uid, sid), list) => (did, uid, sid, list) }
         rdd5.map { x => EventsGroup(x._1, x._2, x._3, x._4.toBuffer) }
-
     }
 
     override def algorithm(data: RDD[EventsGroup], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EOCFunnel] = {
 
-        data.map { x =>
-            val geStart = x.events.head
-            val geEnd = x.events.last
-            val syncts = CommonUtil.getEventSyncTS(geEnd)
-            val startTimestamp = CommonUtil.getEventTS(geStart)
-            val endTimestamp = CommonUtil.getEventTS(geEnd)
-            val dtRange = DtRange(startTimestamp, endTimestamp)
-            var consumed = 0
-            var oeStart = 0
-            var contentShown = List[String]()
-            var contentCount = 0
-            var downloadInit = 0
-            var downloadComplete = 0
-            var playedContentId = ""
-            var oeEnd = 0
-            var list = Buffer[EOCFunnel]()
-            var oe_EndCount = 0
-            val lastOccuranceOE_END = x.events.filter { x => x.eid.equals("OE_END") }.size
-            x.events.map { x =>
-
-                x.eid match {
-
-                    case "OE_START" =>
-                        oeStart = 1
-                        val played = if (x.gdata.id.equals(playedContentId)) 1 else 0
-
-                        if (oeEnd == 1) {
-                            list += EOCFunnel(x.uid, x.did, x.sid, x.gdata.id, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, played)
-                            consumed = 0
-                            contentShown = List[String]()
-                            contentCount = 0
-                            downloadInit = 0
-                            downloadComplete = 0
-                            oeEnd = 0
-                        }
-
-                    case "OE_INTERACT" =>
-                        if (oeStart == 1) {
-                            consumed = 1
-                            val contentMap = x.edata.eks.values
-                            if (contentMap.nonEmpty) {
-                                val dispMap = contentMap.filter { x =>
-                                    val map = x.asInstanceOf[Map[String, AnyRef]]
-                                    map.contains("ContentIDsDisplayed")
+        data.map { group =>
+            
+            val geServiceEvents = DataFilter.filter(group.events, Filter("eid", "EQ", Option("GE_SERVICE_API_CALL")));
+             
+            var funnels = Buffer[EOCFunnel]();
+            if(geServiceEvents.length > 0) {
+                var funnel: EOCFunnel = null;
+                group.events.foreach { event => 
+                    event.eid match {
+                        case "GE_SERVICE_API_CALL" =>
+                            if(null != funnel) {
+                                funnel.endDate = event.ets;
+                                funnels += funnel;
+                                funnel = null;
+                            }
+                            val contentId = event.edata.eks.request.asInstanceOf[Map[String, AnyRef]].get("params");
+                            if(contentId.isDefined) {
+                                funnel = EOCFunnel(group.uid, group.did, group.sid, contentId.get.asInstanceOf[String], "", event.ets, 0L, 0, List(), 0, 0, 0, 0);   
+                            }
+                        case "OE_INTERACT" =>
+                            if (null != funnel) {
+                                if(!event.gdata.id.equals(funnel.contentId)) {
+                                    funnel.endDate = event.ets;
+                                    funnels += funnel;
+                                    funnel = null;
+                                } else {
+                                    val contentMap = event.edata.eks.values
+                                    if (contentMap.nonEmpty) {
+                                        val valueMap = contentMap.map { x => x.asInstanceOf[Map[String, AnyRef]] }.filter { x =>
+                                            x.contains("ContentIDsDisplayed") || x.contains("PositionClicked")
+                                        }
+                                        if (!valueMap.isEmpty) {
+                                            funnel.consumed = 1;
+                                            val contentShown = valueMap.filter(p => p.contains("ContentIDsDisplayed"));
+                                            if(!contentShown.isEmpty) {
+                                                funnel.contentShown = contentShown.head.get("ContentIDsDisplayed").get.asInstanceOf[List[String]];
+                                                funnel.contentCount = funnel.contentShown.length;
+                                            }
+                                            val positionClicked = valueMap.filter(p => p.contains("PositionClicked"));
+                                            if(!positionClicked.isEmpty) {
+                                                val pos = positionClicked.head.get("PositionClicked").get.asInstanceOf[Double].toInt;
+                                                if(!funnel.contentShown.isEmpty && funnel.contentShown.length >= pos) {
+                                                    funnel.contentViewed = funnel.contentShown(pos-1).asInstanceOf[String];
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                contentShown = if (dispMap.isEmpty) List() else dispMap.last.asInstanceOf[Map[String, List[String]]].get("ContentIDsDisplayed").get
-                                val pos = contentMap.filter { x =>
-                                    val map = x.asInstanceOf[Map[String, AnyRef]]
-                                    map.contains("PositionClicked")
-                                }
-                                val positionClicked = pos.last.asInstanceOf[Map[String, Double]].get("PositionClicked").get.toInt
-                                playedContentId = if (contentShown.isEmpty) "" else contentShown(positionClicked - 1)
                             }
-
-                            contentCount = if (contentMap.isEmpty) 0 else contentShown.size
-                        }
-
-                    case "GE_INTERACT" =>
-                        if (oeStart == 1) {
-                            if (x.edata.eks.subtype.equals("ContentDownload-Initiate")) {
-                                downloadInit = 1
+                        case "GE_INTERACT" =>
+                            if (null != funnel && funnel.consumed == 1 && funnel.contentViewed.equals(event.edata.eks.id)) {
+                                if("ContentDownload-Initiate".equals(event.edata.eks.subtype)) funnel.downloadInit = 1;
+                                if("ContentDownload-Success".equals(event.edata.eks.subtype)) funnel.downloadComplete = 1;
                             }
-                            if (x.edata.eks.subtype.equals("ContentDownload-Success")) {
-                                downloadComplete = 1
+                        case "OE_START" =>
+                            if(null != funnel) {
+                                if(funnel.consumed == 1 && funnel.contentViewed.equals(event.gdata.id)) funnel.played = 1;
+                                funnel.endDate = event.ets;
+                                funnels += funnel;
+                                funnel = null;
                             }
-                        }
-
-                    case "OE_END" =>
-                        if (oeStart == 1) {
-                            oe_EndCount += 1
-                            if (lastOccuranceOE_END == oe_EndCount) {
-                                list += EOCFunnel(x.uid, x.did, x.sid, x.gdata.id, dtRange, consumed, contentShown, contentCount, downloadInit, downloadComplete, 0)
-                                oe_EndCount = 0
-                            }
-                            oeStart = 0
-                            oeEnd = 1
-                        }
-                    case _ =>
-
+                        case _ =>
+                    }
                 }
-
-                list
-            }.last
-
+                if(null != funnel) {
+                    funnel.endDate = funnel.startDate;
+                    funnels += funnel;
+                }
+            }
+            funnels
         }.flatMap { x => x }
 
     }
 
     override def postProcess(data: RDD[EOCFunnel], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_EOC_RECOMMENDATION_FUNNEL", summary.uid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dtRange, summary.did + summary.sid + summary.contentid);
+            val dtRange = DtRange(summary.startDate, summary.endDate);
+            val mid = CommonUtil.getMessageId("ME_EOC_RECOMMENDATION_FUNNEL", summary.uid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], dtRange, summary.did + summary.sid + summary.contentId);
             val measures = Map(
                 "consumed" -> summary.consumed,
-                "contentRecommended" -> summary.contentShown,
-                "contentCount" -> summary.contentCount,
-                "downloadInitiated" -> summary.downloadInit,
-                "downloadComplete" -> summary.downloadComplete,
-                "contentPlayed" -> summary.played)
+                "content_viewed" -> summary.contentViewed,
+                "content_recommended" -> summary.contentShown,
+                "content_count" -> summary.contentCount,
+                "download_initiated" -> summary.downloadInit,
+                "download_complete" -> summary.downloadComplete,
+                "content_played" -> summary.played)
 
             MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), 0L, "1.0", mid, summary.uid, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "EOCRecommendationFunnelSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "EVENT").asInstanceOf[String], summary.dtRange),
-                Dimensions(Option(summary.uid), Option(summary.did), None, None, None, None, None, None, None, None, None, Option(summary.contentid)),
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "EOCRecommendationFunnelSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "EVENT").asInstanceOf[String], dtRange),
+                Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, None, Option(summary.contentId)),
                 MEEdata(measures), None);
         }
 
