@@ -28,6 +28,12 @@ class TestRecommendationAPIService extends SparkSpec {
 	override def beforeAll() {
         super.beforeAll()
         // Load test data
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            val query = "DELETE FROM " + Constants.DEVICE_DB + "." + Constants.DEVICE_RECOS_TABLE + " where device_id='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
+            val query1 = "DELETE FROM " + Constants.PLATFORML_DB + "." + Constants.REQUEST_RECOS_TABLE + " where uid='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
+            session.execute(query);
+            session.execute(query1)
+        }
         val rdd = loadFile[RecommendationContent]("src/test/resources/device-recos/test_device_recos.log");
         val rdd1 = loadFile[RequestRecommendations]("src/test/resources/device-recos/test_request_recos.log");
         rdd1.saveToCassandra(Constants.PLATFORML_DB, Constants.REQUEST_RECOS_TABLE)
