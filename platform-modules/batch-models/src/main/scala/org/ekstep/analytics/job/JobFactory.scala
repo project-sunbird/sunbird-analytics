@@ -107,7 +107,7 @@ object JobFactory {
                 ConsumptionMetricsUpdater
             case "creation-metrics" =>
                 CreationMetricsModelUpdater
-            case "EOCRecommendation" =>
+            case "eocfs" =>
                 EOCRecommendationFunnelSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
