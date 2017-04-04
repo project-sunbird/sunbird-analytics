@@ -31,6 +31,8 @@ object ContentAssetRelationModel extends IGraphExecutionModel with Serializable 
 
     val RELATION = "uses";
     var algorithmQueries: List[String] = List();
+    
+    override def name(): String = "ContentAssetRelationModel";
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel"
    
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
