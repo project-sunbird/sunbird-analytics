@@ -11,6 +11,7 @@ import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
 import org.ekstep.analytics.updater.CreationMetricsUpdater
 import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
 import org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel
+import org.ekstep.analytics.model.EOCRecommendationFunnelModel
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -106,6 +107,8 @@ object JobFactory {
                 ConsumptionMetricsUpdater
             case "creation-metrics" =>
                 CreationMetricsModelUpdater
+            case "EOCRecommendation" =>
+                EOCRecommendationFunnelSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

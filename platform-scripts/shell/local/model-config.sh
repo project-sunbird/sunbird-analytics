@@ -67,6 +67,9 @@ config() {
                 "influxdb-updater") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ContentVectorsModel","modelParams":{"content2vec.s3_bucket":"sandbox-data-store","content2vec.s3_key_prefix":"model/","python.home":"/usr/local/bin/","content2vec.model_path":"/tmp/content2vec/model/","content2vec_scripts_path":"../../python/main/vidyavaani","content2vec.kafka_topic":"sandbox.learning.graph.events","content2vec.kafka_broker_list":"172.31.1.92:9092","content2vec.corpus_path":"/tmp/content2vec/content_corpus/","content2vec.download_path":"/tmp/content2vec/download/","content2vec.search_request":{"request":{"filters":{"objectType":["Content"],"contentType":["Story","Worksheet","Collection","Game"],"status":["Live"]},"limit":100}}},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"ContentVectorsModel","deviceMapping":false}'
 		;;
+                "EOCRecommendation")
+               echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceRecommendationModel","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"EOCRecommendationFunnelModel","deviceMapping":false}'
+                ;;
 		*)  
 		echo "Unknown model code" 
       	exit 1 # Command to come out of the program with status 1

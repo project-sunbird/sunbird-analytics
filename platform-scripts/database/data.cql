@@ -291,6 +291,21 @@ CREATE TABLE IF NOT EXISTS platform_db.recommendation_config(
     PRIMARY KEY (config_key)
 );
 
+CREATE TABLE IF NOT EXISTS platform_db.request_recos(
+    uid text,
+    requests list<frozen<requests>>,
+    PRIMARY KEY (uid)
+);
+
+CREATE TYPE IF NOT EXISTS platform_db.requests(
+     grade_level list<text>,
+     concepts list<text>,
+     content_type text,
+     language Map<text,text>,
+     type text 
+);
+
+
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 
