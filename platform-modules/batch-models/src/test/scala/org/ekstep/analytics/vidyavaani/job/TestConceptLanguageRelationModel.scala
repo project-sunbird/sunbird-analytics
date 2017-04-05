@@ -19,8 +19,6 @@ class TestConceptLanguageRelationModel extends SparkGraphSpec(null) {
         // Running ContentLanguageRelationModel to create language nodes
         ContentLanguageRelationModel.main("{}")(Option(sc));
         
-        val concepts = GraphQueryDispatcher.dispatch(graphConfig, findConceptNodesQuery).list;
-        concepts.size() should be(1)
         val languages = GraphQueryDispatcher.dispatch(graphConfig, findLanguageNodesQuery).list;
         languages.size() should be(3)
 
@@ -30,6 +28,12 @@ class TestConceptLanguageRelationModel extends SparkGraphSpec(null) {
         conceptLangRelBefore.size should be(0)
         
         ConceptLanguageRelationModel.main("{}")(Option(sc));
+        
+        // check for contentcount & liveContentCount on Concept Node
+        val concepts = GraphQueryDispatcher.dispatch(graphConfig, findConceptNodesQuery).list;
+        concepts.size() should be(1)
+        concepts.get(0).get("c").asMap().get("contentCount") should be(1)
+        concepts.get(0).get("c").asMap().get("liveContentCount") should be(1)
         
         val conceptLangRelAfter = GraphQueryDispatcher.dispatch(graphConfig, relQuery).list;
         conceptLangRelAfter.size should be (languages.size()*concepts.size())
