@@ -16,15 +16,17 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.Job_Config
 import org.ekstep.analytics.util.Constants
 
-object ConceptLanguageRelationModel extends IGraphExecutionModel with Serializable {
+object CreationRecommendationEnrichmentModel extends IGraphExecutionModel with Serializable {
 
-    override def name(): String = "ConceptLanguageRelationModel";
-    override implicit val className = "org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel"
+    override def name(): String = "CreationRecommendationEnrichmentModel";
+    override implicit val className = "org.ekstep.analytics.vidyavaani.job.CreationRecommendationEnrichmentModel"
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "concept-lan-rel").first
+
+        val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "re-enrichment-model").first
         val queries = job_config.config_value.get("cleanupQueries").get ++ job_config.config_value.get("algorithmQueries").get
         sc.parallelize(queries, JobContext.parallelization);
+
     }
 
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
