@@ -12,7 +12,7 @@ class TestCreationRecommendationEnrichmentModel extends SparkGraphSpec(null) {
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
-        VidyavaaniModelJobs.main("{}")(Option(sc));
-        CreationRecommendationEnrichmentModel.main("{}")(Option(sc));
+        //VidyavaaniModelJobs.main("{}")(Option(sc));
+        //CreationRecommendationEnrichmentModel.main("{}")(Option(sc));
     }
 }
