@@ -123,7 +123,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                 "download_complete" -> summary.downloadComplete,
                 "content_played" -> summary.played)
 
-            MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), 0L, "1.0", mid, summary.uid, None, None,
+            MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), summary.endDate, "1.0", mid, summary.uid, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "EOCRecommendationFunnelSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "EVENT").asInstanceOf[String], dtRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, None, Option(summary.contentId)),
                 MEEdata(measures), None);
