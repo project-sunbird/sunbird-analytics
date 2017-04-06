@@ -27,18 +27,20 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
 
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
         
+        val author_reco_limit = config.getOrElse("author_reco_limit", 5).asInstanceOf[Int];
+        
         val concepts = GraphQueryDispatcher.dispatch(graphDBConfig, getConceptsQuery).list().toArray();
         val langs = GraphQueryDispatcher.dispatch(graphDBConfig, getLangsQuery).list().toArray();
         val contentTypes = GraphQueryDispatcher.dispatch(graphDBConfig, getContentTypeQuery).list().toArray();
         
         val authorConcepts = concepts.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("usr.IL_UNIQUE_ID").asString(), (x.get("cnc.IL_UNIQUE_ID").asString(), x.get("cnc.liveContentCount").asLong(), x.get("conf").asDouble(), x.get("lift").asDouble()))}
-        val authorConceptsRDD = sc.parallelize(authorConcepts).groupByKey().map(f => (f._1, f._2.toList.take(5).map(x => (x._1, x._4))))
+        val authorConceptsRDD = sc.parallelize(authorConcepts).groupByKey().map(f => (f._1, f._2.toList.take(author_reco_limit).map(x => (x._1, x._4))))
         
         val authorLang = langs.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("usr.IL_UNIQUE_ID").asString(), (x.get("lan").asMap().toMap.asInstanceOf[Map[String, String]], x.get("conf").asDouble(), x.get("lift").asDouble()))}
-        val authorLangRDD = sc.parallelize(authorLang).groupByKey().map(f => (f._1, f._2.toList.take(5).map(x => (x._1, x._3))))
+        val authorLangRDD = sc.parallelize(authorLang).groupByKey().map(f => (f._1, f._2.toList.take(author_reco_limit).map(x => (x._1, x._3))))
         
         val authorContentType = contentTypes.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("usr.IL_UNIQUE_ID").asString(), (x.get("cntt.name").asString(), x.get("cntt.liveContentCount").asLong(), x.get("conf").asDouble(), x.get("lift").asDouble()))}
-        val authorContentTypeRDD = sc.parallelize(authorContentType).groupByKey().map(f => (f._1, f._2.toList.take(5).map(x => (x._1, x._4))))
+        val authorContentTypeRDD = sc.parallelize(authorContentType).groupByKey().map(f => (f._1, f._2.toList.take(author_reco_limit).map(x => (x._1, x._4))))
         
         val finalResult = authorConceptsRDD.join(authorLangRDD).join(authorContentTypeRDD).mapValues{ f =>
             
