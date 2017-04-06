@@ -111,7 +111,7 @@ object JobFactory {
                 CreationMetricsModelUpdater
             case "eocfs" =>
                 EOCRecommendationFunnelSummarizer
-            case "creation-reco-enrichment" =>
+            case "re-enrichment-model" =>
                 CreationRecommendationEnrichmentModel
             case "creation-reco" =>
                 CreationRecommendationModel
