@@ -12,6 +12,8 @@ import org.ekstep.analytics.updater.CreationMetricsUpdater
 import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
 import org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel
 import org.ekstep.analytics.model.EOCRecommendationFunnelModel
+import org.ekstep.analytics.vidyavaani.job.CreationRecommendationEnrichmentModel
+import org.ekstep.analytics.vidyavaani.job.CreationRecommendationModel
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -109,6 +111,10 @@ object JobFactory {
                 CreationMetricsModelUpdater
             case "eocfs" =>
                 EOCRecommendationFunnelSummarizer
+            case "creation-reco-enrichment" =>
+                CreationRecommendationEnrichmentModel
+            case "creation-reco" =>
+                CreationRecommendationModel
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
