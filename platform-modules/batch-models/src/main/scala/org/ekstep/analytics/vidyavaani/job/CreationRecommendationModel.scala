@@ -28,12 +28,16 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
         
         val author_reco_limit = config.getOrElse("author_reco_limit", 5).asInstanceOf[Int];
+        val langReturnProps = config.getOrElse("lang_return_props", List("name","code","isoCode")).asInstanceOf[List[String]];
         
         val concepts = GraphQueryDispatcher.dispatch(graphDBConfig, getConceptsQuery).list().toArray();
         val langs = GraphQueryDispatcher.dispatch(graphDBConfig, getLangsQuery).list().toArray();
         val contentTypes = GraphQueryDispatcher.dispatch(graphDBConfig, getContentTypeQuery).list().toArray();
         
-        val authorConcepts = concepts.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("usr.IL_UNIQUE_ID").asString(), (x.get("cnc.IL_UNIQUE_ID").asString(), x.get("cnc.gradeLevel", List()).asInstanceOf[List[String]], x.get("cnc.liveContentCount").asLong(), x.get("conf").asDouble(), x.get("lift").asDouble()))}
+        val authorConcepts = concepts.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => 
+            val gradeLevel = if (x.get("cnc.gradeLevel").isNull()) List() 
+            else x.get("cnc.gradeLevel").asList().toList.asInstanceOf[List[String]];
+            (x.get("usr.IL_UNIQUE_ID").asString(), (x.get("cnc.IL_UNIQUE_ID").asString(), gradeLevel, x.get("cnc.liveContentCount").asLong(), x.get("conf").asDouble(), x.get("lift").asDouble()))}
         val authorConceptsRDD = sc.parallelize(authorConcepts).groupByKey().map(f => (f._1, f._2.toList.take(author_reco_limit).map(x => (x._1, x._2, x._5))))
         
         val authorLang = langs.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("usr.IL_UNIQUE_ID").asString(), (x.get("lan").asMap().toMap.asInstanceOf[Map[String, String]], x.get("conf").asDouble(), x.get("lift").asDouble()))}
@@ -46,7 +50,9 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
             
             val combinations = for(x <- f._1._1; y <- f._1._2; z <- f._2) yield (x, y, z)
             val combinedLift = combinations.map(x => (x._1._2, x._1._1, x._2._1, x._3._1, (x._1._3 + x._2._2 + x._3._2))).sortBy(f => f._4).reverse
-            combinedLift.map(x => Request(x._1, List(x._2), x._4, x._3, "Content"));
+            combinedLift.map{x => 
+                val filteredLangMap = x._3.filter(f => langReturnProps.contains(f._1))
+                Request(x._1, List(x._2), x._4, filteredLangMap, "Content")};
         }.map(f => RequestRecos(f._1, f._2))
         finalResult.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.REQUEST_RECOS);
         ppQueries;
