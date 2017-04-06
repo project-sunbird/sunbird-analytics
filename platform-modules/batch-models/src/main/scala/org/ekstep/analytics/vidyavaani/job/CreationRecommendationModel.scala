@@ -17,7 +17,7 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.CreationRecommendationModel";
     
     val getConceptsQuery = "MATCH path = (usr:User{type: 'author'})-[r:uses]-(cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) where cnc.contentCount > 0 AND r.lift > 1 return usr.IL_UNIQUE_ID, cnc.identifier, cnc.liveContentCount, r.confidence as conf , r.lift as lift ORDER BY lift DESC, conf DESC, cnc.liveContentCount ASC"
-    val getLangsQuery = "MATCH (usr:User{type:'author'})-[r:createdIn]->(lan:Language) where lan.contentCount > 0 AND r.lift > 1 return usr.IL_UNIQUE_ID, lan.IL_UNIQUE_ID, lan.liveContentCount, r.confidence as conf , r.lift as lift ORDER BY lift DESC, conf DESC , lan.liveContentCount ASC"
+    val getLangsQuery = "MATCH (usr:User{type:'author'})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:'Language'}) where lan.contentCount > 0 AND r.lift > 1 return usr.IL_UNIQUE_ID, lan.IL_UNIQUE_ID, lan.liveContentCount, r.confidence as conf , r.lift as lift ORDER BY lift DESC, conf DESC , lan.liveContentCount ASC"
     val getContentTypeQuery = "MATCH (usr:User{type:'author'})-[r:uses]->(cntt:ContentType) where cntt.contentCount > 0 AND r.lift > 1 return usr.IL_UNIQUE_ID, cntt.IL_UNIQUE_ID, cntt.liveContentCount, r.confidence as conf , r.lift as lift ORDER BY lift DESC, conf DESC , cntt.liveContentCount ASC"
     
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
