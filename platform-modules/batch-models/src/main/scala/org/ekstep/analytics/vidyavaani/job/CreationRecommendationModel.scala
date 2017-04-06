@@ -9,6 +9,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import collection.JavaConversions._
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 case class Request(grade_level: List[String], concepts: List[String], content_type: String, language: Map[String, String], `type`: String)
 case class RequestRecos(uid: String, requests: List[Request])
@@ -23,7 +24,7 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
     val getContentTypeQuery = "MATCH (usr:User{type:'author'})-[r:uses]->(cntt:ContentType) where cntt.contentCount > 0 AND r.lift > 1 return usr.IL_UNIQUE_ID, cntt.name, cntt.liveContentCount, r.confidence as conf , r.lift as lift ORDER BY lift DESC, conf DESC , cntt.liveContentCount ASC"
     
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
-        sc.parallelize(Seq(""));
+    	sc.parallelize(Seq(""));
     }
 
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
@@ -54,7 +55,7 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
                 val filteredLangMap = x._3.filter(f => langReturnProps.contains(f._1))
                 Request(x._1, List(x._2), x._4, filteredLangMap, "Content")};
         }.map(f => RequestRecos(f._1, f._2))
-        JobLogger.log("Total number of users with recommendations", Option(Map("count" -> finalResult.count)));
+        JobLogger.log("Total number of users with recommendations", Option(Map("count" -> finalResult.count)), INFO);
         finalResult.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.REQUEST_RECOS);
         ppQueries;
     }
