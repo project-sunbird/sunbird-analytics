@@ -8,6 +8,7 @@ import org.ekstep.analytics.framework.Job_Config
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import collection.JavaConversions._
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class Request(grade_level: List[String], concepts: List[String], content_type: String, language: Map[String, String], `type`: String)
 case class RequestRecos(uid: String, requests: List[Request])
@@ -47,13 +48,13 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
         val authorContentTypeRDD = sc.parallelize(authorContentType).groupByKey().map(f => (f._1, f._2.toList.take(author_reco_limit).map(x => (x._1, x._4))))
         
         val finalResult = authorConceptsRDD.join(authorLangRDD).join(authorContentTypeRDD).mapValues{ f =>
-            
             val combinations = for(x <- f._1._1; y <- f._1._2; z <- f._2) yield (x, y, z)
             val combinedLift = combinations.map(x => (x._1._2, x._1._1, x._2._1, x._3._1, (x._1._3 + x._2._2 + x._3._2))).sortBy(f => f._4).reverse
             combinedLift.map{x => 
                 val filteredLangMap = x._3.filter(f => langReturnProps.contains(f._1))
                 Request(x._1, List(x._2), x._4, filteredLangMap, "Content")};
         }.map(f => RequestRecos(f._1, f._2))
+        JobLogger.log("Total number of users with recommendations", Option(Map("count" -> finalResult.count)));
         finalResult.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.REQUEST_RECOS);
         ppQueries;
     }
