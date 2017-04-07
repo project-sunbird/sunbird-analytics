@@ -3,6 +3,9 @@ package org.ekstep.analytics.vidyavaani.job
 import org.ekstep.analytics.model.SparkGraphSpec
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import com.datastax.spark.connector._
+import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.util.GraphDBUtil
 
 class TestCreationRecommendationModel extends SparkGraphSpec(null) {
   
@@ -27,5 +30,17 @@ class TestCreationRecommendationModel extends SparkGraphSpec(null) {
         GraphQueryDispatcher.dispatch(graphConfig, query3);
         
         CreationRecommendationModel.main("{}")(Option(sc));
+        
+        val authorNodes = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List(AuthorRelationsModel.NODE_NAME)));
+        authorNodes.count() should be(2)
+        
+        // check for specific user with recommendations
+        val table1 = sc.cassandraTable[RequestRecos](Constants.PLATFORM_KEY_SPACE_NAME, Constants.REQUEST_RECOS).where("uid=?", "290").first
+        table1.requests.size should be(2)
+        
+        // check for specific user without recommendations
+        val table2 = sc.cassandraTable[RequestRecos](Constants.PLATFORM_KEY_SPACE_NAME, Constants.REQUEST_RECOS).where("uid=?", "291")
+        table2.count() should be(0)
+        
     }
 }

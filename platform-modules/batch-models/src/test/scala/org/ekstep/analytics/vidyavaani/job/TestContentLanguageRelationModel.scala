@@ -20,7 +20,7 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
         val contentLangRelationsQuery = "MATCH (n: domain) -[r:expressedIn]-> (l: domain{IL_FUNC_OBJECT_TYPE:'Language'}) RETURN r"
         
         val contentNodes = GraphQueryDispatcher.dispatch(graphConfig, findContentNodesQuery).list();
-        contentNodes.size() should be(3)
+        contentNodes.size() should be(4)
         
         val langNodesBefore = GraphQueryDispatcher.dispatch(graphConfig, findLanguageNodesQuery).list();
         langNodesBefore.size() should be(3)
@@ -46,7 +46,7 @@ class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
         other.get(0).get("l").asMap().get("liveContentCount") should be(0)
 
         val contentLangRelAfter = GraphQueryDispatcher.dispatch(graphConfig, contentLangRelationsQuery).list;
-        contentLangRelAfter.size should be(3)
+        contentLangRelAfter.size should be(4)
         
         // check for relation between specific content & language
         val query1 = "MATCH (n: domain{ IL_UNIQUE_ID:'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00' }) -[r]-> (l: domain{IL_FUNC_OBJECT_TYPE:'Language', IL_UNIQUE_ID:'lang_oth' }) RETURN type(r)"
