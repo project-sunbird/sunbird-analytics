@@ -20,8 +20,6 @@ object ConceptLanguageRelationModel extends IGraphExecutionModel with Serializab
 
     override def name(): String = "ConceptLanguageRelationModel";
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel"
-    
-    val RELATION = "usedIn";
 
     override def preProcess(input: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
         val job_config = sc.cassandraTable[Job_Config](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_CONFIG).where("category='vv' AND config_key=?", "concept-lan-rel").first

@@ -9,7 +9,12 @@ object NotInMatcher extends IMatcher {
         if (value2.isEmpty || !(value2.get.isInstanceOf[List[AnyRef]])) {
             false;
         } else {
-            !value2.get.asInstanceOf[List[AnyRef]].contains(value1);
+        	if(value1.isInstanceOf[List[AnyRef]]) {
+        		!value2.get.asInstanceOf[List[AnyRef]].forall(value1.asInstanceOf[List[AnyRef]].contains);
+        	} else {
+        		!value2.get.asInstanceOf[List[AnyRef]].contains(value1);	
+        	}
+            
         }
     }
 }

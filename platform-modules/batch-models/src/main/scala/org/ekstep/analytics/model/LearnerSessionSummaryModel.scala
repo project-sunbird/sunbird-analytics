@@ -298,7 +298,8 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                             levelMap(x.edata.eks.current) = tempArr;
                         }
                         tempArr = ListBuffer[String]();
-                        domainMap(catMapping.value.getOrElse(x.edata.eks.category, getItemDomain(itemMapping.value, tmpLastEvent))) = x.edata.eks.current;
+                        if (null != tmpLastEvent)
+                        	domainMap(catMapping.value.getOrElse(x.edata.eks.category, getItemDomain(itemMapping.value, tmpLastEvent))) = x.edata.eks.current;
                     case _ => ;
                 }
             }

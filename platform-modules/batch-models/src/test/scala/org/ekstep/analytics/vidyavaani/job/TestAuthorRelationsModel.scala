@@ -20,7 +20,7 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
         val getConceptAuthorRelQuery = "MATCH (ee: domain {IL_FUNC_OBJECT_TYPE: 'Concept'} ) <-[r:uses]- (aa: User {type: 'author'}) RETURN r"
 
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
-        contentNodes.count() should be(7)
+        contentNodes.count() should be(8)
 
         GraphDBUtil.deleteNodes(None, Option(List(AuthorRelationsModel.NODE_NAME)))
 
@@ -33,10 +33,10 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
         AuthorRelationsModel.main("{}")(Option(sc));
 
         val authorNodesAfter = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List(AuthorRelationsModel.NODE_NAME)));
-        authorNodesAfter.count() should be(1)
+        authorNodesAfter.count() should be(2)
 
         val contentAuthorRelAfter = GraphQueryDispatcher.dispatch(graphConfig, getRelationsQuery).list;
-        contentAuthorRelAfter.size should be(3)
+        contentAuthorRelAfter.size should be(4)
 
         // check for relation between specific content & owner
         val query1 = getRelTypeQuery("domain", "org.ekstep.ra_ms_52d058e969702d5fe1ae0f00", AuthorRelationsModel.NODE_NAME, "290")
@@ -61,7 +61,7 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
         contentContentRels.size should be(0)
 
         val conceptAuthRels = GraphQueryDispatcher.dispatch(graphConfig, getConceptAuthorRelQuery).list;
-        conceptAuthRels.size should be(1)
+        conceptAuthRels.size should be(2)
 
         //val author = GraphQueryDispatcher.dispatch(graphConfig, "MATCH (u:User {IL_UNIQUE_ID:'290'}) RETURN u").next();
         //         println("authors:",author.size());
