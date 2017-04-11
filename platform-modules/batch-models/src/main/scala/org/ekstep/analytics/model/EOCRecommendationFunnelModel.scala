@@ -54,7 +54,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                             }
                             val contentId = event.edata.eks.request.asInstanceOf[Map[String, AnyRef]].get("params");
                             if(contentId.isDefined) {
-                                funnel = EOCFunnel(group.uid, group.did, group.sid, contentId.get.asInstanceOf[String], "", event.ets, CommonUtil.getEventSyncTS(event), 0L, 0, List(), 0, 0, 0, 0);   
+                                funnel = EOCFunnel(group.uid, group.did, group.sid, contentId.get.asInstanceOf[String], "", event.ets, 0L, CommonUtil.getEventSyncTS(event), 0, List(), 0, 0, 0, 0);   
                             }
                         case "OE_INTERACT" =>
                             if (null != funnel) {
