@@ -20,19 +20,12 @@ class TestCreationRecommendationModel extends SparkGraphSpec(null) {
         ConceptLanguageRelationModel.main("{}")(Option(sc));
         ContentAssetRelationModel.main("{}")(Option(sc));
         AuthorRelationsModel.main("{}")(Option(sc));
-        
-        val query1 = "MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:'Content'}) where cnt.contentType in ['Game', 'Worksheet', 'Story', 'Collection'] and cnt.status in ['Live', 'Draft'] WITH count(cnt) as ncount MATCH (usr:User{type: 'author'})-[r:uses]-(cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) WHERE cnc.contentCount > 0 WITH r, ncount, toFloat(r.contentCount)/(toFloat(usr.contentCount)) as confidence, (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(cnc.contentCount)) as lift SET r.confidence = confidence, r.lift = lift"
-        val query2 = "MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:'Content'}) where cnt.contentType in ['Game', 'Worksheet', 'Story', 'Collection'] and cnt.status in ['Live', 'Draft'] WITH count(cnt) as ncount MATCH (usr:User{type:'author'})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:'Language'}) WHERE lan.contentCount > 0 WITH r, ncount, toFloat(r.contentCount)/(toFloat(usr.contentCount)) as confidence, (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(lan.contentCount)) as lift SET r.confidence = confidence, r.lift = lift"
-        val query3 = "MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:'Content'}) where cnt.contentType in ['Game', 'Worksheet', 'Story', 'Collection'] and cnt.status in ['Live', 'Draft'] WITH count(cnt) as ncount MATCH (usr:User{type:'author'})-[r:uses]->(cntt:ContentType) WHERE cntt.contentCount > 0 WITH r, ncount, toFloat(r.contentCount)/(toFloat(usr.contentCount)) as confidence, (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(cntt.contentCount)) as lift SET r.confidence = confidence, r.lift = lift"
-        
-        GraphQueryDispatcher.dispatch(graphConfig, query1);
-        GraphQueryDispatcher.dispatch(graphConfig, query2);
-        GraphQueryDispatcher.dispatch(graphConfig, query3);
-        
+        CreationRecommendationEnrichmentModel.main("{}")(Option(sc));
+                        
         CreationRecommendationModel.main("{}")(Option(sc));
         
-        val authorNodes = GraphDBUtil.findNodes(Map("type" -> "author"), Option(List(AuthorRelationsModel.NODE_NAME)));
-        authorNodes.count() should be(2)
+        val authorNodes = GraphQueryDispatcher.dispatch(graphConfig, "MATCH(usr:User{type: 'author'}) RETURN usr").list;
+        authorNodes.size() should be(2)
         
         // check for specific user with recommendations
         val table1 = sc.cassandraTable[RequestRecos](Constants.PLATFORM_KEY_SPACE_NAME, Constants.REQUEST_RECOS).where("uid=?", "290").first
