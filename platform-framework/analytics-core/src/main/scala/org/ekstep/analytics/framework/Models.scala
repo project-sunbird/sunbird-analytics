@@ -41,7 +41,7 @@ case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: 
 @scala.beans.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
 @scala.beans.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None, author_id: Option[String] = None, partner_id: Option[String] = None);
 @scala.beans.BeanInfo
 case class PData(id: String, model: String, ver: String, pid: Option[String] = None);
 @scala.beans.BeanInfo
@@ -113,7 +113,7 @@ case class LearnerId(learner_id: String)
 case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
-case class Empty() extends Input with AlgoOutput with Output
+case class Empty() extends Input with AlgoInput with AlgoOutput with Output
 case class UpdaterOutput(msg: String) extends Output
 case class ContentKey(period: Int, content_id: String, tag: String);
 case class GenieKey(period: Int, tag: String);
