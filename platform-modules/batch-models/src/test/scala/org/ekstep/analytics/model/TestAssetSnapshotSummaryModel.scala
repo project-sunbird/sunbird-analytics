@@ -13,7 +13,7 @@ class TestAssetSnapshotSummaryModel extends SparkGraphSpec(null) {
 
         ContentAssetRelationModel.main("{}")(Option(sc));
         
-        val event = AssetSnapshotSummaryModel.execute(sc.makeRDD(List(Empty())), None).collect.last
+        val event = AssetSnapshotSummaryModel.execute(sc.makeRDD(List()), None).collect.last
 
         println(JSONUtils.serialize(event))
 

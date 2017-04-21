@@ -11,17 +11,16 @@ import org.ekstep.analytics.util.CypherQueries
 
 case class ConceptSnapshotAlgoOutput(concept_id: String, total_content_count: Long, live_content_count: Long, review_content_count: Long) extends AlgoOutput
 
-object ConceptSnapshotSummaryModel extends IBatchModelTemplate[Empty, Empty, ConceptSnapshotAlgoOutput, MeasuredEvent] with Serializable {
+object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ConceptSnapshotAlgoOutput, MeasuredEvent] with Serializable {
   
     override def name(): String = "ConceptSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.ConceptSnapshotSummaryModel";
     
-    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
-
-        sc.makeRDD(List(Empty()));
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+        data;
     }
 
-    override def algorithm(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ConceptSnapshotAlgoOutput] = {
+    override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ConceptSnapshotAlgoOutput] = {
 
         val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
             "user" -> AppConf.getConfig("neo4j.bolt.user"),

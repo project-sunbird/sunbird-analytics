@@ -16,7 +16,7 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
         ContentAssetRelationModel.main("{}")(Option(sc));
         AuthorRelationsModel.main("{}")(Option(sc));
         
-        val rdd = ConceptSnapshotSummaryModel.execute(sc.makeRDD(List(Empty())), None);
+        val rdd = ConceptSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
         events.length should be(1)
 
@@ -50,7 +50,7 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
         val query = "CREATE (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept', IL_UNIQUE_ID:'test_concept', contentCount: 0, liveContentCount: 0}) RETURN cnc"
         GraphQueryDispatcher.dispatch(graphDBConfig, query)
         
-        val rdd = ConceptSnapshotSummaryModel.execute(sc.makeRDD(List(Empty())), None);
+        val rdd = ConceptSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
         events.length should be(2)
 

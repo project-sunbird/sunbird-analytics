@@ -12,17 +12,16 @@ import org.ekstep.analytics.util.CypherQueries
 
 case class ContentSnapshotAlgoOutput(author_id: String, partner_id: String, total_user_count: Long, active_user_count: Long, total_content_count: Long, live_content_count: Long, review_content_count: Long) extends AlgoOutput
 
-object ContentSnapshotSummaryModel extends IBatchModelTemplate[Empty, Empty, ContentSnapshotAlgoOutput, MeasuredEvent] with Serializable {
+object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotAlgoOutput, MeasuredEvent] with Serializable {
 
     override def name(): String = "ContentSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.ContentSnapshotSummaryModel";
     
-    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
-
-        sc.makeRDD(List(Empty()));
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+        data;
     }
 
-    override def algorithm(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSnapshotAlgoOutput] = {
+    override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSnapshotAlgoOutput] = {
 
         val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
             "user" -> AppConf.getConfig("neo4j.bolt.user"),

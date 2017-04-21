@@ -2,7 +2,7 @@ package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.AlgoOutput
 import org.ekstep.analytics.framework.IBatchModelTemplate
-import org.ekstep.analytics.framework.Empty
+import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
@@ -18,17 +18,16 @@ import org.ekstep.analytics.framework.Context
 
 case class AssetSnapshotAlgoOutput(partner_id: String, totalImageCount: Long, usedImageCount: Long, totalAudioCount: Long, usedAudioCount: Long, totalQCount: Long, usedQCount: Long, totalActCount: Long, usedActCount: Long, totalTempCount: Long, usedTempCount: Long) extends AlgoOutput
 
-object AssetSnapshotSummaryModel extends IBatchModelTemplate[Empty, Empty, AssetSnapshotAlgoOutput, MeasuredEvent] with Serializable {
+object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AssetSnapshotAlgoOutput, MeasuredEvent] with Serializable {
 
     override def name(): String = "AssetSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.AssetSnapshotSummaryModel";
 
-    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
-
-        sc.makeRDD(List(Empty()));
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+        data;
     }
 
-    override def algorithm(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AssetSnapshotAlgoOutput] = {
+    override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AssetSnapshotAlgoOutput] = {
 
         val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
             "user" -> AppConf.getConfig("neo4j.bolt.user"),

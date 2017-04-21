@@ -17,7 +17,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         ContentAssetRelationModel.main("{}")(Option(sc));
         AuthorRelationsModel.main("{}")(Option(sc));
         
-        val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List(Empty())), None);
+        val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
         events.length should be(3)
         
@@ -88,7 +88,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content', contentType:'story', createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn"
         GraphQueryDispatcher.dispatch(graphDBConfig, query1)
         
-        val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List(Empty())), None);
+        val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
         events.length should be(4)
         
