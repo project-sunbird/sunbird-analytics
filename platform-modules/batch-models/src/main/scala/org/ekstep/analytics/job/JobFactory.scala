@@ -115,6 +115,12 @@ object JobFactory {
                 CreationRecommendationEnrichmentModel
             case "creation-reco" =>
                 CreationRecommendationModel
+            case "content-snapshot" =>
+                ContentSnapshotSummarizer
+            case "concept-snapshot" =>
+                ConceptSnapshotSummarizer
+            case "asset-snapshot" =>
+                AssetSnapshotSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
