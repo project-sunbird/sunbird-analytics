@@ -18,7 +18,7 @@ object VidyavaaniModelJobs extends optional.Application with IJob {
         JobLogger.start("VidyavaaniModelJobs Started executing", Option(Map("config" -> config)))
 
         val time = CommonUtil.time({
-            val jobs = List(ContentLanguageRelationModel, AuthorRelationsModel, ContentAssetRelationModel, ConceptLanguageRelationModel)
+            val jobs = List(ContentLanguageRelationModel, ContentAssetRelationModel, ConceptLanguageRelationModel, AuthorRelationsModel)
             for (job <- jobs) {
                 job.main(config)
             }
