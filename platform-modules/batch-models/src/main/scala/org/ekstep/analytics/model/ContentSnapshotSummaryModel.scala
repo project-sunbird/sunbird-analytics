@@ -36,7 +36,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
             val ts = CommonUtil.getTimestamp(x.get("cnt.createdOn").asString(), CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
             (x.get("usr.IL_UNIQUE_ID").asString(), ts)
         }
-        val active_user_count = sc.parallelize(active_users).filter(f => f._2 >= days_limit_timestamp).count()
+        val active_user_count = sc.parallelize(active_users).filter(f => f._2 >= days_limit_timestamp).map(x => x._1).distinct().count()
         val total_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_TOTAL_CONTENT_COUNT).list().get(0).get("count(cnt)").asLong()
         val review_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_REVIEW_CONTENT_COUNT).list().get(0).get("count(cnt)").asLong()
         val live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_LIVE_CONTENT_COUNT).list().get(0).get("count(cnt)").asLong()
