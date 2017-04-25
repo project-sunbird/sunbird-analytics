@@ -188,6 +188,23 @@ CREATE TABLE IF NOT EXISTS content_db.registered_tags(
 	PRIMARY KEY (tag_id)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
+    d_period int,
+    d_author_id text,
+    d_partner_id text,
+    total_author_count bigint,
+    total_author_count_start bigint,
+    active_author_count bigint,
+    active_author_count_start bigint,
+    total_content_count bigint,
+    total_content_count_start bigint,
+    live_content_count bigint,
+    live_content_count_start bigint,
+    review_content_count bigint,
+    review_content_count_start bigint,
+    PRIMARY KEY (d_period, d_author_id, d_partner_id)
+);
+
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
