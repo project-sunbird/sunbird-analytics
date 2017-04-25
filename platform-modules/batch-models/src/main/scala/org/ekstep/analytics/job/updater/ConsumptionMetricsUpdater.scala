@@ -30,6 +30,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
     implicit val className = "org.ekstep.analytics.job.ConsumptionMetricsUpdater"
     val GENIE_METRICS = "genie_metrics";
     val CONTENT_METRICS = "content_metrics";
+    val GENIE_STATS = "genie_stats"
     val ALL_PERIOD_TYPES = List("MONTH", "WEEK", "DAY");
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
@@ -69,19 +70,45 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 
     private def getMetrics(periodType: String, periodUpTo: Int)(implicit sc: SparkContext): RDD[Point] = {
         val periods = CommonUtil.getPeriods(periodType, periodUpTo).toList;
-        val genieMetrics = getGenieMetrics(periodType, periods)
-        val contentMetrics = getContentMetrics(periodType, periods)
-        genieMetrics ++ contentMetrics
+        val genie = getGenie(periodType, periods)
+        val content = getContent(periodType, periods)
+        val genieMetrics = getGenieMetrics(periodType, genie)
+        val contentMetrics = getContentMetrics(periodType, content)
+        val genieComputation = gettAllTableMetrics(periodType, genie, content)
+        genieMetrics ++ contentMetrics ++ genieComputation
     }
 
-    private def getGenieMetrics(periodType: String, periods: List[Int])(implicit sc: SparkContext): RDD[Point] = {
-        val genieRdd = sc.cassandraTable[GenieUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.GENIE_LAUNCH_SUMMARY_FACT).where("d_period IN?", periods).map { x => x };
+    private def getGenieMetrics(periodType: String, genieRdd: RDD[GenieUsageSummaryFact])(implicit sc: SparkContext): RDD[Point] = {
         genieRdd.map { x => Point(time = getDateTime(periodType, x.d_period.toString), measurement = GENIE_METRICS, tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> periodType.toLowerCase(), "tag" -> x.d_tag), fields = Map("sessions" -> x.m_total_sessions.toDouble, "timespent" -> x.m_total_ts)) };
     }
 
-    private def getContentMetrics(periodType: String, periods: List[Int])(implicit sc: SparkContext): RDD[Point] = {
-        val contentRdd = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period IN?", periods).map { x => x };
+    private def getContentMetrics(periodType: String, contentRdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[Point] = {
         contentRdd.map { x => Point(time = getDateTime(periodType, x.d_period.toString), measurement = CONTENT_METRICS, tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> periodType.toLowerCase(), "tag" -> x.d_tag, "content" -> x.d_content_id), fields = Map("sessions" -> x.m_total_sessions.toDouble, "timespent" -> x.m_total_ts)) };
+    }
+
+    private def gettAllTableMetrics(periodType: String, genieRdd: RDD[GenieUsageSummaryFact],contentRdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[Point] = {
+        val genieTimeSpent = genieRdd.map { x => x.m_total_ts }.reduce((a, b) => a + b)
+        val genieVisits = genieRdd.map { x => x.m_total_sessions }.reduce((a, b) => a + b)
+        val contentUsage = contentRdd.map { x => x.m_total_ts }.reduce((a, b) => a + b)
+        val contentVisits = contentRdd.map { x => x.m_total_sessions }.reduce((a, b) => a + b)
+        val period = contentRdd.first().d_period.toString()
+        val devices = genieRdd.map { x => x.m_total_devices }.reduce((a, b) => a + b)
+
+        val content_usage_By_content_visits = contentUsage / contentVisits
+        val content_visits_By_genie_visits = contentVisits / genieVisits
+        val genie_visits_By_devices = genieVisits / devices
+        val content_usage_By_device = contentUsage / devices
+
+        val point = Point(time = getDateTime(periodType, period), measurement = GENIE_STATS, tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> periodType.toLowerCase()), fields = Map("content_usage_By_content_visits" -> content_usage_By_content_visits, "content_visits_By_genie_visits" -> content_visits_By_genie_visits.toDouble, "genie_visits_By_devices" -> genie_visits_By_devices.toDouble, "content_usage_By_device" -> content_usage_By_device))
+        sc.parallelize(List(point))
+    }
+
+    private def getGenie(periodType: String, periods: List[Int])(implicit sc: SparkContext): RDD[GenieUsageSummaryFact] = {
+        sc.cassandraTable[GenieUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.GENIE_LAUNCH_SUMMARY_FACT).where("d_period IN?", periods).map { x => x };
+    }
+
+    private def getContent(periodType: String, periods: List[Int])(implicit sc: SparkContext): RDD[ContentUsageSummaryFact] = {
+        sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period IN?", periods).map { x => x };
     }
 
     private def getDateTime(periodType: String, period: String): DateTime = {
