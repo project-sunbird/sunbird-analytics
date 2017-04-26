@@ -36,6 +36,7 @@ object Constants {
     val JOB_CONFIG = "job_config";
     val REQUEST_RECOS = "request_recos";
     val CONTENT_SNAPSHOT_SUMMARY = "content_snapshot_summary";
+    val CONCEPT_SNAPSHOT_SUMMARY = "concept_snapshot_summary";
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
     val ASSET_SNAPSHOT_SUMMARY = "asset_snapshot_summary";
