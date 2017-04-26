@@ -41,11 +41,11 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
             val prevSumm = f._2._2.getOrElse(null)
             val eksMap = f._2._1.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
-            val total_author_count = eksMap.get("total_user_count").get.asInstanceOf[Int].toLong
-            val active_author_count = eksMap.get("active_user_count").get.asInstanceOf[Int].toLong
-            val total_content_count = eksMap.get("total_content_count").get.asInstanceOf[Int].toLong
-            val live_content_count = eksMap.get("live_content_count").get.asInstanceOf[Int].toLong
-            val review_content_count = eksMap.get("review_content_count").get.asInstanceOf[Int].toLong
+            val total_author_count = eksMap.get("total_user_count").get.asInstanceOf[Number].longValue()
+            val active_author_count = eksMap.get("active_user_count").get.asInstanceOf[Number].longValue()
+            val total_content_count = eksMap.get("total_content_count").get.asInstanceOf[Number].longValue()
+            val live_content_count = eksMap.get("live_content_count").get.asInstanceOf[Number].longValue()
+            val review_content_count = eksMap.get("review_content_count").get.asInstanceOf[Number].longValue()
 
             if (null == prevSumm)
                 ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, total_author_count, total_author_count, active_author_count, active_author_count, total_content_count, total_content_count, live_content_count, live_content_count, review_content_count, review_content_count)

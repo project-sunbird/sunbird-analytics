@@ -39,9 +39,9 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
             val prevSumm = f._2._2.getOrElse(null)
             val eksMap = f._2._1.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
-            val total_content_count = eksMap.get("total_content_count").get.asInstanceOf[Int].toLong
-            val live_content_count = eksMap.get("live_content_count").get.asInstanceOf[Int].toLong
-            val review_content_count = eksMap.get("review_content_count").get.asInstanceOf[Int].toLong
+            val total_content_count = eksMap.get("total_content_count").get.asInstanceOf[Number].longValue()
+            val live_content_count = eksMap.get("live_content_count").get.asInstanceOf[Number].longValue()
+            val review_content_count = eksMap.get("review_content_count").get.asInstanceOf[Number].longValue()
 
             if (null == prevSumm)
                 ConceptSnapshotSummary(f._1.d_period, f._1.d_concept_id, total_content_count, total_content_count, live_content_count, live_content_count, review_content_count, review_content_count)
