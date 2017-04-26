@@ -44,7 +44,7 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
 
         val authorNodes = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-            .map(f => (f.getOrElse("portalOwner", "").asInstanceOf[String], f.getOrElse("owner", "").asInstanceOf[String]))
+            .map(f => (f.getOrElse("createdBy", "").asInstanceOf[String], f.getOrElse("creator", "").asInstanceOf[String]))
             .groupBy(f => f._1).filter(p => !StringUtils.isBlank(p._1))
             .map { f =>
                 val identifier = f._1;
