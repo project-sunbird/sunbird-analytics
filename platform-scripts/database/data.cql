@@ -205,6 +205,18 @@ CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
     PRIMARY KEY (d_period, d_author_id, d_partner_id)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.concept_snapshot_summary (
+    d_period int,
+    d_concept_id text,
+    total_content_count bigint,
+    total_content_count_start bigint,
+    live_content_count bigint,
+    live_content_count_start bigint,
+    review_content_count bigint,
+    review_content_count_start bigint,
+    PRIMARY KEY (d_period, d_concept_id)
+);
+
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
