@@ -9,6 +9,7 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.DateTime
 import org.ekstep.analytics.util.CypherQueries
+import scala.collection.JavaConversions._
 
 case class ContentSnapshotAlgoOutput(author_id: String, partner_id: String, total_user_count: Long, active_user_count: Long, total_content_count: Long, live_content_count: Long, review_content_count: Long) extends AlgoOutput
 
@@ -54,7 +55,28 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
             ContentSnapshotAlgoOutput(f._1, "all", 0, 0, f._2._1._1, f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
         }
         
-        rdd1++(rdd2);
+        // for specific partner_id
+        val partner_user = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_USER_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.createdOn").asString())}
+        val partner_active_users = partner_user.map{ x =>
+            val ts = CommonUtil.getTimestamp(x._3, CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+            val partners = x._2.map { x => x.toString()}
+            (for(i <- partners) yield (i, x._1, ts))
+        }.flatMap(f => f)
+        
+        val partner_total_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_TOTAL_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("cnt.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList)}
+        val partner_live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_LIVE_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("cnt.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList)}
+        val partner_review_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_REVIEW_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("cnt.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList)}
+        
+        val partnerActiveUserCountRDD = sc.parallelize(partner_active_users).filter(f => f._3 >= days_limit_timestamp).groupBy(f => f._1).map(x => (x._1, x._2.size.toLong))
+        val partnerUserCountRDD = sc.parallelize(partner_user.map(x => (x._1, x._2))).map(f => (f._1, f._2.map { x => x.toString()})).map(f => for(i <- f._2) yield (f._1, i)).flatMap(f => f).groupBy(f => f._2).map(x => (x._1, x._2.map(x => x._2).toList.distinct.size.toLong))
+        val partnerTotalContentRDD = sc.parallelize(partner_total_content_count).map(f => (f._1, f._2.map { x => x.toString()})).map(f => for(i <- f._2) yield (f._1, i)).flatMap(f => f).groupBy(f => f._2).map(x => (x._1, x._2.size.toLong))
+        val partnerLiveContentRDD = sc.parallelize(partner_live_content_count).map(f => (f._1, f._2.map { x => x.toString()})).map(f => for(i <- f._2) yield (f._1, i)).flatMap(f => f).groupBy(f => f._2).map(x => (x._1, x._2.size.toLong))
+        val partnerReviewContentRDD = sc.parallelize(partner_review_content_count).map(f => (f._1, f._2.map { x => x.toString()})).map(f => for(i <- f._2) yield (f._1, i)).flatMap(f => f).groupBy(f => f._2).map(x => (x._1, x._2.size.toLong))
+
+        val rdd3 = partnerUserCountRDD.leftOuterJoin(partnerActiveUserCountRDD).leftOuterJoin(partnerTotalContentRDD).leftOuterJoin(partnerLiveContentRDD).leftOuterJoin(partnerReviewContentRDD).map{f =>
+            ContentSnapshotAlgoOutput("all", f._1, f._2._1._1._1._1, f._2._1._1._1._2.getOrElse(0), f._2._1._1._2.getOrElse(0), f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
+        }
+        rdd1++(rdd2)++(rdd3);
     }
 
     override def postProcess(data: RDD[ContentSnapshotAlgoOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
