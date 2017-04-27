@@ -217,6 +217,32 @@ CREATE TABLE IF NOT EXISTS content_db.concept_snapshot_summary (
     PRIMARY KEY (d_period, d_concept_id)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
+	d_period int,
+	d_partner_id text,
+	total_images_count bigint,
+	total_images_count_start bigint,
+	used_images_count bigint,
+	used_images_count_start bigint,
+	total_audio_count bigint,
+	total_audio_count_start bigint,
+	used_audio_count bigint,
+	used_audio_count_start bigint,
+	total_questions_count bigint,
+	total_questions_count_start bigint,
+	used_questions_count bigint,
+	used_questions_count_start bigint,
+	total_activities_count bigint,
+	total_activities_count_start bigint,
+	used_activities_count bigint,
+	used_activities_count_start bigint,
+	total_templates_count bigint,
+	total_templates_count_start bigint,
+	used_templates_count bigint,
+	used_templates_count_start bigint,
+	PRIMARY KEY (d_period, d_partner_id)
+);
+
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
