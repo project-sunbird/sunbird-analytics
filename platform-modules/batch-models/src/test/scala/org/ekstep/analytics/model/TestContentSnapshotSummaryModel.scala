@@ -19,7 +19,8 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
-        events.length should be(3)
+
+        events.length should be(6)
         
         val event1 = events(0);
         
@@ -70,6 +71,23 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks3.get("review_content_count").get should be(0)
         eks3.get("total_user_count").get should be(0)
         eks3.get("active_user_count").get should be(0)
+        
+        // check for specific partner_id
+        val event4 = events(5);
+        
+        event4.context.pdata.model should be("ContentSnapshotSummarizer");
+        event4.context.pdata.ver should be("1.0");
+        event4.context.granularity should be("SNAPSHOT");
+        event4.context.date_range should not be null;
+        event4.dimensions.author_id.get should be("all")
+        event4.dimensions.partner_id.get should be("org.ekstep.partner.pratham")
+
+        val eks4 = event4.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        eks4.get("live_content_count").get should be(1)
+        eks4.get("total_content_count").get should be(3)
+        eks4.get("review_content_count").get should be(0)
+        eks4.get("total_user_count").get should be(1)
+        eks4.get("active_user_count").get should be(0)
     }
     
     it should "generate content snapshot summary event for active user count > 0" in {
@@ -85,16 +103,16 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
         val createdOn = new DateTime().toString()
-        val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content', contentType:'story', createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn"
+        val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content', contentType:'story', createdFor:['org.ekstep.partner1'], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn"
         GraphQueryDispatcher.dispatch(graphDBConfig, query1)
         
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
-        events.length should be(4)
-        
-        val event1 = events(0);
+        events.length should be(7)
         
         // Check for author_id = all
+        val event1 = events(0);
+        
         event1.context.pdata.model should be("ContentSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SNAPSHOT");
@@ -108,6 +126,23 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks1.get("review_content_count").get should be(0)
         eks1.get("total_user_count").get should be(3)
         eks1.get("active_user_count").get should be(1)
+        
+        // Check for specific partner_id
+        val event2 = events(5);
+        
+        event2.context.pdata.model should be("ContentSnapshotSummarizer");
+        event2.context.pdata.ver should be("1.0");
+        event2.context.granularity should be("SNAPSHOT");
+        event2.context.date_range should not be null;
+        event2.dimensions.author_id.get should be("all")
+        event2.dimensions.partner_id.get should be("org.ekstep.partner1")
+
+        val eks2 = event2.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        eks2.get("live_content_count").get should be(1)
+        eks2.get("total_content_count").get should be(3)
+        eks2.get("review_content_count").get should be(0)
+        eks2.get("total_user_count").get should be(1)
+        eks2.get("active_user_count").get should be(1)
         
     }
 }
