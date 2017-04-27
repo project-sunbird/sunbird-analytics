@@ -31,7 +31,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val active_user_days_limit = config.getOrElse("active_user_days_limit", 30).asInstanceOf[Int];
         val days_limit_timestamp = new DateTime().minusDays(active_user_days_limit).getMillis
         
-        // for author_id = all
+        // For author_id = all
         val total_user_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_TOTAL_USER_COUNT).list().get(0).get("count(usr)").asLong();
         val active_users = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_ACTIVE_USER_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{ x =>
             val ts = CommonUtil.getTimestamp(x.get("cnt.createdOn").asString(), CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
@@ -43,7 +43,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_LIVE_CONTENT_COUNT).list().get(0).get("count(cnt)").asLong()
         val rdd1 = sc.makeRDD(List(ContentSnapshotAlgoOutput("all", "all", total_user_count, active_user_count, total_content_count, live_content_count, review_content_count)))
         
-        // for specific author_id
+        // For specific author_id
         val author_total_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_AUTHOR_TOTAL_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("usr.contentCount").asLong())}
         val author_live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_AUTHOR_LIVE_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("usr.liveContentCount").asLong())}
         val author_review_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_AUTHOR_REVIEW_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("rcc").asLong())}
@@ -55,7 +55,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
             ContentSnapshotAlgoOutput(f._1, "all", 0, 0, f._2._1._1, f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
         }
         
-        // for specific partner_id
+        // For specific partner_id
         val partner_user = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_USER_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.createdOn").asString())}
         val partner_active_users = partner_user.map{ x =>
             val ts = CommonUtil.getTimestamp(x._3, CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
@@ -76,7 +76,20 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val rdd3 = partnerUserCountRDD.leftOuterJoin(partnerActiveUserCountRDD).leftOuterJoin(partnerTotalContentRDD).leftOuterJoin(partnerLiveContentRDD).leftOuterJoin(partnerReviewContentRDD).map{f =>
             ContentSnapshotAlgoOutput("all", f._1, f._2._1._1._1._1, f._2._1._1._1._2.getOrElse(0), f._2._1._1._2.getOrElse(0), f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
         }
-        rdd1++(rdd2)++(rdd3);
+        
+        // For partner_id and author_id combinations
+        val partner_author_total_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_AUTHOR_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.IL_UNIQUE_ID").asString())}
+        val partner_author_live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_AUTHOR_LIVE_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.IL_UNIQUE_ID").asString())}
+        val partner_author_review_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_AUTHOR_REVIEW_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.IL_UNIQUE_ID").asString())}
+        
+        val partnerAuthorContentRDD = sc.parallelize(partner_author_total_content_count).map(f => (f._1, f._2.map { x => x.toString()}, f._3)).map(f => for(i <- f._2) yield ((f._1, i), f._3)).flatMap(f => f).groupBy(f => f._1).map(x => (x._1, x._2.map(x => x._2).toList.distinct.size.toLong))
+        val partnerAuthorLiveContentRDD = sc.parallelize(partner_author_live_content_count).map(f => (f._1, f._2.map { x => x.toString()}, f._3)).map(f => for(i <- f._2) yield ((f._1, i), f._3)).flatMap(f => f).groupBy(f => f._1).map(x => (x._1, x._2.map(x => x._2).toList.distinct.size.toLong))
+        val partnerAuthorReviewContentRDD = sc.parallelize(partner_author_review_content_count).map(f => (f._1, f._2.map { x => x.toString()}, f._3)).map(f => for(i <- f._2) yield ((f._1, i), f._3)).flatMap(f => f).groupBy(f => f._1).map(x => (x._1, x._2.map(x => x._2).toList.distinct.size.toLong))
+        
+        val rdd4 = partnerAuthorContentRDD.leftOuterJoin(partnerAuthorLiveContentRDD).leftOuterJoin(partnerAuthorReviewContentRDD).map{f =>
+            ContentSnapshotAlgoOutput(f._1._1, f._1._2, 0, 0, f._2._1._1, f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
+        }
+        rdd1++(rdd2)++(rdd3)++(rdd4);
     }
 
     override def postProcess(data: RDD[ContentSnapshotAlgoOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {

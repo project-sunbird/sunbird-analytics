@@ -20,7 +20,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
 
-        events.length should be(6)
+        events.length should be(9)
         
         val event1 = events(0);
         
@@ -88,6 +88,23 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks4.get("review_content_count").get should be(0)
         eks4.get("total_user_count").get should be(1)
         eks4.get("active_user_count").get should be(0)
+        
+        // check for partner_id & author_id combination
+        val event5 = events(8);
+        
+        event5.context.pdata.model should be("ContentSnapshotSummarizer");
+        event5.context.pdata.ver should be("1.0");
+        event5.context.granularity should be("SNAPSHOT");
+        event5.context.date_range should not be null;
+        event5.dimensions.author_id.get should be("290")
+        event5.dimensions.partner_id.get should be("org.ekstep.partner.pratham")
+
+        val eks5 = event5.edata.eks.asInstanceOf[Map[String, AnyRef]]
+        eks5.get("live_content_count").get should be(1)
+        eks5.get("total_content_count").get should be(3)
+        eks5.get("review_content_count").get should be(0)
+        eks5.get("total_user_count").get should be(0)
+        eks5.get("active_user_count").get should be(0)
     }
     
     it should "generate content snapshot summary event for active user count > 0" in {
@@ -108,7 +125,8 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
-        events.length should be(7)
+
+        events.length should be(11)
         
         // Check for author_id = all
         val event1 = events(0);
