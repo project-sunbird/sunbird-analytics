@@ -23,6 +23,17 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
 
     override def name(): String = "AssetSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.AssetSnapshotSummaryModel";
+    val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
+        "user" -> AppConf.getConfig("neo4j.bolt.user"),
+        "password" -> AppConf.getConfig("neo4j.bolt.password"));
+
+    private def getMediaMap(query: String)(implicit sc: SparkContext): Map[String, Long] = {
+        GraphQueryDispatcher.dispatch(graphDBConfig, query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("mediaType").asString(), x.get("count").asLong()) }.toMap
+    }
+
+    private def getAssetCount(query: String)(implicit sc: SparkContext): Long = {
+        GraphQueryDispatcher.dispatch(graphDBConfig, query).list().get(0).get("count").asLong();
+    }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         data;
@@ -30,21 +41,20 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
 
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AssetSnapshotAlgoOutput] = {
 
-        val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
+        val mediaTotalMap = getMediaMap(CypherQueries.ASSET_SNAP_MEDIA_TOTAL)
+        val totalImageCount = mediaTotalMap.getOrElse("image", 0L)
+        val totalAudioCount = mediaTotalMap.getOrElse("audio", 0L)
 
-        val mediaMap = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_MEDIA).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("img.mediaType").asString()) }.groupBy { x => x }.map { f => (f._1, f._2.length.toLong) }
-        val totalImageCount = mediaMap.getOrElse("image", 0L)
-        val usedImageCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_IMAGE).list().get(0).get("count(distinct img)").asLong();
-        val totalAudioCount = mediaMap.getOrElse("audio", 0L)
-        val usedAudioCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_AUDIO).list().get(0).get("count(distinct aud)").asLong();
-        val totalQCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_TOTAL_QUESTION).list().get(0).get("count(as)").asLong();
-        val usedQCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_QUESTION).list().get(0).get("count(distinct as)").asLong();
-        val totalActCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_TOTAL_ACTIVITIES).list().get(0).get("count(act)").asLong();
-        val usedActCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_ACTIVITIES).list().get(0).get("count(distinct act)").asLong();
-        val totalTempCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_TOTAL_TEMPLATES).list().get(0).get("count(temp)").asLong();
-        val usedTempCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_TEMPLATES).list().get(0).get("count(distinct temp)").asLong();
+        val mediaUsedMap = getMediaMap(CypherQueries.ASSET_SNAP_MEDIA_USED)
+        val usedImageCount = mediaUsedMap.getOrElse("image", 0L)
+        val usedAudioCount = mediaUsedMap.getOrElse("audio", 0L)
+
+        val totalQCount = getAssetCount(CypherQueries.ASSET_SNAP_TOTAL_QUESTION);
+        val usedQCount = getAssetCount(CypherQueries.ASSET_SNAP_USED_QUESTION);
+        val totalActCount = getAssetCount(CypherQueries.ASSET_SNAP_TOTAL_ACTIVITIES);
+        val usedActCount = getAssetCount(CypherQueries.ASSET_SNAP_USED_ACTIVITIES);
+        val totalTempCount = getAssetCount(CypherQueries.ASSET_SNAP_TOTAL_TEMPLATES);
+        val usedTempCount = getAssetCount(CypherQueries.ASSET_SNAP_USED_TEMPLATES);
 
         val assetSnapshot = AssetSnapshotAlgoOutput("all", totalImageCount, usedImageCount, totalAudioCount, usedAudioCount, totalQCount, usedQCount, totalActCount, usedActCount, totalTempCount, usedTempCount);
         sc.makeRDD(Seq(assetSnapshot))
