@@ -12,13 +12,13 @@ class TestAssetSnapshotSummaryModel extends SparkGraphSpec(null) {
     "AssetSnapshotSummaryModel" should "generate Asset snapshot and compare between the total values and used value" in {
 
         ContentAssetRelationModel.main("{}")(Option(sc));
-        
+
         val event = AssetSnapshotSummaryModel.execute(sc.makeRDD(List()), None).collect.last
 
         println(JSONUtils.serialize(event))
 
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        
+
         val totalImageCount = eksMap.get("total_images_count").get.asInstanceOf[Long]
         val usedImageCount = eksMap.get("used_images_count").get.asInstanceOf[Long]
         val totalAudioCount = eksMap.get("total_audio_count").get.asInstanceOf[Long]
@@ -29,14 +29,14 @@ class TestAssetSnapshotSummaryModel extends SparkGraphSpec(null) {
         val usedActCount = eksMap.get("used_activities_count").get.asInstanceOf[Long]
         val totalTempCount = eksMap.get("total_templates_count").get.asInstanceOf[Long]
         val usedTempCount = eksMap.get("used_templates_count").get.asInstanceOf[Long]
-        
+
         totalImageCount should be >= usedImageCount
         totalAudioCount should be >= usedAudioCount
         totalQCount should be >= usedQCount
         totalActCount should be >= usedActCount
         totalTempCount should be >= usedTempCount
-        
-        totalImageCount should be (4L)
-        usedImageCount should be (4L)
+
+        totalImageCount should be(4L)
+        usedImageCount should be(4L)
     }
 }

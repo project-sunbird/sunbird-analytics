@@ -36,9 +36,8 @@ object CypherQueries {
      * 
      * */
     
-    val ASSET_SNAP_TOTAL_IMAGE = "match (img: domain {IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Asset', mediaType: 'image'}) return count(img)"
+    val ASSET_SNAP_MEDIA = "match (img: domain {IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Asset'}) return img.mediaType"
     val ASSET_SNAP_USED_IMAGE = "match (img: domain {IL_FUNC_OBJECT_TYPE: 'Content', contentType: 'Asset', mediaType: 'image'}) <-[r: uses]- (cnt: domain {IL_FUNC_OBJECT_TYPE: 'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return count(distinct img)"
-    val ASSET_SNAP_TOTAL_AUDIO = "match (aud: domain {IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Asset', mediaType: 'audio'}) return count(aud)"
     val ASSET_SNAP_USED_AUDIO = "match (aud: domain {IL_FUNC_OBJECT_TYPE: 'Content', contentType: 'Asset', mediaType: 'audio'}) <-[r: uses]- (cnt: domain {IL_FUNC_OBJECT_TYPE: 'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return count(distinct aud)"
     val ASSET_SNAP_TOTAL_QUESTION = "match (as: domain {IL_FUNC_OBJECT_TYPE:'AssessmentItem'}) return count(as)"
     val ASSET_SNAP_USED_QUESTION = "MATCH (cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) - [r1: associatedTo] -> (is: domain{IL_FUNC_OBJECT_TYPE:'ItemSet'}) - [r2: hasMember] -> (as: domain{IL_FUNC_OBJECT_TYPE:'AssessmentItem'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] RETURN count(distinct as)"
@@ -46,5 +45,4 @@ object CypherQueries {
     val ASSET_SNAP_USED_ACTIVITIES = "match (cnt: domain {IL_FUNC_OBJECT_TYPE: 'Content'}) -[r: uses]-> (act: domain {IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Plugin'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return count(distinct act)"
     val ASSET_SNAP_TOTAL_TEMPLATES = "match (temp: domain {IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Template'}) return count(temp)"
     val ASSET_SNAP_USED_TEMPLATES = "MATCH (temp: domain{IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Template'}) - [r: associatedTo] - (cnc: domain{IL_FUNC_OBJECT_TYPE:'Concept'}) WHERE cnc.contentCount > 0 RETURN count(distinct temp)"
-    
 }

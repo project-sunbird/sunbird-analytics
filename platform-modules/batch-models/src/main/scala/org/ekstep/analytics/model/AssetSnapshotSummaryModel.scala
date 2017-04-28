@@ -15,6 +15,7 @@ import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.util.JSONUtils
 
 case class AssetSnapshotAlgoOutput(partner_id: String, totalImageCount: Long, usedImageCount: Long, totalAudioCount: Long, usedAudioCount: Long, totalQCount: Long, usedQCount: Long, totalActCount: Long, usedActCount: Long, totalTempCount: Long, usedTempCount: Long) extends AlgoOutput
 
@@ -33,9 +34,10 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
             "user" -> AppConf.getConfig("neo4j.bolt.user"),
             "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
-        val totalImageCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_TOTAL_IMAGE).list().get(0).get("count(img)").asLong();
+        val mediaMap = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_MEDIA).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("img.mediaType").asString()) }.groupBy { x => x }.map { f => (f._1, f._2.length.toLong) }
+        val totalImageCount = mediaMap.getOrElse("image", 0L)
         val usedImageCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_IMAGE).list().get(0).get("count(distinct img)").asLong();
-        val totalAudioCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_TOTAL_AUDIO).list().get(0).get("count(aud)").asLong();
+        val totalAudioCount = mediaMap.getOrElse("audio", 0L)
         val usedAudioCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_AUDIO).list().get(0).get("count(distinct aud)").asLong();
         val totalQCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_TOTAL_QUESTION).list().get(0).get("count(as)").asLong();
         val usedQCount = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.ASSET_SNAP_USED_QUESTION).list().get(0).get("count(distinct as)").asLong();

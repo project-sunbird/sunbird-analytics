@@ -121,6 +121,12 @@ object JobFactory {
                 ConceptSnapshotSummarizer
             case "asset-snapshot" =>
                 AssetSnapshotSummarizer
+            case "asset-snapshot-updater" =>
+                AssetSnapshotUpdater
+            case "content-snapshot-updater" =>
+                ContentSnapshotUpdater
+            case "concept-snapshot-updater" =>
+                ConceptSnapshotUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
