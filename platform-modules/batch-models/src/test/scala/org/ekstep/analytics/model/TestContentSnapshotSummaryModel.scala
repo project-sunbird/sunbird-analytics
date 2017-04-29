@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.apache.commons.lang3.StringUtils
 
 class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
   
@@ -90,7 +91,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks4.get("active_user_count").get should be(0)
         
         // check for partner_id & author_id combination
-        val event5 = events(8);
+        val event5 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "290") &&  StringUtils.equals(x.dimensions.partner_id.get, "org.ekstep.partner.pratham")}.first();
         
         event5.context.pdata.model should be("ContentSnapshotSummarizer");
         event5.context.pdata.ver should be("1.0");
