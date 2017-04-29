@@ -23,7 +23,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
 
         events.length should be(9)
         
-        val event1 = events(0);
+        val event1 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") &&  StringUtils.equals(x.dimensions.partner_id.get, "all")}.first();
         
         // Check for author_id = all
         event1.context.pdata.model should be("ContentSnapshotSummarizer");
@@ -40,7 +40,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks1.get("total_user_count").get should be(2)
         eks1.get("active_user_count").get should be(0)
         
-        val event2 = events(1);
+        val event2 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "290") &&  StringUtils.equals(x.dimensions.partner_id.get, "all")}.first();
         
         // Check for specific author_id
         event2.context.pdata.model should be("ContentSnapshotSummarizer");
@@ -57,7 +57,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks2.get("total_user_count").get should be(0)
         eks2.get("active_user_count").get should be(0)
         
-        val event3 = events(2);
+        val event3 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "291") &&  StringUtils.equals(x.dimensions.partner_id.get, "all")}.first();
         
         event3.context.pdata.model should be("ContentSnapshotSummarizer");
         event3.context.pdata.ver should be("1.0");
@@ -74,7 +74,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks3.get("active_user_count").get should be(0)
         
         // check for specific partner_id
-        val event4 = events(5);
+        val event4 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") &&  StringUtils.equals(x.dimensions.partner_id.get, "org.ekstep.partner.pratham")}.first();
         
         event4.context.pdata.model should be("ContentSnapshotSummarizer");
         event4.context.pdata.ver should be("1.0");
