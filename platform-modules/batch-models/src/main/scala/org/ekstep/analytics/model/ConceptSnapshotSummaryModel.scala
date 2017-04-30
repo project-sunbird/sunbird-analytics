@@ -16,23 +16,19 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
     override def name(): String = "ConceptSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.ConceptSnapshotSummaryModel";
     
+    val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
+            "user" -> AppConf.getConfig("neo4j.bolt.user"),
+            "password" -> AppConf.getConfig("neo4j.bolt.password"));
+    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         data;
     }
 
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ConceptSnapshotAlgoOutput] = {
 
-        val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
-
-        val concept_total_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONCEPT_SNAPSHOT_TOTAL_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("cnc.IL_UNIQUE_ID").asString(), x.get("cnc.contentCount").asLong())}
-        val concept_live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONCEPT_SNAPSHOT_LIVE_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("cnc.IL_UNIQUE_ID").asString(), x.get("cnc.liveContentCount").asLong())}
-        val concept_review_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONCEPT_SNAPSHOT_REVIEW_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("cnc.IL_UNIQUE_ID").asString(), x.get("rcc").asLong())}
-        
-        val totalContentRDD = sc.parallelize(concept_total_content_count)
-        val liveContentRDD = sc.parallelize(concept_live_content_count)
-        val reviewContentRDD = sc.parallelize(concept_review_content_count)
+        val totalContentRDD = sc.parallelize(getConceptsCount(CypherQueries.CONCEPT_SNAPSHOT_TOTAL_CONTENT_COUNT))
+        val liveContentRDD = sc.parallelize(getConceptsCount(CypherQueries.CONCEPT_SNAPSHOT_LIVE_CONTENT_COUNT))
+        val reviewContentRDD = sc.parallelize(getConceptsCount(CypherQueries.CONCEPT_SNAPSHOT_REVIEW_CONTENT_COUNT))
         val rdd = totalContentRDD.leftOuterJoin(liveContentRDD).leftOuterJoin(reviewContentRDD).map{f =>
             ConceptSnapshotAlgoOutput(f._1, f._2._1._1, f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
         }
@@ -54,4 +50,9 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         }
     }
 
+    private def getConceptsCount(query: String)(implicit sc: SparkContext): Array[(String, Long)] = {
+    	GraphQueryDispatcher.dispatch(graphDBConfig, query).list().toArray()
+    	.map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("identifier").asString(), x.get("count").asLong())}
+    }
+    
 }
