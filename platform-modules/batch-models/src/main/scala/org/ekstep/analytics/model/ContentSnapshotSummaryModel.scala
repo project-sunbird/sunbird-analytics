@@ -10,23 +10,23 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.DateTime
 import org.ekstep.analytics.util.CypherQueries
 import scala.collection.JavaConversions._
+import org.apache.commons.lang3.StringUtils
 
-case class ContentSnapshotAlgoOutput(author_id: String, partner_id: String, total_user_count: Long, active_user_count: Long, total_content_count: Long, live_content_count: Long, review_content_count: Long) extends AlgoOutput
+case class ContentSnapshotAlgoOutput(total_content_count: Long, live_content_count: Long, review_content_count: Long, total_user_count: Long = 0L, active_user_count: Long = 0L, author_id: String = "all", partner_id: String = "all") extends AlgoOutput
 
 object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotAlgoOutput, MeasuredEvent] with Serializable {
 
     override def name(): String = "ContentSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.ContentSnapshotSummaryModel";
+    val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
+            "user" -> AppConf.getConfig("neo4j.bolt.user"),
+            "password" -> AppConf.getConfig("neo4j.bolt.password"));
     
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         data;
     }
-
+    
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSnapshotAlgoOutput] = {
-
-        val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
         val active_user_days_limit = config.getOrElse("active_user_days_limit", 30).asInstanceOf[Int];
         val days_limit_timestamp = new DateTime().minusDays(active_user_days_limit).getMillis
@@ -37,23 +37,28 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
             val ts = CommonUtil.getTimestamp(x.get("cnt.createdOn").asString(), CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
             (x.get("usr.IL_UNIQUE_ID").asString(), ts)
         }
-        val active_user_count = sc.parallelize(active_users).filter(f => f._2 >= days_limit_timestamp).map(x => x._1).distinct().count()
-        val total_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_TOTAL_CONTENT_COUNT).list().get(0).get("count(cnt)").asLong()
-        val review_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_REVIEW_CONTENT_COUNT).list().get(0).get("count(cnt)").asLong()
-        val live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_LIVE_CONTENT_COUNT).list().get(0).get("count(cnt)").asLong()
-        val rdd1 = sc.makeRDD(List(ContentSnapshotAlgoOutput("all", "all", total_user_count, active_user_count, total_content_count, live_content_count, review_content_count)))
+        val active_user_count = sc.parallelize(active_users).filter(f => f._2 >= days_limit_timestamp).map(x => x._1).distinct().count();
+        
+        val contentCountByStatus = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_COUNT_BY_STATUS).list()
+        	.toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
+        	.map { x => (x.get("status").asString(), x.get("count").asLong()) }.toMap;
+        	
+        val totalContentCount = contentCountByStatus.values.reduce((a,b) => a + b);
+        val liveContentCount = contentCountByStatus.getOrElse("live", 0).asInstanceOf[Number].longValue();
+        val reviewContentCount = contentCountByStatus.getOrElse("review", 0).asInstanceOf[Number].longValue();
+        val rdd1 = sc.makeRDD(List(ContentSnapshotAlgoOutput(totalContentCount, liveContentCount, reviewContentCount, total_user_count, active_user_count)))
         
         // For specific author_id
-        val author_total_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_AUTHOR_TOTAL_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("usr.contentCount").asLong())}
-        val author_live_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_AUTHOR_LIVE_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("usr.liveContentCount").asLong())}
-        val author_review_content_count = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_AUTHOR_REVIEW_CONTENT_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("rcc").asLong())}
-        
-        val totalContentRDD = sc.parallelize(author_total_content_count)
-        val liveContentRDD = sc.parallelize(author_live_content_count)
-        val reviewContentRDD = sc.parallelize(author_review_content_count)
-        val rdd2 = totalContentRDD.leftOuterJoin(liveContentRDD).leftOuterJoin(reviewContentRDD).map{f =>
-            ContentSnapshotAlgoOutput(f._1, "all", 0, 0, f._2._1._1, f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
-        }
+        val contentCountPerAuthorByStatus = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_COUNT_PER_AUTHOR_BY_STATUS).list()
+        	.toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
+        	.map { x => (x.get("identifier").asString(), x.get("status").asString(), x.get("count").asLong()) }.groupBy(f => f._1);
+
+       val rdd2 = sc.makeRDD(contentCountPerAuthorByStatus.map { f =>
+			val total = f._2.map(f => f._3).reduce((a,b) => a+b);
+    	    val live = f._2.filter(f => StringUtils.equals("live", f._2)).headOption.getOrElse((f._1, "live", 0L))._3;
+    	    val review = f._2.filter(f => StringUtils.equals("review", f._2)).headOption.getOrElse((f._1, "review", 0L))._3;
+    	    ContentSnapshotAlgoOutput(total, live, review, 0, 0, f._1);
+       }.toList)
         
         // For specific partner_id
         val partner_user = GraphQueryDispatcher.dispatch(graphDBConfig, CypherQueries.CONTENT_SNAPSHOT_PARTNER_USER_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.createdOn").asString())}
@@ -74,7 +79,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val partnerReviewContentRDD = sc.parallelize(partner_review_content_count).map(f => (f._1, f._2.map { x => x.toString()})).map(f => for(i <- f._2) yield (f._1, i)).flatMap(f => f).groupBy(f => f._2).map(x => (x._1, x._2.size.toLong))
 
         val rdd3 = partnerUserCountRDD.leftOuterJoin(partnerActiveUserCountRDD).leftOuterJoin(partnerTotalContentRDD).leftOuterJoin(partnerLiveContentRDD).leftOuterJoin(partnerReviewContentRDD).map{f =>
-            ContentSnapshotAlgoOutput("all", f._1, f._2._1._1._1._1, f._2._1._1._1._2.getOrElse(0), f._2._1._1._2.getOrElse(0), f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
+            ContentSnapshotAlgoOutput(f._2._1._1._2.getOrElse(0), f._2._1._2.getOrElse(0), f._2._2.getOrElse(0), f._2._1._1._1._1, f._2._1._1._1._2.getOrElse(0), "all", f._1)
         }
         
         // For partner_id and author_id combinations
@@ -87,7 +92,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val partnerAuthorReviewContentRDD = sc.parallelize(partner_author_review_content_count).map(f => (f._1, f._2.map { x => x.toString()}, f._3)).map(f => for(i <- f._2) yield ((f._1, i), f._3)).flatMap(f => f).groupBy(f => f._1).map(x => (x._1, x._2.map(x => x._2).toList.distinct.size.toLong))
         
         val rdd4 = partnerAuthorContentRDD.leftOuterJoin(partnerAuthorLiveContentRDD).leftOuterJoin(partnerAuthorReviewContentRDD).map{f =>
-            ContentSnapshotAlgoOutput(f._1._1, f._1._2, 0, 0, f._2._1._1, f._2._1._2.getOrElse(0), f._2._2.getOrElse(0))
+            ContentSnapshotAlgoOutput(f._2._1._1, f._2._1._2.getOrElse(0), f._2._2.getOrElse(0), 0, 0, f._1._1, f._1._2)
         }
         rdd1++(rdd2)++(rdd3)++(rdd4);
     }
