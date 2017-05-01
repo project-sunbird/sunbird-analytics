@@ -92,9 +92,11 @@ object UpdateAssetSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 				"total_templates_count_start" -> x.total_templates_count_start.toDouble,
 				"used_templates_count" -> x.used_templates_count.toDouble,
 				"used_templates_count_start" -> x.used_templates_count_start.toDouble)
-			Point(time = getDateTime(x.d_period),
+				
+				val time = getDateTime(x.d_period);
+			Point(time = time._1,
 				measurement = ASSET_SNAPSHOT_METRICS,
-				tags = Map("env" -> AppConf.getConfig("application.env"), "partner_id" -> x.d_partner_id),
+				tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> time._2, "partner_id" -> x.d_partner_id),
 				fields = fields);
 		};
 		import com.pygmalios.reactiveinflux.spark._
@@ -103,16 +105,16 @@ object UpdateAssetSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 		metrics.saveToInflux();
 	}
 
-	private def getDateTime(periodVal: Int): DateTime = {
+	private def getDateTime(periodVal: Int): (DateTime, String) = {
 		val period = periodVal.toString();
 		period.size match {
-			case 8 => dayPeriod.parseDateTime(period).withTimeAtStartOfDay();
+			case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
 			case 7 =>
 				val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
 				val firstDay = weekPeriodLabel.parseDateTime(week)
 				val lastDay = firstDay.plusDays(6);
-				lastDay.withTimeAtStartOfDay();
-			case 6 => monthPeriod.parseDateTime(period).withTimeAtStartOfDay();
+				(lastDay.withTimeAtStartOfDay(), "week");
+			case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
 		}
 	}
 }

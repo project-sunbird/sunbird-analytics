@@ -72,9 +72,10 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
 					"live_content_count_start" -> x.live_content_count_start.toDouble,
 					"review_content_count" -> x.review_content_count.toDouble,
 					"review_content_count_start" -> x.review_content_count_start.toDouble);
-        	Point(time = getDateTime(x.d_period), 
+			val time = getDateTime(x.d_period);
+        	Point(time = time._1, 
         			measurement = CONCEPT_SNAPSHOT_METRICS, 
-        			tags = Map("env" -> AppConf.getConfig("application.env"), "concept_id" -> x.d_concept_id), 
+        			tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> time._2, "concept_id" -> x.d_concept_id), 
         			fields = fields);
         };
         import com.pygmalios.reactiveinflux.spark._
@@ -83,16 +84,16 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
         metrics.saveToInflux();
     }
     
-    private def getDateTime(periodVal: Int): DateTime = {
-    	val period = periodVal.toString();
-        period.size match {
-            case 8 => dayPeriod.parseDateTime(period).withTimeAtStartOfDay();
-            case 7 =>
-                val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
-                val firstDay = weekPeriodLabel.parseDateTime(week)
-                val lastDay = firstDay.plusDays(6);
-                lastDay.withTimeAtStartOfDay();
-            case 6 => monthPeriod.parseDateTime(period).withTimeAtStartOfDay();
-        }
-    }
+    private def getDateTime(periodVal: Int): (DateTime, String) = {
+		val period = periodVal.toString();
+		period.size match {
+			case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
+			case 7 =>
+				val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
+				val firstDay = weekPeriodLabel.parseDateTime(week)
+				val lastDay = firstDay.plusDays(6);
+				(lastDay.withTimeAtStartOfDay(), "week");
+			case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
+		}
+	}
 }
