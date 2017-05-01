@@ -5,6 +5,7 @@ import org.ekstep.analytics.framework._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.CommonUtil._
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import org.ekstep.analytics.framework.DataFilter
@@ -13,6 +14,11 @@ import org.ekstep.analytics.framework.Period._
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.joda.time.DateTime
+import scala.concurrent.duration._
+import com.pygmalios.reactiveinflux._
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long) extends AlgoOutput with Output
 case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String)
@@ -21,6 +27,7 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
 
     val className = "org.ekstep.analytics.updater.UpdateContentSnapshotDB"
     override def name: String = "UpdateContentSnapshotDB"
+    val CONTENT_SNAPSHOT_METRICS = "content_snapshot_metrics";
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         DataFilter.filter(data, Filter("eid", "EQ", Option("ME_CONTENT_SNAPSHOT_SUMMARY")));
@@ -55,8 +62,45 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
     }
 
     override def postProcess(data: RDD[ContentSnapshotSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSnapshotSummary] = {
-        // Update the database
         data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SNAPSHOT_SUMMARY)
+        saveToInfluxDB(data);
         data;
+    }
+    
+    private def saveToInfluxDB(data: RDD[ContentSnapshotSummary]) {
+    	val metrics = data.map { x =>
+			val fields: Map[com.pygmalios.reactiveinflux.Point.FieldKey, com.pygmalios.reactiveinflux.FieldValue] = Map(
+					"total_author_count" -> x.total_author_count.toDouble,
+					"total_author_count_start" -> x.total_author_count_start.toDouble,
+					"active_author_count" -> x.active_author_count.toDouble,
+					"active_author_count_start" -> x.active_author_count_start.toDouble,
+					"total_content_count" -> x.total_content_count.toDouble,
+					"total_content_count_start" -> x.total_content_count_start.toDouble,
+					"live_content_count" -> x.live_content_count.toDouble,
+					"live_content_count_start" -> x.live_content_count_start.toDouble,
+					"review_content_count" -> x.review_content_count.toDouble,
+					"review_content_count_start" -> x.review_content_count_start.toDouble)
+        	Point(time = getDateTime(x.d_period), 
+        			measurement = CONTENT_SNAPSHOT_METRICS, 
+        			tags = Map("env" -> AppConf.getConfig("application.env"), "partner_id" -> x.d_partner_id, "author_id" -> x.d_author_id), 
+        			fields = fields);
+        };
+        import com.pygmalios.reactiveinflux.spark._
+        implicit val params = ReactiveInfluxDbName(AppConf.getConfig("reactiveinflux.database"))
+        implicit val awaitAtMost = Integer.parseInt(AppConf.getConfig("reactiveinflux.awaitatmost")).second
+        metrics.saveToInflux();
+    }
+    
+    private def getDateTime(periodVal: Int): DateTime = {
+    	val period = periodVal.toString();
+        period.size match {
+            case 8 => dayPeriod.parseDateTime(period).withTimeAtStartOfDay();
+            case 7 =>
+                val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
+                val firstDay = weekPeriodLabel.parseDateTime(week)
+                val lastDay = firstDay.plusDays(6);
+                lastDay.withTimeAtStartOfDay();
+            case 6 => monthPeriod.parseDateTime(period).withTimeAtStartOfDay();
+        }
     }
 }
