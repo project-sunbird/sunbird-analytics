@@ -19,6 +19,8 @@ import scala.concurrent.duration._
 import com.pygmalios.reactiveinflux._
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 
 case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long) extends AlgoOutput with Output
 case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String)
@@ -69,27 +71,11 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
     
     private def saveToInfluxDB(data: RDD[ContentSnapshotSummary]) {
     	val metrics = data.map { x =>
-			val fields: Map[com.pygmalios.reactiveinflux.Point.FieldKey, com.pygmalios.reactiveinflux.FieldValue] = Map(
-					"total_author_count" -> x.total_author_count.toDouble,
-					"total_author_count_start" -> x.total_author_count_start.toDouble,
-					"active_author_count" -> x.active_author_count.toDouble,
-					"active_author_count_start" -> x.active_author_count_start.toDouble,
-					"total_content_count" -> x.total_content_count.toDouble,
-					"total_content_count_start" -> x.total_content_count_start.toDouble,
-					"live_content_count" -> x.live_content_count.toDouble,
-					"live_content_count_start" -> x.live_content_count_start.toDouble,
-					"review_content_count" -> x.review_content_count.toDouble,
-					"review_content_count_start" -> x.review_content_count_start.toDouble)
+			val fields = CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_partner_id")
 			val time = getDateTime(x.d_period);
-        	Point(time = time._1, 
-        			measurement = CONTENT_SNAPSHOT_METRICS, 
-        			tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> time._2, "partner_id" -> x.d_partner_id, "author_id" -> x.d_author_id), 
-        			fields = fields);
-        };
-        import com.pygmalios.reactiveinflux.spark._
-        implicit val params = ReactiveInfluxDbName(AppConf.getConfig("reactiveinflux.database"))
-        implicit val awaitAtMost = Integer.parseInt(AppConf.getConfig("reactiveinflux.awaitatmost")).second
-        metrics.saveToInflux();
+			InfluxRecord(Map("period" -> time._2, "d_author_id" -> x.d_author_id, "partner_id" -> x.d_partner_id), fields, time._1);
+		};
+		InfluxDBDispatcher.dispatch(CONTENT_SNAPSHOT_METRICS, metrics);
     }
     
     private def getDateTime(periodVal: Int): (DateTime, String) = {
