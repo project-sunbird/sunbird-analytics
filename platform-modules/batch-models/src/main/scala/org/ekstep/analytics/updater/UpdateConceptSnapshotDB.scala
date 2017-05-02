@@ -67,7 +67,7 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
 
     private def saveToInfluxDB(data: RDD[ConceptSnapshotSummary]) {
         val metrics = data.map { x =>
-            val fields = CommonUtil.caseClassToMap(x) - ("d_period", "d_concept_id")
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_concept_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "partner_id" -> x.d_concept_id), fields, time._1);
         };
