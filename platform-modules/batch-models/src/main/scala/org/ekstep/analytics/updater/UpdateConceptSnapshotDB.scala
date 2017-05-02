@@ -17,12 +17,14 @@ import scala.concurrent.duration._
 import com.pygmalios.reactiveinflux._
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 
 case class ConceptSnapshotSummary(d_period: Int, d_concept_id: String, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long) extends AlgoOutput with Output
 case class ConceptSnapshotIndex(d_period: Int, d_concept_id: String)
 
 object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ConceptSnapshotSummary, ConceptSnapshotSummary] with Serializable {
-  
+
     val className = "org.ekstep.analytics.updater.UpdateConceptSnapshotDB"
     override def name: String = "UpdateConceptSnapshotDB"
     val CONCEPT_SNAPSHOT_METRICS = "concept_snapshot_metrics";
@@ -62,38 +64,26 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
         saveToInfluxDB(data);
         data;
     }
-    
+
     private def saveToInfluxDB(data: RDD[ConceptSnapshotSummary]) {
-    	val metrics = data.map { x =>
-			val fields: Map[com.pygmalios.reactiveinflux.Point.FieldKey, com.pygmalios.reactiveinflux.FieldValue] = Map(
-					"total_content_count" -> x.total_content_count.toDouble,
-					"total_content_count_start" -> x.total_content_count_start.toDouble,
-					"live_content_count" -> x.live_content_count.toDouble,
-					"live_content_count_start" -> x.live_content_count_start.toDouble,
-					"review_content_count" -> x.review_content_count.toDouble,
-					"review_content_count_start" -> x.review_content_count_start.toDouble);
-			val time = getDateTime(x.d_period);
-        	Point(time = time._1, 
-        			measurement = CONCEPT_SNAPSHOT_METRICS, 
-        			tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> time._2, "concept_id" -> x.d_concept_id), 
-        			fields = fields);
+        val metrics = data.map { x =>
+            val fields = CommonUtil.caseClassToMap(x) - ("d_period", "d_concept_id")
+            val time = getDateTime(x.d_period);
+            InfluxRecord(Map("period" -> time._2, "partner_id" -> x.d_concept_id), fields, time._1);
         };
-        import com.pygmalios.reactiveinflux.spark._
-        implicit val params = ReactiveInfluxDbName(AppConf.getConfig("reactiveinflux.database"))
-        implicit val awaitAtMost = Integer.parseInt(AppConf.getConfig("reactiveinflux.awaitatmost")).second
-        metrics.saveToInflux();
+        InfluxDBDispatcher.dispatch(CONCEPT_SNAPSHOT_METRICS, metrics);
     }
-    
+
     private def getDateTime(periodVal: Int): (DateTime, String) = {
-		val period = periodVal.toString();
-		period.size match {
-			case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
-			case 7 =>
-				val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
-				val firstDay = weekPeriodLabel.parseDateTime(week)
-				val lastDay = firstDay.plusDays(6);
-				(lastDay.withTimeAtStartOfDay(), "week");
-			case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
-		}
-	}
+        val period = periodVal.toString();
+        period.size match {
+            case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
+            case 7 =>
+                val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
+                val firstDay = weekPeriodLabel.parseDateTime(week)
+                val lastDay = firstDay.plusDays(6);
+                (lastDay.withTimeAtStartOfDay(), "week");
+            case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
+        }
+    }
 }
