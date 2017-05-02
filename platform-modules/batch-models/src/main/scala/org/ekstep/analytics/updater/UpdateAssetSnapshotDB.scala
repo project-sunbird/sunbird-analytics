@@ -68,11 +68,10 @@ object UpdateAssetSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 	}
 
 	private def saveToInfluxDB(data: RDD[AssetSnapshotSummary]) {
-		val fields = data.map { x => CommonUtil.caseClassToMap(x) - ("d_period" ,"d_partner_id")};
 		val metrics = data.map { x =>
 			val fields = CommonUtil.caseClassToMap(x) - ("d_period" ,"d_partner_id")
 			val time = getDateTime(x.d_period);
-			InfluxRecord(Map("period" -> time._2, "partner_id" -> x.d_partner_id), fields);
+			InfluxRecord(Map("period" -> time._2, "partner_id" -> x.d_partner_id), fields, time._1);
 		};
 		InfluxDBDispatcher.dispatch(ASSET_SNAPSHOT_METRICS, metrics);
 	}
