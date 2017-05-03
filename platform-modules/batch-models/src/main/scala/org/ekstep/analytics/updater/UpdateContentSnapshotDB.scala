@@ -73,7 +73,7 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
     	val metrics = data.map { x =>
 			val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_partner_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
 			val time = getDateTime(x.d_period);
-			InfluxRecord(Map("period" -> time._2, "d_author_id" -> x.d_author_id, "partner_id" -> x.d_partner_id), fields, time._1);
+			InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "partner_id" -> x.d_partner_id), fields, time._1);
 		};
 		InfluxDBDispatcher.dispatch(CONTENT_SNAPSHOT_METRICS, metrics);
     }
