@@ -88,16 +88,20 @@ object ConsumptionMetricsUpdater extends Application with IJob {
     }
 
     private def getGenieStats(periodType: String, genieRdd: RDD[GenieUsageSummaryFact], contentRdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[Point] = {
-        val genieTimespent = genieRdd.groupBy { x => x.d_period }.map { x => (x._1, x._2.map { x => x.m_total_ts }.sum) }
-        val genieVisits = genieRdd.groupBy { x => x.d_period }.map { x => (x._1, x._2.map { x => x.m_total_sessions }.sum) }
-        val contentUsage = contentRdd.groupBy { x => x.d_period }.map { x => (x._1, x._2.map { x => x.m_total_ts }.sum) }
-        val contentVisits = contentRdd.groupBy { x => x.d_period }.map { x => (x._1, x._2.map { x => x.m_total_sessions }.sum.toDouble) }
-        val devices = genieRdd.groupBy { x => x.d_period }.map { x => (x._1, x._2.map { x => x.m_total_devices }.sum.toDouble) }
+        val genieTimespent = genieRdd.map { x => (x.d_period, x.m_total_ts) };
+        val genieVisits = genieRdd.map { x => (x.d_period, x.m_total_sessions) };
+        val contentUsage = contentRdd.map { x => (x.d_period, x.m_total_ts) }
+        val contentVisits = contentRdd.map { x => (x.d_period, x.m_total_sessions.toDouble ) };
+        val devices = genieRdd.map { x => (x.d_period, x.m_total_devices.toDouble) };
 
         val metricsJoin = contentUsage.join(contentVisits).join(genieVisits).join(devices).map { case (period, (((contentUsage, contentVisits), genieVisits), devices)) => (period, contentUsage, contentVisits, genieVisits, devices) }
         val metricsComputation = metricsJoin.map { x => MetricsComputation(x._1, x._2, x._3, x._4, x._5) }
         val computation = metricsComputation.map { x =>
-            GenieStats(x.period, x.contentUsage / x.contentVisits, x.contentVisits / x.genieVisits, x.genieVisits / x.devices, x.contentUsage / x.devices)
+        	val contentUsageByVisits = if (0 == x.contentVisits) 0 else x.contentUsage / x.contentVisits;
+        	val contentVisitsByGenieVisits = if (0 == x.genieVisits) 0 else x.contentVisits / x.genieVisits;
+        	val genieVisitsByDevice = if (0 == x.devices) 0 else x.genieVisits / x.devices;
+        	val contentUsageByDevice = if (0 == x.devices) 0 else x.contentUsage / x.devices;
+            GenieStats(x.period, contentUsageByVisits, contentVisitsByGenieVisits, genieVisitsByDevice, contentUsageByDevice);
         }
         computation.map { x => Point(time = getDateTime(periodType, x.period.toString()), measurement = GENIE_STATS, tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> periodType.toLowerCase()), fields = Map("content_usage_by_content_visits" -> x.content_usage_by_content_visits, "content_visits_by_genie_visits" -> x.content_visits_by_genie_visits, "genie_visits_by_devices" -> x.genie_visits_by_devices, "content_usage_by_device" -> x.content_usage_by_device)) }
     }
