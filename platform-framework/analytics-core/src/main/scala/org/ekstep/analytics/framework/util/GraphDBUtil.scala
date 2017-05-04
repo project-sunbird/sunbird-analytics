@@ -19,7 +19,7 @@ object GraphDBUtil {
 	implicit val className = "org.ekstep.analytics.framework.util.GraphDBUtil"
 
 	def executeQuery(query: String)(implicit sc: SparkContext) {
-		GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		GraphQueryDispatcher.dispatch(query);
 	}
 	
 	def createNode(node: DataNode)(implicit sc: SparkContext) {
@@ -29,7 +29,7 @@ object GraphDBUtil {
 			.append(node.labels.get.mkString(":")).append(props).append(CLOSE_COMMON_BRACKETS)
 
 		val query = createQuery.toString
-		GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		GraphQueryDispatcher.dispatch(query);
 	}
 
 	def createNodesQuery(nodes: RDD[DataNode]): String = {
@@ -51,7 +51,7 @@ object GraphDBUtil {
 	def createNodes(nodes: RDD[DataNode])(implicit sc: SparkContext) {
 		val query = createNodesQuery(nodes);
 		if (StringUtils.isNotBlank(query)) 
-			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+			GraphQueryDispatcher.dispatch(query);
 	}
 
 	def deleteNodes(metadata: Option[Map[String, AnyRef]], labels: Option[List[String]])(implicit sc: SparkContext) {
@@ -66,7 +66,7 @@ object GraphDBUtil {
 				.append(DETACH_DELETE).append(BLANK_SPACE).append(DEFAULT_CYPHER_NODE_OBJECT);
 
 			val query = deleteQuery.toString;
-			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+			GraphQueryDispatcher.dispatch(query);
 		}
 
 	}
@@ -86,7 +86,7 @@ object GraphDBUtil {
 
 			val query = updateQuery.toString;
 			println(query)
-			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+			GraphQueryDispatcher.dispatch(query);
 		}
 
 	}
@@ -110,14 +110,14 @@ object GraphDBUtil {
 				setQuery.toString
 			}.collect().mkString(",")
 			val query = fullQuery.append(nodesQuery).append(BLANK_SPACE).append(SET).append(BLANK_SPACE).append(setsQuery).toString
-			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+			GraphQueryDispatcher.dispatch(query);
 		}
 
 	}
 
 	def addRelations(relations: RDD[Relation])(implicit sc: SparkContext) {
 		val relQueries = relations.map { x => addRelationQuery(x.startNode, x.endNode, x.relation, x.direction, x.metadata) }.filter { x => StringUtils.isNotBlank(x) };
-		GraphQueryDispatcher.dispatch(getGraphDBConfig, relQueries)
+		GraphQueryDispatcher.dispatch(relQueries)
 	}
 	
 	def addRelationQuery(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = None): String = {
@@ -146,7 +146,7 @@ object GraphDBUtil {
 			fullQuery.append("(aa)")
 			fullQuery.append(BLANK_SPACE).append("DELETE").append(BLANK_SPACE).append("r");
 			val query = fullQuery.toString;
-			GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+			GraphQueryDispatcher.dispatch(query);
 		} else {
 			JobLogger.log("GraphDBUtil.deleteRelation - required parameters missing");
 		}
@@ -163,7 +163,7 @@ object GraphDBUtil {
 		if(!limit.isEmpty) findQuery.append(" LIMIT "+limit.get)
 		
 		val query = findQuery.toString;
-		val result = GraphQueryDispatcher.dispatch(getGraphDBConfig, query);
+		val result = GraphQueryDispatcher.dispatch(query);
 		val nodes = if (null != result) {
 			result.list().toArray().map(x => x.asInstanceOf[org.neo4j.driver.v1.Record])
 				.map { x => x.get(DEFAULT_CYPHER_NODE_OBJECT).asNode() }
@@ -217,10 +217,5 @@ object GraphDBUtil {
 		val regex = """"(\w+)":""";
 		return query.replaceAll(regex, "$1:")
 	}
-	
-	private def getGraphDBConfig() : Map[String, String] = {
-		Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-			"user" -> AppConf.getConfig("neo4j.bolt.user"),
-			"password" -> AppConf.getConfig("neo4j.bolt.password"));
-	}
+
 }

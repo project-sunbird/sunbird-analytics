@@ -32,9 +32,9 @@ object CreationRecommendationModel extends IGraphExecutionModel with Serializabl
         val author_reco_limit = config.getOrElse("author_reco_limit", 5).asInstanceOf[Int];
         val langReturnProps = config.getOrElse("lang_return_props", List("name","code","isoCode")).asInstanceOf[List[String]];
         
-        val concepts = GraphQueryDispatcher.dispatch(graphDBConfig, getConceptsQuery).list().toArray();
-        val langs = GraphQueryDispatcher.dispatch(graphDBConfig, getLangsQuery).list().toArray();
-        val contentTypes = GraphQueryDispatcher.dispatch(graphDBConfig, getContentTypeQuery).list().toArray();
+        val concepts = GraphQueryDispatcher.dispatch(getConceptsQuery).list().toArray();
+        val langs = GraphQueryDispatcher.dispatch(getLangsQuery).list().toArray();
+        val contentTypes = GraphQueryDispatcher.dispatch(getContentTypeQuery).list().toArray();
         
         val authorConcepts = concepts.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => 
             val gradeLevel = if (x.get("cnc.gradeLevel").isNull()) List() 

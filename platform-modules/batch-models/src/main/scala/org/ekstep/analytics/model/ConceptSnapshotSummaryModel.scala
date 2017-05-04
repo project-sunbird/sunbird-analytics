@@ -16,10 +16,6 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
     override def name(): String = "ConceptSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.ConceptSnapshotSummaryModel";
     
-    val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
-    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         data;
     }
@@ -51,7 +47,7 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
     }
 
     private def getConceptsCount(query: String)(implicit sc: SparkContext): Array[(String, Long)] = {
-    	GraphQueryDispatcher.dispatch(graphDBConfig, query).list().toArray()
+    	GraphQueryDispatcher.dispatch(query).list().toArray()
     	.map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (x.get("identifier").asString(), x.get("count").asLong())}
     }
     

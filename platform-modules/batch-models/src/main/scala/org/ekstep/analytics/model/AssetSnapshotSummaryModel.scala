@@ -23,16 +23,13 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
 
     override def name(): String = "AssetSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.AssetSnapshotSummaryModel";
-    val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-        "user" -> AppConf.getConfig("neo4j.bolt.user"),
-        "password" -> AppConf.getConfig("neo4j.bolt.password"));
 
     private def getMediaMap(query: String)(implicit sc: SparkContext): Map[String, Long] = {
-        GraphQueryDispatcher.dispatch(graphDBConfig, query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("mediaType").asString(), x.get("count").asLong()) }.toMap
+        GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("mediaType").asString(), x.get("count").asLong()) }.toMap
     }
 
     private def getAssetCount(query: String)(implicit sc: SparkContext): Long = {
-        GraphQueryDispatcher.dispatch(graphDBConfig, query).list().get(0).get("count").asLong();
+        GraphQueryDispatcher.dispatch(query).list().get(0).get("count").asLong();
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {

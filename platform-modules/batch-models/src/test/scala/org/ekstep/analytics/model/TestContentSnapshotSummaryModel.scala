@@ -116,13 +116,9 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         ContentAssetRelationModel.main("{}")(Option(sc));
         AuthorRelationsModel.main("{}")(Option(sc));
         
-        val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
-
         val createdOn = new DateTime().toString()
         val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content', contentType:'story', createdFor:['org.ekstep.partner1'], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn"
-        GraphQueryDispatcher.dispatch(graphDBConfig, query1)
+        GraphQueryDispatcher.dispatch(query1)
         
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect

@@ -7,20 +7,20 @@ import org.ekstep.analytics.streaming.GraphQuerySink
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.neo4j.driver.v1.StatementResult
 
-object GraphQueryDispatcher  extends IDispatcher {
+object GraphQueryDispatcher {
 
+	val config = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
+		"user" -> AppConf.getConfig("neo4j.bolt.user"),
+		"password" -> AppConf.getConfig("neo4j.bolt.password"));
+	
 	@throws(classOf[DispatcherException])
-	def dispatch(config: Map[String, AnyRef], queries: RDD[String])(implicit sc: SparkContext) = {
+	def dispatch(queries: RDD[String])(implicit sc: SparkContext) = {
 		val graphQuerySink = sc.broadcast(GraphQuerySink(config));
         queries.foreach { query => graphQuerySink.value.run(query) };
 	}
 	
-	def dispatch(config: Map[String, String], query: String)(implicit sc: SparkContext) : StatementResult = {
+	def dispatch(query: String)(implicit sc: SparkContext) : StatementResult = {
 		val graphQuerySink = sc.broadcast(GraphQuerySink(config));
 		graphQuerySink.value.run(query);
-	}
-	
-	def dispatch(queries: Array[String], config: Map[String, AnyRef]) : Array[String] = {
-		Array();
 	}
 }

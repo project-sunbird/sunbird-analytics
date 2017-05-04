@@ -43,12 +43,8 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
         ContentAssetRelationModel.main("{}")(Option(sc));
         AuthorRelationsModel.main("{}")(Option(sc));
         
-        val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
-        
         val query = "CREATE (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept', IL_UNIQUE_ID:'test_concept', contentCount: 0, liveContentCount: 0}) RETURN cnc"
-        GraphQueryDispatcher.dispatch(graphDBConfig, query)
+        GraphQueryDispatcher.dispatch(query)
         
         val rdd = ConceptSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
