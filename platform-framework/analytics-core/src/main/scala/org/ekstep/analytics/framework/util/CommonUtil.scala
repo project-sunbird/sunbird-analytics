@@ -384,6 +384,11 @@ object CommonUtil {
         val key = Array(eventId, userId, dateFormat.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
+    
+    def getMessageId(eventId: String, level: String, timeStamp: Long): String = {
+        val key = Array(eventId, level, df5.print(timeStamp)).mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
+    }
 
     def getPeriod(date: DateTime, period: Period): Int = {
         getPeriod(date.getMillis, period);

@@ -16,6 +16,7 @@ import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.layout.PatternLayout
 import java.nio.charset.Charset
 import org.apache.logging.log4j.core.config.AppenderRef
+import org.joda.time.DateTime
 
 object JobLogger {
 
@@ -85,8 +86,9 @@ object JobLogger {
             "message" -> msg,
             "status" -> status,
             "data" -> data);
-        val mid = "";
-        MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "", None, None,
+        val ts = new DateTime().getMillis
+        val mid = CommonUtil.getMessageId(eid, level, ts);
+        MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", None, None,
             Context(PData("AnalyticsDataPipeline", JobContext.jobName, "1.0"), None, "EVENT", null),
             null,
             MEEdata(measures));
