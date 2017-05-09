@@ -103,10 +103,12 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 
     private def getGenieStats(periodType: String, genieRdd: RDD[GenieUsageSummaryFact], contentRdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): Long = {
         val genieTimespent = genieRdd.map { x => (x.d_period, x.m_total_ts) };
-        val genieVisits = genieRdd.map { x => (x.d_period, x.m_total_sessions) };
-        val contentUsage = contentRdd.map { x => (x.d_period, x.m_total_ts) }
-        val contentVisits = contentRdd.map { x => (x.d_period, x.m_total_sessions.toDouble) };
-        val devices = genieRdd.map { x => (x.d_period, x.m_total_devices.toDouble) };
+        val filterdGenieRdd = genieRdd.filter { x => (x.d_tag == "all") }
+        val filteredContentRdd = contentRdd.filter { x => (x.d_tag == "all" && x.d_content_id == "all") }
+        val genieVisits = filterdGenieRdd.map { x => (x.d_period, x.m_total_sessions) };
+        val contentUsage = filteredContentRdd.map { x => (x.d_period, x.m_total_ts) }
+        val contentVisits = filteredContentRdd.map { x => (x.d_period, x.m_total_sessions.toDouble) };
+        val devices = filterdGenieRdd.map { x => (x.d_period, x.m_total_devices.toDouble) };
         val metricsJoin = contentUsage.join(contentVisits).join(genieVisits).join(devices).map { case (period, (((contentUsage, contentVisits), genieVisits), devices)) => (period, contentUsage, contentVisits, genieVisits, devices) }
         val metricsComputation = metricsJoin.map { x => MetricsComputation(x._1, x._2, x._3, x._4, x._5) }
         val computation = metricsComputation.map { x =>
