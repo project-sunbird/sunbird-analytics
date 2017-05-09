@@ -82,7 +82,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 
     private def getGenieMetrics(periodType: String, genieRdd: RDD[GenieUsageSummaryFact])(implicit sc: SparkContext): Long = {
         val metrics = genieRdd.map { x =>
-            val fields = Map("sessions" -> x.m_total_sessions.asInstanceOf[AnyRef], "timespent" -> x.m_total_ts.asInstanceOf[AnyRef])
+            val fields = Map("sessions" -> x.m_total_sessions.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef], "timespent" -> x.m_total_ts.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef])
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "tag" -> x.d_tag), fields, time._1);
         };
@@ -93,7 +93,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
     private def getContentMetrics(periodType: String, contentRdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): Long = {
 
         val metrics = contentRdd.map { x =>
-            val fields = Map("sessions" -> x.m_total_sessions.asInstanceOf[AnyRef], "timespent" -> x.m_total_ts.asInstanceOf[AnyRef])
+            val fields = Map("sessions" -> x.m_total_sessions.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef], "timespent" -> x.m_total_ts.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef])
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "tag" -> x.d_tag, "content" -> x.d_content_id), fields, time._1);
         };
@@ -118,7 +118,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
         }
 
         val metrics = computation.map { x =>
-            val fields = Map("content_usage_by_content_visits" -> x.content_usage_by_content_visits.asInstanceOf[AnyRef], "content_visits_by_genie_visits" -> x.content_visits_by_genie_visits.asInstanceOf[AnyRef], "genie_visits_by_devices" -> x.genie_visits_by_devices.asInstanceOf[AnyRef], "content_usage_by_device" -> x.content_usage_by_device.asInstanceOf[AnyRef])
+            val fields = Map("content_usage_by_content_visits" -> x.content_usage_by_content_visits.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef], "content_visits_by_genie_visits" -> x.content_visits_by_genie_visits.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef], "genie_visits_by_devices" -> x.genie_visits_by_devices.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef], "content_usage_by_device" -> x.content_usage_by_device.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef])
             val time = getDateTime(x.period);
             InfluxRecord(Map("period" -> time._2), fields, time._1);
         };
