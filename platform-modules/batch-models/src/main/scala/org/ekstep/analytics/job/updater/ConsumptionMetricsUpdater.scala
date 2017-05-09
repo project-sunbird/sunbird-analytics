@@ -22,7 +22,7 @@ import com.pygmalios.reactiveinflux._
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
-
+import org.ekstep.analytics.framework.Level._
 /**
  * @author mahesh
  */
@@ -76,7 +76,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
         val genieMetrics = getGenieMetrics(periodType, genieUsageSummary)
         val contentMetrics = getContentMetrics(periodType, contentUsageSummary)
         val genieStats = getGenieStats(periodType, genieUsageSummary, contentUsageSummary)
-        JobLogger.log("Metrics count", Option(Map("date" -> "", "periodType" -> periodType, "periodUpTo" -> periodUpTo, "genieMetrics" -> genieMetrics, "contentMetrics" -> contentMetrics, "genieStats" -> genieStats)));
+        JobLogger.log("Metrics count", Option(Map("date" -> "", "periodType" -> periodType, "periodUpTo" -> periodUpTo, "genieMetrics" -> genieMetrics, "contentMetrics" -> contentMetrics, "genieStats" -> genieStats)), INFO);
         genieMetrics + contentMetrics + genieStats
     }
 
