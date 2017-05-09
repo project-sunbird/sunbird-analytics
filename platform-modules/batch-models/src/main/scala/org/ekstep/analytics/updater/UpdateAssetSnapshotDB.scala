@@ -12,10 +12,8 @@ import org.ekstep.analytics.framework.util.CommonUtil._
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.joda.time.DateTime
-import scala.concurrent.duration._
-import com.pygmalios.reactiveinflux._
-import com.datastax.spark.connector._
-import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 
 case class AssetSnapshotSummary(d_period: Int, d_partner_id: String, total_images_count: Long, total_images_count_start: Long, used_images_count: Long, used_images_count_start: Long, total_audio_count: Long, total_audio_count_start: Long, used_audio_count: Long, used_audio_count_start: Long, total_questions_count: Long, total_questions_count_start: Long, used_questions_count: Long, used_questions_count_start: Long, total_activities_count: Long, total_activities_count_start: Long, used_activities_count: Long, used_activities_count_start: Long, total_templates_count: Long, total_templates_count_start: Long, used_templates_count: Long, used_templates_count_start: Long) extends AlgoOutput with Output
 case class AssetSnapshotIndex(d_period: Int, d_partner_id: String)
@@ -71,48 +69,23 @@ object UpdateAssetSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
 	private def saveToInfluxDB(data: RDD[AssetSnapshotSummary]) {
 		val metrics = data.map { x =>
-			val fields: Map[com.pygmalios.reactiveinflux.Point.FieldKey, com.pygmalios.reactiveinflux.FieldValue] = Map(
-				"total_images_count" -> x.total_images_count.toDouble,
-				"total_images_count_start" -> x.total_images_count_start.toDouble,
-				"used_images_count" -> x.used_images_count.toDouble,
-				"used_images_count_start" -> x.used_images_count_start.toDouble,
-				"total_audio_count" -> x.total_audio_count.toDouble,
-				"total_audio_count_start" -> x.total_audio_count_start.toDouble,
-				"used_audio_count" -> x.used_audio_count.toDouble,
-				"used_audio_count_start" -> x.used_audio_count_start.toDouble,
-				"total_questions_count" -> x.total_questions_count.toDouble,
-				"total_questions_count_start" -> x.total_questions_count_start.toDouble,
-				"used_questions_count" -> x.used_questions_count.toDouble,
-				"used_questions_count_start" -> x.used_questions_count_start.toDouble,
-				"total_activities_count" -> x.total_activities_count.toDouble,
-				"total_activities_count_start" -> x.total_activities_count_start.toDouble,
-				"used_activities_count" -> x.used_activities_count.toDouble,
-				"used_activities_count_start" -> x.used_activities_count_start.toDouble,
-				"total_templates_count" -> x.total_templates_count.toDouble,
-				"total_templates_count_start" -> x.total_templates_count_start.toDouble,
-				"used_templates_count" -> x.used_templates_count.toDouble,
-				"used_templates_count_start" -> x.used_templates_count_start.toDouble)
-			Point(time = getDateTime(x.d_period),
-				measurement = ASSET_SNAPSHOT_METRICS,
-				tags = Map("env" -> AppConf.getConfig("application.env"), "partner_id" -> x.d_partner_id),
-				fields = fields);
+			val fields = (CommonUtil.caseClassToMap(x) - ("d_period" ,"d_partner_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+			val time = getDateTime(x.d_period);
+			InfluxRecord(Map("period" -> time._2, "partner_id" -> x.d_partner_id), fields, time._1);
 		};
-		import com.pygmalios.reactiveinflux.spark._
-		implicit val params = ReactiveInfluxDbName(AppConf.getConfig("reactiveinflux.database"))
-		implicit val awaitAtMost = Integer.parseInt(AppConf.getConfig("reactiveinflux.awaitatmost")).second
-		metrics.saveToInflux();
+		InfluxDBDispatcher.dispatch(ASSET_SNAPSHOT_METRICS, metrics);
 	}
 
-	private def getDateTime(periodVal: Int): DateTime = {
+	private def getDateTime(periodVal: Int): (DateTime, String) = {
 		val period = periodVal.toString();
 		period.size match {
-			case 8 => dayPeriod.parseDateTime(period).withTimeAtStartOfDay();
+			case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
 			case 7 =>
 				val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
 				val firstDay = weekPeriodLabel.parseDateTime(week)
 				val lastDay = firstDay.plusDays(6);
-				lastDay.withTimeAtStartOfDay();
-			case 6 => monthPeriod.parseDateTime(period).withTimeAtStartOfDay();
+				(lastDay.withTimeAtStartOfDay(), "week");
+			case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
 		}
 	}
 }

@@ -75,7 +75,7 @@ object ContentAssetRelationModel extends IGraphExecutionModel with Serializable 
             }
         } catch {
             case t: Throwable =>
-                println("Unable to parse OR fetch Asset Ids for contentId:" + contentId + " :: Error: " + t.getMessage);
+                println("Unable to parse OR fetch Asset Ids for contentId:" + contentId);
                 List();
         }
     }

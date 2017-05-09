@@ -11,10 +11,6 @@ class TestCreationRecommendationModel extends SparkGraphSpec(null) {
   
     it should "create recommendations for authors and populate the same into cassandra" in {
 
-        val graphConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-            "user" -> AppConf.getConfig("neo4j.bolt.user"),
-            "password" -> AppConf.getConfig("neo4j.bolt.password"));
-        
         // Running all VV jobs
         ContentLanguageRelationModel.main("{}")(Option(sc));
         ConceptLanguageRelationModel.main("{}")(Option(sc));
@@ -24,7 +20,7 @@ class TestCreationRecommendationModel extends SparkGraphSpec(null) {
                         
         CreationRecommendationModel.main("{}")(Option(sc));
         
-        val authorNodes = GraphQueryDispatcher.dispatch(graphConfig, "MATCH(usr:User{type: 'author'}) RETURN usr").list;
+        val authorNodes = GraphQueryDispatcher.dispatch("MATCH(usr:User{type: 'author'}) RETURN usr").list;
         authorNodes.size() should be(2)
         
         // check for specific user with recommendations

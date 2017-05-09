@@ -58,17 +58,13 @@ class TestGraphDBUtil extends SparkGraphSpec {
     val rel = sc.parallelize(List(Relation(node1, node2, "isMemberOf", RelationshipDirection.INCOMING.toString)))
     GraphDBUtil.addRelations(rel)
 
-    val graphConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
-      "user" -> AppConf.getConfig("neo4j.bolt.user"),
-      "password" -> AppConf.getConfig("neo4j.bolt.password"));
-
     val relationsQuery = StringBuilder.newBuilder;
     relationsQuery.append(MATCH).append(BLANK_SPACE).append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE).append(BLANK_SPACE)
       .append("Team").append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE)
       .append(GraphDBUtil.getRelationQuery("isMemberOf", RelationshipDirection.INCOMING.toString)).append(BLANK_SPACE)
       .append(OPEN_COMMON_BRACKETS).append(DEFAULT_CYPHER_NODE_OBJECT_II).append(COLON).append("User")
       .append(CLOSE_COMMON_BRACKETS).append(BLANK_SPACE).append(RETURN).append(BLANK_SPACE).append(DEFAULT_CYPHER_RELATION_OBJECT)
-    val rels = GraphQueryDispatcher.dispatch(graphConfig, relationsQuery.toString()).list;
+    val rels = GraphQueryDispatcher.dispatch(relationsQuery.toString()).list;
     rels.size() should be(1)
     GraphDBUtil.deleteNodes(None, Option(List("User")));
     GraphDBUtil.deleteNodes(None, Option(List("Team")));

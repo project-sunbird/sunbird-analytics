@@ -55,7 +55,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
     it should "check count of coulmns in fluxdb table" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
-            val queryResult = db.query("SELECT * FROM content_metrics")
+            val queryResult = db.query("SELECT * FROM content_metrics where time=1483833600000000000")
             queryResult.result.singleSeries.columns.size should be(7)
         }
     }
@@ -87,32 +87,32 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
     it should "compute content usage / content visits and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
-            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'")
-            queryResult.row.mkString.split(",")(1).trim() should be("2.2222222222222223")
+            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week' AND time = 1483833600000000000")
+            queryResult.row.mkString.split(",")(1).trim() should be("2")
         }
     }
 
     it should "compute content visits / genie visits and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
-            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'")
-            queryResult.row.mkString.split(",")(3).trim() should be("0")
+            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week' AND time = 1483833600000000000")
+            queryResult.row.mkString.split(",")(3).trim() should be("1")
         }
     }
 
     it should "compute genie visits / devices and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
-            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'")
-            queryResult.row.mkString.split(",")(5).trim() should be("1")
+            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'AND time = 1483833600000000000")
+            queryResult.row.mkString.split(",")(5).trim() should be("1.6666666666666667")
         }
     }
 
     it should "compute content usage / device and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
-            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'")
-            queryResult.row.mkString.split(",")(2).trim() should be("1.6666666666666667")
+            val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'AND time = 1483833600000000000")
+            queryResult.row.mkString.split(",")(2).trim() should be("3.3333333333333335")
         }
     }
 

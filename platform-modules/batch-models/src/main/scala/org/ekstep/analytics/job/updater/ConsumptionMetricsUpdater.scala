@@ -24,7 +24,8 @@ import com.datastax.spark.connector._
 /**
  * @author mahesh
  */
-
+case class GenieStats(period: Int, content_usage_by_content_visits: Double, content_visits_by_genie_visits: Double, genie_visits_by_devices: Double, content_usage_by_device: Double)
+case class MetricsComputation(period: Int, contentUsage: Double, contentVisits: Double, genieVisits: Double, devices: Double)
 object ConsumptionMetricsUpdater extends Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.ConsumptionMetricsUpdater"
@@ -87,20 +88,22 @@ object ConsumptionMetricsUpdater extends Application with IJob {
     }
 
     private def getGenieStats(periodType: String, genieRdd: RDD[GenieUsageSummaryFact], contentRdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): RDD[Point] = {
-        val genieTimeSpent = genieRdd.map { x => x.m_total_ts }.reduce((a, b) => a + b)
-        val genieVisits = genieRdd.map { x => x.m_total_sessions }.reduce((a, b) => a + b)
-        val contentUsage = contentRdd.map { x => x.m_total_ts }.reduce((a, b) => a + b)
-        val contentVisits = contentRdd.map { x => x.m_total_sessions }.reduce((a, b) => a + b)
-        val period = contentRdd.first().d_period.toString()
-        val devices = genieRdd.map { x => x.m_total_devices }.reduce((a, b) => a + b)
+        val genieTimespent = genieRdd.map { x => (x.d_period, x.m_total_ts) };
+        val genieVisits = genieRdd.map { x => (x.d_period, x.m_total_sessions) };
+        val contentUsage = contentRdd.map { x => (x.d_period, x.m_total_ts) }
+        val contentVisits = contentRdd.map { x => (x.d_period, x.m_total_sessions.toDouble ) };
+        val devices = genieRdd.map { x => (x.d_period, x.m_total_devices.toDouble) };
 
-        val content_usage_by_content_visits = contentUsage / contentVisits
-        val content_visits_by_genie_visits = contentVisits / genieVisits
-        val genie_visits_by_devices = genieVisits / devices
-        val content_usage_by_device = contentUsage / devices
-
-        val point = Point(time = getDateTime(periodType, period), measurement = GENIE_STATS, tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> periodType.toLowerCase()), fields = Map("content_usage_by_content_visits" -> content_usage_by_content_visits, "content_visits_by_genie_visits" -> content_visits_by_genie_visits.toDouble, "genie_visits_by_devices" -> genie_visits_by_devices.toDouble, "content_usage_by_device" -> content_usage_by_device))
-        sc.parallelize(List(point))
+        val metricsJoin = contentUsage.join(contentVisits).join(genieVisits).join(devices).map { case (period, (((contentUsage, contentVisits), genieVisits), devices)) => (period, contentUsage, contentVisits, genieVisits, devices) }
+        val metricsComputation = metricsJoin.map { x => MetricsComputation(x._1, x._2, x._3, x._4, x._5) }
+        val computation = metricsComputation.map { x =>
+        	val contentUsageByVisits = if (0 == x.contentVisits) 0 else x.contentUsage / x.contentVisits;
+        	val contentVisitsByGenieVisits = if (0 == x.genieVisits) 0 else x.contentVisits / x.genieVisits;
+        	val genieVisitsByDevice = if (0 == x.devices) 0 else x.genieVisits / x.devices;
+        	val contentUsageByDevice = if (0 == x.devices) 0 else x.contentUsage / x.devices;
+            GenieStats(x.period, contentUsageByVisits, contentVisitsByGenieVisits, genieVisitsByDevice, contentUsageByDevice);
+        }
+        computation.map { x => Point(time = getDateTime(periodType, x.period.toString()), measurement = GENIE_STATS, tags = Map("env" -> AppConf.getConfig("application.env"), "period" -> periodType.toLowerCase()), fields = Map("content_usage_by_content_visits" -> x.content_usage_by_content_visits, "content_visits_by_genie_visits" -> x.content_visits_by_genie_visits, "genie_visits_by_devices" -> x.genie_visits_by_devices, "content_usage_by_device" -> x.content_usage_by_device)) }
     }
 
     private def getGenieUsageSummary(periodType: String, periods: List[Int])(implicit sc: SparkContext): RDD[GenieUsageSummaryFact] = {
