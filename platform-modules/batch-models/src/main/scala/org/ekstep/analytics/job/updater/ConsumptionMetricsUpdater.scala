@@ -109,7 +109,13 @@ object ConsumptionMetricsUpdater extends Application with IJob {
         val contentUsage = filteredContentRdd.map { x => (x.d_period, x.m_total_ts) }
         val contentVisits = filteredContentRdd.map { x => (x.d_period, x.m_total_sessions.toDouble) };
         val devices = filterdGenieRdd.map { x => (x.d_period, x.m_total_devices.toDouble) };
-        val metricsJoin = contentUsage.join(contentVisits).join(genieVisits).join(devices).map { case (period, (((contentUsage, contentVisits), genieVisits), devices)) => (period, contentUsage, contentVisits, genieVisits, devices) }
+        val metricsJoin = contentUsage.fullOuterJoin(contentVisits).fullOuterJoin(genieVisits).fullOuterJoin(devices).map { x =>
+            (x._1,
+                x._2._1.getOrElse(Option((Option(0), Option(0))), Option(0))._1.getOrElse(Option(0), Option(0))._1.getOrElse(0).asInstanceOf[Number].doubleValue(),
+                x._2._1.getOrElse(Option((Option(0), Option(0))), Option(0))._1.getOrElse(Option(0), Option(0))._2.getOrElse(0).asInstanceOf[Number].doubleValue(),
+                x._2._1.getOrElse(Option((Option(0), Option(0))), Option(0))._2.getOrElse(0).asInstanceOf[Number].doubleValue(),
+                x._2._2.getOrElse(0).asInstanceOf[Number].doubleValue())
+        }
         val metricsComputation = metricsJoin.map { x => MetricsComputation(x._1, x._2, x._3, x._4, x._5) }
         val computation = metricsComputation.map { x =>
             val contentUsageByVisits = if (0 == x.contentVisits) 0 else x.contentUsage / x.contentVisits;
