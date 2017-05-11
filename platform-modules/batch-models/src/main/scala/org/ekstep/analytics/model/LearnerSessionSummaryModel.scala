@@ -15,6 +15,7 @@ import org.apache.log4j.Logger
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.updater.LearnerProfile
+import org.ekstep.analytics.util.SessionBatchModel
 
 /**
  * Case class to hold the item responses

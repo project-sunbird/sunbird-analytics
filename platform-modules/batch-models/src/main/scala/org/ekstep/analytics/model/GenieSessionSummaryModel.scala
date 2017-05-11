@@ -3,7 +3,7 @@ package org.ekstep.analytics.model
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.SessionBatchModel
+import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.util.CommonUtil
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.util.JSONUtils

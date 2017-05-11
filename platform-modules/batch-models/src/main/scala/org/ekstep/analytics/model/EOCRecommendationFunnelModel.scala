@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.IBatchModelTemplate
 import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.SessionBatchModel
+import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import scala.collection.mutable.ListBuffer

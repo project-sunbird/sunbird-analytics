@@ -1,8 +1,10 @@
-package org.ekstep.analytics.framework
+package org.ekstep.analytics.util
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.Filter
 
 /**
  * @author Santhosh

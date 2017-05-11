@@ -22,10 +22,10 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.json4s.JsonUtil
 import java.io.FileWriter
 import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.SessionBatchModel
 import java.security.MessageDigest
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
+import org.ekstep.analytics.util.SessionBatchModel
 
 case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d),
                         var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d),

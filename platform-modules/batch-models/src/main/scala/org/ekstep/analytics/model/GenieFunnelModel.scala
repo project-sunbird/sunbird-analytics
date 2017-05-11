@@ -1,6 +1,6 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.SessionBatchModel
+import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.IBatchModelTemplate
 import org.apache.spark.rdd.RDD

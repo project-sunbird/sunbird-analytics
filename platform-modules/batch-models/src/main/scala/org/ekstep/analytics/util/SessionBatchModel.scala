@@ -1,10 +1,13 @@
-package org.ekstep.analytics.framework
+package org.ekstep.analytics.util
 
 import org.apache.spark.rdd.RDD
 import scala.collection.mutable.Buffer
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework.JobContext
 
 /**
  * @author Santhosh

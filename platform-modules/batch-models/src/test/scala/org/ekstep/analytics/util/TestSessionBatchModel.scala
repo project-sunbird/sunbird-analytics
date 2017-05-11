@@ -1,17 +1,17 @@
-package org.ekstep.analytics.framework
+package org.ekstep.analytics.util
 
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.model.SparkSpec
 
 /**
  * @author Santhosh
  */
-class TestSessionBatchModel extends SparkSpec {
+class TestSessionBatchModel extends SparkSpec() {
   
     "SessionBatchModel" should "group data by game session" in {
         
         val rdd = SampleModel.execute(events, None);
-        rdd.count should be (134);
+        rdd.count should be (148);
         SampleModel.name() should be ("BatchModel")
         
     }

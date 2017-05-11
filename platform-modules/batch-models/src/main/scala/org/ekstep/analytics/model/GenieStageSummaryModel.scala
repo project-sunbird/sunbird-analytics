@@ -6,6 +6,7 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.util.SessionBatchModel
 
 case class GenieStageAlgoOut(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]], dt_range: DtRange, did: String, tags: Option[AnyRef], syncts: Long) extends AlgoOutput
 
