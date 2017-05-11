@@ -33,13 +33,16 @@ log_dir = config.get('FilePath', 'log_path')
 # Set up logging
 infer_log_file = os.path.join(log_dir, 'inferQuery.log')
 
+
 def get_immediate_subdirectories(a_dir):
     return [name for name in os.listdir(a_dir)
             if os.path.isdir(os.path.join(a_dir, name))]
 
+
 def get_immediate_subdirectories_fullpath(a_dir):
     return [os.path.join(a_dir, name) for name in os.listdir(a_dir)
             if os.path.isdir(os.path.join(a_dir, name))]
+
 
 def uniqfy_list(seq):
     seen = set()
@@ -54,6 +57,7 @@ def get_all_lang(directory, string):
                 if name.endswith((string))]
     lst_lang = uniqfy_list(lst_lang)
     return lst_lang
+
 
 def get_vector_dimension():
     try:
@@ -82,6 +86,7 @@ def get_norm_vec(vector_list, dimension):
 #     norm_vector = [ '%.6f' % elem for elem in norm_vector ]
     return norm_vector
 
+
 def process_query(line,language):
     word_list = []
 
@@ -107,6 +112,7 @@ def process_query(line,language):
                 word_list.append(word)
     return word_list
 
+
 def get_vectors_LDA(model, query):
 #     print 'query: '+ str(query)
     pr_query = model.id2word.doc2bow(query)
@@ -122,8 +128,10 @@ def get_vectors_LDA(model, query):
     flattened = t_dict.values()
     return flattened
 
+
 def is_ascii(s):
     return all(ord(c) < 128 for c in s)
+
 
 def process_text(lines, language):  # Text processing
 
@@ -151,6 +159,7 @@ def process_text(lines, language):  # Text processing
                     word_list.append(word)
     return word_list
 
+
 def process_file(filename, language):  # File processing
     try:
         with codecs.open(filename, 'r', encoding='utf-8') as f:
@@ -159,6 +168,7 @@ def process_file(filename, language):  # File processing
         return process_text(lines, language)
     except:
         return []
+
 
 def sparseToDense(sparse_vec, length):
     """
@@ -177,6 +187,7 @@ def sparseToDense(sparse_vec, length):
         vec[j] = value
 
     return vec
+
 
 def load_documents(filenames, language):
     flag = 0
@@ -203,12 +214,14 @@ all_vector = []
 # to get the dimension of vectors from model
 n_dim = get_vector_dimension()
 
+
 def get_normalized_list(g):
     if sum(g) != 0:
         norm = [float(i)/sum(g) for i in g]
     else:
         norm = g 
     return norm
+
 
 def infer_query(inferFlag, model_loc, op_dir):
     if inferFlag == 'true':
@@ -303,6 +316,7 @@ def infer_query(inferFlag, model_loc, op_dir):
         all_vector.append(vector_dict)
         response['content_vectors'] = all_vector
         return (json.dumps(response))
+
 
 def get_vectors(model_loc, op_dir):
     lst_folder = get_immediate_subdirectories_fullpath(op_dir)
@@ -437,6 +451,7 @@ def infer_query_LSA(inferFlag, model_loc, op_dir):
         # logging.info(json.dumps(response))
         return(json.dumps(response))
 
+
 def tfidf_dict(directory):
     tags_filename, tags_doc = load_documents(findFiles(directory, ['tags']), 'en-text')
     text_filename, text_doc = load_documents(findFiles(directory, ['-text']), 'en-text')
@@ -456,6 +471,7 @@ def tfidf_dict(directory):
         tfidf_dict_text[text_filename[t]] =  corpus_tfidf_text[t]
 
     return [tfidf_dict_tags, tfidf_dict_text]
+
 
 def inference(query, model):
     model.sg = 1  # https://github.com/RaRe-Technologies/gensim/blob/develop/gensim/models/doc2vec.py#L721
