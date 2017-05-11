@@ -6,7 +6,6 @@ import logging  # Log the data given
 import numpy as np
 import ConfigParser
 import json
-import ast  # remove
 import langdetect
 import re
 import codecs
@@ -440,7 +439,7 @@ def infer_query_LSA(inferFlag, model_loc, op_dir):
 
 def tfidf_dict(directory):
     tags_filename, tags_doc = load_documents(findFiles(directory, ['tags']), 'en-text')
-    text_filename, text_doc = load_documents(findFiles(directory, ['en-text']), 'en-text')
+    text_filename, text_doc = load_documents(findFiles(directory, ['-text']), 'en-text')
     dictionary_tags = corpora.Dictionary(tags_doc)
     corpus_tags = [dictionary_tags.doc2bow(text) for text in tags_doc]
     dictionary_text = corpora.Dictionary(text_doc)
