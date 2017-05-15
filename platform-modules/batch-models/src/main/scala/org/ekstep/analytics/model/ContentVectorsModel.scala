@@ -82,11 +82,11 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
         JobLogger.log("Running content enrichment", None, INFO);
         val enrichedContentRDD = _doContentEnrichment(data.map { x => x.content }, scriptLoc, pythonExec, env).cache();
-        printRDD(enrichedContentRDD);
+        action(enrichedContentRDD);
 
         JobLogger.log("Content enrichment done. Running content to corpus", None, INFO);
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
-        printRDD(corpusRDD);
+        action(corpusRDD);
 
         JobLogger.log("Corpus creation completed. Running content to vec model training", None, INFO);
         _doTrainContent2VecModel(scriptLoc, pythonExec, env);
@@ -100,10 +100,14 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         };
     }
 
-    private def printRDD(rdd: RDD[String]) = {
+    /*private def printRDD(rdd: RDD[String]) = {
         rdd.collect().foreach { x =>
             JobLogger.log("Debug execution", Option(JSONUtils.deserialize[Map[String, AnyRef]](x)), DEBUG);
         }
+    }*/
+    
+    private def action(rdd: RDD[String]) = {
+        rdd.count
     }
 
     override def postProcess(data: RDD[ContentEnrichedJson], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
