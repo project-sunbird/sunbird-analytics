@@ -47,7 +47,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
         val contentList = ContentAdapter.getPublishedContent();
 
-        val contentRDD = if("true".equals(config.getOrElse("content2vec.all_content_flag","true"))) sc.parallelize(contentList, 10).cache(); else sc.parallelize(Array(contentList.last), 10).cache();
+        val contentRDD = if ("true".equals(config.getOrElse("content2vec.all_content_flag", "true"))) sc.parallelize(contentList, 10).cache(); else sc.parallelize(Array(contentList.last), 10).cache();
         JobLogger.log("Content count", Option(Map("contentCount" -> contentList.size)), INFO);
         val downloadPath = config.getOrElse("content2vec.download_path", "/tmp/").asInstanceOf[String];
         val downloadFilePrefix = config.getOrElse("content2vec.download_file_prefix", "temp_").asInstanceOf[String];
@@ -75,6 +75,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val scriptLoc = jobConfig.getOrElse("content2vec_scripts_path", "").asInstanceOf[String];
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
+        val debugLogsFlag = jobConfig.getOrElse("debug_logs", false).asInstanceOf[Boolean]
 
         JobLogger.log("Downloading concepts", None, INFO);
         val contentServiceUrl = AppConf.getConfig("lp.url");
@@ -82,11 +83,13 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
         JobLogger.log("Running content enrichment", None, INFO);
         val enrichedContentRDD = _doContentEnrichment(data.map { x => x.content }, scriptLoc, pythonExec, env).cache();
-        action(enrichedContentRDD);
+        invokeAction(enrichedContentRDD);
+        if (debugLogsFlag) printRDD(enrichedContentRDD)
 
         JobLogger.log("Content enrichment done. Running content to corpus", None, INFO);
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
-        action(corpusRDD);
+        invokeAction(corpusRDD);
+        if (debugLogsFlag) printRDD(corpusRDD)
 
         JobLogger.log("Corpus creation completed. Running content to vec model training", None, INFO);
         _doTrainContent2VecModel(scriptLoc, pythonExec, env);
@@ -100,13 +103,13 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         };
     }
 
-    /*private def printRDD(rdd: RDD[String]) = {
+    private def printRDD(rdd: RDD[String]) = {
         rdd.collect().foreach { x =>
             JobLogger.log("Debug execution", Option(JSONUtils.deserialize[Map[String, AnyRef]](x)), DEBUG);
         }
-    }*/
-    
-    private def action(rdd: RDD[String]) = {
+    }
+
+    private def invokeAction(rdd: RDD[String]) = {
         rdd.count
     }
 
@@ -172,15 +175,15 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId("AN_ENRICHED_CONTENT", null, null, dateRange, data.contentId);
         MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(data.contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data.jsonData)));
     }
-    
+
     private def downloadECARFile(url: URL, localPath: String, filePrefix: String = "") {
-    	val fileName = filePrefix + url.getFile.substring(url.getFile.lastIndexOf(File.separator)+1);
-	    val file = new File(localPath+fileName);
-    	try {
-	        FileUtils.copyURLToFile(url, file)
-    	} catch {
-    	  case t: Exception => 
-    	 	JobLogger.log("ECAR file download failed.", Option(Map("url" -> url, "localPath"-> file.getAbsolutePath, "message"-> t.getMessage)), ERROR)
-    	}
+        val fileName = filePrefix + url.getFile.substring(url.getFile.lastIndexOf(File.separator) + 1);
+        val file = new File(localPath + fileName);
+        try {
+            FileUtils.copyURLToFile(url, file)
+        } catch {
+            case t: Exception =>
+                JobLogger.log("ECAR file download failed.", Option(Map("url" -> url, "localPath" -> file.getAbsolutePath, "message" -> t.getMessage)), ERROR)
+        }
     }
 }
