@@ -61,15 +61,15 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val partner_user = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_SNAPSHOT_PARTNER_USER_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.createdOn").asString()) }
         val partner_active_users = partner_user.map { x =>
             val ts = CommonUtil.getTimestamp(x._3, CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-            val partners = x._2.map { x => x.toString() }
+            val partners = x._2.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }
             (for (i <- partners) yield (i, x._1, ts))
         }.flatMap(f => f)
         val partnerActiveUserCountRDD = sc.parallelize(partner_active_users).filter(f => f._3 >= days_limit_timestamp).groupBy(f => f._1).map(x => (x._1, x._2.size.toLong))
-        val partnerUserCountRDD = sc.parallelize(partner_user.map(x => (x._1, x._2))).map(f => (f._1, f._2.map { x => x.toString() })).map(f => for (i <- f._2) yield (f._1, i)).flatMap(f => f).groupBy(f => f._2).map(x => (x._1, x._2.map(x => x._2).toList.distinct.size.toLong))
+        val partnerUserCountRDD = sc.parallelize(partner_user.map(x => (x._1, x._2))).map(f => (f._1, f._2.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) })).map(f => for (i <- f._2) yield (f._1, i)).flatMap(f => f).groupBy(f => f._2).map(x => (x._1, x._2.map(x => x._2).toList.distinct.size.toLong))
 
         val contentCountPerPartnerByStatus = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_COUNT_PER_PARTNER_BY_STATUS).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (x.get("identifier").asList().toList.map { x => x.toString() }, x.get("status").asString(), x.get("count").asLong()) }
+            .map { x => (x.get("identifier").asList().toList.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }, x.get("status").asString(), x.get("count").asLong()) }
             .map(f => for (i <- f._1) yield (i, f._2, f._3)).flatMap(f => f).groupBy(f => f._1)
 
         val rdd3 = partnerUserCountRDD.leftOuterJoin(partnerActiveUserCountRDD).map { f =>
@@ -83,7 +83,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         // For partner_id and author_id combinations
         val contentCountPerPartnerPerAuthorByStatus = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_COUNT_PER_AUTHOR_PER_PARTNER_BY_STATUS).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (x.get("author").asString(), x.get("partner").asList().toList.map { x => x.toString() }, x.get("status").asString(), x.get("count").asLong()) }
+            .map { x => (x.get("author").asString(), x.get("partner").asList().toList.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }, x.get("status").asString(), x.get("count").asLong()) }
             .map(f => for (i <- f._2) yield ((f._1, i), f._3, f._4)).flatMap(f => f).groupBy(f => f._1)
 
         val rdd4 = sc.makeRDD(contentCountPerPartnerPerAuthorByStatus.map { f =>
