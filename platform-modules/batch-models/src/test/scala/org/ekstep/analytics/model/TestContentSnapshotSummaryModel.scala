@@ -160,4 +160,26 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks2.get("active_user_count").get should be(1)
         
     }
+    
+    it should "check content snapshot summary event for empty partner_id" in {
+        
+        // Running all VV jobs
+        ContentLanguageRelationModel.main("{}")(Option(sc));
+        ConceptLanguageRelationModel.main("{}")(Option(sc));
+        ContentAssetRelationModel.main("{}")(Option(sc));
+        AuthorRelationsModel.main("{}")(Option(sc));
+        
+        val createdOn = new DateTime().toString()
+        val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author_1', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content_1', contentType:'story', createdFor:[''], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn, cnt.createdFor"
+        val res = GraphQueryDispatcher.dispatch(query1)
+        
+        val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
+        val events = rdd.collect
+
+        events.length should be(10)
+        
+        val out = rdd.filter { x => StringUtils.isBlank(x.dimensions.partner_id.get) }
+        out.count() should be(0)
+        
+    }
 }
