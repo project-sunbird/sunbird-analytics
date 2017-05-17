@@ -8,7 +8,6 @@ import org.ekstep.analytics.job.consolidated._
 import org.ekstep.analytics.views.PrecomputedViewsJob
 import org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel
 import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
-import org.ekstep.analytics.updater.CreationMetricsUpdater
 import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
 import org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel
 import org.ekstep.analytics.model.EOCRecommendationFunnelModel
@@ -108,7 +107,7 @@ object JobFactory {
             case "consumption-metrics" =>
                 ConsumptionMetricsUpdater
             case "creation-metrics" =>
-                CreationMetricsModelUpdater
+                CreationMetricsUpdater
             case "eocfs" =>
                 EOCRecommendationFunnelSummarizer
             case "re-enrichment-model" =>

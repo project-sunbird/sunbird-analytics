@@ -20,13 +20,13 @@ import scala.concurrent.duration._
 import com.pygmalios.reactiveinflux._
 import com.datastax.spark.connector._
 case class CreationMetrics(template_id: Option[String] = None, concept_id: Option[String] = None, asset_id: Option[String] = None, contents: Option[Int] = None, items: Option[Int] = None) extends Input with AlgoInput with AlgoOutput with Output
-object CreationMetricsUpdater extends IBatchModelTemplate[CreationMetrics, CreationMetrics, CreationMetrics, CreationMetrics] with Serializable {
+object UpdateCreationMetricsDB extends IBatchModelTemplate[CreationMetrics, CreationMetrics, CreationMetrics, CreationMetrics] with Serializable {
     
     val TEMPLATE = "template_metrics";
     val CONCEPT = "concept_metrics";
     val ASSET = "asset_metrics"
-    implicit val className = "org.ekstep.analytics.updater.CreationMetricsUpdater"
-    override def name: String = "CreationMetricsUpdater"
+    implicit val className = "org.ekstep.analytics.updater.UpdateCreationMetricsDB"
+    override def name: String = "UpdateCreationMetricsDB"
 
     override def preProcess(data: RDD[CreationMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CreationMetrics] = {
         data
