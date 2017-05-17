@@ -75,7 +75,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val scriptLoc = jobConfig.getOrElse("content2vec_scripts_path", "").asInstanceOf[String];
         val pythonExec = jobConfig.getOrElse("python.home", "").asInstanceOf[String] + "python";
         val env = Map("PATH" -> (sys.env.getOrElse("PATH", "/usr/bin") + ":/usr/local/bin"));
-        val debugLogsFlag = jobConfig.getOrElse("debug_logs", false).asInstanceOf[Boolean]
+        val enableDebug = jobConfig.getOrElse("debug_logs", false).asInstanceOf[Boolean]
 
         JobLogger.log("Downloading concepts", None, INFO);
         val contentServiceUrl = AppConf.getConfig("lp.url");
@@ -83,13 +83,11 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
 
         JobLogger.log("Running content enrichment", None, INFO);
         val enrichedContentRDD = _doContentEnrichment(data.map { x => x.content }, scriptLoc, pythonExec, env).cache();
-        invokeAction(enrichedContentRDD);
-        if (debugLogsFlag) printRDD(enrichedContentRDD)
+        invokeAction(enrichedContentRDD, enableDebug);
 
         JobLogger.log("Content enrichment done. Running content to corpus", None, INFO);
         val corpusRDD = _doContentToCorpus(enrichedContentRDD, scriptLoc, pythonExec, env);
-        invokeAction(corpusRDD);
-        if (debugLogsFlag) printRDD(corpusRDD)
+        invokeAction(corpusRDD, enableDebug);
 
         JobLogger.log("Corpus creation completed. Running content to vec model training", None, INFO);
         _doTrainContent2VecModel(scriptLoc, pythonExec, env);
@@ -109,8 +107,8 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         }
     }
 
-    private def invokeAction(rdd: RDD[String]) = {
-        rdd.count
+    private def invokeAction(rdd: RDD[String], enableDebug: Boolean = false) = {
+        if (enableDebug) printRDD(rdd) else rdd.count
     }
 
     override def postProcess(data: RDD[ContentEnrichedJson], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
