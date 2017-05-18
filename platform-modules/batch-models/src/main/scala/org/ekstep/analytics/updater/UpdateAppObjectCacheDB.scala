@@ -20,8 +20,8 @@ import org.ekstep.analytics.creation.model._
 /**
  * Case Classes for the data product
  */
-case class AppObjectCache(`type`: String, id: String, subtype: Option[String], parentid: Option[String], code: Option[String], name: Option[String], state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
-case class UserProfile(user_id: String, name: Option[String], email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class AppObjectCache(`type`: String, id: String, subtype: String, parentid: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class UserProfile(user_id: String, name: String, email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
 
 /**
  * @dataproduct

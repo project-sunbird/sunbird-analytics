@@ -13,6 +13,7 @@ import org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel
 import org.ekstep.analytics.model.EOCRecommendationFunnelModel
 import org.ekstep.analytics.vidyavaani.job.CreationRecommendationEnrichmentModel
 import org.ekstep.analytics.vidyavaani.job.CreationRecommendationModel
+import org.ekstep.analytics.model.ContentEditorSessionSummaryModel
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -126,6 +127,10 @@ object JobFactory {
                 ContentSnapshotUpdater
             case "concept-snapshot-updater" =>
                 ConceptSnapshotUpdater
+            case "ce-ss" =>
+                ContentEditorSessionSummarizer
+            case "content-creation-metrics" =>
+                ContentCreationMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

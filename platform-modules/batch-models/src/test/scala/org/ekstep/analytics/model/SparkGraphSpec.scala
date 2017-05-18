@@ -10,8 +10,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import org.apache.commons.lang3.StringUtils
 import com.datastax.spark.connector._
-
-case class ContentData(content_id: String, body: Array[Byte], last_updated_on: Long, oldbody: Array[Byte]);
+import org.ekstep.analytics.util.DBUtil
 
 class SparkGraphSpec(override val file: String = "src/test/resources/sample_telemetry.log") extends SparkSpec(file) {
 
@@ -32,7 +31,7 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 			sys.addShutdownHook {
 				graphDb.shutdown();
 			}
-			importContentData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, testDataPath + "content_data.csv")
+			DBUtil.importContentData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, testDataPath + "content_data.csv")
 			prepareTestGraph(graphDb);
 		}
 	}
@@ -72,14 +71,4 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 			tx.close();
 		}
 	}
-	
-	private def importContentData(keyspace: String, table: String, file: String) {
-         val rdd = sc.textFile(file)
-         rdd.map { x => 
-             val values = x.split(",")
-             val body = values(1).getBytes
-             ContentData(values(0), body, System.currentTimeMillis(), body)
-         }.saveToCassandra(keyspace, table)
-    }
-	
 }

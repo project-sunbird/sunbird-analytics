@@ -19,6 +19,7 @@ object Constants {
     val DEVICE_RECOS = "device_recos";
     val CONTENT_KEY_SPACE_NAME = "content_db";
     val PLATFORM_KEY_SPACE_NAME = "platform_db";
+    val CREATION_METRICS_KEY_SPACE_NAME = "creation_metrics_db"
     val CONTENT_STORE_KEY_SPACE_NAME = "content_store";
     val CONTENT_DATA_TABLE = "content_data";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
@@ -38,12 +39,12 @@ object Constants {
     val CONTENT_SNAPSHOT_SUMMARY = "content_snapshot_summary";
     val CONCEPT_SNAPSHOT_SUMMARY = "concept_snapshot_summary";
     val ASSET_SNAPSHOT_SUMMARY = "asset_snapshot_summary";
+    val CONTENT_CREATION_TABLE = "content_creation_metrics_fact"
     
     /* Creation tables and keyspaces */
     val CREATION_KEY_SPACE_NAME = "creation_db";
     val APP_OBJECT_CACHE_TABLE = "app_object_cache";
     val USER_PROFILE_TABLE = "user_profile";
-    
     
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");

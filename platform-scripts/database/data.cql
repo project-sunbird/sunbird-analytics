@@ -396,6 +396,21 @@ CREATE TABLE IF NOT EXISTS creation_db.user_profile (
 	PRIMARY KEY (user_id)
 );
 
+CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
+CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
+	d_content_id text,
+	tags int,
+	images int,
+	audios int,
+	videos int,
+	plugin_metrics map<text, int>,
+	live_times int,
+	PRIMARY KEY (d_content_id)
+);
 
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);

@@ -28,9 +28,9 @@ class TestUpdateAppObjectCacheDB extends SparkSpec(null) {
         val object1 = sc.cassandraTable[AppObjectCache](Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE).where("type = ? and id = ?", "User", "387").first();
         object1.`type` should be ("User");
         object1.id should be ("387");
-        object1.subtype should be (Option(""));
+        object1.subtype should be ("");
         object1.code should be (Option(""));
-        object1.name.get should be ("Test User");
+        object1.name should be ("Test User");
         object1.parentid should be (Option(""));
         object1.state should be ("Create");
         object1.prevstate should be ("");
@@ -38,9 +38,9 @@ class TestUpdateAppObjectCacheDB extends SparkSpec(null) {
         val object2 = sc.cassandraTable[AppObjectCache](Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE).where("type = ? and id = ?", "Partner", "org.ekstep.partner.31").first();
         object2.`type` should be ("Partner");
         object2.id should be ("org.ekstep.partner.31");
-        object2.subtype should be (Option(""));
+        object2.subtype should be ("");
         object2.code should be (Option(""));
-        object2.name.get should be ("Test Partner");
+        object2.name should be ("Test Partner");
         object2.parentid should be (Option(""));
         object2.state should be ("Create");
         object2.prevstate should be ("");
@@ -49,7 +49,7 @@ class TestUpdateAppObjectCacheDB extends SparkSpec(null) {
         profile.access should be ("""[{"id":"2","value":"Registered"},{"id":"8","value":"Super Users"},{"id":"12","value":"Words-creator"},{"id":"13","value":"Quiz-items-creator"},{"id":"17","value":"Content-creator"},{"id":"19","value":"Concepts-creator"},{"id":"21","value":"Ekstep Admins"},{"id":"22","value":"Words-editor"},{"id":"23","value":"Partner-admin"}]""");
         profile.partners should be ("""[{"id":"org.ekstep.partner.pratham","value":"Pratham"},{"id":"org.ekstep.girlchild","value":"save girl child"}]""");
         profile.profile should be ("[]");
-        profile.name.get should be ("Test User");
+        profile.name should be ("Test User");
         profile.email.get should be ("test_user@ekstep.com");
         profile.user_id should be ("387");
     }
