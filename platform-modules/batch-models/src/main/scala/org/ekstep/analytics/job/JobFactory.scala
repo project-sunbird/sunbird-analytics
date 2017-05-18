@@ -131,6 +131,8 @@ object JobFactory {
                 ContentEditorSessionSummarizer
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
+            case "textbook-snapshot" =>
+            	TextbookSnapshotUpdater;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
