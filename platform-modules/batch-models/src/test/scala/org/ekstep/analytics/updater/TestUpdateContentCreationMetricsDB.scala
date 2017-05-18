@@ -13,6 +13,8 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 
     "UpdateContentCreationMetricsDB" should "take the snapshot data and update to DB" in {
 
+        DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE)
+        
         UpdateContentCreationMetricsDB.execute(sc.makeRDD(Seq(Empty())), None)
         val metrics = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).collect
         metrics.length should be(3)

@@ -126,6 +126,8 @@ object JobFactory {
                 ContentSnapshotUpdater
             case "concept-snapshot-updater" =>
                 ConceptSnapshotUpdater
+            case "content-creation-metrics" =>
+                ContentCreationMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

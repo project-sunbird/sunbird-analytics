@@ -20,6 +20,9 @@ case class ContentCreationMetrics(d_content_id: String, tags: Int, images: Int, 
 
 object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, ContentPluginAsset, ContentCreationMetrics, Empty] with Serializable {
 
+    override def name(): String = "UpdateContentCreationMetricsDB";
+    implicit val className = "org.ekstep.analytics.updater.UpdateContentCreationMetricsDB";
+
     private def _getGraphMetrics(query: String, key1: String, key2: String)(implicit sc: SparkContext): Map[String, Int] = {
         GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get(key1).asString(), x.get(key2).asInt()) }.toMap
     }
