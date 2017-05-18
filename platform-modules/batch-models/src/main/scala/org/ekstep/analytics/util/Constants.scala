@@ -37,9 +37,16 @@ object Constants {
     val REQUEST_RECOS = "request_recos";
     val CONTENT_SNAPSHOT_SUMMARY = "content_snapshot_summary";
     val CONCEPT_SNAPSHOT_SUMMARY = "concept_snapshot_summary";
+    val ASSET_SNAPSHOT_SUMMARY = "asset_snapshot_summary";
+    
+    /* Creation tables and keyspaces */
+    val CREATION_KEY_SPACE_NAME = "creation_db";
+    val APP_OBJECT_CACHE_TABLE = "app_object_cache";
+    val USER_PROFILE_TABLE = "user_profile";
+    
+    
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
-    val ASSET_SNAPSHOT_SUMMARY = "asset_snapshot_summary";
 
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";

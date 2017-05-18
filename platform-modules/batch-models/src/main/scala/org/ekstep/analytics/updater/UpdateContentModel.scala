@@ -75,7 +75,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             val r = RestUtil.patch[Response](url, JSONUtils.serialize(request));
             JobLogger.log("org.ekstep.analytics.updater.UpdateContentModel", Option(Map("contentId" -> x.contentId, "metrics" -> metrics, "responseCode" -> r.responseCode, "errorMsg" ->  r.params.errmsg)), INFO)("org.ekstep.analytics.updater.UpdateContentModel");
             PopularityUpdaterOutput(x.contentId, metrics, r.responseCode, r.params.errmsg)
-        };
+        }.cache();
     }
 
     override def postProcess(data: RDD[PopularityUpdaterOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutput] = {
