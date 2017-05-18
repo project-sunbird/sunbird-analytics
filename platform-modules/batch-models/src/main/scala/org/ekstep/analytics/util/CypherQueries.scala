@@ -43,4 +43,11 @@ object CypherQueries {
     val ASSET_SNAP_USED_ACTIVITIES = "match (cnt: domain {IL_FUNC_OBJECT_TYPE: 'Content'}) -[r: uses]-> (act: domain {IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Plugin'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return count(distinct act) as count"
     val ASSET_SNAP_TOTAL_TEMPLATES = "match (temp: domain {IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Template'}) return count(temp) as count"
     val ASSET_SNAP_USED_TEMPLATES = "MATCH (temp: domain{IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Template'}) - [r: associatedTo] - (cnc: domain{IL_FUNC_OBJECT_TYPE:'Concept'}) WHERE cnc.contentCount > 0 RETURN count(distinct temp) as count"
+    
+    /**
+     * Content Creation Metrics Cypher Query
+     * 
+     **/
+    val PER_CONTENT_TAGS = "match (e: domain{IL_SYS_NODE_TYPE:'TAG'})-[r: hasMember]-> (cnt: domain {IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return cnt.IL_UNIQUE_ID as contentId, count(e) as tagCount"
+    val CONTENT_LIVE_COUNT = "match (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return cnt.IL_UNIQUE_ID as contentId, cnt.pkgVersion as liveCount"
 }

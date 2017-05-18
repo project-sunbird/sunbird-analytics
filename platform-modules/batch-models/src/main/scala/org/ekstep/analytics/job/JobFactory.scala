@@ -129,6 +129,8 @@ object JobFactory {
                 ConceptSnapshotUpdater
             case "ce-ss" =>
                 ContentEditorSessionSummarizer
+            case "content-creation-metrics" =>
+                ContentCreationMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

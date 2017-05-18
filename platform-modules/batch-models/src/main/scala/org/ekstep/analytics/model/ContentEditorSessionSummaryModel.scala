@@ -133,7 +133,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
                 "menu_events_count" -> session.menu_events_count );
             MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.dateRange.to, "1.0", mid, sessionMap.uid, Option(sessionMap.contentId), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentEditorSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", sessionMap.dateRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, Option(sessionMap.client)),
+                Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, None, Option(sessionMap.client)),
                 MEEdata(measures));
         }
     }
