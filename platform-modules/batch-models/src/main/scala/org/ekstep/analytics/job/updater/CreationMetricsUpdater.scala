@@ -6,16 +6,16 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.updater.UpdateContentModel
 import org.ekstep.analytics.framework.IJob
-import org.ekstep.analytics.updater.CreationMetricsUpdater
+import org.ekstep.analytics.updater.UpdateCreationMetricsDB
 
-object CreationMetricsModelUpdater extends optional.Application with IJob {
+object CreationMetricsUpdater extends optional.Application with IJob {
 
-     implicit val className = "org.ekstep.analytics.job.updater.CreationMetricsModelUpdater"
+     implicit val className = "org.ekstep.analytics.job.updater.CreationMetricsUpdater"
   
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run("batch", config, CreationMetricsUpdater);
+        JobDriver.run("batch", config, UpdateCreationMetricsDB);
         JobLogger.log("Job Completed.")
     }
 }

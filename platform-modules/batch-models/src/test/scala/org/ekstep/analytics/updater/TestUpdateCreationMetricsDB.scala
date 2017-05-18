@@ -10,11 +10,11 @@ import org.ekstep.analytics.model.SparkSpec
 import com.pygmalios.reactiveinflux._
 import org.joda.time.DateTimeUtils
 
-class TestUpdateCreationMetrics extends SparkSpec(null) {
+class TestUpdateCreationMetricsDB extends SparkSpec(null) {
     DateTimeUtils.setCurrentMillisFixed(1487788200000L);
-    "UpdateCreationMetrics" should "push data into influxDB" in {
+    "UpdateCreationMetricsDB" should "push data into influxDB" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/concepts.json");
-        CreationMetricsUpdater.execute(rdd, None);
+        UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM concept_metrics")
@@ -24,7 +24,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
 
     it should "check count of coulmns in influxdb table" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
-        CreationMetricsUpdater.execute(rdd, None);
+        UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
@@ -34,7 +34,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
 
     it should "validate table name" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
-        CreationMetricsUpdater.execute(rdd, None);
+        UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
@@ -44,7 +44,7 @@ class TestUpdateCreationMetrics extends SparkSpec(null) {
 
     it should "generate first coulmn as time " in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
-        CreationMetricsUpdater.execute(rdd, None);
+        UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
