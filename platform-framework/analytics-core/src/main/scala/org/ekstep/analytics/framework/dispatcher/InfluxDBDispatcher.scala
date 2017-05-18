@@ -9,6 +9,10 @@ import org.ekstep.analytics.framework.conf.AppConf
 import com.pygmalios.reactiveinflux.jawa.Conversions
 import collection.JavaConverters._
 
+/**
+ * @author mahesh
+ */
+
 object InfluxDBDispatcher {
 
 	case class InfluxRecord(tags: Map[String, String], fields: Map[String, AnyRef], time: DateTime = DateTime.now());

@@ -50,4 +50,11 @@ object CypherQueries {
      **/
     val PER_CONTENT_TAGS = "match (e: domain{IL_SYS_NODE_TYPE:'TAG'})-[r: hasMember]-> (cnt: domain {IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return cnt.IL_UNIQUE_ID as contentId, count(e) as tagCount"
     val CONTENT_LIVE_COUNT = "match (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return cnt.IL_UNIQUE_ID as contentId, cnt.pkgVersion as liveCount"
+    
+    /**
+     * Textbook Snapshot Summary Queries
+     */
+    
+    val TEXTBOOK_SNAPSHOT_UNIT_COUNT = "MATCH (txtbk:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Textbook'}) WHERE txtbk.status<>'Retired' OPTIONAL MATCH p=(txtbk)-[r:hasSequenceMember*..5]->(txtbkUnit:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'TextBookUnit'}) WITH txtbk, CASE WHEN p is null THEN 0 ELSE COUNT(txtbkUnit) END AS textbookunit_count RETURN txtbk.IL_UNIQUE_ID AS identifier, txtbk.status AS status, txtbk.createdBy AS author_id, txtbk.board AS board, txtbk.medium AS medium, textbookunit_count";
+    val TEXTBOOK_SNAPSHOT_CONTENT_COUNT = "MATCH (txtbk:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Textbook'}) WHERE txtbk.status<>'Retired' OPTIONAL MATCH p=(txtbk)-[r:hasSequenceMember*..5]->(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE cnt.contentType<>'TextBookUnit' WITH txtbk, CASE WHEN p is null THEN 0 ELSE COUNT(cnt) END AS content_count, CASE WHEN p is null THEN [] ELSE COLLECT(DISTINCT cnt.contentType) END AS content_types RETURN txtbk.IL_UNIQUE_ID AS identifier, content_count, content_types";
 }
