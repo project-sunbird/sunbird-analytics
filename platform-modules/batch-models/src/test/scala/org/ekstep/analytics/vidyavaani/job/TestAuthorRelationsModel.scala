@@ -57,7 +57,7 @@ class TestAuthorRelationsModel extends SparkGraphSpec(null) {
         author2.get(0).get("usr").asMap().get("conceptsCount") should be(0)
 
         val contentAuthorRelAfter = GraphQueryDispatcher.dispatch(getContentAuthorRelQuery).list;
-        contentAuthorRelAfter.size should be(6)
+        contentAuthorRelAfter.size should be(4)
         
         val conceptAuthorRelAfter = GraphQueryDispatcher.dispatch(getConceptAuthorRelQuery).list;
         conceptAuthorRelAfter.size should be(2)
