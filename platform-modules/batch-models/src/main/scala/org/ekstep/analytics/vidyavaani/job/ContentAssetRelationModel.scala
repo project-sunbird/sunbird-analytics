@@ -24,8 +24,7 @@ import org.ekstep.analytics.job.IGraphExecutionModel
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.Job_Config
 import org.ekstep.analytics.util.Constants
-
-case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
+import org.ekstep.analytics.util.ContentData
 
 object ContentAssetRelationModel extends IGraphExecutionModel with Serializable {
 
