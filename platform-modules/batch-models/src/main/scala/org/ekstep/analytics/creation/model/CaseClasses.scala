@@ -14,7 +14,7 @@ class CaseClasses extends Serializable {}
  * Models to support Creation event model. 
  */
 @scala.beans.BeanInfo
-class CreationEks(val defaultPlugins: List[String], val loadtimes: Map[String, Long], val client: Map[String, String], val path: String, val method: String, val request: String, val response: String, val responseTime: Long, val status: Int, val uip: String, val `type`: String, val pluginid: String, val pluginver: String, val objectid: String, val stage: String, val containerid: String, val containerplugin: String, val target: String, val action: String, val err: String, val data: Map[String, AnyRef], val severity: String, val duration: Long, val uaspec: Map[String, String], val env: String, val id: String, val name: String, val url: String, val context: String, val targetid: String, val subtype: String) extends Serializable {}
+class CreationEks(val defaultPlugins: List[String], val loadtimes: Map[String, Double], val client: Map[String, String], val path: String, val method: String, val request: String, val response: String, val responseTime: Long, val status: String, val uip: String, val `type`: String, val pluginid: String, val pluginver: String, val objectid: String, val stage: String, val containerid: String, val containerplugin: String, val target: String, val action: String, val err: String, val data: Map[String, AnyRef], val severity: String, val duration: Long, val uaspec: Map[String, String], val env: String, val id: String, val name: String, val url: String, val context: String, val targetid: String, val subtype: String) extends Serializable {}
 @scala.beans.BeanInfo
 class CreationPData(val id: String, val pid: String, val ver: String) extends Serializable;
 @scala.beans.BeanInfo

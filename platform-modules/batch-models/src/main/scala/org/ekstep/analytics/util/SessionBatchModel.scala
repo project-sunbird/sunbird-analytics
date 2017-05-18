@@ -8,6 +8,7 @@ import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.creation.model.CreationEvent
 
 /**
  * @author Santhosh
@@ -144,6 +145,43 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                 }
                 sessions += tmpArr;
                 sessions;
+            }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
+    }
+    
+    def getCESessions(data: RDD[CreationEvent]): RDD[(String, Buffer[CreationEvent])] = {
+        data.filter { x => x.context.get.sid != null }
+        .map { x => (x.context.get.sid, Buffer(x)) }
+        .partitionBy(new HashPartitioner(JobContext.parallelization))
+        .reduceByKey((a, b) => a ++ b).mapValues { events =>
+            events.sortBy { x => x.ets }.groupBy { e => (e.context.get.content_id) }.mapValues { x =>
+                    var sessions = Buffer[Buffer[CreationEvent]]();
+                    var tmpArr = Buffer[CreationEvent]();
+                    var lastContentId: String = x(0).context.get.content_id;
+                    x.foreach { y =>
+                        y.eid match {
+                            case "CE_START" =>
+                                if (tmpArr.length > 0) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[CreationEvent]();
+                                }
+                                tmpArr += y;
+                                lastContentId = y.context.get.content_id;
+                            case "CE_END" =>
+                                tmpArr += y;
+                                sessions += tmpArr;
+                                tmpArr = Buffer[CreationEvent]();
+                            case _ =>
+                                if (!lastContentId.equals(y.context.get.content_id)) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[CreationEvent]();
+                                }
+                                tmpArr += y;
+                                lastContentId = y.context.get.content_id;
+                        }
+                    }
+                    sessions += tmpArr;
+                    sessions;
+                }.map(f => f._2).reduce((a, b) => a ++ b);
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 }
