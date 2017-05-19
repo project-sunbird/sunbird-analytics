@@ -135,6 +135,8 @@ object JobFactory {
             	PortalSessionsummarizer;
             case "ce-ss" =>
             	ContentEditorSessionSummarizer;
+            case "obj-cache-updater" =>
+            	AppObjectCacheUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
