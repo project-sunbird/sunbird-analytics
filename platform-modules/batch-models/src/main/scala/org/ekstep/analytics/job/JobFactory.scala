@@ -129,7 +129,7 @@ object JobFactory {
                 ContentEditorSessionSummarizer
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
-            case "textbook-snapshot" =>
+            case "textbook-snapshot-updater" =>
             	TextbookSnapshotUpdater;
             case "app-ss" =>
             	PortalSessionsummarizer;
