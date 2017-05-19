@@ -5,18 +5,9 @@
 
 
 import os
-import argparse  # Accept commandline arguments
 import logging  # Log the data given
 import sys
-import requests
 import ConfigParser
-import json
-import zipfile
-# new additions
-import atexit
-import validators
-import codecs
-import traceback
 import types
 
 # Pass as a commandline argument later on
@@ -35,21 +26,15 @@ from handle_media import *
 from parse_json import *
 from concept_filter import *
 
-# getiing paths from config file
+# getting paths from config file
 config = ConfigParser.SafeConfigParser()
 config.read(config_file)
 
 op_dir = config.get('FilePath', 'temp_path')
 log_dir = config.get('FilePath', 'log_path')
-concepts_dir = config.get('FilePath', 'concepts_path')
+concepts_dir = config.get('FilePath', 'concepts_path')  # remove
 download_file_prefix = config.get('FilePath', 'download_file_prefix')
 
-# get a relative path
-#op_dir = os.path.join(root,op_dir)
-#log_dir = os.path.join(root,log_dir)
-
-# print 'op_dir' + op_dir
-# print 'log_dir' + log_dir
 
 # must've-fields as part of the content meta-data. empty values are fine
 mustHavekeysFromContentModel = ['identifier',
@@ -98,8 +83,9 @@ logfile_name = os.path.join(log_dir, 'enrich_content.log')
 logging.basicConfig(filename=logfile_name, level=logging.INFO)
 logging.info('### Enriching content ###')
 
+
 def enrichContent(contentJson):
-    # create the default payload
+    #  create the default payload
     contentPayload = {}  # dictionary object
     contentPayload['identifier'] = ''  # string
     contentPayload['concepts'] = []  # array
@@ -235,31 +221,31 @@ def enrichContent(contentJson):
         logging.warn(
             'Unable to parse data and items folder. Skipping this step')
 
-    # Get Concepts
-    # print 'processing 6'
-    try:
-        # Load concept list
-        with codecs.open(os.path.join(concepts_dir, 'conceptList.txt'), 'r', encoding='utf-8') as f:
-            conceptList = f.readlines()
-        conceptList = conceptList[0].split(',')
-        # Filter to get Concepts
-
-        enrichedConcepts = filter_assessment_data(path, conceptList)
-
-        if not contentPayload['concepts']:
-            # do a set addition
-            contentPayload['concepts'] = enrichedConcepts
-        else:
-            originalConcept = list(contentPayload['concepts'])
-            contentPayload['concepts'] = list(
-                set(originalConcept + enrichedConcepts))
-    except:
-        traceback.print_exc()
-        # print 'processing 6.2'
-        logging.warn(
-            'Unable to read and/or enrich concepts from domain model. Skipping this step')
+    # # Get Concepts
+    # # print 'processing 6'
+    # try:
+    #     # Load concept list
+    #     with codecs.open(os.path.join(concepts_dir, 'conceptList.txt'), 'r', encoding='utf-8') as f:
+    #         conceptList = f.readlines()
+    #     conceptList = conceptList[0].split(',')
+    #     # Filter to get Concepts
+    #
+    #     enrichedConcepts = filter_assessment_data(path, conceptList)
+    #
+    #     if not contentPayload['concepts']:
+    #         # do a set addition
+    #         contentPayload['concepts'] = enrichedConcepts
+    #     else:
+    #         originalConcept = list(contentPayload['concepts'])
+    #         contentPayload['concepts'] = list(
+    #             set(originalConcept + enrichedConcepts))
+    # except:
+    #     traceback.print_exc()
+    #     # print 'processing 6.2'
+    #     logging.warn(
+    #         'Unable to read and/or enrich concepts from domain model. Skipping this step')
     #read ecml file
-    # logging.info("before ecml contentPayload"+str(contentPayload['text']))
+
     try:
         ecml_file = os.path.join(os.path.join(op_dir, identifier),'index.ecml')
         ecml_text = get_text(ecml_file)
