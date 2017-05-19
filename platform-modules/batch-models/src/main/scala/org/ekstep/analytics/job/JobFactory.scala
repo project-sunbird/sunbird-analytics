@@ -133,8 +133,6 @@ object JobFactory {
             	TextbookSnapshotUpdater;
             case "app-ss" =>
             	PortalSessionsummarizer;
-            case "ce-ss" =>
-            	ContentEditorSessionSummarizer;
             case "obj-cache-updater" =>
             	AppObjectCacheUpdater
             case _ =>

@@ -88,6 +88,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val events = x.filteredEvents
             val startEvent = events.head
             val endEvents = events.last
+            println("Start Event Eid : ", startEvent.eid)
             val interactEvents = events.filter { x => x.eid.equals("CE_INTERACT") }
             val pluginEvents = events.filter { x => x.eid.equals("CE_PLUGIN_LIFECYCLE") }
             val apiEvents = events.filter { x => x.eid.equals("CE_API_CALL") }
