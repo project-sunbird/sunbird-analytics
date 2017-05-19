@@ -1,5 +1,5 @@
 /**
- * @author Santhosh
+ * @author Santhosh Vasabhaktula
  */
 package org.ekstep.analytics.updater
 
@@ -20,7 +20,7 @@ import org.ekstep.analytics.creation.model._
 /**
  * Case Classes for the data product
  */
-case class AppObjectCache(`type`: String, id: String, subtype: String, parentid: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class AppObjectCache(`type`: String, id: String, subtype: String, parentid: Option[String], parenttype: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
 case class UserProfile(user_id: String, name: String, email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
 
 /**
@@ -46,7 +46,7 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
     override def algorithm(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AppObjectCache] = {
 
         val objectEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("BE_OBJECT_LIFECYCLE"))).map { event =>
-            AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
+            AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
         }
         objectEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE);
 

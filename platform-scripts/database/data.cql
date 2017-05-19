@@ -394,6 +394,7 @@ CREATE TABLE IF NOT EXISTS creation_db.app_object_cache (
 	id text,
 	subtype text,
 	parentid text,
+	parenttype text,
 	code text,
 	name text,
 	state text,

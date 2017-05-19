@@ -109,6 +109,7 @@ class TestUpdateAppObjectCacheDB extends SparkSpec(null) {
         object1.code should be (Option("org.sunbird.UarOnQ"));
         object1.name should be ("Unit 1.1");
         object1.parentid should be (Option("do_11224788307740262413"));
+        object1.parenttype should be (Option("Content"));
         object1.state should be ("Draft");
         object1.prevstate should be ("");
         
@@ -119,6 +120,7 @@ class TestUpdateAppObjectCacheDB extends SparkSpec(null) {
         object2.code should be (Option("org.ekstep.literacy.story.4360"));
         object2.name should be ("testContent");
         object2.parentid should be (Option(""));
+        object2.parenttype should be (None);
         object2.state should be ("Processing");
         object2.prevstate should be ("Draft");
         
