@@ -88,7 +88,6 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val events = x.filteredEvents
             val startEvent = events.head
             val endEvents = events.last
-            println("Start Event Eid : ", startEvent.eid)
             val interactEvents = events.filter { x => x.eid.equals("CE_INTERACT") }
             val pluginEvents = events.filter { x => x.eid.equals("CE_PLUGIN_LIFECYCLE") }
             val apiEvents = events.filter { x => x.eid.equals("CE_API_CALL") }
@@ -96,7 +95,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val startTimestamp = startEvent.ets
             val endTimestamp = endEvents.ets
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
-            val loadTime = startEvent.edata.eks.loadtimes.getOrElse("contentLoad", 0.0)
+            val loadTime = if(startEvent.eid.equals("CE_START")) startEvent.edata.eks.loadtimes.getOrElse("contentLoad", 0.0) else 0.0
             val noOfInteractEvents = interactEvents.length
             val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d else BigDecimal(noOfInteractEvents / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             val pluginSummary = computePluginSummary(pluginEvents)
