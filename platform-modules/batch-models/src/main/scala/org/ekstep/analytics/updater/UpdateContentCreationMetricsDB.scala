@@ -65,7 +65,6 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, Content
             ContentPluginAsset(contentId, plugins, assests)
         } catch {
             case t: Throwable =>
-                t.printStackTrace()
                 println("Unable to parse ecml content for contentId:" + contentId);
                 null;
         }
