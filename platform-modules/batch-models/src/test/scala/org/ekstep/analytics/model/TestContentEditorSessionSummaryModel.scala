@@ -25,10 +25,10 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.client.get should not be null;
 
         val summary1 = JSONUtils.deserialize[CESessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.time_spent should be(154510.0);
+        summary1.time_spent should be(154.51);
         summary1.load_time should be (71.0);
         summary1.interact_events_count should be(3);
-        summary1.interact_events_per_min should be(0.0);
+        summary1.interact_events_per_min should be(1.16);
         summary1.api_calls_count should be(7);
         summary1.sidebar_events_count should be(0);
         summary1.menu_events_count should be(2);

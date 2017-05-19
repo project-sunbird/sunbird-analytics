@@ -84,6 +84,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
     }
 
     override def algorithm(data: RDD[CESessionSummaryInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CESessionSummaryOutput] = {
+        val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
         data.map { x =>
             val events = x.filteredEvents
             val startEvent = events.head
@@ -91,7 +92,15 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val interactEvents = events.filter { x => x.eid.equals("CE_INTERACT") }
             val pluginEvents = events.filter { x => x.eid.equals("CE_PLUGIN_LIFECYCLE") }
             val apiEvents = events.filter { x => x.eid.equals("CE_API_CALL") }
-            val timeSpent = endEvents.edata.eks.duration
+            var tmpLastEvent: CreationEvent = null;
+            val eventsWithTs = events.map { x =>
+                if (tmpLastEvent == null) tmpLastEvent = x;
+                val ts = CommonUtil.getTimeDiff(tmpLastEvent.ets, x.ets).get;
+                tmpLastEvent = x;
+                (x, if (ts > idleTime) 0 else ts)
+            }
+
+            val timeSpent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
             val startTimestamp = startEvent.ets
             val endTimestamp = endEvents.ets
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
