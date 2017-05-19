@@ -36,7 +36,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, Content
     override def algorithm(data: RDD[ContentPluginAsset], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {
 
         val contentTagCountMap = _getGraphMetrics(CypherQueries.PER_CONTENT_TAGS, "contentId", "tagCount")
-        val contentLivesCountMap = _getGraphMetrics(CypherQueries.PER_CONTENT_TAGS, "contentId", "liveCount")
+        val contentLivesCountMap = _getGraphMetrics(CypherQueries.CONTENT_LIVE_COUNT, "contentId", "liveCount")
 
         data.map { x =>
             val assetMetrics = x.assets.groupBy { x => x }.map { x => (x._1, x._2.length) }
