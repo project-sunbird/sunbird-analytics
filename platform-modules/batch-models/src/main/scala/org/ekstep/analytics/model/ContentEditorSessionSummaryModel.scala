@@ -118,7 +118,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             CESessionSummaryOutput(startEvent.uid, startEvent.context.get.sid, startEvent.context.get.content_id, startEvent.edata.eks.client, DtRange(startTimestamp,
                     endTimestamp), new CESessionSummary(timeSpent, startTimestamp, endTimestamp, timeDiff, loadTime, noOfInteractEvents,
                             interactEventsPerMin, pluginSummary, saveSummary, stageSummary, eventSummary, apiCallCount, sideBarEventCount, menuEventCount));
-        } 
+        }.filter(f => (f.ss.time_spent >= 1)).cache()
     }
 
     override def postProcess(data: RDD[CESessionSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
