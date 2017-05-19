@@ -14,7 +14,9 @@ import org.ekstep.analytics.util.CypherQueries
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.JobContext
 import java.util.Collections
+import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.CommonUtil._
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
@@ -98,10 +100,26 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 		val influxRDD = data.map{ f => 
 			val tags = Map("textbook_id" -> f.d_textbook_id);
 			val map = CommonUtil.caseClassToMap(f)
-			val fields = map - ("d_textbook_id", "d_period", "content_types");
-			InfluxRecord(tags, fields);
+			val fields = map - ("d_textbook_id", "d_period", "content_types") ++ Map("content_types" -> f.content_types.mkString(","));
+			val time = getDateTime(f.d_period)._1;
+			InfluxRecord(tags, fields, time);
 		}
 		InfluxDBDispatcher.dispatch(TEXTBOOK_SNAPSHOT_METRICS, influxRDD);
+	}
+	
+	
+	// TODO: Generalise this method. IMP.
+	private def getDateTime(periodVal: Int): (DateTime, String) = {
+		val period = periodVal.toString();
+		period.size match {
+			case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
+			case 7 =>
+				val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
+				val firstDay = weekPeriodLabel.parseDateTime(week)
+				val lastDay = firstDay.plusDays(6);
+				(lastDay.withTimeAtStartOfDay(), "week");
+			case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
+		}
 	}
 
 }
