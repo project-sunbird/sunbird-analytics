@@ -39,12 +39,8 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 	}
 
 	private def getSnapshotSummary(ts: Int)(implicit sc: SparkContext): RDD[TextbookSnapshotSummary] = {
-		val bookUnitResult = getResultMap(GraphQueryDispatcher.dispatch(CypherQueries.TEXTBOOK_SNAPSHOT_UNIT_COUNT).list()
-			.toArray().map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).toList);
-		val bookUnitRDD = sc.parallelize(bookUnitResult, JobContext.parallelization);
-		val contentResult = getResultMap(GraphQueryDispatcher.dispatch(CypherQueries.TEXTBOOK_SNAPSHOT_CONTENT_COUNT).list()
-			.toArray().map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).toList)
-		val contentRDD = sc.parallelize(contentResult, JobContext.parallelization);
+		val bookUnitRDD = getQueryResultRDD(CypherQueries.TEXTBOOK_SNAPSHOT_UNIT_COUNT)
+		val contentRDD = getQueryResultRDD(CypherQueries.TEXTBOOK_SNAPSHOT_CONTENT_COUNT);
 		val resultRDD = bookUnitRDD.map(f => (f.get("identifier").get.toString(), f))
 			.union(contentRDD.map(f => (f.get("identifier").get.toString(), f))).groupByKey().map(f => (f._1, f._2.reduce((a,b) => a ++ b)))
 		resultRDD.map { f => 
@@ -77,14 +73,17 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 		metrics
 	}
 
-	private def getResultMap(result: List[org.neo4j.driver.v1.Record]): List[Map[String, AnyRef]] = {
-		result.map { x =>
+	private def getQueryResultRDD(query: String)(implicit sc: SparkContext): RDD[Map[String, AnyRef]] = {
+		val queryResult = GraphQueryDispatcher.dispatch(query).list()
+			.toArray().map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).toList;
+		val result = queryResult.map { x =>
 			var metadata = Map[String, AnyRef]();
 			for ((k, v) <- x.asMap().asScala) {
 				metadata = metadata ++ Map(k -> v.asInstanceOf[AnyRef])
 			}
 			metadata;
 		}
+		sc.parallelize(result, JobContext.parallelization);
 	}
 
 	override def postProcess(data: RDD[TextbookSnapshotSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSnapshotSummary] = {
