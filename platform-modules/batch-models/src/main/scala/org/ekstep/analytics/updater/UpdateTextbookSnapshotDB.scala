@@ -98,11 +98,12 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 	
 	private def saveToInfluxDB(data: RDD[TextbookSnapshotSummary]) {
 		val influxRDD = data.map{ f => 
-			val tags = Map("textbook_id" -> f.d_textbook_id);
+			val time = getDateTime(f.d_period);
+			val tags = Map("textbook_id" -> f.d_textbook_id, "period" -> time._2);
 			val map = CommonUtil.caseClassToMap(f)
 			val fields = map - ("d_textbook_id", "d_period", "content_types") ++ Map("content_types" -> f.content_types.mkString(","));
-			val time = getDateTime(f.d_period)._1;
-			InfluxRecord(tags, fields, time);
+			
+			InfluxRecord(tags, fields, time._1);
 		}
 		InfluxDBDispatcher.dispatch(TEXTBOOK_SNAPSHOT_METRICS, influxRDD);
 	}
