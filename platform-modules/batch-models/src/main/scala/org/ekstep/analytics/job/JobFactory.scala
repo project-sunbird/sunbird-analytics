@@ -5,15 +5,13 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 import org.ekstep.analytics.job.consolidated._
+import org.ekstep.analytics.vidyavaani.job._
 import org.ekstep.analytics.views.PrecomputedViewsJob
-import org.ekstep.analytics.vidyavaani.job.ContentLanguageRelationModel
-import org.ekstep.analytics.vidyavaani.job.ContentAssetRelationModel
-import org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel
-import org.ekstep.analytics.vidyavaani.job.ConceptLanguageRelationModel
-import org.ekstep.analytics.model.EOCRecommendationFunnelModel
-import org.ekstep.analytics.vidyavaani.job.CreationRecommendationEnrichmentModel
-import org.ekstep.analytics.vidyavaani.job.CreationRecommendationModel
-import org.ekstep.analytics.model.ContentEditorSessionSummaryModel
+
+/**
+ * @author Santhosh
+ */
+
 
 object JobFactory {
     @throws(classOf[JobNotFoundException])
@@ -131,6 +129,12 @@ object JobFactory {
                 ContentEditorSessionSummarizer
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
+            case "textbook-snapshot-updater" =>
+            	TextbookSnapshotUpdater;
+            case "app-ss" =>
+            	PortalSessionsummarizer;
+            case "ce-ss" =>
+            	ContentEditorSessionSummarizer;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

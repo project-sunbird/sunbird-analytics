@@ -39,6 +39,7 @@ object Constants {
     val CONTENT_SNAPSHOT_SUMMARY = "content_snapshot_summary";
     val CONCEPT_SNAPSHOT_SUMMARY = "concept_snapshot_summary";
     val ASSET_SNAPSHOT_SUMMARY = "asset_snapshot_summary";
+    val TEXTBOOK_SNAPSHOT_SUMMARY = "textbook_snapshot_summary";
     val CONTENT_CREATION_TABLE = "content_creation_metrics_fact"
     
     /* Creation tables and keyspaces */
