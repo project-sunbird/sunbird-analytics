@@ -49,7 +49,7 @@ object CypherQueries {
      * 
      **/
     val PER_CONTENT_TAGS = "match (e: domain{IL_SYS_NODE_TYPE:'TAG'})-[r: hasMember]-> (cnt: domain {IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return cnt.IL_UNIQUE_ID as contentId, count(e) as tagCount"
-    val CONTENT_LIVE_COUNT = "match (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return cnt.IL_UNIQUE_ID as contentId, cnt.pkgVersion as liveCount"
+    val CONTENT_LIVE_COUNT = "match (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] return cnt.IL_UNIQUE_ID as contentId, CASE WHEN cnt.pkgVersion IS null THEN 0 ELSE cnt.pkgVersion END AS liveCount"
     
     /**
      * Textbook Snapshot Summary Queries
