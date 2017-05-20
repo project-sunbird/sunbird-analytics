@@ -12,7 +12,6 @@ import org.ekstep.analytics.views.PrecomputedViewsJob
  * @author Santhosh
  */
 
-
 object JobFactory {
     @throws(classOf[JobNotFoundException])
     def getJob(jobType: String): IJob = {
@@ -130,11 +129,13 @@ object JobFactory {
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
             case "textbook-snapshot-updater" =>
-            	TextbookSnapshotUpdater;
+                TextbookSnapshotUpdater;
             case "app-ss" =>
-            	PortalSessionsummarizer;
+                PortalSessionsummarizer;
             case "obj-cache-updater" =>
-            	AppObjectCacheUpdater
+                AppObjectCacheUpdater
+            case "textbook-session-summary" =>
+                TextbookSessionSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
