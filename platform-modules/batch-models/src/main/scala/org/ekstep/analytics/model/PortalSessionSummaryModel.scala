@@ -1,6 +1,8 @@
+/**
+ * @author Sowmya Dixit
+ */
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.IBatchModelTemplate
 import org.ekstep.analytics.creation.model.CreationEvent
@@ -16,7 +18,13 @@ import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.creation.model.CreationEData
+import org.ekstep.analytics.creation.model.CreationEks
+import org.ekstep.analytics.framework.util.JSONUtils
 
+/**
+ * Case Classes for the data product
+ */
 case class PortalSessionInput(sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
 case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
 case class EnvSummary(env: String, time_spent: Double, count: Long)
@@ -27,9 +35,16 @@ case class PortalSessionOutput(sid: String, uid: String, anonymousUser: Boolean,
                                page_summary: Option[Iterable[PageSummary]]) extends AlgoOutput
 
 /**
- * @author Sowmya
+ * @dataproduct
+ * @Summarizer 
+ * 
+ * PortalSessionSummaryModel
+ * 
+ * Functionality
+ * 1. Generate app specific session summary events. This would be used to compute app usage metrics.
+ * Events used - BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT & CP_IMPRESSION
  */
-object PortalSessionSummaryModel extends SessionBatchModel[CreationEvent, MeasuredEvent] with IBatchModelTemplate[CreationEvent, PortalSessionInput, PortalSessionOutput, MeasuredEvent] with Serializable {
+object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalSessionInput, PortalSessionOutput, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.PortalSessionSummaryModel"
     override def name: String = "PortalSessionSummaryModel"
@@ -75,16 +90,29 @@ object PortalSessionSummaryModel extends SessionBatchModel[CreationEvent, Measur
 
             val eventSummaries = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
-            val pageSummaries = if (impressionEvents.length > 0) {
-                var prevPage: CreationEvent = impressionEvents(0);
-                val pageDetails = impressionEvents.tail.map { x =>
+            val impressionCEEvents = events.filter { x => ("CP_IMPRESSION".equals(x.eid) || "CE_START".equals(x.eid)) }.map{ f =>
+                if("CE_START".equals(f.eid)){
+                    val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "id" -> "ce"))
+                    val eks = JSONUtils.deserialize[CreationEks](eksString)
+                    CreationEvent("CP_IMPRESSION", f.ets, f.ver, f.mid, f.pdata, f.cdata, f.uid, f.context, f.rid, new CreationEData(eks), f.tags)
+                }
+                else f;
+            }
+            
+            val pageSummaries = if (impressionCEEvents.length > 0) {
+                var prevPage: CreationEvent = impressionCEEvents(0);
+                val pageDetails = impressionCEEvents.tail.map { x =>
                     val timeSpent = CommonUtil.getTimeDiff(prevPage.ets, x.ets).get;
                     val pageWithTs = (prevPage.edata.eks.id, prevPage, timeSpent)
                     prevPage = x
                     pageWithTs;
-                } groupBy (f => f._1)
+                }
+                val lastPage = impressionCEEvents.last
+                val lastTimeSpent = CommonUtil.getTimeDiff(lastPage.ets, lastEvent.ets).get;
+                val lastPageWithTs = (lastPage.edata.eks.id, lastPage, lastTimeSpent)
+                val finalPageDetails = pageDetails ++ Buffer(lastPageWithTs)
                 
-                pageDetails.map { f =>
+                finalPageDetails.groupBy (f => f._1).map { f =>
                     val id = f._1
                     val firstEvent = f._2(0)._2
                     val `type` = firstEvent.edata.eks.`type`
@@ -121,6 +149,7 @@ object PortalSessionSummaryModel extends SessionBatchModel[CreationEvent, Measur
                 "interact_events_per_min" -> session.interact_events_per_min,
                 "first_visit" -> session.first_visit,
                 "ce_visits" -> session.ce_visits,
+                "page_views_count" -> session.page_views_count,
                 "env_summary" -> session.env_summary,
                 "events_summary" -> session.events_summary,
                 "page_summary" -> session.page_summary);

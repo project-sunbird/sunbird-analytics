@@ -17,6 +17,7 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
 
         me.length should be(1);
         val event1 = me(0);
+
         event1.eid should be("ME_APP_SESSION_SUMMARY");
         event1.mid should be("388560FA11650FB6060CB86E5C58F8BF");
         event1.uid should be("0313e644f8fda754eeeddc6c00eb824b00fea515");
@@ -38,8 +39,8 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
         summary1.first_visit should be(false);
         summary1.time_spent should be(917.0);
         
-        summary1.page_summary.get.size should be(10);
-        summary1.env_summary.get.size should be(2);
+        summary1.page_summary.get.size should be(11);
+        summary1.env_summary.get.size should be(3);
         summary1.events_summary.get.size should be(5);
         
         val pageSummary1 = summary1.page_summary.get.head
@@ -51,7 +52,7 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("content")
-        envSummary1.time_spent should be(225.0)
+        envSummary1.time_spent should be(315.0)
         envSummary1.count should be(3)
         
         val eventSummary1 = summary1.events_summary.get.head
@@ -97,7 +98,7 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
         pageSummary1.id should be("")
         pageSummary1.`type` should be("")
         pageSummary1.time_spent should be(921.0)
-        pageSummary1.visit_count should be(14)
+        pageSummary1.visit_count should be(15)
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("")
