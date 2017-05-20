@@ -68,12 +68,12 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
      * @return the case class of plugin summary
      */
     def computePluginSummary(data: Buffer[CreationEvent]): PluginSummary = {
-        val loadedCount = data.filter { x => x.edata.eks.`type`.equals("load") }.length
+        val loadedCount = data.filter { x => "load".equals(x.edata.eks.`type`) }.length
         val perPluginSummary = data.groupBy { x => x.edata.eks.pluginid }.map { events =>
             val pluginId = events._1
-            val added = events._2.filter { x => x.edata.eks.`type`.equals("add") }.length
-            val removed = events._2.filter { x => x.edata.eks.`type`.equals("remove") }.length
-            val modified = events._2.filter { x => x.edata.eks.`type`.equals("modify") }.length
+            val added = events._2.filter { x => "add".equals(x.edata.eks.`type`) }.length
+            val removed = events._2.filter { x => "remove".equals(x.edata.eks.`type`) }.length
+            val modified = events._2.filter { x => "modify".equals(x.edata.eks.`type`) }.length
             PerPluginSummary(pluginId, added, removed, modified)
         }
         val pluginAdded = perPluginSummary.map { x => x.added }.sum
@@ -88,7 +88,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
      * @param data is the Buffer of plugin events - CE_PLUGIN_LIFECYCLE
      * @return the case class of Stage Summary
      */
-    def computeStageSummary(data: Buffer[CreationEvent]): CEStageSummary = CEStageSummary(data.filter { x => x.edata.eks.`type`.equals("add") }.length, data.filter { x => x.edata.eks.`type`.equals("remove") }.length, data.filter { x => x.edata.eks.`type`.equals("modify") }.length)
+    def computeStageSummary(data: Buffer[CreationEvent]): CEStageSummary = CEStageSummary(data.filter { x => "add".equals(x.edata.eks.`type`) }.length, data.filter { x => "remove".equals(x.edata.eks.`type`) }.length, data.filter { x => "modify".equals(x.edata.eks.`type`) }.length)
 
     /**
      * To calculate the save summary per content editor session
@@ -100,7 +100,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val url = URLDecoder.decode(x.edata.eks.path) 
             if(new UrlValidator().isValid(url)) AppConf.getConfig("lp.path").equals(new URL(url).getPath) else false
         }
-        SaveSummary(saveEvents.length, saveEvents.filter { x => x.edata.eks.status.equals("OK") }.length, saveEvents.filter { x => x.edata.eks.status.equals("ERROR") }.length)
+        SaveSummary(saveEvents.length, saveEvents.filter { x => "OK".equals(x.edata.eks.`type`) }.length, saveEvents.filter { x => "ERROR".equals(x.edata.eks.`type`) }.length)
     }
 
     override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CESessionSummaryInput] = {
@@ -130,7 +130,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val startTimestamp = startEvent.ets
             val endTimestamp = endEvent.ets
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
-            val loadTime = if (startEvent.eid.equals("CE_START")) startEvent.edata.eks.loadtimes.getOrElse("contentLoad", 0.0) else 0.0
+            val loadTime = if ("CE_START".equals(startEvent.eid)) startEvent.edata.eks.loadtimes.getOrElse("contentLoad", 0.0) else 0.0
             val noOfInteractEvents = interactEvents.length
             val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d else BigDecimal(noOfInteractEvents / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             val pluginSummary = computePluginSummary(pluginEvents)
@@ -138,8 +138,8 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val stageSummary = computeStageSummary(pluginEvents.filter(x => x.edata.eks.stage.nonEmpty))
             val eventSummary = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
             val apiCallCount = apiEvents.length
-            val sideBarEventCount = interactEvents.filter { x => x.edata.eks.subtype.equals("sidebar") }.length
-            val menuEventCount = interactEvents.filter { x => x.edata.eks.subtype.equals("menu") && x.edata.eks.`type`.equals("click") }.length
+            val sideBarEventCount = interactEvents.filter { x => "sidebar".equals(x.edata.eks.subtype) }.length
+            val menuEventCount = interactEvents.filter { x => "menu".equals(x.edata.eks.subtype) && "click".equals(x.edata.eks.`type`) }.length
 
             CESessionSummaryOutput(startEvent.uid, startEvent.context.get.sid, startEvent.context.get.content_id, startEvent.edata.eks.client, DtRange(startTimestamp,
                 endTimestamp), new CESessionSummary(timeSpent, startTimestamp, endTimestamp, timeDiff, loadTime, noOfInteractEvents,
