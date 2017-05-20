@@ -40,7 +40,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, Content
 
         data.map { x =>
             val assetMetrics = x.assets.groupBy { x => x }.map { x => (x._1, x._2.length) }
-            val pluginMetrics = x.plugins.groupBy { x => x }.map { x => (x._1, x._2.length) }
+            val pluginMetrics = x.plugins.groupBy { x => x }.map { x => (x._1, x._2.length) } - ("appEvents", "events")
 
             val content = x.content_id
             val tags = contentTagCountMap.getOrElse(content, 0)
