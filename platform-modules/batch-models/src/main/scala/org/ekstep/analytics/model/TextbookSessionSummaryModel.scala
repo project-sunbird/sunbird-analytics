@@ -99,13 +99,15 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
         var tmpArr = Buffer[CreationEvent]();
         var prevEnv = ""
         creationEvent.foreach { x =>
-            if ((prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
-                tmpArr += x
-            } else {
-                if (tmpArr.length > 0)
-                    sessions += tmpArr
-                tmpArr = Buffer[CreationEvent]();
-                tmpArr += x
+            x.edata.eks.env match {
+                case "textbook" => if ((prevEnv.equals("textbook") && prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
+                    tmpArr += x
+                } else {
+                    if (tmpArr.length > 0)
+                        sessions += tmpArr
+                    tmpArr = Buffer[CreationEvent]();
+                    tmpArr += x
+                }
             }
             prevEnv = x.edata.eks.env
         }
