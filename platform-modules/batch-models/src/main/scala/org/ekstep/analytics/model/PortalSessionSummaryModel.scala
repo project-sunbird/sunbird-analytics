@@ -3,7 +3,6 @@
  */
 package org.ekstep.analytics.model
 
-
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.IBatchModelTemplate
 import org.ekstep.analytics.creation.model.CreationEvent
@@ -92,7 +91,7 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
             val eventSummaries = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
             val impressionCEEvents = events.filter { x => ("CP_IMPRESSION".equals(x.eid) || "CE_START".equals(x.eid)) }.map{ f =>
-                if(f.eid.equals("CE_START")){
+                if("CE_START".equals(f.eid)){
                     val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "id" -> "ce"))
                     val eks = JSONUtils.deserialize[CreationEks](eksString)
                     CreationEvent("CP_IMPRESSION", f.ets, f.ver, f.mid, f.pdata, f.cdata, f.uid, f.context, f.rid, new CreationEData(eks), f.tags)
