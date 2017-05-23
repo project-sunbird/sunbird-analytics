@@ -256,7 +256,6 @@ CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
 	creators_count bigint,
 	board text,
 	medium text,
-	domain text,
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 
