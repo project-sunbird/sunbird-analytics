@@ -40,7 +40,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, Content
 
         data.map { x =>
             val assetMetrics = x.assets.groupBy { x => x }.map { x => (x._1, x._2.length) }
-            val pluginMetrics = x.plugins.groupBy { x => x }.map { x => (x._1, x._2.length) } - ("appEvents", "events")
+            val pluginMetrics = x.plugins.groupBy { x => x }.map { x => (x._1, x._2.length) } - ("appEvents", "events", "#PCDATA", "manifest", "config", "param")
 
             val content = x.content_id
             val tags = contentTagCountMap.getOrElse(content, 0)
@@ -58,9 +58,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, Content
             val dom = XML.loadString(body)
             val els = dom \ "manifest" \ "media"
             val stage = dom \ "stage"
-            val plugins = stage.map { x => x.child }.flatMap { x => x }.map { x => x.head.label }.filter { x =>
-                (!StringUtils.equals("#PCDATA", x) && !StringUtils.equals("manifest", x) && !StringUtils.equals("config", x) && !StringUtils.equals("param", x))
-            }.toList
+            val plugins = stage.map { x => x.child }.flatMap { x => x }.map { x => x.head.label }.toList
             val assests = els.map { x => x.attribute("type").get.text }.toList
             ContentPluginAsset(contentId, plugins, assests)
         } catch {
