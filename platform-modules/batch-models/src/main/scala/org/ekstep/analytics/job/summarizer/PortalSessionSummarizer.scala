@@ -6,9 +6,9 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.IJob
 import org.ekstep.analytics.model.PortalSessionSummaryModel
 
-object PortalSessionsummarizer extends optional.Application with IJob {
+object PortalSessionSummarizer extends optional.Application with IJob {
   
-    implicit val className = "org.ekstep.analytics.job.PortalSessionsummarizer"
+    implicit val className = "org.ekstep.analytics.job.PortalSessionSummarizer"
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
