@@ -153,5 +153,12 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         val me = rdd1.collect();
         me.length should be(4);
     }
+    
+    it should "should not generate session summaries for one event" in {
+        val rdd = loadFile[CreationEvent]("src/test/resources/content-editor-session-summary/test_data4.log");
+        val rdd1 = ContentEditorSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")));
+        val me = rdd1.collect();
+        me.length should be(0);
+    }
 
 }
