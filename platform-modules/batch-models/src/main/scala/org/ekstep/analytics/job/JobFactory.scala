@@ -136,6 +136,8 @@ object JobFactory {
                 AppObjectCacheUpdater
             case "textbook-session-summary" =>
                 TextbookSessionSummarizer
+            case "author-usage-summary" =>
+                AuthorUsageSummarizer
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
