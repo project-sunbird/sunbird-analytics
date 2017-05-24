@@ -86,9 +86,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
             val lastEvent = f.sessionEvents.sortBy { x => x.context.date_range.to }.last
             val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
             val appId = firstEvent.dimensions.app_id.getOrElse("EkstepPortal")
-            val eksMapList = f.sessionEvents.map { x =>
-                x.edata.eks.asInstanceOf[Map[String, AnyRef]]
-            }
+
             val anonymousSessions = f.sessionEvents.filter { x => true == x.dimensions.anonymous_user.get }
             val anonymousTotalSessions = if (anonymousSessions.length > 0) anonymousSessions.length.toLong else 0L
             val anonymousTotalTS = if (anonymousSessions.length > 0) anonymousSessions.map { x =>
@@ -96,7 +94,11 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 eksMap.get("time_spent").get.asInstanceOf[Double]
             }.sum
             else 0.0
-            val totalSessions = f.sessionEvents.length.toLong
+            val registeredUserSessions = f.sessionEvents.filter { x => false == x.dimensions.anonymous_user.get }
+            val eksMapList = registeredUserSessions.map { x =>
+                x.edata.eks.asInstanceOf[Map[String, AnyRef]]
+            }
+            val totalSessions = registeredUserSessions.length.toLong
             val totalTS = eksMapList.map { x =>
                 x.get("time_spent").get.asInstanceOf[Double]
             }.sum
@@ -107,7 +109,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
             val totalPageviewsCount = eksMapList.map { x =>
                 x.get("page_views_count").get.asInstanceOf[Number].longValue()
             }.sum
-            val uniqueUsers = f.sessionEvents.map(x => x.uid).distinct.filterNot { x => x.isEmpty() }.toList
+            val uniqueUsers = registeredUserSessions.map(x => x.uid).distinct.filterNot { x => x.isEmpty() }.toList
             val uniqueUsersCount = uniqueUsers.length.toLong
             val avgPageviews = if (totalPageviewsCount == 0 || totalSessions == 0) 0d else BigDecimal(totalPageviewsCount / (totalSessions * 1d)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             val avgSessionTS = if (totalTS == 0 || totalSessions == 0) 0d else BigDecimal(totalTS / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;

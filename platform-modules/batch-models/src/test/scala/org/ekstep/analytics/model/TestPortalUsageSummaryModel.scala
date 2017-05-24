@@ -1,3 +1,6 @@
+/**
+ * @author Sowmya Dixit
+ **/
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.util.CommonUtil
@@ -34,15 +37,15 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         summary1.anonymous_total_sessions should be(1);
         summary1.anonymous_avg_session_ts should be(327.0);
         summary1.percent_new_users_count should be(50.0);
-        summary1.ce_percent_sessions should be(25.0);
+        summary1.ce_percent_sessions should be(33.33);
         summary1.ce_total_sessions should be(1);
-        summary1.total_sessions should be(4);
-        summary1.avg_session_ts should be(484.75);
+        summary1.total_sessions should be(3);
+        summary1.avg_session_ts should be(537.33);
         summary1.avg_pageviews should be(15.0);
-        summary1.total_ts should be(1939.0);
+        summary1.total_ts should be(1612.0);
         summary1.unique_users_count should be(2);
         summary1.unique_users.size should be(2);
-        summary1.total_pageviews_count should be(60);
+        summary1.total_pageviews_count should be(45);
 
         // check for all anonymous sessions
         val event2 = me(0);
@@ -63,15 +66,15 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         summary2.anonymous_total_sessions should be(4);
         summary2.anonymous_avg_session_ts should be(484.75);
         summary2.percent_new_users_count should be(0.0);
-        summary2.ce_percent_sessions should be(25.0);
-        summary2.ce_total_sessions should be(1);
-        summary2.total_sessions should be(4);
-        summary2.avg_session_ts should be(484.75);
-        summary2.avg_pageviews should be(15.0);
-        summary2.total_ts should be(1939.0);
+        summary2.ce_percent_sessions should be(0.0);
+        summary2.ce_total_sessions should be(0);
+        summary2.total_sessions should be(0);
+        summary2.avg_session_ts should be(0.0);
+        summary2.avg_pageviews should be(0.0);
+        summary2.total_ts should be(0.0);
         summary2.unique_users_count should be(0);
         summary2.unique_users.size should be(0);
-        summary2.total_pageviews_count should be(60);
+        summary2.total_pageviews_count should be(0);
 
         // check for specific author
         val event3 = me(2);
@@ -130,13 +133,13 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         summary1.percent_new_users_count should be(50.0);
         summary1.ce_percent_sessions should be(0.0);
         summary1.ce_total_sessions should be(0);
-        summary1.total_sessions should be(4);
-        summary1.avg_session_ts should be(484.75);
+        summary1.total_sessions should be(2);
+        summary1.avg_session_ts should be(572.5);
         summary1.avg_pageviews should be(15.0);
-        summary1.total_ts should be(1939.0);
+        summary1.total_ts should be(1145.0);
         summary1.unique_users_count should be(2);
         summary1.unique_users.size should be(2);
-        summary1.total_pageviews_count should be(60);
+        summary1.total_pageviews_count should be(30);
 
         // check for specific author
         val event2 = me(1);

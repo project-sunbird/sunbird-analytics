@@ -1,3 +1,6 @@
+/**
+ * @author Sowmya Dixit
+ **/
 package org.ekstep.analytics.job.summarizer
 
 import org.ekstep.analytics.framework.JobDriver
