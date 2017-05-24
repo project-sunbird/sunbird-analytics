@@ -137,6 +137,8 @@ object JobFactory {
             	PortalSessionSummarizer;
             case "obj-cache-updater" =>
             	AppObjectCacheUpdater
+            case "portal-usage" =>
+            	PortalUsageSummarizer;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
