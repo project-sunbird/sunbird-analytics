@@ -1,3 +1,6 @@
+/**
+ * @author Sowmya Dixit
+ **/
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.creation.model.CreationEvent
