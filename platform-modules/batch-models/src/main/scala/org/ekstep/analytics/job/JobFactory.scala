@@ -126,6 +126,8 @@ object JobFactory {
                 ConceptSnapshotUpdater
             case "ce-ss" =>
                 ContentEditorSessionSummarizer
+            case "ce-us" =>
+                ContentEditorUsageSummarizer
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
             case "textbook-snapshot-updater" =>
@@ -138,6 +140,8 @@ object JobFactory {
                 TextbookSessionSummarizer
             case "author-usage-summary" =>
                 AuthorUsageSummarizer
+            case "portal-usage" =>
+                PortalUsageSummarizer;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
