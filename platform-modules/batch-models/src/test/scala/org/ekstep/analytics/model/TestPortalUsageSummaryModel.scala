@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.DerivedEvent
 
 class TestPortalUsageSummaryModel extends SparkSpec(null) {
 
-    "PortalUsageSummaryModel" should "generate 2 portal usage summary events" in {
+    "PortalUsageSummaryModel" should "generate 4 portal usage summary events" in {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/portal-usage-summary/test_data_1.log");
         val rdd2 = PortalUsageSummaryModel.execute(rdd1, None);
@@ -20,7 +20,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
 
         event1.eid should be("ME_APP_USAGE_SUMMARY");
         event1.mid should be("0CB90A5476EFA88090619D48716786F7");
-        event1.context.pdata.model should be("PortalUsageSummarizer");
+        event1.context.pdata.model should be("AppUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
         event1.context.date_range should not be null;
@@ -49,7 +49,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
 
         event2.eid should be("ME_APP_USAGE_SUMMARY");
         event2.mid should be("1F76DDAE997A41500066C4DB2914889B");
-        event2.context.pdata.model should be("PortalUsageSummarizer");
+        event2.context.pdata.model should be("AppUsageSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("DAY");
         event2.context.date_range should not be null;
@@ -78,7 +78,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
 
         event3.eid should be("ME_APP_USAGE_SUMMARY");
         event3.mid should be("06B48BD1551B6BC71257C22955FD542F");
-        event3.context.pdata.model should be("PortalUsageSummarizer");
+        event3.context.pdata.model should be("AppUsageSummarizer");
         event3.context.pdata.ver should be("1.0");
         event3.context.granularity should be("DAY");
         event3.context.date_range should not be null;
@@ -103,7 +103,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         summary3.total_pageviews_count should be(0);
     }
 
-    it should "generate 1 portal usage summary event where ce sessions count = 0" in {
+    it should "generate 3 portal usage summary event where ce sessions count = 0" in {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/portal-usage-summary/test_data_2.log");
         val rdd2 = PortalUsageSummaryModel.execute(rdd1, None);
@@ -114,7 +114,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
 
         event1.eid should be("ME_APP_USAGE_SUMMARY");
         event1.mid should be("0BAEF1A3D5E41AF14C1428F78885F2E0");
-        event1.context.pdata.model should be("PortalUsageSummarizer");
+        event1.context.pdata.model should be("AppUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
         event1.context.date_range should not be null;
@@ -143,7 +143,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
 
         event2.eid should be("ME_APP_USAGE_SUMMARY");
         event2.mid should be("ED53E38023A115B137F9457748C0B181");
-        event2.context.pdata.model should be("PortalUsageSummarizer");
+        event2.context.pdata.model should be("AppUsageSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("DAY");
         event2.context.date_range should not be null;
@@ -168,7 +168,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         summary2.total_pageviews_count should be(0);
     }
 
-    it should "generate 1 portal usage summary event where all are new visits" in {
+    it should "generate 5 portal usage summary event where all are new visits" in {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/portal-usage-summary/test_data_3.log");
         val rdd2 = PortalUsageSummaryModel.execute(rdd1, None);
@@ -179,7 +179,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
 
         event1.eid should be("ME_APP_USAGE_SUMMARY");
         event1.mid should be("49D2EBD068483F528EA4801EE2D1EC1A");
-        event1.context.pdata.model should be("PortalUsageSummarizer");
+        event1.context.pdata.model should be("AppUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
         event1.context.date_range should not be null;
