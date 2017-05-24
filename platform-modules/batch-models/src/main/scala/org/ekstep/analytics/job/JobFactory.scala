@@ -142,6 +142,8 @@ object JobFactory {
                 AuthorUsageSummarizer
             case "portal-usage" =>
                 PortalUsageSummarizer;
+            case "publish-pipeline-summarizer" =>
+                PublishPipelineSummarizer;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
