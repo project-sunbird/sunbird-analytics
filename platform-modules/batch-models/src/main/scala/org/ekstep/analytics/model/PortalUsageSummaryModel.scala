@@ -25,7 +25,7 @@ import org.ekstep.analytics.framework._
  * Case Classes for the data product
  */
 case class PortalUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class PortalUsageOutput(period: Int, author_id: String, dtRange: DtRange, anonymous_total_sessions: Long, anonymous_total_ts: Double,
+case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtRange: DtRange, anonymous_total_sessions: Long, anonymous_total_ts: Double,
                              total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                              total_pageviews_count: Long, unique_users: List[String], unique_users_count: Long, avg_pageviews: Double,
                              avg_session_ts: Double, anonymous_avg_session_ts: Double, new_user_count: Long,
@@ -63,7 +63,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 val firstEvent = f._2.sortBy { x => x.context.date_range.from }.head
                 val lastEvent = f._2.sortBy { x => x.context.date_range.to }.last
                 val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
-
+                val appId = firstEvent.dimensions.app_id.getOrElse("EkstepPortal")
                 val eksMapList = f._2.map { x =>
                     x.edata.eks.asInstanceOf[Map[String, AnyRef]]
                 }
@@ -77,7 +77,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 val cePercentSessions = if (ceTotalSessions == 0 || totalSessions == 0) 0d else BigDecimal((ceTotalSessions / (totalSessions * 1d)) * 100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
                 val avgSessionTS = if (totalTS == 0 || totalSessions == 0) 0d else BigDecimal(totalTS / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
-                PortalUsageOutput(event.period, f._1, date_range, 0L, 0.0, totalSessions, totalTS, ceTotalSessions, cePercentSessions, 0L, List(), 0L, 0.0, avgSessionTS, 0.0, 0, 0.0)
+                PortalUsageOutput(event.period, f._1, appId, date_range, 0L, 0.0, totalSessions, totalTS, ceTotalSessions, cePercentSessions, 0L, List(), 0L, 0.0, avgSessionTS, 0.0, 0, 0.0)
             }
         }.flatMap { x => x }
 
@@ -85,7 +85,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
             val firstEvent = f.sessionEvents.sortBy { x => x.context.date_range.from }.head
             val lastEvent = f.sessionEvents.sortBy { x => x.context.date_range.to }.last
             val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
-
+            val appId = firstEvent.dimensions.app_id.getOrElse("EkstepPortal")
             val eksMapList = f.sessionEvents.map { x =>
                 x.edata.eks.asInstanceOf[Map[String, AnyRef]]
             }
@@ -118,13 +118,13 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
             }.filter(f => f._1 == (true)).length.toLong
             val percentNewUsersCount = if (newUserCount == 0 || uniqueUsersCount == 0) 0d else BigDecimal((newUserCount / (uniqueUsersCount * 1d)) * 100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
-            PortalUsageOutput(f.period, "all", date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount)
+            PortalUsageOutput(f.period, "all", appId, date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount)
         } ++ authorSpecificUsage;
     }
 
     override def postProcess(data: RDD[PortalUsageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { usageSumm =>
-            val mid = CommonUtil.getMessageId("ME_PORTAL_USAGE_SUMMARY", usageSumm.author_id, "DAY", usageSumm.dtRange);
+            val mid = CommonUtil.getMessageId("ME_APP_USAGE_SUMMARY", usageSumm.author_id, "DAY", usageSumm.dtRange);
             val measures = Map(
                 "anonymous_total_sessions" -> usageSumm.anonymous_total_sessions,
                 "anonymous_total_ts" -> usageSumm.anonymous_total_ts,
@@ -140,9 +140,9 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 "anonymous_avg_session_ts" -> usageSumm.anonymous_avg_session_ts,
                 "new_user_count" -> usageSumm.new_user_count,
                 "percent_new_users_count" -> usageSumm.percent_new_users_count);
-            MeasuredEvent("ME_PORTAL_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "PortalUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, Option(usageSumm.author_id), None, None, None),
+                Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, Option(usageSumm.author_id), None, None, Option(usageSumm.app_id)),
                 MEEdata(measures), None);
         }
     }

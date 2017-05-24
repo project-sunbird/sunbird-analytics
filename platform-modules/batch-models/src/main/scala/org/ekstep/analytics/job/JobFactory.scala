@@ -137,7 +137,7 @@ object JobFactory {
             	PortalSessionSummarizer;
             case "obj-cache-updater" =>
             	AppObjectCacheUpdater
-            case "portal-usage" =>
+            case "app-usage" =>
             	PortalUsageSummarizer;
             case "publish-pipeline-summarizer" =>
             	PublishPipelineSummarizer;
