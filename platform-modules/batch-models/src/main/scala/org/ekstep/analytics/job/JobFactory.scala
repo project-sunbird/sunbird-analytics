@@ -127,6 +127,8 @@ object JobFactory {
                 ConceptSnapshotUpdater
             case "ce-ss" =>
                 ContentEditorSessionSummarizer
+            case "ce-us" =>
+                ContentEditorUsageSummarizer
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
             case "textbook-snapshot-updater" =>
