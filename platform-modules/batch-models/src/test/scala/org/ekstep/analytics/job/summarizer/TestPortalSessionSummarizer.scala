@@ -7,11 +7,11 @@ import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.JSONUtils
 
-class TestPortalSessionsummarizer extends SparkSpec(null) {
+class TestPortalSessionSummarizer extends SparkSpec(null) {
   
-    "PortalSessionsummarizer" should "execute PortalSessionsummarizer job and won't throw any Exception" in {
+    "PortalSessionSummarizer" should "execute PortalSessionSummarizer job and won't throw any Exception" in {
 
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/portal-session-summary/test_data_1.log"))))), null, null, "org.ekstep.analytics.model.PortalSessionSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestPortalSessionSummarizer"), Option(true))
-        PortalSessionsummarizer.main(JSONUtils.serialize(config))(Option(sc));
+        PortalSessionSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
 }

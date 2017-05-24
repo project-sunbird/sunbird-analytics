@@ -23,13 +23,16 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 
-case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Int, board: String, medium: String, domain: String) extends AlgoOutput with Output
+case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String) extends AlgoOutput with Output
 
 /**
- * @author mahesh
+ * @author Mahesh Kumar Gangula
+ * @dataproduct
+ * @Updater
+ * 
  */
 
-object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, TextbookSnapshotSummary, TextbookSnapshotSummary] with Serializable {
+object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, TextbookSnapshotSummary, TextbookSnapshotSummary] with IInfluxDBUpdater with Serializable {
 
 	val className = "org.ekstep.analytics.updater.UpdateTextbookSnapshotDB";
 	override def name: String = "UpdateTextbookSnapshotDB";
@@ -53,10 +56,12 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			val board = f._2.getOrElse("board", noValue).toString();
 			val medium = f._2.getOrElse("medium", noValue).toString();
 			val textbookunitCount = f._2.getOrElse("textbookunit_count", 0L).asInstanceOf[Number].longValue();
+			val creatorsCount = f._2.getOrElse("creators_count", 0).asInstanceOf[Number].longValue();
 			val contentCount = f._2.getOrElse("content_count", 0L).asInstanceOf[Number].longValue();
-			val contentTypes = List(); //f._2.getOrElse("content_types", List()).asInstanceOf[Collections].asInstanceOf[List[String]];
+			val contentTypes = f._2.getOrElse("content_types", List()).asInstanceOf[java.util.List[String]].asScala.toList;
 			val avgContent = if (textbookunitCount == 0) 0 else contentCount/textbookunitCount;
-			TextbookSnapshotSummary(ts, f._1, status, authorId, contentCount, textbookunitCount, avgContent, contentTypes, 0, 0, board, medium, noValue);
+			// TODO: We need to add ts.
+			TextbookSnapshotSummary(ts, f._1, status, authorId, contentCount, textbookunitCount, avgContent, contentTypes, 0, creatorsCount, board, medium);
 		}
 	}
 
@@ -67,7 +72,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			snapshotRDD.map { x => 
 				periodsList.map { period => 
 					val ts = CommonUtil.getPeriod(DateTime.now(), period);
-					TextbookSnapshotSummary(ts, x.d_textbook_id, x.status, x.author_id, x.content_count, x.textbookunit_count, x.avg_content, x.content_types, x.total_ts, x.creators_count, x.board, x.medium, x.domain);
+					TextbookSnapshotSummary(ts, x.d_textbook_id, x.status, x.author_id, x.content_count, x.textbookunit_count, x.avg_content, x.content_types, x.total_ts, x.creators_count, x.board, x.medium);
 				};
 			}.flatMap { x => x };
 		} else {
@@ -106,21 +111,6 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			InfluxRecord(tags, fields, time._1);
 		}
 		InfluxDBDispatcher.dispatch(TEXTBOOK_SNAPSHOT_METRICS, influxRDD);
-	}
-	
-	
-	// TODO: Generalise this method. IMP.
-	private def getDateTime(periodVal: Int): (DateTime, String) = {
-		val period = periodVal.toString();
-		period.size match {
-			case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
-			case 7 =>
-				val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
-				val firstDay = weekPeriodLabel.parseDateTime(week)
-				val lastDay = firstDay.plusDays(6);
-				(lastDay.withTimeAtStartOfDay(), "week");
-			case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
-		}
 	}
 
 }

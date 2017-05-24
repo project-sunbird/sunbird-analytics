@@ -50,13 +50,13 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorE
                     val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
                     val timeSpent = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Double]
                     val ce_visits = eksMap.getOrElse("ce_visits", 0L).asInstanceOf[Number].longValue()
-                    val envSumm = eksMap.get("env_summary").get.asInstanceOf[List[Map[String, AnyRef]]].filter { x =>( x.getOrElse("env", "").equals("content-editor")) }
+                    val envSumm = eksMap.get("env_summary").get.asInstanceOf[List[Map[String, AnyRef]]].filter { x => (x.getOrElse("env", "").equals("content-editor")) }
                     envSumm.foreach { x => println(JSONUtils.serialize(x)) }
                     PortalSessionMetrics(timeSpent, ce_visits, envSumm)
                 }
 
                 val totalTS = metrics.map { x => x.time_spent }.sum
-                val ceTotalTS = metrics.map { x => x.env_summary.map{x=> x.getOrElse("time_spent", 0.0).asInstanceOf[Double]}}.flatMap { x => x }.sum
+                val ceTotalTS = metrics.map { x => x.env_summary.map { x => x.getOrElse("time_spent", 0.0).asInstanceOf[Double] } }.flatMap { x => x }.sum
                 val ceTotalVisits = metrics.map { x => x.ce_visits }.sum
                 val cePercentSession = (ceTotalVisits * 1.0 / totalSessions) * 100
                 val avgSessionTS = totalTS / totalSessions
