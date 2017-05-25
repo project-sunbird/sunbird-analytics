@@ -32,7 +32,7 @@ case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, users_count
  * 1. Update content editor usage summary per day, week, month & cumulative metrics in Cassandra DB.
  * Event used - ME_CE_USAGE_SUMMARY
  */
-object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, CEUsageSummaryFact, CEUsageSummaryIndex] with Serializable with IInfluxDBUpdater{
+object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, CEUsageSummaryFact, CEUsageSummaryIndex] with Serializable with IInfluxDBUpdater {
 
     val className = "org.ekstep.analytics.updater.UpdateContentEditorMetricsDB"
     override def name: String = "UpdateContentEditorMetricsDB"
@@ -53,7 +53,7 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
             val total_sessions = eksMap.get("total_sessions").get.asInstanceOf[Number].longValue()
             val total_ts = eksMap.get("total_ts").get.asInstanceOf[Double]
             val avg_time_spent = eksMap.get("avg_time_spent").get.asInstanceOf[Double]
-            
+
             CEUsageSummaryFact_T(period, x.dimensions.content_id.get, users_count, total_sessions, total_ts, avg_time_spent, x.context.date_range.to);
         }.cache();
 
@@ -98,18 +98,17 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
         val users_count = fact2.users_count + fact1.users_count
         val total_ts = CommonUtil.roundDouble(fact2.total_ts + fact1.total_ts, 2);
         val total_sessions = fact2.total_sessions + fact1.total_sessions
-        val avg_time_spent = if(!"all".equals(fact1.d_content_id)) 0.0 else CommonUtil.roundDouble((total_ts / total_sessions), 2);
+        val avg_time_spent = CommonUtil.roundDouble((total_ts / total_sessions), 2);
 
         CEUsageSummaryFact(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_time_spent, System.currentTimeMillis());
     }
-    
+
     private def saveToInfluxDB(data: RDD[CEUsageSummaryFact]) {
-    	val metrics = data.filter { x => x.d_period != 0 }map { x =>
-			val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_content_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
-			val time = getDateTime(x.d_period);
-			InfluxRecord(Map("period" -> time._2, "content_id" -> x.d_content_id), fields, time._1);
-		};
-		InfluxDBDispatcher.dispatch(CE_USAGE_METRICS, metrics);
+        val metrics = data.filter { x => x.d_period != 0 } map { x =>
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_content_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val time = getDateTime(x.d_period);
+            InfluxRecord(Map("period" -> time._2, "content_id" -> x.d_content_id), fields, time._1);
+        };
+        InfluxDBDispatcher.dispatch(CE_USAGE_METRICS, metrics);
     }
- 
 }
