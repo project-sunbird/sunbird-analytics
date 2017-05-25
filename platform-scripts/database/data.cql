@@ -440,6 +440,28 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
     PRIMARY KEY (d_period, d_content_id)
 );
 
+CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
+    d_period int,
+    d_author_id text,
+    d_app_id text,
+    anonymous_total_sessions bigint,
+    anonymous_total_ts double,
+    total_sessions bigint,
+    total_ts double,
+    ce_total_sessions bigint,
+    ce_percent_sessions double,
+    total_pageviews_count bigint,
+    unique_users blob,
+    unique_users_count bigint,
+    avg_pageviews double,
+    avg_session_ts double,
+    anonymous_avg_session_ts double,
+    new_user_count bigint,
+    percent_new_users_count double,
+    last_updated_on timestamp,
+    PRIMARY KEY (d_period, d_author_id, d_app_id)
+);
+
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 

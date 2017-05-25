@@ -128,6 +128,8 @@ object JobFactory {
                 ContentEditorSessionSummarizer
             case "ce-us" =>
                 ContentEditorUsageSummarizer
+            case "ce-usage-updater" =>
+                ContentEditorUsageUpdater
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
             case "textbook-snapshot-updater" =>
@@ -140,10 +142,10 @@ object JobFactory {
                 TextbookSessionSummarizer
             case "author-usage-summary" =>
                 AuthorUsageSummarizer
-            case "portal-usage" =>
-                PortalUsageSummarizer;
             case "app-usage" =>
                 PortalUsageSummarizer;
+            case "app-usage-updater" =>
+            	PortalUsageUpdater;
             case "publish-pipeline-summarizer" =>
                 PublishPipelineSummarizer;
             case _ =>
