@@ -18,6 +18,17 @@ case class AuthorMetrics(period: Int, uid: String, total_session: Long, total_ti
 case class AuthorEvents(uid: String, events: Buffer[DerivedEvent]) extends AlgoInput
 case class PortalSessionMetrics(time_spent: Double, ce_visits: Long, env_summary: List[Map[String, AnyRef]])
 
+/**
+ * @dataproduct
+ * @Summarizer
+ *
+ * AuthorUsageSummaryModel
+ *
+ * Functionality
+ * 1. Generate Author usage summary events per day. This would be used to compute total sessions,total time spent, avg session time stamp etc.. per author based on day.
+ * Event used - ME_AUTHOR_USAGE_SUMMARY
+ */
+
 object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorEvents, AuthorMetrics, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.AuthorUsageSummaryModel"
@@ -30,7 +41,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorE
 
         data.filter { x =>
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
-            val ce_visits = eksMap.get("ce_visits").get.asInstanceOf[Number].longValue()
+            val ce_visits = eksMap.getOrElse("ce_visits", 0L).asInstanceOf[Number].longValue()
             ce_visits > 0
         }.map { x => (x.uid, Buffer(x)) }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x => AuthorEvents(x._1, x._2) }
@@ -48,15 +59,14 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorE
 
                 val metrics = events.map { x =>
                     val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
-                    val timeSpent = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Double]
+                    val timeSpent = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Number].doubleValue()
                     val ce_visits = eksMap.getOrElse("ce_visits", 0L).asInstanceOf[Number].longValue()
                     val envSumm = eksMap.get("env_summary").get.asInstanceOf[List[Map[String, AnyRef]]].filter { x => (x.getOrElse("env", "").equals("content-editor")) }
-                    envSumm.foreach { x => println(JSONUtils.serialize(x)) }
                     PortalSessionMetrics(timeSpent, ce_visits, envSumm)
                 }
 
                 val totalTS = metrics.map { x => x.time_spent }.sum
-                val ceTotalTS = metrics.map { x => x.env_summary.map { x => x.getOrElse("time_spent", 0.0).asInstanceOf[Double] } }.flatMap { x => x }.sum
+                val ceTotalTS = metrics.map { x => x.env_summary.map { x => x.getOrElse("time_spent", 0.0).asInstanceOf[Number].doubleValue() } }.flatMap { x => x }.sum
                 val ceTotalVisits = metrics.map { x => x.ce_visits }.sum
                 val cePercentSession = (ceTotalVisits * 1.0 / totalSessions) * 100
                 val avgSessionTS = totalTS / totalSessions
@@ -73,7 +83,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorE
 
     override def postProcess(data: RDD[AuthorMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_AUTHOR_USAGE_SUMMARY", summary.period.toString(), config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dt_range.to);
+            val mid = CommonUtil.getMessageId("ME_AUTHOR_USAGE_SUMMARY", summary.period.toString() + summary.uid, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dt_range.to);
             val measures = Map(
                 "total_session" -> summary.total_session,
                 "total_ts" -> summary.total_time,

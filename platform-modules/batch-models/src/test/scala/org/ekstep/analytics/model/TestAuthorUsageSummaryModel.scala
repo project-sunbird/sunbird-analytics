@@ -66,13 +66,14 @@ class TestAuthorUsageSummaryModel extends SparkSpec(null) {
         val rdd3 = loadData()
         rdd3.count() should be(2)
     }
+    
     it should "return different time spents for two different period events " in {
         val rdd3 = loadData()
         val events = rdd3.collect
         val event3 = events(0).edata.eks.asInstanceOf[Map[String, AnyRef]]
         val event4 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event3.get("total_ts").get.asInstanceOf[Double] should be(17.72)
-        event4.get("total_ts").get.asInstanceOf[Double] should be(874.8)
+        event3.get("total_ts").get.asInstanceOf[Double] should be(874.8)
+        event4.get("total_ts").get.asInstanceOf[Double] should be(17.72)
     }
 
     def loadData(): RDD[MeasuredEvent] = {
