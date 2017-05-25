@@ -24,7 +24,7 @@ case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, m_users_cou
  * @dataproduct
  * @Updater
  *
- * UpdateContentEditorMetricsDB
+ * UpdateContentEditorUsageDB
  *
  * Functionality
  * 1. Update content editor usage summary per day, week, month & cumulative metrics in Cassandra DB.
