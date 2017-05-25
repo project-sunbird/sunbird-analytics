@@ -141,6 +141,8 @@ object JobFactory {
             	AppObjectCacheUpdater
             case "app-usage" =>
             	PortalUsageSummarizer;
+            case "app-usage-updater" =>
+            	PortalUsageUpdater;
             case "publish-pipeline-summarizer" =>
             	PublishPipelineSummarizer;
             case _ =>
