@@ -33,7 +33,8 @@ case class PipelineSummaryOutput(
 object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, EventsByPeriod, PipelineSummaryOutput, MeasuredEvent] with Serializable {
 
   implicit val className = "org.ekstep.analytics.model.PublishPipelineSummaryModel"
-
+  override def name: String =  "PublishPipelineSummaryModel"
+  
   override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsByPeriod] = {
     JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE")
     val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE")))));

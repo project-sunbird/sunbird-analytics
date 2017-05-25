@@ -142,6 +142,8 @@ object JobFactory {
                 AuthorUsageSummarizer
             case "portal-usage" =>
                 PortalUsageSummarizer;
+            case "app-usage" =>
+                PortalUsageSummarizer;
             case "publish-pipeline-summarizer" =>
                 PublishPipelineSummarizer;
             case _ =>
