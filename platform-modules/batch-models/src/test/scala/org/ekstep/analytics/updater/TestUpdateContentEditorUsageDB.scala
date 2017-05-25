@@ -11,7 +11,7 @@ import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 
-class TestContentEditorUsageDB extends SparkSpec(null) {
+class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
     
     // TODO: Enhance Test Cases with real time data. 
     "UpdateContentEditorMetricsDB" should "update the content editor usage db and check the fields" in {
