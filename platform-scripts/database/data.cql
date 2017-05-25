@@ -458,7 +458,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     anonymous_avg_session_ts double,
     new_user_count bigint,
     percent_new_users_count double,
-    last_updated_on timestamp,
+    updated_date timestamp,
     PRIMARY KEY (d_period, d_author_id, d_app_id)
 );
 
