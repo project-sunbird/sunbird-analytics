@@ -11,14 +11,16 @@ import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 
 /**
  * Case class for Cassandra Models
  */
-case class CEUsageSummaryFact(d_period: Int, d_content_id: String, m_users_count: Long, m_total_sessions: Long, m_total_ts: Double, m_avg_time_spent: Double, m_last_updated_on: Long) extends AlgoOutput
+case class CEUsageSummaryFact(d_period: Int, d_content_id: String, users_count: Long, total_sessions: Long, total_ts: Double, avg_time_spent: Double, updated_date: Long) extends AlgoOutput
 case class CEUsageSummaryIndex(d_period: Int, d_content_id: String) extends Output
 
-case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, m_users_count: Long, m_total_sessions: Long, m_total_ts: Double, m_avg_time_spent: Double, m_last_gen_date: Long) extends AlgoOutput
+case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, users_count: Long, total_sessions: Long, total_ts: Double, avg_time_spent: Double, last_gen_date: Long) extends AlgoOutput
 
 /**
  * @dataproduct
@@ -30,10 +32,11 @@ case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, m_users_cou
  * 1. Update content editor usage summary per day, week, month & cumulative metrics in Cassandra DB.
  * Event used - ME_CE_USAGE_SUMMARY
  */
-object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, CEUsageSummaryFact, CEUsageSummaryIndex] with Serializable {
+object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, CEUsageSummaryFact, CEUsageSummaryIndex] with Serializable with IInfluxDBUpdater{
 
     val className = "org.ekstep.analytics.updater.UpdateContentEditorMetricsDB"
     override def name: String = "UpdateContentEditorMetricsDB"
+    val CE_USAGE_METRICS = "ce_usage_metrics"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         DataFilter.filter(data, Filter("eid", "EQ", Option("ME_CE_USAGE_SUMMARY")));
@@ -61,14 +64,15 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
     override def postProcess(data: RDD[CEUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CEUsageSummaryIndex] = {
         // Update the database
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY)
+        saveToInfluxDB(data)
         data.map { x => CEUsageSummaryIndex(x.d_period, x.d_content_id) };
     }
 
     private def rollup(data: RDD[CEUsageSummaryFact_T], period: Period): RDD[CEUsageSummaryFact] = {
 
         val currentData = data.map { x =>
-            val d_period = CommonUtil.getPeriod(x.m_last_gen_date, period);
-            (CEUsageSummaryIndex(d_period, x.d_content_id), CEUsageSummaryFact_T(d_period, x.d_content_id, x.m_users_count, x.m_total_sessions, x.m_total_ts, x.m_avg_time_spent, x.m_last_gen_date));
+            val d_period = CommonUtil.getPeriod(x.last_gen_date, period);
+            (CEUsageSummaryIndex(d_period, x.d_content_id), CEUsageSummaryFact_T(d_period, x.d_content_id, x.users_count, x.total_sessions, x.total_ts, x.avg_time_spent, x.last_gen_date));
         }.reduceByKey(reduceCEUS);
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id"));
         val joinedData = currentData.leftOuterJoin(prvData)
@@ -82,20 +86,30 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
     }
 
     private def reduceCEUS(fact1: CEUsageSummaryFact_T, fact2: CEUsageSummaryFact_T): CEUsageSummaryFact_T = {
-        val users_count = fact2.m_users_count + fact1.m_users_count;
-        val total_ts = CommonUtil.roundDouble(fact2.m_total_ts + fact1.m_total_ts, 2);
-        val total_sessions = fact2.m_total_sessions + fact1.m_total_sessions
+        val users_count = fact2.users_count + fact1.users_count;
+        val total_ts = CommonUtil.roundDouble(fact2.total_ts + fact1.total_ts, 2);
+        val total_sessions = fact2.total_sessions + fact1.total_sessions
         val avg_time_spent = CommonUtil.roundDouble((total_ts / total_sessions), 2);
 
-        CEUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_time_spent, fact2.m_last_gen_date);
+        CEUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_time_spent, fact2.last_gen_date);
     }
 
     private def reduce(fact1: CEUsageSummaryFact, fact2: CEUsageSummaryFact_T, period: Period): CEUsageSummaryFact = {
-        val users_count = fact2.m_users_count + fact1.m_users_count
-        val total_ts = CommonUtil.roundDouble(fact2.m_total_ts + fact1.m_total_ts, 2);
-        val total_sessions = fact2.m_total_sessions + fact1.m_total_sessions
+        val users_count = fact2.users_count + fact1.users_count
+        val total_ts = CommonUtil.roundDouble(fact2.total_ts + fact1.total_ts, 2);
+        val total_sessions = fact2.total_sessions + fact1.total_sessions
         val avg_time_spent = if(!"all".equals(fact1.d_content_id)) 0.0 else CommonUtil.roundDouble((total_ts / total_sessions), 2);
 
         CEUsageSummaryFact(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_time_spent, System.currentTimeMillis());
     }
+    
+    private def saveToInfluxDB(data: RDD[CEUsageSummaryFact]) {
+    	val metrics = data.filter { x => x.d_period != 0 }map { x =>
+			val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_content_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+			val time = getDateTime(x.d_period);
+			InfluxRecord(Map("period" -> time._2, "content_id" -> x.d_content_id), fields, time._1);
+		};
+		InfluxDBDispatcher.dispatch(CE_USAGE_METRICS, metrics);
+    }
+ 
 }

@@ -432,11 +432,11 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
 CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
     d_period int,
     d_content_id text,
-    m_users_count bigint, 
-    m_total_sessions bigint,
-    m_total_ts double,
-    m_avg_time_spent bigint,
-    m_last_updated_on timestamp,
+    users_count bigint, 
+    total_sessions bigint,
+    total_ts double,
+    avg_time_spent bigint,
+    updated_date timestamp,
     PRIMARY KEY (d_period, d_content_id)
 );
 

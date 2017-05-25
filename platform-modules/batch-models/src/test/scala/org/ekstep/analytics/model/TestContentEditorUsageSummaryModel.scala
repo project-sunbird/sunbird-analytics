@@ -1,3 +1,6 @@
+/**
+ * @author Jitendra Singh Sankhwar
+ */
 package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework.util.JSONUtils
