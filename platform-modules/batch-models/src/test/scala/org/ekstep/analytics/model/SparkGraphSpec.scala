@@ -77,7 +77,7 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 	}
 	
     def loadGraphData(file: String = testDataPath + "datanodes.json") {
-        println("Preparing Test Graph using:"+ file);
+        println("Preparing Test Graph Using: "+ file);
         val nodes = sc.textFile(file, 1);
         val queries = List("MATCH (n) DETACH DELETE n") ++ nodes.map { x => s"CREATE (n:domain $x) return n" }.collect().toList ++
             List("MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r");

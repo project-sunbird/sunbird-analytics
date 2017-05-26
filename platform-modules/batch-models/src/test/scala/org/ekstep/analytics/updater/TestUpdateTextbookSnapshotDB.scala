@@ -11,7 +11,7 @@ import org.ekstep.analytics.framework.DerivedEvent
 import org.joda.time.DateTimeUtils
 
 /**
- * @author mahesh
+ * @author Mahesh Kumar Gangula
  */
 
 class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {

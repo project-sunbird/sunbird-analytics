@@ -23,7 +23,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 
-case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String) extends AlgoOutput with Output
+case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String, updated_date: DateTime) extends AlgoOutput with Output
 
 /**
  * @author Mahesh Kumar Gangula
@@ -50,6 +50,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 		val contentRDD = getQueryResultRDD(CypherQueries.TEXTBOOK_SNAPSHOT_CONTENT_COUNT);
 		val resultRDD = bookUnitRDD.map(f => (f.get("identifier").get.toString(), f))
 			.union(contentRDD.map(f => (f.get("identifier").get.toString(), f))).groupByKey().map(f => (f._1, f._2.reduce((a,b) => a ++ b)))
+		val updatedAt = DateTime.now();
 		resultRDD.map { f => 
 			val status = f._2.getOrElse("status", noValue).toString();
 			val authorId = f._2.getOrElse("author_id", noValue).toString();
@@ -61,7 +62,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			val contentTypes = f._2.getOrElse("content_types", List()).asInstanceOf[java.util.List[String]].asScala.toList;
 			val avgContent = if (textbookunitCount == 0) 0 else contentCount/textbookunitCount;
 			// TODO: We need to add ts.
-			TextbookSnapshotSummary(ts, f._1, status, authorId, contentCount, textbookunitCount, avgContent, contentTypes, 0, creatorsCount, board, medium);
+			TextbookSnapshotSummary(ts, f._1, status, authorId, contentCount, textbookunitCount, avgContent, contentTypes, 0, creatorsCount, board, medium, updatedAt);
 		}
 	}
 
@@ -72,7 +73,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			snapshotRDD.map { x => 
 				periodsList.map { period => 
 					val ts = CommonUtil.getPeriod(DateTime.now(), period);
-					TextbookSnapshotSummary(ts, x.d_textbook_id, x.status, x.author_id, x.content_count, x.textbookunit_count, x.avg_content, x.content_types, x.total_ts, x.creators_count, x.board, x.medium);
+					TextbookSnapshotSummary(ts, x.d_textbook_id, x.status, x.author_id, x.content_count, x.textbookunit_count, x.avg_content, x.content_types, x.total_ts, x.creators_count, x.board, x.medium, x.updated_date);
 				};
 			}.flatMap { x => x };
 		} else {
@@ -106,8 +107,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			val time = getDateTime(f.d_period);
 			val tags = Map("textbook_id" -> f.d_textbook_id, "period" -> time._2);
 			val map = CommonUtil.caseClassToMap(f)
-			val fields = map - ("d_textbook_id", "d_period", "content_types") ++ Map("content_types" -> f.content_types.mkString(","));
-			
+			val fields = map - ("d_textbook_id", "d_period", "content_types", "updated_date") ++ Map("content_types" -> f.content_types.mkString(","));
 			InfluxRecord(tags, fields, time._1);
 		}
 		InfluxDBDispatcher.dispatch(TEXTBOOK_SNAPSHOT_METRICS, influxRDD);

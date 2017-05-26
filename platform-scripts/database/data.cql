@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS learner_db.learnersnapshot (
 	sess_end_time timestamp,
 	dp_start_time timestamp,
 	dp_end_time timestamp,
+	updated_date timestamp,
 	PRIMARY KEY (learner_id)
 );
 
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS learner_db.learnerproficiency(
 	start_time timestamp,
 	end_time timestamp,
 	model_params map<text,text>,
+	updated_date timestamp,
 	PRIMARY KEY (learner_id)
 );
 
@@ -38,12 +40,14 @@ CREATE TABLE IF NOT EXISTS learner_db.learnercontentsummary(
 	time_spent double,
 	interactions_per_min double,
 	num_of_sessions_played int,
+	updated_date timestamp,
 	PRIMARY KEY (learner_id,content_id)
 );
 
 CREATE TABLE IF NOT EXISTS learner_db.learnerconceptrelevance(
 	learner_id text,
 	relevance map<text,double>,
+	updated_date timestamp,
 	PRIMARY KEY (learner_id)
 );
 
@@ -52,6 +56,7 @@ CREATE TABLE IF NOT EXISTS learner_db.conceptsimilaritymatrix (
 	concept2 text,
 	relation_type text,
 	sim double,
+	updated_date timestamp,
 	PRIMARY KEY (concept1, concept2)
 );
 
@@ -88,6 +93,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_cumulative_summary (
 	ts_week double,
 	content_type text,
 	mime_type text,
+	updated_date timestamp,
 	PRIMARY KEY (content_id)
 );
 
@@ -95,6 +101,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_usage_metrics (
 	id text, 
 	top_k_timespent map<text,double>,
 	top_k_sessions map<text,bigint>,
+	updated_date timestamp,
 	PRIMARY KEY (id)
 );
 
@@ -113,6 +120,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_usage_summary_fact (
     m_avg_ts_session double,
     m_total_interactions bigint,
     m_avg_interactions_min double,
+    updated_date timestamp,
     PRIMARY KEY (d_period, d_tag, d_content_id)
 );
 
@@ -125,6 +133,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_popularity_summary_fact (
 	m_comments list<frozen <tuple<text, timestamp>>>,
 	m_ratings list<frozen <tuple<double, timestamp>>>,
 	m_avg_rating double,
+	updated_date timestamp,
 	PRIMARY KEY (d_period, d_tag, d_content_id)
 );
 
@@ -142,6 +151,7 @@ CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
 	m_top5_incorrect_res list<frozen <tuple<text, list<text>, int>>>,
 	m_top5_mmc list<frozen <tuple<text, int>>>,
 	m_avg_ts double,
+	updated_date timestamp,
 	PRIMARY KEY (d_period, d_tag, d_content_id, d_item_id)
 );
 
@@ -155,6 +165,7 @@ CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
 	m_avg_sess_device bigint,
 	m_avg_ts_session double,
 	m_contents list<text>,
+	updated_date timestamp,
 	PRIMARY KEY (d_period, d_tag)
 );
 
@@ -165,6 +176,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
     num_sideloads bigint,
     origin_map map<text,double>,
     avg_depth double,
+    updated_date timestamp,
     PRIMARY KEY (content_id)
 );
 
@@ -172,12 +184,14 @@ CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
 	content_id text,
 	text_vec list<double>,
 	tag_vec list<double>,
+	updated_date timestamp,
 	PRIMARY KEY (content_id)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.content_recos(
     content_id text,
     scores list<frozen <tuple<text, double>>>,
+    updated_date timestamp,
     PRIMARY KEY (content_id)
 );
 
@@ -202,6 +216,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
     live_content_count_start bigint,
     review_content_count bigint,
     review_content_count_start bigint,
+    updated_date timestamp,
     PRIMARY KEY (d_period, d_author_id, d_partner_id)
 );
 
@@ -214,6 +229,7 @@ CREATE TABLE IF NOT EXISTS content_db.concept_snapshot_summary (
     live_content_count_start bigint,
     review_content_count bigint,
     review_content_count_start bigint,
+    updated_date timestamp,
     PRIMARY KEY (d_period, d_concept_id)
 );
 
@@ -240,6 +256,7 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	total_templates_count_start bigint,
 	used_templates_count bigint,
 	used_templates_count_start bigint,
+	updated_date timestamp,
 	PRIMARY KEY (d_period, d_partner_id)
 );
 
@@ -251,6 +268,7 @@ CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
 CREATE TABLE IF NOT EXISTS device_db.device_recos(
 	device_id text,
 	scores list<frozen <tuple<text, double>>>,
+	updated_date timestamp,
 	PRIMARY KEY (device_id)
 );
 
@@ -268,6 +286,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_specification (
 	cpu text,
 	num_sims double,
 	capabilities list<text>,
+	updated_date timestamp,
 	PRIMARY KEY (device_id)
 );
 
@@ -288,6 +307,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (
     mean_play_time double,
     mean_play_time_interval double,
     last_played_content text,
+    updated_date timestamp,
     PRIMARY KEY (device_id)
 );
 
@@ -306,6 +326,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
     download_date timestamp,
     num_group_user bigint,
     num_individual_user bigint,
+    updated_date timestamp,
     PRIMARY KEY (device_id, content_id)
 );
 
@@ -357,6 +378,7 @@ CREATE TYPE IF NOT EXISTS platform_db.requests(
 CREATE TABLE IF NOT EXISTS platform_db.request_recos(
     uid text,
     requests list<frozen<requests>>,
+    updated_date timestamp,
     PRIMARY KEY (uid)
 );
 
@@ -494,6 +516,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	creators_count bigint,
 	board text,
 	medium text,
+	updated_date timestamp,
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 

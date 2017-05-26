@@ -16,18 +16,22 @@ import org.apache.commons.lang3.StringUtils
  */
 class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 	override def beforeAll() {
-		System.setProperty("cassandra.unsafesystem", "true");
-		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-		val connector = CassandraConnector(getSparkConf());
-		val session = connector.openSession();
-		val dataLoader = new CQLDataLoader(session);
-		dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
-		dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.lp_cql_path"), true, true));
+		if (embeddedCassandraMode) {
+			System.setProperty("cassandra.unsafesystem", "true");
+			EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+			val connector = CassandraConnector(getSparkConf());
+			val session = connector.openSession();
+			val dataLoader = new CQLDataLoader(session);
+			dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
+			dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.lp_cql_path"), true, true));
+		}
 	}
 
 	override def afterAll() {
-		EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-		EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+		if (embeddedCassandraMode) {
+			EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+			EmbeddedCassandraServerHelper.stopEmbeddedCassandra()	
+		}
 	}
 
 	private def getSparkConf(): SparkConf = {
