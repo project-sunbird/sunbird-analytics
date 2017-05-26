@@ -72,8 +72,8 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 		StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
 	}
 	
-	def loadCassandraData(keyspace: String, table: String, file: String) {
-	    DBUtil.importContentData(keyspace, table, file);
+	def loadCassandraData(keyspace: String, table: String, file: String, text_delimiter: String = ",") {
+	    DBUtil.importContentData(keyspace, table, file, text_delimiter);
 	}
 	
     def loadGraphData(file: String = testDataPath + "datanodes.json") {

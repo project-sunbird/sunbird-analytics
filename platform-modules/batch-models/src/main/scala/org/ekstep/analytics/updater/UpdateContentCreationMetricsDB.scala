@@ -17,7 +17,7 @@ import org.ekstep.analytics.util.CypherQueries
 import org.ekstep.analytics.framework.Output
 
 case class ContentPluginAsset(content_id: String, plugins: List[String], assets: List[String]) extends AlgoInput
-case class ContentCreationMetrics(d_content_id: String, tags: Int, images: Int, audios: Int, videos: Int, plugin_metrics: Map[String, Int], live_times: Int) extends AlgoOutput with Output
+case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int,images_count: Int,audios_count: Int,videos_count: Int,plugin_metrics: Map[String, Int],time_spent_draft: Double,time_spent_review: Double,time_spent_live: Double,pkg_version: Int,updated_date: Long) extends AlgoOutput with Output
 
 object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, ContentPluginAsset, ContentCreationMetrics, ContentCreationMetrics] with Serializable {
 
@@ -46,7 +46,13 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, Content
             val content = x.content_id
             val tags = contentTagCountMap.getOrElse(content, 0)
             val liveCount = contentLivesCountMap.getOrElse(content, 0)
-            ContentCreationMetrics(x.content_id, tags, assetMetrics.getOrElse("image", 0), assetMetrics.getOrElse("sound", 0) + assetMetrics.getOrElse("audiosprite", 0), assetMetrics.getOrElse("video", 0), pluginMetrics, liveCount)
+            
+            // TODO: Mahesh will implement this
+            val timeSpentDraft = 0.0
+            val timeSpentReview = 0.0
+            val timeSpentLive = 0.0
+            
+            ContentCreationMetrics(x.content_id, 0, tags, assetMetrics.getOrElse("image", 0), assetMetrics.getOrElse("sound", 0) + assetMetrics.getOrElse("audiosprite", 0), assetMetrics.getOrElse("video", 0), pluginMetrics, timeSpentDraft, timeSpentReview, timeSpentLive, liveCount, System.currentTimeMillis())
         }
     }
     override def postProcess(data: RDD[ContentCreationMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {
