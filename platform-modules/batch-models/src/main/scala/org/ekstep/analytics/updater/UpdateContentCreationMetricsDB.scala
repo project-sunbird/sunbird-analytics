@@ -14,11 +14,12 @@ import org.ekstep.analytics.util.ContentData
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.util.CypherQueries
+import org.ekstep.analytics.framework.Output
 
 case class ContentPluginAsset(content_id: String, plugins: List[String], assets: List[String]) extends AlgoInput
-case class ContentCreationMetrics(d_content_id: String, tags: Int, images: Int, audios: Int, videos: Int, plugin_metrics: Map[String, Int], live_times: Int) extends AlgoOutput
+case class ContentCreationMetrics(d_content_id: String, tags: Int, images: Int, audios: Int, videos: Int, plugin_metrics: Map[String, Int], live_times: Int) extends AlgoOutput with Output
 
-object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, ContentPluginAsset, ContentCreationMetrics, Empty] with Serializable {
+object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, ContentPluginAsset, ContentCreationMetrics, ContentCreationMetrics] with Serializable {
 
     override def name(): String = "UpdateContentCreationMetricsDB";
     implicit val className = "org.ekstep.analytics.updater.UpdateContentCreationMetricsDB";
@@ -48,9 +49,9 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[Empty, Content
             ContentCreationMetrics(x.content_id, tags, assetMetrics.getOrElse("image", 0), assetMetrics.getOrElse("sound", 0) + assetMetrics.getOrElse("audiosprite", 0), assetMetrics.getOrElse("video", 0), pluginMetrics, liveCount)
         }
     }
-    override def postProcess(data: RDD[ContentCreationMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
+    override def postProcess(data: RDD[ContentCreationMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE);
-        sc.makeRDD(Seq(Empty()));
+        data;
     }
 
     private def parseECMLContent(contentId: String, body: String): ContentPluginAsset = {

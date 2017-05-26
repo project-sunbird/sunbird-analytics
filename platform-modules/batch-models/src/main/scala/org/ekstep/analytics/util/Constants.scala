@@ -43,6 +43,7 @@ object Constants {
     val CONTENT_CREATION_TABLE = "content_creation_metrics_fact";
     val CE_USAGE_SUMMARY = "ce_usage_summary_fact";
     val APP_USAGE_SUMMARY_FACT = "app_usage_summary_fact";
+    val AUTHOR_USAGE_METRICS_FACT = "author_usage_metrics_fact"
     
     /* Creation tables and keyspaces */
     val CREATION_KEY_SPACE_NAME = "creation_db";
