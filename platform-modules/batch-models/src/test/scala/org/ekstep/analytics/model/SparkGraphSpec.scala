@@ -35,8 +35,10 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 			sys.addShutdownHook {
 				graphDb.shutdown();
 			}
-			DBUtil.importContentData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, testDataPath + "content_data.csv")
-			prepareTestGraph(graphDb);
+			loadGraphData();
+			// TODO: Remove this call after invoking this from the related Test file.
+			loadCassandraData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, testDataPath + "content_data.csv")
+			
 		}
 	}
 
@@ -69,12 +71,16 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 		val isEmbedded = AppConf.getConfig("graph.service.embedded.enable");
 		StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
 	}
-
-    private def prepareTestGraph(graphDb: GraphDatabaseService) {
-        println("Preparing Test Graph");
-        val nodes = sc.textFile(testDataPath + "datanodes.json", 1);
+	
+	def loadCassandraData(keyspace: String, table: String, file: String) {
+	    DBUtil.importContentData(keyspace, table, file);
+	}
+	
+    def loadGraphData(file: String = testDataPath + "datanodes.json") {
+        println("Preparing Test Graph using:"+ file);
+        val nodes = sc.textFile(file, 1);
         val queries = List("MATCH (n) DETACH DELETE n") ++ nodes.map { x => s"CREATE (n:domain $x) return n" }.collect().toList ++
-            List("MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r"); ;
+            List("MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r");
         executeQueries(queries);
     }
 }
