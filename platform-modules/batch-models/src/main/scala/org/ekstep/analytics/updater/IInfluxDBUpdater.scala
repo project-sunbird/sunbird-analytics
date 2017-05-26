@@ -17,7 +17,6 @@ trait IInfluxDBUpdater {
     val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
 	
 	def getDateTime(periodVal: Int): (DateTime, String) = {
-//		Integer.toString(periodVal)
 		val period = periodVal.toString();
 		period.size match {
 			case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");

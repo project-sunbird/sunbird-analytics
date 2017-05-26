@@ -16,6 +16,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.creation.model._
+import org.apache.commons.lang3.StringUtils
 
 /**
  * Case Classes for the data product
@@ -45,9 +46,11 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
 
     override def algorithm(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AppObjectCache] = {
 
-        val objectEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("BE_OBJECT_LIFECYCLE"))).map { event =>
-            AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
-        }
+        val objectEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("BE_OBJECT_LIFECYCLE")))
+        	.filter { x => StringUtils.isNotBlank(x.edata.eks.id) && StringUtils.isNotBlank(x.edata.eks.`type`)  }
+        	.map { event =>
+            	AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
+        	}
         objectEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE);
 
         val profileEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("CP_UPDATE_PROFILE"))).map { event =>
