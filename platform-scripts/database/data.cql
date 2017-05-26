@@ -243,22 +243,6 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	PRIMARY KEY (d_period, d_partner_id)
 );
 
-CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
-	d_period int,
-	d_textbook_id text,
-	status text,
-	author_id text,
-	content_count bigint,
-	textbookunit_count bigint,
-	avg_content double,
-	content_types list<text>,
-	total_ts double,
-	creators_count bigint,
-	board text,
-	medium text,
-	PRIMARY KEY (d_period, d_textbook_id)
-);
-
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
@@ -419,14 +403,19 @@ CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
 };
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
-	d_content_id text,
-	tags int,
-	images int,
-	audios int,
-	videos int,
-	plugin_metrics map<text, int>,
-	live_times int,
-	PRIMARY KEY (d_content_id)
+    d_content_id text,
+    d_ver int,
+    tags_count int,
+    images_count int,
+    audios_count int,
+    videos_count int,
+    plugin_metrics map<text, int>,
+    time_spent_draft double,
+    time_spent_review double,
+    time_spent_live double,
+    pkg_version int,
+    updated_date timestamp,
+    PRIMARY KEY (d_content_id)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
@@ -462,18 +451,50 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     PRIMARY KEY (d_period, d_author_id, d_app_id)
 );
 
-CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_metrics_fact (
-	d_period int,
-	d_author text,
-    last_updated_on timestamp,
-    total_sessions bigint,
-    total_timespent double,
-    total_ce_timespent double,
+CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
+    d_period int,
+    d_author_id text,
+    total_session bigint,
+    total_ts double,
+    total_ce_ts double,
     total_ce_visit bigint,
-    percent_ce_sessions bigint,
+    percent_ce_sessions double,
     avg_session_ts double,
     percent_ce_ts double,
-    PRIMARY KEY (d_period, d_author)
+    updated_date timestamp,
+    PRIMARY KEY (d_period, d_author_id)
+);
+
+CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_metrics_fact (
+    d_period int,
+    draft_count int,
+    review_count int,
+    live_count int,
+    item_created_count int,
+    audio_created_count int,
+    image_created_count int,
+    video_created_count int,
+    plugin_created_count int,
+    textbook_created_count int,
+    textbook_live_count int,
+    updated_date timestamp,
+    PRIMARY KEY (d_period)
+);
+
+CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
+	d_period int,
+	d_textbook_id text,
+	status text,
+	author_id text,
+	content_count bigint,
+	textbookunit_count bigint,
+	avg_content double,
+	content_types list<text>,
+	total_ts double,
+	creators_count bigint,
+	board text,
+	medium text,
+	PRIMARY KEY (d_period, d_textbook_id)
 );
 
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
