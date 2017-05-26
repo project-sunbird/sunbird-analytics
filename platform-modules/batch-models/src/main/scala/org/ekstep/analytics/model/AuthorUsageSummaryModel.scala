@@ -12,7 +12,7 @@ import org.apache.spark.HashPartitioner
 import org.apache.commons.lang3.StringUtils
 
 /**
- * @author yuva
+ * @author yuva/Amit
  */
 case class AuthorMetrics(period: Int, uid: String, total_session: Long, total_time: Double, total_ce_time: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long) extends AlgoOutput
 case class AuthorEvents(uid: String, events: Buffer[DerivedEvent]) extends AlgoInput
