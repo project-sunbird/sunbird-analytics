@@ -16,7 +16,7 @@ import org.ekstep.analytics.util.BloomFilterUtil
 import org.joda.time.DateTime
 
 case class GenieUsageSummaryFact_T(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_avg_ts_session: Double, m_last_gen_date: Long, m_contents: Array[String], m_device_ids: List[String]) extends AlgoOutput
-case class GenieUsageSummaryFact(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_avg_ts_session: Double, m_contents: List[String], m_total_devices: Long, m_avg_sess_device: Double, m_device_ids: Array[Byte], updated_date: DateTime = DateTime.now()) extends AlgoOutput
+case class GenieUsageSummaryFact(d_period: Int, d_tag: String, m_total_sessions: Long, m_total_ts: Double, m_avg_ts_session: Double, m_contents: List[String], m_total_devices: Long, m_avg_sess_device: Double, m_device_ids: Array[Byte], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput
 case class GenieUsageSummaryIndex(d_period: Int, d_tag: String) extends Output
 
 object UpdateGenieUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, GenieUsageSummaryFact, GenieUsageSummaryIndex] with Serializable {
