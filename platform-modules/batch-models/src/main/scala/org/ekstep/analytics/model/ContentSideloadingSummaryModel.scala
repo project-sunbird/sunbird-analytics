@@ -14,7 +14,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import scala.collection.mutable.Buffer
 import org.joda.time.DateTime
 
-case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double, updated_date: DateTime = DateTime.now())
+case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double, updated_date: Option[DateTime] = Option(DateTime.now()))
 case class ReducedContentDetails(content_id: String, transfer_count: Double, did: String, origin: String, ts: Long, syncts: Long)
 case class ContentSideloadingInput(contentId: String, currentDetails: Iterable[ReducedContentDetails], previousDetails: Option[ContentSideloading]) extends AlgoInput
 case class ContentSideloadingOutput(summary: ContentSideloading, dtRange: DtRange, synts: Long) extends AlgoOutput

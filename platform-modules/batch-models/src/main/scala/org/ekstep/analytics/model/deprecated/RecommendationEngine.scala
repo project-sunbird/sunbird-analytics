@@ -31,7 +31,7 @@ import org.ekstep.analytics.framework.Level._
 import org.apache.log4j.Logger
 import org.apache.spark.broadcast.Broadcast
 
-case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double], updated_date: DateTime = DateTime.now())
+case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double], updated_date: Option[DateTime] = Option(DateTime.now()))
 case class LearnerState(learnerId: LearnerId, proficiency: LearnerProficiency, contentSummaries: Iterable[LearnerContentActivity], prevConceptRelevance: LearnerConceptRelevance, dtRange: DtRange) extends AlgoInput;
 case class RelevanceScores(learnerId: LearnerId, relevanceScores: Map[String, Double], dtRange: DtRange) extends AlgoOutput;
 case class RelevanceScore(conceptId: String, relevance: Double);

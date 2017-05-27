@@ -10,7 +10,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JobLogger
 import org.joda.time.DateTime
 
-case class ConceptSimilarity(concept1: String, concept2: String, relation_type: String, sim: Double, updated_date: DateTime = DateTime.now()) extends AlgoOutput with Output
+case class ConceptSimilarity(concept1: String, concept2: String, relation_type: String, sim: Double, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class ConceptSimilarityEntity(startNodeId: String, endNodeId: String, similarity: List[Map[String, AnyRef]]) extends AlgoInput with Input
 
 object UpdateConceptSimilarityDB extends IBatchModelTemplate[ConceptSimilarityEntity, ConceptSimilarityEntity, ConceptSimilarity, ConceptSimilarity] with Serializable {

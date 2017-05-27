@@ -10,7 +10,7 @@ import org.joda.time.DateTime
 
 case class DeviceSpec(device_id: String, device_name: String, device_local_name: String, os: String, make: String,
                       memory: Double, internal_disk: Double, external_disk: Double, screen_size: Double,
-                      primary_secondary_camera: String, cpu: String, num_sims: Double, capabilities: List[String], updated_date: DateTime = DateTime.now()) extends AlgoOutput with Output
+                      primary_secondary_camera: String, cpu: String, num_sims: Double, capabilities: List[String], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 
 object UpdateDeviceSpecificationDB extends IBatchModelTemplate[ProfileEvent, ProfileEvent, DeviceSpec, UpdaterOutput] with Serializable {
 

@@ -13,7 +13,7 @@ import org.ekstep.analytics.framework.Level._
 import org.joda.time.DateTime
 
 case class Request(grade_level: List[String], concepts: List[String], content_type: String, language: Map[String, String], `type`: String)
-case class RequestRecos(uid: String, requests: List[Request], updated_date: DateTime = DateTime.now())
+case class RequestRecos(uid: String, requests: List[Request], updated_date: Option[DateTime] = Option(DateTime.now()))
 
 object CreationRecommendationModel extends IGraphExecutionModel with Serializable {
   

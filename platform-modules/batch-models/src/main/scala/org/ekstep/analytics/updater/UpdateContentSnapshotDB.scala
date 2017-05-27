@@ -22,7 +22,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 
-case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: DateTime = DateTime.now()) extends AlgoOutput with Output
+case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String)
 
 object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotSummary, ContentSnapshotSummary] with Serializable {

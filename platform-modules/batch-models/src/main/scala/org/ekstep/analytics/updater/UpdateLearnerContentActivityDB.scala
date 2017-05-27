@@ -15,7 +15,7 @@ import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.util.JobLogger
 import org.joda.time.DateTime
 
-case class LearnerContentActivity(learner_id: String, content_id: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int, updated_date: DateTime = DateTime.now()) extends AlgoOutput with Output;
+case class LearnerContentActivity(learner_id: String, content_id: String, time_spent: Double, interactions_per_min: Double, num_of_sessions_played: Int, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output;
 
 object UpdateLearnerContentActivityDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, LearnerContentActivity, LearnerContentActivity] with Serializable {
 

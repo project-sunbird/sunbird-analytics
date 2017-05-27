@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class LearnerSnapshot(learner_id: String, m_time_spent: Double, m_time_btw_gp: Double, m_active_time_on_pf: Double, m_interrupt_time: Double, t_ts_on_pf: Double,
                            m_ts_on_an_act: Map[String, Double], m_count_on_an_act: Map[String, Double], n_of_sess_on_pf: Int, l_visit_ts: DateTime,
                            most_active_hr_of_the_day: Int, top_k_content: List[String], sess_start_time: DateTime, sess_end_time: DateTime,
-                           dp_start_time: DateTime, dp_end_time: DateTime, updated_date: DateTime = DateTime.now()) extends AlgoOutput with Output
+                           dp_start_time: DateTime, dp_end_time: DateTime, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 
 /**
  * @author Santhosh
