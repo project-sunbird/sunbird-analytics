@@ -465,7 +465,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
 
     override def postProcess(data: RDD[DeviceRecos], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceRecos] = {
 
-        val scoresTable = config.getOrElse("scoresTable", "device_recos").asInstanceOf[String];
+        val scoresTable = config.getOrElse("scoresTable", Constants.DEVICE_RECOS).asInstanceOf[String];
         JobLogger.log("Save the scores to cassandra", Option(Map("memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
         data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, scoresTable)
         data;

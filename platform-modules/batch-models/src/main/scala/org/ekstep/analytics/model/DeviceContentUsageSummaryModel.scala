@@ -8,12 +8,13 @@ import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.joda.time.DateTime
 
 case class DeviceSummaryInput(device_id: String, data: Buffer[DerivedEvent], prevData: Option[DeviceUsageSummary]) extends AlgoInput
 case class DeviceContentUsageSummaryInput(device_id: String, contentId: String, data: Buffer[DerivedEvent], prevData: Option[DeviceContentSummary])
 case class DeviceContentSummary(device_id: String, content_id: String, game_ver: Option[String], num_sessions: Option[Long], total_interactions: Option[Long], avg_interactions_min: Option[Double],
                                 total_timespent: Option[Double], last_played_on: Option[Long], start_time: Option[Long],
-                                mean_play_time_interval: Option[Double], downloaded: Option[Boolean], download_date: Option[Long], num_group_user: Option[Long], num_individual_user: Option[Long]) extends AlgoOutput with Output;
+                                mean_play_time_interval: Option[Double], downloaded: Option[Boolean], download_date: Option[Long], num_group_user: Option[Long], num_individual_user: Option[Long], updated_date: DateTime = DateTime.now()) extends AlgoOutput with Output;
 case class DeviceContentSummaryIndex(device_id: String, content_id: String)
 
 object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceSummaryInput, DeviceContentSummary, DeviceContentSummary] with Serializable {

@@ -20,7 +20,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 
-case class ConceptSnapshotSummary(d_period: Int, d_concept_id: String, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long) extends AlgoOutput with Output
+case class ConceptSnapshotSummary(d_period: Int, d_concept_id: String, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: DateTime = DateTime.now()) extends AlgoOutput with Output
 case class ConceptSnapshotIndex(d_period: Int, d_concept_id: String)
 
 object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ConceptSnapshotSummary, ConceptSnapshotSummary] with Serializable {
@@ -67,7 +67,7 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
 
     private def saveToInfluxDB(data: RDD[ConceptSnapshotSummary]) {
         val metrics = data.map { x =>
-            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_concept_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_concept_id", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "concept_id" -> x.d_concept_id), fields, time._1);
         };
