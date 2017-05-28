@@ -30,7 +30,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         summary1.users_count should be(2);
         summary1.total_sessions should be(5);
         summary1.total_ts should be(84.04);
-        summary1.avg_time_spent should be(16.81);
+        summary1.avg_ts_session should be(16.81);
 
         // check for specific content_id
         val event2 = me(1);
@@ -90,7 +90,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         summary1.users_count should be(2);
         summary1.total_sessions should be(5);
         summary1.total_ts should be(84.04);
-        summary1.avg_time_spent should be(16.81);
+        summary1.avg_ts_session should be(16.81);
     }
     
     it should "generate only content editor usage summary event" in {

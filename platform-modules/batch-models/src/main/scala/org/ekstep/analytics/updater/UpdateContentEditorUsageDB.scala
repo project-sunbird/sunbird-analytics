@@ -52,9 +52,9 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
             val users_count = eksMap.get("users_count").get.asInstanceOf[Number].longValue()
             val total_sessions = eksMap.get("total_sessions").get.asInstanceOf[Number].longValue()
             val total_ts = eksMap.get("total_ts").get.asInstanceOf[Double]
-            val avg_time_spent = eksMap.get("avg_time_spent").get.asInstanceOf[Double]
+            val avg_ts_session = eksMap.get("avg_ts_session").get.asInstanceOf[Double]
 
-            CEUsageSummaryFact_T(period, x.dimensions.content_id.get, users_count, total_sessions, total_ts, avg_time_spent, x.context.date_range.to);
+            CEUsageSummaryFact_T(period, x.dimensions.content_id.get, users_count, total_sessions, total_ts, avg_ts_session, x.context.date_range.to);
         }.cache();
 
         // Roll up summaries
