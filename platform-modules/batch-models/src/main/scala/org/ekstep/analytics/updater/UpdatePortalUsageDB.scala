@@ -159,7 +159,7 @@ object UpdatePortalUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
     private def saveToInfluxDB(data: RDD[PortalUsageSummaryFact]) {
         val metrics = data.filter { x => x.d_period != 0 }.map { x =>
-            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_app_id", "unique_users")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_app_id", "unique_users", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "app_id" -> x.d_app_id), fields, time._1);
         };
