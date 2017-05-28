@@ -44,7 +44,7 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
                 val firstEvent = f._2.sortBy { x => x.context.date_range.from }.head
                 val lastEvent = f._2.sortBy { x => x.context.date_range.to }.last
                 val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
-
+                val userCount = f._2.map(x => x.uid).distinct.filterNot { x => x.isEmpty() }.toList.length.toLong;
                 val eksMapList = f._2.map { x =>
                     x.edata.eks.asInstanceOf[Map[String, AnyRef]]
                 }
@@ -52,8 +52,8 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
                 val totalTS = eksMapList.map { x =>
                     x.get("time_spent").get.asInstanceOf[Double]
                 }.sum
-
-                CEUsageMetricsSummary(event.period, f._1.get, date_range, 0L, totalSessions, totalTS, 0.0)
+                val avgSessionTS = if (totalTS == 0 || totalSessions == 0) 0d else BigDecimal(totalTS / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+                CEUsageMetricsSummary(event.period, f._1.get, date_range, userCount, totalSessions, totalTS, avgSessionTS);
             }
         }.flatMap { x => x }
     }

@@ -45,10 +45,10 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         event2.dimensions.content_id.get should be("do_2122315986551685121193");
 
         val summary2 = JSONUtils.deserialize[CEUsageMetricsSummary](JSONUtils.serialize(event2.edata.eks));
-        summary2.users_count should be(0);
+        summary2.users_count should be(1);
         summary2.total_sessions should be(2);
         summary2.total_ts should be(13.600000000000001);
-        summary2.avg_time_spent should be(0);
+        summary2.avg_time_spent should be(6.8);
 
         // check for specific content_id
         val event3 = me(2);
@@ -63,10 +63,10 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         event3.dimensions.content_id.get should be("do_2122217361752064001287");
 
         val summary3 = JSONUtils.deserialize[CEUsageMetricsSummary](JSONUtils.serialize(event3.edata.eks));
-        summary3.users_count should be(0);
+        summary3.users_count should be(1);
         summary3.total_sessions should be(1);
         summary3.total_ts should be(0.72);
-        summary3.avg_time_spent should be(0);
+        summary3.avg_time_spent should be(0.72);
     }
 
     it should "generate only content editor usage summary event when content_id is empty" in {
@@ -74,7 +74,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/content-editor-usage-summary/test_data2.log");
         val rdd2 = ContentEditorUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
-
+        println("Events:", JSONUtils.serialize(me));
         me.length should be(1)
         val event1 = me(0);
         event1.eid should be("ME_CE_USAGE_SUMMARY");
