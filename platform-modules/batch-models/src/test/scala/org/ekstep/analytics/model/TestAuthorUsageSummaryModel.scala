@@ -17,12 +17,12 @@ class TestAuthorUsageSummaryModel extends SparkSpec(null) {
         val rdd3 = loadData()
         val events = rdd3.filter { x => (x.uid == "316") }.collect()
         val event3 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event3.get("total_session").get.asInstanceOf[Number].longValue() should be(1)
-        event3.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(17.72)
+        event3.get("total_session").get.asInstanceOf[Number].longValue() should be(3)
+        event3.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(874.8)
         event3.get("ce_total_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
-        event3.get("ce_total_visits").get.asInstanceOf[Number].longValue() should be(2)
-        event3.get("ce_percent_sessions").get.asInstanceOf[Number].doubleValue() should be(200.0)
-        event3.get("avg_session_ts").get.asInstanceOf[Number].doubleValue() should be(17.72)
+        event3.get("ce_total_visits").get.asInstanceOf[Number].longValue() should be(7)
+        event3.get("ce_percent_sessions").get.asInstanceOf[Number].doubleValue() should be(233.33)
+        event3.get("avg_session_ts").get.asInstanceOf[Number].doubleValue() should be(291.6)
         event3.get("ce_percent_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
     }
 
@@ -36,8 +36,8 @@ class TestAuthorUsageSummaryModel extends SparkSpec(null) {
         val events = rdd3.filter { x => (x.uid == "316") }.collect
         val event3 = events(0).edata.eks.asInstanceOf[Map[String, AnyRef]]
         val event4 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event3.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(874.8)
-        event4.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(17.72)
+        event3.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(679.27)
+        event4.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(874.8)
     }
 
     def loadData(): RDD[MeasuredEvent] = {

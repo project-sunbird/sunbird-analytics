@@ -11,16 +11,40 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.DerivedEvent
 
 class TestUpdateAuthorMetricsDB extends SparkSpec(null) {
-  
-    "UpdateAuthorMetricsDB" should "update author metrics DB" in {
+
+    "UpdateAuthorMetricsDB" should "update author metrics DB for a sample input data" in {
         DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT)
-        
+
         val input = loadFile[DerivedEvent]("src/test/resources/author-usage-updater/test.log");
         UpdateAuthorMetricsDB.execute(input, Option(Map()))
-        
-        val data = sc.cassandraTable[AuthorMetricsFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT).map{x=> x}.collect
-        data.length should be (2)
-        data(0).d_period should be (20170520)
-        data.last.d_period should be (20170522)
+
+        val data = sc.cassandraTable[AuthorMetricsFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT).map { x => x }.collect
+        data.length should be(6)
+        data(0).d_period should be(20170520)
+        data.last.d_period should be(2017721)
+    }
+
+    it should "update author metrics DB with multiple days data for a author" in {
+        DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT)
+
+        val input = loadFile[DerivedEvent]("src/test/resources/author-usage-updater/test1.log");
+        UpdateAuthorMetricsDB.execute(input, Option(Map()))
+
+        val data = sc.cassandraTable[AuthorMetricsFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT).map { x => x }.collect
+        data.length should be(9)
+
+        val user459 = data.filter { x => StringUtils.equals("459", x.d_author_id) }
+        user459.length should be(5)
+
+        val user452 = data.filter { x => StringUtils.equals("452", x.d_author_id) }
+        user452.length should be(4)
+
+        // Day
+        val user459_25th = user459.filter { x => 20170525 == x.d_period }.last
+        println(JSONUtils.serialize(user459_25th))
+
+        user459_25th.d_period should be(20170525)
+        user459_25th.d_author_id should be("459")
+        //user459_25th.total_session should be()
     }
 }
