@@ -12,8 +12,9 @@ import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JobLogger
 import scala.collection.mutable.Buffer
+import org.joda.time.DateTime
 
-case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double)
+case class ContentSideloading(content_id: String, num_downloads: Long, total_count: Long, num_sideloads: Long, origin_map: Map[String, Double], avg_depth: Double, updated_date: Option[DateTime] = Option(DateTime.now()))
 case class ReducedContentDetails(content_id: String, transfer_count: Double, did: String, origin: String, ts: Long, syncts: Long)
 case class ContentSideloadingInput(contentId: String, currentDetails: Iterable[ReducedContentDetails], previousDetails: Option[ContentSideloading]) extends AlgoInput
 case class ContentSideloadingOutput(summary: ContentSideloading, dtRange: DtRange, synts: Long) extends AlgoOutput
@@ -45,20 +46,21 @@ object ContentSideloadingSummaryModel extends IBatchModelTemplate[Event, Content
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b)
         val previous_device_details = content_details.map(x => DeviceId(x._1)).joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
-        val joinedData = content_details.leftOuterJoin(previous_device_details)
+        val joinedData = content_details.leftOuterJoin(previous_device_details);
+        val updatedAt = DateTime.now();
         val device_details = joinedData.map { y =>
             val previous_summary = y._2._2.getOrElse(DeviceUsageSummary(y._1, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
             val num_contents = if (previous_summary.num_contents.isEmpty) y._2._1.size else (y._2._1.size + previous_summary.num_contents.get)
-            (y._1, Option(num_contents))
+            (y._1, Option(num_contents), updatedAt)
         }
-        device_details.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE, SomeColumns("device_id", "num_contents"))
+        device_details.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE, SomeColumns("device_id", "num_contents", "updated_date"))
 
         val download_details = content_details.flatMap { x => x._2 }.map { x =>
             val downloaded = if (x.transfer_count == 0) true else false
             val download_date = x.ts
-            (x.did, x.content_id, downloaded, download_date)
+            (x.did, x.content_id, downloaded, download_date, DateTime.now())
         }
-        download_details.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT, SomeColumns("device_id", "content_id", "downloaded", "download_date"))
+        download_details.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT, SomeColumns("device_id", "content_id", "downloaded", "download_date", "updated_date"))
 
         data.map { x =>
             val newContentMap = x.currentDetails

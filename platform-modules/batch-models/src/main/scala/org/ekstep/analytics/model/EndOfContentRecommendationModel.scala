@@ -22,8 +22,9 @@ import org.ekstep.analytics.adapter.ContentModel
 import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.ekstep.analytics.transformer.ContentUsageTransformer
 import org.ekstep.analytics.util.ContentPopularitySummaryFact2
+import org.joda.time.DateTime
 
-case class ContentRecos(content_id: String, scores: List[(String, Double)]) extends AlgoOutput with Output
+case class ContentRecos(content_id: String, scores: List[(String, Double)], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class ContentContext(c1_ctv: ContentToVector, c2_ctv: ContentToVector) extends AlgoInput
 case class BlacklistContents(config_key: String, config_value: List[String])
 case class ContentFeatures(content_id: String, num_downloads: Long, avg_rating: Double, total_interactions: Long)

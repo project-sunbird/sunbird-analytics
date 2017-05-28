@@ -10,9 +10,10 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import collection.JavaConversions._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.joda.time.DateTime
 
 case class Request(grade_level: List[String], concepts: List[String], content_type: String, language: Map[String, String], `type`: String)
-case class RequestRecos(uid: String, requests: List[Request])
+case class RequestRecos(uid: String, requests: List[Request], updated_date: Option[DateTime] = Option(DateTime.now()))
 
 object CreationRecommendationModel extends IGraphExecutionModel with Serializable {
   

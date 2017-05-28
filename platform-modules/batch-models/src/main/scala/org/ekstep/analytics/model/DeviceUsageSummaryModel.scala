@@ -13,11 +13,12 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JobLogger
+import org.joda.time.DateTime
 
 case class DeviceUsageSummary(device_id: String, start_time: Option[Long], end_time: Option[Long], num_days: Option[Long], total_launches: Option[Long], total_timespent: Option[Double],
                               avg_num_launches: Option[Double], avg_time: Option[Double], num_contents: Option[Long], play_start_time: Option[Long], last_played_on: Option[Long],
                               total_play_time: Option[Double], num_sessions: Option[Long], mean_play_time: Option[Double],
-                              mean_play_time_interval: Option[Double], last_played_content: Option[String])
+                              mean_play_time_interval: Option[Double], last_played_content: Option[String], updated_date: Option[DateTime] = Option(DateTime.now()))
 case class DeviceUsageSummary_T(data: DeviceUsageSummary, syncts: Long) extends AlgoOutput
 
 case class DeviceUsageInput(device_id: String, currentData: Buffer[DerivedEvent], previousData: Option[DeviceUsageSummary]) extends AlgoInput
