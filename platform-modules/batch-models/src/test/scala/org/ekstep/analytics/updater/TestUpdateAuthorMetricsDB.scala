@@ -20,8 +20,8 @@ class TestUpdateAuthorMetricsDB extends SparkSpec(null) {
 
         val data = sc.cassandraTable[AuthorMetricsFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT).map { x => x }.collect
         data.length should be(6)
-        data(0).d_period should be(20170520)
-        data.last.d_period should be(2017721)
+        data.map { x => x.d_period }.contains(20170520) should be (true);
+        data.map { x => x.d_period }.contains(2017721) should be (true);
     }
 
     it should "update author metrics DB with multiple days data for a author" in {
