@@ -1,15 +1,20 @@
 package org.ekstep.analytics.model
 
-import scala.collection.mutable.HashMap
-import org.ekstep.analytics.framework._
+import scala.collection.mutable.Buffer
+
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.creation.model.CreationEvent
-import org.apache.spark.HashPartitioner
-import scala.collection.mutable.Buffer
+import org.ekstep.analytics.framework.AlgoInput
+import org.ekstep.analytics.framework.AlgoOutput
+import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.DtRange
+import org.ekstep.analytics.framework.IBatchModelTemplate
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.Output
+import org.ekstep.analytics.framework.PData
 import org.ekstep.analytics.framework.util.CommonUtil
 /**
  * @author yuva
@@ -19,6 +24,16 @@ case class SubUnitSummary(total_sub_units_added: Long, total_sub_units_deletd: L
 case class TextbookSessionMetrics(uid: String, sid: String, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: SubUnitSummary, date_range: DtRange) extends Output with AlgoOutput
 case class Sessions(creationEvent: Buffer[CreationEvent]) extends AlgoInput
 
+/**
+ * @dataproduct
+ * @Summarizer 
+ * 
+ * TextbookSessionSummaryModel
+ * 
+ * Functionality
+ * Compute session wise Textbook summary : Units,sub units and lessons added/deleted/modified
+ */
+
 object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Sessions, TextbookSessionMetrics, MeasuredEvent] with Serializable {
     implicit val className = "org.ekstep.analytics.model.TextbookSessionSummaryModel"
     override def name(): String = "TextbookSessionSummaryModel";
@@ -26,8 +41,8 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
         /*
          * Input raw telemetry
          * */
-        val dataToBuffer = data.collect().toBuffer
-        val sortedEvent = dataToBuffer.sortBy { x => x.ets }
+        val filteredData = data.filter { x => (x.edata.eks.env != null) }.collect().toBuffer
+        val sortedEvent = filteredData.sortBy { x => x.ets }
         val sessions = getSessions(sortedEvent)
         sc.parallelize(sessions).map { x => Sessions(x) }
     }
@@ -108,6 +123,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
                     tmpArr = Buffer[CreationEvent]();
                     tmpArr += x
                 }
+                case _ =>
             }
             prevEnv = x.edata.eks.env
         }
