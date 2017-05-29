@@ -145,9 +145,13 @@ object JobFactory {
             case "app-usage" =>
                 PortalUsageSummarizer;
             case "app-usage-updater" =>
-            	PortalUsageUpdater;
+                PortalUsageUpdater;
             case "publish-pipeline-summarizer" =>
                 PublishPipelineSummarizer;
+            case "app-raw-telemetry-jobs" =>
+                AppRawTelemetryJobs
+            case "app-raw-telemetry-updaters" =>
+                AppRawTelemetryUpdaters
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
