@@ -118,7 +118,7 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
                     val firstEvent = f._2(0)._2
                     val `type` = firstEvent.edata.eks.`type`
                     val env = firstEvent.edata.eks.env
-                    val timeSpent = f._2.map(f => f._3).sum
+                    val timeSpent = CommonUtil.roundDouble(f._2.map(f => f._3).sum, 2)
                     val visitCount = f._2.length.toLong
                     PageSummary(id, `type`, env, timeSpent, visitCount)
                 }
