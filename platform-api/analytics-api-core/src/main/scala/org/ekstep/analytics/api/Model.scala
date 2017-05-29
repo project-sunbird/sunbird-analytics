@@ -50,8 +50,8 @@ case class ItemUsageMetrics(override val d_period: Option[Int] = None, label: Op
 
 case class JobRequest(client_key: Option[String], request_id: Option[String], job_id: Option[String], status: Option[String], request_data: Option[String], iteration: Option[Int], dt_job_submitted: Option[DateTime] = None, location: Option[String] = None, dt_file_created: Option[DateTime] = None, dt_first_event: Option[DateTime] = None, dt_last_event: Option[DateTime] = None, dt_expiration: Option[DateTime] = None, dt_job_processing: Option[DateTime] = None, dt_job_completed: Option[DateTime] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, file_size: Option[Long] = None, latency: Option[Int] = None, execution_time: Option[Long] = None, err_message: Option[String] = None, stage: Option[String] = None, stage_status: Option[String] = None)
 
-case class RecommendationContent(device_id: String, scores: List[(String, Double)])
-case class RequestRecommendations(uid: String, requests: List[CreationRequest])
+case class RecommendationContent(device_id: String, scores: List[(String, Double)], updated_date: Long)
+case class RequestRecommendations(uid: String, requests: List[CreationRequest], updated_date: Long)
 case class CreationRequestList(requests: List[CreationRequest])
 case class CreationRequest(grade_level: List[String], concepts: List[String], content_type: String, language: Map[String,String], `type`: String)
 case class ContentVectors(content_vectors: Array[ContentVector]);
