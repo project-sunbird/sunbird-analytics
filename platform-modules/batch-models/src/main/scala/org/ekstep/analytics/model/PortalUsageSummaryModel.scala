@@ -20,6 +20,7 @@ import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.AlgoOutput
 import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.util.Constants
 
 /**
  * Case Classes for the data product
@@ -63,7 +64,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 val firstEvent = f._2.sortBy { x => x.context.date_range.from }.head
                 val lastEvent = f._2.sortBy { x => x.context.date_range.to }.last
                 val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
-                val appId = firstEvent.dimensions.app_id.getOrElse("EkstepPortal")
+                val appId = firstEvent.dimensions.app_id.getOrElse(Constants.DEFAULT_APP_ID)
                 val eksMapList = f._2.map { x =>
                     x.edata.eks.asInstanceOf[Map[String, AnyRef]]
                 }
@@ -85,7 +86,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
             val firstEvent = f.sessionEvents.sortBy { x => x.context.date_range.from }.head
             val lastEvent = f.sessionEvents.sortBy { x => x.context.date_range.to }.last
             val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
-            val appId = firstEvent.dimensions.app_id.getOrElse("EkstepPortal")
+            val appId = firstEvent.dimensions.app_id.getOrElse(Constants.DEFAULT_APP_ID)
 
             val anonymousSessions = f.sessionEvents.filter { x => true == x.dimensions.anonymous_user.get }
             val anonymousTotalSessions = if (anonymousSessions.length > 0) anonymousSessions.length.toLong else 0L

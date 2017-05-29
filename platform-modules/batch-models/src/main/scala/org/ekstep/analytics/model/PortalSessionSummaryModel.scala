@@ -21,6 +21,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.creation.model.CreationEData
 import org.ekstep.analytics.creation.model.CreationEks
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.util.Constants
 
 /**
  * Case Classes for the data product
@@ -155,7 +156,7 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
                 "page_summary" -> session.page_summary);
             MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.dtRange.to, "1.0", mid, session.uid, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", session.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid), None, None, None, None, None, None, None, None, Option(config.getOrElse("appId", "EkstepPortal").asInstanceOf[String])),
+                Dimensions(None, None, None, None, None, None, None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid), None, None, None, None, None, None, None, None, Option(config.getOrElse("appId", Constants.DEFAULT_APP_ID).asInstanceOf[String])),
                 MEEdata(measures), None);
         }
     }

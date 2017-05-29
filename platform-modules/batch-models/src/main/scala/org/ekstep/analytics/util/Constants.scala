@@ -4,7 +4,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import java.net.URLEncoder
 
 object Constants {
-    
+
     val KEY_SPACE_NAME = "learner_db";
     val LEARNER_SNAPSHOT_TABLE = "learnersnapshot";
     val LEARNER_PROFICIENCY_TABLE = "learnerproficiency";
@@ -19,7 +19,6 @@ object Constants {
     val DEVICE_RECOS = "device_recos";
     val CONTENT_KEY_SPACE_NAME = "content_db";
     val PLATFORM_KEY_SPACE_NAME = "platform_db";
-    val CREATION_METRICS_KEY_SPACE_NAME = "creation_metrics_db"
     val CONTENT_STORE_KEY_SPACE_NAME = "content_store";
     val CONTENT_DATA_TABLE = "content_data";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
@@ -39,36 +38,39 @@ object Constants {
     val CONTENT_SNAPSHOT_SUMMARY = "content_snapshot_summary";
     val CONCEPT_SNAPSHOT_SUMMARY = "concept_snapshot_summary";
     val ASSET_SNAPSHOT_SUMMARY = "asset_snapshot_summary";
-    val TEXTBOOK_SNAPSHOT_METRICS_TABLE = "textbook_snapshot_metrics";
-    val CONTENT_CREATION_TABLE = "content_creation_metrics_fact";
-    val CE_USAGE_SUMMARY = "ce_usage_summary_fact";
-    val APP_USAGE_SUMMARY_FACT = "app_usage_summary_fact";
-    val AUTHOR_USAGE_METRICS_FACT = "author_usage_summary_fact"
-    
+
     /* Creation tables and keyspaces */
     val CREATION_KEY_SPACE_NAME = "creation_db";
     val APP_OBJECT_CACHE_TABLE = "app_object_cache";
     val USER_PROFILE_TABLE = "user_profile";
-    
+    val CREATION_METRICS_KEY_SPACE_NAME = "creation_metrics_db"
+    val CONTENT_CREATION_TABLE = "content_creation_metrics_fact";
+    val CE_USAGE_SUMMARY = "ce_usage_summary_fact";
+    val APP_USAGE_SUMMARY_FACT = "app_usage_summary_fact";
+    val AUTHOR_USAGE_METRICS_FACT = "author_usage_summary_fact";
+    val TEXTBOOK_SNAPSHOT_METRICS_TABLE = "textbook_snapshot_metrics";
+
+    val DEFAULT_APP_ID = "EkstepPortal";
+
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
 
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
     }
-    
+
     def getContent(contentId: String): String = {
         s"$LP_URL/v2/content/" + URLEncoder.encode(contentId, "UTF-8");
     }
-    
+
     def getDomainMap(): String = {
         s"$LP_URL/v2/analytics/domain/map";
     }
-    
+
     def getContentSearch(): String = {
         s"$SEARCH_SERVICE_URL/v2/search";
     }
-    
+
     def getContentItems(apiVersion: String, contentId: String): String = {
         s"$LP_URL/$apiVersion/analytics/items/" + URLEncoder.encode(contentId, "UTF-8");
     }
@@ -76,7 +78,7 @@ object Constants {
     def getItemConcept(version: String, contentId: String, itemId: String): String = {
         s"$LP_URL/$version/analytics/item/$contentId/$itemId";
     }
-    
+
     def getContentUpdateAPIUrl(contentId: String): String = {
         s"$LP_URL/v2/content/$contentId";
     }
