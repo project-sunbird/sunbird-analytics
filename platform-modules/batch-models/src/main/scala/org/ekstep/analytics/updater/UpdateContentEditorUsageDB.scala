@@ -17,10 +17,10 @@ import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 /**
  * Case class for Cassandra Models
  */
-case class CEUsageSummaryFact(d_period: Int, d_content_id: String, users_count: Long, total_sessions: Long, total_ts: Double, avg_time_spent: Double, updated_date: Long) extends AlgoOutput
+case class CEUsageSummaryFact(d_period: Int, d_content_id: String, users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, updated_date: Long) extends AlgoOutput
 case class CEUsageSummaryIndex(d_period: Int, d_content_id: String) extends Output
 
-case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, users_count: Long, total_sessions: Long, total_ts: Double, avg_time_spent: Double, last_gen_date: Long) extends AlgoOutput
+case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, last_gen_date: Long) extends AlgoOutput
 
 /**
  * @dataproduct
@@ -72,7 +72,7 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
 
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.last_gen_date, period);
-            (CEUsageSummaryIndex(d_period, x.d_content_id), CEUsageSummaryFact_T(d_period, x.d_content_id, x.users_count, x.total_sessions, x.total_ts, x.avg_time_spent, x.last_gen_date));
+            (CEUsageSummaryIndex(d_period, x.d_content_id), CEUsageSummaryFact_T(d_period, x.d_content_id, x.users_count, x.total_sessions, x.total_ts, x.avg_ts_session, x.last_gen_date));
         }.reduceByKey(reduceCEUS);
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id"));
         val joinedData = currentData.leftOuterJoin(prvData)
@@ -89,18 +89,18 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
         val users_count = fact2.users_count + fact1.users_count;
         val total_ts = CommonUtil.roundDouble(fact2.total_ts + fact1.total_ts, 2);
         val total_sessions = fact2.total_sessions + fact1.total_sessions
-        val avg_time_spent = CommonUtil.roundDouble((total_ts / total_sessions), 2);
+        val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2);
 
-        CEUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_time_spent, fact2.last_gen_date);
+        CEUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_ts_session, fact2.last_gen_date);
     }
 
     private def reduce(fact1: CEUsageSummaryFact, fact2: CEUsageSummaryFact_T, period: Period): CEUsageSummaryFact = {
         val users_count = fact2.users_count + fact1.users_count
         val total_ts = CommonUtil.roundDouble(fact2.total_ts + fact1.total_ts, 2);
         val total_sessions = fact2.total_sessions + fact1.total_sessions
-        val avg_time_spent = CommonUtil.roundDouble((total_ts / total_sessions), 2);
+        val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2);
 
-        CEUsageSummaryFact(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_time_spent, System.currentTimeMillis());
+        CEUsageSummaryFact(fact1.d_period, fact1.d_content_id, users_count, total_sessions, total_ts, avg_ts_session, System.currentTimeMillis());
     }
 
     private def saveToInfluxDB(data: RDD[CEUsageSummaryFact]) {
