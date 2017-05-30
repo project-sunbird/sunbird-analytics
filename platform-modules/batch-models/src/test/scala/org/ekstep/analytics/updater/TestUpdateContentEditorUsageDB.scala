@@ -13,7 +13,6 @@ import com.datastax.spark.connector.cql.CassandraConnector
 
 class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
     
-    // TODO: Enhance Test Cases with real time data. 
     "UpdateContentEditorUsageDB" should "update the content editor usage db and check the fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
@@ -63,5 +62,20 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         cummAllCESumm3.users_count should be(2)
         cummAllCESumm3.avg_ts_session should be(16.81)
     }
-
+    
+    it should "update the content editor usage db and check the fields for content_id all" in {
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-editor-usage-updater/ceus_1.log");
+        val rdd2 = UpdateContentEditorUsageDB.execute(rdd, None);
+        
+        /**
+        * Period - CUMMULATIVE
+        * content_id - all
+        */ 
+        val cummAllCESumm = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("d_period=?", 0).where("d_content_id=?", "all").first
+        cummAllCESumm.total_sessions should be(161)
+        cummAllCESumm.total_ts should be(53598.58)
+        cummAllCESumm.users_count should be(31)
+        cummAllCESumm.avg_ts_session should be(332.91)
+        
+    }
 }
