@@ -465,8 +465,9 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
     plugin_metrics map<text, int>,
     time_spent_draft double,
     time_spent_review double,
-    time_spent_live double,
     pkg_version int,
+    current_status text,
+    status_updated_date timestamp,
     updated_date timestamp,
     PRIMARY KEY (d_content_id)
 );

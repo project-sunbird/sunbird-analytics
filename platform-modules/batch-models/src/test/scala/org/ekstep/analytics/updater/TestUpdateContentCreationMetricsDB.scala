@@ -8,15 +8,16 @@ import org.ekstep.analytics.model.SparkGraphSpec
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.creation.model.CreationEvent
 
 class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 
-    it should "take the snapshot data for the content having no plugins and no tags update in DB" in {
+    "UpdateContentCreationMetricsDB" should "take the snapshot data for the content having no plugins and no tags update in DB" in {
 
         DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE)
         loadGraphData("src/test/resources/content-creation-metrics/graph-data.json")
-        
-        UpdateContentCreationMetricsDB.execute(sc.makeRDD(Seq(Empty())), None)
+        val rdd = loadFile[CreationEvent]("src/test/resources/pipeline-summary/test_data1.log");
+        UpdateContentCreationMetricsDB.execute(rdd, None)
         val metrics = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).collect
         metrics.length should be(3)
 
@@ -52,15 +53,15 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 
     it should "check for non empty plugin metrics and one content related tag" in {
         
-        DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE)
-        DBUtil.truncateTable(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
+        DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE);
+        DBUtil.truncateTable(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE);
         loadCassandraData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, "src/test/resources/content-creation-metrics/content_data_test.txt", ";")
         loadGraphData("src/test/resources/content-creation-metrics/graph-data1.json")
         
         val relationQuery = "MATCH (cnt:domain {IL_UNIQUE_ID:'do_2122040066659860481139'}),(tag:domain {IL_UNIQUE_ID:'TAG_english_stories'}) CREATE (tag)-[r:hasMember]->(cnt) RETURN r"
         executeQueries(List(relationQuery))
-        
-        UpdateContentCreationMetricsDB.execute(sc.makeRDD(Seq(Empty())), None)
+        val rdd = loadFile[CreationEvent]("src/test/resources/pipeline-summary/test_data1.log");
+        UpdateContentCreationMetricsDB.execute(rdd, None)
         val metrics = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).collect
         metrics.length should be(2)
 
