@@ -19,7 +19,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
 
         me.length should be(4)
-        val event1 = me(1);
+        val event1 = me(3);
 
         event1.eid should be("ME_APP_USAGE_SUMMARY");
         event1.mid should be("0CB90A5476EFA88090619D48716786F7");
@@ -77,7 +77,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         summary2.total_pageviews_count should be(0);
 
         // check for specific author
-        val event3 = me(2);
+        val event3 = me(1);
 
         event3.eid should be("ME_APP_USAGE_SUMMARY");
         event3.mid should be("06B48BD1551B6BC71257C22955FD542F");
@@ -113,7 +113,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
 
         me.length should be(3)
-        val event1 = me(0);
+        val event1 = me(2);
 
         event1.eid should be("ME_APP_USAGE_SUMMARY");
         event1.mid should be("0BAEF1A3D5E41AF14C1428F78885F2E0");
@@ -142,7 +142,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         summary1.total_pageviews_count should be(30);
 
         // check for specific author
-        val event2 = me(1);
+        val event2 = me(0);
 
         event2.eid should be("ME_APP_USAGE_SUMMARY");
         event2.mid should be("ED53E38023A115B137F9457748C0B181");
@@ -178,7 +178,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
 
         me.length should be(5)
-        val event1 = me(0);
+        val event1 = me(1);
 
         event1.eid should be("ME_APP_USAGE_SUMMARY");
         event1.mid should be("49D2EBD068483F528EA4801EE2D1EC1A");
