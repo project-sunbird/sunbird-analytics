@@ -551,6 +551,32 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 
+CREATE TYPE IF NOT EXISTS platform_db.unit_summary(
+     total_units_added bigint,
+     total_units_deleted bigint,
+     total_units_modified bigint
+    );
+
+CREATE TYPE IF NOT EXISTS platform_db.subunit_summary(
+     total_sub_units_added bigint,
+     total_sub_units_deletd bigint,
+     total_sub_units_modified bigint,
+     total_lessons_added bigint,
+     total_lessons_deleted bigint,
+     total_lessons_modified bigint
+   );
+
+CREATE TABLE IF NOT EXISTS platform_db.textbook_metrics_summary_fact(
+    d_period text,
+    d_sid text,
+    time_spent Double,
+    time_diff Double,
+    unit_summary frozen<unit_summary>,
+    sub_unit_summary frozen<subunit_summary>,
+    updated_date timestamp,
+    PRIMARY KEY (d_period,d_sid)
+  );
+
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 

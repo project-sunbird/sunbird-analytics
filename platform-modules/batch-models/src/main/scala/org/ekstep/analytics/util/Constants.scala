@@ -50,6 +50,7 @@ object Constants {
     val APP_USAGE_SUMMARY_FACT = "app_usage_summary_fact";
     val AUTHOR_USAGE_METRICS_FACT = "author_usage_summary_fact";
     val TEXTBOOK_SNAPSHOT_METRICS_TABLE = "textbook_snapshot_metrics";
+    val TEXTBOOK_SESSION_METRICS_FACT = "textbook_metrics_summary_fact";
 
     val DEFAULT_APP_ID = "EkstepPortal";
 
