@@ -31,7 +31,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         cummAllCESumm.total_sessions should be(5)
         cummAllCESumm.total_ts should be(84.04)
         cummAllCESumm.users_count should be(2)
-        cummAllCESumm.avg_ts_session should be(16.0)
+        cummAllCESumm.avg_ts_session should be(16.81)
         
         /**
         * Period - DAY
@@ -41,7 +41,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         cummAllCESumm1.total_sessions should be(2)
         cummAllCESumm1.total_ts should be(13.6)
         cummAllCESumm1.users_count should be(0)
-        cummAllCESumm1.avg_ts_session should be(6.0)
+        cummAllCESumm1.avg_ts_session should be(6.8)
         
         /**
         * Period - MONTH
@@ -51,7 +51,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         cummAllCESumm2.total_sessions should be(2)
         cummAllCESumm2.total_ts should be(13.6)
         cummAllCESumm2.users_count should be(0)
-        cummAllCESumm2.avg_ts_session should be(6.0)
+        cummAllCESumm2.avg_ts_session should be(6.8)
         
         /**
         * Period - MONTH
@@ -61,7 +61,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         cummAllCESumm3.total_sessions should be(5)
         cummAllCESumm3.total_ts should be(84.04)
         cummAllCESumm3.users_count should be(2)
-        cummAllCESumm3.avg_ts_session should be(16.0)
+        cummAllCESumm3.avg_ts_session should be(16.81)
     }
 
 }

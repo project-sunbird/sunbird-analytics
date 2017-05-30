@@ -446,7 +446,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
     users_count bigint, 
     total_sessions bigint,
     total_ts double,
-    avg_ts_session bigint,
+    avg_ts_session double,
     updated_date timestamp,
     PRIMARY KEY (d_period, d_content_id)
 );
