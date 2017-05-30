@@ -4,11 +4,11 @@ CREATE KEYSPACE IF NOT EXISTS learner_db WITH replication = {
 };
 
 CREATE TABLE IF NOT EXISTS learner_db.learnersnapshot (
-	learner_id text, 
-	m_time_spent double, 
+	learner_id text,
+	m_time_spent double,
 	m_time_btw_gp double,
-	m_active_time_on_pf double, 
-	m_interrupt_time double, 
+	m_active_time_on_pf double,
+	m_interrupt_time double,
 	t_ts_on_pf double,
 	m_ts_on_an_act map<text,double>,
 	m_count_on_an_act map<text,double>,
@@ -82,11 +82,11 @@ CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
 };
 
 CREATE TABLE IF NOT EXISTS content_db.content_cumulative_summary (
-	content_id text, 
-	start_date timestamp, 
+	content_id text,
+	start_date timestamp,
 	total_ts double,
-	total_num_sessions bigint, 
-	average_ts_session double, 
+	total_num_sessions bigint,
+	average_ts_session double,
 	total_interactions bigint,
 	average_interactions_min double,
 	num_sessions_week double,
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_cumulative_summary (
 );
 
 CREATE TABLE IF NOT EXISTS content_db.content_usage_metrics (
-	id text, 
+	id text,
 	top_k_timespent map<text,double>,
 	top_k_sessions map<text,bigint>,
 	updated_date timestamp,
@@ -260,6 +260,37 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	PRIMARY KEY (d_period, d_partner_id)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
+	d_period int,
+	d_textbook_id text,
+	status text,
+	author_id text,
+	content_count bigint,
+	textbookunit_count bigint,
+	avg_content double,
+	content_types list<text>,
+	total_ts double,
+	creators_count bigint,
+	board text,
+	medium text,
+	PRIMARY KEY (d_period, d_textbook_id)
+);
+
+CREATE TABLE IF NOT EXISTS content_db.content_publish_fact(
+	d_period int,
+	draft_count int,
+	review_count int,
+	live_count int,
+	item_created_count int,
+	audio_created_count int,
+	image_created_count int,
+	video_created_count int,
+	plugin_created_count int,
+	textbook_created_count int,
+	textbook_live_count int,
+	PRIMARY KEY (d_period)
+);
+
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
@@ -273,11 +304,11 @@ CREATE TABLE IF NOT EXISTS device_db.device_recos(
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_specification (
-	device_id text, 
-	device_name text, 
+	device_id text,
+	device_name text,
 	device_local_name text,
-	os text, 
-	make text, 
+	os text,
+	make text,
 	memory double,
 	internal_disk double,
 	external_disk double,
@@ -316,7 +347,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
     content_id text,
     game_ver text,
     num_sessions bigint,
-    total_interactions bigint, 
+    total_interactions bigint,
     avg_interactions_min double,
     total_timespent double,
     last_played_on timestamp,
@@ -372,7 +403,7 @@ CREATE TYPE IF NOT EXISTS platform_db.requests(
      concepts list<text>,
      content_type text,
      language Map<text,text>,
-     type text 
+     type text
 );
 
 CREATE TABLE IF NOT EXISTS platform_db.request_recos(
@@ -443,7 +474,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
 CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
     d_period int,
     d_content_id text,
-    users_count bigint, 
+    users_count bigint,
     total_sessions bigint,
     total_ts double,
     avg_ts_session double,
