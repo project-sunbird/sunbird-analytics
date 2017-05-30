@@ -152,6 +152,8 @@ object JobFactory {
                 AppRawTelemetryJobs
             case "app-raw-telemetry-updaters" =>
                 AppRawTelemetryUpdaters
+            case "publish-pipeline-updater" =>
+                PublishPipelineUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

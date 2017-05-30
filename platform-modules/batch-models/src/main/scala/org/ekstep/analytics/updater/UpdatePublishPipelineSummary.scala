@@ -75,7 +75,6 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   }
 
   override def postProcess(data: RDD[PublishPipelineSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPublishFactIndex] = {
-    val d = data.collect
     data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT)
     data.map { d => ContentPublishFactIndex(d.d_period) }
   }
