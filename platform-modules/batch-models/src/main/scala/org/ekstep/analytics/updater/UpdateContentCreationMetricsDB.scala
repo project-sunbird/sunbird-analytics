@@ -1,3 +1,7 @@
+/**
+ * @author Mahesh Kumar Gangula
+ */
+
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework.Empty
@@ -28,6 +32,23 @@ case class ContentElementsCount(content_id: String, plugins: List[String], asset
 case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], current_status: Option[String], status_updated_date: Option[Long], pkg_version: Int, updated_date: Long, first_ver_total_sessions: Long = 0L, first_ver_total_ts: Double = 0.0) extends AlgoOutput with Output
 case class ContentCreationMetricsIndex(d_content_id: String);
 case class StatusChange(status: String, ets: Long);
+
+/**
+ * @dataproduct
+ * @updater 
+ * 
+ * UpdateContentCreationMetricsDB
+ * 
+ * Functionality
+ * 1. Updater to update the creation metrics of each content.
+ * 		a. Computation of elements (media, plugins) count.
+ * 		b. Time spent in draft and reveiw status.
+ * 		c. Total time spent and session to create first version content.
+ * 
+ * Dependencies:
+ * 	1. BE_OBJECT_LIFE_CYCLE events	
+ * 	2. UpdateContentEditorUsageDB data product
+ */
 
 object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent, CreationEvent, ContentCreationMetrics, ContentCreationMetrics] with Serializable {
 
