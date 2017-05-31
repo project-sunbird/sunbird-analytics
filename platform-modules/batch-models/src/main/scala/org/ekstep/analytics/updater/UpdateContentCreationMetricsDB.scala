@@ -29,7 +29,7 @@ import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil
 
 case class ContentElementsCount(content_id: String, plugins: List[String], assets: List[String]) extends AlgoInput
-case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], current_status: Option[String], status_updated_date: Option[Long], pkg_version: Int, updated_date: Long, first_ver_total_sessions: Long = 0L, first_ver_total_ts: Double = 0.0) extends AlgoOutput with Output
+case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], last_status: Option[String], last_status_date: Option[Long], pkg_version: Int, updated_date: Long, first_ver_total_sessions: Long = 0L, first_ver_total_ts: Double = 0.0) extends AlgoOutput with Output
 case class ContentCreationMetricsIndex(d_content_id: String);
 case class StatusChange(status: String, ets: Long);
 
@@ -74,10 +74,10 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 		val elementsCountRDD = joinedRDD.map { f =>
 			val current = f._2._1;
 			val existing = f._2._2.getOrElse(f._2._1);
-			(f._1, ContentCreationMetrics(current.d_content_id, current.d_ver, current.tags_count, current.images_count, current.audios_count, current.videos_count, current.plugin_metrics, existing.time_spent_draft, existing.time_spent_review, existing.current_status, existing.status_updated_date, current.pkg_version, current.updated_date));
+			(f._1, ContentCreationMetrics(current.d_content_id, current.d_ver, current.tags_count, current.images_count, current.audios_count, current.videos_count, current.plugin_metrics, existing.time_spent_draft, existing.time_spent_review, existing.last_status, existing.last_status_date, current.pkg_version, current.updated_date));
 		};
-
-		val liveContentMetrics = data.filter { x => "Live".equals(x.edata.eks.status) }
+		
+		val liveContentMetrics = data.filter { x => "Live".equals(x.edata.eks.state) }
 			.map { x => x.edata.eks.id }.distinct().map { x => CEUsageSummaryIndex(0, x) }
 			.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id"))
 			.map(f => (f._1.d_content_id, f._2)).collectAsMap().toMap
@@ -89,8 +89,16 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 		val lifecycleJoinedRDD = elementsCountRDD.leftOuterJoin(lifecycleEvents);
 		lifecycleJoinedRDD.map { f =>
 			val withoutLC = f._2._1;
-			val withLC = if (f._2._2.isEmpty) withoutLC else updateLifecycleMetrics(withoutLC, f._2._2.get);
-			if (withoutLC.pkg_version == 0 && withLC.pkg_version > 0) updateCreationMetrics(withLC, liveContentMetrics) else withLC;
+			if (f._2._2.isEmpty) 
+				withoutLC 
+			else {
+				val lcEvents = f._2._2.get;
+				// Update time spent for draft and review status.
+				val withLC = updateLifecycleMetrics(withoutLC, lcEvents);
+				// Check for first version created to update sessions and time spent.
+				val liveCount = lcEvents.count { x => "Live".equals(x.edata.eks.state) };
+				if (withoutLC.pkg_version == liveCount) updateCreationMetrics(withLC, liveContentMetrics) else withLC;
+			}
 		}
 	}
 
@@ -123,8 +131,8 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 	 */
 	private def updateLifecycleMetrics(metric: ContentCreationMetrics, lifeCycleEvents: Buffer[CreationEvent]): ContentCreationMetrics = {
 		val currentLCChanges = lifeCycleEvents.map { x => StatusChange(x.edata.eks.state, x.ets) }.sortBy { x => x.ets }
-		val lifeCycleChanges = if (metric.current_status.isEmpty) currentLCChanges else Buffer(StatusChange(metric.current_status.get, metric.status_updated_date.get)) ++ currentLCChanges;
-		if (lifeCycleChanges(0).ets > metric.status_updated_date.getOrElse(0L)) {
+		val lifeCycleChanges = if (metric.last_status.isEmpty) currentLCChanges else Buffer(StatusChange(metric.last_status.get, metric.last_status_date.get)) ++ currentLCChanges;
+		if (lifeCycleChanges(0).ets > metric.last_status_date.getOrElse(0L)) {
 			var tmpLastChange: StatusChange = null;
 			val statusWithTs = lifeCycleChanges.map { x =>
 				if (tmpLastChange == null) tmpLastChange = x;
@@ -145,7 +153,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 	private def updateCreationMetrics(metric: ContentCreationMetrics, liveContentMetrics: Map[String, CEUsageSummaryFact]): ContentCreationMetrics = {
 		val contentId = metric.d_content_id;
 		val summary = liveContentMetrics.getOrElse(contentId, CEUsageSummaryFact(0, contentId, 0L, 0L, 0.0, 0.0, 0L));
-		ContentCreationMetrics(metric.d_content_id, metric.d_ver, metric.tags_count, metric.images_count, metric.audios_count, metric.videos_count, metric.plugin_metrics, metric.time_spent_draft, metric.time_spent_review, metric.current_status, metric.status_updated_date, metric.pkg_version, metric.updated_date, summary.total_sessions, summary.total_ts);
+		ContentCreationMetrics(metric.d_content_id, metric.d_ver, metric.tags_count, metric.images_count, metric.audios_count, metric.videos_count, metric.plugin_metrics, metric.time_spent_draft, metric.time_spent_review, metric.last_status, metric.last_status_date, metric.pkg_version, metric.updated_date, summary.total_sessions, summary.total_ts);
 	}
 
 	override def postProcess(data: RDD[ContentCreationMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {

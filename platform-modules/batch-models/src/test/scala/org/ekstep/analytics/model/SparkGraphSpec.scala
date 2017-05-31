@@ -73,6 +73,7 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 		StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
 	}
 	
+	//TODO: refactor this. it is specific to content data table. :(
 	def loadCassandraData(keyspace: String, table: String, file: String, text_delimiter: String = ",") {
 	    DBUtil.importContentData(keyspace, table, file, text_delimiter);
 	}

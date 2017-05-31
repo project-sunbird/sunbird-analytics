@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 
 class TestContentVectorsModel extends SparkSpec(null) {
 
-    it should "update content_to_vec tabel and generates enriched json for 10 contents" in {
+    "ContentVectorsModel" should "update content_to_vec table and generates enriched json for 10 contents" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.content_to_vector");
