@@ -12,7 +12,7 @@ import org.ekstep.analytics.model.SparkGraphSpec
  */
 class TestAuthorUsageSummarizer extends SparkGraphSpec(null) {
     it should "execute AuthorUsageSummarizer job and won't throw any Exception" in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/portal-session-summary/portal-session-summary.log"))))), null, None, "org.ekstep.analytics.model.AuthorUsageSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestAuthorUsageSummarizer"))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/author-usage-summary/portal-session-summary.log"))))), null, None, "org.ekstep.analytics.model.AuthorUsageSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestAuthorUsageSummarizer"))
         AuthorUsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
 }
