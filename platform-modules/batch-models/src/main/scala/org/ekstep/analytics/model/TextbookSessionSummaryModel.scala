@@ -15,8 +15,8 @@ import org.ekstep.analytics.framework.util.CommonUtil
  * @author yuva
  */
 case class UnitSummary(total_units_added: Long, total_units_deleted: Long, total_units_modified: Long)
-case class SubUnitSummary(total_sub_units_added: Long, total_sub_units_deletd: Long, total_sub_units_modified: Long, total_lessons_added: Long, total_lessons_deleted: Long, total_lessons_modified: Long)
-case class TextbookSessionMetrics(uid: String, sid: String, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: SubUnitSummary, date_range: DtRange) extends Output with AlgoOutput
+case class LessonSummary(total_lessons_added: Long, total_lessons_deleted: Long, total_lessons_modified: Long)
+case class TextbookSessionMetrics(uid: String, sid: String, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
 case class Sessions(creationEvent: Buffer[CreationEvent]) extends AlgoInput
 /**
  * @dataproduct
@@ -25,7 +25,7 @@ case class Sessions(creationEvent: Buffer[CreationEvent]) extends AlgoInput
  * TextbookSessionSummaryModel
  *
  * Functionality
- * Compute session wise Textbook summary : Units,sub units and lessons added/deleted/modified
+ * Compute session wise Textbook summary : Units and Lessons added/deleted/modified
  */
 object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Sessions, TextbookSessionMetrics, MeasuredEvent] with Serializable {
     implicit val className = "org.ekstep.analytics.model.TextbookSessionSummaryModel"
@@ -34,7 +34,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
         /*
          * Input raw telemetry
          * */
-        val dataToBuffer = data.collect().toBuffer
+        val dataToBuffer = data.filter { x => (x.edata.eks.env != null) }.collect().toBuffer
         val sortedEvent = dataToBuffer.sortBy { x => x.ets }
         val sessions = getSessions(sortedEvent)
         sc.parallelize(sessions).map { x => Sessions(x) }
@@ -58,29 +58,17 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
             val uid = x.creationEvent.head.uid
             val sid = x.creationEvent.head.context.get.sid
             val content_id = x.creationEvent.head.context.get.content_id
-            //"type":"action","target":"","targetid":"","subtype":"save","values"
-            val filtered_events = x.creationEvent.filter { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("type").equals("action") && (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("target").equals("") || x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("target").equals("textbookunit")) && x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("subtype").equals("save") && x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("values").size > 0) }
-
-            val cc = filtered_events.map { x =>
-                val values = x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("values")
-                values.asInstanceOf[List[Map[String, AnyRef]]]
-
-            }
-
-            val total_units_added = x.creationEvent.filter { x => (x.edata.eks.target.equals("") && x.edata.eks.targetid.equals("add_unit")) }.size
-            val total_units_deleted = x.creationEvent.filter { x => (x.edata.eks.target.equals("textbookunit") && x.edata.eks.subtype.equals("delete")) }.size
-            //to-do
-            val total_units_modified = 0L
-            //to-do
-            val total_sub_units_deleted = 0L
-            //to-do
-            val total_sub_units_modified = 0L
-            //to-do
-            val total_lessons_modified = 0L
-            val total_sub_units_added = x.creationEvent.filter { x => (x.edata.eks.target.equals("") && x.edata.eks.targetid.equals("add_sub_unit")) }.size
-            val total_lessons_added = x.creationEvent.filter { x => (x.edata.eks.target.equals("textbookunit") && x.edata.eks.targetid.equals("add_lesson") && x.edata.eks.subtype.equals("change")) }.size
-            val total_lessons_deleted = x.creationEvent.filter { x => (x.edata.eks.target.equals("textbookunit") && x.edata.eks.subtype.equals("delete")) }.size
-            TextbookSessionMetrics(uid, sid, content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), SubUnitSummary(total_sub_units_added, total_sub_units_deleted, total_sub_units_modified, total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
+            val filtered_events = x.creationEvent.filter { x => (x.edata.eks.`type`.equals("action") && (x.edata.eks.target.equals("") || x.edata.eks.target.equals("textbookunit")) && x.edata.eks.subtype.equals("save") && x.edata.eks.values.size > 0) }
+            val buffered_events = filtered_events.map { x =>
+                x.edata.eks.values.get
+            }.flatMap { x => x }
+            val total_units_added = buffered_events.map { x => x.getOrElse("unit_added", "0").toString().toLong }.sum
+            val total_units_deleted = buffered_events.map { x => x.getOrElse("unit_deleted", "0").toString().toLong }.sum
+            val total_units_modified = buffered_events.map { x => x.getOrElse("unit_modified", "0").toString().toLong }.sum
+            val total_lessons_added = buffered_events.map { x => x.getOrElse("lesson_added", "0").toString().toLong }.sum
+            val total_lessons_deleted = buffered_events.map { x => x.getOrElse("lesson_deleted", "0").toString().toLong }.sum
+            val total_lessons_modified = buffered_events.map { x => x.getOrElse("lesson_modified", "0").toString().toLong }.sum
+            TextbookSessionMetrics(uid, sid, content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
         }
     }
 
@@ -93,7 +81,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
                 "time_spent" -> summary.time_spent,
                 "time_diff" -> summary.time_diff,
                 "unit_summary" -> summary.unit_summary,
-                "sub_unit_summary" -> summary.sub_unit_summary,
+                "lesson_summary" -> summary.sub_unit_summary,
                 "date_range" -> summary.date_range);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), 0L, "1.0", mid, summary.uid, None, None,
@@ -110,19 +98,18 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
         var tmpArr = Buffer[CreationEvent]();
         var prevEnv = ""
         creationEvent.foreach { x =>
-            x.edata.eks.env match {
-                case "textbook" => if ((prevEnv.equals("textbook") && prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
-                    tmpArr += x
-                } else {
-                    if (tmpArr.length > 0)
-                        sessions += tmpArr
-                    tmpArr = Buffer[CreationEvent]();
-                    tmpArr += x
-                }
-                case _ =>
+            if ((prevEnv.equals("textbook") && prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
+                tmpArr += x
+            } else {
+                if (tmpArr.length > 0 && prevEnv.equals("textbook"))
+                    sessions += tmpArr
+                tmpArr = Buffer[CreationEvent]();
+                tmpArr += x
             }
             prevEnv = x.edata.eks.env
         }
+        if (sessions.length <= 0 && prevEnv.equals("textbook"))
+            sessions += tmpArr
         sessions
     }
 }

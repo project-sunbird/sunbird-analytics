@@ -13,14 +13,13 @@ class TestTextbookSessionSummaryModel extends SparkSpec(null) {
     ignore should "compute  session metrics if env data as textbook is present" in {
         val rdd3 = computeCreationEvent(0)
         val metrics = rdd3.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        metrics.get("start_time").get.asInstanceOf[Number].longValue() should be(1494843012334L)
-        metrics.get("end_time").get.asInstanceOf[Number].longValue() should be(1494845088102L)
-        metrics.get("time_spent").get.asInstanceOf[Number].doubleValue() should be(2075.77)
-        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].total_units_added should be(1)
-        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].total_units_deleted should be(0)
-        metrics.get("sub_unit_summary").get.asInstanceOf[SubUnitSummary].total_sub_units_added should be(1)
-        metrics.get("sub_unit_summary").get.asInstanceOf[SubUnitSummary].total_lessons_added should be(1)
-        metrics.get("sub_unit_summary").get.asInstanceOf[SubUnitSummary].total_lessons_deleted should be(0)
+        metrics.get("start_time").get.asInstanceOf[Number].longValue() should be(1496228376984L)
+        metrics.get("end_time").get.asInstanceOf[Number].longValue() should be(1496230584803L)
+        metrics.get("time_spent").get.asInstanceOf[Number].doubleValue() should be(2207.82)
+        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].total_units_added should be(2)
+        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].total_units_deleted should be(1)
+        metrics.get("lesson_summary").get.asInstanceOf[LessonSummary].total_lessons_added should be(2)
+        metrics.get("lesson_summary").get.asInstanceOf[LessonSummary].total_lessons_deleted should be(1)
     }
 
     ignore should "generate empty results if env data as textbook is not present" in {
@@ -30,7 +29,7 @@ class TestTextbookSessionSummaryModel extends SparkSpec(null) {
     }
 
     private def computeCreationEvent: Array[MeasuredEvent] = {
-        val rdd = loadFile[CreationEvent]("src/test/resources/textbook-session-summary/textbook-session-summary.log");
+        val rdd = loadFile[CreationEvent]("src/test/resources/textbook-session-summary/test1.log");
         val rdd2 = TextbookSessionSummaryModel.execute(rdd, None);
         rdd2.collect()
     }
