@@ -37,10 +37,10 @@ case class PortalSessionOutput(sid: String, uid: String, anonymousUser: Boolean,
 
 /**
  * @dataproduct
- * @Summarizer 
- * 
+ * @Summarizer
+ *
  * PortalSessionSummaryModel
- * 
+ *
  * Functionality
  * 1. Generate app specific session summary events. This would be used to compute app usage metrics.
  * Events used - BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT & CP_IMPRESSION
@@ -55,7 +55,7 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
         val filteredData = DataFilter.filter(data, Array(Filter("context", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE", "CP_SESSION_START", "CP_INTERACT", "CP_IMPRESSION", "CE_START", "CE_END")))));
         filteredData.map(event => (event.context.get.sid, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).mapValues { events => events.sortBy { x => x.ets }}
+            .reduceByKey((a, b) => a ++ b).mapValues { events => events.sortBy { x => x.ets } }
             .map { x => PortalSessionInput(x._1, x._2) }
     }
 
@@ -72,7 +72,8 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
             val endTimestamp = lastEvent.ets;
             val uid = if (lastEvent.uid.isEmpty()) "" else lastEvent.uid
             val isAnonymous = if (uid.isEmpty()) true else false
-            val firstVisit = if ("BE_OBJECT_LIFECYCLE".equals(firstEvent.eid)) true else false
+            val lifeCycleEvent = events.filter { x => "BE_OBJECT_LIFECYCLE".equals(x.eid) && "User".equals(x.edata.eks.`type`) && "Create".equals(x.edata.eks.state) }
+            val firstVisit = if (lifeCycleEvent.size > 0) true else false
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
 
             var tmpLastEvent: CreationEvent = null;
@@ -87,19 +88,20 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
             val pageViewsCount = impressionEvents.size.toLong
             val ceVisits = events.filter { x => "CE_START".equals(x.eid) }.size.toLong
             val interactEventsCount = events.filter { x => "CP_INTERACT".equals(x.eid) }.size.toLong
-            val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d else BigDecimal(interactEventsCount / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+            val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d
+            else if (timeSpent < 60.0) interactEventsCount.toDouble
+            else BigDecimal(interactEventsCount / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
             val eventSummaries = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
-            val impressionCEEvents = events.filter { x => ("CP_IMPRESSION".equals(x.eid) || "CE_START".equals(x.eid)) }.map{ f =>
-                if("CE_START".equals(f.eid)){
+            val impressionCEEvents = events.filter { x => ("CP_IMPRESSION".equals(x.eid) || "CE_START".equals(x.eid)) }.map { f =>
+                if ("CE_START".equals(f.eid)) {
                     val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "id" -> "ce"))
                     val eks = JSONUtils.deserialize[CreationEks](eksString)
                     CreationEvent("CP_IMPRESSION", f.ets, f.ver, f.mid, f.pdata, f.cdata, f.uid, f.context, f.rid, new CreationEData(eks), f.tags)
-                }
-                else f;
+                } else f;
             }
-            
+
             val pageSummaries = if (impressionCEEvents.length > 0) {
                 var prevPage: CreationEvent = impressionCEEvents(0);
                 val pageDetails = impressionCEEvents.tail.map { x =>
@@ -112,8 +114,8 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
                 val lastTimeSpent = CommonUtil.getTimeDiff(lastPage.ets, lastEvent.ets).get;
                 val lastPageWithTs = (lastPage.edata.eks.id, lastPage, lastTimeSpent)
                 val finalPageDetails = pageDetails ++ Buffer(lastPageWithTs)
-                
-                finalPageDetails.groupBy (f => f._1).map { f =>
+
+                finalPageDetails.groupBy(f => f._1).map { f =>
                     val id = f._1
                     val firstEvent = f._2(0)._2
                     val `type` = firstEvent.edata.eks.`type`
@@ -122,20 +124,18 @@ object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Port
                     val visitCount = f._2.length.toLong
                     PageSummary(id, `type`, env, timeSpent, visitCount)
                 }
-            }
-            else Iterable[PageSummary]();
-            
+            } else Iterable[PageSummary]();
+
             val envSummaries = if (pageSummaries.size > 0) {
-                pageSummaries.groupBy { x => x.env }.map{f =>
+                pageSummaries.groupBy { x => x.env }.map { f =>
                     val timeSpent = f._2.map(x => x.time_spent).sum
                     val count = f._2.size.toLong
                     EnvSummary(f._1, timeSpent, count)
                 }
-            }
-            else Iterable[EnvSummary]();
-            
-            PortalSessionOutput(x.sid, uid, isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp , endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries))
-        }
+            } else Iterable[EnvSummary]();
+
+            PortalSessionOutput(x.sid, uid, isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries))
+        }.filter(f => (f.time_spent >= 1))
     }
 
     override def postProcess(data: RDD[PortalSessionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {

@@ -69,7 +69,8 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
         val rdd2 = PortalSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
-        me.length should be(1);
+        me.length should be(2);
+
         val event1 = me(0);
         event1.eid should be("ME_APP_SESSION_SUMMARY");
         event1.mid should be("15EAF653B5FE9E5C41C0A35D1DEE1564");
@@ -111,6 +112,30 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("CP_SESSION_START")
         eventSummary1.count should be(1)
+        
+        // Check for interact_events_per_min computation where ts < 60
+        val event2 = me(1);
+        event2.eid should be("ME_APP_SESSION_SUMMARY");
+        event2.mid should be("CD12D7581E334A08A263769D6B685857");
+        event2.uid should be("0313e644f8fda754eeeddc6c00eb824b00fea515");
+        event2.context.pdata.model should be("AppSessionSummarizer");
+        event2.context.pdata.ver should be("1.0");
+        event2.context.granularity should be("SESSION");
+        event2.context.date_range should not be null;
+        event2.dimensions.sid.get should be("8q42argsejl2vrkgjicrbjl271");
+        event2.dimensions.app_id.get should be("EkstepPortal");
+        event2.dimensions.anonymous_user.get should be(false);
+
+        val summary2 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event2.edata.eks));
+        summary2.interact_events_per_min should be(2.0);
+        summary2.start_time should be(1493873750000L);
+        summary2.end_time should be(1493873756000L);
+        summary2.ce_visits should be(0);
+        summary2.page_views_count should be(4);
+        summary2.interact_events_count should be(2);
+        summary2.time_diff should be(6.0);
+        summary2.first_visit should be(false);
+        summary2.time_spent should be(6.0);
     }
     
     it should "generate 2 portal session summary events with no CE events and 1 with non-registered user" in {

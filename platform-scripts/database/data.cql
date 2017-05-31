@@ -523,18 +523,12 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_metrics_fact (
     d_period int,
-    draft_count int,
-    review_count int,
-    live_count int,
-    item_created_count int,
-    audio_created_count int,
-    image_created_count int,
-    video_created_count int,
-    plugin_created_count int,
-    textbook_created_count int,
-    textbook_live_count int,
+    d_type text,
+    subtype text,
+    state text,
+    count int,
     updated_date timestamp,
-    PRIMARY KEY (d_period)
+    PRIMARY KEY (d_period, d_type)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
@@ -554,6 +548,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 
+// Not required
 CREATE TYPE IF NOT EXISTS platform_db.unit_summary(
      total_units_added bigint,
      total_units_deleted bigint,
