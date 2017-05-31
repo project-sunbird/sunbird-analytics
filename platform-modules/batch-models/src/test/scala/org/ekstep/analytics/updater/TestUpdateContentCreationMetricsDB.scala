@@ -15,6 +15,7 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 	"UpdateContentCreationMetricsDB" should "take the snapshot data for the content having no plugins and no tags update in DB" in {
 
 		DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE)
+		loadCassandraData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, "src/test/resources/vidyavaani-data/content_data.csv")
 		loadGraphData("src/test/resources/content-creation-metrics/graph-data.json")
 		UpdateContentCreationMetricsDB.execute(sc.emptyRDD[CreationEvent], None)
 		val metrics = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).collect
@@ -78,7 +79,7 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 		cnt2.audios_count should be(0)
 		cnt2.images_count should be(3)
 		cnt2.videos_count should be(0)
-		cnt2.pkg_version should be(3)
+		cnt2.pkg_version should be(1)
 		cnt2.tags_count should be(0)
 	}
 
