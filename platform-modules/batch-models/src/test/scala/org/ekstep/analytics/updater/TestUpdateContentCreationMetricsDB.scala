@@ -16,7 +16,7 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 
         DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE)
         loadGraphData("src/test/resources/content-creation-metrics/graph-data.json")
-        val rdd = loadFile[CreationEvent]("src/test/resources/pipeline-summary/test_data1.log");
+        val rdd = loadFile[CreationEvent]("src/test/resources/content-creation-metrics/test_data1.log");
         UpdateContentCreationMetricsDB.execute(rdd, None)
         val metrics = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).collect
         metrics.length should be(3)
@@ -60,7 +60,7 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
         
         val relationQuery = "MATCH (cnt:domain {IL_UNIQUE_ID:'do_2122040066659860481139'}),(tag:domain {IL_UNIQUE_ID:'TAG_english_stories'}) CREATE (tag)-[r:hasMember]->(cnt) RETURN r"
         executeQueries(List(relationQuery))
-        val rdd = loadFile[CreationEvent]("src/test/resources/pipeline-summary/test_data1.log");
+        val rdd = loadFile[CreationEvent]("src/test/resources/content-creation-metrics/test_data1.log");
         UpdateContentCreationMetricsDB.execute(rdd, None)
         val metrics = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).collect
         metrics.length should be(2)

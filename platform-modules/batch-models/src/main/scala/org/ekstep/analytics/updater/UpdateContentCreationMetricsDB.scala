@@ -22,33 +22,31 @@ import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.framework.util.CommonUtil
 
 case class ContentElementsCount(content_id: String, plugins: List[String], assets: List[String]) extends AlgoInput
-case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], current_status: Option[String], status_updated_date: Option[Long], pkg_version: Int, updated_date: Long, first_ver_total_sessions: Int = 0, first_ver_total_ts: Double = 0.0) extends AlgoOutput with Output
+case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], current_status: Option[String], status_updated_date: Option[Long], pkg_version: Int, updated_date: Long, first_ver_total_sessions: Long = 0L, first_ver_total_ts: Double = 0.0) extends AlgoOutput with Output
 case class ContentCreationMetricsIndex(d_content_id: String);
-case class ContentCreationMetricsInput(index: ContentCreationMetricsIndex, filteredEvents: Buffer[CreationEvent]) extends AlgoInput;
+case class StatusChange(status: String, ets: Long);
 
-object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent, ContentCreationMetricsInput, ContentCreationMetrics, ContentCreationMetrics] with Serializable {
+object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent, CreationEvent, ContentCreationMetrics, ContentCreationMetrics] with Serializable {
 
 	override def name(): String = "UpdateContentCreationMetricsDB";
 	implicit val className = "org.ekstep.analytics.updater.UpdateContentCreationMetricsDB";
-	
+
 	val TIME_SPENT_STATUS_LIST = List("Draft", "Reveiw");
 
 	private def _getGraphMetrics(query: String, key1: String, key2: String)(implicit sc: SparkContext): Map[String, Int] = {
 		GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get(key1).asString(), x.get(key2).asInt()) }.toMap
 	}
-	override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetricsInput] = {
+	override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CreationEvent] = {
 		JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE")
-		val lifecycleEvents = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE")))));
-		lifecycleEvents.filter { x => "Content".equals(x.edata.eks.`type`) }
-		.map { x => (ContentCreationMetricsIndex(x.edata.eks.id), Buffer(x)) }
-		.partitionBy(new HashPartitioner(JobContext.parallelization))
-        .reduceByKey((a, b) => a ++ b).map { f => ContentCreationMetricsInput(f._1, f._2.sortBy { x => x.ets })};
+		DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE")))))
+			.filter { x => "Content".equals(x.edata.eks.`type`) }.cache();
 	}
 
-	override def algorithm(data: RDD[ContentCreationMetricsInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {
-		
+	override def algorithm(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {
+
 		val currentData = getContentElementMetrics();
 		val existingData = currentData.map { x => x._1 }.joinWithCassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).on(SomeColumns("d_content_id"))
 		val joinedRDD = currentData.leftOuterJoin(existingData)
@@ -57,15 +55,27 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 			val existing = f._2._2.getOrElse(f._2._1);
 			(f._1, ContentCreationMetrics(current.d_content_id, current.d_ver, current.tags_count, current.images_count, current.audios_count, current.videos_count, current.plugin_metrics, existing.time_spent_draft, existing.time_spent_review, existing.current_status, existing.status_updated_date, current.pkg_version, current.updated_date));
 		};
-		
-		val lifecycleJoinedRDD = elementsCountRDD.leftOuterJoin(data.map { x => (x.index, x.filteredEvents) });
+
+		val liveContentMetrics = data.filter { x => "Live".equals(x.edata.eks.status) }
+			.map { x => x.edata.eks.id }.distinct().map { x => CEUsageSummaryIndex(0, x) }
+			.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id"))
+			.map(f => (f._1.d_content_id, f._2)).collectAsMap().toMap
+
+		val lifecycleEvents = data.map { x => (ContentCreationMetricsIndex(x.edata.eks.id), Buffer(x)) }
+			.partitionBy(new HashPartitioner(JobContext.parallelization))
+			.reduceByKey((a, b) => a ++ b).map { f => (f._1, f._2.sortBy { x => x.ets }) };
+
+		val lifecycleJoinedRDD = elementsCountRDD.leftOuterJoin(lifecycleEvents);
 		lifecycleJoinedRDD.map { f =>
 			val withoutLC = f._2._1;
-			val withLC = if(f._2._2.isEmpty) withoutLC else updateLifecycleMetrics(withoutLC, f._2._2.get);
-			if(withoutLC.pkg_version == 0 && withLC.pkg_version > 0) updateCreationMetrics(withLC) else withLC;
+			val withLC = if (f._2._2.isEmpty) withoutLC else updateLifecycleMetrics(withoutLC, f._2._2.get);
+			if (withoutLC.pkg_version == 0 && withLC.pkg_version > 0) updateCreationMetrics(withLC, liveContentMetrics) else withLC;
 		}
 	}
-	
+
+	/**
+	 * Get all contents with elements (image, video, audio, plugins) count.
+	 */
 	private def getContentElementMetrics()(implicit sc: SparkContext): RDD[(ContentCreationMetricsIndex, ContentCreationMetrics)] = {
 		val contentData = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
 			.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
@@ -86,18 +96,37 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 			(ContentCreationMetricsIndex(x.content_id), ContentCreationMetrics(x.content_id, 0, tags, assetMetrics.getOrElse("image", 0), assetMetrics.getOrElse("sound", 0) + assetMetrics.getOrElse("audiosprite", 0), assetMetrics.getOrElse("video", 0), pluginMetrics, Option(timeSpentDraft), Option(timeSpentReview), None, None, liveCount, updatedAt))
 		};
 	}
-	
+
+	/**
+	 * Compute time spent in each status.
+	 */
 	private def updateLifecycleMetrics(metric: ContentCreationMetrics, lifeCycleEvents: Buffer[CreationEvent]): ContentCreationMetrics = {
-		// TODO: compute and update life cycle metrics.
-		metric;
+		val currentLCChanges = lifeCycleEvents.map { x => StatusChange(x.edata.eks.state, x.ets) }.sortBy { x => x.ets }
+		val lifeCycleChanges = if (metric.current_status.isEmpty) currentLCChanges else Buffer(StatusChange(metric.current_status.get, metric.status_updated_date.get)) ++ currentLCChanges;
+		if (lifeCycleChanges(0).ets > metric.status_updated_date.getOrElse(0L)) {
+			var tmpLastChange: StatusChange = null;
+			val statusWithTs = lifeCycleChanges.map { x =>
+				if (tmpLastChange == null) tmpLastChange = x;
+				val ts = CommonUtil.getTimeDiff(tmpLastChange.ets, x.ets).get;
+				val status = tmpLastChange.status;
+				tmpLastChange = x;
+				(status, ts);
+			}.groupBy(f => f._1).map(f => (f._1, f._2.map(f => f._2).sum));
+			val tsDraft = CommonUtil.roundDouble(metric.time_spent_draft.getOrElse(0.0) + (statusWithTs.getOrElse("Draft", 0.0) / 60), 2)
+			val tsReview = CommonUtil.roundDouble(metric.time_spent_draft.getOrElse(0.0) + (statusWithTs.getOrElse("Review", 0.0) / 60), 2)
+			val lastLCChange = lifeCycleChanges.last;
+			ContentCreationMetrics(metric.d_content_id, metric.d_ver, metric.tags_count, metric.images_count, metric.audios_count, metric.videos_count, metric.plugin_metrics, Option(tsDraft), Option(tsReview), Option(lastLCChange.status), Option(lastLCChange.ets), metric.pkg_version, metric.updated_date);
+		} else {
+			metric;
+		}
 	}
-	
-	private def updateCreationMetrics(metric: ContentCreationMetrics): ContentCreationMetrics = {
-		// TODO: compute and update life cycle metrics.
-		metric;
+
+	private def updateCreationMetrics(metric: ContentCreationMetrics, liveContentMetrics: Map[String, CEUsageSummaryFact]): ContentCreationMetrics = {
+		val contentId = metric.d_content_id;
+		val summary = liveContentMetrics.getOrElse(contentId, CEUsageSummaryFact(0, contentId, 0L, 0L, 0.0, 0.0, 0L));
+		ContentCreationMetrics(metric.d_content_id, metric.d_ver, metric.tags_count, metric.images_count, metric.audios_count, metric.videos_count, metric.plugin_metrics, metric.time_spent_draft, metric.time_spent_review, metric.current_status, metric.status_updated_date, metric.pkg_version, metric.updated_date, summary.total_sessions, summary.total_ts);
 	}
-	
-	
+
 	override def postProcess(data: RDD[ContentCreationMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {
 		data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE);
 		data;
