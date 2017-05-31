@@ -24,7 +24,7 @@ import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
 
 case class ContentElementsCount(content_id: String, plugins: List[String], assets: List[String]) extends AlgoInput
-case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], current_status: Option[String], status_updated_date: Option[Long], pkg_version: Int, updated_date: Long) extends AlgoOutput with Output
+case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], current_status: Option[String], status_updated_date: Option[Long], pkg_version: Int, updated_date: Long, first_ver_total_sessions: Int = 0, first_ver_total_ts: Double = 0.0) extends AlgoOutput with Output
 case class ContentCreationMetricsIndex(d_content_id: String);
 case class ContentCreationMetricsInput(index: ContentCreationMetricsIndex, filteredEvents: Buffer[CreationEvent]) extends AlgoInput;
 
@@ -49,25 +49,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 
 	override def algorithm(data: RDD[ContentCreationMetricsInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentCreationMetrics] = {
 		
-		val contentData = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
-			.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
-			.map { x => parseECMLContent(x._1, x._2) }.filter { x => null != x }
-
-		val contentTagCountMap = _getGraphMetrics(CypherQueries.PER_CONTENT_TAGS, "contentId", "tagCount")
-		val contentLivesCountMap = _getGraphMetrics(CypherQueries.CONTENT_LIVE_COUNT, "contentId", "liveCount")
-		val updatedAt = System.currentTimeMillis();
-
-		val currentData = contentData.map { x =>
-			val assetMetrics = x.assets.groupBy { x => x }.map { x => (x._1, x._2.length) }
-			val pluginMetrics = x.plugins.groupBy { x => x }.map { x => (x._1, x._2.length) } - ("appEvents", "events", "#PCDATA", "manifest", "config", "param")
-			val content = x.content_id
-			val tags = contentTagCountMap.getOrElse(content, 0)
-			val liveCount = contentLivesCountMap.getOrElse(content, 0)
-			val timeSpentDraft = 0.0;
-			val timeSpentReview = 0.0;
-			(ContentCreationMetricsIndex(x.content_id), ContentCreationMetrics(x.content_id, 0, tags, assetMetrics.getOrElse("image", 0), assetMetrics.getOrElse("sound", 0) + assetMetrics.getOrElse("audiosprite", 0), assetMetrics.getOrElse("video", 0), pluginMetrics, Option(timeSpentDraft), Option(timeSpentReview), None, None, liveCount, updatedAt))
-		};
-
+		val currentData = getContentElementMetrics();
 		val existingData = currentData.map { x => x._1 }.joinWithCassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).on(SomeColumns("d_content_id"))
 		val joinedRDD = currentData.leftOuterJoin(existingData)
 		val elementsCountRDD = joinedRDD.map { f =>
@@ -82,6 +64,27 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 			val withLC = if(f._2._2.isEmpty) withoutLC else updateLifecycleMetrics(withoutLC, f._2._2.get);
 			if(withoutLC.pkg_version == 0 && withLC.pkg_version > 0) updateCreationMetrics(withLC) else withLC;
 		}
+	}
+	
+	private def getContentElementMetrics()(implicit sc: SparkContext): RDD[(ContentCreationMetricsIndex, ContentCreationMetrics)] = {
+		val contentData = sc.cassandraTable[ContentData](Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
+			.map { x => (x.content_id, new String(x.body.getOrElse(Array()), "UTF-8")) }.filter { x => !x._2.isEmpty }
+			.map { x => parseECMLContent(x._1, x._2) }.filter { x => null != x }
+
+		val contentTagCountMap = _getGraphMetrics(CypherQueries.PER_CONTENT_TAGS, "contentId", "tagCount")
+		val contentLivesCountMap = _getGraphMetrics(CypherQueries.CONTENT_LIVE_COUNT, "contentId", "liveCount")
+		val updatedAt = System.currentTimeMillis();
+
+		contentData.map { x =>
+			val assetMetrics = x.assets.groupBy { x => x }.map { x => (x._1, x._2.length) }
+			val pluginMetrics = x.plugins.groupBy { x => x }.map { x => (x._1, x._2.length) } - ("appEvents", "events", "#PCDATA", "manifest", "config", "param")
+			val content = x.content_id
+			val tags = contentTagCountMap.getOrElse(content, 0)
+			val liveCount = contentLivesCountMap.getOrElse(content, 0)
+			val timeSpentDraft = 0.0;
+			val timeSpentReview = 0.0;
+			(ContentCreationMetricsIndex(x.content_id), ContentCreationMetrics(x.content_id, 0, tags, assetMetrics.getOrElse("image", 0), assetMetrics.getOrElse("sound", 0) + assetMetrics.getOrElse("audiosprite", 0), assetMetrics.getOrElse("video", 0), pluginMetrics, Option(timeSpentDraft), Option(timeSpentReview), None, None, liveCount, updatedAt))
+		};
 	}
 	
 	private def updateLifecycleMetrics(metric: ContentCreationMetrics, lifeCycleEvents: Buffer[CreationEvent]): ContentCreationMetrics = {

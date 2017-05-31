@@ -468,6 +468,8 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
     pkg_version int,
     current_status text,
     status_updated_date timestamp,
+    first_ver_total_sessions bigint,
+    first_ver_total_ts double,
     updated_date timestamp,
     PRIMARY KEY (d_content_id)
 );
