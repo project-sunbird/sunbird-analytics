@@ -577,7 +577,7 @@ CREATE TABLE IF NOT EXISTS platform_db.textbook_metrics_summary_fact(
     unit_summary frozen<unit_summary>,
     sub_unit_summary frozen<subunit_summary>,
     updated_date timestamp,
-    PRIMARY KEY (d_period,d_sid)
+    PRIMARY KEY (d_period)
   );
 
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);

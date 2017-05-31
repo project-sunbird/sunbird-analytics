@@ -11,7 +11,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 /**
  * @author yuva
  */
-class TestUpdateTextbookSessionsDB extends SparkSpec(null) {
+class TestUpdateTextbookUsageDB extends SparkSpec(null) {
 
     override def beforeAll() {
         super.beforeAll()
@@ -21,8 +21,8 @@ class TestUpdateTextbookSessionsDB extends SparkSpec(null) {
     }
 
     "UpdateTextbookSessionsDB" should "create data in platform db" in {
-        val rdd = loadFile[DerivedEvent]("src/test/resources/textbook-session-updater/textbook-session-updater.log");
-        UpdateTextbookSessionsDB.execute(rdd, None);
+        val rdd = loadFile[DerivedEvent]("src/test/resources/textbook-usage-summary/textbook-usage-summary.log");
+        UpdateTextbookUsageDB.execute(rdd, None);
 
         val object1 = sc.cassandraTable[TextbookSessionMetricsFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.TEXTBOOK_SESSION_METRICS_FACT).first();
         /*object1.time_spent should be(0.0)

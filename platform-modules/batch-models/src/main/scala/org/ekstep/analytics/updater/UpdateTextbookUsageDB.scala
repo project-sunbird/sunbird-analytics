@@ -29,19 +29,19 @@ case class TextbookSessionMetricsFact(d_period: Int, d_sid: String, time_spent: 
 case class TextbookSessionMetricsFact_T(d_period: Int, d_sid: String, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: SubUnitSummary, updated_date: Long, last_gen_date: Long)
 case class TextbookIndex(d_period: Int, d_sid: String)
 
-object UpdateTextbookSessionsDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, TextbookSessionMetricsFact, TextbookSessionMetricsFact] with IInfluxDBUpdater with Serializable {
+object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, TextbookSessionMetricsFact, TextbookSessionMetricsFact] with IInfluxDBUpdater with Serializable {
 
-    override def name(): String = "UpdateTextbookSessionsDB";
-    implicit val className = "org.ekstep.analytics.updater.UpdateTextbookSessionsDB";
+    override def name(): String = "UpdateTextbookUsageDB";
+    implicit val className = "org.ekstep.analytics.updater.UpdateTextbookUsageDB";
     val TEXTBOOK_SESSION_METRICS = "textbook_session_metrics";
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
-        DataFilter.filter(data, Filter("eid", "EQ", Option("ME_TEXTBOOK_SESSION_SUMMARY")));
+        DataFilter.filter(data, Filter("eid", "EQ", Option("ME_TEXTBOOK_USAGE_SUMMARY")));
     }
 
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessionMetricsFact] = {
         val textbookSessions = data.map { x =>
-            val uid = x.dimensions.uid.get
+           // val uid = x.dimensions.uid.get
             val d_sid = x.dimensions.sid.get
             val d_period = x.dimensions.period.get
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
@@ -76,7 +76,7 @@ object UpdateTextbookSessionsDB extends IBatchModelTemplate[DerivedEvent, Derive
             val d_period = CommonUtil.getPeriod(x.last_gen_date, period);
             (TextbookIndex(d_period, x.d_sid), x)
         }
-        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[TextbookSessionMetricsFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.TEXTBOOK_SESSION_METRICS_FACT).on(SomeColumns("d_period", "d_sid"));
+        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[TextbookSessionMetricsFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.TEXTBOOK_SESSION_METRICS_FACT).on(SomeColumns("d_period"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
