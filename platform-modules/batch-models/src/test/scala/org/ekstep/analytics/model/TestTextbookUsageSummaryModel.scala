@@ -16,7 +16,6 @@ class TestTextbookUsageSummaryModel extends SparkSpec(null) {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/textbook-session-summary/textbook-session-summary1.log");
         val rdd2 = TextbookUsageSummaryModel.execute(rdd1, None);
-        rdd2.foreach { x => println(JSONUtils.serialize(x)) }
         val me = rdd2.collect();
     }
 }
