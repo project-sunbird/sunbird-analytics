@@ -135,7 +135,10 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
             val loadTime = if ("CE_START".equals(startEvent.eid)) startEvent.edata.eks.loadtimes.getOrElse("contentLoad", 0.0) else 0.0
             val noOfInteractEvents = interactEvents.length
-            val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d else BigDecimal(noOfInteractEvents / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+            val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d
+            else if (timeSpent < 60.0) noOfInteractEvents.toDouble
+            else BigDecimal(noOfInteractEvents / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+            
             val pluginSummary = computePluginSummary(pluginEvents)
             val saveSummary = computeSaveSummary(apiEvents)
             val stageSummary = computeStageSummary(pluginEvents.filter(x => x.edata.eks.stage.nonEmpty))

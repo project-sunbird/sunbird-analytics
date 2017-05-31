@@ -8,7 +8,6 @@ import org.ekstep.analytics.framework.util.JSONUtils
  */
 class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
 
-    // TODO: Need to improve test cases with more creation event data.
     "ContentEditorSessionSummaryModel" should "generate session summary and pass all positive test cases" in {
 
         val rdd = loadFile[CreationEvent]("src/test/resources/content-editor-session-summary/test_data1.log");
@@ -70,7 +69,7 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         summary1.time_spent should be(3.6);
         summary1.load_time should be(6.0);
         summary1.interact_events_count should be(2);
-        summary1.interact_events_per_min should be(33.33);
+        summary1.interact_events_per_min should be(2.0);
         summary1.api_calls_count should be(2);
         summary1.sidebar_events_count should be(0);
         summary1.menu_events_count should be(1);
