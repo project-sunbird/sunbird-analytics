@@ -18,7 +18,7 @@ import scala.collection.mutable.ListBuffer
 
 case class AuthorUsageSummary(ak: AuthorKey, total_session: Long, total_ts: Double, ce_total_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long) extends AlgoOutput
 case class AuthorKey(period: Int, author: String)
-case class InputEventsAuthorSummary(ck: AuthorKey, events: Buffer[AuthorUsageSummary]) extends AlgoInput
+case class AuthorUsageInput(ck: AuthorKey, events: Buffer[AuthorUsageSummary]) extends AlgoInput
 
 /**
  * @dataproduct
@@ -31,13 +31,11 @@ case class InputEventsAuthorSummary(ck: AuthorKey, events: Buffer[AuthorUsageSum
  * Event used - ME_AUTHOR_USAGE_SUMMARY
  */
 
-object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsAuthorSummary, AuthorUsageSummary, MeasuredEvent] with Serializable {
+object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorUsageInput, AuthorUsageSummary, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.AuthorUsageSummaryModel"
     override def name(): String = "AuthorUsageSummaryModel";
 
-    
-    
     private def _computeMetrics(events: Buffer[AuthorUsageSummary], ck: AuthorKey): AuthorUsageSummary = {
         val firstEvent = events.sortBy { x => x.dt_range.from }.head;
         val lastEvent = events.sortBy { x => x.dt_range.to }.last;
@@ -48,12 +46,12 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEv
         val total_ts = CommonUtil.roundDouble(events.map { x => x.total_ts }.sum, 2)
         val avg_session_ts = CommonUtil.roundDouble(total_ts / total_session, 2)
         
-        val total_ce_visit = events.map { x => x.total_ce_visit}.sum
-        val ce_total_ts = CommonUtil.roundDouble(events.map { x => x.ce_total_ts}.sum, 2)
+        val total_ce_visit = events.map { x => x.total_ce_visit }.sum
+        val ce_total_ts = CommonUtil.roundDouble(events.map { x => x.ce_total_ts }.sum, 2)
         
-        val ce_percent_sessions = CommonUtil.roundDouble((total_ce_visit * 1.0 / total_session) * 100 , 2)
-        val ce_percent_ts = CommonUtil.roundDouble(if(total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d), 2)
-        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, total_ce_visit,ce_percent_sessions, avg_session_ts, ce_percent_ts, date_range, lastEvent.syncts)
+        val ce_percent_sessions = CommonUtil.roundDouble((total_ce_visit * 1.0 / total_session) * 100, 2)
+        val ce_percent_ts = CommonUtil.roundDouble(if (total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d), 2)
+        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, total_ce_visit, ce_percent_sessions, avg_session_ts, ce_percent_ts, date_range, lastEvent.syncts)
     }
     
     def getAuthorUsageSummary(event: DerivedEvent, period: Int, authorId: String): AuthorUsageSummary = {
@@ -65,20 +63,21 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEv
         
         val ce_visits = eksMap.getOrElse("ce_visits", 0L).asInstanceOf[Number].longValue()
         val ce_total_ts = eksMap.get("env_summary").get.asInstanceOf[List[Map[String, AnyRef]]]
-        .filter { x => (x.getOrElse("env", "").equals("content-editor")) }
-        .map { x => x.getOrElse("time_spent", 0.0).asInstanceOf[Double]}.sum
+            .filter { x => (x.getOrElse("env", "").equals("content-editor")) }
+            .map { x => x.getOrElse("time_spent", 0.0).asInstanceOf[Double] }.sum
         
         val ce_percent_sessions = (ce_visits * 1.0 / total_session) * 100
-        val ce_percent_ts = if(total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d) 
+        val ce_percent_ts = if (total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d)
         
-        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, ce_visits,ce_percent_sessions, avg_session_ts, ce_percent_ts, event.context.date_range, event.syncts)
+        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, ce_visits, ce_percent_sessions, avg_session_ts, ce_percent_ts, event.context.date_range, event.syncts)
     }
     /**
      *  Input Portal session summary
      */
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsAuthorSummary] = {
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuthorUsageInput] = {
 
-        val normalizeEvents = data.map { event =>
+        val filteredEvents = data.filter { x => (!x.uid.equals("")) }
+        val normalizeEvents = filteredEvents.map { event =>
 
             var list: ListBuffer[AuthorUsageSummary] = ListBuffer[AuthorUsageSummary]();
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
@@ -90,19 +89,19 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEv
 
         normalizeEvents.map { x => (x.ak, Buffer(x)) }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
-            .reduceByKey((a, b) => a ++ b).map { x => InputEventsAuthorSummary(x._1, x._2) };
+            .reduceByKey((a, b) => a ++ b).map { x => AuthorUsageInput(x._1, x._2) };
     }
 
-    override def algorithm(data: RDD[InputEventsAuthorSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuthorUsageSummary] = {
+    override def algorithm(data: RDD[AuthorUsageInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuthorUsageSummary] = {
 
-         data.map { x =>
+        data.map { x =>
             _computeMetrics(x.events, x.ck);
         }.filter { x => x.total_ce_visit > 0 }
     }
 
     override def postProcess(data: RDD[AuthorUsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_AUTHOR_USAGE_SUMMARY", summary.ak.period.toString() + summary.ak.author, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dt_range.to);
+            val mid = CommonUtil.getMessageId("ME_AUTHOR_USAGE_SUMMARY",summary.ak.author, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dt_range);
             val measures = Map(
                 "total_session" -> summary.total_session,
                 "total_ts" -> summary.total_ts,

@@ -14,7 +14,7 @@ class TestTextbookUsageSummaryModel extends SparkSpec(null) {
 
     "TextbookUsageSummaryModel" should "generate usage summary events" in {
 
-        val rdd1 = loadFile[DerivedEvent]("src/test/resources/textbook-session-summary/textbook-session-summary1.log");
+        val rdd1 = loadFile[DerivedEvent]("src/test/resources/textbook-usage-summary/textbook-session-summary1.log");
         val rdd2 = TextbookUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
     }

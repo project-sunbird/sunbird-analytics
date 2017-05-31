@@ -58,6 +58,15 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
             val uid = x.creationEvent.head.uid
             val sid = x.creationEvent.head.context.get.sid
             val content_id = x.creationEvent.head.context.get.content_id
+            //"type":"action","target":"","targetid":"","subtype":"save","values"
+            val filtered_events = x.creationEvent.filter { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("type").equals("action") && (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("target").equals("") || x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("target").equals("textbookunit")) && x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("subtype").equals("save") && x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("values").size > 0) }
+
+            val cc = filtered_events.map { x =>
+                val values = x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("values")
+                values.asInstanceOf[List[Map[String, AnyRef]]]
+
+            }
+
             val total_units_added = x.creationEvent.filter { x => (x.edata.eks.target.equals("") && x.edata.eks.targetid.equals("add_unit")) }.size
             val total_units_deleted = x.creationEvent.filter { x => (x.edata.eks.target.equals("textbookunit") && x.edata.eks.subtype.equals("delete")) }.size
             //to-do
