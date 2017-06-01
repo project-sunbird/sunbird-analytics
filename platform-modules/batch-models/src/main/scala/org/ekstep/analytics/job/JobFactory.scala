@@ -126,7 +126,7 @@ object JobFactory {
                 ConceptSnapshotUpdater
             case "ce-ss" =>
                 ContentEditorSessionSummarizer
-            case "ce-us" =>
+            case "ce-usage" =>
                 ContentEditorUsageSummarizer
             case "ce-usage-updater" =>
                 ContentEditorUsageUpdater
