@@ -216,6 +216,8 @@ CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
     live_content_count_start bigint,
     review_content_count bigint,
     review_content_count_start bigint,
+    creation_ts double,
+    avg_creation_ts double,
     updated_date timestamp,
     PRIMARY KEY (d_period, d_author_id, d_partner_id)
 );

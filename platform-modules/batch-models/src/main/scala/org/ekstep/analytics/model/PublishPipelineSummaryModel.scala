@@ -18,23 +18,14 @@ import java.text.SimpleDateFormat
 import org.ekstep.analytics.creation.model.CreationEvent
 
 case class EventsByPeriod(period: Long, events: Buffer[CreationEvent]) extends AlgoInput
-case class ContentPublishSummary(draft_count: Long, review_count: Long, live_count: Long)
-case class ItemPublishSummary(created_count: Long)
-case class AssetPublishSummary(audio_created_count: Long, video_created_count: Long, image_created_count: Long, plugin_created_count: Long)
-case class TextbookPublishSummary(created_count: Long, live_count: Long)
-case class PipelineSummaryOutput(
-  content_publish: ContentPublishSummary,
-  item_publish: ItemPublishSummary,
-  asset_publish: AssetPublishSummary,
-  textbook_publish: TextbookPublishSummary,
-  date_range: DtRange,
-  period: Long) extends AlgoOutput
+case class PublishPipelineSummary(`type`: String, state: String, subtype: String, count: Int)
+case class PipelineSummaryOutput(summary: Iterable[PublishPipelineSummary], date_range: DtRange, period: Long) extends AlgoOutput
 
 object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, EventsByPeriod, PipelineSummaryOutput, MeasuredEvent] with Serializable {
 
   implicit val className = "org.ekstep.analytics.model.PublishPipelineSummaryModel"
-  override def name: String =  "PublishPipelineSummaryModel"
-  
+  override def name: String = "PublishPipelineSummaryModel"
+
   override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsByPeriod] = {
     JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE")
     val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE")))));
@@ -51,23 +42,17 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
 
     val data = input.cache()
     val summaries = data.map { d =>
-      val draftsCount = d.events.count(x => x.edata.eks.`type` == "Content" && x.edata.eks.state == "Draft")
-      val reviewsCount = d.events.count(x => x.edata.eks.`type` == "Content" && x.edata.eks.state == "Review")
-      val liveCount = d.events.count(x => x.edata.eks.`type` == "Content" && x.edata.eks.state == "Live")
-      val createdCount = d.events.count(x => x.edata.eks.`type` == "Item" && x.edata.eks.state == "Live")
-      val audioCreatedCount = d.events.count(x => x.edata.eks.`type` == "Asset" && x.edata.eks.state == "Live" && x.edata.eks.subtype == "audio")
-      val videoCreatedCount = d.events.count(x => x.edata.eks.`type` == "Asset" && x.edata.eks.state == "Live" && x.edata.eks.subtype == "video")
-      val imageCreatedCount = d.events.count(x => x.edata.eks.`type` == "Asset" && x.edata.eks.state == "Live" && x.edata.eks.subtype == "image")
-      val pluginCreatedCount = d.events.count(x => x.edata.eks.`type` == "Plugin" && x.edata.eks.state == "Live")
-      val textbookCreatedCount = d.events.count(x => x.edata.eks.`type` == "Textbook" && x.edata.eks.state == "Draft")
-      val textbookLiveCount = d.events.count(x => x.edata.eks.`type` == "Textbook" && x.edata.eks.state == "Live")
+      val groups = d.events.groupBy(e => (e.edata.eks.`type`, e.edata.eks.state, e.edata.eks.subtype))
+      val summaryOutput = groups.map { e =>
+        val _type = e._1._1
+        val state = e._1._2
+        val subtype = e._1._3
+        val count = e._2.length
+        PublishPipelineSummary(_type, state, subtype, count)
+      }
 
       val dateRange = DtRange(d.events.head.ets, d.events.last.ets)
-      PipelineSummaryOutput(ContentPublishSummary(draftsCount, reviewsCount, liveCount),
-        ItemPublishSummary(createdCount),
-        AssetPublishSummary(audioCreatedCount, videoCreatedCount, imageCreatedCount, pluginCreatedCount),
-        TextbookPublishSummary(textbookCreatedCount, textbookLiveCount),
-        dateRange, d.period)
+      PipelineSummaryOutput(summaryOutput, dateRange, d.period)
     }
 
     data.unpersist(true)
@@ -78,10 +63,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
   override def postProcess(data: RDD[PipelineSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
     data.map { x =>
       val measures = Map(
-        "content_publish" -> x.content_publish,
-        "item_publish" -> x.item_publish,
-        "asset_publish" -> x.asset_publish,
-        "textbook_publish" -> x.textbook_publish)
+        "publish_pipeline_summary" -> x.summary)
       val mid = CommonUtil.getMessageId("ME_PUBLISH_PIPELINE_SUMMARY", x.period.toString(), "DAY", x.date_range, "");
       MeasuredEvent("ME_PUBLISH_PIPELINE_SUMMARY", System.currentTimeMillis(), x.date_range.to, "1.0", mid, "", None, None,
         Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "PublishPipelineSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", x.date_range),

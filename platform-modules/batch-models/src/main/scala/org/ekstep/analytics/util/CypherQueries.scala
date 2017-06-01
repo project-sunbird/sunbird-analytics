@@ -13,13 +13,16 @@ object CypherQueries {
 
     // For specific author and partner = all
     val CONTENT_COUNT_PER_AUTHOR_BY_STATUS = "MATCH (usr:User {type:'author'})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] WITH usr, cnt RETURN usr.IL_UNIQUE_ID AS identifier, lower(cnt.status) AS status, count(cnt) AS count"
-
+    val AUTHOR_CONTENT_LIST = "MATCH (usr:User {type:'author'})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] with usr, usr.IL_UNIQUE_ID AS author, collect(cnt.IL_UNIQUE_ID) as contentList RETURN author, contentList"
+    
     //For specific partner and author = all
     val CONTENT_SNAPSHOT_PARTNER_USER_COUNT = "MATCH (usr:User {type:'author'})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND EXISTS(cnt.createdFor) RETURN usr.IL_UNIQUE_ID, cnt.createdFor, cnt.createdOn"
     val CONTENT_COUNT_PER_PARTNER_BY_STATUS = "MATCH (cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND EXISTS(cnt.createdFor) WITH cnt RETURN cnt.createdFor AS identifier, lower(cnt.status) AS status, count(cnt) AS count"
-
+    val PARTNER_CONTENT_LIST = "MATCH (cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND EXISTS(cnt.createdFor) with cnt UNWIND cnt.createdFor AS partner RETURN partner, collect(cnt.IL_UNIQUE_ID) AS contentList"
+    
     // For specific author and partner
     val CONTENT_COUNT_PER_AUTHOR_PER_PARTNER_BY_STATUS = "MATCH (usr:User {type:'author'})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND EXISTS(cnt.createdFor) WITH usr, cnt RETURN usr.IL_UNIQUE_ID AS author, cnt.createdFor AS partner, lower(cnt.status) AS status, count(cnt) AS count"
+    val AUTHOR_PARTNER_CONTENT_LIST = "MATCH (usr:User {type:'author'})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND EXISTS(cnt.createdFor) WITH usr, cnt UNWIND cnt.createdFor AS partner RETURN usr.IL_UNIQUE_ID AS author, partner, collect(cnt.IL_UNIQUE_ID) AS contentList"
     
     /**
      * Concept Snapshot Summarizer Cypher Query

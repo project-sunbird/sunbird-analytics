@@ -1,3 +1,6 @@
+/**
+ * @author Sowmya Dixit
+ */
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework.IBatchModel
@@ -22,9 +25,22 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 
-case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
+/**
+ * Case Classes for the data product
+ */
+case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, creation_ts: Double, avg_creation_ts: Double, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String)
 
+/**
+ * @dataproduct
+ * @updater 
+ * 
+ * UpdateContentSnapshotDB
+ * 
+ * Functionality
+ * 1. Updater to update author-partner specific content snapshot summary daily, weekly & monthly.
+ * Events used - ME_CONTENT_SNAPSHOT_SUMMARY
+ */
 object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotSummary, ContentSnapshotSummary] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateContentSnapshotDB"
@@ -55,11 +71,13 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
             val total_content_count = eksMap.get("total_content_count").get.asInstanceOf[Number].longValue()
             val live_content_count = eksMap.get("live_content_count").get.asInstanceOf[Number].longValue()
             val review_content_count = eksMap.get("review_content_count").get.asInstanceOf[Number].longValue()
+            val creation_ts = eksMap.get("creation_ts").get.asInstanceOf[Number].doubleValue()
+            val avg_creation_ts = eksMap.get("avg_creation_ts").get.asInstanceOf[Number].doubleValue()
 
             if (null == prevSumm)
-                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, total_author_count, total_author_count, active_author_count, active_author_count, total_content_count, total_content_count, live_content_count, live_content_count, review_content_count, review_content_count)
+                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, total_author_count, total_author_count, active_author_count, active_author_count, total_content_count, total_content_count, live_content_count, live_content_count, review_content_count, review_content_count, creation_ts, avg_creation_ts)
             else
-                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, total_author_count, prevSumm.total_author_count_start, active_author_count, prevSumm.active_author_count_start, total_content_count, prevSumm.total_content_count_start, live_content_count, prevSumm.live_content_count_start, review_content_count, prevSumm.review_content_count_start)
+                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, total_author_count, prevSumm.total_author_count_start, active_author_count, prevSumm.active_author_count_start, total_content_count, prevSumm.total_content_count_start, live_content_count, prevSumm.live_content_count_start, review_content_count, prevSumm.review_content_count_start, creation_ts, avg_creation_ts)
         }
     }
 
