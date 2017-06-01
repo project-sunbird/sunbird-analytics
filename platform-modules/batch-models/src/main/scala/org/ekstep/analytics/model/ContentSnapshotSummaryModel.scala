@@ -1,3 +1,6 @@
+/**
+ * @author Sowmya Dixit
+ */
 package org.ekstep.analytics.model
 
 import org.apache.spark.rdd.RDD
@@ -15,8 +18,21 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.updater.CEUsageSummaryFact
 
+/**
+ * Case Class for the data product
+ */
 case class ContentSnapshotAlgoOutput(total_content_count: Long, live_content_count: Long, review_content_count: Long, creation_ts: Double, avg_creation_ts: Double, total_user_count: Long = 0L, active_user_count: Long = 0L, author_id: String = "all", partner_id: String = "all") extends AlgoOutput
 
+/**
+ * @dataproduct
+ * @Summarizer
+ *
+ * ContentSnapshotSummaryModel
+ *
+ * Functionality
+ * 1. Generate author-partner specific content snapshot summary events. This would be used to compute weekly, monthly metrics.
+ * Input - Vidyavaani Graph database and ce_usage_summary_fact cassandra table data.
+ */
 object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotAlgoOutput, MeasuredEvent] with Serializable {
 
     override def name(): String = "ContentSnapshotSummaryModel";
