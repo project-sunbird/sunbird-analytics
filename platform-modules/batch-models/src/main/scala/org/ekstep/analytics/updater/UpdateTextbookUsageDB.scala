@@ -36,6 +36,7 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
     val TEXTBOOK_SESSION_METRICS = "textbook_session_metrics";
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+        data.foreach { x => println(JSONUtils.serialize(x)) }
         DataFilter.filter(data, Filter("eid", "EQ", Option("ME_TEXTBOOK_USAGE_SUMMARY")));
     }
 
@@ -57,7 +58,7 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val end_time = eksMap.getOrElse("end_time", 0L).asInstanceOf[Number].longValue()
             val time_spent = CommonUtil.roundDouble(eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Double], 2)
             val time_diff = CommonUtil.roundDouble(eksMap.getOrElse("time_diff", 0.0).asInstanceOf[Double], 2)
-            TextbookSessionMetricsFact_T(d_period,time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), System.currentTimeMillis(), x.syncts)
+            TextbookSessionMetricsFact_T(d_period, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), System.currentTimeMillis(), x.context.date_range.to)
         }.cache
         rollup(textbookSessions, DAY).union(rollup(textbookSessions, WEEK)).union(rollup(textbookSessions, MONTH)).union(rollup(textbookSessions, CUMULATIVE)).cache();
     }
@@ -72,7 +73,7 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.last_gen_date, period);
             (TextbookIndex(d_period), x)
-        }
+        }.reduceByKey(reduceTUS);
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[TextbookSessionMetricsFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.TEXTBOOK_SESSION_METRICS_FACT).on(SomeColumns("d_period"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
@@ -95,8 +96,23 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val total_lessons_deleted = fact1.lesson_summary.total_lessons_deleted + fact2.lesson_summary.total_lessons_deleted
         val total_lessons_modified = fact1.lesson_summary.total_lessons_modified + fact2.lesson_summary.total_lessons_modified
         val unit_summary = UnitSummary(totalUnits_added, totalUnits_deleted, totalUnits_modified)
-        val sub_unit_summary = LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified)
-        TextbookSessionMetricsFact(fact1.d_period, totalTime_spent, totalTime_diff, unit_summary, sub_unit_summary, System.currentTimeMillis())
+        val lesson_summary = LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified)
+        TextbookSessionMetricsFact(fact1.d_period, totalTime_spent, totalTime_diff, unit_summary, lesson_summary, System.currentTimeMillis())
+    }
+
+    private def reduceTUS(fact1: TextbookSessionMetricsFact_T, fact2: TextbookSessionMetricsFact_T): TextbookSessionMetricsFact_T = {
+        val totalTime_spent = CommonUtil.roundDouble(fact1.time_spent + fact2.time_spent, 2)
+        val totalTime_diff = CommonUtil.roundDouble(fact1.time_diff + fact2.time_diff, 2)
+        val totalUnits_added = fact1.unit_summary.total_units_added + fact2.unit_summary.total_units_added
+        val totalUnits_deleted = fact1.unit_summary.total_units_deleted + fact2.unit_summary.total_units_deleted
+        val totalUnits_modified = fact1.unit_summary.total_units_modified + fact2.unit_summary.total_units_modified
+        val total_lessons_added = fact1.lesson_summary.total_lessons_added + fact2.lesson_summary.total_lessons_added
+        val total_lessons_deleted = fact1.lesson_summary.total_lessons_deleted + fact2.lesson_summary.total_lessons_deleted
+        val total_lessons_modified = fact1.lesson_summary.total_lessons_modified + fact2.lesson_summary.total_lessons_modified
+        val unit_summary = UnitSummary(totalUnits_added, totalUnits_deleted, totalUnits_modified)
+        val lesson_summary = LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified)
+        TextbookSessionMetricsFact_T(fact1.d_period, totalTime_spent, totalTime_diff, unit_summary, lesson_summary, System.currentTimeMillis(), fact2.last_gen_date)
+
     }
 
     private def saveToInfluxDB(data: RDD[TextbookSessionMetricsFact]) {
