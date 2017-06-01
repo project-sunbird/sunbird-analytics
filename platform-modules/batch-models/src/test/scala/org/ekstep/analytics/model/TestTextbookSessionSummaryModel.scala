@@ -31,7 +31,6 @@ class TestTextbookSessionSummaryModel extends SparkSpec(null) {
     private def computeCreationEvent: Array[MeasuredEvent] = {
         val rdd = loadFile[CreationEvent]("src/test/resources/textbook-session-summary/test1.log");
         val rdd2 = TextbookSessionSummaryModel.execute(rdd, None);
-        rdd2.foreach { x => println(JSONUtils.serialize(x)) }
         rdd2.collect()
     }
 }
