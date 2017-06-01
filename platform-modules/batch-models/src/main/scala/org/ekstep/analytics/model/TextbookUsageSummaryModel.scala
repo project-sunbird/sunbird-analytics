@@ -22,7 +22,7 @@ import org.ekstep.analytics.util.Constants
  * @author yuva
  */
 case class TextbookUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class TextbookUsageOutput(period: Int, sid: String, dtRange: DtRange, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary) extends AlgoOutput with Output
+case class TextbookUsageOutput(period: Int, dtRange: DtRange, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary) extends AlgoOutput with Output
 
 object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, TextbookUsageInput, TextbookUsageOutput, MeasuredEvent] with Serializable {
 
@@ -43,7 +43,6 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
         data.map { event =>
             val firstEvent = event.sessionEvents.sortBy { x => x.context.date_range.from }.head
             val lastEvent = event.sessionEvents.sortBy { x => x.context.date_range.to }.last
-            val sid = event.sessionEvents.head.dimensions.sid.get
             val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
             val time_spent = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_spent").get.asInstanceOf[Number].longValue() }.sum
             val time_diff = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_diff").get.asInstanceOf[Number].longValue() }.sum
@@ -53,21 +52,21 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
             val total_lessons_added = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue() }
             val total_lessons_deleted = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue() }
             val total_lessons_modified = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue() }
-            TextbookUsageOutput(event.period, sid, date_range, time_spent, time_diff, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), LessonSummary(total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum))
+            TextbookUsageOutput(event.period, date_range, time_spent, time_diff, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), LessonSummary(total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum))
         }
     }
 
     override def postProcess(data: RDD[TextbookUsageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { usageSumm =>
-            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_USAGE_SUMMARY", usageSumm.sid, "DAY", usageSumm.dtRange);
+            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_USAGE_SUMMARY","", "DAY", usageSumm.dtRange);
             val measures = Map(
                 "time_spent" -> usageSumm.time_spent,
                 "time_diff" -> usageSumm.time_diff,
                 "unit_summary" -> usageSumm.unit_summary,
                 "lesson_summary" -> usageSumm.lesson_summary);
             MeasuredEvent("ME_TEXTBOOK_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AppUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, Option(usageSumm.sid), None, None, None, None, None, None, None, None, None),
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
+                Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);
         }
     }

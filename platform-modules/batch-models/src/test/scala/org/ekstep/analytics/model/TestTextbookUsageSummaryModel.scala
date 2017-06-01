@@ -16,7 +16,24 @@ class TestTextbookUsageSummaryModel extends SparkSpec(null) {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/textbook-usage-summary/textbook-session-summary2.log");
         val rdd2 = TextbookUsageSummaryModel.execute(rdd1, None);
-        rdd2.foreach{x => println(JSONUtils.serialize(x))}
         val me = rdd2.collect();
+        me.length should be(4)
+        val event1 = me(2);
+        event1.eid should be("ME_TEXTBOOK_USAGE_SUMMARY");
+        event1.mid should be("5EC0DED34AEB97221856EA3D1628A71A");
+        event1.context.pdata.model should be("TextbookUsageSummarizer");
+        event1.context.pdata.ver should be("1.0");
+        event1.context.granularity should be("DAY");
+        event1.context.date_range should not be null;
+        event1.dimensions.period.get should be(20170528);
+
+        val summary1 = JSONUtils.deserialize[TextbookUsageOutput](JSONUtils.serialize(event1.edata.eks));
+        summary1.unit_summary.total_units_added should be(6);
+        summary1.unit_summary.total_units_deleted should be(3);
+        summary1.unit_summary.total_units_modified should be(3);
+        summary1.lesson_summary.total_lessons_added should be(6);
+        summary1.lesson_summary.total_lessons_deleted should be(3);
+        summary1.lesson_summary.total_lessons_modified should be(3);
+
     }
 }
