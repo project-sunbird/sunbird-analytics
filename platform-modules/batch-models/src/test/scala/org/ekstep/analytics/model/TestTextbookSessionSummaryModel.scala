@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.MeasuredEvent
  */
 class TestTextbookSessionSummaryModel extends SparkSpec(null) {
 
-    ignore should "compute  session metrics if env data as textbook is present" in {
+    "TextbookSessionSummaryModel" should "compute  session metrics if env data as textbook is present" in {
         val rdd3 = computeCreationEvent(0)
         val metrics = rdd3.edata.eks.asInstanceOf[Map[String, AnyRef]]
         metrics.get("start_time").get.asInstanceOf[Number].longValue() should be(1496228376984L)
@@ -22,7 +22,7 @@ class TestTextbookSessionSummaryModel extends SparkSpec(null) {
         metrics.get("lesson_summary").get.asInstanceOf[LessonSummary].total_lessons_deleted should be(1)
     }
 
-    ignore should "generate empty results if env data as textbook is not present" in {
+    it should "generate empty results if env data as textbook is not present" in {
         val rdd = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_1.log");
         val rdd2 = TextbookSessionSummaryModel.execute(rdd, None);
         rdd2.isEmpty() should be(true)
@@ -31,6 +31,7 @@ class TestTextbookSessionSummaryModel extends SparkSpec(null) {
     private def computeCreationEvent: Array[MeasuredEvent] = {
         val rdd = loadFile[CreationEvent]("src/test/resources/textbook-session-summary/test1.log");
         val rdd2 = TextbookSessionSummaryModel.execute(rdd, None);
+        rdd2.foreach { x => println(JSONUtils.serialize(x)) }
         rdd2.collect()
     }
 }

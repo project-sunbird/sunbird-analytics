@@ -549,16 +549,13 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 );
 
 // Not required
-CREATE TYPE IF NOT EXISTS platform_db.unit_summary(
+CREATE TYPE IF NOT EXISTS platform_db.unit_summary_type(
      total_units_added bigint,
      total_units_deleted bigint,
      total_units_modified bigint
     );
 
-CREATE TYPE IF NOT EXISTS platform_db.subunit_summary(
-     total_sub_units_added bigint,
-     total_sub_units_deletd bigint,
-     total_sub_units_modified bigint,
+CREATE TYPE IF NOT EXISTS platform_db.lesson_summary_type(
      total_lessons_added bigint,
      total_lessons_deleted bigint,
      total_lessons_modified bigint
@@ -566,11 +563,10 @@ CREATE TYPE IF NOT EXISTS platform_db.subunit_summary(
 
 CREATE TABLE IF NOT EXISTS platform_db.textbook_metrics_summary_fact(
     d_period text,
-    d_sid text,
     time_spent Double,
     time_diff Double,
-    unit_summary frozen<unit_summary>,
-    sub_unit_summary frozen<subunit_summary>,
+    unit_summary frozen<unit_summary_type>,
+    lesson_summary frozen<lesson_summary_type>,
     updated_date timestamp,
     PRIMARY KEY (d_period)
   );

@@ -22,7 +22,7 @@ import org.ekstep.analytics.util.Constants
  * @author yuva
  */
 case class TextbookUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class TextbookUsageOutput(period: Int, sid: String, dtRange: DtRange, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: SubUnitSummary) extends AlgoOutput with Output
+case class TextbookUsageOutput(period: Int, sid: String, dtRange: DtRange, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary) extends AlgoOutput with Output
 
 object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, TextbookUsageInput, TextbookUsageOutput, MeasuredEvent] with Serializable {
 
@@ -50,13 +50,10 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
             val total_units_added = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_units_added", 0l).asInstanceOf[Number].longValue() }
             val total_units_deleted = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_units_deleted", 0l).asInstanceOf[Number].longValue() }
             val total_units_modified = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_units_modified", 0l).asInstanceOf[Number].longValue() }
-            val total_sub_units_added = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("sub_unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_sub_units_added", 0l).asInstanceOf[Number].longValue() }
-            val total_sub_units_deletd = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("sub_unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_sub_units_deletd", 0l).asInstanceOf[Number].longValue() }
-            val total_sub_units_modified = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("sub_unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_sub_units_modified", 0l).asInstanceOf[Number].longValue() }
-            val total_lessons_added = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("sub_unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue() }
-            val total_lessons_deleted = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("sub_unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue() }
-            val total_lessons_modified = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("sub_unit_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue() }
-            TextbookUsageOutput(event.period, sid, date_range, time_spent, time_diff, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), SubUnitSummary(total_sub_units_added.sum, total_sub_units_deletd.sum, total_sub_units_modified.sum, total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum))
+            val total_lessons_added = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue() }
+            val total_lessons_deleted = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue() }
+            val total_lessons_modified = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue() }
+            TextbookUsageOutput(event.period, sid, date_range, time_spent, time_diff, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), LessonSummary(total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum))
         }
     }
 
@@ -67,7 +64,7 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
                 "time_spent" -> usageSumm.time_spent,
                 "time_diff" -> usageSumm.time_diff,
                 "unit_summary" -> usageSumm.unit_summary,
-                "sub_unit_summary" -> usageSumm.sub_unit_summary);
+                "lesson_summary" -> usageSumm.lesson_summary);
             MeasuredEvent("ME_TEXTBOOK_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AppUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, Option(usageSumm.sid), None, None, None, None, None, None, None, None, None),

@@ -21,7 +21,7 @@ class TestUpdateTextbookUsageDB extends SparkSpec(null) {
     }
 
     "UpdateTextbookSessionsDB" should "create data in platform db" in {
-        val rdd = loadFile[DerivedEvent]("src/test/resources/textbook-session-updater/textbook-usage-summary.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/textbook-session-updater/textbook-usage-summary1.log");
         UpdateTextbookUsageDB.execute(rdd, None);
 
         val object1 = sc.cassandraTable[TextbookSessionMetricsFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.TEXTBOOK_SESSION_METRICS_FACT).first();

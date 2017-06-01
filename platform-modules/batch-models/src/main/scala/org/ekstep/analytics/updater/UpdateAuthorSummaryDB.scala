@@ -18,10 +18,10 @@ case class AuthorMetricsFact_T(d_period: Int, d_author_id: String, total_session
 case class AuthorMetricsFact(d_period: Int, d_author_id: String, total_session: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, updated_date: Long) extends AlgoOutput with Output
 case class AuthorMetricsIndex(d_period: Int, d_author_id: String)
 
-object UpdateAuthorMetricsDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AuthorMetricsFact, AuthorMetricsFact] with Serializable {
+object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AuthorMetricsFact, AuthorMetricsFact] with Serializable {
 
-    override def name(): String = "UpdateAuthorMetricsDB";
-    implicit val className = "org.ekstep.analytics.updater.UpdateAuthorMetricsDB";
+    override def name(): String = "UpdateAuthorSummaryDB";
+    implicit val className = "org.ekstep.analytics.updater.UpdateAuthorSummaryDB";
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         data;

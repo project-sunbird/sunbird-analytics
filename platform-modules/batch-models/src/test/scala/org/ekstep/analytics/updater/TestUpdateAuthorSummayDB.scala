@@ -10,13 +10,13 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.DerivedEvent
 
-class TestUpdateAuthorMetricsDB extends SparkSpec(null) {
+class TestUpdateAuthorSummaryDB extends SparkSpec(null) {
 
-    "UpdateAuthorMetricsDB" should "update author metrics DB for a sample input data" in {
+    "TestUpdateAuthorSummaryDB" should "update author metrics DB for a sample input data" in {
         DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT)
 
         val input = loadFile[DerivedEvent]("src/test/resources/author-usage-updater/test.log");
-        UpdateAuthorMetricsDB.execute(input, Option(Map()))
+        UpdateAuthorSummaryDB.execute(input, Option(Map()))
 
         val data = sc.cassandraTable[AuthorMetricsFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT).map { x => x }.collect
         data.length should be(6)
@@ -28,7 +28,7 @@ class TestUpdateAuthorMetricsDB extends SparkSpec(null) {
         DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT)
 
         val input = loadFile[DerivedEvent]("src/test/resources/author-usage-updater/test1.log");
-        UpdateAuthorMetricsDB.execute(input, Option(Map()))
+        UpdateAuthorSummaryDB.execute(input, Option(Map()))
 
         val data = sc.cassandraTable[AuthorMetricsFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT).map { x => x }.collect
         data.length should be(9)
