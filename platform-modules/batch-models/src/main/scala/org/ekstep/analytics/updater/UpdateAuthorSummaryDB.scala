@@ -34,8 +34,9 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val totalSessions = eksMap.getOrElse("total_session", 0L).asInstanceOf[Number].longValue()
             val totalTS = CommonUtil.roundDouble(eksMap.getOrElse("total_ts", 0.0).asInstanceOf[Double], 2)
             val totalCETS = CommonUtil.roundDouble(eksMap.getOrElse("ce_total_ts", 0.0).asInstanceOf[Double], 2)
-            val totalCEVisits = eksMap.getOrElse("ce_total_visits", 0.0).asInstanceOf[Number].longValue()
-            val percentCEsessions = (if (0 != totalSessions) (totalCEVisits * 1.0 / totalSessions) else 0.0) * 100
+            val totalCEVisits = eksMap.getOrElse("ce_total_visits", 0l).asInstanceOf[Number].longValue()
+            val ce_visits_occ = eksMap.getOrElse("ce_visits_occ", 0l).asInstanceOf[Number].longValue()
+            val percentCEsessions = (if (0 != totalSessions) (ce_visits_occ * 1.0 / totalSessions) else 0.0) * 100
             val avgSessionTS = CommonUtil.roundDouble(if (0 != totalSessions) (totalTS / totalSessions) else 0.0, 2)
             val percentCEts = CommonUtil.roundDouble((if (0 != totalTS) (totalCETS / totalTS) else 0.0) * 100, 2)
             AuthorMetricsFact_T(period, author, totalSessions, totalTS, totalCETS, totalCEVisits, percentCEsessions, avgSessionTS, percentCEts, System.currentTimeMillis(), x.syncts)

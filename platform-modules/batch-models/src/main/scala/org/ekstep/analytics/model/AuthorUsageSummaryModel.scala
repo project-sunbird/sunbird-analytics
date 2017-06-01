@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
  * @author yuva/Amit
  */
 
-case class AuthorUsageSummary(ak: AuthorKey, total_session: Long, total_ts: Double, ce_total_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long) extends AlgoOutput
+case class AuthorUsageSummary(ak: AuthorKey, total_session: Long, total_ts: Double, ce_total_ts: Double, total_ce_visit: Long, ce_visits_occ: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long) extends AlgoOutput
 case class AuthorKey(period: Int, author: String)
 case class AuthorUsageInput(ck: AuthorKey, events: Buffer[AuthorUsageSummary]) extends AlgoInput
 
@@ -49,9 +49,11 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
         val total_ce_visit = events.map { x => x.total_ce_visit }.sum
         val ce_total_ts = CommonUtil.roundDouble(events.map { x => x.ce_total_ts }.sum, 2)
         
-        val ce_percent_sessions = CommonUtil.roundDouble((total_ce_visit * 1.0 / total_session) * 100, 2)
+        val ceVisitsOccurrence = events.map { x => if(x.total_ce_visit >0 ) 1 else 0 }.sum
+        
+        val ce_percent_sessions = CommonUtil.roundDouble((ceVisitsOccurrence * 1.0 / total_session) * 100, 2)
         val ce_percent_ts = CommonUtil.roundDouble(if (total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d), 2)
-        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, total_ce_visit, ce_percent_sessions, avg_session_ts, ce_percent_ts, date_range, lastEvent.syncts)
+        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, total_ce_visit, ceVisitsOccurrence, ce_percent_sessions, avg_session_ts, ce_percent_ts, date_range, lastEvent.syncts)
     }
     
     def getAuthorUsageSummary(event: DerivedEvent, period: Int, authorId: String): AuthorUsageSummary = {
@@ -62,6 +64,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
         val avg_session_ts = total_ts
         
         val ce_visits = eksMap.getOrElse("ce_visits", 0L).asInstanceOf[Number].longValue()
+        val ceVisitOccurrence = if(ce_visits > 0) 1 else 0;
         val ce_total_ts = eksMap.get("env_summary").get.asInstanceOf[List[Map[String, AnyRef]]]
             .filter { x => (x.getOrElse("env", "").equals("content-editor")) }
             .map { x => x.getOrElse("time_spent", 0.0).asInstanceOf[Double] }.sum
@@ -69,7 +72,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
         val ce_percent_sessions = (ce_visits * 1.0 / total_session) * 100
         val ce_percent_ts = if (total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d)
         
-        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, ce_visits, ce_percent_sessions, avg_session_ts, ce_percent_ts, event.context.date_range, event.syncts)
+        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, ce_visits, ceVisitOccurrence, ce_percent_sessions, avg_session_ts, ce_percent_ts, event.context.date_range, event.syncts)
     }
     /**
      *  Input Portal session summary
@@ -107,6 +110,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
                 "total_ts" -> summary.total_ts,
                 "ce_total_ts" -> summary.ce_total_ts,
                 "ce_total_visits" -> summary.total_ce_visit,
+                "ce_visits_occ" -> summary.ce_visits_occ,
                 "ce_percent_sessions" -> summary.percent_ce_sessions,
                 "avg_session_ts" -> summary.avg_session_ts,
                 "ce_percent_ts" -> summary.percent_ce_ts);
