@@ -11,10 +11,6 @@ import org.ekstep.analytics.framework.Output
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.model.PipelineSummaryOutput
-import org.ekstep.analytics.model.AssetPublishSummary
-import org.ekstep.analytics.model.ContentPublishSummary
-import org.ekstep.analytics.model.ItemPublishSummary
-import org.ekstep.analytics.model.TextbookPublishSummary
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.Period
