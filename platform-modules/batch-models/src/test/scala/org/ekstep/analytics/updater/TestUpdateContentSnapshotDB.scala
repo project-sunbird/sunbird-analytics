@@ -40,8 +40,8 @@ class TestUpdateContentSnapshotDB extends SparkSpec(null) {
         record1.live_content_count_start should be(record1.live_content_count)
         record1.review_content_count should be(0)
         record1.review_content_count_start should be(record1.review_content_count)
-        record1.creation_ts should be(60.0)
-        record1.avg_creation_ts should be(20.0)
+        record1.creation_ts.get should be(60.0)
+        record1.avg_creation_ts.get should be(20.0)
         
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from content_snapshot_metrics where author_id = 'all' AND partner_id = 'all' AND period = 'day'")
@@ -76,8 +76,8 @@ class TestUpdateContentSnapshotDB extends SparkSpec(null) {
         record2.live_content_count_start should be(record2.live_content_count)
         record2.review_content_count should be(0)
         record2.review_content_count_start should be(record2.review_content_count)
-        record2.creation_ts should be(40.0)
-        record2.avg_creation_ts should be(20.0)
+        record2.creation_ts.get should be(40.0)
+        record2.avg_creation_ts.get should be(20.0)
         
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from content_snapshot_metrics where author_id = '290' AND partner_id = 'all' AND period = 'week'")
@@ -117,8 +117,8 @@ class TestUpdateContentSnapshotDB extends SparkSpec(null) {
         record3.live_content_count_start should be(record3.live_content_count)
         record3.review_content_count should be(0)
         record3.review_content_count_start should be(record3.review_content_count)
-        record3.creation_ts should be(60.0)
-        record3.avg_creation_ts should be(20.0)
+        record3.creation_ts.get should be(60.0)
+        record3.avg_creation_ts.get should be(20.0)
         
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from content_snapshot_metrics where author_id = 'all' AND partner_id = 'all' AND period = 'day'")
@@ -153,8 +153,8 @@ class TestUpdateContentSnapshotDB extends SparkSpec(null) {
         record4.live_content_count_start should be(record4.live_content_count)
         record4.review_content_count should be(1)
         record4.review_content_count_start should be(record4.review_content_count)
-        record4.creation_ts should be(90.0)
-        record4.avg_creation_ts should be(30.0)
+        record4.creation_ts.get should be(90.0)
+        record4.avg_creation_ts.get should be(30.0)
         
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from content_snapshot_metrics where author_id = 'all' AND partner_id = 'all' AND period = 'day'")
@@ -189,8 +189,8 @@ class TestUpdateContentSnapshotDB extends SparkSpec(null) {
         record5.live_content_count_start should be(1)
         record5.review_content_count should be(1)
         record5.review_content_count_start should be(0)
-        record5.creation_ts should be(50.0)
-        record5.avg_creation_ts should be(25.0)
+        record5.creation_ts.get should be(50.0)
+        record5.avg_creation_ts.get should be(25.0)
         
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from content_snapshot_metrics where author_id = '290' AND partner_id = 'all' AND period = 'week'")
