@@ -59,15 +59,15 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
             val sid = x.creationEvent.head.context.get.sid
             val content_id = x.creationEvent.head.context.get.content_id
             val filtered_events = x.creationEvent.filter { x => (x.edata.eks.`type`.equals("action") && (x.edata.eks.target.equals("") || x.edata.eks.target.equals("textbookunit")) && x.edata.eks.subtype.equals("save") && x.edata.eks.values.size > 0) }
-            val buffered_events = filtered_events.map { x =>
+            val buffered_map_values = filtered_events.map { x =>
                 x.edata.eks.values.get
             }.flatMap { x => x }
-            val total_units_added = buffered_events.map { x => x.getOrElse("unit_added", "0").toString().toLong }.sum
-            val total_units_deleted = buffered_events.map { x => x.getOrElse("unit_deleted", "0").toString().toLong }.sum
-            val total_units_modified = buffered_events.map { x => x.getOrElse("unit_modified", "0").toString().toLong }.sum
-            val total_lessons_added = buffered_events.map { x => x.getOrElse("lesson_added", "0").toString().toLong }.sum
-            val total_lessons_deleted = buffered_events.map { x => x.getOrElse("lesson_deleted", "0").toString().toLong }.sum
-            val total_lessons_modified = buffered_events.map { x => x.getOrElse("lesson_modified", "0").toString().toLong }.sum
+            val total_units_added = buffered_map_values.map { x => x.getOrElse("unit_added", "0").toString().toLong }.sum
+            val total_units_deleted = buffered_map_values.map { x => x.getOrElse("unit_deleted", "0").toString().toLong }.sum
+            val total_units_modified = buffered_map_values.map { x => x.getOrElse("unit_modified", "0").toString().toLong }.sum
+            val total_lessons_added = buffered_map_values.map { x => x.getOrElse("lesson_added", "0").toString().toLong }.sum
+            val total_lessons_deleted = buffered_map_values.map { x => x.getOrElse("lesson_deleted", "0").toString().toLong }.sum
+            val total_lessons_modified = buffered_map_values.map { x => x.getOrElse("lesson_modified", "0").toString().toLong }.sum
             TextbookSessionMetrics(uid, sid, content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
         }
     }
@@ -86,7 +86,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), 0L, "1.0", mid, summary.uid, None, None,
                 Context(pdata, None, "DAY", summary.date_range),
-                Dimensions(Option(summary.uid), None, None, None, None, None, None, None, None, None, None, Option(summary.content_id), None, None, Option(summary.sid), None), MEEdata(measures), None);
+                Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(summary.content_id), None, None, Option(summary.sid), None), MEEdata(measures), None);
         };
     }
 
