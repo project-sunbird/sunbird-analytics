@@ -280,17 +280,11 @@ CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
 
 CREATE TABLE IF NOT EXISTS content_db.content_publish_fact(
 	d_period int,
-	draft_count int,
-	review_count int,
-	live_count int,
-	item_created_count int,
-	audio_created_count int,
-	image_created_count int,
-	video_created_count int,
-	plugin_created_count int,
-	textbook_created_count int,
-	textbook_live_count int,
-	PRIMARY KEY (d_period)
+	type text,
+	state text,
+	subtype text,
+	count int,
+	PRIMARY KEY (d_period, type, state, subtype)
 );
 
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {

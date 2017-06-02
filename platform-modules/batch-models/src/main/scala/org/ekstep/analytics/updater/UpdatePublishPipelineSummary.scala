@@ -20,8 +20,8 @@ import scala.collection.mutable.Buffer
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
 
-case class PublishPipelineSummaryFact(d_period: Int, audio_created_count: Int, draft_count: Int, image_created_count: Int, item_created_count: Int, live_count: Int, plugin_created_count: Int, review_count: Int, textbook_created_count: Int, textbook_live_count: Int, video_created_count: Int) extends AlgoOutput
-case class ContentPublishFactIndex(d_period: Int) extends Output
+case class PublishPipelineSummaryFact(d_period: Int, `type`: String, state: String, subtype: String, count: Int) extends AlgoOutput
+case class ContentPublishFactIndex(d_period: Int, `type`: String, state: String, subtype: String) extends Output
 
 object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PublishPipelineSummaryFact, ContentPublishFactIndex] with Serializable {
   val className = "org.ekstep.analytics.updater.UpdatePublishPipelineSummary"
@@ -36,43 +36,49 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
     computeForPeriod(Period.DAY, data).union(computeForPeriod(Period.WEEK, data)).union(computeForPeriod(Period.MONTH, data)).union(computeForPeriod(Period.CUMULATIVE, data))
   }
 
-  private def computeForPeriod(p: Period, data: RDD[DerivedEvent]): RDD[PublishPipelineSummaryFact] = {
-    // combining facts within the current file
-    val newData = data.map { d =>
-      val s = d.edata.eks.asInstanceOf[Map[String, AnyRef]]
-      val ap = s("asset_publish").asInstanceOf[Map[String, Int]]
-      val cp = s("content_publish").asInstanceOf[Map[String, Int]]
-      val ip = s("item_publish").asInstanceOf[Map[String, Int]]
-      val tp = s("textbook_publish").asInstanceOf[Map[String, Int]]
-      val d_period = CommonUtil.getPeriod(DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(d.dimensions.period.get.toString()), p)
-      (ContentPublishFactIndex(d_period), PublishPipelineSummaryFact(d_period, ap("audio_created_count"),
-        cp("draft_count"), ap("image_created_count"),
-        ip("created_count"), cp("live_count"),
-        ap("plugin_created_count"), cp("review_count"),
-        tp("created_count"), tp("live_count"), ap("video_created_count")))
-    }.reduceByKey(combineFacts)
-
-    val existingData = newData.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).on(SomeColumns("d_period"))
-    val joined = newData.leftOuterJoin(existingData)
+  private def computeForPeriod(p: Period, data: RDD[DerivedEvent])(implicit sc: SparkContext): RDD[PublishPipelineSummaryFact] = {
+    val newData = createAndFlattenFacts(p, data)
+    val deDuplicatedFacts = sc.makeRDD(newData).reduceByKey(combineFacts)
+    val existingData = deDuplicatedFacts.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).on(SomeColumns("d_period", "type", "state", "subtype"))
+    val joined = deDuplicatedFacts.leftOuterJoin(existingData)
     joined.map { d =>
       val newFact = d._2._1
-      val existingFact = d._2._2.getOrElse(PublishPipelineSummaryFact(newFact.d_period, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+      val existingFact = d._2._2.getOrElse(PublishPipelineSummaryFact(newFact.d_period, newFact.`type`, newFact.state, newFact.subtype, 0))
       combineFacts(newFact, existingFact)
     }
   }
 
+  private def createAndFlattenFacts(p: Period, data: RDD[DerivedEvent]): List[(ContentPublishFactIndex, PublishPipelineSummaryFact)] = {
+    implicit val period = p
+    data.aggregate(List[(ContentPublishFactIndex, PublishPipelineSummaryFact)]())(createFactsFromEvent, combineFacts)
+  }
+
+  private def createFactsFromEvent(acc: List[(ContentPublishFactIndex, PublishPipelineSummaryFact)], d: DerivedEvent)(implicit period: Period): List[(ContentPublishFactIndex, PublishPipelineSummaryFact)] = {
+    val d_period = CommonUtil.getPeriod(DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(d.dimensions.period.get.toString()), period)
+    val eks = d.edata.eks.asInstanceOf[Map[String, AnyRef]]
+    val pps = eks("publish_pipeline_summary").asInstanceOf[List[Map[String, AnyRef]]]
+    val facts = pps.map { s =>
+      val `type` = s("type").toString()
+      val state = s("state").toString()
+      val subtype = s("subtype").toString()
+      val count = s("count").asInstanceOf[Int]
+      (ContentPublishFactIndex(d_period, `type`, state, subtype), PublishPipelineSummaryFact(d_period, `type`, state, subtype, count))
+    }
+    List(acc, facts).flatMap(f => f)
+  }
+
+  private def combineFacts(left: List[(ContentPublishFactIndex, PublishPipelineSummaryFact)], right: List[(ContentPublishFactIndex, PublishPipelineSummaryFact)]): List[(ContentPublishFactIndex, PublishPipelineSummaryFact)] = {
+    List(left, right).flatMap(f => f)
+  }
+
   private def combineFacts(f1: PublishPipelineSummaryFact, f2: PublishPipelineSummaryFact): PublishPipelineSummaryFact = {
-    PublishPipelineSummaryFact(f1.d_period, f1.audio_created_count + f2.audio_created_count,
-      f1.draft_count + f2.draft_count, f1.image_created_count + f2.image_created_count,
-      f1.item_created_count + f2.item_created_count, f1.live_count + f2.live_count,
-      f1.plugin_created_count + f2.plugin_created_count, f1.review_count + f2.review_count,
-      f1.textbook_created_count + f2.textbook_created_count, f1.textbook_live_count + f2.textbook_live_count,
-      f1.video_created_count + f2.video_created_count)
+    PublishPipelineSummaryFact(f1.d_period, f1.`type`, f1.state, f1.subtype, f1.count + f2.count)
   }
 
   override def postProcess(data: RDD[PublishPipelineSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPublishFactIndex] = {
+    val d = data.collect()
     data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT)
-    data.map { d => ContentPublishFactIndex(d.d_period) }
+    data.map { d => ContentPublishFactIndex(d.d_period, d.`type`, d.state, d.subtype) }
   }
 
 }
