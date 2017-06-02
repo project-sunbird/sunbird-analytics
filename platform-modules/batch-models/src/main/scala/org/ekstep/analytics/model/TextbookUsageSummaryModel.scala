@@ -23,7 +23,16 @@ import org.ekstep.analytics.util.Constants
  */
 case class TextbookUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
 case class TextbookUsageOutput(period: Int, dtRange: DtRange, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary) extends AlgoOutput with Output
-
+/**
+ * @dataproduct
+ * @Summarizer
+ *
+ * TextbookUsageSummaryModel
+ *
+ * Functionality
+ * Compute period wise Textbook summary : Units and Lessons added/deleted/modified
+ * input - ME_TEXTBOOK_SESSION_SUMMARY
+ */
 object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, TextbookUsageInput, TextbookUsageOutput, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.TextbookUsageSummaryModel"

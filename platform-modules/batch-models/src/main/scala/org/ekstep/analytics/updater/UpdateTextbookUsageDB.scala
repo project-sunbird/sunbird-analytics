@@ -28,7 +28,16 @@ import org.joda.time.DateTime
 case class TextbookSessionMetricsFact(d_period: Int, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary, updated_date: Long) extends AlgoOutput with Output
 case class TextbookSessionMetricsFact_T(d_period: Int, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary, updated_date: Long, last_gen_date: Long)
 case class TextbookIndex(d_period: Int)
-
+/**
+ * @dataproduct
+ * @Updater
+ *
+ * UpdateTextbookUsageDB
+ *
+ * Functionality
+ * Update Textbook summary : Units and Lessons added/deleted/modified into cassandra table and influxdb
+ * input - ME_TEXTBOOK_USAGE_SUMMARY
+ */
 object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, TextbookSessionMetricsFact, TextbookSessionMetricsFact] with IInfluxDBUpdater with Serializable {
 
     override def name(): String = "UpdateTextbookUsageDB";
