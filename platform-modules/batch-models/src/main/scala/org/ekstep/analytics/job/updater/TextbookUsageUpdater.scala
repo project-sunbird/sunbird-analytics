@@ -7,7 +7,7 @@ import org.ekstep.analytics.updater.UpdateTextbookUsageDB
 /**
  * @author yuva
  */
-object TextbookSessionUpdater extends optional.Application with IJob {
+object TextbookUsageUpdater extends optional.Application with IJob {
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
