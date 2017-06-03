@@ -142,6 +142,8 @@ object JobFactory {
                 TextbookSessionSummarizer
             case "author-usage-summary" =>
                 AuthorUsageSummarizer
+            case "author-usage-updater" =>
+                AuthorSummaryUpdater
             case "app-usage" =>
                 PortalUsageSummarizer;
             case "app-usage-updater" =>
