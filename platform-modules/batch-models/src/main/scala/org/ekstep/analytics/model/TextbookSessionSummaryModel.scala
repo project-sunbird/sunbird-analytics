@@ -84,8 +84,8 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
                 "lesson_summary" -> summary.sub_unit_summary,
                 "date_range" -> summary.date_range);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
-            MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), 0L, "1.0", mid, summary.uid, None, None,
-                Context(pdata, None, "DAY", summary.date_range),
+            MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), summary.date_range.to, "1.0", mid, summary.uid, None, None,
+                Context(pdata, None, "SESSION", summary.date_range),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(summary.content_id), None, None, Option(summary.sid), None), MEEdata(measures), None);
         };
     }
