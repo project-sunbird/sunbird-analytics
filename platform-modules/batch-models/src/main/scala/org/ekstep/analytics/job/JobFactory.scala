@@ -138,8 +138,12 @@ object JobFactory {
                 PortalSessionSummarizer;
             case "obj-cache-updater" =>
                 AppObjectCacheUpdater
-            case "textbook-session-summary" =>
+            case "textbook-ss" =>
                 TextbookSessionSummarizer
+            case "textbook-usage" =>
+            	TextbookUsageSummarizer
+            case "textbook-usage-updater" =>
+            	TextbookUsageUpdater
             case "author-usage-summary" =>
                 AuthorUsageSummarizer
             case "author-usage-updater" =>
