@@ -22,6 +22,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.connector.InfluxDB._
 
 case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String, updated_date: DateTime) extends AlgoOutput with Output
 
@@ -102,7 +103,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 		data;
 	}
 	
-	private def saveToInfluxDB(data: RDD[TextbookSnapshotSummary]) {
+	private def saveToInfluxDB(data: RDD[TextbookSnapshotSummary])(implicit sc: SparkContext) {
 		val influxRDD = data.map{ f => 
 			val time = getDateTime(f.d_period);
 			val tags = Map("textbook_id" -> f.d_textbook_id, "period" -> time._2);
@@ -110,7 +111,8 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			val fields = map - ("d_textbook_id", "d_period", "content_types", "updated_date") ++ Map("content_types" -> f.content_types.mkString(","));
 			InfluxRecord(tags, fields, time._1);
 		}
-		InfluxDBDispatcher.dispatch(TEXTBOOK_SNAPSHOT_METRICS, influxRDD);
+		val denormData = getDenormalizedData("Content", data.map { x => x.d_textbook_id });
+		influxRDD.denormalize("textbook_id", "textbook_name", denormData).saveToInflux(TEXTBOOK_SNAPSHOT_METRICS);
 	}
 
 }
