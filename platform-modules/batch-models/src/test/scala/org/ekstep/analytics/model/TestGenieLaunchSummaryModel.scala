@@ -148,19 +148,13 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/stage/test-data1.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
-        events.size should be(3)
+        events.size should be(2)
         
-        val eksMap1 = events(2).edata.eks.asInstanceOf[Map[String, AnyRef]]
+        val eksMap1 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
         val screenSummary1 = eksMap1.get("screenSummary")
         val summaryList1 = JSONUtils.deserialize[List[GenieStageSummary]](JSONUtils.serialize(screenSummary1));
         
-        summaryList1.size should be(1);
-        
-        val summary1 = summaryList1(0)
-        summary1.stageId should be("Genie-Home-ChildContent-List");
-        summary1.visitCount should be(1);
-        summary1.interactEventsCount should be(1);
-        summary1.timeSpent should be(0.0);
+        summaryList1.size should be(0);
         
         val eksMap2 = events(0).edata.eks.asInstanceOf[Map[String, AnyRef]]
         val screenSummary2 = eksMap2.get("screenSummary")
@@ -177,7 +171,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         val summary3 = summaryList2(1)
         summary3.stageId should be("Genie-Home-ChildContent-List");
         summary3.visitCount should be(1);
-        summary3.interactEventsCount should be(4);
+        summary3.interactEventsCount should be(3);
         summary3.timeSpent should be(2.24);
         
         val summary4 = summaryList2(2)
@@ -203,19 +197,19 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         summary1.stageId should be("endStage");
         summary1.visitCount should be(1);
         summary1.interactEventsCount should be(0);
-        summary1.timeSpent should be(6.9);
+        summary1.timeSpent should be(3.66);
         
         val summary2 = summaryList(1)
         summary2.stageId should be("Genie-Home-ChildContent-List");
-        summary2.visitCount should be(2);
-        summary2.interactEventsCount should be(2);
-        summary2.timeSpent should be(0.3999999999999999);
+        summary2.visitCount should be(1);
+        summary2.interactEventsCount should be(1);
+        summary2.timeSpent should be(2.0);
         
         val summary3 = summaryList(2)
         summary3.stageId should be("Genie-Home-ChildContent-Search");
         summary3.visitCount should be(1);
         summary3.interactEventsCount should be(1);
-        summary3.timeSpent should be(0.6);
+        summary3.timeSpent should be(2.24);
         
         val summary4 = summaryList(3)
         summary4.stageId should be("splash");
