@@ -27,7 +27,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         event1.dimensions.content_id.get should be("all");
 
         val summary1 = JSONUtils.deserialize[CEUsageMetricsSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.users_count should be(2);
+        summary1.unique_users_count should be(2);
         summary1.total_sessions should be(5);
         summary1.total_ts should be(84.04);
         summary1.avg_ts_session should be(16.81);
@@ -45,7 +45,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         event2.dimensions.content_id.get should be("do_2122315986551685121193");
 
         val summary2 = JSONUtils.deserialize[CEUsageMetricsSummary](JSONUtils.serialize(event2.edata.eks));
-        summary2.users_count should be(1);
+        summary2.unique_users_count should be(1);
         summary2.total_sessions should be(2);
         summary2.total_ts should be(13.600000000000001);
         summary2.avg_ts_session should be(6.8);
@@ -63,7 +63,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         event3.dimensions.content_id.get should be("do_2122217361752064001287");
 
         val summary3 = JSONUtils.deserialize[CEUsageMetricsSummary](JSONUtils.serialize(event3.edata.eks));
-        summary3.users_count should be(1);
+        summary3.unique_users_count should be(1);
         summary3.total_sessions should be(1);
         summary3.total_ts should be(0.72);
         summary3.avg_ts_session should be(0.72);
@@ -86,7 +86,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         event1.dimensions.content_id.get should be("all");
 
         val summary1 = JSONUtils.deserialize[CEUsageMetricsSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.users_count should be(2);
+        summary1.unique_users_count should be(2);
         summary1.total_sessions should be(5);
         summary1.total_ts should be(84.04);
         summary1.avg_ts_session should be(16.81);

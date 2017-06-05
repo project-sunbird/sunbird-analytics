@@ -15,7 +15,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
  * Case class to hold the usage summary input and output
  */
 case class CEUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class CEUsageMetricsSummary(period: Int, content_id: String, dtRange: DtRange, users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double) extends AlgoOutput;
+case class CEUsageMetricsSummary(period: Int, content_id: String, dtRange: DtRange, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double) extends AlgoOutput;
 
 /**
  * @dataproduct
@@ -92,7 +92,7 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_CE_USAGE_SUMMARY", usageSumm.content_id, "DAY", usageSumm.dtRange);
             val measures = Map(
-                "users_count" -> usageSumm.users_count,
+                "unique_users_count" -> usageSumm.unique_users_count,
                 "total_sessions" -> usageSumm.total_sessions,
                 "total_ts" -> usageSumm.total_ts,
                 "avg_ts_session" -> usageSumm.avg_ts_session);

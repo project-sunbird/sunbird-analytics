@@ -25,12 +25,12 @@ class TestUpdatePortalUsageDB extends SparkSpec(null) {
 
         // check for day record
         val dayRecord = sc.cassandraTable[PortalUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT).where("d_period=?", 20170504).where("d_author_id=?", "all").first
-        dayRecord.anonymous_total_sessions should be(2)
-        dayRecord.anonymous_total_ts should be(654.0)
-        dayRecord.anonymous_avg_session_ts should be(327.0)
+        dayRecord.anon_total_sessions should be(2)
+        dayRecord.anon_total_ts should be(654.0)
+        dayRecord.anon_avg_ts_session should be(327.0)
         dayRecord.total_sessions should be(6)
         dayRecord.total_ts should be(3224.0)
-        dayRecord.avg_session_ts should be(537.33)
+        dayRecord.avg_ts_session should be(537.33)
         dayRecord.ce_total_sessions should be(2)
         dayRecord.ce_percent_sessions should be(33.33)
         dayRecord.total_pageviews_count should be(90)
@@ -41,12 +41,12 @@ class TestUpdatePortalUsageDB extends SparkSpec(null) {
         
         // check for week record
         val weekRecord = sc.cassandraTable[PortalUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT).where("d_period=?", 2017718).where("d_author_id=?", "all").first
-        weekRecord.anonymous_total_sessions should be(8)
-        weekRecord.anonymous_total_ts should be(3387.0)
-        weekRecord.anonymous_avg_session_ts should be(423.38)
+        weekRecord.anon_total_sessions should be(8)
+        weekRecord.anon_total_ts should be(3387.0)
+        weekRecord.anon_avg_ts_session should be(423.38)
         weekRecord.total_sessions should be(12)
         weekRecord.total_ts should be(6308.0)
-        weekRecord.avg_session_ts should be(525.67)
+        weekRecord.avg_ts_session should be(525.67)
         weekRecord.ce_total_sessions should be(2)
         weekRecord.ce_percent_sessions should be(16.67)
         weekRecord.total_pageviews_count should be(180)
@@ -57,12 +57,12 @@ class TestUpdatePortalUsageDB extends SparkSpec(null) {
         
         // check for month record
         val monthRecord = sc.cassandraTable[PortalUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT).where("d_period=?", 201705).where("d_author_id=?", "all").first
-        monthRecord.anonymous_total_sessions should be(8)
-        monthRecord.anonymous_total_ts should be(3387.0)
-        monthRecord.anonymous_avg_session_ts should be(423.38)
+        monthRecord.anon_total_sessions should be(8)
+        monthRecord.anon_total_ts should be(3387.0)
+        monthRecord.anon_avg_ts_session should be(423.38)
         monthRecord.total_sessions should be(12)
         monthRecord.total_ts should be(6308.0)
-        monthRecord.avg_session_ts should be(525.67)
+        monthRecord.avg_ts_session should be(525.67)
         monthRecord.ce_total_sessions should be(2)
         monthRecord.ce_percent_sessions should be(16.67)
         monthRecord.total_pageviews_count should be(180)
@@ -73,12 +73,12 @@ class TestUpdatePortalUsageDB extends SparkSpec(null) {
         
         // check for cumulative record
         val cumRecord = sc.cassandraTable[PortalUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT).where("d_period=?", 0).where("d_author_id=?", "all").first
-        cumRecord.anonymous_total_sessions should be(8)
-        cumRecord.anonymous_total_ts should be(3387.0)
-        cumRecord.anonymous_avg_session_ts should be(423.38)
+        cumRecord.anon_total_sessions should be(8)
+        cumRecord.anon_total_ts should be(3387.0)
+        cumRecord.anon_avg_ts_session should be(423.38)
         cumRecord.total_sessions should be(12)
         cumRecord.total_ts should be(6308.0)
-        cumRecord.avg_session_ts should be(525.67)
+        cumRecord.avg_ts_session should be(525.67)
         cumRecord.ce_total_sessions should be(2)
         cumRecord.ce_percent_sessions should be(16.67)
         cumRecord.total_pageviews_count should be(180)
