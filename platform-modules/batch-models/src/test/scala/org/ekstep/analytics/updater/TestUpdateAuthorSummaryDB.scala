@@ -41,7 +41,6 @@ class TestUpdateAuthorSummaryDB extends SparkSpec(null) {
 
         // Day
         val user459_25th = user459.filter { x => 20170525 == x.d_period }.last
-        println(JSONUtils.serialize(user459_25th))
 
         user459_25th.d_period should be(20170525)
         user459_25th.d_author_id should be("459")
