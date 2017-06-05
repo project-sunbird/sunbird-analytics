@@ -3,6 +3,11 @@ CREATE KEYSPACE IF NOT EXISTS learner_db WITH replication = {
   'replication_factor': '1'
 };
 
+CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
 CREATE TABLE IF NOT EXISTS learner_db.learnersnapshot (
 	learner_id text,
 	m_time_spent double,
@@ -446,11 +451,6 @@ CREATE TABLE IF NOT EXISTS creation_db.user_profile (
 	updated_date timestamp,
 	PRIMARY KEY (user_id)
 );
-
-CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
-  'class': 'SimpleStrategy',
-  'replication_factor': '1'
-};
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
     d_content_id text,
