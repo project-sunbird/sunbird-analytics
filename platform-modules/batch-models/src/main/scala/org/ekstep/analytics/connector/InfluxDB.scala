@@ -43,9 +43,11 @@ class DenormInfluxData(rdd: RDD[InfluxRecord], mappingKey: String, newKey: Strin
 		firstParent[InfluxRecord].iterator(split, context)
 			.map { x =>
 				val key = x.tags.getOrElse(mappingKey, "");
-				val value = data.getOrElse(key, "");
-				val fields = x.fields ++ Map(newKey -> value);
-				InfluxRecord(x.tags, fields, x.time);
+				if(StringUtils.isBlank(key)) x else {
+					val value = data.getOrElse(key, key);
+					val fields = x.fields ++ Map(newKey -> value);
+					InfluxRecord(x.tags, fields, x.time);	
+				}
 			};
 	}
 

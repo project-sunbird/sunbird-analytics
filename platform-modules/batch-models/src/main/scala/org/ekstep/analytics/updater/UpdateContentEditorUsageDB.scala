@@ -35,7 +35,7 @@ case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, users_count
 object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, CEUsageSummaryFact, CEUsageSummaryIndex] with Serializable with IInfluxDBUpdater {
 
     val className = "org.ekstep.analytics.updater.UpdateContentEditorMetricsDB"
-    override def name: String = "UpdateContentEditorMetricsDB"
+    override def name: String = "UpdateContentEditorUsageDB"
     val CE_USAGE_METRICS = "ce_usage_metrics"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {

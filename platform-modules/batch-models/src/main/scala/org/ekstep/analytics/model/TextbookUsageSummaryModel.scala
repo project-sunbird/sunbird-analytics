@@ -22,7 +22,7 @@ import org.ekstep.analytics.util.Constants
  * @author yuva
  */
 case class TextbookUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class TextbookUsageOutput(period: Int, dtRange: DtRange, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary) extends AlgoOutput with Output
+case class TextbookUsageOutput(period: Int, dtRange: DtRange, userCount: Long, time_spent: Double, time_diff: Double, totalSessions: Long, avgSessionTS: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary) extends AlgoOutput with Output
 /**
  * @dataproduct
  * @Summarizer
@@ -52,6 +52,8 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
         data.map { event =>
             val firstEvent = event.sessionEvents.sortBy { x => x.context.date_range.from }.head
             val lastEvent = event.sessionEvents.sortBy { x => x.context.date_range.to }.last
+            val userCount = event.sessionEvents.map(x => x.uid).distinct.filterNot { x => x.isEmpty() }.toList.length.toLong
+            val totalSessions = event.sessionEvents.length.toLong
             val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
             val time_spent = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_spent").get.asInstanceOf[Number].longValue() }.sum
             val time_diff = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_diff").get.asInstanceOf[Number].longValue() }.sum
@@ -61,15 +63,19 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
             val total_lessons_added = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue() }
             val total_lessons_deleted = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue() }
             val total_lessons_modified = event.sessionEvents.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue() }
-            TextbookUsageOutput(event.period, date_range, time_spent, time_diff, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), LessonSummary(total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum))
+            val avgSessionTS = if (time_spent == 0 || totalSessions == 0) 0d else BigDecimal(time_spent / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+            TextbookUsageOutput(event.period, date_range, userCount, time_spent, time_diff, totalSessions, avgSessionTS, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), LessonSummary(total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum))
         }
     }
 
     override def postProcess(data: RDD[TextbookUsageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { usageSumm =>
-            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_USAGE_SUMMARY","", "DAY", usageSumm.dtRange);
+            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_USAGE_SUMMARY", "", "DAY", usageSumm.dtRange);
             val measures = Map(
-                "time_spent" -> usageSumm.time_spent,
+                "users_count" -> usageSumm.userCount,
+                "total_sessions" -> usageSumm.totalSessions,
+                "total_ts" -> usageSumm.time_spent,
+                "avg_ts_session" -> usageSumm.avgSessionTS,
                 "time_diff" -> usageSumm.time_diff,
                 "unit_summary" -> usageSumm.unit_summary,
                 "lesson_summary" -> usageSumm.lesson_summary);
