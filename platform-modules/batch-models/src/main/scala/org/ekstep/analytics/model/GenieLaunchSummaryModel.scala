@@ -81,7 +81,8 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LaunchSessions] = {
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
-        val genieLaunchSessions = getGenieLaunchSessions(data, idleTime);
+        val filteredData = data.filter { x => !"AutoSync-Initiated".equals(x.edata.eks.subtype) }
+        val genieLaunchSessions = getGenieLaunchSessions(filteredData, idleTime);
         genieLaunchSessions.map { x => LaunchSessions(x._1, x._2) }
     }
 
