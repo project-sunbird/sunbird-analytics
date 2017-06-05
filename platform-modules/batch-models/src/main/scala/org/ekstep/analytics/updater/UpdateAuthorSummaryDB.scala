@@ -85,7 +85,7 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val totalTS = CommonUtil.roundDouble(fact1.total_ts + fact2.total_ts, 2)
         val totalCETS = CommonUtil.roundDouble(fact1.total_ce_ts + fact2.total_ce_ts, 2)
         val totalCEVisits = fact1.total_ce_visit + fact2.total_ce_visit
-        val percentCEsessions = (if (0 != totalSessions) (totalCEVisits * 1.0 / totalSessions) else 0.0) * 100
+        val percentCEsessions = CommonUtil.roundDouble((if (0 != totalSessions) (totalCEVisits * 1.0 / totalSessions) else 0.0) * 100, 2)
         val avgSessionTS = CommonUtil.roundDouble(if (0 != totalSessions) (totalTS / totalSessions) else 0.0, 2)
         val percentCEts = CommonUtil.roundDouble((if (0 != totalTS) (totalCETS / totalTS) else 0.0) * 100, 2)
         AuthorMetricsFact(fact1.d_period, fact1.d_author_id, totalSessions, totalTS, totalCETS, totalCEVisits, percentCEsessions, avgSessionTS, percentCEts, System.currentTimeMillis())

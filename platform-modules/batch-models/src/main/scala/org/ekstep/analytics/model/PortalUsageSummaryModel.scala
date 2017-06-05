@@ -26,10 +26,10 @@ import org.ekstep.analytics.util.Constants
  * Case Classes for the data product
  */
 case class PortalUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtRange: DtRange, anonymous_total_sessions: Long, anonymous_total_ts: Double,
+case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtRange: DtRange, anon_total_sessions: Long, anon_total_ts: Double,
                              total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                              total_pageviews_count: Long, unique_users: List[String], unique_users_count: Long, avg_pageviews: Double,
-                             avg_session_ts: Double, anonymous_avg_session_ts: Double, new_user_count: Long,
+                             avg_ts_session: Double, anon_avg_ts_session: Double, new_user_count: Long,
                              percent_new_users_count: Double) extends AlgoOutput
 
 /**
@@ -108,8 +108,8 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_APP_USAGE_SUMMARY", usageSumm.author_id, "DAY", usageSumm.dtRange);
             val measures = Map(
-                "anonymous_total_sessions" -> usageSumm.anonymous_total_sessions,
-                "anonymous_total_ts" -> usageSumm.anonymous_total_ts,
+                "anon_total_sessions" -> usageSumm.anon_total_sessions,
+                "anon_total_ts" -> usageSumm.anon_total_ts,
                 "total_sessions" -> usageSumm.total_sessions,
                 "total_ts" -> usageSumm.total_ts,
                 "ce_total_sessions" -> usageSumm.ce_total_sessions,
@@ -118,8 +118,8 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 "unique_users" -> usageSumm.unique_users,
                 "unique_users_count" -> usageSumm.unique_users_count,
                 "avg_pageviews" -> usageSumm.avg_pageviews,
-                "avg_session_ts" -> usageSumm.avg_session_ts,
-                "anonymous_avg_session_ts" -> usageSumm.anonymous_avg_session_ts,
+                "avg_ts_session" -> usageSumm.avg_ts_session,
+                "anon_avg_ts_session" -> usageSumm.anon_avg_ts_session,
                 "new_user_count" -> usageSumm.new_user_count,
                 "percent_new_users_count" -> usageSumm.percent_new_users_count);
             MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,

@@ -485,8 +485,8 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     d_period int,
     d_author_id text,
     d_app_id text,
-    anonymous_total_sessions bigint,
-    anonymous_total_ts double,
+    anon_total_sessions bigint,
+    anon_total_ts double,
     total_sessions bigint,
     total_ts double,
     ce_total_sessions bigint,
@@ -495,8 +495,8 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     unique_users blob,
     unique_users_count bigint,
     avg_pageviews double,
-    avg_session_ts double,
-    anonymous_avg_session_ts double,
+    avg_ts_session double,
+    anon_avg_ts_session double,
     new_user_count bigint,
     percent_new_users_count double,
     updated_date timestamp,
@@ -544,8 +544,6 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 
-// Not required
-
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
     d_period text,
     time_diff Double,
@@ -557,7 +555,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
     lesson_summary map<text,bigint>,
     updated_date timestamp,
     PRIMARY KEY (d_period)
-  );
+);
 
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
