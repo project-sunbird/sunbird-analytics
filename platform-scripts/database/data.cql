@@ -507,7 +507,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
 CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
     d_period int,
     d_author_id text,
-    total_session bigint,
+    total_sessions bigint,
     total_ts double,
     total_ce_ts double,
     total_ce_visit bigint,

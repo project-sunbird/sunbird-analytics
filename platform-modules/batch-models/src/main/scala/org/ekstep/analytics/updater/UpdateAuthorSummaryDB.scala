@@ -16,8 +16,8 @@ import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.connector.InfluxDB._
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 
-case class AuthorMetricsFact_T(d_period: Int, d_author_id: String, total_session: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, updated_date: Long, last_gen_date: Long)
-case class AuthorMetricsFact(d_period: Int, d_author_id: String, total_session: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_ts_session: Double, percent_ce_ts: Double, updated_date: Long) extends AlgoOutput with Output
+case class AuthorMetricsFact_T(d_period: Int, d_author_id: String, total_sessions: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_ts_session: Double, percent_ce_ts: Double, updated_date: Long, last_gen_date: Long)
+case class AuthorMetricsFact(d_period: Int, d_author_id: String, total_sessions: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_ts_session: Double, percent_ce_ts: Double, updated_date: Long) extends AlgoOutput with Output
 case class AuthorMetricsIndex(d_period: Int, d_author_id: String)
 
 object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AuthorMetricsFact, AuthorMetricsFact] with IInfluxDBUpdater with Serializable {
@@ -34,7 +34,7 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val period = x.dimensions.period.get
             val author = x.uid
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
-            val totalSessions = eksMap.getOrElse("total_session", 0L).asInstanceOf[Number].longValue()
+            val totalSessions = eksMap.getOrElse("total_sessions", 0L).asInstanceOf[Number].longValue()
             val totalTS = CommonUtil.roundDouble(eksMap.getOrElse("total_ts", 0.0).asInstanceOf[Double], 2)
             val totalCETS = CommonUtil.roundDouble(eksMap.getOrElse("ce_total_ts", 0.0).asInstanceOf[Double], 2)
             val totalCEVisits = eksMap.getOrElse("ce_total_visits", 0l).asInstanceOf[Number].longValue()
@@ -81,7 +81,7 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
     }
 
     private def reduce(fact1: AuthorMetricsFact, fact2: AuthorMetricsFact_T, period: Period): AuthorMetricsFact = {
-        val totalSessions = fact1.total_session + fact2.total_session
+        val totalSessions = fact1.total_sessions + fact2.total_sessions
         val totalTS = CommonUtil.roundDouble(fact1.total_ts + fact2.total_ts, 2)
         val totalCETS = CommonUtil.roundDouble(fact1.total_ce_ts + fact2.total_ce_ts, 2)
         val totalCEVisits = fact1.total_ce_visit + fact2.total_ce_visit
