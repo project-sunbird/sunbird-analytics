@@ -473,7 +473,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
 CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
     d_period int,
     d_content_id text,
-    users_count bigint,
+    unique_users_count bigint,
     total_sessions bigint,
     total_ts double,
     avg_ts_session double,
