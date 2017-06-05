@@ -149,7 +149,7 @@ object JobFactory {
             case "author-usage-updater" =>
                 AuthorSummaryUpdater
             case "app-usage" =>
-                PortalUsageSummarizer;
+                AppUsageSummarizer;
             case "app-usage-updater" =>
                 PortalUsageUpdater;
             case "publish-pipeline-summarizer" =>

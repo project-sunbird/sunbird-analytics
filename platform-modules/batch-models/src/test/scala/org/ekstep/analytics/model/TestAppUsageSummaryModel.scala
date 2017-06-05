@@ -10,12 +10,12 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.DerivedEvent
 
-class TestPortalUsageSummaryModel extends SparkSpec(null) {
+class TestAppUsageSummaryModel extends SparkSpec(null) {
 
-    "PortalUsageSummaryModel" should "generate 4 portal usage summary events" in {
+    "AppUsageSummaryModel" should "generate 4 app usage summary events" in {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/portal-usage-summary/test_data_1.log");
-        val rdd2 = PortalUsageSummaryModel.execute(rdd1, None);
+        val rdd2 = AppUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
         me.length should be(4)
@@ -109,7 +109,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
     it should "generate 3 portal usage summary event where ce sessions count = 0" in {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/portal-usage-summary/test_data_2.log");
-        val rdd2 = PortalUsageSummaryModel.execute(rdd1, None);
+        val rdd2 = AppUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
         me.length should be(3)
@@ -174,7 +174,7 @@ class TestPortalUsageSummaryModel extends SparkSpec(null) {
     it should "generate 5 portal usage summary event where all are new visits" in {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/portal-usage-summary/test_data_3.log");
-        val rdd2 = PortalUsageSummaryModel.execute(rdd1, None);
+        val rdd2 = AppUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
         me.length should be(5)

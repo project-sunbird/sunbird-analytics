@@ -42,10 +42,10 @@ case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtR
  * 1. Generate portal usage summary events per day. This would be used to compute portal usage weekly, monthly & cumulative metrics.
  * Event used - ME_APP_SESSION_SUMMARY
  */
-object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsageInput, PortalUsageOutput, MeasuredEvent] with Serializable {
+object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsageInput, PortalUsageOutput, MeasuredEvent] with Serializable {
 
-    val className = "org.ekstep.analytics.model.PortalUsageSummaryModel"
-    override def name: String = "PortalUsageSummaryModel"
+    val className = "org.ekstep.analytics.model.AppUsageSummaryModel"
+    override def name: String = "AppUsageSummaryModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalUsageInput] = {
         val sessionEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_APP_SESSION_SUMMARY")));
