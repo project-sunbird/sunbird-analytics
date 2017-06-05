@@ -20,11 +20,13 @@ import scala.collection.mutable.Buffer
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.connector.InfluxDB._
 
 case class PublishPipelineSummaryFact(d_period: Int, `type`: String, state: String, subtype: String, count: Int, updated_at: Long) extends AlgoOutput
 case class ContentPublishFactIndex(d_period: Int, `type`: String, state: String, subtype: String) extends Output
 
-object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PublishPipelineSummaryFact, ContentPublishFactIndex] with Serializable {
+object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PublishPipelineSummaryFact, ContentPublishFactIndex] with IInfluxDBUpdater with Serializable {
   val className = "org.ekstep.analytics.updater.UpdatePublishPipelineSummary"
   override def name: String = "UpdatePublishPipelineSummary"
 
@@ -79,7 +81,23 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   override def postProcess(data: RDD[PublishPipelineSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPublishFactIndex] = {
     val d = data.collect()
     data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT)
+    saveToInfluxDB(data);
     data.map { d => ContentPublishFactIndex(d.d_period, d.`type`, d.state, d.subtype) }
   }
+
+  private def saveToInfluxDB(data: RDD[PublishPipelineSummaryFact])(implicit sc: SparkContext) {
+		val influxRDD = data.filter(f => f.d_period != 0).map{ f =>
+			val time = getDateTime(f.d_period)
+			var tags = Map("type" -> f.`type`, "state" -> f.state)
+			if (f.subtype != "") {
+			  tags += "subtype" -> f.subtype
+			}
+			val map = CommonUtil.caseClassToMap(f)
+			val fields = Map[String, AnyRef]("count" -> f.count.asInstanceOf[AnyRef])
+			InfluxRecord(tags, fields, time._1);
+		}
+
+		influxRDD.saveToInflux("publish_pipeline_metrics")
+	}
 
 }
