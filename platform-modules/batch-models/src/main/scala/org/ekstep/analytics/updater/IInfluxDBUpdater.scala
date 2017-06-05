@@ -25,7 +25,7 @@ trait IInfluxDBUpdater {
 				val firstDay = weekPeriod.parseDateTime(week)
 				val lastDay = firstDay.plusDays(6);
 				(lastDay.withTimeAtStartOfDay(), "week");
-			case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
+			case 6 => (monthPeriod.parseDateTime(period).dayOfMonth().withMaximumValue(), "month");
 		}
 	}
 }
