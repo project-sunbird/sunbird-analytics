@@ -12,16 +12,16 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
 
-class TestUpdatePortalUsageDB extends SparkSpec(null) {
+class TestUpdateAppUsageDB extends SparkSpec(null) {
   
-    "UpdatePortalUsageDB" should "update the app usage db and check the fields" in {
+    "UpdateAppUsageDB" should "update the app usage db and check the fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE creation_metrics_db.app_usage_summary_fact");
         }
         
         val rdd = loadFile[DerivedEvent]("src/test/resources/portal-usage-updater/test_data_1.log");
-        val rdd2 = UpdatePortalUsageDB.execute(rdd, None);
+        val rdd2 = UpdateAppUsageDB.execute(rdd, None);
 
         // check for day record
         val dayRecord = sc.cassandraTable[PortalUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT).where("d_period=?", 20170504).where("d_author_id=?", "all").first

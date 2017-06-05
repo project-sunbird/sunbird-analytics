@@ -7,17 +7,17 @@ import org.ekstep.analytics.framework.JobDriver
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.updater.UpdatePortalUsageDB
+import org.ekstep.analytics.updater.UpdateAppUsageDB
 import org.ekstep.analytics.framework.IJob
 
-object PortalUsageUpdater extends optional.Application with IJob {
+object AppUsageUpdater extends optional.Application with IJob {
   
-    implicit val className = "org.ekstep.analytics.job.PortalUsageUpdater"
+    implicit val className = "org.ekstep.analytics.job.AppUsageUpdater"
   
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.log("Started executing Job")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run("batch", config, UpdatePortalUsageDB);
+        JobDriver.run("batch", config, UpdateAppUsageDB);
         JobLogger.log("Job Completed.")
     }
 }

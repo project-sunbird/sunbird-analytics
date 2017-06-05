@@ -151,7 +151,7 @@ object JobFactory {
             case "app-usage" =>
                 AppUsageSummarizer;
             case "app-usage-updater" =>
-                PortalUsageUpdater;
+                AppUsageUpdater;
             case "publish-pipeline-summarizer" =>
                 PublishPipelineSummarizer;
             case "app-raw-telemetry-jobs" =>

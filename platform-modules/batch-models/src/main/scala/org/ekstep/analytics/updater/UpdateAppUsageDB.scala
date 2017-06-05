@@ -47,10 +47,10 @@ case class PortalUsageSummaryFact_T(d_period: Int, d_author_id: String, d_app_id
  * 1. Updater to populate/update the portal usage metrics per day, week, month & cumulative in Cassandra and influx DB.
  * Events used - ME_APP_USAGE_SUMMARY
  */
-object UpdatePortalUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PortalUsageSummaryFact, PortalUsageSummaryIndex] with IInfluxDBUpdater with Serializable {
+object UpdateAppUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PortalUsageSummaryFact, PortalUsageSummaryIndex] with IInfluxDBUpdater with Serializable {
 
-    val className = "org.ekstep.analytics.updater.UpdatePortalUsageDB"
-    override def name: String = "UpdatePortalUsageDB"
+    val className = "org.ekstep.analytics.updater.UpdateAppUsageDB"
+    override def name: String = "UpdateAppUsageDB"
     val APP_USAGE_METRICS = "app_usage_metrics";
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
