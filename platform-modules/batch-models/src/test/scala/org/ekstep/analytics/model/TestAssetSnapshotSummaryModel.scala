@@ -6,16 +6,22 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.ekstep.analytics.util.DBUtil
+import org.ekstep.analytics.util.Constants
 
 class TestAssetSnapshotSummaryModel extends SparkGraphSpec(null) {
 
+    override def beforeAll() {
+        super.beforeAll()
+        DBUtil.truncateTable(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE);
+        DBUtil.importContentData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, "src/test/resources/vidyavaani-data/content_data.csv", ",");
+    }
+    
     "AssetSnapshotSummaryModel" should "generate Asset snapshot and compare between the total values and used value" in {
 
         ContentAssetRelationModel.main("{}")(Option(sc));
 
         val event = AssetSnapshotSummaryModel.execute(sc.makeRDD(List()), None).collect.last
-
-        println(JSONUtils.serialize(event))
 
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
