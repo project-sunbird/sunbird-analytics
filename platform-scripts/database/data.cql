@@ -546,11 +546,11 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
     d_period text,
-    time_diff Double,
-    users_count bigint,
+    unique_users_count bigint,
     total_sessions bigint,
     total_ts double,
     avg_ts_session double,
+    textbooks_count bigint,
     unit_summary map<text,bigint>,
     lesson_summary map<text,bigint>,
     updated_date timestamp,
