@@ -278,12 +278,13 @@ CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 
-CREATE TABLE IF NOT EXISTS content_db.content_publish_fact(
+CREATE TABLE IF NOT EXISTS creation_metrics_db.content_publish_fact(
 	d_period int,
 	type text,
 	state text,
 	subtype text,
 	count int,
+	updated_at timestamp,
 	PRIMARY KEY (d_period, type, state, subtype)
 );
 
@@ -515,16 +516,6 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
     percent_ce_ts double,
     updated_date timestamp,
     PRIMARY KEY (d_period, d_author_id)
-);
-
-CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_metrics_fact (
-    d_period int,
-    d_type text,
-    subtype text,
-    state text,
-    count int,
-    updated_date timestamp,
-    PRIMARY KEY (d_period, d_type)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(

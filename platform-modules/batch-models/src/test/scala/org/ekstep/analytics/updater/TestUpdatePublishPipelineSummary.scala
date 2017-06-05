@@ -20,7 +20,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
   "UpdatePublishPipelineSummary" should "update the content_publish_fact table for DAY, WEEK, MONTH, YEAR" in {
 
     CassandraConnector(sc.getConf).withSessionDo { session =>
-      session.execute("TRUNCATE content_db.content_publish_fact");
+      session.execute("TRUNCATE creation_metrics_db.content_publish_fact");
     }
 
     val rdd = loadFile[DerivedEvent]("src/test/resources/pipeline-summary-updater/test_data1.log");
@@ -29,7 +29,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
     val rdd3 = loadFile[DerivedEvent]("src/test/resources/pipeline-summary-updater/test_data2.log");
     val rdd4 = UpdatePublishPipelineSummary.execute(rdd3, None);
 
-    val daywiseSummary20170523 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 20170523).collect
+    val daywiseSummary20170523 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 20170523).collect
     daywiseSummary20170523.find(s => s.`type` == "Content" && s.state == "Draft").get.count should be(5)
     daywiseSummary20170523.find(s => s.`type` == "Content" && s.state == "Review").get.count should be(3)
     daywiseSummary20170523.find(s => s.`type` == "Content" && s.state == "Live").get.count should be(4)
@@ -41,7 +41,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
     daywiseSummary20170523.find(s => s.`type` == "Textbook" && s.state == "Draft").get.count should be(4)
     daywiseSummary20170523.find(s => s.`type` == "Textbook" && s.state == "Live").get.count should be(4)
 
-    val daywiseSummary20170524 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 20170524).collect
+    val daywiseSummary20170524 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 20170524).collect
     daywiseSummary20170524.find(s => s.`type` == "Content" && s.state == "Draft").get.count should be(23)
     daywiseSummary20170524.find(s => s.`type` == "Content" && s.state == "Review").get.count should be(3)
     daywiseSummary20170524.find(s => s.`type` == "Content" && s.state == "Live").get.count should be(4)
@@ -53,7 +53,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
     daywiseSummary20170524.find(s => s.`type` == "Textbook" && s.state == "Draft").get.count should be(4)
     daywiseSummary20170524.find(s => s.`type` == "Textbook" && s.state == "Live").get.count should be(4)
 
-    val daywiseSummary20170525 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 20170525).collect
+    val daywiseSummary20170525 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 20170525).collect
     daywiseSummary20170525.find(s => s.`type` == "Content" && s.state == "Draft").get.count should be(10)
     daywiseSummary20170525.find(s => s.`type` == "Content" && s.state == "Review").get.count should be(3)
     daywiseSummary20170525.find(s => s.`type` == "Content" && s.state == "Live").get.count should be(4)
@@ -65,7 +65,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
     daywiseSummary20170525.find(s => s.`type` == "Textbook" && s.state == "Draft").get.count should be(3)
     daywiseSummary20170525.find(s => s.`type` == "Textbook" && s.state == "Live").get.count should be(8)
 
-    val weekwiseSummary = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 2017721).collect
+    val weekwiseSummary = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 2017721).collect
     weekwiseSummary.find(s => s.`type` == "Content" && s.state == "Draft").get.count should be(38)
     weekwiseSummary.find(s => s.`type` == "Content" && s.state == "Review").get.count should be(9)
     weekwiseSummary.find(s => s.`type` == "Content" && s.state == "Live").get.count should be(12)
@@ -77,7 +77,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
     weekwiseSummary.find(s => s.`type` == "Textbook" && s.state == "Draft").get.count should be(11)
     weekwiseSummary.find(s => s.`type` == "Textbook" && s.state == "Live").get.count should be(16)
 
-    val monthwiseSummary201704 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 201704).collect
+    val monthwiseSummary201704 = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 201704).collect
     monthwiseSummary201704.find(s => s.`type` == "Content" && s.state == "Draft").get.count should be(10)
     monthwiseSummary201704.find(s => s.`type` == "Content" && s.state == "Review").get.count should be(3)
     monthwiseSummary201704.find(s => s.`type` == "Content" && s.state == "Live").get.count should be(4)
@@ -90,7 +90,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
     monthwiseSummary201704.find(s => s.`type` == "Textbook" && s.state == "Live").get.count should be(8)
 
     //
-    val cumulativeSummary = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 0).collect
+    val cumulativeSummary = sc.cassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).where("d_period=?", 0).collect
     cumulativeSummary.find(s => s.`type` == "Content" && s.state == "Draft").get.count should be(48)
     cumulativeSummary.find(s => s.`type` == "Content" && s.state == "Review").get.count should be(12)
     cumulativeSummary.find(s => s.`type` == "Content" && s.state == "Live").get.count should be(16)
