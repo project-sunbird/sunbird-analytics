@@ -25,8 +25,8 @@ import org.joda.time.DateTime
 /**
  * @author yuva
  */
-case class TextbookSessionMetricsFact(d_period: Int, time_spent: Double, time_diff: Double, unit_summary: Map[String, Long], lesson_summary: Map[String, Long], updated_date: Long) extends AlgoOutput with Output
-case class TextbookSessionMetricsFact_T(d_period: Int, time_spent: Double, time_diff: Double, unit_summary: Map[String, Long], lesson_summary: Map[String, Long], updated_date: Long, last_gen_date: Long)
+case class TextbookSessionMetricsFact(d_period: Int, total_ts: Double, time_diff: Double, total_sessions: Long, avg_ts_session: Double, users_count: Long, unit_summary: Map[String, Long], lesson_summary: Map[String, Long], updated_date: Long) extends AlgoOutput with Output
+case class TextbookSessionMetricsFact_T(d_period: Int, total_ts: Double, time_diff: Double, total_sessions: Long, avg_ts_session: Double, users_count: Long, unit_summary: Map[String, Long], lesson_summary: Map[String, Long], updated_date: Long, last_gen_date: Long)
 case class TextbookIndex(d_period: Int)
 /**
  * @dataproduct
@@ -38,6 +38,7 @@ case class TextbookIndex(d_period: Int)
  * Update Textbook summary : Units and Lessons added/deleted/modified into cassandra table and influxdb
  * input - ME_TEXTBOOK_USAGE_SUMMARY
  */
+//"avg_ts_session":2207.0,"total_sessions":1,"total_ts":2207.0,"time_diff":2207.0
 object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, TextbookSessionMetricsFact, TextbookSessionMetricsFact] with IInfluxDBUpdater with Serializable {
 
     override def name(): String = "UpdateTextbookUsageDB";
@@ -52,13 +53,16 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val textbookSessions = data.map { x =>
             val d_period = x.dimensions.period.get
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
+            val user_count = eksMap.getOrElse("users_count", 0L).asInstanceOf[Number].longValue()
+            val total_sessions = eksMap.getOrElse("total_sessions", 0L).asInstanceOf[Number].longValue()
             val unit_summary = eksMap.get("unit_summary").get.asInstanceOf[Map[String, Long]]
             val lesson_summary = eksMap.get("lesson_summary").get.asInstanceOf[Map[String, Long]]
             val start_time = eksMap.getOrElse("start_time", 0L).asInstanceOf[Number].longValue()
             val end_time = eksMap.getOrElse("end_time", 0L).asInstanceOf[Number].longValue()
-            val time_spent = CommonUtil.roundDouble(eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Double], 2)
+            val total_ts = CommonUtil.roundDouble(eksMap.getOrElse("total_ts", 0.0).asInstanceOf[Double], 2)
             val time_diff = CommonUtil.roundDouble(eksMap.getOrElse("time_diff", 0.0).asInstanceOf[Double], 2)
-            TextbookSessionMetricsFact_T(d_period, time_spent, time_diff, unit_summary, lesson_summary, System.currentTimeMillis(), x.context.date_range.to)
+            val avg_ts_session = CommonUtil.roundDouble(eksMap.getOrElse("avg_ts_session", 0.0).asInstanceOf[Double], 2)
+            TextbookSessionMetricsFact_T(d_period, total_ts, time_diff, total_sessions, avg_ts_session, user_count, unit_summary, lesson_summary, System.currentTimeMillis(), x.context.date_range.to)
         }.cache
         rollup(textbookSessions, DAY).union(rollup(textbookSessions, WEEK)).union(rollup(textbookSessions, MONTH)).union(rollup(textbookSessions, CUMULATIVE)).cache();
     }
@@ -79,7 +83,7 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
             val newSumm = x._2._1
-            val prvSumm = x._2._2.getOrElse(TextbookSessionMetricsFact(index.d_period, 0.0, 0.0, Map("total_units_added" -> 0l, "total_units_deleted" -> 0l, "total_units_modified" -> 0l), Map("total_lessons_added" -> 0l, "total_lessons_deleted" -> 0l, "total_lessons_modified" -> 0l), System.currentTimeMillis()))
+            val prvSumm = x._2._2.getOrElse(TextbookSessionMetricsFact(index.d_period, 0.0, 0.0, 0l, 0.0, 0l, Map("total_units_added" -> 0l, "total_units_deleted" -> 0l, "total_units_modified" -> 0l), Map("total_lessons_added" -> 0l, "total_lessons_deleted" -> 0l, "total_lessons_modified" -> 0l), System.currentTimeMillis()))
             reduce(prvSumm, newSumm, period);
         }
         rollupSummaries;
@@ -87,7 +91,7 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
     private def reduce(fact1: TextbookSessionMetricsFact, fact2: TextbookSessionMetricsFact_T, period: Period): TextbookSessionMetricsFact = {
 
-        val totalTime_spent = CommonUtil.roundDouble(fact1.time_spent + fact2.time_spent, 2)
+        val totalTime_spent = CommonUtil.roundDouble(fact1.total_ts + fact2.total_ts, 2)
         val totalTime_diff = CommonUtil.roundDouble(fact1.time_diff + fact2.time_diff, 2)
         val totalUnits_added = fact1.unit_summary.getOrElse("total_units_added", 0l).asInstanceOf[Number].longValue() + fact2.unit_summary.getOrElse("total_units_added", 0l).asInstanceOf[Number].longValue()
         val totalUnits_deleted = fact1.unit_summary.getOrElse("total_units_deleted", 0l).asInstanceOf[Number].longValue() + fact2.unit_summary.getOrElse("total_units_deleted", 0l).asInstanceOf[Number].longValue()
@@ -95,13 +99,16 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val total_lessons_added = fact1.lesson_summary.getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue() + fact2.lesson_summary.getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue()
         val total_lessons_deleted = fact1.lesson_summary.getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue() + fact2.lesson_summary.getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue()
         val total_lessons_modified = fact1.lesson_summary.getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue() + fact2.lesson_summary.getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue()
+        val users_count = fact1.users_count + fact2.users_count
+        val total_sessions = fact1.total_sessions + fact2.total_sessions
+        val avg_ts_session = fact1.avg_ts_session + fact2.avg_ts_session
         val unit_summary = Map("total_units_added" -> totalUnits_added, "total_units_deleted" -> totalUnits_deleted, "total_units_modified" -> totalUnits_modified)
         val lesson_summary = Map("total_lessons_added" -> total_lessons_added, "total_lessons_deleted" -> total_lessons_deleted, "total_lessons_modified" -> total_lessons_modified)
-        TextbookSessionMetricsFact(fact1.d_period, totalTime_spent, totalTime_diff, unit_summary, lesson_summary, System.currentTimeMillis())
+        TextbookSessionMetricsFact(fact1.d_period, totalTime_spent, totalTime_diff, total_sessions, avg_ts_session, users_count, unit_summary, lesson_summary, System.currentTimeMillis())
     }
 
     private def reduceTUS(fact1: TextbookSessionMetricsFact_T, fact2: TextbookSessionMetricsFact_T): TextbookSessionMetricsFact_T = {
-        val totalTime_spent = CommonUtil.roundDouble(fact1.time_spent + fact2.time_spent, 2)
+        val totalTime_spent = CommonUtil.roundDouble(fact1.total_ts + fact2.total_ts, 2)
         val totalTime_diff = CommonUtil.roundDouble(fact1.time_diff + fact2.time_diff, 2)
         val totalUnits_added = fact1.unit_summary.getOrElse("total_units_added", 0l).asInstanceOf[Number].longValue() + fact2.unit_summary.getOrElse("total_units_added", 0l).asInstanceOf[Number].longValue()
         val totalUnits_deleted = fact1.unit_summary.getOrElse("total_units_deleted", 0l).asInstanceOf[Number].longValue() + fact2.unit_summary.getOrElse("total_units_deleted", 0l).asInstanceOf[Number].longValue()
@@ -109,23 +116,31 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val total_lessons_added = fact1.lesson_summary.getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue() + fact2.lesson_summary.getOrElse("total_lessons_added", 0l).asInstanceOf[Number].longValue()
         val total_lessons_deleted = fact1.lesson_summary.getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue() + fact2.lesson_summary.getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number].longValue()
         val total_lessons_modified = fact1.lesson_summary.getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue() + fact2.lesson_summary.getOrElse("total_lessons_modified", 0l).asInstanceOf[Number].longValue()
+        val users_count = fact1.users_count + fact2.users_count
+        val total_sessions = fact1.total_sessions + fact2.total_sessions
+        val avg_ts_session = fact1.avg_ts_session + fact2.avg_ts_session
         val unit_summary = Map("total_units_added" -> totalUnits_added, "total_units_deleted" -> totalUnits_deleted, "total_units_modified" -> totalUnits_modified)
         val lesson_summary = Map("total_lessons_added" -> total_lessons_added, "total_lessons_deleted" -> total_lessons_deleted, "total_lessons_modified" -> total_lessons_modified)
-        TextbookSessionMetricsFact_T(fact1.d_period, totalTime_spent, totalTime_diff, unit_summary, lesson_summary, System.currentTimeMillis(), fact2.last_gen_date)
+        TextbookSessionMetricsFact_T(fact1.d_period, totalTime_spent, totalTime_diff, total_sessions, avg_ts_session, users_count, unit_summary, lesson_summary, System.currentTimeMillis(), fact2.last_gen_date)
 
     }
 
     private def saveToInfluxDB(data: RDD[TextbookSessionMetricsFact]) {
         val metrics = data.filter { x => x.d_period != 0 }.map { x =>
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("d_period" -> time._2, "updated_date" -> x.updated_date.toString()), Map("time_spent" -> x.time_spent.asInstanceOf[AnyRef], "time_diff" -> x.time_diff.asInstanceOf[AnyRef],
-
-                "unit_summary.total_units_added" -> x.unit_summary.getOrElse("total_units_added", 0l).asInstanceOf[AnyRef],
-                "unit_summary.total_units_deleted" -> x.unit_summary.getOrElse("total_units_deleted", 0l).asInstanceOf[AnyRef],
-                "unit_summary.total_units_modified" -> x.unit_summary.getOrElse("total_units_modified", 0l).asInstanceOf[AnyRef],
-                "lesson_summary.total_lessons_added" -> x.lesson_summary.getOrElse("total_lessons_added", 0l).asInstanceOf[Number],
-                "lesson_summary.total_lessons_deleted" -> x.lesson_summary.getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number],
-                "lesson_summary.total_lessons_modified" -> x.lesson_summary.getOrElse("total_lessons_modified", 0l).asInstanceOf[Number]), time._1);
+            InfluxRecord(Map("d_period" -> time._2, "updated_date" -> x.updated_date.toString()),
+                Map(
+                    "total_ts" -> x.total_ts.asInstanceOf[AnyRef],
+                    "time_diff" -> x.time_diff.asInstanceOf[AnyRef],
+                    "users_count" -> x.users_count.asInstanceOf[AnyRef],
+                    "total_sessions" -> x.total_sessions.asInstanceOf[AnyRef],
+                    "avg_ts_session" -> x.avg_ts_session.asInstanceOf[AnyRef],
+                    "unit_summary.total_units_added" -> x.unit_summary.getOrElse("total_units_added", 0l).asInstanceOf[AnyRef],
+                    "unit_summary.total_units_deleted" -> x.unit_summary.getOrElse("total_units_deleted", 0l).asInstanceOf[AnyRef],
+                    "unit_summary.total_units_modified" -> x.unit_summary.getOrElse("total_units_modified", 0l).asInstanceOf[AnyRef],
+                    "lesson_summary.total_lessons_added" -> x.lesson_summary.getOrElse("total_lessons_added", 0l).asInstanceOf[Number],
+                    "lesson_summary.total_lessons_deleted" -> x.lesson_summary.getOrElse("total_lessons_deleted", 0l).asInstanceOf[Number],
+                    "lesson_summary.total_lessons_modified" -> x.lesson_summary.getOrElse("total_lessons_modified", 0l).asInstanceOf[Number]), time._1);
         };
         InfluxDBDispatcher.dispatch(TEXTBOOK_SESSION_METRICS, metrics);
     }
