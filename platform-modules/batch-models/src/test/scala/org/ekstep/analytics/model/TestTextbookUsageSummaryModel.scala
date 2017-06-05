@@ -28,12 +28,12 @@ class TestTextbookUsageSummaryModel extends SparkSpec(null) {
         event1.dimensions.period.get should be(20170528);
 
         val summary1 = JSONUtils.deserialize[TextbookUsageOutput](JSONUtils.serialize(event1.edata.eks));
-        summary1.unit_summary.total_units_added should be(6);
-        summary1.unit_summary.total_units_deleted should be(3);
-        summary1.unit_summary.total_units_modified should be(3);
-        summary1.lesson_summary.total_lessons_added should be(6);
-        summary1.lesson_summary.total_lessons_deleted should be(3);
-        summary1.lesson_summary.total_lessons_modified should be(3);
+        summary1.unit_summary.added_count should be(6);
+        summary1.unit_summary.deleted_count should be(3);
+        summary1.unit_summary.modified_count should be(3);
+        summary1.lesson_summary.added_count should be(6);
+        summary1.lesson_summary.deleted_count should be(3);
+        summary1.lesson_summary.modified_count should be(3);
 
     }
 }
