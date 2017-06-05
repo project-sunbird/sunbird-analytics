@@ -16,17 +16,14 @@ class TestAuthorUsageSummaryModel extends SparkSpec(null) {
     "AuthorUsageSummaryModel" should "generate metrics per author" in {
         val rdd3 = loadData()
         val events = rdd3.filter { x => (x.uid == "316") }.collect()
-        for(e<-events){
-            println(JSONUtils.serialize(e))
-        }
         val event3 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event3.get("total_session").get.asInstanceOf[Number].longValue() should be(3)
+        event3.get("total_sessions").get.asInstanceOf[Number].longValue() should be(3)
         event3.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(874.8)
         event3.get("ce_total_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
         event3.get("ce_total_visits").get.asInstanceOf[Number].longValue() should be(7)
-        event3.get("ce_visits_occ").get.asInstanceOf[Number].longValue() should be(1)
+        event3.get("ce_visits_count").get.asInstanceOf[Number].longValue() should be(1)
         event3.get("ce_percent_sessions").get.asInstanceOf[Number].doubleValue() should be(33.33)
-        event3.get("avg_session_ts").get.asInstanceOf[Number].doubleValue() should be(291.6)
+        event3.get("avg_ts_session").get.asInstanceOf[Number].doubleValue() should be(291.6)
         event3.get("ce_percent_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
 
         //return number of measured events based on time period per author

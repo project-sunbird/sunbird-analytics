@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
  * @author yuva/Amit
  */
 
-case class AuthorUsageSummary(ak: AuthorKey, total_session: Long, total_ts: Double, ce_total_ts: Double, total_ce_visit: Long, ce_visits_occ: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long) extends AlgoOutput
+case class AuthorUsageSummary(ak: AuthorKey, total_session: Long, total_ts: Double, ce_total_ts: Double, total_ce_visit: Long, ce_visits_count: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long) extends AlgoOutput
 case class AuthorKey(period: Int, author: String)
 case class AuthorUsageInput(ck: AuthorKey, events: Buffer[AuthorUsageSummary]) extends AlgoInput
 
@@ -41,38 +41,38 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
         val lastEvent = events.sortBy { x => x.dt_range.to }.last;
         val ak = firstEvent.ak;
         
-        val date_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.to);
-        val total_session = events.size
-        val total_ts = CommonUtil.roundDouble(events.map { x => x.total_ts }.sum, 2)
-        val avg_session_ts = CommonUtil.roundDouble(total_ts / total_session, 2)
+        val dateRange = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.to);
+        val totalSessions = events.size
+        val totalTS = CommonUtil.roundDouble(events.map { x => x.total_ts }.sum, 2)
+        val avgSessionTS = CommonUtil.roundDouble(totalTS / totalSessions, 2)
         
-        val total_ce_visit = events.map { x => x.total_ce_visit }.sum
-        val ce_total_ts = CommonUtil.roundDouble(events.map { x => x.ce_total_ts }.sum, 2)
+        val totalCEVisits = events.map { x => x.total_ce_visit }.sum
+        val ceTotalTS = CommonUtil.roundDouble(events.map { x => x.ce_total_ts }.sum, 2)
         
         val ceVisitsOccurrence = events.map { x => if(x.total_ce_visit >0 ) 1 else 0 }.sum
         
-        val ce_percent_sessions = CommonUtil.roundDouble((ceVisitsOccurrence * 1.0 / total_session) * 100, 2)
-        val ce_percent_ts = CommonUtil.roundDouble(if (total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d), 2)
-        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, total_ce_visit, ceVisitsOccurrence, ce_percent_sessions, avg_session_ts, ce_percent_ts, date_range, lastEvent.syncts)
+        val cePercentSessions = CommonUtil.roundDouble((ceVisitsOccurrence * 1.0 / totalSessions) * 100, 2)
+        val cePercentTS = CommonUtil.roundDouble(if (totalTS > 0.0) ((ceTotalTS / totalTS) * 100) else (0d), 2)
+        AuthorUsageSummary(ak, totalSessions, totalTS, ceTotalTS, totalCEVisits, ceVisitsOccurrence, cePercentSessions, avgSessionTS, cePercentTS, dateRange, lastEvent.syncts)
     }
     
     def getAuthorUsageSummary(event: DerivedEvent, period: Int, authorId: String): AuthorUsageSummary = {
         val ak = AuthorKey(period, authorId)
-        val total_session = 1
+        val totalSessions = 1
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        val total_ts = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Double]
-        val avg_session_ts = total_ts
+        val totalTS = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Double]
+        val avgSessionTS = totalTS
         
-        val ce_visits = eksMap.getOrElse("ce_visits", 0L).asInstanceOf[Number].longValue()
-        val ceVisitOccurrence = if(ce_visits > 0) 1 else 0;
-        val ce_total_ts = eksMap.get("env_summary").get.asInstanceOf[List[Map[String, AnyRef]]]
+        val ceVisits = eksMap.getOrElse("ce_visits", 0L).asInstanceOf[Number].longValue()
+        val ceVisitOccurrence = if(ceVisits > 0) 1 else 0;
+        val ceTotalTS = eksMap.get("env_summary").get.asInstanceOf[List[Map[String, AnyRef]]]
             .filter { x => (x.getOrElse("env", "").equals("content-editor")) }
             .map { x => x.getOrElse("time_spent", 0.0).asInstanceOf[Double] }.sum
         
-        val ce_percent_sessions = (ce_visits * 1.0 / total_session) * 100
-        val ce_percent_ts = if (total_ts > 0.0) ((ce_total_ts / total_ts) * 100) else (0d)
+        val cePercentSessions = (ceVisits * 1.0 / totalSessions) * 100
+        val cePercentTS = if (totalTS > 0.0) ((ceTotalTS / totalTS) * 100) else (0d)
         
-        AuthorUsageSummary(ak, total_session, total_ts, ce_total_ts, ce_visits, ceVisitOccurrence, ce_percent_sessions, avg_session_ts, ce_percent_ts, event.context.date_range, event.syncts)
+        AuthorUsageSummary(ak, totalSessions, totalTS, ceTotalTS, ceVisits, ceVisitOccurrence, cePercentSessions, avgSessionTS, cePercentTS, event.context.date_range, event.syncts)
     }
     /**
      *  Input Portal session summary
@@ -106,13 +106,13 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
         data.map { summary =>
             val mid = CommonUtil.getMessageId("ME_AUTHOR_USAGE_SUMMARY",summary.ak.author, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dt_range);
             val measures = Map(
-                "total_session" -> summary.total_session,
+                "total_sessions" -> summary.total_session,
                 "total_ts" -> summary.total_ts,
                 "ce_total_ts" -> summary.ce_total_ts,
                 "ce_total_visits" -> summary.total_ce_visit,
-                "ce_visits_occ" -> summary.ce_visits_occ,
+                "ce_visits_count" -> summary.ce_visits_count,
                 "ce_percent_sessions" -> summary.percent_ce_sessions,
-                "avg_session_ts" -> summary.avg_session_ts,
+                "avg_ts_session" -> summary.avg_session_ts,
                 "ce_percent_ts" -> summary.percent_ce_ts);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AuthorUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_AUTHOR_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.ak.author, None, None,
