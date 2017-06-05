@@ -19,11 +19,14 @@ import org.joda.time.format.DateTimeFormat
 import scala.collection.mutable.Buffer
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
+import org.joda.time.DateTime
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.connector.InfluxDB._
 
-case class PublishPipelineSummaryFact(d_period: Int, `type`: String, state: String, subtype: String, count: Int) extends AlgoOutput
+case class PublishPipelineSummaryFact(d_period: Int, `type`: String, state: String, subtype: String, count: Int, updated_at: Long) extends AlgoOutput
 case class ContentPublishFactIndex(d_period: Int, `type`: String, state: String, subtype: String) extends Output
 
-object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PublishPipelineSummaryFact, ContentPublishFactIndex] with Serializable {
+object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PublishPipelineSummaryFact, ContentPublishFactIndex] with IInfluxDBUpdater with Serializable {
   val className = "org.ekstep.analytics.updater.UpdatePublishPipelineSummary"
   override def name: String = "UpdatePublishPipelineSummary"
 
@@ -39,11 +42,11 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   private def computeForPeriod(p: Period, data: RDD[DerivedEvent])(implicit sc: SparkContext): RDD[PublishPipelineSummaryFact] = {
     val newData = createAndFlattenFacts(p, data)
     val deDuplicatedFacts = sc.makeRDD(newData).reduceByKey(combineFacts)
-    val existingData = deDuplicatedFacts.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).on(SomeColumns("d_period", "type", "state", "subtype"))
+    val existingData = deDuplicatedFacts.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT).on(SomeColumns("d_period", "type", "state", "subtype"))
     val joined = deDuplicatedFacts.leftOuterJoin(existingData)
     joined.map { d =>
       val newFact = d._2._1
-      val existingFact = d._2._2.getOrElse(PublishPipelineSummaryFact(newFact.d_period, newFact.`type`, newFact.state, newFact.subtype, 0))
+      val existingFact = d._2._2.getOrElse(PublishPipelineSummaryFact(newFact.d_period, newFact.`type`, newFact.state, newFact.subtype, 0, DateTime.now().getMillis))
       combineFacts(newFact, existingFact)
     }
   }
@@ -62,7 +65,7 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
       val state = s("state").toString()
       val subtype = s("subtype").toString()
       val count = s("count").asInstanceOf[Int]
-      (ContentPublishFactIndex(d_period, `type`, state, subtype), PublishPipelineSummaryFact(d_period, `type`, state, subtype, count))
+      (ContentPublishFactIndex(d_period, `type`, state, subtype), PublishPipelineSummaryFact(d_period, `type`, state, subtype, count, DateTime.now().getMillis))
     }
     List(acc, facts).flatMap(f => f)
   }
@@ -72,13 +75,29 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   }
 
   private def combineFacts(f1: PublishPipelineSummaryFact, f2: PublishPipelineSummaryFact): PublishPipelineSummaryFact = {
-    PublishPipelineSummaryFact(f1.d_period, f1.`type`, f1.state, f1.subtype, f1.count + f2.count)
+    PublishPipelineSummaryFact(f1.d_period, f1.`type`, f1.state, f1.subtype, f1.count + f2.count, DateTime.now().getMillis)
   }
 
   override def postProcess(data: RDD[PublishPipelineSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPublishFactIndex] = {
     val d = data.collect()
-    data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT)
+    data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_PUBLISH_FACT)
+    saveToInfluxDB(data);
     data.map { d => ContentPublishFactIndex(d.d_period, d.`type`, d.state, d.subtype) }
   }
+
+  private def saveToInfluxDB(data: RDD[PublishPipelineSummaryFact])(implicit sc: SparkContext) {
+		val influxRDD = data.filter(f => f.d_period != 0).map{ f =>
+			val time = getDateTime(f.d_period)
+			var tags = Map("type" -> f.`type`, "state" -> f.state)
+			if (f.subtype != "") {
+			  tags += "subtype" -> f.subtype
+			}
+			val map = CommonUtil.caseClassToMap(f)
+			val fields = Map[String, AnyRef]("count" -> f.count.asInstanceOf[AnyRef])
+			InfluxRecord(tags, fields, time._1);
+		}
+
+		influxRDD.saveToInflux("publish_pipeline_metrics")
+	}
 
 }
