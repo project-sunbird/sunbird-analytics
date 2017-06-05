@@ -74,7 +74,6 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/content-editor-usage-summary/test_data2.log");
         val rdd2 = ContentEditorUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
-        println("Events:", JSONUtils.serialize(me));
         me.length should be(1)
         val event1 = me(0);
         event1.eid should be("ME_CE_USAGE_SUMMARY");
