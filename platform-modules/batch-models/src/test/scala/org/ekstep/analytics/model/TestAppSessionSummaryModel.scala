@@ -10,12 +10,12 @@ import org.ekstep.analytics.util.SessionBatchModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 
-class TestPortalSessionSummaryModel extends SparkSpec(null) {
+class TestAppSessionSummaryModel extends SparkSpec(null) {
 
-    "PortalSessionSummaryModel" should "generate 1 portal session summary events having CE_START & CE_END" in {
+    "AppSessionSummaryModel" should "generate 1 app session summary events having CE_START & CE_END" in {
 
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_1.log");
-        val rdd2 = PortalSessionSummaryModel.execute(rdd1, None);
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
         me.length should be(1);
@@ -66,7 +66,7 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
     it should "generate 1 portal session summary events where time diff > idle time" in {
 
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_2.log");
-        val rdd2 = PortalSessionSummaryModel.execute(rdd1, None);
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
         me.length should be(2);
@@ -141,7 +141,7 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
     it should "generate 2 portal session summary events with no CE events and 1 with non-registered user" in {
 
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_3.log");
-        val rdd2 = PortalSessionSummaryModel.execute(rdd1, None);
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
         // check for first visit = true

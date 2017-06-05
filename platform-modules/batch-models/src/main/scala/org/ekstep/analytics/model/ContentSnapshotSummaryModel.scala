@@ -32,6 +32,8 @@ case class ContentSnapshotAlgoOutput(total_content_count: Long, live_content_cou
  * Functionality
  * 1. Generate author-partner specific content snapshot summary events. This would be used to compute weekly, monthly metrics.
  * Input - Vidyavaani Graph database and ce_usage_summary_fact cassandra table data.
+ * 
+ * Dependency - UpdateContentEditorMetricsDB
  */
 object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotAlgoOutput, MeasuredEvent] with Serializable {
 

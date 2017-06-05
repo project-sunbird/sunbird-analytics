@@ -39,16 +39,16 @@ case class PortalSessionOutput(sid: String, uid: String, anonymousUser: Boolean,
  * @dataproduct
  * @Summarizer
  *
- * PortalSessionSummaryModel
+ * AppSessionSummaryModel
  *
  * Functionality
  * 1. Generate app specific session summary events. This would be used to compute app usage metrics.
  * Events used - BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT & CP_IMPRESSION
  */
-object PortalSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalSessionInput, PortalSessionOutput, MeasuredEvent] with Serializable {
+object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalSessionInput, PortalSessionOutput, MeasuredEvent] with Serializable {
 
-    implicit val className = "org.ekstep.analytics.model.PortalSessionSummaryModel"
-    override def name: String = "PortalSessionSummaryModel"
+    implicit val className = "org.ekstep.analytics.model.AppSessionSummaryModel"
+    override def name: String = "AppSessionSummaryModel"
 
     override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
