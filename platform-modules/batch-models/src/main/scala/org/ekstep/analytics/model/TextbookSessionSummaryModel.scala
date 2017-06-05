@@ -14,9 +14,9 @@ import org.ekstep.analytics.framework.util.CommonUtil
 /**
  * @author yuva
  */
-case class UnitSummary(total_units_added: Long, total_units_deleted: Long, total_units_modified: Long)
-case class LessonSummary(total_lessons_added: Long, total_lessons_deleted: Long, total_lessons_modified: Long)
-case class TextbookSessionMetrics(uid: String, sid: String, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
+case class UnitSummary(added_count: Long, deleted_count: Long, modified_count: Long)
+case class LessonSummary(added_count: Long, deleted_count: Long, modified_count: Long)
+case class TextbookSessionMetrics(uid: String, sid: String, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
 case class TextbookSessions(sessionEvent: Buffer[CreationEvent]) extends AlgoInput
 /**
  * @dataproduct
@@ -81,7 +81,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
                 "time_spent" -> summary.time_spent,
                 "time_diff" -> summary.time_diff,
                 "unit_summary" -> summary.unit_summary,
-                "lesson_summary" -> summary.sub_unit_summary,
+                "lesson_summary" -> summary.lesson_summary,
                 "date_range" -> summary.date_range);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), summary.date_range.to, "1.0", mid, summary.uid, None, None,
