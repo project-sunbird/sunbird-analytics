@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 case class UnitSummary(total_units_added: Long, total_units_deleted: Long, total_units_modified: Long)
 case class LessonSummary(total_lessons_added: Long, total_lessons_deleted: Long, total_lessons_modified: Long)
 case class TextbookSessionMetrics(uid: String, sid: String, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
-case class Sessions(creationEvent: Buffer[CreationEvent]) extends AlgoInput
+case class TextbookSessions(sessionEvent: Buffer[CreationEvent]) extends AlgoInput
 /**
  * @dataproduct
  * @Summarizer
@@ -27,27 +27,27 @@ case class Sessions(creationEvent: Buffer[CreationEvent]) extends AlgoInput
  * Functionality
  * Compute session wise Textbook summary : Units and Lessons added/deleted/modified
  */
-object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Sessions, TextbookSessionMetrics, MeasuredEvent] with Serializable {
+object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, TextbookSessions, TextbookSessionMetrics, MeasuredEvent] with Serializable {
     implicit val className = "org.ekstep.analytics.model.TextbookSessionSummaryModel"
     override def name(): String = "TextbookSessionSummaryModel";
-    override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Sessions] = {
+    override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessions] = {
         /*
          * Input raw telemetry
          * */
-        val dataToBuffer = data.filter { x => (x.edata.eks.env != null) }.collect().toBuffer
-        val sortedEvent = dataToBuffer.sortBy { x => x.ets }
+        val filteredEvents = data.filter { x => (x.edata.eks.env != null) }.collect().toBuffer
+        val sortedEvent = filteredEvents.sortBy { x => x.ets }
         val sessions = getSessions(sortedEvent)
-        sc.parallelize(sessions).map { x => Sessions(x) }
+        sc.parallelize(sessions).map { x => TextbookSessions(x) }
     }
 
-    override def algorithm(data: RDD[Sessions], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessionMetrics] = {
+    override def algorithm(data: RDD[TextbookSessions], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessionMetrics] = {
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
         data.map { x =>
-            val start_time = x.creationEvent.head.ets
-            val end_time = x.creationEvent.last.ets
+            val start_time = x.sessionEvent.head.ets
+            val end_time = x.sessionEvent.last.ets
             val date_range = DtRange(start_time, end_time)
             var tmpLastEvent: CreationEvent = null;
-            val eventsWithTs = x.creationEvent.map { x =>
+            val eventsWithTs = x.sessionEvent.map { x =>
                 if (tmpLastEvent == null) tmpLastEvent = x;
                 val ts = CommonUtil.getTimeDiff(tmpLastEvent.ets, x.ets).get;
                 tmpLastEvent = x;
@@ -55,10 +55,10 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
             }
             val time_spent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
             val time_diff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(start_time, end_time).get, 2);
-            val uid = x.creationEvent.head.uid
-            val sid = x.creationEvent.head.context.get.sid
-            val content_id = x.creationEvent.head.context.get.content_id
-            val filtered_events = x.creationEvent.filter { x => (x.edata.eks.`type`.equals("action") && (x.edata.eks.target.equals("") || x.edata.eks.target.equals("textbookunit")) && x.edata.eks.subtype.equals("save") && x.edata.eks.values.size > 0) }
+            val uid = x.sessionEvent.head.uid
+            val sid = x.sessionEvent.head.context.get.sid
+            val content_id = x.sessionEvent.head.context.get.content_id
+            val filtered_events = x.sessionEvent.filter { x => (x.edata.eks.`type`.equals("action") && (x.edata.eks.target.equals("") || x.edata.eks.target.equals("textbookunit")) && x.edata.eks.subtype.equals("save") && x.edata.eks.values.size > 0) }
             val buffered_map_values = filtered_events.map { x =>
                 x.edata.eks.values.get
             }.flatMap { x => x }
@@ -69,12 +69,12 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Se
             val total_lessons_deleted = buffered_map_values.map { x => x.getOrElse("lesson_deleted", "0").toString().toLong }.sum
             val total_lessons_modified = buffered_map_values.map { x => x.getOrElse("lesson_modified", "0").toString().toLong }.sum
             TextbookSessionMetrics(uid, sid, content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
-        }
+        }.filter { x => (x.time_spent > 0.0) }
     }
 
     override def postProcess(data: RDD[TextbookSessionMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_SESSION_SUMMARY", summary.sid + summary.content_id + summary.uid, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.start_time);
+            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_SESSION_SUMMARY", summary.uid, config.getOrElse("granularity", "SESSION").asInstanceOf[String], summary.date_range, summary.content_id);
             val measures = Map(
                 "start_time" -> summary.start_time,
                 "end_time" -> summary.end_time,

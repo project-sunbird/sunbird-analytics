@@ -15,6 +15,7 @@ import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.Period._
 import com.datastax.spark.connector._
+import org.ekstep.analytics.connector.InfluxDB._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.BloomFilterUtil
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
@@ -157,13 +158,14 @@ object UpdatePortalUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEven
             total_pageviews_count, unique_users, unique_users_count, avg_pageviews, avg_session_ts, anonymous_avg_session_ts, new_user_count, percent_new_users_count, System.currentTimeMillis());
     }
 
-    private def saveToInfluxDB(data: RDD[PortalUsageSummaryFact]) {
+    private def saveToInfluxDB(data: RDD[PortalUsageSummaryFact])(implicit sc: SparkContext) {
         val metrics = data.filter { x => x.d_period != 0 }.map { x =>
             val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_app_id", "unique_users", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "app_id" -> x.d_app_id), fields, time._1);
         };
-        InfluxDBDispatcher.dispatch(APP_USAGE_METRICS, metrics);
+        val authors  = getDenormalizedData("User", data.map { x => x.d_author_id })
+        metrics.denormalize("author_id", "author_name", authors).saveToInflux(APP_USAGE_METRICS);
     }
 
 }

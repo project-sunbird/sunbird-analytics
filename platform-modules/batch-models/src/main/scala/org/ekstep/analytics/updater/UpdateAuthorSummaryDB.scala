@@ -13,16 +13,19 @@ import org.ekstep.analytics.framework.Output
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.AlgoInput
+import org.ekstep.analytics.connector.InfluxDB._
+import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 
 case class AuthorMetricsFact_T(d_period: Int, d_author_id: String, total_session: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, updated_date: Long, last_gen_date: Long)
 case class AuthorMetricsFact(d_period: Int, d_author_id: String, total_session: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, updated_date: Long) extends AlgoOutput with Output
 case class AuthorMetricsIndex(d_period: Int, d_author_id: String)
 
-object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AuthorMetricsFact, AuthorMetricsFact] with Serializable {
+object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AuthorMetricsFact, AuthorMetricsFact] with IInfluxDBUpdater with Serializable {
 
     override def name(): String = "UpdateAuthorSummaryDB";
     implicit val className = "org.ekstep.analytics.updater.UpdateAuthorSummaryDB";
-
+    val AUTHOR_USAGE_METRICS = "author_usage_metrics";
+    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         data;
     }
@@ -46,9 +49,20 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
     override def postProcess(data: RDD[AuthorMetricsFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuthorMetricsFact] = {
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT);
+        saveToInfluxDB(data);
         data;
     }
 
+    private def saveToInfluxDB(data: RDD[AuthorMetricsFact])(implicit sc: SparkContext) {
+        val metrics = data.filter { x => x.d_period != 0 }.map { x =>
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val time = getDateTime(x.d_period);
+            InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id), fields, time._1);
+        };
+        val authors  = getDenormalizedData("User", data.map { x => x.d_author_id })
+        metrics.denormalize("author_id", "author_name", authors).saveToInflux(AUTHOR_USAGE_METRICS);
+    }
+    
     private def rollup(data: RDD[AuthorMetricsFact_T], period: Period): RDD[AuthorMetricsFact] = {
 
         val currentData = data.map { x =>
