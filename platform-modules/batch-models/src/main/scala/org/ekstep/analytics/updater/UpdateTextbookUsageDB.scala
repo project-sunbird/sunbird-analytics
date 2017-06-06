@@ -22,6 +22,7 @@ import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.joda.time.DateTime
+import org.ekstep.analytics.connector.InfluxDB._
 /**
  * @author yuva
  */
@@ -125,10 +126,10 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
     }
 
-    private def saveToInfluxDB(data: RDD[TextbookSessionMetricsFact]) {
+    private def saveToInfluxDB(data: RDD[TextbookSessionMetricsFact])(implicit sc: SparkContext) {
         val metrics = data.filter { x => x.d_period != 0 }.map { x =>
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("d_period" -> time._2, "updated_date" -> x.updated_date.toString()),
+            InfluxRecord(Map("d_period" -> time._2),
                 Map(
                     "total_ts" -> x.total_ts.asInstanceOf[AnyRef],
                     "unique_users_count" -> x.unique_users_count.asInstanceOf[AnyRef],
@@ -142,7 +143,7 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
                     "lesson_summary.deleted_count" -> x.lesson_summary.getOrElse("deleted_count", 0l).asInstanceOf[Number],
                     "lesson_summary.modified_count" -> x.lesson_summary.getOrElse("modified_count", 0l).asInstanceOf[Number]), time._1);
         };
-        InfluxDBDispatcher.dispatch(TEXTBOOK_SESSION_METRICS, metrics);
+        metrics.saveToInflux(TEXTBOOK_SESSION_METRICS);
     }
 
 }

@@ -24,6 +24,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
+import org.ekstep.analytics.connector.InfluxDB._
 
 /**
  * Case Classes for the data product
@@ -87,14 +88,16 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
         data;
     }
 
-    private def saveToInfluxDB(data: RDD[ContentSnapshotSummary]) {
+    private def saveToInfluxDB(data: RDD[ContentSnapshotSummary])(implicit sc: SparkContext) {
         val metrics = data.map { x =>
             val creationTsMap = Map("creation_ts" -> x.creation_ts.get.asInstanceOf[AnyRef], "avg_creation_ts" -> x.avg_creation_ts.get.asInstanceOf[AnyRef])
             val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_partner_id", "updated_date", "creation_ts", "avg_creation_ts")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef])) ++ creationTsMap;
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "partner_id" -> x.d_partner_id), fields, time._1);
         };
-        InfluxDBDispatcher.dispatch(CONTENT_SNAPSHOT_METRICS, metrics);
+        val partners = getDenormalizedData("Partner", data.map { x => x.d_partner_id })
+        val authors = getDenormalizedData("User", data.map { x => x.d_author_id })
+        metrics.denormalize("partner_id", "partner_name", partners).denormalize("author_id", "author_name", authors).saveToInflux(CONTENT_SNAPSHOT_METRICS);
     }
 
     private def getDateTime(periodVal: Int): (DateTime, String) = {
