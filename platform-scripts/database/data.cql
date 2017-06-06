@@ -511,6 +511,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
     total_ts double,
     total_ce_ts double,
     total_ce_visit bigint,
+    ce_visits_count bigint,
     percent_ce_sessions double,
     avg_ts_session double,
     percent_ce_ts double,
