@@ -34,10 +34,10 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
         /*
          * Input raw telemetry
          * */
-        val filteredEvents = data.filter { x => (x.edata.eks.env != null) }.collect().toBuffer
+        val filteredEvents = data.filter { x => (x.edata.eks.env != null) }
         val sortedEvent = filteredEvents.sortBy { x => x.ets }
         val sessions = getSessions(sortedEvent)
-        sc.parallelize(sessions).map { x => TextbookSessions(x) }
+        sessions.map { x => TextbookSessions(x) }
     }
 
     override def algorithm(data: RDD[TextbookSessions], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessionMetrics] = {
@@ -93,11 +93,11 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
     /*
      * Sessionization based on Env
      * */
-    private def getSessions(creationEvent: Buffer[CreationEvent]): Buffer[Buffer[CreationEvent]] = {
+    private def getSessions(creationEvent: RDD[CreationEvent])(implicit sc: SparkContext): RDD[Buffer[CreationEvent]] = {
         var sessions = Buffer[Buffer[CreationEvent]]();
         var tmpArr = Buffer[CreationEvent]();
         var prevEnv = ""
-        creationEvent.foreach { x =>
+        creationEvent.collect.foreach { x =>
             if ((prevEnv.equals("textbook") && prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
                 tmpArr += x
             } else {
@@ -108,8 +108,8 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
             }
             prevEnv = x.edata.eks.env
         }
-        if (sessions.length <= 0 && prevEnv.equals("textbook"))
+        if (sessions.isEmpty && prevEnv.equals("textbook"))
             sessions += tmpArr
-        sessions
+        sc.parallelize(sessions)
     }
 }

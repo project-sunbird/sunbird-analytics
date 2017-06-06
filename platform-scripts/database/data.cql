@@ -267,22 +267,6 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	PRIMARY KEY (d_period, d_partner_id)
 );
 
-CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
-	d_period int,
-	d_textbook_id text,
-	status text,
-	author_id text,
-	content_count bigint,
-	textbookunit_count bigint,
-	avg_content double,
-	content_types list<text>,
-	total_ts double,
-	creators_count bigint,
-	board text,
-	medium text,
-	PRIMARY KEY (d_period, d_textbook_id)
-);
-
 CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
 	d_period int,
 	type text,
