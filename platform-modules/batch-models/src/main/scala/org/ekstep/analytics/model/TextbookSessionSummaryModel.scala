@@ -101,15 +101,14 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
             if ((prevEnv.equals("textbook") && prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
                 tmpArr += x
             } else {
-                if (tmpArr.length > 0 && prevEnv.equals("textbook")) {
+                if (tmpArr.length > 0 && prevEnv.equals("textbook"))
                     sessions += tmpArr
-                    tmpArr = Buffer[CreationEvent]();
-                    tmpArr += x
-                }
+                tmpArr = Buffer[CreationEvent]();
+                tmpArr += x
             }
             prevEnv = x.edata.eks.env
         }
-        if (sessions.isEmpty && tmpArr.last.edata.eks.env.equals("textbook"))
+        if (sessions.isEmpty && prevEnv.equals("textbook"))
             sessions += tmpArr
         sc.parallelize(sessions)
     }
