@@ -35,8 +35,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
          * Input raw telemetry
          * */
         val filteredEvents = data.filter { x => (x.edata.eks.env != null) }
-        val sortedEvent = filteredEvents.sortBy { x => x.ets }
-        val sessions = getSessions(sortedEvent)
+        val sessions = getSessions(filteredEvents)
         sessions.map { x => TextbookSessions(x) }
     }
 
@@ -81,8 +80,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
                 "time_spent" -> summary.time_spent,
                 "time_diff" -> summary.time_diff,
                 "unit_summary" -> summary.unit_summary,
-                "lesson_summary" -> summary.lesson_summary,
-                "date_range" -> summary.date_range);
+                "lesson_summary" -> summary.lesson_summary);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), summary.date_range.to, "1.0", mid, summary.uid, None, None,
                 Context(pdata, None, "SESSION", summary.date_range),
@@ -97,7 +95,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
         var sessions = Buffer[Buffer[CreationEvent]]();
         var tmpArr = Buffer[CreationEvent]();
         var prevEnv = ""
-        creationEvent.collect.foreach { x =>
+        creationEvent.collect.sortBy { x => x.ets }.foreach { x =>
             if ((prevEnv.equals("textbook") && prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
                 tmpArr += x
             } else {
