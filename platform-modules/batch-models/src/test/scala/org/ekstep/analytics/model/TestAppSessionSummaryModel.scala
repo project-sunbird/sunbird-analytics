@@ -42,8 +42,8 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         summary1.first_visit should be(false);
         summary1.time_spent should be(917.0);
         
-        summary1.page_summary.get.size should be(10);
-        summary1.env_summary.get.size should be(2);
+        summary1.page_summary.get.size should be(11);
+        summary1.env_summary.get.size should be(3);
         summary1.events_summary.get.size should be(5);
         
         val pageSummary1 = summary1.page_summary.get.head

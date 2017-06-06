@@ -83,22 +83,27 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 tmpLastEvent = x;
                 (x, if (ts > idleTime) 0 else ts)
             }
-            var ts: Double = 0d;
+            var lastEventTs: Long = eventsWithTs.last._1.ets;
             var tempEvents = Buffer[(CreationEvent, Double)]();
             var eventsBuffer: Buffer[(CreationEvent, Double)] = Buffer();
             eventsWithTs.foreach { f =>
                 f._1.eid match {
                     case "CP_IMPRESSION" | "CE_START" =>
-                      if(tempEvents.isEmpty){
-                          tempEvents += f
-                      }else {
-                          val ts = tempEvents.map{x=> x._2}.sum
-                          val tuple = (tempEvents.head._1, ts)
-                          eventsBuffer += tuple
-                          tempEvents = Buffer[(CreationEvent, Double)]();
-                          tempEvents += f
-                      }
+                        if (tempEvents.isEmpty) {
+                            tempEvents += f
+                        } else {
+                            val ts = tempEvents.map { x => x._2 }.sum
+                            val tuple = (tempEvents.head._1, ts)
+                            eventsBuffer += tuple
+                            tempEvents = Buffer[(CreationEvent, Double)]();
+                            tempEvents += f
+                        }
                     case _ =>
+                        if (lastEventTs == f._1.ets) {
+                            val ts = tempEvents.map { x => x._2 }.sum
+                            val tuple = (tempEvents.head._1, ts)
+                            eventsBuffer += tuple
+                        }
                         tempEvents += f
                 }
             }
