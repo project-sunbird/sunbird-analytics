@@ -283,7 +283,7 @@ CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 
-CREATE TABLE IF NOT EXISTS creation_metrics_db.content_publish_fact(
+CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
 	d_period int,
 	type text,
 	state text,
