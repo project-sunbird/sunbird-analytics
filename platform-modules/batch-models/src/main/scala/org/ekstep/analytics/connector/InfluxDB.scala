@@ -1,3 +1,7 @@
+/**
+ * @author Mahesh Kumar Gangula
+ */
+
 package org.ekstep.analytics.connector
 
 import org.apache.spark.rdd.RDD
@@ -13,8 +17,16 @@ import org.ekstep.analytics.updater.AppObjectCache
 import org.ekstep.analytics.framework.Output
 import org.ekstep.analytics.framework.AlgoOutput
 
+/**
+ * Case Classes to fetch cache data from cassandra.
+ */
+
 case class UserProfileIndex(user_id: String) extends Output with AlgoOutput;
 case class AppObjectCacheIndex(`type`: String, id: String) extends Output with AlgoOutput;
+
+/**
+ * Extending Spark API to save to Influx DB and adding denormalized data.
+ */
 
 class InfluxDB(rdd: RDD[InfluxRecord]) {
 
