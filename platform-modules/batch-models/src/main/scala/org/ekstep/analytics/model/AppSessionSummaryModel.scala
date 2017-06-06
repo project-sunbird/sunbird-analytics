@@ -106,13 +106,15 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 var prevPage: CreationEvent = impressionCEEvents(0);
                 val pageDetails = impressionCEEvents.tail.map { x =>
                     val timeSpent = CommonUtil.getTimeDiff(prevPage.ets, x.ets).get;
-                    val pageWithTs = (prevPage.edata.eks.id, prevPage, timeSpent)
+                    val finalts = if (timeSpent > idleTime) 0d else timeSpent
+                    val pageWithTs = (prevPage.edata.eks.id, prevPage, finalts)
                     prevPage = x
                     pageWithTs;
                 }
                 val lastPage = impressionCEEvents.last
                 val lastTimeSpent = CommonUtil.getTimeDiff(lastPage.ets, lastEvent.ets).get;
-                val lastPageWithTs = (lastPage.edata.eks.id, lastPage, lastTimeSpent)
+                val lastPageTimeSpent = if (lastTimeSpent > idleTime) 0d else lastTimeSpent
+                val lastPageWithTs = (lastPage.edata.eks.id, lastPage, lastPageTimeSpent)
                 val finalPageDetails = pageDetails ++ Buffer(lastPageWithTs)
 
                 finalPageDetails.groupBy(f => f._1).map { f =>

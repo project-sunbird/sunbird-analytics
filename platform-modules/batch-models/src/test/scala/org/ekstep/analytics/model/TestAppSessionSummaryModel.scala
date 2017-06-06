@@ -101,12 +101,12 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         pageSummary1.env should be("")
         pageSummary1.id should be("")
         pageSummary1.`type` should be("")
-        pageSummary1.time_spent should be(921.0)
+        pageSummary1.time_spent should be(221.0)
         pageSummary1.visit_count should be(15)
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("")
-        envSummary1.time_spent should be(921.0)
+        envSummary1.time_spent should be(221.0)
         envSummary1.count should be(1)
         
         val eventSummary1 = summary1.events_summary.get.head
