@@ -68,7 +68,7 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.last_gen_date, period);
             (AuthorMetricsIndex(d_period, x.d_author_id), x)
-        }
+        }.reduceByKey(reduceAUS)
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[AuthorMetricsFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT).on(SomeColumns("d_period", "d_author_id"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
@@ -80,6 +80,17 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         rollupSummaries;
     }
 
+    private def reduceAUS(fact1: AuthorMetricsFact_T, fact2: AuthorMetricsFact_T): AuthorMetricsFact_T = {
+        val totalSessions = fact1.total_sessions + fact2.total_sessions
+        val totalTS = CommonUtil.roundDouble(fact1.total_ts + fact2.total_ts, 2)
+        val totalCETS = CommonUtil.roundDouble(fact1.total_ce_ts + fact2.total_ce_ts, 2)
+        val totalCEVisits = fact1.total_ce_visit + fact2.total_ce_visit
+        val ceVisitCount = fact1.ce_visits_count + fact2.ce_visits_count
+        val percentCEsessions = CommonUtil.roundDouble((if (0 != totalSessions) (ceVisitCount * 1.0 / totalSessions) else 0.0) * 100, 2)
+        val avgSessionTS = CommonUtil.roundDouble(if (0 != totalSessions) (totalTS / totalSessions) else 0.0, 2)
+        val percentCEts = CommonUtil.roundDouble((if (0 != totalTS) (totalCETS / totalTS) else 0.0) * 100, 2)
+        AuthorMetricsFact_T(fact1.d_period, fact1.d_author_id, totalSessions, totalTS, totalCETS, totalCEVisits, ceVisitCount, percentCEsessions, avgSessionTS, percentCEts, System.currentTimeMillis(), fact1.last_gen_date)
+    }
     private def reduce(fact1: AuthorMetricsFact, fact2: AuthorMetricsFact_T, period: Period): AuthorMetricsFact = {
         val totalSessions = fact1.total_sessions + fact2.total_sessions
         val totalTS = CommonUtil.roundDouble(fact1.total_ts + fact2.total_ts, 2)
