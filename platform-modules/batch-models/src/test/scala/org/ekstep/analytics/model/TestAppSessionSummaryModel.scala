@@ -42,20 +42,20 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         summary1.first_visit should be(false);
         summary1.time_spent should be(917.0);
         
-        summary1.page_summary.get.size should be(11);
-        summary1.env_summary.get.size should be(3);
+        summary1.page_summary.get.size should be(10);
+        summary1.env_summary.get.size should be(2);
         summary1.events_summary.get.size should be(5);
         
         val pageSummary1 = summary1.page_summary.get.head
         pageSummary1.env should be("community")
         pageSummary1.id should be("com3")
         pageSummary1.`type` should be("")
-        pageSummary1.time_spent should be(6.0)
+        pageSummary1.time_spent should be(3.0)
         pageSummary1.visit_count should be(1)
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("content")
-        envSummary1.time_spent should be(315.0)
+        envSummary1.time_spent should be(276.0)
         envSummary1.count should be(3)
         
         val eventSummary1 = summary1.events_summary.get.head
@@ -101,12 +101,12 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         pageSummary1.env should be("")
         pageSummary1.id should be("")
         pageSummary1.`type` should be("")
-        pageSummary1.time_spent should be(221.0)
-        pageSummary1.visit_count should be(15)
+        pageSummary1.time_spent should be(227.0)
+        pageSummary1.visit_count should be(14)
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("")
-        envSummary1.time_spent should be(221.0)
+        envSummary1.time_spent should be(227.0)
         envSummary1.count should be(1)
         
         val eventSummary1 = summary1.events_summary.get.head
