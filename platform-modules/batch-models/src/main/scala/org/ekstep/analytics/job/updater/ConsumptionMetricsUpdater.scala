@@ -23,6 +23,8 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.connector.InfluxDB._
+
 /**
  * @author mahesh
  */
@@ -86,8 +88,9 @@ object ConsumptionMetricsUpdater extends Application with IJob {
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "tag" -> x.d_tag), fields, time._1);
         };
-        InfluxDBDispatcher.dispatch(GENIE_METRICS, metrics);
-        metrics.count()
+        val tags = getDenormalizedData("Tag", genieRdd.map { x => x.d_tag})
+        metrics.denormalize("tag", "tag_name", tags).saveToInflux(GENIE_METRICS);
+        metrics.count
     }
 
     private def getContentMetrics(periodType: String, contentRdd: RDD[ContentUsageSummaryFact])(implicit sc: SparkContext): Long = {
@@ -97,7 +100,9 @@ object ConsumptionMetricsUpdater extends Application with IJob {
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "tag" -> x.d_tag, "content" -> x.d_content_id), fields, time._1);
         };
-        InfluxDBDispatcher.dispatch(CONTENT_METRICS, metrics);
+        val tags = getDenormalizedData("Tag", contentRdd.map { x => x.d_tag})
+        val contents = getDenormalizedData("Content", contentRdd.map { x => x.d_content_id})
+        metrics.denormalize("tag", "tag_name", tags).denormalize("content", "content_name", contents).saveToInflux(CONTENT_METRICS);
         metrics.count()
     }
 
@@ -130,7 +135,7 @@ object ConsumptionMetricsUpdater extends Application with IJob {
             val time = getDateTime(x.period);
             InfluxRecord(Map("period" -> time._2), fields, time._1);
         };
-        InfluxDBDispatcher.dispatch(GENIE_STATS, metrics);
+        metrics.saveToInflux(GENIE_STATS);
         metrics.count()
     }
 

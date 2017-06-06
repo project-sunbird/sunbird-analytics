@@ -58,7 +58,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics where time=1483833600000000000")
-            queryResult.result.singleSeries.columns.size should be(7)
+            queryResult.result.singleSeries.columns.size should be(9)
         }
     }
 
