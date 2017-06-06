@@ -31,10 +31,10 @@ import org.apache.commons.validator.UrlValidator
 /**
  * Case class to hold the screener summary fields
  */
-case class PerPluginSummary(plugin_id: String, added: Int, removed: Int, modified: Int)
-case class PluginSummary(loaded_count: Int, plugins_added: Int, plugins_removed: Int, plugins_modified: Int, per_plugin_summary: Iterable[PerPluginSummary])
+case class PerPluginSummary(plugin_id: String, added_count: Int, deleted_count: Int, modified_count: Int)
+case class PluginSummary(loaded_count: Int, added_count: Int, deleted_count: Int, modified_count: Int, per_plugin_summary: Iterable[PerPluginSummary])
 case class SaveSummary(total_count: Int, success_count: Int, failed_count: Int)
-case class CEStageSummary(stages_added: Int, stages_removed: Int, stages_modified: Int)
+case class CEStageSummary(added_count: Int, deleted_count: Int, modified_count: Int)
 
 /**
  * Case class to hold the session summary input and output
@@ -79,9 +79,9 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val modified = events._2.filter { x => "modify".equals(x.edata.eks.`type`) }.length
             PerPluginSummary(pluginId, added, removed, modified)
         }
-        val pluginAdded = perPluginSummary.map { x => x.added }.sum
-        val pluginRemoved = perPluginSummary.map { x => x.removed }.sum
-        val pluginModified = perPluginSummary.map { x => x.modified }.sum
+        val pluginAdded = perPluginSummary.map { x => x.added_count }.sum
+        val pluginRemoved = perPluginSummary.map { x => x.deleted_count }.sum
+        val pluginModified = perPluginSummary.map { x => x.modified_count }.sum
 
         PluginSummary(loadedCount, pluginAdded, pluginRemoved, pluginModified, perPluginSummary)
     }

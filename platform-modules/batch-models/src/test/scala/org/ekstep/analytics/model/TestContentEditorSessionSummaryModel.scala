@@ -35,14 +35,14 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         summary1.events_summary.size should be(5);
 
         summary1.plugin_summary.loaded_count should be(2)
-        summary1.plugin_summary.plugins_added should be(0)
-        summary1.plugin_summary.plugins_removed should be(0)
-        summary1.plugin_summary.plugins_modified should be(0)
+        summary1.plugin_summary.added_count should be(0)
+        summary1.plugin_summary.deleted_count should be(0)
+        summary1.plugin_summary.modified_count should be(0)
         summary1.plugin_summary.per_plugin_summary.size should be(2)
 
-        summary1.stage_summary.stages_added should be(0)
-        summary1.stage_summary.stages_modified should be(0)
-        summary1.stage_summary.stages_modified should be(0)
+        summary1.stage_summary.added_count should be(0)
+        summary1.stage_summary.modified_count should be(0)
+        summary1.stage_summary.deleted_count should be(0)
 
         summary1.save_summary.total_count should be(0)
         summary1.save_summary.failed_count should be(0)
@@ -77,14 +77,14 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         summary1.events_summary.size should be(4);
 
         summary1.plugin_summary.loaded_count should be(0)
-        summary1.plugin_summary.plugins_added should be(0)
-        summary1.plugin_summary.plugins_removed should be(0)
-        summary1.plugin_summary.plugins_modified should be(0)
+        summary1.plugin_summary.added_count should be(0)
+        summary1.plugin_summary.deleted_count should be(0)
+        summary1.plugin_summary.modified_count should be(0)
         summary1.plugin_summary.per_plugin_summary.size should be(0)
 
-        summary1.stage_summary.stages_added should be(0)
-        summary1.stage_summary.stages_modified should be(0)
-        summary1.stage_summary.stages_modified should be(0)
+        summary1.stage_summary.added_count should be(0)
+        summary1.stage_summary.modified_count should be(0)
+        summary1.stage_summary.modified_count should be(0)
 
         summary1.save_summary.total_count should be(0)
         summary1.save_summary.failed_count should be(0)
@@ -104,14 +104,14 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         summary2.events_summary.size should be(5);
 
         summary2.plugin_summary.loaded_count should be(2)
-        summary2.plugin_summary.plugins_added should be(0)
-        summary2.plugin_summary.plugins_removed should be(0)
-        summary2.plugin_summary.plugins_modified should be(0)
+        summary2.plugin_summary.added_count should be(0)
+        summary2.plugin_summary.deleted_count should be(0)
+        summary2.plugin_summary.modified_count should be(0)
         summary2.plugin_summary.per_plugin_summary.size should be(2)
 
-        summary2.stage_summary.stages_added should be(0)
-        summary2.stage_summary.stages_modified should be(0)
-        summary2.stage_summary.stages_modified should be(0)
+        summary2.stage_summary.added_count should be(0)
+        summary2.stage_summary.modified_count should be(0)
+        summary2.stage_summary.deleted_count should be(0)
 
         summary2.save_summary.total_count should be(0)
         summary2.save_summary.failed_count should be(0)
@@ -132,14 +132,14 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         summary3.events_summary.size should be(3);
 
         summary3.plugin_summary.loaded_count should be(0)
-        summary3.plugin_summary.plugins_added should be(0)
-        summary3.plugin_summary.plugins_removed should be(0)
-        summary3.plugin_summary.plugins_modified should be(0)
+        summary3.plugin_summary.added_count should be(0)
+        summary3.plugin_summary.deleted_count should be(0)
+        summary3.plugin_summary.modified_count should be(0)
         summary3.plugin_summary.per_plugin_summary.size should be(0)
 
-        summary3.stage_summary.stages_added should be(0)
-        summary3.stage_summary.stages_modified should be(0)
-        summary3.stage_summary.stages_modified should be(0)
+        summary3.stage_summary.added_count should be(0)
+        summary3.stage_summary.modified_count should be(0)
+        summary3.stage_summary.deleted_count should be(0)
 
         summary3.save_summary.total_count should be(0)
         summary3.save_summary.failed_count should be(0)
