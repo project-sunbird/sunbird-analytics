@@ -38,7 +38,8 @@ object GraphDBUtil {
 			fullQuery.append(CREATE)
 			val nodesQuery = nodes.map { x =>
 				val nodeQuery = StringBuilder.newBuilder;
-				nodeQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(x.identifier).append(COLON)
+				val id = CommonUtil.getMessageId(x.identifier, "", System.currentTimeMillis())
+				nodeQuery.append(OPEN_COMMON_BRACKETS_WITH_NODE_OBJECT_VARIABLE_WITHOUT_COLON).append(id).append(COLON)
 					.append(x.labels.get.mkString(":"))
 				val props = removeKeyQuotes(JSONUtils.serialize(Map(UNIQUE_KEY -> x.identifier) ++ x.metadata.getOrElse(Map())));
 				nodeQuery.append(props).append(CLOSE_COMMON_BRACKETS);
