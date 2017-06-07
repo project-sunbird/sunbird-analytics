@@ -83,6 +83,30 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 tmpLastEvent = x;
                 (x, if (ts > idleTime) 0 else ts)
             }
+            var lastEventTs: Long = eventsWithTs.last._1.ets;
+            var tempEvents = Buffer[(CreationEvent, Double)]();
+            var eventsBuffer: Buffer[(CreationEvent, Double)] = Buffer();
+            eventsWithTs.foreach { f =>
+                f._1.eid match {
+                    case "CP_IMPRESSION" | "CE_START" =>
+                        if (tempEvents.isEmpty) {
+                            tempEvents += f
+                        } else {
+                            val ts = tempEvents.map { x => x._2 }.sum
+                            val tuple = (tempEvents.head._1, ts)
+                            eventsBuffer += tuple
+                            tempEvents = Buffer[(CreationEvent, Double)]();
+                            tempEvents += f
+                        }
+                    case _ =>
+                        if (lastEventTs == f._1.ets && !tempEvents.isEmpty) {
+                            val ts = tempEvents.map { x => x._2 }.sum
+                            val tuple = (tempEvents.head._1, ts)
+                            eventsBuffer += tuple
+                        }
+                        tempEvents += f
+                }
+            }
             val timeSpent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
             val impressionEvents = events.filter { x => "CP_IMPRESSION".equals(x.eid) }
             val pageViewsCount = impressionEvents.size.toLong
@@ -94,35 +118,21 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
 
             val eventSummaries = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
-            val impressionCEEvents = events.filter { x => ("CP_IMPRESSION".equals(x.eid) || "CE_START".equals(x.eid)) }.map { f =>
-                if ("CE_START".equals(f.eid)) {
+            val impressionCEEvents = eventsBuffer.filter { x => ("CP_IMPRESSION".equals(x._1.eid) || "CE_START".equals(x._1.eid)) }.map { f =>
+                if ("CE_START".equals(f._1.eid)) {
                     val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "id" -> "ce"))
                     val eks = JSONUtils.deserialize[CreationEks](eksString)
-                    CreationEvent("CP_IMPRESSION", f.ets, f.ver, f.mid, f.pdata, f.cdata, f.uid, f.context, f.rid, new CreationEData(eks), f.tags)
+                    (CreationEvent("CP_IMPRESSION", f._1.ets, f._1.ver, f._1.mid, f._1.pdata, f._1.cdata, f._1.uid, f._1.context, f._1.rid, new CreationEData(eks), f._1.tags), f._2)
                 } else f;
-            }
+            }.map(x => (x._1.edata.eks.id, x))
 
             val pageSummaries = if (impressionCEEvents.length > 0) {
-                var prevPage: CreationEvent = impressionCEEvents(0);
-                val pageDetails = impressionCEEvents.tail.map { x =>
-                    val timeSpent = CommonUtil.getTimeDiff(prevPage.ets, x.ets).get;
-                    val finalts = if (timeSpent > idleTime) 0d else timeSpent
-                    val pageWithTs = (prevPage.edata.eks.id, prevPage, finalts)
-                    prevPage = x
-                    pageWithTs;
-                }
-                val lastPage = impressionCEEvents.last
-                val lastTimeSpent = CommonUtil.getTimeDiff(lastPage.ets, lastEvent.ets).get;
-                val lastPageTimeSpent = if (lastTimeSpent > idleTime) 0d else lastTimeSpent
-                val lastPageWithTs = (lastPage.edata.eks.id, lastPage, lastPageTimeSpent)
-                val finalPageDetails = pageDetails ++ Buffer(lastPageWithTs)
-
-                finalPageDetails.groupBy(f => f._1).map { f =>
+                impressionCEEvents.groupBy(f => f._1).map { f =>
                     val id = f._1
-                    val firstEvent = f._2(0)._2
+                    val firstEvent = f._2(0)._2._1
                     val `type` = firstEvent.edata.eks.`type`
                     val env = firstEvent.edata.eks.env
-                    val timeSpent = CommonUtil.roundDouble(f._2.map(f => f._3).sum, 2)
+                    val timeSpent = CommonUtil.roundDouble(f._2.map(x => x._2._2).sum, 2)
                     val visitCount = f._2.length.toLong
                     PageSummary(id, `type`, env, timeSpent, visitCount)
                 }
