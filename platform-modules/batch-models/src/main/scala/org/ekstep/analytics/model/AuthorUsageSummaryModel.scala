@@ -79,7 +79,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
      */
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuthorUsageInput] = {
 
-        val filteredEvents = data.filter { x => (!x.uid.equals("")) }
+        val filteredEvents = data.filter { x => (false == x.dimensions.anonymous_user.get) }
         val normalizeEvents = filteredEvents.map { event =>
 
             var list: ListBuffer[AuthorUsageSummary] = ListBuffer[AuthorUsageSummary]();
