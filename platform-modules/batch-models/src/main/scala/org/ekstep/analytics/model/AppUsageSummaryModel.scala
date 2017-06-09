@@ -30,7 +30,7 @@ case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtR
                              total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                              total_pageviews_count: Long, unique_users: List[String], unique_users_count: Long, avg_pageviews: Double,
                              avg_ts_session: Double, anon_avg_ts_session: Double, new_user_count: Long,
-                             percent_new_users_count: Double) extends AlgoOutput
+                             percent_new_users_count: Double, syncts: Long) extends AlgoOutput
 
 /**
  * @dataproduct
@@ -99,7 +99,7 @@ object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsag
                 }.filter(f => f._1 == (true)).length.toLong
                 val percentNewUsersCount = if (newUserCount == 0 || uniqueUsersCount == 0) 0d else BigDecimal((newUserCount / (uniqueUsersCount * 1d)) * 100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
-                PortalUsageOutput(event.period, f._1, appId, date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount)
+                PortalUsageOutput(event.period, f._1, appId, date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount, lastEvent.syncts)
             }
         }.flatMap { x => x }
     }
@@ -122,7 +122,7 @@ object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsag
                 "anon_avg_ts_session" -> usageSumm.anon_avg_ts_session,
                 "new_user_count" -> usageSumm.new_user_count,
                 "percent_new_users_count" -> usageSumm.percent_new_users_count);
-            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AppUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, Option(usageSumm.author_id), None, None, Option(usageSumm.app_id)),
                 MEEdata(measures), None);
