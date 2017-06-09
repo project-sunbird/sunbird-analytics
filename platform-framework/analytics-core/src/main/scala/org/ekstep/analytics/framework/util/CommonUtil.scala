@@ -171,16 +171,20 @@ object CommonUtil {
         else
             getTimestamp(event.ts);
     }
-
+    
     def getEventSyncTS(event: Event): Long = {
         val timeInString = event.`@timestamp`;
-        var ts = getTimestamp(timeInString, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        getEventSyncTS(timeInString);
+    }
+
+    def getEventSyncTS(timeInStr: String) : Long = {
+    	var ts = getTimestamp(timeInStr, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         if (ts == 0) {
-            ts = getTimestamp(timeInString, df3, "yyyy-MM-dd'T'HH:mm:ssZZ");
+            ts = getTimestamp(timeInStr, df3, "yyyy-MM-dd'T'HH:mm:ssZZ");
         }
         if (ts == 0) {
             try {
-                ts = getTimestamp(timeInString.substring(0, 19), df6, "yyyy-MM-dd'T'HH:mm:ss");
+                ts = getTimestamp(timeInStr.substring(0, 19), df6, "yyyy-MM-dd'T'HH:mm:ss");
             } catch {
                 case ex: Exception =>
                     ts = 0L;
@@ -188,7 +192,7 @@ object CommonUtil {
         }
         ts;
     }
-
+    
     def getEventDate(event: Event): Date = {
         try {
             df3.parseLocalDate(event.ts).toDate;
