@@ -18,7 +18,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
-        me.length should be(1);
+        me.length should be(3);
         val event1 = me(0);
 
         event1.eid should be("ME_APP_SESSION_SUMMARY");
