@@ -279,6 +279,10 @@ class TestDataFilter extends SparkSpec {
         DataFilter.matches(inputEvent.first(), filters) should be(false)
         DataFilter.matches(inputEvent.first(), Filter("eventts", "RANGE", Option(Map("start" -> 0L, "end" -> date.getMillis)))) should be(true)
         DataFilter.matches(inputEvent.first(), Array[Filter]()) should be(true)
+        val emptyFilter: Filter = null
+        DataFilter.matches(inputEvent.first(), emptyFilter) should be(true)
+        val emptyFilters: Array[Filter] = null
+        DataFilter.matches(inputEvent.first(), emptyFilters) should be(true)
     }
     
 }
