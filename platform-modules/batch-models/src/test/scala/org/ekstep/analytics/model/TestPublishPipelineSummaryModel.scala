@@ -11,7 +11,6 @@ class TestPublishPipelineSummaryModel extends SparkSpec(null) {
     val rdd = loadFile[CreationEvent]("src/test/resources/pipeline-summary/test_data1.log");
     val result = PublishPipelineSummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "PublishPipelineSummarizer")));
     val me = result.collect();
-    println(JSONUtils.serialize(me.head))
     me.length should be(3)
 
     me.foreach { e =>

@@ -16,10 +16,11 @@ import java.util.Formatter.DateTime
 import java.util.Date
 import java.text.SimpleDateFormat
 import org.ekstep.analytics.creation.model.CreationEvent
+import org.ekstep.analytics.util.CreationEventUtil
 
 case class EventsByPeriod(period: Long, events: Buffer[CreationEvent]) extends AlgoInput
 case class PublishPipelineSummary(`type`: String, state: String, subtype: String, count: Int)
-case class PipelineSummaryOutput(summary: Iterable[PublishPipelineSummary], date_range: DtRange, period: Long) extends AlgoOutput
+case class PipelineSummaryOutput(summary: Iterable[PublishPipelineSummary], date_range: DtRange, period: Long, syncts: Long) extends AlgoOutput
 
 object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, EventsByPeriod, PipelineSummaryOutput, MeasuredEvent] with Serializable {
 
@@ -29,8 +30,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
   override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsByPeriod] = {
     JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE")
     val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE")))));
-    objectLifecycleEvents.map { x =>
-      val d = new Date(x.ets)
+    objectLifecycleEvents.sortBy { x => x.ets }.map { x =>
       val period = CommonUtil.getPeriod(x.ets, Period.DAY)
       (period, Buffer(x))
     }.partitionBy(new HashPartitioner(JobContext.parallelization))
@@ -52,7 +52,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
       }
 
       val dateRange = DtRange(d.events.head.ets, d.events.last.ets)
-      PipelineSummaryOutput(summaryOutput, dateRange, d.period)
+      PipelineSummaryOutput(summaryOutput, dateRange, d.period, CreationEventUtil.getEventSyncTS(d.events.last))
     }
 
     data.unpersist(true)
@@ -65,7 +65,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
       val measures = Map(
         "publish_pipeline_summary" -> x.summary)
       val mid = CommonUtil.getMessageId("ME_PUBLISH_PIPELINE_SUMMARY", x.period.toString(), "DAY", x.date_range, "");
-      MeasuredEvent("ME_PUBLISH_PIPELINE_SUMMARY", System.currentTimeMillis(), x.date_range.to, "1.0", mid, "", None, None,
+      MeasuredEvent("ME_PUBLISH_PIPELINE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", None, None,
         Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "PublishPipelineSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", x.date_range),
         Dimensions(None, None, None, None, None, None, None, None, None, None, Option(x.period.toInt)),
         MEEdata(measures), None);
