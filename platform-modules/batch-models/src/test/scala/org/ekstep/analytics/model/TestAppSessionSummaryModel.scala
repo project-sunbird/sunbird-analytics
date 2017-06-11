@@ -56,7 +56,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("content")
         envSummary1.time_spent should be(276.0)
-        envSummary1.count should be(3)
+        envSummary1.count should be(4)
         
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("CE_START")
@@ -107,7 +107,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("")
         envSummary1.time_spent should be(227.0)
-        envSummary1.count should be(1)
+        envSummary1.count should be(14)
         
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("CP_SESSION_START")

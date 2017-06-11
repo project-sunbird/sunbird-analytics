@@ -121,11 +121,11 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
 
             val impressionCEEvents = eventsBuffer.filter { x => ("CP_IMPRESSION".equals(x._1.eid) || "CE_START".equals(x._1.eid)) }.map { f =>
                 if ("CE_START".equals(f._1.eid)) {
-                    val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "id" -> "ce"))
+                    val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "pageid" -> "ce"))
                     val eks = JSONUtils.deserialize[CreationEks](eksString)
                     (CreationEvent("CP_IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.pdata, f._1.cdata, f._1.uid, f._1.context, f._1.rid, new CreationEData(eks), f._1.tags), f._2)
                 } else f;
-            }.map(x => (x._1.edata.eks.id, x))
+            }.map(x => (x._1.edata.eks.pageid, x))
 
             val pageSummaries = if (impressionCEEvents.length > 0) {
                 impressionCEEvents.groupBy(f => f._1).map { f =>
@@ -142,7 +142,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
             val envSummaries = if (pageSummaries.size > 0) {
                 pageSummaries.groupBy { x => x.env }.map { f =>
                     val timeSpent = f._2.map(x => x.time_spent).sum
-                    val count = f._2.size.toLong
+                    val count = f._2.map(x => x.visit_count).max;
                     EnvSummary(f._1, timeSpent, count)
                 }
             } else Iterable[EnvSummary]();
