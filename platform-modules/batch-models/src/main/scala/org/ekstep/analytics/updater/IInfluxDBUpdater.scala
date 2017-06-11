@@ -12,9 +12,9 @@ import org.joda.time.DateTimeZone
 
 trait IInfluxDBUpdater {
 	
-    val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
-    val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
-    val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+    val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZoneUTC();
+    val weekPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww").withZoneUTC();
+    val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZoneUTC();
 	
 	def getDateTime(periodVal: Int): (DateTime, String) = {
 		val period = periodVal.toString();
