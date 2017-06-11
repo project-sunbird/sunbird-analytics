@@ -141,7 +141,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
 
             val envSummaries = if (pageSummaries.size > 0) {
                 pageSummaries.groupBy { x => x.env }.map { f =>
-                    val timeSpent = f._2.map(x => x.time_spent).sum
+                    val timeSpent = CommonUtil.roundDouble(f._2.map(x => x.time_spent).sum, 2)
                     val count = f._2.map(x => x.visit_count).max;
                     EnvSummary(f._1, timeSpent, count)
                 }
