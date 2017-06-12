@@ -88,7 +88,7 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   private def saveToInfluxDB(data: RDD[PublishPipelineSummaryFact])(implicit sc: SparkContext) {
 		val influxRDD = data.filter(f => f.d_period != 0).map{ f =>
 			val time = getDateTime(f.d_period)
-			var tags = Map("type" -> f.`type`, "state" -> f.state)
+			var tags = Map("type" -> f.`type`, "state" -> f.state, "period" -> time._2)
 			if (f.subtype != "") {
 			  tags += "subtype" -> f.subtype
 			}
