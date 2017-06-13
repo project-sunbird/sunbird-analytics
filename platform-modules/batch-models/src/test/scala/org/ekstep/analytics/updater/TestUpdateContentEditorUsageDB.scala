@@ -29,7 +29,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         val cummAllCESumm = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("d_period=?", 0).where("d_content_id=?", "all").first
         cummAllCESumm.total_sessions should be(5)
         cummAllCESumm.total_ts should be(84.04)
-        cummAllCESumm.users_count should be(2)
+        cummAllCESumm.unique_users_count should be(2)
         cummAllCESumm.avg_ts_session should be(16.81)
         
         /**
@@ -39,7 +39,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         val cummAllCESumm1 = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("d_period=?", "20170522").where("d_content_id=?", "do_2122315986551685121193").first
         cummAllCESumm1.total_sessions should be(2)
         cummAllCESumm1.total_ts should be(13.6)
-        cummAllCESumm1.users_count should be(0)
+        cummAllCESumm1.unique_users_count should be(0)
         cummAllCESumm1.avg_ts_session should be(6.8)
         
         /**
@@ -49,7 +49,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         val cummAllCESumm2 = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("d_period=?", "201705").where("d_content_id=?", "do_2122315986551685121193").first
         cummAllCESumm2.total_sessions should be(2)
         cummAllCESumm2.total_ts should be(13.6)
-        cummAllCESumm2.users_count should be(0)
+        cummAllCESumm2.unique_users_count should be(0)
         cummAllCESumm2.avg_ts_session should be(6.8)
         
         /**
@@ -59,7 +59,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         val cummAllCESumm3 = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("d_period=?", "201705").where("d_content_id=?", "all").first
         cummAllCESumm3.total_sessions should be(5)
         cummAllCESumm3.total_ts should be(84.04)
-        cummAllCESumm3.users_count should be(2)
+        cummAllCESumm3.unique_users_count should be(2)
         cummAllCESumm3.avg_ts_session should be(16.81)
     }
     
@@ -74,7 +74,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
         val cummAllCESumm = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("d_period=?", 0).where("d_content_id=?", "all").first
         cummAllCESumm.total_sessions should be(161)
         cummAllCESumm.total_ts should be(53598.58)
-        cummAllCESumm.users_count should be(31)
+        cummAllCESumm.unique_users_count should be(31)
         cummAllCESumm.avg_ts_session should be(332.91)
         
     }

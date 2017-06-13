@@ -26,11 +26,11 @@ import org.ekstep.analytics.util.Constants
  * Case Classes for the data product
  */
 case class PortalUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtRange: DtRange, anonymous_total_sessions: Long, anonymous_total_ts: Double,
+case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtRange: DtRange, anon_total_sessions: Long, anon_total_ts: Double,
                              total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                              total_pageviews_count: Long, unique_users: List[String], unique_users_count: Long, avg_pageviews: Double,
-                             avg_session_ts: Double, anonymous_avg_session_ts: Double, new_user_count: Long,
-                             percent_new_users_count: Double) extends AlgoOutput
+                             avg_ts_session: Double, anon_avg_ts_session: Double, new_user_count: Long,
+                             percent_new_users_count: Double, syncts: Long) extends AlgoOutput
 
 /**
  * @dataproduct
@@ -42,10 +42,10 @@ case class PortalUsageOutput(period: Int, author_id: String, app_id: String, dtR
  * 1. Generate portal usage summary events per day. This would be used to compute portal usage weekly, monthly & cumulative metrics.
  * Event used - ME_APP_SESSION_SUMMARY
  */
-object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsageInput, PortalUsageOutput, MeasuredEvent] with Serializable {
+object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsageInput, PortalUsageOutput, MeasuredEvent] with Serializable {
 
-    val className = "org.ekstep.analytics.model.PortalUsageSummaryModel"
-    override def name: String = "PortalUsageSummaryModel"
+    val className = "org.ekstep.analytics.model.AppUsageSummaryModel"
+    override def name: String = "AppUsageSummaryModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalUsageInput] = {
         val sessionEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_APP_SESSION_SUMMARY")));
@@ -99,7 +99,7 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 }.filter(f => f._1 == (true)).length.toLong
                 val percentNewUsersCount = if (newUserCount == 0 || uniqueUsersCount == 0) 0d else BigDecimal((newUserCount / (uniqueUsersCount * 1d)) * 100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
-                PortalUsageOutput(event.period, f._1, appId, date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount)
+                PortalUsageOutput(event.period, f._1, appId, date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount, lastEvent.syncts)
             }
         }.flatMap { x => x }
     }
@@ -108,8 +108,8 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_APP_USAGE_SUMMARY", usageSumm.author_id, "DAY", usageSumm.dtRange);
             val measures = Map(
-                "anonymous_total_sessions" -> usageSumm.anonymous_total_sessions,
-                "anonymous_total_ts" -> usageSumm.anonymous_total_ts,
+                "anon_total_sessions" -> usageSumm.anon_total_sessions,
+                "anon_total_ts" -> usageSumm.anon_total_ts,
                 "total_sessions" -> usageSumm.total_sessions,
                 "total_ts" -> usageSumm.total_ts,
                 "ce_total_sessions" -> usageSumm.ce_total_sessions,
@@ -118,11 +118,11 @@ object PortalUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalU
                 "unique_users" -> usageSumm.unique_users,
                 "unique_users_count" -> usageSumm.unique_users_count,
                 "avg_pageviews" -> usageSumm.avg_pageviews,
-                "avg_session_ts" -> usageSumm.avg_session_ts,
-                "anonymous_avg_session_ts" -> usageSumm.anonymous_avg_session_ts,
+                "avg_ts_session" -> usageSumm.avg_ts_session,
+                "anon_avg_ts_session" -> usageSumm.anon_avg_ts_session,
                 "new_user_count" -> usageSumm.new_user_count,
                 "percent_new_users_count" -> usageSumm.percent_new_users_count);
-            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AppUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, Option(usageSumm.author_id), None, None, Option(usageSumm.app_id)),
                 MEEdata(measures), None);

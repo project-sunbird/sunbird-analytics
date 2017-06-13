@@ -27,20 +27,21 @@ import org.ekstep.analytics.util.SessionBatchModel
 import java.net.URL
 import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.commons.validator.UrlValidator
+import org.ekstep.analytics.util.CreationEventUtil
 
 /**
  * Case class to hold the screener summary fields
  */
-case class PerPluginSummary(plugin_id: String, added: Int, removed: Int, modified: Int)
-case class PluginSummary(loaded_count: Int, plugins_added: Int, plugins_removed: Int, plugins_modified: Int, per_plugin_summary: Iterable[PerPluginSummary])
+case class PerPluginSummary(plugin_id: String, added_count: Int, deleted_count: Int, modified_count: Int)
+case class PluginSummary(loaded_count: Int, added_count: Int, deleted_count: Int, modified_count: Int, per_plugin_summary: Iterable[PerPluginSummary])
 case class SaveSummary(total_count: Int, success_count: Int, failed_count: Int)
-case class CEStageSummary(stages_added: Int, stages_removed: Int, stages_modified: Int)
+case class CEStageSummary(added_count: Int, deleted_count: Int, modified_count: Int)
 
 /**
  * Case class to hold the session summary input and output
  */
 case class CESessionSummaryInput(sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
-case class CESessionSummaryOutput(uid: String, sid: String, contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
+case class CESessionSummaryOutput(uid: String, sid: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
 
 /**
  * Case class to hold the screener summary
@@ -79,9 +80,9 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val modified = events._2.filter { x => "modify".equals(x.edata.eks.`type`) }.length
             PerPluginSummary(pluginId, added, removed, modified)
         }
-        val pluginAdded = perPluginSummary.map { x => x.added }.sum
-        val pluginRemoved = perPluginSummary.map { x => x.removed }.sum
-        val pluginModified = perPluginSummary.map { x => x.modified }.sum
+        val pluginAdded = perPluginSummary.map { x => x.added_count }.sum
+        val pluginRemoved = perPluginSummary.map { x => x.deleted_count }.sum
+        val pluginModified = perPluginSummary.map { x => x.modified_count }.sum
 
         PluginSummary(loadedCount, pluginAdded, pluginRemoved, pluginModified, perPluginSummary)
     }
@@ -147,7 +148,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val sideBarEventCount = interactEvents.filter { x => "sidebar".equals(x.edata.eks.subtype) }.length
             val menuEventCount = interactEvents.filter { x => "menu".equals(x.edata.eks.subtype) && "click".equals(x.edata.eks.`type`) }.length
 
-            CESessionSummaryOutput(startEvent.uid, startEvent.context.get.sid, startEvent.context.get.content_id, startEvent.edata.eks.client, DtRange(startTimestamp,
+            CESessionSummaryOutput(startEvent.uid, startEvent.context.get.sid, CreationEventUtil.getEventSyncTS(endEvent), startEvent.context.get.content_id, startEvent.edata.eks.client, DtRange(startTimestamp,
                 endTimestamp), new CESessionSummary(timeSpent, startTimestamp, endTimestamp, timeDiff, loadTime, noOfInteractEvents,
                 interactEventsPerMin, pluginSummary, saveSummary, stageSummary, eventSummary, apiCallCount, sideBarEventCount, menuEventCount));
         }.filter(f => (f.ss.time_spent >= 1)).cache()
@@ -172,7 +173,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
                 "api_calls_count" -> session.api_calls_count,
                 "sidebar_events_count" -> session.sidebar_events_count,
                 "menu_events_count" -> session.menu_events_count);
-            MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.dateRange.to, "1.0", mid, sessionMap.uid, Option(sessionMap.contentId), None,
+            MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.syncDate, "1.0", mid, sessionMap.uid, Option(sessionMap.contentId), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentEditorSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", sessionMap.dateRange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, None, Option(sessionMap.client)),
                 MEEdata(measures));

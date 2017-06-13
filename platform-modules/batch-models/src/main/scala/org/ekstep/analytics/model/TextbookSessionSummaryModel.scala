@@ -11,12 +11,13 @@ import org.ekstep.analytics.creation.model.CreationEvent
 import org.apache.spark.HashPartitioner
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.util.CreationEventUtil
 /**
  * @author yuva
  */
-case class UnitSummary(total_units_added: Long, total_units_deleted: Long, total_units_modified: Long)
-case class LessonSummary(total_lessons_added: Long, total_lessons_deleted: Long, total_lessons_modified: Long)
-case class TextbookSessionMetrics(uid: String, sid: String, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, sub_unit_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
+case class UnitSummary(added_count: Long, deleted_count: Long, modified_count: Long)
+case class LessonSummary(added_count: Long, deleted_count: Long, modified_count: Long)
+case class TextbookSessionMetrics(uid: String, sid: String, syncDate: Long, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
 case class TextbookSessions(sessionEvent: Buffer[CreationEvent]) extends AlgoInput
 /**
  * @dataproduct
@@ -34,10 +35,9 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
         /*
          * Input raw telemetry
          * */
-        val filteredEvents = data.filter { x => (x.edata.eks.env != null) }.collect().toBuffer
-        val sortedEvent = filteredEvents.sortBy { x => x.ets }
-        val sessions = getSessions(sortedEvent)
-        sc.parallelize(sessions).map { x => TextbookSessions(x) }
+        val filteredEvents = data.filter { x => (x.edata.eks.env != null) }
+        val sessions = getSessions(filteredEvents)
+        sessions.map { x => TextbookSessions(x) }
     }
 
     override def algorithm(data: RDD[TextbookSessions], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessionMetrics] = {
@@ -45,6 +45,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
         data.map { x =>
             val start_time = x.sessionEvent.head.ets
             val end_time = x.sessionEvent.last.ets
+            val endEvent = x.sessionEvent.last
             val date_range = DtRange(start_time, end_time)
             var tmpLastEvent: CreationEvent = null;
             val eventsWithTs = x.sessionEvent.map { x =>
@@ -68,7 +69,7 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
             val total_lessons_added = buffered_map_values.map { x => x.getOrElse("lesson_added", "0").toString().toLong }.sum
             val total_lessons_deleted = buffered_map_values.map { x => x.getOrElse("lesson_deleted", "0").toString().toLong }.sum
             val total_lessons_modified = buffered_map_values.map { x => x.getOrElse("lesson_modified", "0").toString().toLong }.sum
-            TextbookSessionMetrics(uid, sid, content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
+            TextbookSessionMetrics(uid, sid, CreationEventUtil.getEventSyncTS(endEvent), content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
         }.filter { x => (x.time_spent > 0.0) }
     }
 
@@ -81,10 +82,9 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
                 "time_spent" -> summary.time_spent,
                 "time_diff" -> summary.time_diff,
                 "unit_summary" -> summary.unit_summary,
-                "lesson_summary" -> summary.sub_unit_summary,
-                "date_range" -> summary.date_range);
+                "lesson_summary" -> summary.lesson_summary);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
-            MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), summary.date_range.to, "1.0", mid, summary.uid, None, None,
+            MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), summary.syncDate, "1.0", mid, summary.uid, None, None,
                 Context(pdata, None, "SESSION", summary.date_range),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(summary.content_id), None, None, Option(summary.sid), None), MEEdata(measures), None);
         };
@@ -93,11 +93,11 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
     /*
      * Sessionization based on Env
      * */
-    private def getSessions(creationEvent: Buffer[CreationEvent]): Buffer[Buffer[CreationEvent]] = {
+    private def getSessions(creationEvent: RDD[CreationEvent])(implicit sc: SparkContext): RDD[Buffer[CreationEvent]] = {
         var sessions = Buffer[Buffer[CreationEvent]]();
         var tmpArr = Buffer[CreationEvent]();
         var prevEnv = ""
-        creationEvent.foreach { x =>
+        creationEvent.collect.sortBy { x => x.ets }.foreach { x =>
             if ((prevEnv.equals("textbook") && prevEnv.equals(x.edata.eks.env)) && (CommonUtil.getTimeDiff(tmpArr.last.ets, x.ets).get / 60 < 30)) {
                 tmpArr += x
             } else {
@@ -108,8 +108,8 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
             }
             prevEnv = x.edata.eks.env
         }
-        if (sessions.length <= 0 && prevEnv.equals("textbook"))
+        if (sessions.isEmpty && prevEnv.equals("textbook"))
             sessions += tmpArr
-        sessions
+        sc.parallelize(sessions)
     }
 }

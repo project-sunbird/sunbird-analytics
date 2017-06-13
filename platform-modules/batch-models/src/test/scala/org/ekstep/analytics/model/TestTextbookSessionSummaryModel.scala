@@ -16,10 +16,10 @@ class TestTextbookSessionSummaryModel extends SparkSpec(null) {
         metrics.get("start_time").get.asInstanceOf[Number].longValue() should be(1496228376984L)
         metrics.get("end_time").get.asInstanceOf[Number].longValue() should be(1496230584803L)
         metrics.get("time_spent").get.asInstanceOf[Number].doubleValue() should be(2207.82)
-        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].total_units_added should be(2)
-        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].total_units_deleted should be(1)
-        metrics.get("lesson_summary").get.asInstanceOf[LessonSummary].total_lessons_added should be(2)
-        metrics.get("lesson_summary").get.asInstanceOf[LessonSummary].total_lessons_deleted should be(1)
+        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].added_count should be(2)
+        metrics.get("unit_summary").get.asInstanceOf[UnitSummary].deleted_count should be(1)
+        metrics.get("lesson_summary").get.asInstanceOf[LessonSummary].added_count should be(2)
+        metrics.get("lesson_summary").get.asInstanceOf[LessonSummary].deleted_count should be(1)
     }
 
     it should "generate empty results if env data as textbook is not present" in {

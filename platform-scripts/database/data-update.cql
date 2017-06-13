@@ -12,7 +12,7 @@ ALTER TABLE content_db.genie_launch_summary_fact ADD updated_date timestamp;
 ALTER TABLE content_db.content_sideloading_summary ADD updated_date timestamp;
 ALTER TABLE content_db.content_to_vector ADD updated_date timestamp;
 ALTER TABLE content_db.content_recos ADD updated_date timestamp;
-ALTER TABLE content_db.content_snapshot_summary ADD updated_date timestamp;
+ALTER TABLE content_db.content_snapshot_summary ADD (updated_date timestamp, creation_ts double, avg_creation_ts double);
 ALTER TABLE content_db.concept_snapshot_summary ADD updated_date timestamp;
 ALTER TABLE content_db.asset_snapshot_summary ADD updated_date timestamp;
 ALTER TABLE device_db.device_recos ADD updated_date timestamp;

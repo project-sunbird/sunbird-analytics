@@ -32,6 +32,8 @@ case class ContentSnapshotAlgoOutput(total_content_count: Long, live_content_cou
  * Functionality
  * 1. Generate author-partner specific content snapshot summary events. This would be used to compute weekly, monthly metrics.
  * Input - Vidyavaani Graph database and ce_usage_summary_fact cassandra table data.
+ * 
+ * Dependency - UpdateContentEditorMetricsDB
  */
 object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotAlgoOutput, MeasuredEvent] with Serializable {
 
@@ -66,8 +68,8 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val totalContentCount = contentCountByStatus.values.reduce((a, b) => a + b);
         val liveContentCount = contentCountByStatus.getOrElse("live", 0).asInstanceOf[Number].longValue();
         val reviewContentCount = contentCountByStatus.getOrElse("review", 0).asInstanceOf[Number].longValue();
-        val creationTs = contentTimespent.map(f => f._2).sum
-        val avgCreationTs = if (contentTimespent.count() > 0) creationTs / contentTimespent.count() else 0.0
+        val creationTs = CommonUtil.roundDouble(contentTimespent.map(f => f._2).sum, 2)
+        val avgCreationTs = if (contentTimespent.count() > 0) CommonUtil.roundDouble((creationTs / contentTimespent.count()), 2) else 0.0
         val rdd1 = sc.makeRDD(List(ContentSnapshotAlgoOutput(totalContentCount, liveContentCount, reviewContentCount, creationTs, avgCreationTs, total_user_count, active_user_count)))
 
         // For specific author_id
@@ -81,8 +83,8 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
             .map { x =>
                 val contentTsList = for (f <- x._2) yield (f, contentTimespentMap.get(f).getOrElse(0.0))
                 val filteredContentTsList = contentTsList.filter(f => f._2 > 0.0)
-                val ts = filteredContentTsList.map(f => f._2).sum
-                val avg_ts = if (filteredContentTsList.size > 0) ts / filteredContentTsList.size else 0.0
+                val ts = CommonUtil.roundDouble(filteredContentTsList.map(f => f._2).sum, 2)
+                val avg_ts = if (filteredContentTsList.size > 0) CommonUtil.roundDouble((ts / filteredContentTsList.size), 2) else 0.0
                 (x._1, (ts, avg_ts))
             })
 
@@ -114,8 +116,8 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
             .map { x =>
                 val contentTsList = for (f <- x._2) yield (f, contentTimespentMap.get(f).getOrElse(0.0))
                 val filteredContentTsList = contentTsList.filter(f => f._2 > 0.0)
-                val ts = filteredContentTsList.map(f => f._2).sum
-                val avg_ts = if (filteredContentTsList.size > 0) ts / filteredContentTsList.size else 0.0
+                val ts = CommonUtil.roundDouble(filteredContentTsList.map(f => f._2).sum, 2)
+                val avg_ts = if (filteredContentTsList.size > 0) CommonUtil.roundDouble((ts / filteredContentTsList.size), 2) else 0.0
                 (x._1, (ts, avg_ts))
             })
 
@@ -145,8 +147,8 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
             .map { x =>
                 val contentTsList = for (f <- x._3) yield (f, contentTimespentMap.get(f).getOrElse(0.0))
                 val filteredContentTsList = contentTsList.filter(f => f._2 > 0.0)
-                val ts = filteredContentTsList.map(f => f._2).sum
-                val avg_ts = if (filteredContentTsList.size > 0) ts / filteredContentTsList.size else 0.0
+                val ts = CommonUtil.roundDouble(filteredContentTsList.map(f => f._2).sum, 2)
+                val avg_ts = if (filteredContentTsList.size > 0) CommonUtil.roundDouble((ts / filteredContentTsList.size), 2) else 0.0
                 ((x._1, x._2), (ts, avg_ts))
             })
 

@@ -10,15 +10,15 @@ import org.ekstep.analytics.util.SessionBatchModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 
-class TestPortalSessionSummaryModel extends SparkSpec(null) {
+class TestAppSessionSummaryModel extends SparkSpec(null) {
 
-    "PortalSessionSummaryModel" should "generate 1 portal session summary events having CE_START & CE_END" in {
+    "AppSessionSummaryModel" should "generate 1 app session summary events having CE_START & CE_END" in {
 
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_1.log");
-        val rdd2 = PortalSessionSummaryModel.execute(rdd1, None);
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
-        me.length should be(1);
+        me.length should be(3);
         val event1 = me(0);
 
         event1.eid should be("ME_APP_SESSION_SUMMARY");
@@ -50,13 +50,13 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
         pageSummary1.env should be("community")
         pageSummary1.id should be("com3")
         pageSummary1.`type` should be("")
-        pageSummary1.time_spent should be(6.0)
+        pageSummary1.time_spent should be(3.0)
         pageSummary1.visit_count should be(1)
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("content")
-        envSummary1.time_spent should be(315.0)
-        envSummary1.count should be(3)
+        envSummary1.time_spent should be(276.0)
+        envSummary1.count should be(4)
         
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("CE_START")
@@ -66,7 +66,7 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
     it should "generate 1 portal session summary events where time diff > idle time" in {
 
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_2.log");
-        val rdd2 = PortalSessionSummaryModel.execute(rdd1, None);
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
         me.length should be(2);
@@ -101,13 +101,13 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
         pageSummary1.env should be("")
         pageSummary1.id should be("")
         pageSummary1.`type` should be("")
-        pageSummary1.time_spent should be(921.0)
-        pageSummary1.visit_count should be(15)
+        pageSummary1.time_spent should be(227.0)
+        pageSummary1.visit_count should be(14)
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("")
-        envSummary1.time_spent should be(921.0)
-        envSummary1.count should be(1)
+        envSummary1.time_spent should be(227.0)
+        envSummary1.count should be(14)
         
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("CP_SESSION_START")
@@ -141,7 +141,7 @@ class TestPortalSessionSummaryModel extends SparkSpec(null) {
     it should "generate 2 portal session summary events with no CE events and 1 with non-registered user" in {
 
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_3.log");
-        val rdd2 = PortalSessionSummaryModel.execute(rdd1, None);
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
         // check for first visit = true

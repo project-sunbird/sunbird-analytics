@@ -15,7 +15,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
  * Case class to hold the usage summary input and output
  */
 case class CEUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class CEUsageMetricsSummary(period: Int, content_id: String, dtRange: DtRange, users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double) extends AlgoOutput;
+case class CEUsageMetricsSummary(period: Int, content_id: String, dtRange: DtRange, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, syncts: Long) extends AlgoOutput;
 
 /**
  * @dataproduct
@@ -53,7 +53,7 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
                     x.get("time_spent").get.asInstanceOf[Double]
                 }.sum
                 val avgSessionTS = if (totalTS == 0 || totalSessions == 0) 0d else BigDecimal(totalTS / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
-                CEUsageMetricsSummary(event.period, f._1.get, date_range, userCount, totalSessions, totalTS, avgSessionTS);
+                CEUsageMetricsSummary(event.period, f._1.get, date_range, userCount, totalSessions, totalTS, avgSessionTS, lastEvent.syncts);
             }
         }.flatMap { x => x }
     }
@@ -84,7 +84,7 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
 
             val avgSessionTS = if (totalTS == 0 || totalSessions == 0) 0d else BigDecimal(totalTS / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             
-            CEUsageMetricsSummary(f.period, "all", date_range, userCount, totalSessions, totalTS, avgSessionTS)
+            CEUsageMetricsSummary(f.period, "all", date_range, userCount, totalSessions, totalTS, avgSessionTS, lastEvent.syncts)
         } ++ contentSpecificUsage
     }
 
@@ -92,11 +92,11 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_CE_USAGE_SUMMARY", usageSumm.content_id, "DAY", usageSumm.dtRange);
             val measures = Map(
-                "users_count" -> usageSumm.users_count,
+                "unique_users_count" -> usageSumm.unique_users_count,
                 "total_sessions" -> usageSumm.total_sessions,
                 "total_ts" -> usageSumm.total_ts,
                 "avg_ts_session" -> usageSumm.avg_ts_session);
-            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.dtRange.to, "1.0", mid, "", None, None,
+            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentEditorUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), Option(usageSumm.content_id), None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);

@@ -3,6 +3,11 @@ CREATE KEYSPACE IF NOT EXISTS learner_db WITH replication = {
   'replication_factor': '1'
 };
 
+CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
 CREATE TABLE IF NOT EXISTS learner_db.learnersnapshot (
 	learner_id text,
 	m_time_spent double,
@@ -262,22 +267,6 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	PRIMARY KEY (d_period, d_partner_id)
 );
 
-CREATE TABLE IF NOT EXISTS content_db.textbook_snapshot_summary(
-	d_period int,
-	d_textbook_id text,
-	status text,
-	author_id text,
-	content_count bigint,
-	textbookunit_count bigint,
-	avg_content double,
-	content_types list<text>,
-	total_ts double,
-	creators_count bigint,
-	board text,
-	medium text,
-	PRIMARY KEY (d_period, d_textbook_id)
-);
-
 CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
 	d_period int,
 	type text,
@@ -447,11 +436,6 @@ CREATE TABLE IF NOT EXISTS creation_db.user_profile (
 	PRIMARY KEY (user_id)
 );
 
-CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
-  'class': 'SimpleStrategy',
-  'replication_factor': '1'
-};
-
 CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
     d_content_id text,
     d_ver int,
@@ -474,7 +458,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
 CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
     d_period int,
     d_content_id text,
-    users_count bigint,
+    unique_users_count bigint,
     total_sessions bigint,
     total_ts double,
     avg_ts_session double,
@@ -486,8 +470,8 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     d_period int,
     d_author_id text,
     d_app_id text,
-    anonymous_total_sessions bigint,
-    anonymous_total_ts double,
+    anon_total_sessions bigint,
+    anon_total_ts double,
     total_sessions bigint,
     total_ts double,
     ce_total_sessions bigint,
@@ -496,8 +480,8 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     unique_users blob,
     unique_users_count bigint,
     avg_pageviews double,
-    avg_session_ts double,
-    anonymous_avg_session_ts double,
+    avg_ts_session double,
+    anon_avg_ts_session double,
     new_user_count bigint,
     percent_new_users_count double,
     updated_date timestamp,
@@ -507,12 +491,13 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
 CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
     d_period int,
     d_author_id text,
-    total_session bigint,
+    total_sessions bigint,
     total_ts double,
     total_ce_ts double,
     total_ce_visit bigint,
+    ce_visits_count bigint,
     percent_ce_sessions double,
-    avg_session_ts double,
+    avg_ts_session double,
     percent_ce_ts double,
     updated_date timestamp,
     PRIMARY KEY (d_period, d_author_id)
@@ -535,20 +520,18 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	PRIMARY KEY (d_period, d_textbook_id)
 );
 
-// Not required
-
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
     d_period text,
-    time_diff Double,
-    users_count bigint,
+    unique_users_count bigint,
     total_sessions bigint,
     total_ts double,
     avg_ts_session double,
+    textbooks_count bigint,
     unit_summary map<text,bigint>,
     lesson_summary map<text,bigint>,
     updated_date timestamp,
     PRIMARY KEY (d_period)
-  );
+);
 
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);

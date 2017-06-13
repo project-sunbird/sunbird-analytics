@@ -135,7 +135,7 @@ object JobFactory {
             case "textbook-snapshot-updater" =>
                 TextbookSnapshotUpdater;
             case "app-ss" =>
-                PortalSessionSummarizer;
+                AppSessionSummarizer;
             case "obj-cache-updater" =>
                 AppObjectCacheUpdater
             case "textbook-ss" =>
@@ -149,10 +149,10 @@ object JobFactory {
             case "author-usage-updater" =>
                 AuthorSummaryUpdater
             case "app-usage" =>
-                PortalUsageSummarizer;
+                AppUsageSummarizer;
             case "app-usage-updater" =>
-                PortalUsageUpdater;
-            case "publish-pipeline-summarizer" =>
+                AppUsageUpdater;
+            case "publish-pipeline-summ" =>
                 PublishPipelineSummarizer;
             case "app-raw-telemetry-jobs" =>
                 AppRawTelemetryJobs

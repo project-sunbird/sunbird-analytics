@@ -4,117 +4,36 @@ import org.ekstep.analytics.model.BaseSpec
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 import org.ekstep.analytics.framework.IJob
-import org.ekstep.analytics.job.consolidated.RawTelemetryJobs
-import org.ekstep.analytics.job.consolidated.SessionSummaryJobs
-import org.ekstep.analytics.job.consolidated.RawTelemetryUpdaters
+import org.ekstep.analytics.job.consolidated._
+import org.ekstep.analytics.views.PrecomputedViewsJob
+import org.ekstep.analytics.vidyavaani.job._
 
 class TestJobFactory extends BaseSpec {
 
     it should "return a Model class for a model code" in {
 
-        val jobCUS = JobFactory.getJob("cus")
-        jobCUS should be(ContentUsageSummarizer)
-        jobCUS.isInstanceOf[IJob] should be(true)
+        val jobIds = List("as", "ss", "las", "lp", "ls", "lcas", "lcr", "cus", "cps", "cpu", "cuu", "gss", "gls",
+            "dus", "css", "lpu", "cmu", "dsu", "is", "dcus", "csv", "ctv", "device-recos-training",
+            "device-recos-scoring", "raw-telemetry-jobs", "ss-jobs", "raw-telemetry-updaters", "sts",
+            "genie-launch-summ", "genie-launch-metrics", "item-usage-summ", "item-usage-metrics", "gsts", "gfs",
+            "gfa", "data-exhaust", "precomp-views", "content-recos", "content-own-rel", "content-lang-rel",
+            "content-asset-rel", "concept-lan-rel", "vidyavaani-jobs", "consumption-metrics", "creation-metrics",
+            "eocfs", "re-enrichment-model", "creation-reco", "content-snapshot", "concept-snapshot", "asset-snapshot",
+            "asset-snapshot-updater", "content-snapshot-updater", "concept-snapshot-updater", "ce-ss", "ce-usage",
+            "ce-usage-updater", "content-creation-metrics", "textbook-snapshot-updater", "app-ss", "obj-cache-updater",
+            "textbook-ss", "textbook-usage", "textbook-usage-updater", "author-usage-summary", "author-usage-updater",
+            "app-usage", "app-usage-updater", "publish-pipeline-summ", "app-raw-telemetry-jobs", "app-raw-telemetry-updaters",
+            "publish-pipeline-updater")
 
-        val jobCPS = JobFactory.getJob("cps")
-        jobCPS should be(ContentPopularitySummarizer)
-        jobCPS.isInstanceOf[IJob] should be(true)
+        val jobs = jobIds.map { f => JobFactory.getJob(f) }
 
-        val jobCPU = JobFactory.getJob("cpu")
-        jobCPU should be(ContentPopularityUpdater)
-        jobCPU.isInstanceOf[IJob] should be(true)
+        jobs(0) should be(AserScreenSummarizer)
+        jobs(0).isInstanceOf[IJob] should be(true)
 
-        val jobCUU = JobFactory.getJob("cuu")
-        jobCUU should be(ContentUsageUpdater)
-        jobCUU.isInstanceOf[IJob] should be(true)
+        jobs(22) should be(DeviceRecommendationTrainingJob)
+        jobs(22).isInstanceOf[IJob] should be(true)
 
-        val jobGSS = JobFactory.getJob("gss")
-        jobGSS should be(GenieUsageSessionSummarizer)
-        jobGSS.isInstanceOf[IJob] should be(true)
-
-        val jobGLS = JobFactory.getJob("gls")
-        jobGLS should be(GenieLaunchSummarizer)
-        jobGLS.isInstanceOf[IJob] should be(true)
-
-        val jobDUS = JobFactory.getJob("dus")
-        jobDUS should be(DeviceUsageSummarizer)
-        jobDUS.isInstanceOf[IJob] should be(true)
-
-        val jobCSS = JobFactory.getJob("css")
-        jobCSS should be(ContentSideloadingSummarizer)
-        jobCSS.isInstanceOf[IJob] should be(true)
-
-        val jobLPU = JobFactory.getJob("lpu")
-        jobLPU should be(LearnerProfileUpdater)
-        jobLPU.isInstanceOf[IJob] should be(true)
-
-        val jobCMU = JobFactory.getJob("cmu")
-        jobCMU should be(ContentModelUpdater)
-        jobCMU.isInstanceOf[IJob] should be(true)
-
-        val jobDSU = JobFactory.getJob("dsu")
-        jobDSU should be(DeviceSpecificationUpdater)
-        jobDSU.isInstanceOf[IJob] should be(true)
-
-        val jobIS = JobFactory.getJob("is")
-        jobIS should be(ItemUsageSummarizer)
-        jobIS.isInstanceOf[IJob] should be(true)
-
-        val jobDCUS = JobFactory.getJob("dcus")
-        jobDCUS should be(DeviceContentUsageSummarizer)
-        jobDCUS.isInstanceOf[IJob] should be(true)
-
-        val jobCSV = JobFactory.getJob("csv")
-        jobCSV should be(CSVDumpJob)
-        jobCSV.isInstanceOf[IJob] should be(true)
-
-        val jobCTV = JobFactory.getJob("ctv")
-        jobCTV should be(ContentToVecJob)
-        jobCTV.isInstanceOf[IJob] should be(true)
-
-        val jobDRT = JobFactory.getJob("device-recos-training")
-        jobDRT should be(DeviceRecommendationTrainingJob)
-        jobDRT.isInstanceOf[IJob] should be(true)
-
-        val jobDRS = JobFactory.getJob("device-recos-scoring")
-        jobDRS should be(DeviceRecommendationScoringJob)
-        jobDRS.isInstanceOf[IJob] should be(true)
-
-        val jobRTJ = JobFactory.getJob("raw-telemetry-jobs")
-        jobRTJ should be(RawTelemetryJobs)
-        jobRTJ.isInstanceOf[IJob] should be(true)
-
-        val jobSSJ = JobFactory.getJob("ss-jobs")
-        jobSSJ should be(SessionSummaryJobs)
-        jobSSJ.isInstanceOf[IJob] should be(true)
-
-        val jobRTU = JobFactory.getJob("raw-telemetry-updaters")
-        jobRTU should be(RawTelemetryUpdaters)
-        jobRTU.isInstanceOf[IJob] should be(true)
-
-        val sts = JobFactory.getJob("sts")
-        sts should be(StageSummarizer)
-        sts.isInstanceOf[IJob] should be(true)
-        
-        val jobGLsumm = JobFactory.getJob("genie-launch-summ")
-        jobGLsumm should be(GenieUsageSummarizer)
-        jobGLsumm.isInstanceOf[IJob] should be(true)
-
-        val jobGLM = JobFactory.getJob("genie-launch-metrics")
-        jobGLM should be(GenieUsageUpdater)
-        jobGLM.isInstanceOf[IJob] should be(true)
-
-        val jobISS = JobFactory.getJob("item-usage-summ")
-        jobISS should be(ItemSummarizer)
-        jobISS.isInstanceOf[IJob] should be(true)
-        
-        val jobISU = JobFactory.getJob("item-usage-metrics")
-        jobISU should be (ItemSummaryUpdater)
-        jobISU.isInstanceOf[IJob] should be(true)
-        
-        val jobGSTS = JobFactory.getJob("gsts")
-        jobGSTS should be (GenieStageSummarizer)
-        jobGSTS.isInstanceOf[IJob] should be(true)
-
+        jobs(71) should be(PublishPipelineUpdater)
+        jobs(71).isInstanceOf[IJob] should be(true)
     }
 }

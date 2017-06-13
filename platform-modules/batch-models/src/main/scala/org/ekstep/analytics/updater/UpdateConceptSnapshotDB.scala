@@ -19,6 +19,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
+import org.ekstep.analytics.connector.InfluxDB._
 
 case class ConceptSnapshotSummary(d_period: Int, d_concept_id: String, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class ConceptSnapshotIndex(d_period: Int, d_concept_id: String)
@@ -65,13 +66,14 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
         data;
     }
 
-    private def saveToInfluxDB(data: RDD[ConceptSnapshotSummary]) {
+    private def saveToInfluxDB(data: RDD[ConceptSnapshotSummary])(implicit sc: SparkContext){
         val metrics = data.map { x =>
             val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_concept_id", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "concept_id" -> x.d_concept_id), fields, time._1);
         };
-        InfluxDBDispatcher.dispatch(CONCEPT_SNAPSHOT_METRICS, metrics);
+        val concepts = getDenormalizedData("Concept", data.map { x => x.d_concept_id })
+        metrics.denormalize("concept_id", "concept_name", concepts).saveToInflux(CONCEPT_SNAPSHOT_METRICS);
     }
 
     private def getDateTime(periodVal: Int): (DateTime, String) = {

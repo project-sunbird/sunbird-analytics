@@ -36,10 +36,6 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
 				graphDb.shutdown();
 			}
 			loadGraphData();
-			// TODO: Remove this call after invoking this from the related Test file.
-			DBUtil.truncateTable(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE);
-			loadCassandraData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, testDataPath + "content_data.csv")
-			
 		}
 	}
 
