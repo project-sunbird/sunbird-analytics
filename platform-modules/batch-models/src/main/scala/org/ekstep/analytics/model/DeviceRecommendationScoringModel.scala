@@ -71,11 +71,12 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContext] = {
-
+    
         val num_bins = config.getOrElse("num_bins", 4).asInstanceOf[Int];
         val filterByNumContents = config.getOrElse("filterByNumContents", false).asInstanceOf[Boolean];
         val dataTimeFolderStructure = config.getOrElse("dataTimeFolderStructure", true).asInstanceOf[Boolean];
         val path = if(dataTimeFolderStructure) path_default else "" 
+        val saveInputData = config.getOrElse("saveInputData", false).asInstanceOf[Boolean];
 
         // Content Usage Summaries
         val contentUsageSummaries = sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period=? and d_tag = 'all'", 0).map { x => x }.cache();
@@ -137,14 +138,16 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         val text_dimensions = config.getOrElse("text_dimensions", 15).asInstanceOf[Int];
         val localPath = config.getOrElse("localPath", "/tmp/RE-data/").asInstanceOf[String]
         val inputDataPath = localPath + path + "RE-input"
-        val deviceContext = createDeviceContextWithoutTransformation(final_dus_dsp._2, final_dus_dsp._1.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
-        val deviceContextF = deviceContext.filter { x => x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
-        JobLogger.log("Saving index of DeviceContext with non zero ts", Option(Map("totalcount" -> deviceContext.count(), "nonZeroCount" -> deviceContextF.count())), INFO, "org.ekstep.analytics.model");
-        val file = new File(inputDataPath)
-        if (file.exists())
-            CommonUtil.deleteDirectory(inputDataPath)
-        val jsondata = createJSON(deviceContextF, tag_dimensions, text_dimensions)
-        jsondata.saveAsTextFile(inputDataPath)
+        if (saveInputData) {
+          val deviceContext = createDeviceContextWithoutTransformation(final_dus_dsp._2, final_dus_dsp._1.map { x => (DeviceId(x.device_id), x) }, dcus.map { x => (DeviceId(x.device_id), x) }.groupBy(f => f._1).mapValues(f => f.map(x => x._2)), contentVectors, contentUsageSummaries.map { x => (x.d_content_id, x) }.collect().toMap, contentModel)
+          // val deviceContextF = deviceContext.filter { x => x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0) > 0.0 }
+          JobLogger.log("Saving index of DeviceContext with non zero ts", Option(Map("totalcount" -> deviceContext.count(), "nonZeroCount" -> deviceContext.count())), INFO, "org.ekstep.analytics.model");
+          val file = new File(inputDataPath)
+          if (file.exists())
+              CommonUtil.deleteDirectory(inputDataPath)
+          val jsondata = createJSON(deviceContext, tag_dimensions, text_dimensions)
+          jsondata.saveAsTextFile(inputDataPath)
+        }
 
         device_specT.leftOuterJoin(dusO).leftOuterJoin(dcusO).map { x =>
             val dc = x._2._2.getOrElse(Buffer[DeviceContentSummary]()).map { x => (x.content_id, x) }.toMap;
@@ -436,7 +439,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
         JobLogger.log("Number of devices for which scoring is done", Option(Map("Scored_devices" -> device_scores.count(), "devices_in_spec" -> data.map { x => x.device_spec.device_id }.distinct().count(), "memoryStatus" -> sc.getExecutorMemoryStatus)), INFO, "org.ekstep.analytics.model");
 
         if (saveScoresToFile) {
-            val device_content = data.map { x => (x.did, x.contentInFocus, x.contentInFocusUsageSummary.total_timespent.getOrElse(0.0)) }.zipWithIndex().map { case (k, v) => (v, k) }.filter { x => (x._2._3 > 0.0) }
+            val device_content = data.map { x => (x.did, x.contentInFocus) }.zipWithIndex().map { case (k, v) => (v, k) }
             val scoreData = device_content.leftOuterJoin(scoresIndexed).map { f =>
                 IndexedScore(f._2._1._1, f._2._1._2, f._2._2.get)
             }.map { x => JSONUtils.serialize(x) }
