@@ -76,12 +76,12 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
 
         populateDB();
         val num_contents = ContentAdapter.getPublishedContentForRE().map { x => (x.id, x) }.toMap.size
-        val data = DeviceRecommendationScoringModel.preProcess(null, Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef], "key" -> "model/test/", "filterByNumContents" -> false.asInstanceOf[AnyRef]));
+        val data = DeviceRecommendationScoringModel.preProcess(null, Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "saveInputData"->true.asInstanceOf[AnyRef], "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef], "key" -> "model/test/", "filterByNumContents" -> false.asInstanceOf[AnyRef]));
         data.count() should be (num_contents*3)
         val inputfilePath = new File("src/test/resources/device-recos-training/RE-data/"+"RE-input")
         inputfilePath.exists() should be (true)
         val out = sc.textFile("src/test/resources/device-recos-training/RE-data/"+"RE-input")
-        out.count() should be(5)
+        out.count() should be(num_contents*3)
         CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
     
@@ -89,12 +89,12 @@ class TestDeviceRecommendationScoringModel extends SparkSpec(null) {
 
         populateDB();
         val num_contents = ContentAdapter.getPublishedContentForRE().map { x => (x.id, x) }.toMap.size
-        val data = DeviceRecommendationScoringModel.preProcess(null, Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef], "key" -> "model/test/", "filterByNumContents" -> true.asInstanceOf[AnyRef]));
+        val data = DeviceRecommendationScoringModel.preProcess(null, Map("model_name" -> "fm.model4", "localPath" -> "src/test/resources/device-recos-training/RE-data/", "saveInputData"->true.asInstanceOf[AnyRef], "dataTimeFolderStructure" -> false.asInstanceOf[AnyRef], "key" -> "model/test/", "filterByNumContents" -> true.asInstanceOf[AnyRef]));
         data.count() should be (num_contents*2)
         val inputfilePath = new File("src/test/resources/device-recos-training/RE-data/"+"RE-input")
         inputfilePath.exists() should be (true)
         val out = sc.textFile("src/test/resources/device-recos-training/RE-data/"+"RE-input")
-        out.count() should be(3)
+        out.count() should be(num_contents*2)
         CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
     
