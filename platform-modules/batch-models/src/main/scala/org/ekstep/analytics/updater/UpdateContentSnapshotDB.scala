@@ -29,7 +29,7 @@ import org.ekstep.analytics.connector.InfluxDB._
 /**
  * Case Classes for the data product
  */
-case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, creation_ts: Option[Double], avg_creation_ts: Option[Double], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
+case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, creation_ts: Option[Double], avg_creation_ts: Option[Double], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output with CassandraTable
 case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String)
 
 /**

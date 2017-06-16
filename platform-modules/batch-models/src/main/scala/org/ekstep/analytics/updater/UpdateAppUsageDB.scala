@@ -30,7 +30,7 @@ case class PortalUsageSummaryFact(d_period: Int, d_author_id: String, d_app_id: 
                                   total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                                   total_pageviews_count: Long, unique_users: Array[Byte], unique_users_count: Long, avg_pageviews: Double,
                                   avg_ts_session: Double, anon_avg_ts_session: Double, new_user_count: Long,
-                                  percent_new_users_count: Double, updated_date: Long) extends AlgoOutput
+                                  percent_new_users_count: Double, updated_date: Long) extends AlgoOutput with CassandraTable
 case class PortalUsageSummaryFact_T(d_period: Int, d_author_id: String, d_app_id: String, last_gen_date: Long, anon_total_sessions: Long, anon_total_ts: Double,
                                     total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                                     total_pageviews_count: Long, unique_users: List[String], unique_users_count: Long, avg_pageviews: Double,

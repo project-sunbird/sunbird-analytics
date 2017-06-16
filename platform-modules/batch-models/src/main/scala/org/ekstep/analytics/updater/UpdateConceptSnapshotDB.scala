@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.connector.InfluxDB._
 
-case class ConceptSnapshotSummary(d_period: Int, d_concept_id: String, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
+case class ConceptSnapshotSummary(d_period: Int, d_concept_id: String, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output with CassandraTable
 case class ConceptSnapshotIndex(d_period: Int, d_concept_id: String)
 
 object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ConceptSnapshotSummary, ConceptSnapshotSummary] with Serializable {
