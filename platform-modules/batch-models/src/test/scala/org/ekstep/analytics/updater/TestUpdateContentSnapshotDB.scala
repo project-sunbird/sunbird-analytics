@@ -159,7 +159,7 @@ class TestUpdateContentSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from content_snapshot_metrics where author_id = 'all' AND partner_id = 'all' AND period = 'day'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 1)
+            val res = getValuesMap(queryResult, 2)
             res.get("author_id").get.contains("all") should be(true)
             res.get("partner_id").get.contains("all") should be(true)
             res.get("period").get.contains("day") should be(true)
