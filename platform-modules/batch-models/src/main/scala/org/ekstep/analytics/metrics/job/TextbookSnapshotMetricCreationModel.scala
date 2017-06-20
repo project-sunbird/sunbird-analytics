@@ -36,6 +36,6 @@ object TextbookSnapshotMetricCreationModel extends MetricsBatchModel[String,Stri
         }
         val count = saveToS3(resRDD, details)
         JobLogger.log("Textbook snapshot metrics pushed.", Option(Map("count" -> count)), INFO);
-        events
+        resRDD.map(x => x._2).flatMap { x => x };
     }
 }

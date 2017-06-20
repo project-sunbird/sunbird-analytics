@@ -36,6 +36,6 @@ object ContentSnapshotMetricCreationModel extends MetricsBatchModel[String,Strin
         }
         val count = saveToS3(resRDD, fetchDetails)
         JobLogger.log("Content Snapshot metrics pushed.", Option(Map("count" -> count)), INFO);
-        events
+        resRDD.map(x => x._2).flatMap { x => x };
     }
 }

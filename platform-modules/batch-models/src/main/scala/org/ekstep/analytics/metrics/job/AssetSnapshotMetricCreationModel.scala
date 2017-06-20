@@ -36,6 +36,6 @@ object AssetSnapshotMetricCreationModel extends MetricsBatchModel[String,String]
         }
         val count = saveToS3(resRDD, fetchDetails)
         JobLogger.log("Asset Snapshot metrics pushed.", Option(Map("count" -> count)), INFO);
-        events
+        resRDD.map(x => x._2).flatMap { x => x };
     }
 }

@@ -36,6 +36,6 @@ object GenieUsageMetricCreationModel extends MetricsBatchModel[String,String] wi
         }
         val count = saveToS3(resRDD, fetchDetails)
         JobLogger.log("Genie usage metrics pushed.", Option(Map("count" -> count)), INFO);
-        events
+        resRDD.map(x => x._2).flatMap { x => x };
     }
 }

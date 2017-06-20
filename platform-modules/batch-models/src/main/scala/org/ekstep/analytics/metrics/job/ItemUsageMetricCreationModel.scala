@@ -36,6 +36,6 @@ object ItemUsageMetricCreationModel extends MetricsBatchModel[String,String] wit
         }
         val count = saveToS3(resRDD, fetchDetails)
         JobLogger.log("Item usage metrics pushed.", Option(Map("count" -> count)), INFO);
-        events
+        resRDD.map(x => x._2).flatMap { x => x };
     }
 }
