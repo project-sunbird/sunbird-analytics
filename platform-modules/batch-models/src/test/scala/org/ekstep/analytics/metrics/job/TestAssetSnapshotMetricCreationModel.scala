@@ -19,12 +19,11 @@ class TestAssetSnapshotMetricCreationModel extends SparkSpec(null) {
             session.execute("TRUNCATE content_db.asset_snapshot_summary");
         }
         
-        val start_date = DateTime.now().minusHours(2).getMillis
+        val start_date = DateTime.now().toString(CommonUtil.dateFormat)
         val rdd = loadFile[DerivedEvent]("src/test/resources/asset-snapshot-updater/test1.log");
         UpdateAssetSnapshotDB.execute(rdd, None)
-        val end_date = DateTime.now().plusHours(5).getMillis
         
         val data = sc.parallelize(List(""))
-        val rdd2 = AssetSnapshotMetricCreationModel.execute(data, Option(Map("start_date" -> start_date.asInstanceOf[AnyRef], "end_date" -> end_date.asInstanceOf[AnyRef])));
+        val rdd2 = AssetSnapshotMetricCreationModel.execute(data, Option(Map("start_date" -> start_date.asInstanceOf[AnyRef], "end_date" -> start_date.asInstanceOf[AnyRef])));
     }
 }

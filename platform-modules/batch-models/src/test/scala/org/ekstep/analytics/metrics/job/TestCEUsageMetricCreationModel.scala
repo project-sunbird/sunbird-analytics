@@ -19,12 +19,11 @@ class TestCEUsageMetricCreationModel extends SparkSpec(null) {
             session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
         }
         
-        val start_date = DateTime.now().minusHours(2).getMillis
+        val start_date = DateTime.now().toString(CommonUtil.dateFormat)
         val rdd = loadFile[DerivedEvent]("src/test/resources/content-editor-usage-updater/ceus.log");
         UpdateContentEditorUsageDB.execute(rdd, None);
-        val end_date = DateTime.now().plusHours(5).getMillis
         
         val data = sc.parallelize(List(""))
-        val rdd2 = CEUsageMetricCreationModel.execute(data, Option(Map("start_date" -> start_date.asInstanceOf[AnyRef], "end_date" -> end_date.asInstanceOf[AnyRef])));
+        val rdd2 = CEUsageMetricCreationModel.execute(data, Option(Map("start_date" -> start_date.asInstanceOf[AnyRef], "end_date" -> start_date.asInstanceOf[AnyRef])));
     }
 }

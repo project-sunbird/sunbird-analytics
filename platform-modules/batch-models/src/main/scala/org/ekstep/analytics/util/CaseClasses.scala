@@ -52,7 +52,7 @@ case class GenieLaunchSummaryView(d_period: Int, d_tag: String, m_total_sessions
 case class ItemUsageSummaryView(d_period: Int, d_content_id: String, d_tag: String, d_item_id: String, m_total_ts: Double, m_total_count: Int, m_correct_res_count: Int, m_inc_res_count: Int, m_correct_res: List[String], m_top5_incorrect_res: List[(String,List[String], Int)], m_avg_ts: Double, m_top5_mmc: List[(String, Int)]) extends CassandraTable
 
 // Metric Model
-case class ConfigDetails(keyspace: String, table: String, periodfrom: Long, periodUpTo: Long, filePrefix: String, fileSuffix: String, dispatchTo: String, dispatchParams: Map[String, AnyRef]);
+case class ConfigDetails(keyspace: String, table: String, periodfrom: String, periodUpTo: String, filePrefix: String, fileSuffix: String, dispatchTo: String, dispatchParams: Map[String, AnyRef]);
 
 // Content Store
 case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);

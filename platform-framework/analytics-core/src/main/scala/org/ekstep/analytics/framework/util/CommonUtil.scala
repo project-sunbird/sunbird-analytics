@@ -489,4 +489,9 @@ object CommonUtil {
                 field.setAccessible(true)
                 map + (field.getName -> field.get(ccObj))
         }
+
+    def getEndTimestampOfDay(date: String): Long = {
+        val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+        dateFormat.parseDateTime(date).plusHours(23).plusMinutes(59).plusSeconds(59).getMillis
+    }
 }

@@ -23,11 +23,10 @@ class TestTextbookSnapshotMetricCreationModel extends SparkGraphSpec(null) {
             """CREATE (n:domain {code: "org.ekstep.textbook.1489145488965", subject: "Maths", description: "Birds are in vast variety", edition: "", language: ["English"], mimeType: "application/vnd.ekstep.content-collection", medium: "Gujarati", idealScreenSize: "normal", createdOn: "2017-03-10T11:31:21.222+0000", appIcon: "https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/content/do_212198323238887424167/artifact/c2e10dae47204d873c0c3953b312974a_1489053129759.jpeg", gradeLevel: ["Kindergarten"], publication: "", lastUpdatedOn: "2017-03-20T06:15:40.229+0000", contentType: "Textbook", creator: "Sourav", lastUpdatedBy: "80", visibility: "Default", os: ["All"], IL_SYS_NODE_TYPE: "DATA_NODE", author: "", createdBy: "291", mediaType: "content", osId: "org.ekstep.quiz.app", ageGroup: ["5-6"], versionKey: "1489990540229", idealScreenDensity: "hdpi", compatibilityLevel: 1, IL_FUNC_OBJECT_TYPE: "Content", name: "Birds", IL_UNIQUE_ID: "do_21219907978217062412", board: "NCERT", status: "Draft"}) return n""");
         executeQueries(createTextbookQueries);
         
-        val start_date = DateTime.now().minusHours(2).getMillis
+        val start_date = DateTime.now().toString(CommonUtil.dateFormat)
         UpdateTextbookSnapshotDB.execute(sc.emptyRDD[DerivedEvent], Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])));
-        val end_date = DateTime.now().plusHours(5).getMillis
 
         val data = sc.parallelize(List(""))
-        val rdd2 = TextbookSnapshotMetricCreationModel.execute(data, Option(Map("start_date" -> start_date.asInstanceOf[AnyRef], "end_date" -> end_date.asInstanceOf[AnyRef])));
+        val rdd2 = TextbookSnapshotMetricCreationModel.execute(data, Option(Map("start_date" -> start_date.asInstanceOf[AnyRef], "end_date" -> start_date.asInstanceOf[AnyRef])));
     }
 }

@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.updater.CEUsageSummaryFact
+import org.joda.time.DateTime
 
 object CEUsageMetricCreationModel extends MetricsBatchModel[String,String] with Serializable {
   
@@ -20,8 +21,8 @@ object CEUsageMetricCreationModel extends MetricsBatchModel[String,String] with 
 
     def execute(events: RDD[String], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String] ={
         
-        val start_date = jobParams.getOrElse(Map()).getOrElse("start_date", 0L).asInstanceOf[Long];
-        val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", 0L).asInstanceOf[Long];
+        val start_date = jobParams.getOrElse(Map()).getOrElse("start_date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String];
+        val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics_dispatch_params"));
         
         val groupFn = (x: CEUsageSummaryFact) => { (x.d_period + "-" + x.d_content_id) };

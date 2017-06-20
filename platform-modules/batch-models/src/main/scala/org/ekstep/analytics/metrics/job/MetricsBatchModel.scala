@@ -9,12 +9,19 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.ConfigDetails
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework._
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormatter
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.DateTimeZone
 
 trait MetricsBatchModel[T, R] extends IBatchModel[T, R] {
 
     def processQueryAndComputeMetrics[T <: CassandraTable](details: ConfigDetails, groupFn: (T) => String)(implicit mf: Manifest[T], sc: SparkContext): RDD[(String, Array[T])] = {
         val filterFn = (x: String) => { StringUtils.split(x, "-").apply(0).size == 8 };
-        val rdd = sc.cassandraTable[T](details.keyspace, details.table).where("updated_date>=?", details.periodfrom).where("updated_date<=?", details.periodUpTo)
+        val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+        val start_date = dateFormat.parseDateTime(details.periodfrom).getMillis
+        val end_date = CommonUtil.getEndTimestampOfDay(details.periodUpTo)
+        val rdd = sc.cassandraTable[T](details.keyspace, details.table).where("updated_date>=?", start_date).where("updated_date<=?", end_date)
         val files = rdd.groupBy { x => groupFn(x) }.filter { x => filterFn(x._1) }.mapValues { x => x.toArray }
         files;
     }
