@@ -490,6 +490,13 @@ object CommonUtil {
                 map + (field.getName -> field.get(ccObj))
         }
 
+    def caseClassToMapWithDateConversion(ccObj: AnyRef) =
+        (Map[String, AnyRef]() /: ccObj.getClass.getDeclaredFields) {
+            (map, field) =>
+                field.setAccessible(true)
+                map + (field.getName -> (if(field.get(ccObj).isInstanceOf[DateTime]) field.get(ccObj).asInstanceOf[DateTime].getMillis.asInstanceOf[AnyRef] else field.get(ccObj)))
+        }
+
     def getEndTimestampOfDay(date: String): Long = {
         val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
         dateFormat.parseDateTime(date).plusHours(23).plusMinutes(59).plusSeconds(59).getMillis

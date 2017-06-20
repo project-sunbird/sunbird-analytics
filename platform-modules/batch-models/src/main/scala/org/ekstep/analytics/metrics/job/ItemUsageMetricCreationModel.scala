@@ -31,7 +31,7 @@ object ItemUsageMetricCreationModel extends MetricsBatchModel[String,String] wit
         val resRDD = res.mapValues { x =>
             x.map { f =>
                 val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_item_id + f.d_tag + f.d_period, "DAY", System.currentTimeMillis());
-                val event = getMeasuredEvent(event_id, mid, "ItemUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "d_content_id", "d_item_id"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id), None, Option(f.d_item_id), None, None, None, None, None, None, None, None, None, None))
+                val event = getMeasuredEvent(event_id, mid, "ItemUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "d_content_id", "d_item_id", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id), None, Option(f.d_item_id), None, None, None, None, None, None, None, None, None, None))
                 JSONUtils.serialize(event)
             }
         }

@@ -30,7 +30,7 @@ object AppUsageMetricCreationModel extends MetricsBatchModel[String, String] wit
         val resRDD = res.mapValues { x =>
             x.map { f =>
                 val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_app_id + f.d_period, "DAY", System.currentTimeMillis());
-                val event = getMeasuredEvent(event_id, mid, "AppUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_app_id", "unique_users"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), None, None, Option(f.d_app_id)))
+                val event = getMeasuredEvent(event_id, mid, "AppUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_app_id", "unique_users", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), None, None, Option(f.d_app_id)))
                 JSONUtils.serialize(event)
             }
         }

@@ -31,7 +31,7 @@ object GenieUsageMetricCreationModel extends MetricsBatchModel[String,String] wi
         val resRDD = res.mapValues { x =>
             x.map { f =>
                 val mid = CommonUtil.getMessageId(event_id, f.d_tag + f.d_period, "DAY", System.currentTimeMillis());
-                val event = getMeasuredEvent(event_id, mid, "GenieUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "m_device_ids"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), None, None, None, None, None, None, None, None, None, None, None, None, None))
+                val event = getMeasuredEvent(event_id, mid, "GenieUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "m_device_ids", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), None, None, None, None, None, None, None, None, None, None, None, None, None))
                 JSONUtils.serialize(event)
             }
         }
