@@ -24,7 +24,7 @@ import org.ekstep.analytics.connector.InfluxDB._
 case class ConceptSnapshotSummary(d_period: Int, d_concept_id: String, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output with CassandraTable
 case class ConceptSnapshotIndex(d_period: Int, d_concept_id: String)
 
-object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ConceptSnapshotSummary, ConceptSnapshotSummary] with Serializable {
+object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ConceptSnapshotSummary, ConceptSnapshotSummary] with IInfluxDBUpdater with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateConceptSnapshotDB"
     override def name: String = "UpdateConceptSnapshotDB"
@@ -76,16 +76,4 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
         metrics.denormalize("concept_id", "concept_name", concepts).saveToInflux(CONCEPT_SNAPSHOT_METRICS);
     }
 
-    private def getDateTime(periodVal: Int): (DateTime, String) = {
-        val period = periodVal.toString();
-        period.size match {
-            case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
-            case 7 =>
-                val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
-                val firstDay = weekPeriodLabel.parseDateTime(week)
-                val lastDay = firstDay.plusDays(6);
-                (lastDay.withTimeAtStartOfDay(), "week");
-            case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
-        }
-    }
 }

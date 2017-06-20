@@ -24,13 +24,14 @@ import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.connector.InfluxDB._
+import org.ekstep.analytics.updater.IInfluxDBUpdater
 
 /**
  * @author mahesh
  */
 case class GenieStats(period: Int, content_usage_by_content_visits: Double, content_visits_by_genie_visits: Double, genie_visits_by_devices: Double, content_usage_by_device: Double)
 case class MetricsComputation(period: Int, contentUsage: Double, contentVisits: Double, genieVisits: Double, devices: Double)
-object ConsumptionMetricsUpdater extends Application with IJob {
+object ConsumptionMetricsUpdater extends Application with IInfluxDBUpdater with IJob {
     implicit val className = "org.ekstep.analytics.job.ConsumptionMetricsUpdater"
     val GENIE_METRICS = "genie_metrics";
     val CONTENT_METRICS = "content_metrics";
@@ -145,18 +146,5 @@ object ConsumptionMetricsUpdater extends Application with IJob {
 
     private def getContentUsageSummary(periodType: String, periods: List[Int])(implicit sc: SparkContext): RDD[ContentUsageSummaryFact] = {
         sc.cassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("d_period IN?", periods).map { x => x };
-    }
-
-    private def getDateTime(periodVal: Int): (DateTime, String) = {
-        val period = periodVal.toString();
-        period.size match {
-            case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
-            case 7 =>
-                val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
-                val firstDay = weekPeriodLabel.parseDateTime(week)
-                val lastDay = firstDay.plusDays(6);
-                (lastDay.withTimeAtStartOfDay(), "week");
-            case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
-        }
     }
 }

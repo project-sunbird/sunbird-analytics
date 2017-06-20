@@ -20,7 +20,7 @@ import org.ekstep.analytics.framework.CassandraTable
 case class AssetSnapshotSummary(d_period: Int, d_partner_id: String, total_images_count: Long, total_images_count_start: Long, used_images_count: Long, used_images_count_start: Long, total_audio_count: Long, total_audio_count_start: Long, used_audio_count: Long, used_audio_count_start: Long, total_questions_count: Long, total_questions_count_start: Long, used_questions_count: Long, used_questions_count_start: Long, total_activities_count: Long, total_activities_count_start: Long, used_activities_count: Long, used_activities_count_start: Long, total_templates_count: Long, total_templates_count_start: Long, used_templates_count: Long, used_templates_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output with CassandraTable
 case class AssetSnapshotIndex(d_period: Int, d_partner_id: String)
 
-object UpdateAssetSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AssetSnapshotSummary, AssetSnapshotSummary] with Serializable {
+object UpdateAssetSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AssetSnapshotSummary, AssetSnapshotSummary] with IInfluxDBUpdater with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateAssetSnapshotDB"
     override def name: String = "UpdateAssetSnapshotDB"
@@ -79,16 +79,4 @@ object UpdateAssetSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         metrics.denormalize("partner_id", "partner_name", partners).saveToInflux(ASSET_SNAPSHOT_METRICS);
     }
 
-    private def getDateTime(periodVal: Int): (DateTime, String) = {
-        val period = periodVal.toString();
-        period.size match {
-            case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
-            case 7 =>
-                val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
-                val firstDay = weekPeriodLabel.parseDateTime(week)
-                val lastDay = firstDay.plusDays(6);
-                (lastDay.withTimeAtStartOfDay(), "week");
-            case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
-        }
-    }
 }
