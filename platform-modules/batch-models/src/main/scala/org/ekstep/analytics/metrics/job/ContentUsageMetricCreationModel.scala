@@ -29,7 +29,8 @@ object ContentUsageMetricCreationModel extends MetricsBatchModel[String,String] 
         val res = processQueryAndComputeMetrics(fetchDetails, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val event = getMeasuredEvent(event_id, "ContentUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "d_content_id", "m_device_ids"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id), None, None, None, None, None, None, None, None, None, None, None, None))
+                val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_tag + f.d_period, "DAY", System.currentTimeMillis());
+                val event = getMeasuredEvent(event_id, mid, "ContentUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "d_content_id", "m_device_ids"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id), None, None, None, None, None, None, None, None, None, None, None, None))
                 JSONUtils.serialize(event)
             }
         }

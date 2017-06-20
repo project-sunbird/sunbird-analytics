@@ -29,7 +29,8 @@ object TextbookUsageMetricCreationModel extends MetricsBatchModel[String,String]
         val res = processQueryAndComputeMetrics(details, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val event = getMeasuredEvent(event_id, "TextbookCreationMetrics", CommonUtil.caseClassToMap(f) - ("d_period"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, None, None, None, None))
+                val mid = CommonUtil.getMessageId(event_id, f.d_period.toString(), "DAY", System.currentTimeMillis());
+                val event = getMeasuredEvent(event_id, mid, "TextbookCreationMetrics", CommonUtil.caseClassToMap(f) - ("d_period"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, None, None, None, None))
                 JSONUtils.serialize(event)
             }
         }

@@ -19,9 +19,8 @@ trait MetricsBatchModel[T, R] extends IBatchModel[T, R] {
         files;
     }
 
-    def getMeasuredEvent[T <: CassandraTable](eid: String, modelName: String, metrics: Map[String, AnyRef], dimension: Dimensions): MeasuredEvent = {
+    def getMeasuredEvent[T <: CassandraTable](eid: String, mid: String, modelName: String, metrics: Map[String, AnyRef], dimension: Dimensions): MeasuredEvent = {
 
-        val mid = CommonUtil.getMessageId(eid, null, "DAY", System.currentTimeMillis());
         MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", None, None,
             Context(PData("AnalyticsDataPipeline", modelName, "1.0"), None, "DAY", null),
             dimension,

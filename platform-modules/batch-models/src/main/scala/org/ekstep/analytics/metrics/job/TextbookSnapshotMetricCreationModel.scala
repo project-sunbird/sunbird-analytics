@@ -29,7 +29,8 @@ object TextbookSnapshotMetricCreationModel extends MetricsBatchModel[String,Stri
         val res = processQueryAndComputeMetrics(details, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val event = getMeasuredEvent(event_id, "TextbookSnapshotMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_textbook_id"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(f.d_textbook_id)))
+                val mid = CommonUtil.getMessageId(event_id, f.d_textbook_id + f.d_period, "DAY", System.currentTimeMillis());
+                val event = getMeasuredEvent(event_id, mid, "TextbookSnapshotMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_textbook_id"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(f.d_textbook_id)))
                 JSONUtils.serialize(event)
             }
         }

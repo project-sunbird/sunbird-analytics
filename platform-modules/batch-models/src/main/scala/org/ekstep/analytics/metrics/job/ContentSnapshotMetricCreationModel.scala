@@ -29,7 +29,8 @@ object ContentSnapshotMetricCreationModel extends MetricsBatchModel[String,Strin
         val res = processQueryAndComputeMetrics(fetchDetails, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val event = getMeasuredEvent(event_id, "ContentSnapshotMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_partner_id"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), Option(f.d_partner_id), None, None))
+                val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_partner_id + f.d_period, "DAY", System.currentTimeMillis());
+                val event = getMeasuredEvent(event_id, mid, "ContentSnapshotMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_partner_id"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), Option(f.d_partner_id), None, None))
                 JSONUtils.serialize(event)
             }
         }

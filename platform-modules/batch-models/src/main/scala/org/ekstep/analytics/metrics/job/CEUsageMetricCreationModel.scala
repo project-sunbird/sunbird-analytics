@@ -29,7 +29,8 @@ object CEUsageMetricCreationModel extends MetricsBatchModel[String,String] with 
         val res = processQueryAndComputeMetrics(details, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val event = getMeasuredEvent(event_id, "CEUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_content_id"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), Option(f.d_content_id), None, None, None, None, None, None, None, None, None, None, None, None))
+                val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_period, "DAY", System.currentTimeMillis());
+                val event = getMeasuredEvent(event_id, mid, "CEUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_content_id"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), Option(f.d_content_id), None, None, None, None, None, None, None, None, None, None, None, None))
                 JSONUtils.serialize(event)
             }
         }
