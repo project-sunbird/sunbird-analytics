@@ -23,10 +23,12 @@ import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.joda.time.DateTime
 import org.ekstep.analytics.connector.InfluxDB._
+import org.ekstep.analytics.framework.CassandraTable
+
 /**
  * @author yuva
  */
-case class TextbookSessionMetricsFact(d_period: Int, total_ts: Double, total_sessions: Long, avg_ts_session: Double, unique_users_count: Long, textbooks_count: Long, unit_summary: Map[String, Long], lesson_summary: Map[String, Long], updated_date: Long) extends AlgoOutput with Output
+case class TextbookSessionMetricsFact(d_period: Int, total_ts: Double, total_sessions: Long, avg_ts_session: Double, unique_users_count: Long, textbooks_count: Long, unit_summary: Map[String, Long], lesson_summary: Map[String, Long], updated_date: Long) extends AlgoOutput with Output with CassandraTable
 case class TextbookSessionMetricsFact_T(d_period: Int, total_ts: Double, total_sessions: Long, avg_ts_session: Double, unique_users_count: Long, textbooks_count: Long, unit_summary: Map[String, Long], lesson_summary: Map[String, Long], updated_date: Long, last_gen_date: Long)
 case class TextbookIndex(d_period: Int)
 /**

@@ -160,6 +160,8 @@ object JobFactory {
                 AppRawTelemetryUpdaters
             case "publish-pipeline-updater" =>
                 PublishPipelineUpdater
+            case "me-metrics" =>
+                MetricsEventCreationJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

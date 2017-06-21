@@ -20,3 +20,6 @@ DELETE /metrics/tag/delete/:tagId @controllers.Application.deleteTag(tagId: Stri
 POST /dataset/request/submit @controllers.JobController.dataRequest
 GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)
 GET /dataset/request/list/:clientKey @controllers.JobController.getJobList(clientKey: String)
+
+# API Monitoring
+#GET /admin/metrics @com.kenshoo.play.metrics.MetricsController.metrics

@@ -18,7 +18,7 @@ import org.ekstep.analytics.connector.InfluxDB._
 /**
  * Case class for Cassandra Models
  */
-case class CEUsageSummaryFact(d_period: Int, d_content_id: String, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, updated_date: Long) extends AlgoOutput
+case class CEUsageSummaryFact(d_period: Int, d_content_id: String, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, updated_date: Long) extends AlgoOutput with CassandraTable
 case class CEUsageSummaryIndex(d_period: Int, d_content_id: String) extends Output
 
 case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, last_gen_date: Long) extends AlgoOutput

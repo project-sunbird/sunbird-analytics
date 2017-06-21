@@ -23,8 +23,9 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.connector.InfluxDB._
+import org.ekstep.analytics.framework.CassandraTable
 
-case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String, updated_date: DateTime) extends AlgoOutput with Output
+case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String, updated_date: DateTime) extends AlgoOutput with Output with CassandraTable
 
 /**
  * @author Mahesh Kumar Gangula

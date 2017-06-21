@@ -29,7 +29,7 @@ import org.ekstep.analytics.connector.InfluxDB._
 /**
  * Case Classes for the data product
  */
-case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, creation_ts: Option[Double], avg_creation_ts: Option[Double], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
+case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, creation_ts: Option[Double], avg_creation_ts: Option[Double], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output with CassandraTable
 case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String)
 
 /**
@@ -42,7 +42,7 @@ case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id
  * 1. Updater to update author-partner specific content snapshot summary daily, weekly & monthly.
  * Events used - ME_CONTENT_SNAPSHOT_SUMMARY
  */
-object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotSummary, ContentSnapshotSummary] with Serializable {
+object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ContentSnapshotSummary, ContentSnapshotSummary] with IInfluxDBUpdater with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateContentSnapshotDB"
     override def name: String = "UpdateContentSnapshotDB"
@@ -100,16 +100,4 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
         metrics.denormalize("partner_id", "partner_name", partners).denormalize("author_id", "author_name", authors).saveToInflux(CONTENT_SNAPSHOT_METRICS);
     }
 
-    private def getDateTime(periodVal: Int): (DateTime, String) = {
-        val period = periodVal.toString();
-        period.size match {
-            case 8 => (dayPeriod.parseDateTime(period).withTimeAtStartOfDay(), "day");
-            case 7 =>
-                val week = period.substring(0, 4) + "-" + period.substring(5, period.length);
-                val firstDay = weekPeriodLabel.parseDateTime(week)
-                val lastDay = firstDay.plusDays(6);
-                (lastDay.withTimeAtStartOfDay(), "week");
-            case 6 => (monthPeriod.parseDateTime(period).withTimeAtStartOfDay(), "month");
-        }
-    }
 }

@@ -111,7 +111,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'day'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 1)
+            val res = getValuesMap(queryResult, 3)
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("day") should be(true)
             res.get("total_content_count").get.toLong should be(10)
@@ -157,7 +157,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'month'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 0)
+            val res = getValuesMap(queryResult, 1)
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("month") should be(true)
             res.get("total_content_count").get.toLong should be(10)
@@ -203,7 +203,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'month'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 1)
+            val res = getValuesMap(queryResult, 2)
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("month") should be(true)
             res.get("total_content_count").get.toLong should be(10)
