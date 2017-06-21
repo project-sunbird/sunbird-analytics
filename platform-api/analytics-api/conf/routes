@@ -22,4 +22,4 @@ GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJo
 GET /dataset/request/list/:clientKey @controllers.JobController.getJobList(clientKey: String)
 
 # API Monitoring
-GET /admin/metrics @com.kenshoo.play.metrics.MetricsController.metrics
+#GET /admin/metrics @com.kenshoo.play.metrics.MetricsController.metrics
