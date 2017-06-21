@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
+<Configuration status="WARN" packages="">
 	<Properties>
 		<Property name="baseDir">logs</Property>
 		<!-- <Property name="baseDir">/mnt/data/analytics/logs</Property> --> <!-- Production Config -->
@@ -16,7 +16,8 @@
 				<TimeBasedTriggeringPolicy />
 			</Policies>
 			<DefaultRolloverStrategy>
-                <Delete basePath="${baseDir}/" maxDepth="1">
+                <Delete basePath="${baseDir}/" maxDepth="1" testMode="false">
+                    <IfFileName glob="joblog-*.log" />
                     <IfLastModified age="7d" />
                 </Delete>
             </DefaultRolloverStrategy>
