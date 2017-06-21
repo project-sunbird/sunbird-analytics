@@ -13,7 +13,7 @@ import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.util.CommonUtil
 import java.util.UUID
 import org.joda.time.DateTime
-import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.util._
 import org.ekstep.analytics.framework.DataFetcher
 import org.ekstep.analytics.framework.util.S3Util
 import java.io.File
@@ -50,7 +50,8 @@ class TestDataExhaustJobModel extends SparkSpec(null) {
             "data-exhaust-prefix" -> "data-exhaust/dev",
             "dispatch-to" -> "local",
             "path" -> "/tmp/dataexhaust",
-            "output_format" -> "json");
+            "output_format" -> "json",
+            "dataset_id" -> "D002");
 
         val out = DataExhaustJobModel.execute(data, Option(requestConfig)).collect
         out.length should be(1)

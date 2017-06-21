@@ -9,9 +9,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.DateTime
-import org.ekstep.analytics.model.JobRequest
-import org.ekstep.analytics.model.RequestFilter
-import org.ekstep.analytics.model.RequestConfig
+import org.ekstep.analytics.util._
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.util.S3Util
@@ -95,7 +93,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         postProcess(fileDetails, request_ids)
     }
 
-    it should "execute DataExhaustJob job with empty record and won't throw any Exception" in {
+    it should "execute DataExhaustJob with empty record and won't throw any Exception" in {
         noException should be thrownBy {
             preProcess()
             val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
@@ -104,28 +102,33 @@ class TestDataExhaustJob extends SparkSpec(null) {
         }
     }
 
-    it should "" in {
+    it should "exhaust OE_ASSESS data particular to a tag" in {
+        preProcess()
+        
         val requests = Array(
             JobRequest("test-key", "jsh3dg58f", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("becb887fe82f24c644482eb30041da6d88bd8150"), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
-        
+
         DataExhaustJob.main(config)(Option(sc));
 
         val files1 = new File("/tmp/dataexhaust/jsh3dg58f").listFiles()
         files1.length should not be (0)
-        
-        
+
         val job1 = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("client_key = ? and request_id = ?", "test-key", "jsh3dg58f").first();
 
         job1.stage.getOrElse("") should be("UPDATE_RESPONSE_TO_DB")
         job1.stage_status.getOrElse("") should be("COMPLETED")
         job1.status should be("COMPLETED")
         job1.output_events.get should be > (0L)
+        
+        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/dataexhaust")
+        val request_ids = Array("jsh3dg58f")
+        postProcess(fileDetails, request_ids)
     }
-
+    
     ignore should "run the data exhaust and save data to S3" in {
 
         preProcess()
@@ -133,7 +136,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         val requests = Array(
             JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-09-01", "2016-09-10", List("dff9175fa217e728d86bc1f4d8f818f6d2959303"), None))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None),
-            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("test-tag"), Option(List("OE_ASSESS"))))),
+            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20",List("test-tag"), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
