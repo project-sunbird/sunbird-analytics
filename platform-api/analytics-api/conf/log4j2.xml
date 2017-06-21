@@ -15,14 +15,10 @@
 			<Policies>
 				<TimeBasedTriggeringPolicy />
 			</Policies>
-			<DefaultRolloverStrategy>
-                <Delete basePath="${baseDir}/" maxDepth="1">
-                    <IfLastModified age="7d" />
-                </Delete>
-            </DefaultRolloverStrategy>
 		</RollingFile>
 		<Async name="Async">
 			<AppenderRef ref="RollingFileAppender" />
+			
 		</Async>
 	</Appenders>
 	<Loggers>
