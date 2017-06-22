@@ -73,15 +73,16 @@ object JobAPIService {
 
 	private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
 		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
-		val requestId = _getRequestId(body.request.filter.get, outputFormat);
+		val datasetId = body.request.dataset_id.getOrElse("D002")
+		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId);
 		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
 		if (null == job) {
-			_saveJobRequest(requestId, body.params.get.client_key.get, body.request);
+			_saveJobRequest(requestId, body.params.get.client_key.get, datasetId, body.request);
 		} else {
 			if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
 				val retryLimit = config.getInt("data_exhaust.retry.limit");
 				val attempts = job.iteration.getOrElse(0);
-				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, body.request, attempts); else job
+				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, datasetId, body.request, attempts); else job
 			} else job
 		}
 	}
@@ -91,7 +92,7 @@ object JobAPIService {
 		val filter = body.request.filter;
 		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
 		if (filter.isEmpty || params.isEmpty) {
-			val message = if (filter.isEmpty) "filter is empty" else "filter is empty";
+			val message = if (filter.isEmpty) "filter is empty" else "params is empty" ;
 			Map("status" -> "false", "message" -> message);
 		} else {
 			if (outputFormat != null && !outputFormat.isEmpty && !(outputFormat.equals(OutputFormat.CSV) || outputFormat.equals(OutputFormat.JSON))) {
@@ -145,18 +146,18 @@ object JobAPIService {
 		JobResponse(job.request_id.get, job.status.get, lastupdated, request, job.iteration.getOrElse(0), output, stats);
 	}
 
-	private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
+	private def _saveJobRequest(requestId: String, clientKey: String, datasetId: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
 		val status = JobStatus.SUBMITTED.toString()
 		val jobSubmitted = DateTime.now()
-		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted))
+		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(datasetId))
 		DBUtil.saveJobRequest(jobRequest);
 		jobRequest;
 	}
 
-	private def _getRequestId(filter: Filter, outputFormat: String): String = {
+	private def _getRequestId(filter: Filter, outputFormat: String, datasetId: String): String = {
 		Sorting.quickSort(filter.tags.getOrElse(Array()));
 		Sorting.quickSort(filter.events.getOrElse(Array()));
-		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString, outputFormat).mkString("|");
+		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId).mkString("|");
 		MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
 	}
 
