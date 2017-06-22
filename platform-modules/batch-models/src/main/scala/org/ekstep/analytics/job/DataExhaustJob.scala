@@ -84,7 +84,7 @@ object DataExhaustJob extends optional.Application with IJob {
                     "dispatch-to" -> modelConfig.getOrElse("dispatch-to", "s3").asInstanceOf[String].toLowerCase(),
                     "path" -> modelConfig.getOrElse("tempLocalPath", "/tmp/dataexhaust"),
                     "output_format" -> outputFormat,
-                    "dataset_id" -> requestData.dataset_id);
+                    "dataset_id" -> requestData.dataset_id.get);
 
                 val result = CommonUtil.time({
                     val data = DataExhaustUtils.fetchData(request, config)

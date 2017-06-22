@@ -1,7 +1,6 @@
 package org.ekstep.analytics.dataexhaust
 
 import scala.reflect.runtime.universe
-
 import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
@@ -20,13 +19,14 @@ import org.ekstep.analytics.util._
 import org.ekstep.analytics.util.Constants
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
-
 import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.toNamedColumnRef
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
+import org.ekstep.analytics.creation.model.CreationEvent
+import org.ekstep.analytics.framework.MeasuredEvent
 
 object DataExhaustUtils {
 
@@ -86,21 +86,32 @@ object DataExhaustUtils {
         }
 
     }
-    def filterEvent(data: RDD[String], requestFilter: RequestFilter): RDD[DataExhaustJobInput] = {
+    def filterEvent(data: RDD[String], requestFilter: RequestFilter, datasetId: String): RDD[DataExhaustJobInput] = {
 
         val startDate = CommonUtil.dateFormat.parseDateTime(requestFilter.start_date).withTimeAtStartOfDay().getMillis;
         val endDate = CommonUtil.dateFormat.parseDateTime(requestFilter.end_date).withTimeAtStartOfDay().getMillis + 86399000;
         val filters: Array[Filter] = Array(
-            Filter("eventts", "RANGE", Option(Map("start" -> startDate, "end" -> endDate))),
-            Filter("genieTag", "IN", Option(requestFilter.tags))) ++ {
+            Filter("eventts", "RANGE", Option(Map("start" -> startDate, "end" -> endDate)))) ++ {
                 if (requestFilter.events.isDefined && requestFilter.events.get.nonEmpty) Array(Filter("eid", "IN", Option(requestFilter.events.get))) else Array[Filter]();
+            } ++ {
+                if (requestFilter.tags.isDefined && requestFilter.tags.get.nonEmpty) Array(Filter("genieTag", "IN", Option(requestFilter.tags.get))) else Array[Filter]();
             }
         data.map { x =>
             try {
-                val event = JSONUtils.deserialize[Event](x);
-                val matched = DataFilter.matches(event, filters);
+                val eventWithTS = datasetId match {
+                    case "D002" =>
+                        val e = JSONUtils.deserialize[Event](x);
+                        (e, CommonUtil.getEventTS(e))
+                    case "D005" =>
+                        val me = JSONUtils.deserialize[CreationEvent](x);
+                        (me, CommonUtil.getTimestamp(me.`@timestamp`))
+                    case _ =>
+                        val ce = JSONUtils.deserialize[MeasuredEvent](x);
+                        (ce, ce.syncts)
+                }
+                val matched = DataFilter.matches(eventWithTS._1, filters);
                 if (matched) {
-                    DataExhaustJobInput(CommonUtil.getEventTS(event), x)
+                    DataExhaustJobInput(eventWithTS._2, x)
                 } else {
                     null;
                 }

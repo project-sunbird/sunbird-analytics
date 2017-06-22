@@ -116,8 +116,15 @@ object DataFilter {
         name match {
             case "eventId" => getBeanProperty(event, "eid");
             case "ts"      => CommonUtil.getTimestamp(getBeanProperty(event, "ts").asInstanceOf[String]).asInstanceOf[AnyRef];
-            case "eventts"  => 
-                CommonUtil.getTimestamp(getBeanProperty(event, "metadata.sync_timestamp").asInstanceOf[String]).asInstanceOf[AnyRef];
+            case "eventts"  =>
+                if(event.isInstanceOf[Event]){
+                    CommonUtil.getTimestamp(getBeanProperty(event, "metadata.sync_timestamp").asInstanceOf[String]).asInstanceOf[AnyRef];    
+                }else if(event.isInstanceOf[MeasuredEvent]){
+                    getBeanProperty(event, "syncts").asInstanceOf[AnyRef];    
+                }else {
+                    val eventMap = CommonUtil.caseClassToMap(event)
+                    CommonUtil.getTimestamp(eventMap.get("$attimestamp").get.asInstanceOf[String]).asInstanceOf[AnyRef];    
+                }
             case "gameId" =>
                 val gid = getBeanProperty(event, "edata.eks.gid");
                 if (null == gid)

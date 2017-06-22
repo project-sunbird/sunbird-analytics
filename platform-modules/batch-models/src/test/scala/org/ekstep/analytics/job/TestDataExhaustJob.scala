@@ -58,9 +58,9 @@ class TestDataExhaustJob extends SparkSpec(null) {
         preProcess()
 
         val requests = Array(
-            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("becb887fe82f24c644482eb30041da6d88bd8150"), None))),
+            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), None))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None),
-            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("test-tag"), Option(List("OE_ASSESS"))))),
+            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("test-tag")), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
@@ -104,9 +104,9 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
     it should "exhaust OE_ASSESS data particular to a tag" in {
         preProcess()
-        
+
         val requests = Array(
-            JobRequest("test-key", "jsh3dg58f", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", List("becb887fe82f24c644482eb30041da6d88bd8150"), Option(List("OE_ASSESS"))))),
+            JobRequest("test-key", "jsh3dg58f", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
@@ -123,20 +123,54 @@ class TestDataExhaustJob extends SparkSpec(null) {
         job1.stage_status.getOrElse("") should be("COMPLETED")
         job1.status should be("COMPLETED")
         job1.output_events.get should be > (0L)
-        
+
         val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/dataexhaust")
         val request_ids = Array("jsh3dg58f")
         postProcess(fileDetails, request_ids)
     }
-    
+
+    it should "test consumption summary data" in {
+        preProcess()
+
+        val requests = Array(
+            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-18", "2017-06-18", Option(List()), Option(List("ME_SESSION_SUMMARY"))), Option("D003"))),
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
+
+        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/consumption-summ/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
+
+        DataExhaustJob.main(config)(Option(sc));
+
+        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/dataexhaust")
+        val request_ids = Array("requestID1")
+        postProcess(fileDetails, request_ids)
+    }
+
+    it should "test for creation telemetry data" in {
+        preProcess()
+
+        val requests = Array(
+            JobRequest("client-key2", "requestID2", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-22", "2017-06-22", Option(List()), None), Option("D005"))),
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
+
+        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
+
+        DataExhaustJob.main(config)(Option(sc));
+
+        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/dataexhaust")
+        val request_ids = Array("requestID2")
+        postProcess(fileDetails, request_ids)
+    }
+
     ignore should "run the data exhaust and save data to S3" in {
 
         preProcess()
 
         val requests = Array(
-            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-09-01", "2016-09-10", List("dff9175fa217e728d86bc1f4d8f818f6d2959303"), None))),
+            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-09-01", "2016-09-10", Option(List("dff9175fa217e728d86bc1f4d8f818f6d2959303")), None))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None),
-            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20",List("test-tag"), Option(List("OE_ASSESS"))))),
+            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("test-tag")), Option(List("OE_ASSESS"))))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)

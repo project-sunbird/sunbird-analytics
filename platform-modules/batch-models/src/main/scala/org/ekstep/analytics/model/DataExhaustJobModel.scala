@@ -45,9 +45,10 @@ object DataExhaustJobModel extends IBatchModel[String, JobResponse] with Seriali
 
         val request_id = config.get("request_id").get.asInstanceOf[String];
         val client_key = config.get("client_key").get.asInstanceOf[String];
+        val dataSetId = config.getOrElse("dataset_id", "D002").asInstanceOf[String]
         val requestFilter = DataExhaustUtils.getRequest(request_id, client_key)
         try {
-            val filteredData = DataExhaustUtils.filterEvent(data, requestFilter);
+            val filteredData = DataExhaustUtils.filterEvent(data, requestFilter, dataSetId);
             DataExhaustUtils.updateStage(request_id, client_key, "FILTERING_DATA", "COMPLETED")
             filteredData
         } catch {
