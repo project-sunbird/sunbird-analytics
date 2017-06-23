@@ -73,7 +73,8 @@ object JobAPIService {
 
 	private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
 		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
-		val requestId = _getRequestId(body.request.filter.get, outputFormat);
+		val datasetId = body.request.dataset_id.getOrElse("D002")
+		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId);
 		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
 		if (null == job) {
 			_saveJobRequest(requestId, body.params.get.client_key.get, body.request);
@@ -91,7 +92,7 @@ object JobAPIService {
 		val filter = body.request.filter;
 		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
 		if (filter.isEmpty || params.isEmpty) {
-			val message = if (filter.isEmpty) "filter is empty" else "filter is empty";
+			val message = if (filter.isEmpty) "filter is empty" else "params is empty" ;
 			Map("status" -> "false", "message" -> message);
 		} else {
 			if (outputFormat != null && !outputFormat.isEmpty && !(outputFormat.equals(OutputFormat.CSV) || outputFormat.equals(OutputFormat.JSON))) {
@@ -148,15 +149,15 @@ object JobAPIService {
 	private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
 		val status = JobStatus.SUBMITTED.toString()
 		val jobSubmitted = DateTime.now()
-		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted))
+		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 		DBUtil.saveJobRequest(jobRequest);
 		jobRequest;
 	}
 
-	private def _getRequestId(filter: Filter, outputFormat: String): String = {
+	private def _getRequestId(filter: Filter, outputFormat: String, datasetId: String): String = {
 		Sorting.quickSort(filter.tags.getOrElse(Array()));
 		Sorting.quickSort(filter.events.getOrElse(Array()));
-		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString, outputFormat).mkString("|");
+		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId).mkString("|");
 		MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
 	}
 

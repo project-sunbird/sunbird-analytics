@@ -356,6 +356,7 @@ CREATE TABLE IF NOT EXISTS platform_db.job_request (
     client_key text,
     request_id text,
     job_id text,
+    dataset_id text,
     status text,
     request_data text,
     location text,
