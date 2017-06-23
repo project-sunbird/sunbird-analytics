@@ -15,9 +15,10 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.connector.InfluxDB._
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.framework.CassandraTable
 
 case class AuthorMetricsFact_T(d_period: Int, d_author_id: String, total_sessions: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, ce_visits_count: Long, percent_ce_sessions: Double, avg_ts_session: Double, percent_ce_ts: Double, updated_date: Long, last_gen_date: Long)
-case class AuthorMetricsFact(d_period: Int, d_author_id: String, total_sessions: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, ce_visits_count: Long, percent_ce_sessions: Double, avg_ts_session: Double, percent_ce_ts: Double, updated_date: Long) extends AlgoOutput with Output
+case class AuthorMetricsFact(d_period: Int, d_author_id: String, total_sessions: Long, total_ts: Double, total_ce_ts: Double, total_ce_visit: Long, ce_visits_count: Long, percent_ce_sessions: Double, avg_ts_session: Double, percent_ce_ts: Double, updated_date: Long) extends AlgoOutput with Output with CassandraTable
 case class AuthorMetricsIndex(d_period: Int, d_author_id: String)
 
 object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, AuthorMetricsFact, AuthorMetricsFact] with IInfluxDBUpdater with Serializable {
