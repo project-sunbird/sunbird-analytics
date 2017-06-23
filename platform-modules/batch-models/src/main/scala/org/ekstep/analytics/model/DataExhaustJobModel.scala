@@ -12,7 +12,6 @@ import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.util._
 import org.joda.time.DateTime
 import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.toNamedColumnRef

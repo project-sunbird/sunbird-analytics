@@ -194,29 +194,29 @@ object DataExhaustUtils {
 
     }
     def getFetcher(bucket: String, events: Array[String], filter: RequestFilter): Fetcher = {
-        val prefixes = events.map { x => if (x.endsWith("METRICS")) x.toLowerCase() else getPrefixes(x) }.filter { x => !StringUtils.equals("", x) }
+        val prefixes = events.map { x => if (x.endsWith("METRICS")) x.toLowerCase() else getPrefixes(x) }.filter { x => !StringUtils.equals("", x) }.map { x => x.split(",") }.flatMap { x => x }
         val queries = prefixes.map { x => Query(Option(bucket), Option(x), Option(filter.start_date), Option(filter.end_date)) }
         if (queries.isEmpty) Fetcher("s3", None, None); else Fetcher("s3", None, Option(queries));
 
     }
     def getPrefixes(event: String): String = {
         event match {
-            case "ME_SESSION_SUMMARY"          => "ss"
-            case "ME_ITEM_SUMMARY"             => "is"
-            case "ME_GENIE_LAUNCH_SUMMARY"     => "gls"
-            case "ME_CONTENT_USAGE_SUMMARY"    => "cus"
-            case "ME_GENIE_USAGE_SUMMARY"      => "genie-launch-summ"
-            case "ME_ITEM_USAGE_SUMMARY"       => "item-usage-summ"
-            case "ME_APP_SESSION_SUMMARY"      => "app-ss"
-            case "ME_CE_SESSION_SUMMARY"       => "ce-ss"
-            case "ME_TEXTBOOK_SESSION_SUMMARY" => "textbook-ss"
-            case "ME_APP_USAGE_SUMMARY"        => "app-usage"
-            case "ME_CE_USAGE_SUMMARY"         => "ce-usage"
-            case "ME_TEXTBOOK_USAGE_SUMMARY"   => "textbook-usage"
-            case "consumption-summary"         => "ss,is,gls,cus,genie-launch-summ,item-usage-summ"
-            case "consumption-metrics"         => "me_content_usage_metrics,me_item_usage_metrics,me_genie_usage_metrics,me_content_snapshot_metrics,me_concept_snapshot_metrics,me_asset_snapshot_metrics"
-            case "creation-summary"            => "app-ss,ce-ss,textbook-ss,app-usage,ce-usage,textbook-usage"
-            case "creation-metrics"            => "me_app_usage_metrics,me_ce_usage_metrics,me_textbook_creation_metrics,me_textbook_snapshot_metrics"
+            case "ME_SESSION_SUMMARY"          => "ss/"
+            case "ME_ITEM_SUMMARY"             => "is/"
+            case "ME_GENIE_LAUNCH_SUMMARY"     => "gls/"
+            case "ME_CONTENT_USAGE_SUMMARY"    => "cus/"
+            case "ME_GENIE_USAGE_SUMMARY"      => "genie-launch-summ/"
+            case "ME_ITEM_USAGE_SUMMARY"       => "item-usage-summ/"
+            case "ME_APP_SESSION_SUMMARY"      => "app-ss/"
+            case "ME_CE_SESSION_SUMMARY"       => "ce-ss/"
+            case "ME_TEXTBOOK_SESSION_SUMMARY" => "textbook-ss/"
+            case "ME_APP_USAGE_SUMMARY"        => "app-usage/"
+            case "ME_CE_USAGE_SUMMARY"         => "ce-usage/"
+            case "ME_TEXTBOOK_USAGE_SUMMARY"   => "textbook-usage/"
+            case "consumption-summary"         => "ss/,is/,gls/,cus/,genie-launch-summ/,item-usage-summ/"
+            case "consumption-metrics"         => "me_content_usage_metrics/,me_item_usage_metrics/,me_genie_usage_metrics/,me_content_snapshot_metrics/,me_concept_snapshot_metrics/,me_asset_snapshot_metrics/"
+            case "creation-summary"            => "app-ss/,ce-ss/,textbook-ss/,app-usage/,ce-usage/,textbook-usage/"
+            case "creation-metrics"            => "me_app_usage_metrics/,me_ce_usage_metrics/,me_textbook_creation_metrics/,me_textbook_snapshot_metrics/"
             case _                             => ""
         }
     }
