@@ -77,12 +77,12 @@ object JobAPIService {
 		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId);
 		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
 		if (null == job) {
-			_saveJobRequest(requestId, body.params.get.client_key.get, datasetId, body.request);
+			_saveJobRequest(requestId, body.params.get.client_key.get, body.request);
 		} else {
 			if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
 				val retryLimit = config.getInt("data_exhaust.retry.limit");
 				val attempts = job.iteration.getOrElse(0);
-				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, datasetId, body.request, attempts); else job
+				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, body.request, attempts); else job
 			} else job
 		}
 	}
@@ -146,10 +146,10 @@ object JobAPIService {
 		JobResponse(job.request_id.get, job.status.get, lastupdated, request, job.iteration.getOrElse(0), output, stats);
 	}
 
-	private def _saveJobRequest(requestId: String, clientKey: String, datasetId: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
+	private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
 		val status = JobStatus.SUBMITTED.toString()
 		val jobSubmitted = DateTime.now()
-		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(datasetId))
+		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 		DBUtil.saveJobRequest(jobRequest);
 		jobRequest;
 	}
