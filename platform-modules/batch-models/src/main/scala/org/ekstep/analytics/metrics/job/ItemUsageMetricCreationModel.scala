@@ -23,10 +23,10 @@ object ItemUsageMetricCreationModel extends MetricsBatchModel[String,String] wit
         
         val start_date = jobParams.getOrElse(Map()).getOrElse("start_date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String];
         val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
-        val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics_dispatch_params"));
+        val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics.dispatch.params"));
         
         val groupFn = (x: ItemUsageSummaryFact) => { (x.d_period + "-" + x.d_tag + "-" + x.d_content_id + "-" + x.d_item_id) };
-        val fetchDetails = ConfigDetails(Constants.CONTENT_KEY_SPACE_NAME, Constants.ITEM_USAGE_SUMMARY_FACT, start_date, end_date, AppConf.getConfig("metrics_consumption_dataset_id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics_dispatch_to"), dispatchParams)
+        val fetchDetails = ConfigDetails(Constants.CONTENT_KEY_SPACE_NAME, Constants.ITEM_USAGE_SUMMARY_FACT, start_date, end_date, AppConf.getConfig("metrics.consumption.dataset.id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics.dispatch.to"), dispatchParams)
         val res = processQueryAndComputeMetrics(fetchDetails, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
