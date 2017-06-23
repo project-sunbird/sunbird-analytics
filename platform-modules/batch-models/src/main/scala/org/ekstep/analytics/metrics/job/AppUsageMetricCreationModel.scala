@@ -25,7 +25,7 @@ object AppUsageMetricCreationModel extends MetricsBatchModel[String, String] wit
         val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics_dispatch_params"));
         val groupFn = (x: PortalUsageSummaryFact) => { (x.d_period + "-" + x.d_author_id + "-" + x.d_app_id) };
-        val details = ConfigDetails(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT, start_date, end_date, AppConf.getConfig("metrics_files_prefix") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics_dispatch_to"), dispatchParams)
+        val details = ConfigDetails(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT, start_date, end_date, AppConf.getConfig("metrics_creation_dataset_id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics_dispatch_to"), dispatchParams)
         val res = processQueryAndComputeMetrics(details, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>

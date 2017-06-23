@@ -13,7 +13,7 @@ import org.ekstep.analytics.updater.UpdateAuthorSummaryDB
 
 class TestAuthorUsageMetricCreationModel extends SparkSpec(null) {
   
-    "AuthorSnapshotMetricCreationModel" should "execute AuthorSnapshotMetricCreationModel successfully" in {
+    "AuthorUsageMetricCreationModel" should "execute AuthorUsageMetricCreationModel successfully" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE creation_metrics_db.author_usage_summary_fact");

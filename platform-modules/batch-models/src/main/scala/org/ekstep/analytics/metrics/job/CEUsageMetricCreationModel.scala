@@ -26,7 +26,7 @@ object CEUsageMetricCreationModel extends MetricsBatchModel[String,String] with 
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics_dispatch_params"));
         
         val groupFn = (x: CEUsageSummaryFact) => { (x.d_period + "-" + x.d_content_id) };
-        val details = ConfigDetails(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY, start_date, end_date, AppConf.getConfig("metrics_files_prefix") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics_dispatch_to"), dispatchParams)
+        val details = ConfigDetails(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY, start_date, end_date, AppConf.getConfig("metrics_creation_dataset_id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics_dispatch_to"), dispatchParams)
         val res = processQueryAndComputeMetrics(details, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
