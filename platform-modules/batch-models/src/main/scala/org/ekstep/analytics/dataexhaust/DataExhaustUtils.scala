@@ -194,7 +194,7 @@ object DataExhaustUtils {
 
     }
     def getFetcher(bucket: String, events: Array[String], filter: RequestFilter): Fetcher = {
-        val prefixes = events.map { x => if (x.endsWith("METRICS")) x.toLowerCase() else getPrefixes(x) }.filter { x => !StringUtils.equals("", x) }.map { x => x.split(",") }.flatMap { x => x }
+        val prefixes = events.map { x => if (x.endsWith("METRICS")) "metrics/me-metrics/"+x.toLowerCase() else getPrefixes(x) }.filter { x => !StringUtils.equals("", x) }.map { x => x.split(",") }.flatMap { x => x }
         val queries = prefixes.map { x => Query(Option(bucket), Option(x), Option(filter.start_date), Option(filter.end_date)) }
         if (queries.isEmpty) Fetcher("s3", None, None); else Fetcher("s3", None, Option(queries));
 
