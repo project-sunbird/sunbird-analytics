@@ -71,8 +71,9 @@ object DataExhaustJob extends optional.Application with IJob {
             try {
                 val dtProcessing = DateTime.now(DateTimeZone.UTC);
                 val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
+                val datasetId = requestData.dataset_id.getOrElse("D002");
                 val outputFormat = requestData.output_format.getOrElse("json").asInstanceOf[String]
-                val updatedRequestData = JSONUtils.serialize(RequestConfig(requestData.filter, Option(outputFormat)))
+                val updatedRequestData = JSONUtils.serialize(RequestConfig(requestData.filter, Option(datasetId), Option(outputFormat)))
 
                 val modelConfig = config.modelParams.get
                 val requestConfig = Map(
