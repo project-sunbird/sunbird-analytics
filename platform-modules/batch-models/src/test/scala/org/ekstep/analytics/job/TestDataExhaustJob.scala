@@ -177,7 +177,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
-        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-read-bucket":"ekstep-datasets-test","dataset-read-prefix":"staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/","data-exhaust-bucket":"ekstep-public","data-exhaust-prefix":"dev/data-exhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
+        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-raw-bucket":"ekstep-datasets-test","consumption-raw-prefix":"staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/","data-exhaust-bucket":"ekstep-public","data-exhaust-prefix":"dev/data-exhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
         DataExhaustJob.main(config)(Option(sc));
 
         val fileDetails = Map("fileType" -> "s3", "bucket" -> "ekstep-public", "prefix" -> "dev/data-exhaust")
@@ -195,7 +195,25 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
-        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-read-bucket":"ekstep-dev-data-store","dataset-read-prefix":"ss/","data-exhaust-bucket":"ekstep-public-dev","data-exhaust-prefix":"data-exhaust/test","tempLocalPath":"/tmp/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
+        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-raw-bucket":"ekstep-dev-data-store","consumption-raw-prefix":"ss/","data-exhaust-bucket":"ekstep-public-dev","data-exhaust-prefix":"data-exhaust/test","tempLocalPath":"/tmp/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
+        DataExhaustJob.main(config)(Option(sc));
+
+        val fileDetails = Map("fileType" -> "s3", "bucket" -> "ekstep-public-dev", "prefix" -> "data-exhaust/test/")
+        val request_ids = Array("requestID1")
+        postProcess(fileDetails, request_ids)
+    }
+    
+    ignore should "run the data exhaust for consumption metrics data and save it to S3" in {
+
+        preProcess()
+
+        val requests = Array(
+            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-22", "2017-06-22", Option(List()), Option(List("ME_CONTENT_USAGE_METRICS"))), Option("D004"))),
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
+
+        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+
+        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-raw-bucket":"ekstep-data-sets-dev","bucket":"ekstep-dev-data-store","consumption-raw-prefix":"datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/","creation-raw-prefix":"portal/","data-exhaust-bucket":"ekstep-public-dev","data-exhaust-prefix":"data-exhaust/test","tempLocalPath":"/tmp/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
         DataExhaustJob.main(config)(Option(sc));
 
         val fileDetails = Map("fileType" -> "s3", "bucket" -> "ekstep-public-dev", "prefix" -> "data-exhaust/test/")

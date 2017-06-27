@@ -27,6 +27,8 @@ import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
 import org.ekstep.analytics.creation.model.CreationEvent
 import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.OutputDispatcher
+import org.ekstep.analytics.framework.Dispatcher
 
 object DataExhaustUtils {
 
@@ -58,6 +60,7 @@ object DataExhaustUtils {
         val csv = Array(headers.mkString(",")) ++ rows;
         sc.parallelize(csv, 1);
     }
+
     def saveData(outputFormat: String, path: String, events: RDD[DataExhaustJobInput], uploadPrefix: String, stage: String, config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
 
         val client_key = config.get("client_key").get.asInstanceOf[String];
@@ -84,7 +87,6 @@ object DataExhaustUtils {
                 updateStage(request_id, client_key, stage, "FAILED", "FAILED")
                 throw t;
         }
-
     }
     def filterEvent(data: RDD[String], requestFilter: RequestFilter, datasetId: String): RDD[DataExhaustJobInput] = {
 
@@ -101,17 +103,17 @@ object DataExhaustUtils {
                 val eventWithTS = datasetId match {
                     case "D002" =>
                         val e = JSONUtils.deserialize[Event](x);
-                        (e, CommonUtil.getEventTS(e))
+                        (e, CommonUtil.getEventTS(e), e.eid)
                     case "D005" =>
                         val me = JSONUtils.deserialize[CreationEvent](x);
-                        (me, CommonUtil.getTimestamp(me.`@timestamp`))
+                        (me, CommonUtil.getTimestamp(me.`@timestamp`), me.eid)
                     case _ =>
                         val ce = JSONUtils.deserialize[MeasuredEvent](x);
-                        (ce, ce.syncts)
+                        (ce, ce.syncts, ce.eid)
                 }
                 val matched = DataFilter.matches(eventWithTS._1, filters);
                 if (matched) {
-                    DataExhaustJobInput(eventWithTS._2, x)
+                    DataExhaustJobInput(eventWithTS._2, x, eventWithTS._3)
                 } else {
                     null;
                 }
@@ -193,8 +195,10 @@ object DataExhaustUtils {
         }
 
     }
-    def getFetcher(bucket: String, events: Array[String], filter: RequestFilter): Fetcher = {
-        val prefixes = events.map { x => if (x.endsWith("METRICS")) "metrics/me-metrics/"+x.toLowerCase() else getPrefixes(x) }.filter { x => !StringUtils.equals("", x) }.map { x => x.split(",") }.flatMap { x => x }
+    def getFetcher(bucket: String, events: Array[String], filter: RequestFilter, basePrefix: String = ""): Fetcher = {
+        val prefixes = events.map { x =>
+            if (x.endsWith("METRICS")) x.toLowerCase() else getPrefixes(x)
+        }.filter { x => !StringUtils.equals("", x) }.map { x => x.split(",") }.flatMap { x => x }.map { x => (basePrefix + "/" + x) }
         val queries = prefixes.map { x => Query(Option(bucket), Option(x), Option(filter.start_date), Option(filter.end_date)) }
         if (queries.isEmpty) Fetcher("s3", None, None); else Fetcher("s3", None, Option(queries));
 
@@ -224,29 +228,30 @@ object DataExhaustUtils {
 
         config.search.`type`.toLowerCase() match {
             case "s3" =>
-                val dataSetRawBucket = modelParams.get("dataset-raw-bucket").getOrElse("ekstep-datasets").asInstanceOf[String];
-                val dataSetRawPrefix = modelParams.get("dataset-raw-prefix").getOrElse("restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/").asInstanceOf[String];
+                val dataSetRawBucket = modelParams.get("dataset-raw-bucket").getOrElse("ekstep-data-sets-dev").asInstanceOf[String];
+                val consumptionRawPrefix = modelParams.get("consumption-raw-prefix").getOrElse("restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/").asInstanceOf[String];
+                val creationRawPrefix = modelParams.get("creation-raw-prefix").getOrElse("portal/").asInstanceOf[String];
                 val bucket = modelParams.get("bucket").getOrElse("ekstep-dev-data-store").asInstanceOf[String];
                 dataSetID match {
                     case "D002" =>
                         val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy/MM/dd").withZoneUTC();
                         val startDate = CommonUtil.dateFormat.parseDateTime(filter.start_date).withTimeAtStartOfDay().getMillis
                         val endDate = CommonUtil.dateFormat.parseDateTime(filter.end_date).withTimeAtStartOfDay().getMillis
-                        Fetcher("s3", None, Option(Array(Query(Option(dataSetRawBucket), Option(dataSetRawPrefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
+                        Fetcher("s3", None, Option(Array(Query(Option(dataSetRawBucket), Option(consumptionRawPrefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
                     case "D003" =>
                         val finalEvents = if (events.isEmpty) Array("consumption-summary") else events
                         getFetcher(bucket, finalEvents, filter)
                     case "D004" =>
                         val finalEvents = if (events.isEmpty) Array("consumption-metrics") else events
-                        getFetcher(bucket, events, filter)
+                        getFetcher(bucket, events, filter, "org.ekstep.consumption.metrics")
                     case "D005" =>
-                        Fetcher("s3", None, Option(Array(Query(Option(bucket), Option(dataSetRawPrefix), Option(filter.start_date), Option(filter.end_date)))));
+                        Fetcher("s3", None, Option(Array(Query(Option(bucket), Option(creationRawPrefix), Option(filter.start_date), Option(filter.end_date)))));
                     case "D006" =>
                         val finalEvents = if (events.isEmpty) Array("creation-summary") else events
                         getFetcher(bucket, events, filter)
                     case "D007" =>
                         val finalEvents = if (events.isEmpty) Array("creation-metrics") else events
-                        getFetcher(bucket, events, filter)
+                        getFetcher(bucket, events, filter, "org.ekstep.consumption.metrics")
                     case _ =>
                         null
                 }
