@@ -29,8 +29,10 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll{
 	}
 
 	override def afterAll() {
-		EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-		EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+		if (embeddedCassandraMode) {
+			EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+			EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+		}
 	}
 	
 	private def getSparkConf(): SparkConf = {

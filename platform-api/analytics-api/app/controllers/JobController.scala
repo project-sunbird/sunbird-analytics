@@ -41,7 +41,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 	}
 
 	def getJobList(clientKey: String) = Action.async { implicit request =>
-		val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.jobs.list.limit")))
+		val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.list.limit")))
 		val result = ask(jobAPIActor, DataRequestList(clientKey, limit, Context.sc, config)).mapTo[String];
 		result.map { x =>
 			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");

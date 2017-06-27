@@ -72,17 +72,19 @@ object JobAPIService {
 	}
 
 	private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
-		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
-		val datasetId = body.request.dataset_id.getOrElse("D002")
+		val outputFormat = body.request.output_format.getOrElse(config.getString("data_exhaust.output_format"))
+		val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset"));
 		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId);
 		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
+		val usrReq = body.request;
+		val request = Request(usrReq.filter, usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId));
 		if (null == job) {
-			_saveJobRequest(requestId, body.params.get.client_key.get, body.request);
+			_saveJobRequest(requestId, body.params.get.client_key.get, request);
 		} else {
 			if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
 				val retryLimit = config.getInt("data_exhaust.retry.limit");
 				val attempts = job.iteration.getOrElse(0);
-				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, body.request, attempts); else job
+				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, request, attempts); else job
 			} else job
 		}
 	}
