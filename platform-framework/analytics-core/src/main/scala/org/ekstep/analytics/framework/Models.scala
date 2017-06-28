@@ -75,7 +75,7 @@ case class Dispatcher(to: String, params: Map[String, AnyRef]);
 @scala.beans.BeanInfo
 case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]]);
 @scala.beans.BeanInfo
-case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String], deviceMapping: Option[Boolean] = Option(false));
+case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String], deviceMapping: Option[Boolean] = Option(false), exhaustConfig: Option[Map[String, DataSet]] = None);
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
@@ -128,6 +128,12 @@ case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = 
 case class Relation(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = Option(Map())) extends Serializable;
 case class UpdateDataNode(identifier: String, propertyName: String, propertyValue: AnyRef, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
 case class Job_Config(category: String, config_key: String, config_value: Map[String, List[String]])
+
+/* Data Exhaust*/
+case class DataSet(events: List[String], eventConfig: Map[String, EventId])
+case class EventId(eventType: String, searchType: String, saveType: String, fetchConfig: FetchConfig, filterMapping: Map[String, Filter], saveConfig: SaveConfig)
+case class FetchConfig(params: Map[String, String])
+case class SaveConfig(params: Map[String, String])
 
 object Period extends Enumeration {
     type Period = Value
