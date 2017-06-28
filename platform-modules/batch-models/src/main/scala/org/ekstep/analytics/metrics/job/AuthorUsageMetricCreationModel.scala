@@ -29,7 +29,7 @@ object AuthorUsageMetricCreationModel extends MetricsBatchModel[String, String] 
         val res = processQueryAndComputeMetrics(details, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_period, "DAY", System.currentTimeMillis());
+                val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_period, "DAY", System.currentTimeMillis(), None, None);
                 val event = getMeasuredEvent(event_id, mid, "AuthorUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), None, None, None))
                 JSONUtils.serialize(event)
             }

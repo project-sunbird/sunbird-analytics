@@ -40,7 +40,7 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
     override def postProcess(data: RDD[GenieStageAlgoOut], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_STAGE_SUMMARY", summary.stageId + summary.sid, config.getOrElse("granularity", "GENIE SESSION").asInstanceOf[String], summary.dt_range.to);
+            val mid = CommonUtil.getMessageId("ME_GENIE_STAGE_SUMMARY", summary.stageId + summary.sid, config.getOrElse("granularity", "GENIE SESSION").asInstanceOf[String], summary.dt_range.to, None, None);
             val measures = Map(
                 "timeSpent" -> summary.timeSpent,
                 "stageVisitCount" -> summary.visitCount,

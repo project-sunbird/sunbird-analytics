@@ -160,7 +160,7 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
         }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
 
         data.map { learner =>
-            val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", learner.learnerId.learner_id, "DAY", learner.dtRange.to);
+            val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", learner.learnerId.learner_id, "DAY", learner.dtRange.to, None, None);
             MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), learner.dtRange.to, "1.0", mid, learner.learnerId.learner_id, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String],
                     config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", learner.dtRange),

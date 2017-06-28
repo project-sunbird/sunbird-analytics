@@ -87,7 +87,7 @@ object JobLogger {
             "status" -> status,
             "data" -> data);
         val ts = new DateTime().getMillis
-        val mid = CommonUtil.getMessageId(eid, level, ts);
+        val mid = CommonUtil.getMessageId(eid, level, ts, None, None);
         MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", None, None,
             Context(PData("AnalyticsDataPipeline", JobContext.jobName, "1.0"), None, "EVENT", null),
             null,

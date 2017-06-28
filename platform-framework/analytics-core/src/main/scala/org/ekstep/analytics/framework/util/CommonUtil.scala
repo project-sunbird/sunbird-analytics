@@ -379,18 +379,22 @@ object CommonUtil {
         BigDecimal(value).setScale(precision, BigDecimal.RoundingMode.HALF_UP).toDouble;
     }
 
-    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA"): String = {
-        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId).mkString("|");
+    def getDefaultAppChannelIds(): (String, String) = {
+        (AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"))
+    }
+    
+    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA", appId: Option[String] = Option(getDefaultAppChannelIds._1), channelId: Option[String] = Option(getDefaultAppChannelIds._2)): String = {
+        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId, if(appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if(channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
-    def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long): String = {
-        val key = Array(eventId, userId, dateFormat.print(syncDate), granularity).mkString("|");
+    def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long, appId: Option[String], channelId: Option[String]): String = {
+        val key = Array(eventId, userId, dateFormat.print(syncDate), granularity, if(appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if(channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
     
-    def getMessageId(eventId: String, level: String, timeStamp: Long): String = {
-        val key = Array(eventId, level, df5.print(timeStamp)).mkString("|");
+    def getMessageId(eventId: String, level: String, timeStamp: Long, appId: Option[String], channelId: Option[String]): String = {
+        val key = Array(eventId, level, df5.print(timeStamp), if(appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if(channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 

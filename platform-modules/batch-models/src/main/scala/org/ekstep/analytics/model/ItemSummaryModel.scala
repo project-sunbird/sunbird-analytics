@@ -109,7 +109,7 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsIte
 
     override def postProcess(data: RDD[ItemUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { itSumm =>
-            val mid = CommonUtil.getMessageId("ME_ITEM_USAGE_SUMMARY", itSumm.ik.tag + itSumm.ik.period + itSumm.ik.content_id + itSumm.ik.item_id, "DAY", itSumm.syncts);
+            val mid = CommonUtil.getMessageId("ME_ITEM_USAGE_SUMMARY", itSumm.ik.tag + itSumm.ik.period + itSumm.ik.content_id + itSumm.ik.item_id, "DAY", itSumm.syncts, None, None);
             val measures = Map(
                 "total_ts" -> itSumm.total_ts,
                 "total_count" -> itSumm.total_count,

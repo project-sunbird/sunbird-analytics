@@ -53,7 +53,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
     override def postProcess(data: RDD[StageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to);
+            val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to, None, None);
             val measures = Map(
                 "stageId" -> summary.stageId,
                 "timeSpent" -> summary.timeSpent,

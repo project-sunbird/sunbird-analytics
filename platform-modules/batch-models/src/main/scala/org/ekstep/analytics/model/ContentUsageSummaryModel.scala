@@ -109,7 +109,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
 
     override def postProcess(data: RDD[ContentUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { cuMetrics =>
-            val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts);
+            val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts, None, None);
             val measures = Map(
                 "total_ts" -> cuMetrics.total_ts,
                 "total_sessions" -> cuMetrics.total_sessions,

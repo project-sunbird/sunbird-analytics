@@ -94,7 +94,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
 
     override def postProcess(data: RDD[GenieUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { guMetrics =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_USAGE_SUMMARY", guMetrics.gk.tag + guMetrics.gk.period, "DAY", guMetrics.syncts);
+            val mid = CommonUtil.getMessageId("ME_GENIE_USAGE_SUMMARY", guMetrics.gk.tag + guMetrics.gk.period, "DAY", guMetrics.syncts, None, None);
             val measures = Map(
                 "total_ts" -> guMetrics.total_ts,
                 "total_sessions" -> guMetrics.total_sessions,
