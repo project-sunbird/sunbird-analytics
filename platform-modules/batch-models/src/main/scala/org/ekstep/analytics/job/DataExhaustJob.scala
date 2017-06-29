@@ -15,6 +15,7 @@ import org.apache.spark.rdd.RDD
 object DataExhaustJob extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
+    val rawDataSetList = List("eks-consumption-raw", "eks-creation-raw")
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
@@ -42,7 +43,6 @@ object DataExhaustJob extends optional.Application with IJob {
         val requests = DataExhaustUtils.getAllRequest
         if (null != requests) {
             _executeRequests(requests.collect(), config);
-            requests.unpersist(true)
         } else {
             JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0)));
         }
@@ -53,34 +53,37 @@ object DataExhaustJob extends optional.Application with IJob {
         for (request <- requests) {
             val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
             val requestID = request.request_id
+            val clientKey = request.client_key
             val eventList = requestData.filter.events.getOrElse(List())
             val dataSetId = requestData.dataset_id.get
 
-            val events = if ("eks-consumption-raw".equals(dataSetId) || eventList.size == 0)
+            val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
                 config.get(dataSetId).get.events
             else
                 eventList
 
             for (eventId <- events) {
-                _executeEventExhaust(eventId, requestData, requestID)
+                _executeEventExhaust(eventId, requestData, requestID, clientKey)
             }
         }
     }
-    private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
+    private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
         val dataSetID = request.dataset_id.get
-        val data = DataExhaustUtils.fetchData(eventId, request)
+        val data = DataExhaustUtils.fetchData(eventId, request, requestID, clientKey)
         val filter = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(request.filter))
         val filteredData = DataExhaustUtils.filterEvent(data, filter, eventId, dataSetID);
+        DataExhaustUtils.updateStage(requestID, clientKey, "FILTERED_DATA_" + eventId, "COMPLETED")
         val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
 
         if ("DEFAULT".equals(eventId) && request.filter.events.isDefined && request.filter.events.get.size > 0) {
             for (event <- request.filter.events.get) {
                 val filterKey = Filter("eventId", "EQ", Option(event))
                 val data = DataFilter.filter(filteredData, filterKey)
-                DataExhaustUtils.saveData(data, eventConfig, requestID, event)
+                DataExhaustUtils.saveData(data, eventConfig, requestID, event, requestID, clientKey)
             }
         } else {
-            DataExhaustUtils.saveData(filteredData, eventConfig, requestID, eventId)
+            DataExhaustUtils.saveData(filteredData, eventConfig, requestID, eventId, requestID, clientKey)
         }
+        DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3", "COMPLETED", "PENDING_PACKAGING")
     }
 }

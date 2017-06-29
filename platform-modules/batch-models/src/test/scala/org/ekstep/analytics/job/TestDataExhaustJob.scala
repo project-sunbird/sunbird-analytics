@@ -68,83 +68,56 @@ class TestDataExhaustJob extends SparkSpec(null) {
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","saveType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}},"saveConfig":{"params":{"path":"/tmp/data-exhaust/"}}}}}}}"""
         DataExhaustJob.main(config)(Option(sc));
 
-        val files1 = new File("/tmp/data-exhaust/1234").listFiles()
+        val files1 = new File("/tmp/data-exhaust/1234/OE_INTERACT").listFiles()
         files1.length should not be (0)
+
+        val files2 = new File("/tmp/data-exhaust/1234/GE_INTERACT").listFiles()
+        files2.length should not be (0)
 
         val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/data-exhaust")
         val request_ids = Array("1234")
         postProcess(fileDetails, request_ids)
     }
 
-    //    it should "execute DataExhaustJob with empty record and won't throw any Exception" in {
-    //        noException should be thrownBy {
-    //            preProcess()
-    //            val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
-    //            DataExhaustJob.main(config)(Option(sc));
-    //
-    //        }
-    //    }
+    it should "test consumption summary data" in {
+        preProcess()
 
-    //    it should "exhaust OE_ASSESS data particular to a tag" in {
-    //        preProcess()
-    //
-    //        val requests = Array(
-    //            JobRequest("test-key", "jsh3dg58f", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_ASSESS")), None, None))),
-    //                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
-    //
-    //        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
-    //        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
-    //
-    //        DataExhaustJob.main(config)(Option(sc));
-    //
-    //        val files1 = new File("/tmp/dataexhaust/jsh3dg58f").listFiles()
-    //        files1.length should not be (0)
-    //
-    //        val job1 = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("client_key = ? and request_id = ?", "test-key", "jsh3dg58f").first();
-    //
-    //        job1.stage.getOrElse("") should be("UPDATE_RESPONSE_TO_DB")
-    //        job1.stage_status.getOrElse("") should be("COMPLETED")
-    //        job1.status should be("COMPLETED")
-    //        job1.output_events.get should be > (0L)
-    //
-    //        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/dataexhaust")
-    //        val request_ids = Array("jsh3dg58f")
-    //        postProcess(fileDetails, request_ids)
-    //    }
+        val requests = Array(
+            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-18", "2017-06-18", Option(List()), Option(List("ME_SESSION_SUMMARY")), None, None), Option("eks-consumption-summary"))),
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
 
-    //    it should "test consumption summary data" in {
-    //        preProcess()
-    //
-    //        val requests = Array(
-    //            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-18", "2017-06-18", Option(List()), Option(List("ME_SESSION_SUMMARY")), None, None), Option("D003"))),
-    //                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
-    //
-    //        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
-    //        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/consumption-summ/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
-    //
-    //        DataExhaustJob.main(config)(Option(sc));
-    //
-    //        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/dataexhaust")
-    //        val request_ids = Array("requestID1")
-    //        postProcess(fileDetails, request_ids)
-    //    }
+        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/consumption-summ/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "exhaustConfig":{"eks-consumption-summary":{"events":["ME_SESSION_SUMMARY"],"eventConfig":{"ME_SESSION_SUMMARY":{"eventType":"Summary","searchType":"local","saveType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-summ/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}},"saveConfig":{"params":{"path":"/tmp/data-exhaust/"}}}}}}}"""
 
-    //    it should "test for creation telemetry data" in {
-    //        preProcess()
-    //
-    //        val requests = Array(
-    //            JobRequest("client-key2", "requestID2", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-22", "2017-06-22", Option(List()), None, None, None), Option("D005"))),
-    //                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
-    //
-    //        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
-    //        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{"dispatch-to":"local"}}"""
-    //
-    //        DataExhaustJob.main(config)(Option(sc));
-    //
-    //        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/dataexhaust")
-    //        val request_ids = Array("requestID2")
-    //        postProcess(fileDetails, request_ids)
-    //    }
+        DataExhaustJob.main(config)(Option(sc));
+
+        val files1 = new File("/tmp/data-exhaust/requestID1/ME_SESSION_SUMMARY").listFiles()
+        files1.length should be > (0)
+
+        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/data-exhaust")
+        val request_ids = Array("requestID1")
+        postProcess(fileDetails, request_ids)
+    }
+
+        it should "test for creation raw data" in {
+            preProcess()
+    
+            val requests = Array(
+                JobRequest("client-key2", "requestID2", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-22", "2017-06-22", None, Option(List("CP_IMPRESSION")), None, None), Option("eks-creation-raw"))),
+                    None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
+    
+            sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+            val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "exhaustConfig":{"eks-creation-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"CreationRaw","searchType":"local","saveType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/creation-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}},"saveConfig":{"params":{"path":"/tmp/data-exhaust/"}}}}}}}"""
+    
+            DataExhaustJob.main(config)(Option(sc));
+    
+            val files1 = new File("/tmp/data-exhaust/requestID2/").listFiles()
+            files1.length should be > (0)
+        
+            val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/data-exhaust")
+            val request_ids = Array("requestID2")
+            postProcess(fileDetails, request_ids)
+        }
 
     ignore should "run the data exhaust and save data to S3" in {
 

@@ -121,7 +121,7 @@ object DataExhaustUtils {
         }
     }
 
-    def saveData(rdd: RDD[Input with AlgoInput], eventConfig: EventId, requestId: String, eventId: String) {
+    def saveData(rdd: RDD[Input with AlgoInput], eventConfig: EventId, requestId: String, eventId: String, requestID: String, clientKey: String)(implicit sc: SparkContext) {
 
         eventConfig.saveType match {
             case "s3" =>
@@ -129,12 +129,14 @@ object DataExhaustUtils {
                 val prefix = eventConfig.saveConfig.params.get("prefix").get
                 val key = "s3n://" + bucket + "/" + prefix + requestId + "/" + eventId;
                 rdd.saveAsTextFile(key)
+                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_"+eventId, "COMPLETED")
             case "local" =>
                 val localPath = eventConfig.saveConfig.params.get("path").get + requestId + "/" + eventId
                 rdd.saveAsTextFile(localPath)
+                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_LOCAL_"+eventId, "COMPLETED")
         }
     }
-    def fetchData(eventId: String, request: RequestConfig)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): RDD[String] = {
+    def fetchData(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): RDD[String] = {
         try {
             val dataSetID = request.dataset_id.get
             val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
@@ -150,7 +152,9 @@ object DataExhaustUtils {
                     val queries = Array(Query(None, None, None, None, None, None, None, None, None, Option(filePath)))
                     Fetcher(searchType, None, Option(queries))
             }
-            DataFetcher.fetchBatchData[String](fetcher);
+            val data = DataFetcher.fetchBatchData[String](fetcher);
+            DataExhaustUtils.updateStage(requestID, clientKey, "FETCH_DATA_"+eventId, "COMPLETED")
+            data;
         } catch {
             case t: Throwable =>
                 throw t;
@@ -166,7 +170,7 @@ object DataExhaustUtils {
         val filters = filterKeys.map { key =>
             val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
             Filter(defaultFilter.name, defaultFilter.operator, filter.get(key))
-        }.toArray
+        }.filter(x=> None != x.value).toArray
 
         data.map { line =>
             try {
