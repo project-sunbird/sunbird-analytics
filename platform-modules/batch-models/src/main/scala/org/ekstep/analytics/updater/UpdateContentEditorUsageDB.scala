@@ -14,14 +14,15 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.connector.InfluxDB._
+import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * Case class for Cassandra Models
  */
-case class CEUsageSummaryFact(d_period: Int, d_content_id: String, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, updated_date: Long) extends AlgoOutput with CassandraTable
-case class CEUsageSummaryIndex(d_period: Int, d_content_id: String) extends Output
+case class CEUsageSummaryFact(d_period: Int, d_content_id: String, d_app_id: String, d_channel_id: String, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, updated_date: Long) extends AlgoOutput with CassandraTable
+case class CEUsageSummaryIndex(d_period: Int, d_content_id: String, d_app_id: String, d_channel_id: String) extends Output
 
-case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, last_gen_date: Long) extends AlgoOutput
+case class CEUsageSummaryFact_T(d_period: Int, d_content_id: String, d_app_id: String, d_channel_id: String, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, last_gen_date: Long) extends AlgoOutput
 
 /**
  * @dataproduct
@@ -48,6 +49,8 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
         val CESummary = data.map { x =>
 
             val period = x.dimensions.period.get;
+            val appId = x.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"));
+            val channelId = x.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
 
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val unique_users_count = eksMap.get("unique_users_count").get.asInstanceOf[Number].longValue()
@@ -55,7 +58,7 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
             val total_ts = eksMap.get("total_ts").get.asInstanceOf[Double]
             val avg_ts_session = eksMap.get("avg_ts_session").get.asInstanceOf[Double]
 
-            CEUsageSummaryFact_T(period, x.dimensions.content_id.get, unique_users_count, total_sessions, total_ts, avg_ts_session, x.context.date_range.to);
+            CEUsageSummaryFact_T(period, x.dimensions.content_id.get, appId, channelId, unique_users_count, total_sessions, total_ts, avg_ts_session, x.context.date_range.to);
         }.cache();
 
         // Roll up summaries
@@ -66,21 +69,21 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
         // Update the database
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY)
         saveToInfluxDB(data)
-        data.map { x => CEUsageSummaryIndex(x.d_period, x.d_content_id) };
+        data.map { x => CEUsageSummaryIndex(x.d_period, x.d_content_id, x.d_app_id, x.d_channel_id) };
     }
 
     private def rollup(data: RDD[CEUsageSummaryFact_T], period: Period): RDD[CEUsageSummaryFact] = {
 
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.last_gen_date, period);
-            (CEUsageSummaryIndex(d_period, x.d_content_id), CEUsageSummaryFact_T(d_period, x.d_content_id, x.unique_users_count, x.total_sessions, x.total_ts, x.avg_ts_session, x.last_gen_date));
+            (CEUsageSummaryIndex(d_period, x.d_content_id, x.d_app_id, x.d_channel_id), CEUsageSummaryFact_T(d_period, x.d_content_id, x.d_app_id, x.d_channel_id, x.unique_users_count, x.total_sessions, x.total_ts, x.avg_ts_session, x.last_gen_date));
         }.reduceByKey(reduceCEUS);
-        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id"));
+        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id", "d_app_id", "d_channel_id"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
             val newSumm = x._2._1
-            val prvSumm = x._2._2.getOrElse(CEUsageSummaryFact(index.d_period, index.d_content_id, 0L, 0L, 0.0, 0.0, 0L));
+            val prvSumm = x._2._2.getOrElse(CEUsageSummaryFact(index.d_period, index.d_content_id, index.d_app_id, index.d_channel_id, 0L, 0L, 0.0, 0.0, 0L));
             reduce(prvSumm, newSumm, period);
         }
         rollupSummaries;
@@ -92,7 +95,7 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
         val total_sessions = fact2.total_sessions + fact1.total_sessions
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2);
 
-        CEUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, unique_users_count, total_sessions, total_ts, avg_ts_session, fact2.last_gen_date);
+        CEUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, fact1.d_app_id, fact1.d_channel_id, unique_users_count, total_sessions, total_ts, avg_ts_session, fact2.last_gen_date);
     }
 
     private def reduce(fact1: CEUsageSummaryFact, fact2: CEUsageSummaryFact_T, period: Period): CEUsageSummaryFact = {
@@ -101,14 +104,14 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
         val total_sessions = fact2.total_sessions + fact1.total_sessions
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2);
 
-        CEUsageSummaryFact(fact1.d_period, fact1.d_content_id, unique_users_count, total_sessions, total_ts, avg_ts_session, System.currentTimeMillis());
+        CEUsageSummaryFact(fact1.d_period, fact1.d_content_id, fact1.d_app_id, fact1.d_channel_id, unique_users_count, total_sessions, total_ts, avg_ts_session, System.currentTimeMillis());
     }
 
     private def saveToInfluxDB(data: RDD[CEUsageSummaryFact])(implicit sc: SparkContext) {
         val metrics = data.filter { x => x.d_period != 0 } map { x =>
-            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_content_id", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_content_id", "d_app_id", "d_channel_id", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "content_id" -> x.d_content_id), fields, time._1);
+            InfluxRecord(Map("period" -> time._2, "content_id" -> x.d_content_id, "app_id" -> x.d_app_id, "channel_id" -> x.d_channel_id), fields, time._1);
         };
         val contents  = getDenormalizedData("Content", data.map { x => x.d_content_id })
         metrics.denormalize("content_id", "content_name", contents).saveToInflux(CE_USAGE_METRICS);

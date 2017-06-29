@@ -27,6 +27,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class ContentElementsCount(content_id: String, plugins: List[String], assets: List[String]) extends AlgoInput
 case class ContentCreationMetrics(d_content_id: String, d_ver: Int, tags_count: Int, images_count: Int, audios_count: Int, videos_count: Int, plugin_metrics: Map[String, Int], time_spent_draft: Option[Double], time_spent_review: Option[Double], last_status: Option[String], last_status_date: Option[Long], pkg_version: Int, updated_date: Long, first_ver_total_sessions: Long = 0L, first_ver_total_ts: Double = 0.0) extends AlgoOutput with Output
@@ -78,7 +79,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 		};
 		
 		val liveContentMetrics = data.filter { x => "Live".equals(x.edata.eks.state) }
-			.map { x => x.edata.eks.id }.distinct().map { x => CEUsageSummaryIndex(0, x) }
+			.map { x => x.edata.eks.id }.distinct().map { x => CEUsageSummaryIndex(0, x, AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id")) }
 			.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id"))
 			.map(f => (f._1.d_content_id, f._2)).collectAsMap().toMap
 
@@ -152,7 +153,7 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 
 	private def updateCreationMetrics(metric: ContentCreationMetrics, liveContentMetrics: Map[String, CEUsageSummaryFact]): ContentCreationMetrics = {
 		val contentId = metric.d_content_id;
-		val summary = liveContentMetrics.getOrElse(contentId, CEUsageSummaryFact(0, contentId, 0L, 0L, 0.0, 0.0, 0L));
+		val summary = liveContentMetrics.getOrElse(contentId, CEUsageSummaryFact(0, contentId, AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 0L, 0L, 0.0, 0.0, 0L));
 		ContentCreationMetrics(metric.d_content_id, metric.d_ver, metric.tags_count, metric.images_count, metric.audios_count, metric.videos_count, metric.plugin_metrics, metric.time_spent_draft, metric.time_spent_review, metric.last_status, metric.last_status_date, metric.pkg_version, metric.updated_date, summary.total_sessions, summary.total_ts);
 	}
 

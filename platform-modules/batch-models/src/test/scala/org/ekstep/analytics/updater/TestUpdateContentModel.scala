@@ -12,6 +12,8 @@ import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.ekstep.analytics.util.ContentPopularitySummaryFact
 import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework.util.RestUtil
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.util.ContentPopularitySummaryFact2
 
 /**
  * @author Santhosh
@@ -21,12 +23,12 @@ class TestUpdateContentModel extends SparkSpec(null) {
     override def beforeAll() {
         super.beforeAll()
 
-        val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null),
-            ContentUsageSummaryFact(0, "numeracy_374", "all", DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null));
+        val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null),
+            ContentUsageSummaryFact(0, "numeracy_374", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null));
         sc.parallelize(usageSummaries).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT);
 
-        val popularitySummary = Array(ContentPopularitySummaryFact(0, "org.ekstep.delta", "all", 22, 53, List(("Test comment1", DateTime.now),("Test comment", DateTime.now)), List((3, DateTime.now),(4, DateTime.now), (3, DateTime.now)), 3.33),
-            ContentPopularitySummaryFact(0, "org.ekstep.vayuthewind", "all", 22, 53, List(("Test comment1", DateTime.now),("Test comment", DateTime.now)), List((3, DateTime.now),(4, DateTime.now), (3, DateTime.now)), 3.33))
+        val popularitySummary = Array(ContentPopularitySummaryFact2(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis),("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis),(4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33),
+            ContentPopularitySummaryFact2(0, "org.ekstep.vayuthewind", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis),("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis),(4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33))
         sc.parallelize(popularitySummary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT);
     }
 
