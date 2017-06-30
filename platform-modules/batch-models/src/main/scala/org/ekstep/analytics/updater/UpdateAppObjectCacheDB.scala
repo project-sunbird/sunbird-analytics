@@ -38,8 +38,8 @@ case class UserProfile(user_id: String, app_id: String, channel_id: String, name
  */
 object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, CreationEvent, AppObjectCache, UpdaterOutput] with Serializable {
 
-    val className = "org.ekstep.analytics.updater.UpdateObjectLifecycleDB"
-    override def name: String = "UpdateObjectLifecycleDB"
+    val className = "org.ekstep.analytics.updater.UpdateAppObjectCacheDB"
+    override def name: String = "UpdateAppObjectCacheDB"
 
     override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CreationEvent] = {
         DataFilter.filter(data, Filter("eid", "IN", Option(List("BE_OBJECT_LIFECYCLE", "CP_UPDATE_PROFILE")))).cache();
