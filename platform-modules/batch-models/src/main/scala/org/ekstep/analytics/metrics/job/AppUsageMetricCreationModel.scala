@@ -24,13 +24,13 @@ object AppUsageMetricCreationModel extends MetricsBatchModel[String, String] wit
         val start_date = jobParams.getOrElse(Map()).getOrElse("start_date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String];
         val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics.dispatch.params"));
-        val groupFn = (x: PortalUsageSummaryFact) => { (x.d_period + "-" + x.d_author_id + "-" + x.d_app_id) };
+        val groupFn = (x: PortalUsageSummaryFact) => { (x.d_period + "-" + x.d_author_id + "-" + x.d_app_id + "-" + x.d_channel_id) };
         val details = ConfigDetails(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT, start_date, end_date, AppConf.getConfig("metrics.creation.dataset.id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics.dispatch.to"), dispatchParams)
         val res = processQueryAndComputeMetrics(details, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_app_id + f.d_period, "DAY", System.currentTimeMillis(), None, None);
-                val event = getMeasuredEvent(event_id, mid, "AppUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_app_id", "unique_users", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), None, None, Option(f.d_app_id)))
+                val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_app_id + f.d_period, "DAY", System.currentTimeMillis(), Option(f.d_app_id), Option(f.d_channel_id));
+                val event = getMeasuredEvent(event_id, mid, "AppUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_app_id", "d_channel_id", "unique_users", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), None, None, Option(f.d_app_id), None, None, Option(f.d_channel_id)))
                 JSONUtils.serialize(event)
             }
         }
