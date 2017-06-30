@@ -17,12 +17,13 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.creation.model._
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * Case Classes for the data product
  */
-case class AppObjectCache(`type`: String, id: String, subtype: String, parentid: Option[String], parenttype: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
-case class UserProfile(user_id: String, name: String, email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class AppObjectCache(`type`: String, id: String, app_id: String, channel_id: String, subtype: String, parentid: Option[String], parenttype: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class UserProfile(user_id: String, app_id: String, channel_id: String, name: String, email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
 
 /**
  * @dataproduct
@@ -49,7 +50,9 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
         val objectEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("BE_OBJECT_LIFECYCLE")))
         	.filter { x => StringUtils.isNotBlank(x.edata.eks.id) && StringUtils.isNotBlank(x.edata.eks.`type`)  }
         	.map { event =>
-            	AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
+        	    val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
+              val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
+            	AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, appId, channelId, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
         	}
         objectEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE);
 
@@ -57,7 +60,9 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
             val access = if(event.edata.eks.access.isDefined) event.edata.eks.access.get else List();
             val partners = if(event.edata.eks.partners.isDefined) event.edata.eks.partners.get else List();
             val profile = if(event.edata.eks.profile.isDefined) event.edata.eks.profile.get else List();
-            UserProfile(event.uid, event.edata.eks.name, event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
+            val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
+            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
+            UserProfile(event.uid, appId, channelId, event.edata.eks.name, event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
         }
         profileEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.USER_PROFILE_TABLE);
         objectEvents;

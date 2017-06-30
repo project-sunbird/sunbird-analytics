@@ -440,6 +440,8 @@ CREATE KEYSPACE IF NOT EXISTS creation_db WITH replication = {
 CREATE TABLE IF NOT EXISTS creation_db.app_object_cache (
 	type text,
 	id text,
+	app_id text,
+	channel_id text,
 	subtype text,
 	parentid text,
 	parenttype text,
@@ -448,18 +450,20 @@ CREATE TABLE IF NOT EXISTS creation_db.app_object_cache (
 	state text,
 	prevstate text,
 	updated_date timestamp,
-	PRIMARY KEY (type, id)
+	PRIMARY KEY (type, id, app_id, channel_id)
 );
 
 CREATE TABLE IF NOT EXISTS creation_db.user_profile (
 	user_id text,
+	app_id text,
+	channel_id text,
 	name text,
 	email text,
 	access text,
 	partners text,
 	profile text,
 	updated_date timestamp,
-	PRIMARY KEY (user_id)
+	PRIMARY KEY (user_id, app_id, channel_id)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
