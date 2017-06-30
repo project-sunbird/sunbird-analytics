@@ -32,7 +32,7 @@ class EventMetadata(val sync_timestamp: String, val public: String) extends Seri
 
 @scala.beans.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List(), val metadata: EventMetadata = null) extends AlgoInput with Input {}
+            val uid: String, val did: String, val appid: Option[String], val channelid: Option[String], val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List(), val metadata: EventMetadata = null) extends AlgoInput with Input {}
 
 // Computed Event Model
 @scala.beans.BeanInfo
@@ -59,7 +59,7 @@ class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err
 @scala.beans.BeanInfo
 class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.beans.BeanInfo
-class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
+class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val appid: Option[String] = None, val channelid: Option[String] = None, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);

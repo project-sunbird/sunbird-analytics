@@ -10,7 +10,7 @@ class TestModels extends BaseSpec {
         val gdata = new GData("org.ekstep.aser", "1.0");
         
         val edata = new EData(null, null);
-        val event = new Event("OE_TEST", "2015-09-23T09:32:11+05:30", 0L, "2015-09-23T09:32:11+05:30", "1.0", gdata, "569b2478-c8da-4e21-8887-a0dfc2b47d7a", "569b2478-c8da-4e21-8887-a0dfc2b47d7a", "569b2478-c8da-4e21-8887-a0dfc2b47d7a", edata)
+        val event = new Event("OE_TEST", "2015-09-23T09:32:11+05:30", 0L, "2015-09-23T09:32:11+05:30", "1.0", gdata, "569b2478-c8da-4e21-8887-a0dfc2b47d7a", "569b2478-c8da-4e21-8887-a0dfc2b47d7a", "569b2478-c8da-4e21-8887-a0dfc2b47d7a", Option("Genie"),Option("Ekstep"), edata)
 
         event.eid should be("OE_TEST");
         

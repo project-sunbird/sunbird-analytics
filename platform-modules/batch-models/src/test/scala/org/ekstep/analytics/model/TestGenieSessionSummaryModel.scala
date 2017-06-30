@@ -16,9 +16,9 @@ class TestGenieSessionSummaryModel extends SparkSpec(null) {
 
     "GenieSessionSummaryModel" should "generate content summary events" in {
 
-        val sampleSumm = LearnerProfile("6eddac9b-ccdb-47aa-be06-a44b06f7fe62", "5c7567479e8515e740eaa2d21157f610bf057831", Option("male"), Option("en"), None, 2, 7, 2009, false, true, None, None)
+        val sampleSumm = LearnerProfile("6eddac9b-ccdb-47aa-be06-a44b06f7fe62", "Genie", "Ekstep", "5c7567479e8515e740eaa2d21157f610bf057831", Option("male"), Option("en"), None, 2, 7, 2009, false, true, None, None)
         val sampleRDD = sc.parallelize(Array(sampleSumm));
-        sampleRDD.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
+        sampleRDD.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
 
         val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data1.log");
         val rdd2 = GenieSessionSummaryModel.execute(rdd, None);
