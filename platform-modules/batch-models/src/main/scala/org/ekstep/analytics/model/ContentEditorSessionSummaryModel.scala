@@ -41,7 +41,7 @@ case class CEStageSummary(added_count: Int, deleted_count: Int, modified_count: 
  * Case class to hold the session summary input and output
  */
 case class CESessionSummaryInput(sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
-case class CESessionSummaryOutput(uid: String, sid: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
+case class CESessionSummaryOutput(uid: String, sid: String, app_id: String, channel_id: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
 
 /**
  * Case class to hold the screener summary
@@ -119,6 +119,8 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val events = x.filteredEvents
             val startEvent = events.head
             val endEvent = events.last
+            val appId = startEvent.appid.getOrElse(AppConf.getConfig("default.app.id"))
+            val channelId = startEvent.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
             val interactEvents = events.filter { x => x.eid.equals("CE_INTERACT") }
             val pluginEvents = events.filter { x => x.eid.equals("CE_PLUGIN_LIFECYCLE") }
             val apiEvents = events.filter { x => x.eid.equals("CE_API_CALL") }
@@ -148,7 +150,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val sideBarEventCount = interactEvents.filter { x => "sidebar".equals(x.edata.eks.subtype) }.length
             val menuEventCount = interactEvents.filter { x => "menu".equals(x.edata.eks.subtype) && "click".equals(x.edata.eks.`type`) }.length
 
-            CESessionSummaryOutput(startEvent.uid, startEvent.context.get.sid, CreationEventUtil.getEventSyncTS(endEvent), startEvent.context.get.content_id, startEvent.edata.eks.client, DtRange(startTimestamp,
+            CESessionSummaryOutput(startEvent.uid, startEvent.context.get.sid, appId, channelId, CreationEventUtil.getEventSyncTS(endEvent), startEvent.context.get.content_id, startEvent.edata.eks.client, DtRange(startTimestamp,
                 endTimestamp), new CESessionSummary(timeSpent, startTimestamp, endTimestamp, timeDiff, loadTime, noOfInteractEvents,
                 interactEventsPerMin, pluginSummary, saveSummary, stageSummary, eventSummary, apiCallCount, sideBarEventCount, menuEventCount));
         }.filter(f => (f.ss.time_spent >= 1)).cache()
@@ -157,7 +159,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
     override def postProcess(data: RDD[CESessionSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { sessionMap =>
             val session = sessionMap.ss;
-            val mid = CommonUtil.getMessageId("ME_CE_SESSION_SUMMARY", sessionMap.contentId, "SESSION", sessionMap.dateRange, sessionMap.sid);
+            val mid = CommonUtil.getMessageId("ME_CE_SESSION_SUMMARY", sessionMap.contentId, "SESSION", sessionMap.dateRange, sessionMap.sid, Option(sessionMap.app_id), Option(sessionMap.channel_id));
             val measures = Map(
                 "time_spent" -> session.time_spent,
                 "start_time" -> session.start_time,
@@ -175,7 +177,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
                 "menu_events_count" -> session.menu_events_count);
             MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.syncDate, "1.0", mid, sessionMap.uid, Option(sessionMap.contentId), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentEditorSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", sessionMap.dateRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, None, Option(sessionMap.client)),
+                Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, Option(sessionMap.app_id), Option(sessionMap.client), None, Option(sessionMap.channel_id)),
                 MEEdata(measures));
         }
     }

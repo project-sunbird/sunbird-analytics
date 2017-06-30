@@ -186,15 +186,13 @@ CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
 
 CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
     content_id text,
-    app_id text,
-    channel_id text,
     num_downloads bigint,
     total_count bigint,
     num_sideloads bigint,
     origin_map map<text,double>,
     avg_depth double,
     updated_date timestamp,
-    PRIMARY KEY (content_id, app_id, channel_id)
+    PRIMARY KEY (content_id)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.content_to_vector(
@@ -331,8 +329,6 @@ CREATE TABLE IF NOT EXISTS device_db.device_specification (
 
 CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (
     device_id text,
-    app_id text,
-    channel_id text,
     start_time timestamp,
     end_time timestamp,
     num_days bigint,
@@ -349,14 +345,12 @@ CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (
     mean_play_time_interval double,
     last_played_content text,
     updated_date timestamp,
-    PRIMARY KEY (device_id, app_id, channel_id)
+    PRIMARY KEY (device_id)
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
     device_id text,
     content_id text,
-    app_id text,
-    channel_id text,
     game_ver text,
     num_sessions bigint,
     total_interactions bigint,
@@ -370,7 +364,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
     num_group_user bigint,
     num_individual_user bigint,
     updated_date timestamp,
-    PRIMARY KEY (device_id, content_id, app_id, channel_id)
+    PRIMARY KEY (device_id, content_id)
 );
 
 CREATE KEYSPACE IF NOT EXISTS platform_db WITH replication = {

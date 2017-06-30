@@ -23,6 +23,7 @@ import org.ekstep.analytics.creation.model.CreationEks
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.CreationEventUtil
+import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * Case Classes for the data product
@@ -30,7 +31,7 @@ import org.ekstep.analytics.util.CreationEventUtil
 case class PortalSessionInput(sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
 case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
 case class EnvSummary(env: String, time_spent: Double, count: Long)
-case class PortalSessionOutput(sid: String, uid: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
+case class PortalSessionOutput(sid: String, uid: String, app_id: String, channel_id: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
                                start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, page_views_count: Long,
                                first_visit: Boolean, ce_visits: Long, interact_events_count: Long, interact_events_per_min: Double,
                                env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
@@ -71,6 +72,8 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
             val telemetryVer = firstEvent.ver;
             val startTimestamp = firstEvent.ets;
             val endTimestamp = lastEvent.ets;
+            val appId = firstEvent.appid.getOrElse(Constants.DEFAULT_APP_ID)
+            val channelId = firstEvent.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
             val uid = if (lastEvent.uid.isEmpty()) "" else lastEvent.uid
             val isAnonymous = if (uid.isEmpty()) true else false
             val lifeCycleEvent = events.filter { x => "BE_OBJECT_LIFECYCLE".equals(x.eid) && "User".equals(x.edata.eks.`type`) && "Create".equals(x.edata.eks.state) }
@@ -147,13 +150,13 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 }
             } else Iterable[EnvSummary]();
 
-            PortalSessionOutput(x.sid, uid, CreationEventUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries))
+            PortalSessionOutput(x.sid, uid, appId, channelId, CreationEventUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries))
         }.filter(f => (f.time_spent >= 1))
     }
 
     override def postProcess(data: RDD[PortalSessionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { session =>
-            val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange);
+            val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.app_id), Option(session.channel_id));
             val measures = Map(
                 "start_time" -> session.start_time,
                 "end_time" -> session.end_time,
@@ -169,7 +172,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 "page_summary" -> session.page_summary);
             MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, "1.0", mid, session.uid, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", session.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid), None, None, None, None, None, None, None, None, Option(config.getOrElse("appId", Constants.DEFAULT_APP_ID).asInstanceOf[String])),
+                Dimensions(None, None, None, None, None, None, None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid), None, None, None, None, None, None, None, None, Option(session.app_id), None, None, Option(session.channel_id)),
                 MEEdata(measures), None);
         }
     }
