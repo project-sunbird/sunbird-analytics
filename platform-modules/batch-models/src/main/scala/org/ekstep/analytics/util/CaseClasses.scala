@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.AlgoOutput
 import org.ekstep.analytics.framework.Output
 import org.ekstep.analytics.framework.InCorrectRes
 import org.ekstep.analytics.framework.Misconception
+import org.ekstep.analytics.framework.conf.AppConf
 
 class CaseClasses extends Serializable {}
 
@@ -21,7 +22,7 @@ class DerivedEvent(val eid: String, val ets: Long, val syncts: Long, val ver: St
                    val context: Context, val dimensions: Dimensions, val edata: MEEdata, val tags: AnyRef) extends Input with AlgoInput;
 
 @scala.beans.BeanInfo
-class Dimensions(val uid: String, val did: String, val gdata: GData, val domain: String, val loc: String, val group_user: Boolean, val anonymous_user: Boolean) extends Serializable;
+class Dimensions(val uid: String, val did: String, val gdata: GData, val domain: String, val loc: String, val group_user: Boolean, val anonymous_user: Boolean, app_id: Option[String] = Option(AppConf.getConfig("default.app.id")), client: Option[Map[String, AnyRef]] = None, textbook_id: Option[String] = None, channel_id: Option[String] = Option(AppConf.getConfig("default.channel.id"))) extends Serializable;
 
 @scala.beans.BeanInfo
 class Context(val pdata: PData, val dspec: Map[String, String], val granularity: String, val date_range: DtRange) extends Serializable;
