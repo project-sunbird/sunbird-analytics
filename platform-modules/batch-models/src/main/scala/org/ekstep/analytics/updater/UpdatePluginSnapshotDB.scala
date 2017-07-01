@@ -27,10 +27,10 @@ case class PluginMetrics(d_plugin_id: String, plugin_name: String, domain: Strin
 case class PluginSnapshotMetrics(d_period: Int, d_plugin_id: String, plugin_name: String, domain: String, author: String, content_count: Int, content_count_start: Int, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class PluginSnapshotIndex(d_period: Int, d_plugin_id: String)
 
-object UpdatePluginSnapshotMetrics extends IBatchModelTemplate[Empty, Empty, PluginSnapshotMetrics, PluginSnapshotMetrics] with IInfluxDBUpdater with Serializable {
+object UpdatePluginSnapshotDB extends IBatchModelTemplate[Empty, Empty, PluginSnapshotMetrics, PluginSnapshotMetrics] with IInfluxDBUpdater with Serializable {
 
-    val className = "org.ekstep.analytics.updater.UpdatePluginSnapshotMetrics";
-    override def name: String = "UpdatePluginSnapshotMetrics";
+    val className = "org.ekstep.analytics.updater.UpdatePluginSnapshotDB";
+    override def name: String = "UpdatePluginSnapshotDB";
 
     val PLUGIN_SNAPSHOT_METRICS = "plugin_snapshot_metrics";
     val periodsList = List(DAY, WEEK, MONTH);
