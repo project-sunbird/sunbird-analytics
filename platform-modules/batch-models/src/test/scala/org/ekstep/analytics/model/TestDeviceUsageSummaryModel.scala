@@ -21,7 +21,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         val mex = DeviceContentUsageSummaryModel.execute(rdd, None);
         
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_1.log");
-        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "CUMULATIVE")));
         val me = rdd2.collect()
         me.length should be(1)
         val event1 = me(0);
@@ -30,7 +30,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         event1.syncts should be (1460627728979L)
         event1.context.pdata.model should be("DeviceUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
-        event1.context.granularity should be("DAY");
+        event1.context.granularity should be("CUMULATIVE");
         event1.context.date_range should not be null;
 
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
@@ -89,7 +89,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         val me1 = DeviceContentUsageSummaryModel.execute(rdd, None);
         
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_3.log");
-        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "CUMULATIVE")));
         val me = rdd2.collect()
         me.length should be(1)
         val event1 = me(0);
@@ -97,7 +97,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         event1.eid should be("ME_DEVICE_USAGE_SUMMARY");
         event1.context.pdata.model should be("DeviceUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
-        event1.context.granularity should be("DAY");
+        event1.context.granularity should be("CUMULATIVE");
         event1.context.date_range should not be null;
 
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
