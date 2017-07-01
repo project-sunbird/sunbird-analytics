@@ -26,6 +26,7 @@ import org.ekstep.analytics.framework.Period
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.conf.AppConf
 
 
 case class InputEventsGenieSummary(gk: GenieKey, events: Buffer[GenieUsageMetricsSummary]) extends Input with AlgoInput
@@ -51,9 +52,9 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
         GenieUsageMetricsSummary(gk, total_ts, total_sessions, avg_ts_session, date_range, lastEvent.syncts, contents, device_ids);
     }
     
-    private def getGenieUsageSummary(event: DerivedEvent, period: Int, tagId: String): GenieUsageMetricsSummary = {
+    private def getGenieUsageSummary(event: DerivedEvent, period: Int, appId: String, channelId: String, tagId: String): GenieUsageMetricsSummary = {
 
-        val gk = GenieKey(period, tagId);
+        val gk = GenieKey(period, appId, channelId, tagId);
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         val total_ts = eksMap.get("timeSpent").get.asInstanceOf[Double];
         val total_sessions = 1;
@@ -74,10 +75,14 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
             var list: ListBuffer[GenieUsageMetricsSummary] = ListBuffer[GenieUsageMetricsSummary]();
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
-            list += getGenieUsageSummary(event, period, "all");
+            
+            val app_id = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
+            val channel_id = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            
+            list += getGenieUsageSummary(event, period, app_id, channel_id, "all");
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += getGenieUsageSummary(event, period, tag);
+                list += getGenieUsageSummary(event, period, app_id, channel_id, tag);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };

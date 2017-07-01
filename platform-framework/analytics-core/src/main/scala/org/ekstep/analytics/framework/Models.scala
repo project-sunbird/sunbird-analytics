@@ -17,8 +17,8 @@ class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
-          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], 
-          val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef], 
+          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]],
+          val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef],
           val method: String, val request: AnyRef) extends Serializable {}
 
 @scala.beans.BeanInfo
@@ -110,24 +110,24 @@ case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[D
 case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult);
 
 // Common models for all data products
-case class LearnerId(learner_id: String)
+case class LearnerProfileIndex(learner_id: String, app_id: String, channel_id: String)
 case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 case class Empty() extends Input with AlgoInput with AlgoOutput with Output
 case class UpdaterOutput(msg: String) extends Output
-case class ContentKey(period: Int, content_id: String, tag: String);
-case class GenieKey(period: Int, tag: String);
-case class ItemKey(period: Int, tag: String, content_id: String, item_id: String);
+case class ContentKey(period: Int, app_id: String, channel_id: String, content_id: String, tag: String);
+case class GenieKey(period: Int, app_id: String, channel_id: String, tag: String);
+case class ItemKey(period: Int, app_id: String, channel_id: String, tag: String, content_id: String, item_id: String);
 case class InCorrectRes(resp: String, mmc: List[String], count: Int) extends Input with AlgoInput;
 case class Misconception(value: String, count: Int) extends Input with AlgoInput;
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 trait CassandraTable extends AnyRef with Serializable;
 
 /* Neo4j case classes */
-case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
+case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]] = Option(List())) extends Serializable;
 case class Relation(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = Option(Map())) extends Serializable;
-case class UpdateDataNode(identifier: String, propertyName: String, propertyValue: AnyRef, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
+case class UpdateDataNode(identifier: String, propertyName: String, propertyValue: AnyRef, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]] = Option(List())) extends Serializable;
 case class Job_Config(category: String, config_key: String, config_value: Map[String, List[String]])
 
 object Period extends Enumeration {

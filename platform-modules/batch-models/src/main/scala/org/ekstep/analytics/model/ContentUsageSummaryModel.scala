@@ -24,7 +24,7 @@ import org.joda.time.DateTime
 import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
 import org.ekstep.analytics.util.DerivedEvent
-
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, device_ids: Array[String]) extends AlgoOutput;
 case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
@@ -48,13 +48,13 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
         val total_interactions = events.map { x => x.total_interactions }.sum;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        val device_ids = events.map { x => x.device_ids }.reduce((a,b) => a ++ b).distinct;
+        val device_ids = events.map { x => x.device_ids }.reduce((a, b) => a ++ b).distinct;
         ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, date_range, lastEvent.syncts, gdata, device_ids);
     }
 
-    private def getContentUsageSummary(event: DerivedEvent, period: Int, contentId: String, tagId: String): ContentUsageMetricsSummary = {
+    private def getContentUsageSummary(event: DerivedEvent, period: Int, appId: String, channelId: String, contentId: String, tagId: String): ContentUsageMetricsSummary = {
 
-        val ck = ContentKey(period, contentId, tagId);
+        val ck = ContentKey(period, appId, channelId, contentId, tagId);
         val gdata = event.dimensions.gdata;
         val total_ts = event.edata.eks.timeSpent;
         val total_sessions = 1;
@@ -75,7 +75,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentSummary] = {
 
         val configMapping = sc.broadcast(config);
-        val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter{x=> true==x.active}.map { x => x.tag_id }.collect
+        val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter { x => true == x.active }.map { x => x.tag_id }.collect
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
         val sessionEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
@@ -85,12 +85,15 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
             var list: ListBuffer[ContentUsageMetricsSummary] = ListBuffer[ContentUsageMetricsSummary]();
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
-            list += getContentUsageSummary(event, period, "all", "all");
-            list += getContentUsageSummary(event, period, event.dimensions.gdata.id, "all");
+            val app_id = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
+            val channel_id = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+
+            list += getContentUsageSummary(event, period, app_id, channel_id, "all", "all");
+            list += getContentUsageSummary(event, period, app_id, channel_id, event.dimensions.gdata.id, "all");
             val tags = _getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += getContentUsageSummary(event, period, event.dimensions.gdata.id, tag);
-                list += getContentUsageSummary(event, period, "all", tag);
+                list += getContentUsageSummary(event, period, app_id, channel_id, event.dimensions.gdata.id, tag);
+                list += getContentUsageSummary(event, period, app_id, channel_id, "all", tag);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };
@@ -116,8 +119,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
                 "avg_ts_session" -> cuMetrics.avg_ts_session,
                 "total_interactions" -> cuMetrics.total_interactions,
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min,
-                "device_ids" -> cuMetrics.device_ids
-            )
+                "device_ids" -> cuMetrics.device_ids)
 
             MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),

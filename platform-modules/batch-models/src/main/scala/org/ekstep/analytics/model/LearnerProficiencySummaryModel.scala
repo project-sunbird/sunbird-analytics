@@ -25,7 +25,6 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.ItemConcept
 import org.apache.spark.broadcast.Broadcast
-import org.ekstep.analytics.framework.LearnerId
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.DataFilter
 import java.security.MessageDigest
@@ -35,6 +34,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime,
                               model_params: Map[String, String], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput
+case class LearnerId(learner_id: String)
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class ProficiencySummary(conceptId: String, proficiency: Double)
 case class LearnerProficiencyInput(learnerId: String, newEvidences: Iterable[(String, Evidence, Long, Long)], prevLearnerState: Option[LearnerProficiency]) extends AlgoInput

@@ -5,7 +5,6 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.DerivedEvent
 import com.datastax.spark.connector._
 import java.util.UUID
-import org.ekstep.analytics.framework.LearnerId
 
 class TestUpdateLearnerContentActivityDB extends SparkSpec(null) {
 

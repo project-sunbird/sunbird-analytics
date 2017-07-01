@@ -53,7 +53,7 @@ object JobFactory {
             case "dsu" =>
                 DeviceSpecificationUpdater
             case "is" =>
-                ItemUsageSummarizer
+                ItemSummarizer
             case "dcus" =>
                 DeviceContentUsageSummarizer
             case "csv" =>
@@ -77,7 +77,7 @@ object JobFactory {
             case "genie-launch-metrics" =>
                 GenieUsageUpdater
             case "item-usage-summ" =>
-                ItemSummarizer
+                ItemUsageSummarizer
             case "item-usage-metrics" =>
                 ItemSummaryUpdater
             case "gsts" =>
