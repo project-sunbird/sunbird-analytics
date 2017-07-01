@@ -7,8 +7,9 @@ import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.SessionBatchModel
+import org.ekstep.analytics.framework.conf.AppConf
 
-case class GenieStageAlgoOut(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]], dt_range: DtRange, did: String, tags: Option[AnyRef], syncts: Long) extends AlgoOutput
+case class GenieStageAlgoOut(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]], dt_range: DtRange, did: String, tags: Option[AnyRef], syncts: Long, appId: String, channelId: String) extends AlgoOutput
 
 object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEvent] with IBatchModelTemplate[DerivedEvent, DerivedEvent, GenieStageAlgoOut, MeasuredEvent] with Serializable {
   
@@ -26,10 +27,13 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
             val did = event.dimensions.did
             val tags = event.tags
             
+            val appId = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
+            val channelId = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            
             if (null != screenSummaries && screenSummaries.size > 0) {
                 screenSummaries.map { x =>
                     val ss = JSONUtils.deserialize[GenieStageSummary](JSONUtils.serialize(x));
-                    GenieStageAlgoOut(ss.stageId, ss.sid, ss.timeSpent, ss.visitCount, ss.interactEventsCount, ss.interactEvents, event.context.date_range, did, Option(tags), event.syncts)
+                    GenieStageAlgoOut(ss.stageId, ss.sid, ss.timeSpent, ss.visitCount, ss.interactEventsCount, ss.interactEvents, event.context.date_range, did, Option(tags), event.syncts, appId, channelId)
                 }
             } else {
                 Array[GenieStageAlgoOut]();
@@ -40,7 +44,7 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
     override def postProcess(data: RDD[GenieStageAlgoOut], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_STAGE_SUMMARY", summary.stageId + summary.sid, config.getOrElse("granularity", "GENIE SESSION").asInstanceOf[String], summary.dt_range.to, None, None);
+            val mid = CommonUtil.getMessageId("ME_GENIE_STAGE_SUMMARY", summary.stageId + summary.sid, config.getOrElse("granularity", "GENIE SESSION").asInstanceOf[String], summary.dt_range.to, Option(summary.appId), Option(summary.channelId));
             val measures = Map(
                 "timeSpent" -> summary.timeSpent,
                 "stageVisitCount" -> summary.visitCount,

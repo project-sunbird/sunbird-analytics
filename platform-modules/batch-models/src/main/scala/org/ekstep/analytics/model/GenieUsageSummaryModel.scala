@@ -99,7 +99,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
 
     override def postProcess(data: RDD[GenieUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { guMetrics =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_USAGE_SUMMARY", guMetrics.gk.tag + guMetrics.gk.period, "DAY", guMetrics.syncts, None, None);
+            val mid = CommonUtil.getMessageId("ME_GENIE_USAGE_SUMMARY", guMetrics.gk.tag + guMetrics.gk.period, "DAY", guMetrics.syncts, Option(guMetrics.gk.app_id), Option(guMetrics.gk.channel_id));
             val measures = Map(
                 "total_ts" -> guMetrics.total_ts,
                 "total_sessions" -> guMetrics.total_sessions,
@@ -109,7 +109,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
 
             MeasuredEvent("ME_GENIE_USAGE_SUMMARY", System.currentTimeMillis(), guMetrics.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummaryModel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], guMetrics.dt_range),
-                Dimensions(None, None, None, None, None, None, None, None, None, Option(guMetrics.gk.tag), Option(guMetrics.gk.period)),
+                Dimensions(None, None, None, None, None, None, None, None, None, Option(guMetrics.gk.tag), Option(guMetrics.gk.period), None, None, None, None, None,None, None, None, None, None,None, None, Option(guMetrics.gk.app_id), None, None, Option(guMetrics.gk.channel_id)),
                 MEEdata(measures));
         }
     }

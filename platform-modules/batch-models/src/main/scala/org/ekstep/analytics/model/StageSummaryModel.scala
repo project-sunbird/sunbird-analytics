@@ -24,8 +24,9 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.updater.LearnerProfile
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
+import org.ekstep.analytics.framework.conf.AppConf
 
-case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long) extends AlgoOutput
+case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long, appId: String, channelId: String) extends AlgoOutput
 
 object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, StageSummary, MeasuredEvent] with Serializable {
 
@@ -38,11 +39,13 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
 
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[StageSummary] = {
         data.map { event =>
+            val appId = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
+            val channelId = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
             val screenSummaries = event.edata.eks.screenSummary;
             if (null != screenSummaries && screenSummaries.size > 0) {
                 screenSummaries.map { x =>
                     val ss = JSONUtils.deserialize[ScreenSummary](JSONUtils.serialize(x));
-                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount)
+                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount, appId, channelId)
                 }
             } else {
                 Array[StageSummary]();
@@ -53,7 +56,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
     override def postProcess(data: RDD[StageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to, None, None);
+            val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to, Option(summary.appId), Option(summary.channelId));
             val measures = Map(
                 "stageId" -> summary.stageId,
                 "timeSpent" -> summary.timeSpent,
@@ -61,7 +64,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ScreenSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
             MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", summary.dt_range),
-                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
+                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid), None, None, None, Option(summary.appId),None, None, Option(summary.channelId)), MEEdata(measures), Option(summary.tags));
         };
     }
 }

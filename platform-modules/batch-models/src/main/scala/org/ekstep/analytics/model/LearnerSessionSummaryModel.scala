@@ -351,7 +351,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
         data.map { userMap =>
             val game = userMap.ss;
             val booleanTuple = userMap.groupInfo.getOrElse((false, false))
-            val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap.userId, "SESSION", game.dtRange, game.id);
+            val mid = CommonUtil.getMessageId("ME_SESSION_SUMMARY", userMap.userId, "SESSION", game.dtRange, game.id, Option(userMap.appId), Option(userMap.channelId));
             val measures = Map(
                 "itemResponses" -> game.itemResponses,
                 "start_time" -> game.start_time,
