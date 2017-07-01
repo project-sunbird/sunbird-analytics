@@ -24,16 +24,17 @@ import org.ekstep.analytics.framework.Stage
 import org.ekstep.analytics.framework.OnboardStage
 import org.ekstep.analytics.framework.OtherStage
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.conf.AppConf
 
-case class DeviceFunnelSummary(did: String, funnel: String, events: Buffer[DerivedEvent]) extends AlgoInput
-case class FunnelSummary(funnel: String, did: String, period: Int, dspec: Map[String, AnyRef], genieVer: String, summary: Map[String, StageAggSumm], totalCount: Int, totalTimeSpent: Double, avgTimeSpent: Double, syncts: Long, dateRange: DtRange, tags: Option[AnyRef]) extends AlgoOutput
+case class DeviceFunnelSummary(channelId: String, did: String, funnel: String, events: Buffer[DerivedEvent]) extends AlgoInput
+case class FunnelSummary(funnel: String, did: String, period: Int, appId: String, channelId: String, dspec: Map[String, AnyRef], genieVer: String, summary: Map[String, StageAggSumm], totalCount: Int, totalTimeSpent: Double, avgTimeSpent: Double, syncts: Long, dateRange: DtRange, tags: Option[AnyRef]) extends AlgoOutput
 case class StageAggSumm(label: String, totalCount: Int, totalInvocations: Int, completionPercentage: Double, dropoffPercentage: Double)
 
 object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, DeviceFunnelSummary, FunnelSummary, MeasuredEvent] with Serializable {
 
-	val className = "org.ekstep.analytics.model.GenieFunnelAggregatorModel"
-	override def name: String = "GenieFunnelAggregatorModel"
-	
+    val className = "org.ekstep.analytics.model.GenieFunnelAggregatorModel"
+    override def name: String = "GenieFunnelAggregatorModel"
+
     def _funnelAggregator(data: DeviceFunnelSummary): FunnelSummary = {
         val funnel = data.funnel
         if ("GenieOnboarding".equals(funnel)) {
@@ -51,6 +52,8 @@ object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, Devi
         val lastEvent = events.last
         val dimensions = firstEvent.dimensions
 
+        val appId = firstEvent.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
+
         val eksMaps = data.events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]] }
         val totalTimeSpent = CommonUtil.roundDouble(eksMaps.map { x => (x.get("timeSpent").get.asInstanceOf[Double]) }.sum, 2)
         val period = CommonUtil.getPeriod(firstEvent.syncts, Period.DAY)
@@ -58,7 +61,7 @@ object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, Devi
         val avgTimeSpent = if (0 != eventCount) CommonUtil.roundDouble(totalTimeSpent / eventCount, 2) else 0d
 
         val stageSumm = _getStageSummMap(eksMaps, stage)
-        FunnelSummary(data.funnel, data.did, period, dimensions.dspec.getOrElse(Map()), dimensions.genieVer.get, stageSumm, eventCount, totalTimeSpent, avgTimeSpent, firstEvent.syncts, DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to), firstEvent.tags)
+        FunnelSummary(data.funnel, data.did, period, appId, data.channelId, dimensions.dspec.getOrElse(Map()), dimensions.genieVer.get, stageSumm, eventCount, totalTimeSpent, avgTimeSpent, firstEvent.syncts, DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to), firstEvent.tags)
     }
 
     private def _getStageSummMap(eksMaps: Buffer[Map[String, AnyRef]], stage: Stage): Map[String, StageAggSumm] = {
@@ -78,14 +81,18 @@ object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, Devi
     }
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceFunnelSummary] = {
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_FUNNEL")));
-        val didEvent = events.map { x => (x.dimensions.did.get, Buffer(x)) }
+        val didEvent = events.map { x =>
+            val channelId = x.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            ((channelId, x.dimensions.did.get), Buffer(x))
+        }
         val didFunnelSumm = didEvent.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b)
 
         didFunnelSumm.map { x =>
-            val did = x._1
+            val channelId = x._1._1
+            val did = x._1._2
             val data = x._2.map { x => (x.dimensions.funnel.get, x) }
-            data.groupBy { x => x._1 }.map { x => DeviceFunnelSummary(did, x._1, x._2.map { x => x._2 }) }
+            data.groupBy { x => x._1 }.map { x => DeviceFunnelSummary(channelId, did, x._1, x._2.map { x => x._2 }) }
         }.flatMap { x => x }
     }
 
@@ -97,11 +104,11 @@ object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, Devi
 
     override def postProcess(data: RDD[FunnelSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL_USAGE_SUMMARY", summary.funnel, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did);
+            val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL_USAGE_SUMMARY", summary.funnel, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.appId), Option(summary.channelId));
             val measures = summary.summary.toMap ++ Map("totalTimeSpent" -> summary.totalTimeSpent, "totalCount" -> summary.totalCount, "avgTimeSpent" -> summary.avgTimeSpent) //, "completionPercentage" -> summary.completionPercentage)
             MeasuredEvent("ME_GENIE_FUNNEL_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieFunnelAggregator").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange),
-                Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, Option(summary.period), None, None, None, None, None, Option(summary.funnel), Option(summary.dspec), None, Option(summary.genieVer)),
+                Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, Option(summary.period), None, None, None, None, None, Option(summary.funnel), Option(summary.dspec), None, Option(summary.genieVer), None, None, None, Option(summary.appId), None, None, Option(summary.channelId)),
                 MEEdata(measures), summary.tags);
         }
     }
