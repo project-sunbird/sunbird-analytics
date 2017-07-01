@@ -164,7 +164,7 @@ object JobFactory {
                 MetricsEventCreationJob
             case "monitor-job-summ" =>
                 MonitorSummarizer
-            case "plugin-snapshot-metrics-updater" =>
+            case "plugin-snapshot-updater" =>
                 PluginSnapshotMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
