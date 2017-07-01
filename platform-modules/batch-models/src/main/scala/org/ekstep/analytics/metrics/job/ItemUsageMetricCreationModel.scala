@@ -25,13 +25,13 @@ object ItemUsageMetricCreationModel extends MetricsBatchModel[String,String] wit
         val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics.dispatch.params"));
         
-        val groupFn = (x: ItemUsageSummaryFact) => { (x.d_period + "-" + x.d_tag + "-" + x.d_content_id + "-" + x.d_item_id) };
+        val groupFn = (x: ItemUsageSummaryFact) => { (x.d_period + "-" + x.d_tag + "-" + x.d_content_id + "-" + x.d_item_id + "-" + x.d_app_id + "-" + x.d_channel_id) };
         val fetchDetails = ConfigDetails(Constants.CONTENT_KEY_SPACE_NAME, Constants.ITEM_USAGE_SUMMARY_FACT, start_date, end_date, AppConf.getConfig("metrics.consumption.dataset.id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics.dispatch.to"), dispatchParams)
         val res = processQueryAndComputeMetrics(fetchDetails, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_item_id + f.d_tag + f.d_period, "DAY", System.currentTimeMillis(), None, None);
-                val event = getMeasuredEvent(event_id, mid, "ItemUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "d_content_id", "d_item_id", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id), None, Option(f.d_item_id), None, None, None, None, None, None, None, None, None, None))
+                val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_item_id + f.d_tag + f.d_period, "DAY", System.currentTimeMillis(), Option(f.d_app_id), Option(f.d_channel_id));
+                val event = getMeasuredEvent(event_id, mid, "ItemUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_tag", "d_content_id", "d_item_id", "d_app_id", "d_channel_id", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id), None, Option(f.d_item_id), None, None, None, None, None, None, None, None, None, Option(f.d_app_id), None, None, Option(f.d_channel_id)))
                 JSONUtils.serialize(event)
             }
         }

@@ -57,7 +57,7 @@ object DeviceRecommendationScoringModel extends IBatchModelTemplate[DerivedEvent
     implicit val className = "org.ekstep.analytics.model.DeviceRecommendationScoringModel"
     override def name(): String = "DeviceRecommendationScoringModel"
 
-    val defaultDCUS = DeviceContentSummary(null, null, None, None, None, None, None, None, None, None, None, None, None, None)
+    val defaultDCUS = DeviceContentSummary(null, null, null, null, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultDUS = DeviceUsageSummary(null, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     val defaultCUS = ContentUsageSummaryFact(0, null, null, AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), new DateTime(0), new DateTime(0), new DateTime(0), 0.0, 0L, 0.0, 0L, 0.0, 0, 0.0, null);
     val dateTime = new DateTime()

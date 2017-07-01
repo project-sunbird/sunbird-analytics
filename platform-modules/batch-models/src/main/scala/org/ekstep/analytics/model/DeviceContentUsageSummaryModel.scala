@@ -9,13 +9,15 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.conf.AppConf
 
-case class DeviceSummaryInput(device_id: String, data: Buffer[DerivedEvent], prevData: Option[DeviceUsageSummary]) extends AlgoInput
-case class DeviceContentUsageSummaryInput(device_id: String, contentId: String, data: Buffer[DerivedEvent], prevData: Option[DeviceContentSummary])
-case class DeviceContentSummary(device_id: String, content_id: String, game_ver: Option[String], num_sessions: Option[Long], total_interactions: Option[Long], avg_interactions_min: Option[Double],
+case class DeviceSummaryInput(index: DeviceSummaryIndex, data: Buffer[DerivedEvent], prevData: Option[DeviceUsageSummary]) extends AlgoInput
+case class DeviceContentUsageSummaryInput(index: DeviceContentSummaryIndex, data: Buffer[DerivedEvent], prevData: Option[DeviceContentSummary])
+case class DeviceContentSummary(device_id: String, content_id: String, app_id: String, channel_id: String, game_ver: Option[String], num_sessions: Option[Long], total_interactions: Option[Long], avg_interactions_min: Option[Double],
                                 total_timespent: Option[Double], last_played_on: Option[Long], start_time: Option[Long],
                                 mean_play_time_interval: Option[Double], downloaded: Option[Boolean], download_date: Option[Long], num_group_user: Option[Long], num_individual_user: Option[Long], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output;
-case class DeviceContentSummaryIndex(device_id: String, content_id: String)
+case class DeviceContentSummaryIndex(device_id: String, content_id: String, app_id: String, channel_id: String)
+case class DeviceSummaryIndex(device_id: String, app_id: String, channel_id: String)
 
 object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceSummaryInput, DeviceContentSummary, DeviceContentSummary] with Serializable {
 
@@ -28,9 +30,11 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
         val deviceSessions = filteredEvents.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val did = event.dimensions.did.get
-            (did, Buffer(event));
+            val appId = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
+            val channelId = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            (DeviceSummaryIndex(did, appId, channelId), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
-        val prevDeviceSummary = deviceSessions.map(f => DeviceId(f._1)).joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).map(f => (f._1.device_id, f._2))
+        val prevDeviceSummary = deviceSessions.map(f => f._1).joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE)//.map(f => (f._1.device_id, f._2))
         val joinedData = deviceSessions.leftOuterJoin(prevDeviceSummary)
         joinedData.map(f => DeviceSummaryInput(f._1, f._2._1, f._2._2));
     }
@@ -38,7 +42,7 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
     override def algorithm(data: RDD[DeviceSummaryInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceContentSummary] = {
 
         val deviceDetails = data.map { deviceSummary =>
-            val prevSummary = deviceSummary.prevData.getOrElse(DeviceUsageSummary(deviceSummary.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+            val prevSummary = deviceSummary.prevData.getOrElse(DeviceUsageSummary(deviceSummary.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
             val events = deviceSummary.data
             val firstEvent = events.sortBy { x => x.context.date_range.from }.head;
             val lastEvent = events.sortBy { x => x.context.date_range.to }.last;
@@ -62,17 +66,19 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
         val dcuSummaries = inputEvents.map { event =>
             val did = event.dimensions.did.get
             val content_id = event.dimensions.gdata.get.id
-            ((did, content_id), Buffer(event));
+            val appId = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
+            val channelId = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            (DeviceContentSummaryIndex(did, content_id, appId, channelId), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
-        val prevDeviceContentSummary = dcuSummaries.map(f => DeviceContentSummaryIndex(f._1._1, f._1._2)).joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).on(SomeColumns("device_id", "content_id")).map(f => ((f._1.device_id, f._1.content_id), f._2))
+        val prevDeviceContentSummary = dcuSummaries.map(f => f._1).joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).on(SomeColumns("device_id", "content_id", "app_id", "channel_id"))//.map(f => ((f._1.device_id, f._1.content_id), f._2))
         val joinedData = dcuSummaries.leftOuterJoin(prevDeviceContentSummary)
-        val dcusEvents = joinedData.map(f => DeviceContentUsageSummaryInput(f._1._1, f._1._2, f._2._1, f._2._2));
+        val dcusEvents = joinedData.map(f => DeviceContentUsageSummaryInput(f._1, f._2._1, f._2._2));
 
         dcusEvents.map { dcusEvent =>
             val firstEvent = dcusEvent.data.sortBy { x => x.context.date_range.from }.head;
             val lastEvent = dcusEvent.data.sortBy { x => x.context.date_range.to }.last;
             val game_ver = firstEvent.dimensions.gdata.get.ver
-            val prevDeviceContentSummary = dcusEvent.prevData.getOrElse(DeviceContentSummary(dcusEvent.device_id, dcusEvent.contentId, None, None, None, None, None, None, None, None, None, None, None, None))
+            val prevDeviceContentSummary = dcusEvent.prevData.getOrElse(DeviceContentSummary(dcusEvent.index.device_id, dcusEvent.index.content_id, AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), None, None, None, None, None, None, None, None, None, None, None, None))
             val num_sessions = if (prevDeviceContentSummary.num_sessions.isEmpty) dcusEvent.data.size else dcusEvent.data.size + prevDeviceContentSummary.num_sessions.get
             val current_ts = CommonUtil.roundDouble(dcusEvent.data.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum, 2)
             val total_timespent = if (prevDeviceContentSummary.total_timespent.isEmpty) current_ts else current_ts + prevDeviceContentSummary.total_timespent.get;
@@ -89,7 +95,7 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
             val download_date = prevDeviceContentSummary.download_date
             val num_group_user = dcusEvent.data.map { x => x.dimensions.group_user.get }.count { y => true.equals(y) }
             val num_individual_user = num_sessions - num_group_user
-            DeviceContentSummary(dcusEvent.device_id, dcusEvent.contentId, Option(game_ver), Option(num_sessions), Option(total_interactions), Option(avg_interactions_min), Option(total_timespent), Option(last_played_on), Option(start_time), Option(mean_play_time_interval), downloaded, download_date, Option(num_group_user), Option(num_individual_user))
+            DeviceContentSummary(dcusEvent.index.device_id, dcusEvent.index.content_id, dcusEvent.index.app_id, dcusEvent.index.channel_id, Option(game_ver), Option(num_sessions), Option(total_interactions), Option(avg_interactions_min), Option(total_timespent), Option(last_played_on), Option(start_time), Option(mean_play_time_interval), downloaded, download_date, Option(num_group_user), Option(num_individual_user))
         }
     }
 
