@@ -331,6 +331,8 @@ CREATE TABLE IF NOT EXISTS device_db.device_specification (
 
 CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (
     device_id text,
+    app_id text,
+    channel_id text,
     start_time timestamp,
     end_time timestamp,
     num_days bigint,
@@ -347,7 +349,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (
     mean_play_time_interval double,
     last_played_content text,
     updated_date timestamp,
-    PRIMARY KEY (device_id)
+    PRIMARY KEY (device_id, app_id, channel_id)
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
