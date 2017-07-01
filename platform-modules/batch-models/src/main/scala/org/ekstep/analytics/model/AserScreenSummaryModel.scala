@@ -33,29 +33,29 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
                         var assessNumeracyQ1: Option[Double] = Option(0d), var selectNumeracyQ2: Option[Double] = Option(0d),
                         var assessNumeracyQ2: Option[Double] = Option(0d), var assessNumeracyQ3: Option[Double] = Option(0d),
                         var scorecard: Option[Double] = Option(0d), var summary: Option[Double] = Option(0d),
-                        var userId: String = "", var dtRange: DtRange = DtRange(0l,0l), var gameId: String = "" , 
-                        var gameVersion: String = "" ,var did: String = "", var timeStamp: Long = 0l) extends AlgoOutput
+                        var userId: String = "", var dtRange: DtRange = DtRange(0l, 0l), var gameId: String = "",
+                        var gameVersion: String = "", var did: String = "", var timeStamp: Long = 0l) extends AlgoOutput
 
-case class AserScreenerInput(userId: String, gameSessions: Buffer[Event]) extends AlgoInput
-                        
+case class AserScreenerInput(channelId: String, userId: String, gameSessions: Buffer[Event]) extends AlgoInput
+
 /**
  * Aser Screen Summary Model
  */
-object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event,AserScreenerInput,AserScreener,MeasuredEvent] with Serializable {
+object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, AserScreenerInput, AserScreener, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.AserScreenSummaryModel"
-    override def name() : String = "AserScreenSummaryModel"
-    
+    override def name(): String = "AserScreenSummaryModel"
+
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AserScreenerInput] = {
         val configMapping = sc.broadcast(config);
         val gameSessions = getGameSessions(data.filter { x => "org.ekstep.aser.lite".equals(x.gdata.id) });
-        gameSessions.map{x => AserScreenerInput(x._1,x._2)}
+        gameSessions.map { x => AserScreenerInput(x._1._1, x._1._2, x._2) }
     }
-    
+
     override def algorithm(data: RDD[AserScreenerInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AserScreener] = {
-      
+
         data.map { x =>
-          
+
             val startTimestamp = Option(CommonUtil.getEventTS(x.gameSessions(0)));
             val endTimestamp = Option(CommonUtil.getEventTS(x.gameSessions.last));
 
@@ -156,7 +156,7 @@ object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] wi
                 as.scorecard = CommonUtil.getTimeDiff(endMath, endTest);
             if (endTest != null && exit != null)
                 as.summary = CommonUtil.getTimeDiff(endTest, exit);
-            
+
             as.userId = x.userId;
             as.dtRange = DtRange(startTimestamp.getOrElse(0l), endTimestamp.getOrElse(0l))
             as.gameId = CommonUtil.getGameId(x.gameSessions(0))
@@ -166,9 +166,9 @@ object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] wi
             as
         }
     }
-    
+
     override def postProcess(data: RDD[AserScreener], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        data.map{ aserScreener => 
+        data.map { aserScreener =>
             val measures = Map(
                 "activationKeyPage" -> aserScreener.activationKeyPage.get,
                 "surveyCodePage" -> aserScreener.surveyCodePage.get,

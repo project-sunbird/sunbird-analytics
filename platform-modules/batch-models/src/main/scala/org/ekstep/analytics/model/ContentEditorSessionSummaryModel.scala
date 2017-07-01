@@ -40,7 +40,7 @@ case class CEStageSummary(added_count: Int, deleted_count: Int, modified_count: 
 /**
  * Case class to hold the session summary input and output
  */
-case class CESessionSummaryInput(sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
+case class CESessionSummaryInput(channelId: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
 case class CESessionSummaryOutput(uid: String, sid: String, app_id: String, channel_id: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
 
 /**
@@ -110,7 +110,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
     override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CESessionSummaryInput] = {
         val filteredData = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("CE_API_CALL", "CE_START", "CE_END", "CE_PLUGIN_LIFECYCLE", "CE_INTERACT", "CE_ERROR")))));
         val contentSessions = getCESessions(filteredData);
-        contentSessions.map { x => CESessionSummaryInput(x._1, x._2) }
+        contentSessions.map { x => CESessionSummaryInput(x._1._1,x._1._2, x._2) }
     }
 
     override def algorithm(data: RDD[CESessionSummaryInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CESessionSummaryOutput] = {

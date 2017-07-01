@@ -22,9 +22,8 @@ object SampleModel extends SessionBatchModel[Event,String] {
             case "GenieSession" =>
                 getGenieSessions(data, 30)
             case _ =>
-                getGameSessions(events);
+                getGameSessions(events)
         }
-        gameSessions.map(f => f._1);
+        gameSessions.map(f => (f._1).toString());
     }
-  
 }
