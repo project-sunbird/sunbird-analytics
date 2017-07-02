@@ -14,9 +14,7 @@ import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.Date
 import java.util.zip.GZIPOutputStream
-
 import scala.collection.mutable.ListBuffer
-
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework._
@@ -37,6 +35,9 @@ import org.joda.time.format.DateTimeFormatter
 import org.json4s.jvalue2extractable
 import org.json4s.string2JsonInput
 import org.apache.commons.lang3.StringUtils
+import java.util.zip.ZipOutputStream
+import scala.util.control.Breaks._
+import java.util.zip.ZipEntry
 
 object CommonUtil {
 
@@ -65,11 +66,11 @@ object CommonUtil {
             JobLogger.log("Master not found. Setting it to local[*]")
             conf.setMaster("local[*]");
         }
-       
-        if (!conf.contains("spark.cassandra.connection.host")) 
+
+        if (!conf.contains("spark.cassandra.connection.host"))
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
-        if(embeddedCassandraMode)
-          conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
+        if (embeddedCassandraMode)
+            conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
         if (!conf.contains("reactiveinflux.url")) {
             conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
         }
@@ -79,12 +80,12 @@ object CommonUtil {
         JobLogger.log("Spark Context initialized");
         sc;
     }
-    
-    private def embeddedCassandraMode() : Boolean = {
-    	val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable");
-    	StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
+
+    private def embeddedCassandraMode(): Boolean = {
+        val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable");
+        StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
     }
-    
+
     def setS3Conf(sc: SparkContext) = {
         JobLogger.log("Configuring S3 AccessKey& SecrateKey to SparkContext")
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
@@ -171,14 +172,14 @@ object CommonUtil {
         else
             getTimestamp(event.ts);
     }
-    
+
     def getEventSyncTS(event: Event): Long = {
         val timeInString = event.`@timestamp`;
         getEventSyncTS(timeInString);
     }
 
-    def getEventSyncTS(timeInStr: String) : Long = {
-    	var ts = getTimestamp(timeInStr, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    def getEventSyncTS(timeInStr: String): Long = {
+        var ts = getTimestamp(timeInStr, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         if (ts == 0) {
             ts = getTimestamp(timeInStr, df3, "yyyy-MM-dd'T'HH:mm:ssZZ");
         }
@@ -192,7 +193,7 @@ object CommonUtil {
         }
         ts;
     }
-    
+
     def getEventDate(event: Event): Date = {
         try {
             df3.parseLocalDate(event.ts).toDate;
@@ -292,6 +293,37 @@ object CommonUtil {
         zip.close()
     }
 
+    // zipping nested directories
+    def zipDir(zipFileName: String, dir: String) {
+        val dirObj = new File(dir);
+        val out = new ZipOutputStream(new FileOutputStream(zipFileName));
+        addDir(dirObj, out);
+        out.close();
+    }
+    def addDir(dirObj: File, out: ZipOutputStream) {
+        val files = dirObj.listFiles();
+        val tmpBuf = new Array[Byte](1024);
+
+        for (file <- files) {
+            breakable {
+                if (file.isDirectory()) {
+                    addDir(file, out);
+                    break;
+                } else {
+                    val in = new FileInputStream(file.getAbsolutePath());
+                    out.putNextEntry(new ZipEntry(file.getAbsolutePath()));
+                    var len: Int = in.read(tmpBuf);
+                    while (len > 0) {
+                        out.write(tmpBuf, 0, len);
+                        len = in.read(tmpBuf);
+                    }
+                    out.closeEntry();
+                    in.close();
+                }
+            }
+        }
+    }
+
     def getAge(dob: Date): Int = {
         val birthdate = LocalDate.fromDateFields(dob);
         val now = new LocalDate();
@@ -388,7 +420,7 @@ object CommonUtil {
         val key = Array(eventId, userId, dateFormat.print(syncDate), granularity).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
-    
+
     def getMessageId(eventId: String, level: String, timeStamp: Long): String = {
         val key = Array(eventId, level, df5.print(timeStamp)).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
@@ -494,7 +526,7 @@ object CommonUtil {
         (Map[String, AnyRef]() /: ccObj.getClass.getDeclaredFields) {
             (map, field) =>
                 field.setAccessible(true)
-                map + (field.getName -> (if(field.get(ccObj).isInstanceOf[DateTime]) field.get(ccObj).asInstanceOf[DateTime].getMillis.asInstanceOf[AnyRef] else field.get(ccObj)))
+                map + (field.getName -> (if (field.get(ccObj).isInstanceOf[DateTime]) field.get(ccObj).asInstanceOf[DateTime].getMillis.asInstanceOf[AnyRef] else field.get(ccObj)))
         }
 
     def getEndTimestampOfDay(date: String): Long = {

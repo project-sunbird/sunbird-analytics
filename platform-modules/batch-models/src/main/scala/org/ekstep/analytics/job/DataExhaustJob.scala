@@ -11,6 +11,11 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.Config
 import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.spark.rdd.RDD
+import org.joda.time.DateTime
+import java.util.Date
+import org.joda.time.DateTimeZone
+import com.datastax.spark.connector._
+import org.ekstep.analytics.util.Constants
 
 object DataExhaustJob extends optional.Application with IJob {
 
@@ -22,23 +27,22 @@ object DataExhaustJob extends optional.Application with IJob {
         JobLogger.init("DataExhaustJob")
         JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config)))
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
-        val exhaustConfig = jobConfig.exhaustConfig.get
 
         if (null == sc.getOrElse(null)) {
             JobContext.parallelization = 10;
             implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model));
             try {
-                execute(exhaustConfig);
+                execute(jobConfig);
             } finally {
                 CommonUtil.closeSparkContext();
             }
         } else {
             implicit val sparkContext: SparkContext = sc.getOrElse(null);
-            execute(exhaustConfig);
+            execute(jobConfig);
         }
     }
 
-    private def execute(config: Map[String, DataSet])(implicit sc: SparkContext) = {
+    private def execute(config: JobConfig)(implicit sc: SparkContext) = {
 
         val requests = DataExhaustUtils.getAllRequest
         if (null != requests) {
@@ -48,8 +52,9 @@ object DataExhaustJob extends optional.Application with IJob {
         }
     }
 
-    private def _executeRequests(requests: Array[JobRequest], config: Map[String, DataSet])(implicit sc: SparkContext) = {
-        implicit val exhaustConfig = config
+    private def _executeRequests(requests: Array[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
+        val modelParams = config.modelParams.get
+        implicit val exhaustConfig = config.exhaustConfig.get
         for (request <- requests) {
             val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
             val requestID = request.request_id
@@ -58,7 +63,7 @@ object DataExhaustJob extends optional.Application with IJob {
             val dataSetId = requestData.dataset_id.get
 
             val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
-                config.get(dataSetId).get.events
+                exhaustConfig.get(dataSetId).get.events
             else
                 eventList
 
@@ -66,6 +71,32 @@ object DataExhaustJob extends optional.Application with IJob {
                 _executeEventExhaust(eventId, requestData, requestID, clientKey)
             }
         }
+        
+        val dataSetId = JSONUtils.deserialize[RequestConfig](requests.head.request_data).dataset_id.get;
+        val dataSet = exhaustConfig.get(dataSetId).get
+        val eventConf = dataSet.eventConfig.get(dataSet.events.head).get
+        val bucket = eventConf.saveConfig.params.getOrElse("bucket", "ekstep-public-dev")
+        val prefix = eventConf.saveConfig.params.getOrElse("prefix", "data-exhaust/test/")
+        val localPath = eventConf.localPath
+        val publicS3URL = modelParams.getOrElse("public_S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
+        val conf = PackagerConfig(eventConf.saveType, bucket, prefix, publicS3URL, localPath)
+        val metadata = DataExhaustPackager.execute(conf)
+
+        val jobResuestStatus = metadata.map { x =>
+            val createdDate = new DateTime(x.stats.get("createdDate").get.asInstanceOf[Date].getTime);
+            val fileInfo = x.metadata.file_info.sortBy { x => x.first_event_date }
+            val first_event_date = fileInfo.head.first_event_date
+            val last_event_date = fileInfo.last.last_event_date
+            val dtProcessing = DateTime.now(DateTimeZone.UTC);
+            JobRequest(x.client_key, x.request_id, Option(x.job_id), "COMPLETED", x.jobRequest.request_data, Option(x.location),
+                Option(createdDate),
+                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(first_event_date).getMillis)),
+                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(last_event_date).getMillis)),
+                Option(createdDate.plusDays(30)), Option(x.jobRequest.iteration.getOrElse(0) + 1), x.jobRequest.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
+                None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), None, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
+        }
+        sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
+
     }
     private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
         val dataSetID = request.dataset_id.get
@@ -75,7 +106,7 @@ object DataExhaustJob extends optional.Application with IJob {
         DataExhaustUtils.updateStage(requestID, clientKey, "FILTERED_DATA_" + eventId, "COMPLETED")
         val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
         val outputFormat = request.output_format.getOrElse("json")
-        
+
         if ("DEFAULT".equals(eventId) && request.filter.events.isDefined && request.filter.events.get.size > 0) {
             for (event <- request.filter.events.get) {
                 val filterKey = Filter("eventId", "EQ", Option(event))
@@ -85,6 +116,7 @@ object DataExhaustJob extends optional.Application with IJob {
         } else {
             DataExhaustUtils.saveData(filteredData.map { x => JSONUtils.serialize(x) }, eventConfig, requestID, eventId, outputFormat, requestID, clientKey)
         }
-        DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3", "COMPLETED", "PENDING_PACKAGING")
+        DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3/LOCAL", "COMPLETED", "PENDING_PACKAGING")
+
     }
 }
