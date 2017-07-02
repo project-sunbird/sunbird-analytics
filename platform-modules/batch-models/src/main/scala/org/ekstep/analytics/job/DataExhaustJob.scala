@@ -74,15 +74,16 @@ object DataExhaustJob extends optional.Application with IJob {
         val filteredData = DataExhaustUtils.filterEvent(data, filter, eventId, dataSetID);
         DataExhaustUtils.updateStage(requestID, clientKey, "FILTERED_DATA_" + eventId, "COMPLETED")
         val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
-
+        val outputFormat = request.output_format.getOrElse("json")
+        
         if ("DEFAULT".equals(eventId) && request.filter.events.isDefined && request.filter.events.get.size > 0) {
             for (event <- request.filter.events.get) {
                 val filterKey = Filter("eventId", "EQ", Option(event))
-                val data = DataFilter.filter(filteredData, filterKey)
-                DataExhaustUtils.saveData(data, eventConfig, requestID, event, requestID, clientKey)
+                val data = DataFilter.filter(filteredData, filterKey).map { x => JSONUtils.serialize(x) }
+                DataExhaustUtils.saveData(data, eventConfig, requestID, event, outputFormat, requestID, clientKey)
             }
         } else {
-            DataExhaustUtils.saveData(filteredData, eventConfig, requestID, eventId, requestID, clientKey)
+            DataExhaustUtils.saveData(filteredData.map { x => JSONUtils.serialize(x) }, eventConfig, requestID, eventId, outputFormat, requestID, clientKey)
         }
         DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3", "COMPLETED", "PENDING_PACKAGING")
     }
