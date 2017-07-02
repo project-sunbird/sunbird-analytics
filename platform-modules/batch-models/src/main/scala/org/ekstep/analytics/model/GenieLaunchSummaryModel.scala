@@ -109,7 +109,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
 
     override def postProcess(data: RDD[GenieSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_LAUNCH_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange, summary.did);
+            val mid = CommonUtil.getMessageId("ME_GENIE_LAUNCH_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.appId), Option(summary.channelId));
             val measures = Map(
                 "timeSpent" -> summary.timeSpent,
                 "time_stamp" -> summary.time_stamp,

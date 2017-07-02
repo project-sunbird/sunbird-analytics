@@ -28,7 +28,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 /**
  * Case Classes for the data product
  */
-case class PortalSessionInput(sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
+case class PortalSessionInput(channelId: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
 case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
 case class EnvSummary(env: String, time_spent: Double, count: Long)
 case class PortalSessionOutput(sid: String, uid: String, app_id: String, channel_id: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
@@ -55,10 +55,13 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
     override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
         val filteredData = DataFilter.filter(data, Array(Filter("context", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE", "CP_SESSION_START", "CP_INTERACT", "CP_IMPRESSION", "CE_START", "CE_END")))));
-        filteredData.map(event => (event.context.get.sid, Buffer(event)))
+        filteredData.map { event =>
+            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            ((channelId, event.context.get.sid), Buffer(event))
+        }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events => events.sortBy { x => x.ets } }
-            .map { x => PortalSessionInput(x._1, x._2) }
+            .map { x => PortalSessionInput(x._1._1, x._1._2, x._2) }
     }
 
     override def algorithm(data: RDD[PortalSessionInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionOutput] = {
@@ -73,7 +76,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
             val startTimestamp = firstEvent.ets;
             val endTimestamp = lastEvent.ets;
             val appId = firstEvent.appid.getOrElse(Constants.DEFAULT_APP_ID)
-            val channelId = firstEvent.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val channelId = x.channelId
             val uid = if (lastEvent.uid.isEmpty()) "" else lastEvent.uid
             val isAnonymous = if (uid.isEmpty()) true else false
             val lifeCycleEvent = events.filter { x => "BE_OBJECT_LIFECYCLE".equals(x.eid) && "User".equals(x.edata.eks.`type`) && "Create".equals(x.edata.eks.state) }
