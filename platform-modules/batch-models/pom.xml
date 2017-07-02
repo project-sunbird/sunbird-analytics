@@ -178,6 +178,18 @@
 		   <artifactId>commons-validator</artifactId>
 		   <version>1.4.0</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.liftweb/lift-json_2.11 -->
+		<dependency>
+			<groupId>net.liftweb</groupId>
+			<artifactId>lift-json_2.11</artifactId>
+			<version>3.0.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.flyberrycapital/scala-slack_2.11 -->
+		<dependency>
+			<groupId>com.flyberrycapital</groupId>
+			<artifactId>scala-slack_2.11</artifactId>
+			<version>0.1.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>

@@ -29,4 +29,11 @@ class TestMonitorSummaryModel extends SparkSpec(null) {
         job_summary.get("status").get should be("SUCCESS")
         job_summary.get("input_count").get.asInstanceOf[Number].longValue() should be(74)
     }
+
+    /*it should "run" in {
+        val rdd1 = loadFile[DerivedEvent]("src/test/resources/monitor-summary/2017-06-28.log");
+        val rdd2 = MonitorSummaryModel.execute(rdd1, None);
+        rdd2.foreach { x => println(JSONUtils.serialize(x)) }
+
+    }*/
 }
