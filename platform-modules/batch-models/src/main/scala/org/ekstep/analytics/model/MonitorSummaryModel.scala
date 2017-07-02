@@ -66,14 +66,14 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     }
 
     override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        /*implicit val formats = DefaultFormats
+        implicit val formats = DefaultFormats
         val job_monitor_to_sclack = data.map { x => JobMonitorToSlack(x.jobs_started, x.jobs_failed, x.jobs_completed, x.total_events_generated, x.total_ts, x.job_summary) }.first()
        
         val token = new SlackClient("xoxp-19320441927-104869600647-206793219988-59016df1fed2d44716d0dc1ea26f6d01")
         val map_values = job_monitor_to_sclack.job_summary.map(f => f.values)
         val header = "`Model `," + "`Input Events `," + "`Output Events `," + "`Total time `," + "`Status `," + "`day`"
         val json_string = "`jobs started :`" + job_monitor_to_sclack.jobs_started + "\n" + "`jobs_comleted` :" + job_monitor_to_sclack.jobs_completed + "\n" + "`jobs_failed` :" + job_monitor_to_sclack.jobs_failed + "\n" + "`total_events_generated :`" + job_monitor_to_sclack.total_events_generated + "\n" + "`total time taken :`" + job_monitor_to_sclack.total_ts + "\n" + "`jobs_summary :`\n" + header + "\n" + JSONUtils.serialize(map_values) + "\n"
-        token.chat.postMessage("testing", json_string)*/
+        token.chat.postMessage("testing", json_string)
         
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_MONITOR_SUMMARY", "", "DAY", x.dtange);
