@@ -58,23 +58,24 @@ object DataExhaustJob extends optional.Application with IJob {
         val modelParams = config.modelParams.get
         implicit val exhaustConfig = config.exhaustConfig.get
         for (request <- requests) {
-            val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
-            val requestID = request.request_id
-            val clientKey = request.client_key
-            val eventList = requestData.filter.events.getOrElse(List())
-            val dataSetId = requestData.dataset_id
-            if (None == dataSetId) {
-                DataExhaustUtils.updateStage(requestID, clientKey, "FETCHED_ALL_REQUEST", "COMPLETED", "FAILED")
-                break;
-            } else {
+            try {
+                val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
+                val requestID = request.request_id
+                val clientKey = request.client_key
+                val eventList = requestData.filter.events.getOrElse(List())
+                val dataSetId = requestData.dataset_id.get
+
                 val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
-                    exhaustConfig.get(dataSetId.get).get.events
+                    exhaustConfig.get(dataSetId).get.events
                 else
                     eventList
 
                 for (eventId <- events) {
                     _executeEventExhaust(eventId, requestData, requestID, clientKey)
                 }
+            } catch {
+                case ex: Exception =>
+                    DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED")
             }
         }
 
