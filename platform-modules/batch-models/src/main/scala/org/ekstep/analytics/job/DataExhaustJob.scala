@@ -1,6 +1,7 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
+import scala.util.control.Breaks._
 import org.ekstep.analytics.dataexhaust.DataExhaustUtils
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util._
@@ -22,7 +23,7 @@ object DataExhaustJob extends optional.Application with IJob {
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
     def name: String = "DataExhaustJob"
     val rawDataSetList = List("eks-consumption-raw", "eks-creation-raw")
-    
+
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
         JobLogger.init("DataExhaustJob")
@@ -62,17 +63,21 @@ object DataExhaustJob extends optional.Application with IJob {
             val clientKey = request.client_key
             val eventList = requestData.filter.events.getOrElse(List())
             val dataSetId = requestData.dataset_id.get
+            if (None == dataSetId) {
+                DataExhaustUtils.updateStage(requestID, clientKey, "FETCHED_ALL_REQUEST", "COMPLETED", "FAILED")
+                break;
+            } else {
+                val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
+                    exhaustConfig.get(dataSetId).get.events
+                else
+                    eventList
 
-            val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
-                exhaustConfig.get(dataSetId).get.events
-            else
-                eventList
-
-            for (eventId <- events) {
-                _executeEventExhaust(eventId, requestData, requestID, clientKey)
+                for (eventId <- events) {
+                    _executeEventExhaust(eventId, requestData, requestID, clientKey)
+                }
             }
         }
-        
+
         val dataSetId = JSONUtils.deserialize[RequestConfig](requests.head.request_data).dataset_id.get;
         val dataSet = exhaustConfig.get(dataSetId).get
         val eventConf = dataSet.eventConfig.get(dataSet.events.head).get
