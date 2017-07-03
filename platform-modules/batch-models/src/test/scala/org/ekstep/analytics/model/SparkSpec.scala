@@ -39,6 +39,17 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
         if (file == null) {
             return null;
         }
-        sc.textFile(file, 1).map { line => JSONUtils.deserialize[T](line) }.filter { x => x != null }.cache();
+        sc.textFile(file, 1).filter { x => !x.isEmpty() }.map { line =>  
+            {
+                try {
+            
+                   JSONUtils.deserialize[T](line);
+                } catch {
+                    case ex: Exception =>
+                        Console.err.println("Unable to parse line", line)
+                        null.asInstanceOf[T]
+                }
+            }
+        }.filter { x => x != null }.cache();
     }
 }
