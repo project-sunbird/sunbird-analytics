@@ -31,7 +31,7 @@ import org.ekstep.analytics.framework.conf.AppConf
  * Events used - BE_JOB_*
  */
 case class JobMonitor(jobs_started: Long, jobs_completed: Long, jobs_failed: Long, total_events_generated: Long, total_ts: Double, syncTs: Long, job_summary: Array[Map[String, Any]], dtange: DtRange) extends AlgoOutput
-case class JobMonitorToSlack(jobs_started: Long, jobs_completed: Long, jobs_failed: Long, total_events_generated: Long, total_ts: Double, job_summary: Array[Map[String, Any]]) extends AlgoOutput
+case class JobSummary(model: String, input_count: Long, output_count: Long, time_taken: Double, status: String, day: Int) extends AlgoOutput
 
 object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, JobMonitor, MeasuredEvent] with Serializable {
 
@@ -40,43 +40,39 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         
-      val filtered_data =  data.filter { x => (x.eid.equals("BE_JOB_START") || (x.eid.equals("BE_JOB_END"))) }
-        filtered_data.sortBy(_.ets)
+        val filteredData = data.filter { x => (x.eid.equals("BE_JOB_START") || (x.eid.equals("BE_JOB_END"))) }
+        filteredData.sortBy(_.ets)
     }
 
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobMonitor] = {
-        val jobs_started = data.filter { x => (x.eid.equals("BE_JOB_START")) }.count()
-        val eks_map = data.map { x => (x.edata.eks.asInstanceOf[Map[String, String]]) }
-        val jobs_completed = eks_map.filter { x => (x.get("status").getOrElse("").equals("SUCCESS")) }.count()
-        val jobs_failed = eks_map.filter { x => (x.get("status").getOrElse("").equals("FAILED")) }.count()
-        val jobs_end = data.filter { x => (x.eid.equals("BE_JOB_END")) }
+        val jobsStarted = data.filter { x => (x.eid.equals("BE_JOB_START")) }.count()
+        val filteresData = data.filter { x => (x.eid.equals("BE_JOB_END")) }
+        val eksMap = filteresData.map { x => (x.edata.eks.asInstanceOf[Map[String, String]]) }
+        val jobsCompleted = eksMap.filter { x => (x.get("status").getOrElse("").equals("SUCCESS")) }.count()
+        val jobsFailed = eksMap.filter { x => (x.get("status").getOrElse("").equals("FAILED")) }.count()
+        val jobsEnd = data.filter { x => (x.eid.equals("BE_JOB_END")) }
         val syncTs = data.first().syncts
-        val total_events_generated = jobs_end.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue() }.sum().longValue()
-        val total_ts = jobs_end.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].doubleValue() }.sum()
-        val job_summary = jobs_end.map { x =>
+        val totalEventsGenerated = jobsEnd.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue() }.sum().longValue()
+        val totalTs = jobsEnd.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].doubleValue() }.sum()
+        val jobSummary = jobsEnd.map { x =>
             val model = x.context.pdata.model
-            val input_count = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("inputEvents", 0L).asInstanceOf[Number].longValue()
-            val output_count = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue()
-            val time_taken = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].floatValue()
+            val inputCount = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("inputEvents", 0L).asInstanceOf[Number].longValue()
+            val outputCount = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue()
+            val timeTaken = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].floatValue()
             val status = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("status", "").toString()
-            val err_message = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("message", "").toString()
+            val errMessage = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("message", "").toString()
             val day = CommonUtil.getPeriod(x.ets, DAY)
-            Map("model" -> model, "input_count" -> input_count, "output_count" -> output_count, "time_taken" -> time_taken, "status" -> status, "day" -> day)
+            Map("model" -> model, "input_count" -> inputCount, "output_count" -> outputCount, "time_taken" -> timeTaken, "status" -> status, "day" -> day)
         }.collect()
-        sc.parallelize(List(JobMonitor(jobs_started, jobs_completed, jobs_failed, total_events_generated, total_ts, syncTs, job_summary, DtRange(data.first().ets, data.collect().last.ets))))
+        sc.parallelize(List(JobMonitor(jobsStarted, jobsCompleted, jobsFailed, totalEventsGenerated, totalTs, syncTs, jobSummary, DtRange(data.first().ets, data.collect().last.ets))))
     }
 
     override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-       if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
-    	    implicit val formats = DefaultFormats
-	        val job_monitor_to_sclack = data.map { x => JobMonitorToSlack(x.jobs_started, x.jobs_failed, x.jobs_completed, x.total_events_generated, x.total_ts, x.job_summary) }.first()
-	       
-	        val token = new SlackClient("xoxp-19320441927-104869600647-206793219988-59016df1fed2d44716d0dc1ea26f6d01")
-	        val map_values = job_monitor_to_sclack.job_summary.map(f => f.values)
-	        val header = "`Model `," + "`Input Events `," + "`Output Events `," + "`Total time `," + "`Status `," + "`day`"
-	        val json_string = "`jobs started :`" + job_monitor_to_sclack.jobs_started + "\n" + "`jobs_comleted` :" + job_monitor_to_sclack.jobs_completed + "\n" + "`jobs_failed` :" + job_monitor_to_sclack.jobs_failed + "\n" + "`total_events_generated :`" + job_monitor_to_sclack.total_events_generated + "\n" + "`total time taken :`" + job_monitor_to_sclack.total_ts + "\n" + "`jobs_summary :`\n" + header + "\n" + JSONUtils.serialize(map_values) + "\n"
-	        token.chat.postMessage("testing", json_string)
-       }
+        if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
+            val message = messageFormatToSlack(data.first())
+            val token = new SlackClient(AppConf.getConfig("monitor.notification.token"))
+            token.chat.postMessage(AppConf.getConfig("monitor.notification.channel"), message)
+        }
         
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_MONITOR_SUMMARY", "", "DAY", x.dtange);
@@ -93,6 +89,28 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
                 Dimensions(None, None, None, None, None, None, None, None, None, None, Option(CommonUtil.getPeriod(x.syncTs, DAY)), None, None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);
         }
+    }
+
+    private def messageFormatToSlack(jobMonitorToSclack: JobMonitor): String = {
+
+        implicit val formats = DefaultFormats
+        val jobsStarted = jobMonitorToSclack.jobs_started
+        val jobsCompleted = jobMonitorToSclack.jobs_completed
+        val jobsFailed = jobMonitorToSclack.jobs_failed
+        val totalEventsGenerated = jobMonitorToSclack.total_events_generated
+        val totalTs = jobMonitorToSclack.total_ts
+        val mapValues = jobMonitorToSclack.job_summary.map(f => (f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
+        val stringWithoutSymbols = mapValues.map { x => x.toString().replace("(", "").replace(")", "") }.mkString(" ")
+        val jobSummary = JSONUtils.serialize(stringWithoutSymbols)
+        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time ," + "Status ," + "Day "
+        var message = ""
+        if (jobsFailed == 0) {
+            message = "Job Run Completed Successfully"
+        } else {
+            message = "Job Failed"
+        }
+        return s"""Number of Jobs Started: `'$jobsStarted'`\nNumber of Completed Jobs: `'$jobsCompleted'` \nNumber of failed Jobs: `'$jobsFailed'` \nTotal time taken: `'$totalTs'`\nTotal events generated: `'$totalEventsGenerated'`\n\nDetailed Report:\n```$header \n $jobSummary```\n\nMessage: ```$message```"""
+
     }
 
 }

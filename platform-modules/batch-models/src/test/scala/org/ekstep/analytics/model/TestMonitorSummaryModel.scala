@@ -1,14 +1,8 @@
 package org.ekstep.analytics.model
-/**
- * @author Yuva
- */
-import org.ekstep.analytics.creation.model.CreationEvent
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.util.SessionBatchModel
+
 import org.apache.spark.rdd.RDD
-import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.util.SessionBatchModel
 
 class TestMonitorSummaryModel extends SparkSpec(null) {
 
@@ -28,12 +22,13 @@ class TestMonitorSummaryModel extends SparkSpec(null) {
         job_summary.get("output_count").get.asInstanceOf[Number].longValue() should be(3)
         job_summary.get("status").get should be("SUCCESS")
         job_summary.get("input_count").get.asInstanceOf[Number].longValue() should be(74)
+        
     }
 
-    /*it should "run" in {
+   /* it should "run" in {
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/monitor-summary/2017-06-28.log");
         val rdd2 = MonitorSummaryModel.execute(rdd1, None);
-        rdd2.foreach { x => println(JSONUtils.serialize(x)) }
+       // rdd2.foreach { x => println(JSONUtils.serialize(x)) }
 
     }*/
 }
