@@ -20,8 +20,9 @@ import org.ekstep.analytics.util.Constants
 object DataExhaustJob extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
+    def name: String = "DataExhaustJob"
     val rawDataSetList = List("eks-consumption-raw", "eks-creation-raw")
-
+    
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
         JobLogger.init("DataExhaustJob")
