@@ -94,9 +94,6 @@ object DataExhaustPackager extends optional.Application with IJob {
                 config.localPath + "/" + jobRequest.request_id
         }
 
-        println("localPath: "+ config.localPath)
-        println("localPath: "+ jobRequest.request_id)
-        println("path for downloading Data: "+ path)
         val fileObj = new File(path.toString())
         val data = fileObj.listFiles.map { dir =>
             (dir.getName, getData(dir, jobRequest, path))
