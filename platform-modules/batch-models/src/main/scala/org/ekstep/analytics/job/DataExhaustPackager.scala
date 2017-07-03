@@ -89,11 +89,13 @@ object DataExhaustPackager extends optional.Application with IJob {
         val path = config.saveType match {
             case "s3" =>
                 S3Util.download(config.bucket, config.prefix + jobRequest.request_id, config.localPath + "/")
-                (config.localPath + "/" + jobRequest.request_id + "/")
+                (config.localPath + "/" + jobRequest.request_id)
             case "local" =>
                 config.localPath + "/" + jobRequest.request_id
         }
-
+        println("local path to download: "+config.localPath)
+        println("request ID: "+ jobRequest.request_id)
+        
         val fileObj = new File(path.toString())
         val data = fileObj.listFiles.map { dir =>
             (dir.getName, getData(dir, jobRequest, path))
