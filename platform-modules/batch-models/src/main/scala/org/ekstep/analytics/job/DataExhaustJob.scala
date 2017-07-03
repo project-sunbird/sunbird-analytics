@@ -62,13 +62,13 @@ object DataExhaustJob extends optional.Application with IJob {
             val requestID = request.request_id
             val clientKey = request.client_key
             val eventList = requestData.filter.events.getOrElse(List())
-            val dataSetId = requestData.dataset_id.get
+            val dataSetId = requestData.dataset_id
             if (None == dataSetId) {
                 DataExhaustUtils.updateStage(requestID, clientKey, "FETCHED_ALL_REQUEST", "COMPLETED", "FAILED")
                 break;
             } else {
                 val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
-                    exhaustConfig.get(dataSetId).get.events
+                    exhaustConfig.get(dataSetId.get).get.events
                 else
                     eventList
 
@@ -78,7 +78,7 @@ object DataExhaustJob extends optional.Application with IJob {
             }
         }
 
-        val dataSetId = JSONUtils.deserialize[RequestConfig](requests.head.request_data).dataset_id.get;
+        val dataSetId = JSONUtils.deserialize[RequestConfig](requests.head.request_data).dataset_id.getOrElse("eks-consumption-raw");
         val dataSet = exhaustConfig.get(dataSetId).get
         val eventConf = dataSet.eventConfig.get(dataSet.events.head).get
         val bucket = eventConf.saveConfig.params.getOrElse("bucket", "ekstep-public-dev")
