@@ -50,7 +50,11 @@ object RestUtil {
             val entity = httpResponse.getEntity()
             val inputStream = entity.getContent()
             val content = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString
-            JSONUtils.deserialize[T](content);
+            if("java.lang.String".equals(mf.toString())) {
+                content.asInstanceOf[T];
+            } else {
+                JSONUtils.deserialize[T](content);
+            }            
         } catch {
             case ex: Exception =>
                 JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
