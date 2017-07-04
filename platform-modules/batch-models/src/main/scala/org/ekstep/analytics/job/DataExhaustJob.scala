@@ -2,7 +2,7 @@ package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
 import scala.util.control.Breaks._
-import org.ekstep.analytics.dataexhaust.DataExhaustUtils
+import org.ekstep.analytics.dataexhaust._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util._
 import org.ekstep.analytics.util.JobRequest
@@ -17,8 +17,6 @@ import java.util.Date
 import org.joda.time.DateTimeZone
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
-import org.ekstep.analytics.dataexhaust.DataExhaustPackager
-import org.ekstep.analytics.dataexhaust.PackagerConfig
 
 object DataExhaustJob extends optional.Application with IJob {
 
@@ -57,40 +55,35 @@ object DataExhaustJob extends optional.Application with IJob {
     }
 
     private def _executeRequests(requests: Array[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
-        val modelParams = config.modelParams.get
-        implicit val exhaustConfig = config.exhaustConfig.get
-        for (request <- requests) {
-            try {
-                val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
-                val requestID = request.request_id
-                val clientKey = request.client_key
-                val eventList = requestData.filter.events.getOrElse(List())
-                val dataSetId = requestData.dataset_id.get
 
-                val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
-                    exhaustConfig.get(dataSetId).get.events
-                else
-                    eventList
+        val time = CommonUtil.time({
+            val modelParams = config.modelParams.get
+            implicit val exhaustConfig = config.exhaustConfig.get
+            for (request <- requests) {
+                try {
+                    val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
+                    val requestID = request.request_id
+                    val clientKey = request.client_key
+                    val eventList = requestData.filter.events.getOrElse(List())
+                    val dataSetId = requestData.dataset_id.get
 
-                for (eventId <- events) {
-                    _executeEventExhaust(eventId, requestData, requestID, clientKey)
+                    val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
+                        exhaustConfig.get(dataSetId).get.events
+                    else
+                        eventList
+
+                    for (eventId <- events) {
+                        _executeEventExhaust(eventId, requestData, requestID, clientKey)
+                    }
+                } catch {
+                    case ex: Exception =>
+                        DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED")
                 }
-            } catch {
-                case ex: Exception =>
-                    DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED")
             }
-        }
-
-        val dataSetId = JSONUtils.deserialize[RequestConfig](requests.head.request_data).dataset_id.getOrElse("eks-consumption-raw");
-        val dataSet = exhaustConfig.get(dataSetId).get
-        val eventConf = dataSet.eventConfig.get(dataSet.events.head).get
-        val bucket = eventConf.saveConfig.params.getOrElse("bucket", "ekstep-public-dev")
-        val prefix = eventConf.saveConfig.params.getOrElse("prefix", "data-exhaust/test/")
-        val localPath = eventConf.localPath
-        val publicS3URL = modelParams.getOrElse("public_S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
-        val conf = PackagerConfig(eventConf.saveType, bucket, prefix, publicS3URL, localPath)
-        DataExhaustPackager.execute
-
+            //DataExhaustPackager.execute()
+            requests.length
+        })
+        JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1, "jobCount" -> time._2)));
     }
     private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
         val dataSetID = request.dataset_id.get
