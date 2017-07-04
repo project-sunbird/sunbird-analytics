@@ -2,7 +2,7 @@ package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
 import scala.util.control.Breaks._
-import org.ekstep.analytics.dataexhaust.DataExhaustUtils
+import org.ekstep.analytics.dataexhaust._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util._
 import org.ekstep.analytics.util.JobRequest
@@ -55,55 +55,35 @@ object DataExhaustJob extends optional.Application with IJob {
     }
 
     private def _executeRequests(requests: Array[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
-        val modelParams = config.modelParams.get
-        implicit val exhaustConfig = config.exhaustConfig.get
-        for (request <- requests) {
-            try {
-                val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
-                val requestID = request.request_id
-                val clientKey = request.client_key
-                val eventList = requestData.filter.events.getOrElse(List())
-                val dataSetId = requestData.dataset_id.get
 
-                val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
-                    exhaustConfig.get(dataSetId).get.events
-                else
-                    eventList
+        val time = CommonUtil.time({
+            val modelParams = config.modelParams.get
+            implicit val exhaustConfig = config.exhaustConfig.get
+            for (request <- requests) {
+                try {
+                    val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
+                    val requestID = request.request_id
+                    val clientKey = request.client_key
+                    val eventList = requestData.filter.events.getOrElse(List())
+                    val dataSetId = requestData.dataset_id.get
 
-                for (eventId <- events) {
-                    _executeEventExhaust(eventId, requestData, requestID, clientKey)
+                    val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
+                        exhaustConfig.get(dataSetId).get.events
+                    else
+                        eventList
+
+                    for (eventId <- events) {
+                        _executeEventExhaust(eventId, requestData, requestID, clientKey)
+                    }
+                } catch {
+                    case ex: Exception =>
+                        DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED")
                 }
-            } catch {
-                case ex: Exception =>
-                    DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED")
             }
-        }
-
-        val dataSetId = JSONUtils.deserialize[RequestConfig](requests.head.request_data).dataset_id.getOrElse("eks-consumption-raw");
-        val dataSet = exhaustConfig.get(dataSetId).get
-        val eventConf = dataSet.eventConfig.get(dataSet.events.head).get
-        val bucket = eventConf.saveConfig.params.getOrElse("bucket", "ekstep-public-dev")
-        val prefix = eventConf.saveConfig.params.getOrElse("prefix", "data-exhaust/test/")
-        val localPath = eventConf.localPath
-        val publicS3URL = modelParams.getOrElse("public_S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
-        val conf = PackagerConfig(eventConf.saveType, bucket, prefix, publicS3URL, localPath)
-        val metadata = DataExhaustPackager.execute(conf)
-
-        val jobResuestStatus = metadata.map { x =>
-            val createdDate = new DateTime(x.stats.get("createdDate").get.asInstanceOf[Date].getTime);
-            val fileInfo = x.metadata.file_info.sortBy { x => x.first_event_date }
-            val first_event_date = fileInfo.head.first_event_date
-            val last_event_date = fileInfo.last.last_event_date
-            val dtProcessing = DateTime.now(DateTimeZone.UTC);
-            JobRequest(x.client_key, x.request_id, Option(x.job_id), "COMPLETED", x.jobRequest.request_data, Option(x.location),
-                Option(createdDate),
-                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(first_event_date).getMillis)),
-                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(last_event_date).getMillis)),
-                Option(createdDate.plusDays(30)), Option(x.jobRequest.iteration.getOrElse(0) + 1), x.jobRequest.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
-                None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), None, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
-        }
-        sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
-
+            //DataExhaustPackager.execute()
+            requests.length
+        })
+        JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1, "jobCount" -> time._2)));
     }
     private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
         val dataSetID = request.dataset_id.get
