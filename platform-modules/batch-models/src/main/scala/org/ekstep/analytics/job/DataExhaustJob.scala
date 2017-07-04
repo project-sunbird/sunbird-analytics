@@ -80,7 +80,7 @@ object DataExhaustJob extends optional.Application with IJob {
                         DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED")
                 }
             }
-            //DataExhaustPackager.execute()
+            DataExhaustPackager.execute()
             requests.length
         })
         JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1, "jobCount" -> time._2)));

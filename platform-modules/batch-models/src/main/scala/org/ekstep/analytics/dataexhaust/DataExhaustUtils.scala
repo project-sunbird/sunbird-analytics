@@ -164,6 +164,18 @@ object DataExhaustUtils {
                 throw t;
         }
     }
+
+    def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
+
+        for (request_id <- request_ids) {
+            val keys1 = S3Util.getPath(bucket, prefix + "/" + request_id)
+            for (key <- keys1) {
+                S3Util.deleteObject(bucket, key.replace(s"s3n://$bucket/", ""))
+            }
+            S3Util.deleteObject(bucket, prefix + "/" + request_id + "_$folder$");
+        }
+    }
+
     def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
         val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
