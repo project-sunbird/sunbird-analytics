@@ -1,13 +1,11 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.dataexhaust
 
 import java.io.File
 
 import scala.reflect.runtime.universe
 
 import org.apache.commons.io.FileUtils
-import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
@@ -17,7 +15,6 @@ import org.joda.time.DateTime
 
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.toRDDFunctions
-import org.ekstep.analytics.dataexhaust.DataExhaustPackager
 
 class TestDataExhaustPackager extends SparkSpec(null) {
 
@@ -27,38 +24,8 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         }
         
         FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/test"), new File("src/test/resources/data-exhaust-package/"))
-    }
-
-    private def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
-
-        for (request_id <- request_ids) {
-            val keys1 = S3Util.getPath(bucket, prefix + "/" + request_id)
-            for (key <- keys1) {
-                S3Util.deleteObject(bucket, key.replace(s"s3n://$bucket/", ""))
-            }
-            S3Util.deleteObject(bucket, prefix + "/" + request_id + "_$folder$");
-            S3Util.deleteObject(bucket, prefix + "/" + request_id + ".zip");
-        }
-    }
-
-    private def deleteLocalFile(path: String) {
-        val file = new File(path)
-        if (file.exists())
-            CommonUtil.deleteDirectory(path)
-    }
-    private def postProcess(fileDetails: Map[String, String], request_ids: Array[String]) {
-        val fileType = fileDetails.get("fileType").get
-        fileType match {
-            case "s3" =>
-                val bucket = fileDetails.get("bucket").get
-                val prefix = fileDetails.get("prefix").get
-                deleteS3File(bucket, prefix, request_ids)
-            case "local" =>
-                val path = fileDetails.get("path").get
-                deleteLocalFile(path)
-        }
-    }
-
+    }   
+    
     it should "execute DataExhaustPackager job from local data and won't throw any Exception" in {
 
         preProcess()
