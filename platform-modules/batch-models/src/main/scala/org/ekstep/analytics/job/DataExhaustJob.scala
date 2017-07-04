@@ -17,6 +17,8 @@ import java.util.Date
 import org.joda.time.DateTimeZone
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.dataexhaust.DataExhaustPackager
+import org.ekstep.analytics.dataexhaust.PackagerConfig
 
 object DataExhaustJob extends optional.Application with IJob {
 
@@ -87,22 +89,7 @@ object DataExhaustJob extends optional.Application with IJob {
         val localPath = eventConf.localPath
         val publicS3URL = modelParams.getOrElse("public_S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
         val conf = PackagerConfig(eventConf.saveType, bucket, prefix, publicS3URL, localPath)
-        val metadata = DataExhaustPackager.execute(conf)
-
-        val jobResuestStatus = metadata.map { x =>
-            val createdDate = new DateTime(x.stats.get("createdDate").get.asInstanceOf[Date].getTime);
-            val fileInfo = x.metadata.file_info.sortBy { x => x.first_event_date }
-            val first_event_date = fileInfo.head.first_event_date
-            val last_event_date = fileInfo.last.last_event_date
-            val dtProcessing = DateTime.now(DateTimeZone.UTC);
-            JobRequest(x.client_key, x.request_id, Option(x.job_id), "COMPLETED", x.jobRequest.request_data, Option(x.location),
-                Option(createdDate),
-                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(first_event_date).getMillis)),
-                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(last_event_date).getMillis)),
-                Option(createdDate.plusDays(30)), Option(x.jobRequest.iteration.getOrElse(0) + 1), x.jobRequest.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
-                None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), None, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
-        }
-        sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
+        DataExhaustPackager.execute
 
     }
     private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
