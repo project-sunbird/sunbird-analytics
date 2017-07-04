@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.conf.AppConf
 
-case class EOCFunnel(var appId: String, var channelId: String, var uid: String, var did: String, var sid: String, var contentId: String, var contentViewed: String, var startDate: Long, var endDate: Long, var syncts: Long, var consumed: Int, var contentShown: List[AnyRef], var contentCount: Int, var downloadInit: Int, var downloadComplete: Int, var played: Int) extends AlgoOutput
+case class EOCFunnel(var appId: String, var channelId: String, var uid: String, var did: String, var sid: String, var contentId: String, var contentViewed: String, var startDate: Long, var endDate: Long, var syncts: Long, var consumed: Int, var contentShown: List[AnyRef], var contentCount: Int, var downloadInit: Int, var downloadComplete: Int, var played: Int, var pdata: PData) extends AlgoOutput
 case class EventsGroup(channelId: String, uid: String, did: String, sid: String, events: Buffer[Event]) extends AlgoInput
 object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGroup, EOCFunnel, MeasuredEvent] with Serializable {
 
@@ -31,7 +31,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
         val rdd2 = data.filter { x => (x.eid.equals("OE_START") || x.eid.equals("OE_END") || x.eid.equals("GE_INTERACT")) }
         val rdd3 = rdd.union(rdd1).union(rdd2)
         val rdd4 = rdd3.groupBy { x =>
-            val channelId = x.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val channelId = CommonUtil.getChannelId(x)
             (channelId, x.did, x.uid, x.sid)
         }
         val rdd5 = rdd4.map { x => (x._1, x._2.toList.sortBy { x => x.`@timestamp` }) }.map { case ((channelId, did, uid, sid), list) => (channelId, did, uid, sid, list) }
@@ -57,9 +57,9 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                                 funnel = null;
                             }
                             val contentId = event.edata.eks.request.asInstanceOf[Map[String, AnyRef]].get("params");
-                            val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"))
+                            val pdata = CommonUtil.getAppDetails(event)
                             if (contentId.isDefined) {
-                                funnel = EOCFunnel(appId, group.channelId, group.uid, group.did, group.sid, contentId.get.asInstanceOf[String], "", event.ets, 0L, CommonUtil.getEventSyncTS(event), 0, List(), 0, 0, 0, 0);
+                                funnel = EOCFunnel(pdata.id, group.channelId, group.uid, group.did, group.sid, contentId.get.asInstanceOf[String], "", event.ets, 0L, CommonUtil.getEventSyncTS(event), 0, List(), 0, 0, 0, 0, pdata);
                             }
                         case "OE_INTERACT" =>
                             if (null != funnel) {
@@ -131,9 +131,9 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                 "download_complete" -> summary.downloadComplete,
                 "content_played" -> summary.played)
 
-            MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "EOCRecommendationFunnelSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "EVENT").asInstanceOf[String], dtRange),
-                Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, None, Option(summary.contentId), None, None, None,None, None, None,None, None, Option(summary.appId),None, None, Option(summary.channelId)),
+            MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.channelId), None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "EOCRecommendationFunnelSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "EVENT").asInstanceOf[String], dtRange),
+                Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, Option(summary.contentId)),
                 MEEdata(measures), None);
         }
 
