@@ -12,6 +12,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.dataexhaust.DataExhaustPackager
 
 class TestDataExhaustPackager extends SparkSpec(null) {
 

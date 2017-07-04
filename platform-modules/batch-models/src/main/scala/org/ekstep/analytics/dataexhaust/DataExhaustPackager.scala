@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.dataexhaust
 
 import java.io.File
 import java.io.FileWriter
@@ -7,7 +7,6 @@ import java.io.PrintWriter
 import java.util.Date
 import scala.reflect.runtime.universe
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.Fetcher
 import org.ekstep.analytics.framework.IJob
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.JobContext
@@ -19,9 +18,6 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
-import kafka.utils.Json
-import org.ekstep.analytics.dataexhaust.DataExhaustUtils
-import org.ekstep.analytics.framework.EventId
 import java.util.UUID
 import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.DateTime
@@ -98,13 +94,12 @@ object DataExhaustPackager extends optional.Application with IJob {
         val data = fileObj.listFiles.map { dir =>
             (dir.getName, getData(dir, jobRequest, path))
         }
-
         val metadata = generateManifestFile(data, jobRequest, config.localPath)
         generateDataFiles(data, jobRequest, config.localPath)
 
         val localPath = config.localPath + "/" + jobRequest.request_id
         CommonUtil.zipDir(localPath + ".zip", localPath)
-        CommonUtil.deleteDirectory(localPath);
+        //CommonUtil.deleteDirectory(localPath);
 
         val job_id = UUID.randomUUID().toString()
         val fileStats = config.saveType match {
