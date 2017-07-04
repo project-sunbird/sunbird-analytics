@@ -74,9 +74,9 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
                 "used_activities_count" -> x.usedActCount,
                 "total_templates_count" -> x.totalTempCount,
                 "used_templates_count" -> x.usedTempCount);
-            MeasuredEvent("ME_ASSET_SNAPSHOT_SUMMARY", System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AssetSnapshotSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "SNAPSHOT").asInstanceOf[String], DtRange(System.currentTimeMillis(), System.currentTimeMillis())),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(x.partner_id), None, Option(x.app_id), None, None, Option(x.channel)),
+            MeasuredEvent("ME_ASSET_SNAPSHOT_SUMMARY", System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", Option(x.channel), None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AssetSnapshotSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "SNAPSHOT").asInstanceOf[String], DtRange(System.currentTimeMillis(), System.currentTimeMillis())),
+                Dimensions(None, None, None, None, None, None, Option(PData(x.app_id, "1.0")), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(x.partner_id)),
                 MEEdata(measures));
         }
     }

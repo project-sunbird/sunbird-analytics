@@ -50,10 +50,10 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
         if ("GE_FEEDBACK".equals(event.eid)) {
             val cId = getFeedbackContentId(event, contentId);
 
-            val app_id = event.appid.getOrElse(AppConf.getConfig("default.app.id"))
-            val channel_id = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val pdata = CommonUtil.getAppDetails(event)
+            val channel_id = CommonUtil.getChannelId(event)
 
-            val ck = ContentKey(period, app_id, channel_id, cId, tagId);
+            val ck = ContentKey(period, pdata.id, channel_id, cId, tagId);
             val gdata = event.gdata;
             val comments = List(Map("comment" -> event.edata.eks.comments, "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
             val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef], "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
@@ -62,13 +62,13 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
         } else if ("GE_TRANSFER".equals(event.eid)) {
             val contents = event.edata.eks.contents;
 
-            val app_id = event.appid.getOrElse(AppConf.getConfig("default.app.id"))
-            val channel_id = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val pdata = CommonUtil.getAppDetails(event)
+            val channel_id = CommonUtil.getChannelId(event)
 
             contents.map { content =>
                 val tsContentId = if ("all".equals(contentId)) contentId else content.get("identifier").get.asInstanceOf[String];
 
-                val ck = ContentKey(period, app_id, channel_id, tsContentId, tagId);
+                val ck = ContentKey(period, pdata.id, channel_id, tsContentId, tagId);
                 val gdata = if ("all".equals(contentId)) None else Option(new GData(tsContentId, content.get("pkgVersion").getOrElse("").toString));
                 val transferCount = content.get("transferCount").get.asInstanceOf[Double];
                 val downloads = if (transferCount == 0.0) 1 else 0;
@@ -134,9 +134,9 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
                 "m_comments" -> cpMetrics.m_comments,
                 "m_avg_rating" -> cpMetrics.m_avg_rating)
 
-            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.syncts, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentPopularitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cpMetrics.dt_range),
-                Dimensions(None, None, cpMetrics.gdata, None, None, None, None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id), None, None, None, None, None, None, None, None, None, None, None, Option(cpMetrics.ck.app_id), None, None, Option(cpMetrics.ck.channel_id)),
+            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.syncts, "1.0", mid, "", Option(cpMetrics.ck.channel_id), None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentPopularitySummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cpMetrics.dt_range),
+                Dimensions(None, None, cpMetrics.gdata, None, None, None, Option(PData(cpMetrics.ck.app_id, "1.")), None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id)),
                 MEEdata(measures));
         }
     }

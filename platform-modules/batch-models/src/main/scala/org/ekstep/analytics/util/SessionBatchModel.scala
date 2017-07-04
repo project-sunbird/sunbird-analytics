@@ -19,7 +19,7 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
     def getGameSessions(data: RDD[Event]): RDD[((String, String), Buffer[Event])] = {
         data.filter { x => x.uid != null && x.gdata.id != null }
             .map { event =>
-                val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+                val channelId = CommonUtil.getChannelId(event)
                 ((channelId, event.uid), Buffer(event))
             }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
@@ -60,7 +60,7 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
 
     def getGenieLaunchSessions(data: RDD[Event], idleTime: Int): RDD[((String, String), Buffer[Event])] = {
         data.filter { x => x.did != null }.map { event =>
-            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val channelId = CommonUtil.getChannelId(event)
             ((channelId, event.did), Buffer(event))
         }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
@@ -112,7 +112,7 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
 
     def getGenieSessions(data: RDD[Event], idleTime: Int): RDD[((String, String), Buffer[Event])] = {
         data.map { event =>
-            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val channelId = CommonUtil.getChannelId(event)
             ((channelId, event.sid), Buffer(event))
         }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
@@ -160,7 +160,7 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
     def getCESessions(data: RDD[CreationEvent]): RDD[((String, String), Buffer[CreationEvent])] = {
         data.filter { x => x.context.get.sid != null }
             .map { x =>
-                val channelId = x.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+                val channelId = CreationEventUtil.getChannelId(x)
                 ((channelId, x.context.get.sid), Buffer(x))
             }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>

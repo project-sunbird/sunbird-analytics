@@ -30,9 +30,9 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
         val deviceSessions = filteredEvents.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val did = event.dimensions.did.get
-            val appId = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
-            val channelId = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
-            (DeviceSummaryIndex(did, appId, channelId), Buffer(event));
+            val pdata = CommonUtil.getAppDetails(event)
+            val channelId = CommonUtil.getChannelId(event)
+            (DeviceSummaryIndex(did, pdata.id, channelId), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
         val prevDeviceSummary = deviceSessions.map(f => f._1).joinWithCassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE)//.map(f => (f._1.device_id, f._2))
         val joinedData = deviceSessions.leftOuterJoin(prevDeviceSummary)
@@ -66,9 +66,9 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
         val dcuSummaries = inputEvents.map { event =>
             val did = event.dimensions.did.get
             val content_id = event.dimensions.gdata.get.id
-            val appId = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
-            val channelId = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
-            (DeviceContentSummaryIndex(did, content_id, appId, channelId), Buffer(event));
+            val pdata = CommonUtil.getAppDetails(event)
+            val channelId = CommonUtil.getChannelId(event)
+            (DeviceContentSummaryIndex(did, content_id, pdata.id, channelId), Buffer(event));
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
         val prevDeviceContentSummary = dcuSummaries.map(f => f._1).joinWithCassandraTable[DeviceContentSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_CONTENT_SUMMARY_FACT).on(SomeColumns("device_id", "content_id", "app_id", "channel_id")) //.map(f => ((f._1.device_id, f._1.content_id), f._2))
         val joinedData = dcuSummaries.leftOuterJoin(prevDeviceContentSummary)
@@ -78,7 +78,7 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
             val firstEvent = dcusEvent.data.sortBy { x => x.context.date_range.from }.head;
             val lastEvent = dcusEvent.data.sortBy { x => x.context.date_range.to }.last;
             val game_ver = firstEvent.dimensions.gdata.get.ver
-            val prevDeviceContentSummary = dcusEvent.prevData.getOrElse(DeviceContentSummary(dcusEvent.index.device_id, dcusEvent.index.content_id, AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), None, None, None, None, None, None, None, None, None, None, None, None))
+            val prevDeviceContentSummary = dcusEvent.prevData.getOrElse(DeviceContentSummary(dcusEvent.index.device_id, dcusEvent.index.content_id, dcusEvent.index.app_id, dcusEvent.index.channel_id, None, None, None, None, None, None, None, None, None, None, None, None))
             val num_sessions = if (prevDeviceContentSummary.num_sessions.isEmpty) dcusEvent.data.size else dcusEvent.data.size + prevDeviceContentSummary.num_sessions.get
             val current_ts = CommonUtil.roundDouble(dcusEvent.data.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double]) }.sum, 2)
             val total_timespent = if (prevDeviceContentSummary.total_timespent.isEmpty) current_ts else current_ts + prevDeviceContentSummary.total_timespent.get;

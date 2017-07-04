@@ -172,7 +172,7 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
         val ts = System.currentTimeMillis()
         val dateRange = DtRange(ts, ts)
         val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId("AN_ENRICHED_CONTENT", null, null, dateRange, data.contentId);
-        MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, Option(data.contentId), None, Context(PData("AnalyticsDataPipeline", "ContentToVec", "1.0"), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data.jsonData)));
+        MeasuredEvent("AN_ENRICHED_CONTENT", ts, ts, "1.0", mid, null, None, Option(data.contentId), None, Context(PData("AnalyticsDataPipeline", "1.0", Option("ContentToVec")), None, null, dateRange), null, MEEdata(Map("enrichedJson" -> data.jsonData)));
     }
 
     private def downloadECARFile(url: URL, localPath: String, filePrefix: String = "") {

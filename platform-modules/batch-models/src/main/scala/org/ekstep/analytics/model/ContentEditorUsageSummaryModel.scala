@@ -96,9 +96,9 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
                 "total_sessions" -> usageSumm.total_sessions,
                 "total_ts" -> usageSumm.total_ts,
                 "avg_ts_session" -> usageSumm.avg_ts_session);
-            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentEditorUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), Option(usageSumm.content_id), None, None, None, None, None, None, None, None, None, None, None, None),
+            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentEditorUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dtRange),
+                Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), Option(usageSumm.content_id)),
                 MEEdata(measures), None);
         }
     }
