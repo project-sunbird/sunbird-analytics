@@ -16,6 +16,7 @@ import java.io.File
 import org.ekstep.analytics.util.RequestFilter
 import org.ekstep.analytics.util.RequestConfig
 import org.ekstep.analytics.util.JobRequest
+import org.apache.commons.io.FileUtils
 
 class TestDataExhaustJob extends SparkSpec(null) {
 
@@ -23,6 +24,12 @@ class TestDataExhaustJob extends SparkSpec(null) {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE platform_db.job_request");
         }
+        FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/test"), new File("src/test/resources/data-exhaust-package/"))
+        val requests = Array(
+            JobRequest("partner1", "1234", None, "PENDING_PACKAGING", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None), Option("eks-consumption-raw"), Option("json"))),
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
+
+        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
     }
 
     private def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
