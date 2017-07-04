@@ -8,7 +8,7 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 
 class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
   
-    "ConnceptSnapshotSummaryModel" should "generate concept snapshot summary events" in {
+    "ConceptSnapshotSummaryModel" should "generate concept snapshot summary events" in {
 
         // Running all VV jobs
         ContentLanguageRelationModel.main("{}")(Option(sc));
@@ -21,7 +21,7 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
         events.length should be(1)
 
         val event1 = events(0);
-        
+
         event1.context.pdata.model should be("ConceptSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SNAPSHOT");
@@ -50,7 +50,7 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
         val events = rdd.collect
         events.length should be(2)
 
-        val event1 = events(1);
+        val event1 = events(0);
         
         event1.context.pdata.model should be("ConceptSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
