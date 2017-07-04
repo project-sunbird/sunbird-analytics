@@ -5,67 +5,56 @@ import java.io.FileWriter
 import java.io.FilenameFilter
 import java.io.PrintWriter
 import java.util.Date
+import java.util.UUID
+
 import scala.reflect.runtime.universe
+
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.IJob
-import org.ekstep.analytics.framework.JobConfig
-import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
-import com.datastax.spark.connector.toSparkContextFunctions
-import com.google.gson.GsonBuilder
-import java.util.UUID
 import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+
+import com.datastax.spark.connector.toRDDFunctions
+import com.datastax.spark.connector.toSparkContextFunctions
+import com.google.gson.GsonBuilder
 
 case class PackagerConfig(saveType: String, bucket: String, prefix: String, public_S3URL: String, localPath: String)
 case class FileInfo(event_id: String, event_count: Long, first_event_date: String, last_event_date: String, file_size: Double)
 case class ManifestFile(id: String, ver: String, ts: String, dataset_id: String, total_event_count: Long, start_date: String, end_end: String, file_info: Array[FileInfo], request: Map[String, AnyRef])
 case class Response(request_id: String, client_key: String, job_id: String, metadata: ManifestFile, location: String, stats: Map[String, Any], jobRequest: JobRequest)
 
-object DataExhaustPackager extends optional.Application with IJob {
+object DataExhaustPackager extends optional.Application {
 
     val className = "org.ekstep.analytics.model.DataExhaustPackager"
     def name: String = "DataExhaustPackager"
 
-    def main(config: String)(implicit sc: Option[SparkContext] = None) {
-
-        JobLogger.init("DataExhaust Packager")
-
-        val jobConfig = JSONUtils.deserialize[JobConfig](config);
-        val eventConf = jobConfig.exhaustConfig.get("eks-consumption-raw").eventConfig.get("DEFAULT").get
-
-        val bucket = eventConf.saveConfig.params.getOrElse("bucket", "ekstep-public-dev")
-        val prefix = eventConf.saveConfig.params.getOrElse("prefix", "data-exhaust/test/")
-        val localPath = eventConf.localPath
-        val publicS3URL = jobConfig.modelParams.get.getOrElse("public_S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
-        val conf = PackagerConfig(eventConf.saveType, bucket, prefix, publicS3URL, localPath)
-
-        if (null == sc.getOrElse(null)) {
-            JobContext.parallelization = 10;
-            implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, "DataExhaust");
-            try {
-                execute(conf);
-            } finally {
-                CommonUtil.closeSparkContext();
-            }
-        } else {
-            implicit val sparkContext: SparkContext = sc.getOrElse(null);
-            execute(conf);
-        }
-    }
-
-    def execute(config: PackagerConfig)(implicit sc: SparkContext): Array[Response] = {
+    def execute()(implicit sc: SparkContext) = {
         // Get all job request with status equals PENDING_PACKAGING
         val jobRequests = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("status = ?", "PENDING_PACKAGING").collect;
 
-        jobRequests.map { request =>
-            packageExhaustData(request, config)
+        val metadata = jobRequests.map { request =>
+            packageExhaustData(request)
         }
+        val jobResuestStatus = metadata.map { x =>
+            val createdDate = new DateTime(x.stats.get("createdDate").get.asInstanceOf[Date].getTime);
+            val fileInfo = x.metadata.file_info.sortBy { x => x.first_event_date }
+            val first_event_date = fileInfo.head.first_event_date
+            val last_event_date = fileInfo.last.last_event_date
+            val dtProcessing = DateTime.now(DateTimeZone.UTC);
+            JobRequest(x.client_key, x.request_id, Option(x.job_id), "COMPLETED", x.jobRequest.request_data, Option(x.location),
+                Option(createdDate),
+                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(first_event_date).getMillis)),
+                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(last_event_date).getMillis)),
+                Option(createdDate.plusDays(30)), Option(x.jobRequest.iteration.getOrElse(0) + 1), x.jobRequest.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
+                None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), None, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
+        }
+        sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
     }
 
     def getData(dir: File, jobRequest: JobRequest, path: String)(implicit sc: SparkContext): Array[String] = {
@@ -80,34 +69,40 @@ object DataExhaustPackager extends optional.Application with IJob {
         }.flatMap { x => x.collect() }
     }
 
-    def packageExhaustData(jobRequest: JobRequest, config: PackagerConfig)(implicit sc: SparkContext): Response = {
-
-        val path = config.saveType match {
+    def packageExhaustData(jobRequest: JobRequest)(implicit sc: SparkContext): Response = {
+        
+        val saveType = AppConf.getConfig("dataexhaust.save_config.save_type")
+        val bucket = AppConf.getConfig("dataexhaust.save_config.bucket")
+        val prefix = AppConf.getConfig("dataexhaust.save_config.prefix")
+        val tmpPath = AppConf.getConfig("dataexhaust.save_config.local_path")
+        val public_S3URL = AppConf.getConfig("dataexhaust.save_config.public_s3_url")
+        
+        val path = saveType match {
             case "s3" =>
-                val local = config.localPath + "/" + jobRequest.request_id + "/"
-                S3Util.download(config.bucket, config.prefix + jobRequest.request_id, local)
-                local
+                S3Util.download(bucket, prefix + jobRequest.request_id, tmpPath + "/")
+                (tmpPath + "/" + jobRequest.request_id + "/")
             case "local" =>
-                config.localPath + "/" + jobRequest.request_id
+                tmpPath + "/" + jobRequest.request_id + "/"
         }
-        val fileObj = new File(path)
+        val fileObj = new File(path.toString())
         val data = fileObj.listFiles.map { dir =>
             (dir.getName, getData(dir, jobRequest, path))
         }
-        val metadata = generateManifestFile(data, jobRequest, config.localPath)
-        generateDataFiles(data, jobRequest, config.localPath)
 
-        val localPath = config.localPath + "/" + jobRequest.request_id
+        val metadata = generateManifestFile(data, jobRequest, tmpPath)
+        generateDataFiles(data, jobRequest, tmpPath)
+
+        val localPath = tmpPath + "/" + jobRequest.request_id
         CommonUtil.zipDir(localPath + ".zip", localPath)
-        //CommonUtil.deleteDirectory(localPath);
+        CommonUtil.deleteDirectory(localPath);
 
         val job_id = UUID.randomUUID().toString()
-        val fileStats = config.saveType match {
+        val fileStats = saveType match {
             case "s3" =>
-                val prefix = config.prefix + jobRequest.request_id
-                DataExhaustUtils.uploadZip(config.bucket, config.prefix, localPath, jobRequest.request_id, jobRequest.client_key)
-                val stats = S3Util.getObjectDetails(config.bucket, prefix + ".zip");
-                (config.public_S3URL + "/" + config.bucket + "/" + prefix + ".zip", stats)
+                val s3Prefix = prefix + jobRequest.request_id
+                DataExhaustUtils.uploadZip(bucket, s3Prefix, localPath, jobRequest.request_id, jobRequest.client_key)
+                val stats = S3Util.getObjectDetails(bucket, s3Prefix + ".zip");
+                (public_S3URL + "/" + bucket + "/" + s3Prefix + ".zip", stats)
             case "local" =>
                 val file = new File(localPath)
                 val dateTime = new Date(file.lastModified())
