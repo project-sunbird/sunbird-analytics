@@ -67,15 +67,8 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
-        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false,"modelParams":{}, "exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","saveType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}},"saveConfig":{"params":{"path":"/tmp/data-exhaust/"}},"localPath":"/tmp/data-exhaust"}}}}}"""
+        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false,"modelParams":{}, "exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}}}}}}}"""
         DataExhaustJob.main(config)(Option(sc));
-
-        val files1 = new File("/tmp/data-exhaust/1234.zip").isFile()
-        files1 should be(true)
-
-        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/data-exhaust")
-        val request_ids = Array("1234")
-        postProcess(fileDetails, request_ids)
     }
 
     it should "test consumption summary data" in {
@@ -89,13 +82,6 @@ class TestDataExhaustJob extends SparkSpec(null) {
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/consumption-summ/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{}, "exhaustConfig":{"eks-consumption-summary":{"events":["ME_SESSION_SUMMARY"],"eventConfig":{"ME_SESSION_SUMMARY":{"eventType":"Summary","searchType":"local","saveType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-summ/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}},"saveConfig":{"params":{"path":"/tmp/data-exhaust/"}},"localPath":"/tmp/data-exhaust"}}}}}"""
 
         DataExhaustJob.main(config)(Option(sc));
-
-        val files1 = new File("/tmp/data-exhaust/requestID1.zip").isFile()
-        files1 should be(true)
-
-        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/data-exhaust")
-        val request_ids = Array("requestID1")
-        postProcess(fileDetails, request_ids)
     }
 
     it should "test for creation raw data" in {
@@ -109,13 +95,6 @@ class TestDataExhaustJob extends SparkSpec(null) {
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{}, "exhaustConfig":{"eks-creation-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"CreationRaw","searchType":"local","saveType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/creation-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}},"saveConfig":{"params":{"path":"/tmp/data-exhaust/"}},"localPath":"/tmp/data-exhaust"}}}}}"""
 
         DataExhaustJob.main(config)(Option(sc));
-
-        val files1 = new File("/tmp/data-exhaust/requestID2.zip").isFile()
-        files1 should be(true)
-
-        val fileDetails = Map("fileType" -> "local", "path" -> "/tmp/data-exhaust")
-        val request_ids = Array("requestID2")
-        postProcess(fileDetails, request_ids)
     }
 
     ignore should "run the data exhaust and save data to S3" in {
