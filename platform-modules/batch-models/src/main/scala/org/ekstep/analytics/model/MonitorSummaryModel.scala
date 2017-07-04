@@ -68,10 +68,13 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     }
 
     override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val message = messageFormatToSlack(data.first())
         if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
-            val message = messageFormatToSlack(data.first())
             val token = new SlackClient(AppConf.getConfig("monitor.notification.token"))
             token.chat.postMessage(AppConf.getConfig("monitor.notification.channel"), message)
+        } else {
+            println(message)
+
         }
         
         data.map { x =>
@@ -85,7 +88,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
                 "jobs_summary" -> x.job_summary);
 
             MeasuredEvent("ME_MONITOR_SUMMARY", System.currentTimeMillis(), x.syncTs, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "MonitorSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", x.dtange),
+                Context(PData(config.getOrElse("id", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "MonitorSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", x.dtange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, Option(CommonUtil.getPeriod(x.syncTs, DAY)), None, None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);
         }
@@ -98,19 +101,53 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val jobsCompleted = jobMonitorToSclack.jobs_completed
         val jobsFailed = jobMonitorToSclack.jobs_failed
         val totalEventsGenerated = jobMonitorToSclack.total_events_generated
-        val totalTs = jobMonitorToSclack.total_ts
-        val mapValues = jobMonitorToSclack.job_summary.map(f => (f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
-        val stringWithoutSymbols = mapValues.map { x => x.toString().replace("(", "").replace(")", "") }.mkString(" ")
-        val jobSummary = JSONUtils.serialize(stringWithoutSymbols)
-        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time ," + "Status ," + "Day "
-        var message = ""
-        if (jobsFailed == 0) {
-            message = "Job Run Completed Successfully"
-        } else {
-            message = "Job Failed"
+        val totalTs = CommonUtil.roundDouble(jobMonitorToSclack.total_ts / 3600, 2)
+        val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
+        val consumptionModels = jobSummaryCaseClass.filter { x => (x.model.equals("")) }
+        val arryString = jobSummaryCaseClass.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        var inputEventMap = collection.mutable.Map[String, Long]()
+        var outputEventMap = collection.mutable.Map[String, Long]()
+        jobSummaryCaseClass.map { x =>
+            inputEventMap += (x.model -> x.input_count)
+            outputEventMap += (x.model -> x.output_count)
         }
-        return s"""Number of Jobs Started: `'$jobsStarted'`\nNumber of Completed Jobs: `'$jobsCompleted'` \nNumber of failed Jobs: `'$jobsFailed'` \nTotal time taken: `'$totalTs'`\nTotal events generated: `'$totalEventsGenerated'`\n\nDetailed Report:\n```$header \n $jobSummary```\n\nMessage: ```$message```"""
+        val modelMapping = Map("ItemSummaryModel" -> "LearnerSessionSummaryModel",
+            "GenieUsageSummaryModel" -> "GenieLaunchSummaryModel",
+            "ItemSummaryModel" -> "GenieFunnelModel",
+            "GenieStageSummaryModel" -> "GenieLaunchSummaryModel",
+            "ItemUsageSummaryModel" -> "ItemSummaryModel",
+            "DeviceContentUsageSummaryModel" -> "LearnerSessionSummaryModel",
+            "DeviceUsageSummaryModel" -> "GenieLaunchSummaryModel",
+            "UpdateGenieUsageDB" -> "GenieUsageSummaryModel",
+            "UpdateItemSummaryDB" -> "ItemUsageSummaryModel",
+            "UpdateContentPopularityDB" -> "ContentPopularitySummaryModel",
+            "UpdateContentUsageDB" -> "ContentUsageSummaryModel",
+            "ContentUsageSummaryModel" -> "LearnerSessionSummaryModel")
+        var warnings = ""
+        modelMapping.map { x =>
+            if (outputEventMap(x._2) != inputEventMap(x._1)) {
+                val output = x._2
+                val input = x._1
+                warnings += s"output of $output NOT EQUALS to input of $input\n"
+            }
+        }
 
+        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time ," + "Status ," + "Day "
+        var data = ""
+        if (jobsFailed > 0 && warnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\n```$header \n $arryString```\n\nError: ```"Job Failed"```"""
+
+        } else if (jobsFailed == 0 && warnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\n```$header \n $arryString```\n\nMessage: ```"Job Run Completed Successfully"```"""
+
+        } else if (jobsFailed == 0 && !warnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\n```$header \n $arryString```\n\nWarnings: ```$warnings```"""
+
+        } else {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\n```$header \n $arryString```\n\nWarnings: ```$warnings```\n\n Error: ```Job Failed```"""
+
+        }
+        return data
     }
 
 }
