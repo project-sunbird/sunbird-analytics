@@ -65,8 +65,8 @@ case class JobRequest(client_key: String, request_id: String, job_id: Option[Str
                       dt_job_completed: Option[DateTime], input_events: Option[Long], output_events: Option[Long], file_size: Option[Long], latency: Option[Int],
                       execution_time: Option[Long], err_message: Option[String], stage: Option[String], stage_status: Option[String]) extends AlgoOutput
 
-case class RequestFilter(start_date: String, end_date: String, tags: Option[List[String]], events: Option[List[String]]);
-case class RequestConfig(filter: RequestFilter, dataset_id: Option[String] = Option("D002"), output_format: Option[String] = None);
+case class RequestFilter(start_date: String, end_date: String, tags: Option[List[String]], events: Option[List[String]], app_id: Option[String], channel: Option[String]);
+case class RequestConfig(filter: RequestFilter, dataset_id: Option[String] = Option("eks-consumption-raw"), output_format: Option[String] = None);
 case class RequestOutput(request_id: String, output_events: Int)
 case class DataExhaustJobInput(eventDate: Long, event: String, eid: String) extends AlgoInput;
 case class JobResponse(client_key: String, request_id: String, job_id: String, output_events: Long, bucket: String, prefix: String, first_event_date: Long, last_event_date: Long);

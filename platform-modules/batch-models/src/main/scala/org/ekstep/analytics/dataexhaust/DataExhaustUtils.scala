@@ -29,6 +29,13 @@ import org.ekstep.analytics.creation.model.CreationEvent
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.conf.AppConf
+import scala.collection.JavaConversions._
+import com.typesafe.config.Config
+import org.ekstep.analytics.framework.DataSet
+import org.ekstep.analytics.framework.Input
+import org.ekstep.analytics.framework.AlgoInput
+import org.ekstep.analytics.framework.EventId
 
 object DataExhaustUtils {
 
@@ -61,68 +68,6 @@ object DataExhaustUtils {
         sc.parallelize(csv, 1);
     }
 
-    def saveData(outputFormat: String, path: String, events: RDD[DataExhaustJobInput], uploadPrefix: String, stage: String, config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobResponse] = {
-
-        val client_key = config.get("client_key").get.asInstanceOf[String];
-        val request_id = config.get("request_id").get.asInstanceOf[String];
-        val bucket = config.get("data-exhaust-bucket").get.asInstanceOf[String]
-        val job_id = config.get("job_id").get.asInstanceOf[String];
-        try {
-            val output_events = events.count
-            if (output_events > 0) {
-                val firstEventDate = events.sortBy { x => x.eventDate }.first().eventDate;
-                val lastEventDate = events.sortBy({ x => x.eventDate }, false).first.eventDate;
-                val rawEventsRDD = events.map { x => x.event };
-                //  type check for file type: json or csv
-                val outputRDD = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rawEventsRDD) else rawEventsRDD;
-                outputRDD.saveAsTextFile(path);
-                updateStage(request_id, client_key, stage, "COMPLETED")
-                sc.makeRDD(List(JobResponse(client_key, request_id, job_id, output_events, bucket, uploadPrefix, firstEventDate, lastEventDate)));
-            } else {
-                updateStage(request_id, client_key, stage, "COMPLETED")
-                sc.makeRDD(List(JobResponse(client_key, request_id, job_id, 0, bucket, null, 0L, 0L)));
-            }
-        } catch {
-            case t: Throwable =>
-                updateStage(request_id, client_key, stage, "FAILED", "FAILED")
-                throw t;
-        }
-    }
-    def filterEvent(data: RDD[String], requestFilter: RequestFilter, datasetId: String): RDD[DataExhaustJobInput] = {
-
-        val startDate = CommonUtil.dateFormat.parseDateTime(requestFilter.start_date).withTimeAtStartOfDay().getMillis;
-        val endDate = CommonUtil.dateFormat.parseDateTime(requestFilter.end_date).withTimeAtStartOfDay().getMillis + 86399000;
-        val filters: Array[Filter] = Array(
-            Filter("eventts", "RANGE", Option(Map("start" -> startDate, "end" -> endDate)))) ++ {
-                if (requestFilter.events.isDefined && requestFilter.events.get.nonEmpty) Array(Filter("eid", "IN", Option(requestFilter.events.get))) else Array[Filter]();
-            } ++ {
-                if (requestFilter.tags.isDefined && requestFilter.tags.get.nonEmpty) Array(Filter("genieTag", "IN", Option(requestFilter.tags.get))) else Array[Filter]();
-            }
-        data.map { x =>
-            try {
-                val eventWithTS = datasetId match {
-                    case "D002" =>
-                        val e = JSONUtils.deserialize[Event](x);
-                        (e, CommonUtil.getEventTS(e), e.eid)
-                    case "D005" =>
-                        val me = JSONUtils.deserialize[CreationEvent](x);
-                        (me, CommonUtil.getTimestamp(me.`@timestamp`), me.eid)
-                    case _ =>
-                        val ce = JSONUtils.deserialize[MeasuredEvent](x);
-                        (ce, ce.syncts, ce.eid)
-                }
-                val matched = DataFilter.matches(eventWithTS._1, filters);
-                if (matched) {
-                    DataExhaustJobInput(eventWithTS._2, x, eventWithTS._3)
-                } else {
-                    null;
-                }
-            } catch {
-                case ex: Exception =>
-                    null;
-            }
-        }.filter { x => x != null }
-    }
     def getRequest(request_id: String, client_key: String)(implicit sc: SparkContext): RequestFilter = {
         try {
             val request = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("client_key = ? and request_id = ?", client_key, request_id).first();
@@ -144,21 +89,20 @@ object DataExhaustUtils {
             } else {
                 null;
             }
-
         } catch {
             case t: Throwable => null;
         }
     }
-    def uploadZip(response: JobResponse, localPath: String)(implicit sc: SparkContext) {
+    def uploadZip(bucket: String, prefix: String, localPath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
         try {
-            S3Util.uploadPublic(response.bucket, localPath + ".zip", response.prefix + ".zip");
-            S3Util.deleteObject(response.bucket, response.prefix);
-            S3Util.deleteObject(response.bucket, response.prefix + "_$folder$");
+            S3Util.uploadPublic(bucket, localPath + ".zip", prefix + ".zip");
+            S3Util.deleteObject(bucket, prefix);
+            S3Util.deleteObject(bucket, prefix + "_$folder$");
             CommonUtil.deleteFile(localPath + ".zip")
-            updateStage(response.request_id, response.client_key, "UPLOAD_ZIP", "COMPLETED")
+            updateStage(request_id, client_key, "UPLOAD_ZIP", "COMPLETED")
         } catch {
             case t: Throwable =>
-                updateStage(response.request_id, response.client_key, "UPLOAD_ZIP", "FAILED", "FAILED")
+                updateStage(request_id, client_key, "UPLOAD_ZIP", "FAILED", "FAILED")
                 throw t
         }
     }
@@ -176,88 +120,78 @@ object DataExhaustUtils {
                 throw t
         }
     }
-    def fetchData(request: JobRequest, config: JobConfig)(implicit sc: SparkContext): RDD[String] = {
-        try {
-            val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
-            val dataSetID = requestData.dataset_id.get
-            val events = requestData.filter.events.getOrElse(List()).toArray
-            val filter = requestData.filter
 
-            val modelParams = config.modelParams.get;
-            val fetcher = getSearchQuery(dataSetID, events, config, filter, modelParams)
+    def saveData(rdd: RDD[String], eventConfig: EventId, requestId: String, eventId: String, outputFormat: String, requestID: String, clientKey: String)(implicit sc: SparkContext) {
+
+        val data = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rdd) else rdd;
+        
+        eventConfig.saveType match {
+            case "s3" =>
+                val bucket = eventConfig.saveConfig.params.get("bucket").get
+                val prefix = eventConfig.saveConfig.params.get("prefix").get
+                val key = "s3n://" + bucket + "/" + prefix + requestId + "/" + eventId;
+                data.saveAsTextFile(key)
+                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_"+eventId, "COMPLETED")
+            case "local" =>
+                val localPath = eventConfig.saveConfig.params.get("path").get + requestId + "/" + eventId
+                data.saveAsTextFile(localPath)
+                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_LOCAL_"+eventId, "COMPLETED")
+        }
+    }
+    def fetchData(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): RDD[String] = {
+        try {
+            val dataSetID = request.dataset_id.get
+            val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
+            val searchType = eventConfig.searchType.toLowerCase()
+            val fetcher = searchType match {
+                case "s3" =>
+                    val bucket = eventConfig.fetchConfig.params.get("bucket").get
+                    val prefix = eventConfig.fetchConfig.params.get("prefix").get
+                    val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
+                    Fetcher(searchType, None, Option(queries))
+                case "local" =>
+                    val filePath = eventConfig.fetchConfig.params.get("file").get
+                    val queries = Array(Query(None, None, None, None, None, None, None, None, None, Option(filePath)))
+                    Fetcher(searchType, None, Option(queries))
+            }
             val data = DataFetcher.fetchBatchData[String](fetcher);
-            updateStage(request.request_id, request.client_key, "FETCHING_DATA", "COMPLETED", "PROCESSING")
+            DataExhaustUtils.updateStage(requestID, clientKey, "FETCH_DATA_"+eventId, "COMPLETED")
             data;
         } catch {
             case t: Throwable =>
-                updateStage(request.request_id, request.client_key, "FETCHING_DATA", "FAILED", "FAILED")
                 throw t;
         }
-
     }
-    def getFetcher(bucket: String, events: Array[String], filter: RequestFilter, basePrefix: String = ""): Fetcher = {
-        val prefixes = events.map { x =>
-            if (x.endsWith("METRICS")) x.toLowerCase() else getPrefixes(x)
-        }.filter { x => !StringUtils.equals("", x) }.map { x => x.split(",") }.flatMap { x => x }.map { x => (basePrefix + "/" + x) }
-        val queries = prefixes.map { x => Query(Option(bucket), Option(x), Option(filter.start_date), Option(filter.end_date)) }
-        if (queries.isEmpty) Fetcher("s3", None, None); else Fetcher("s3", None, Option(queries));
+    def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
-    }
-    def getPrefixes(event: String): String = {
-        event match {
-            case "ME_SESSION_SUMMARY"          => "ss/"
-            case "ME_ITEM_SUMMARY"             => "is/"
-            case "ME_GENIE_LAUNCH_SUMMARY"     => "gls/"
-            case "ME_CONTENT_USAGE_SUMMARY"    => "cus/"
-            case "ME_GENIE_USAGE_SUMMARY"      => "genie-launch-summ/"
-            case "ME_ITEM_USAGE_SUMMARY"       => "item-usage-summ/"
-            case "ME_APP_SESSION_SUMMARY"      => "app-ss/"
-            case "ME_CE_SESSION_SUMMARY"       => "ce-ss/"
-            case "ME_TEXTBOOK_SESSION_SUMMARY" => "textbook-ss/"
-            case "ME_APP_USAGE_SUMMARY"        => "app-usage/"
-            case "ME_CE_USAGE_SUMMARY"         => "ce-usage/"
-            case "ME_TEXTBOOK_USAGE_SUMMARY"   => "textbook-usage/"
-            case "consumption-summary"         => "ss/,is/,gls/,cus/,genie-launch-summ/,item-usage-summ/"
-            case "consumption-metrics"         => "me_content_usage_metrics/,me_item_usage_metrics/,me_genie_usage_metrics/,me_content_snapshot_metrics/,me_concept_snapshot_metrics/,me_asset_snapshot_metrics/"
-            case "creation-summary"            => "app-ss/,ce-ss/,textbook-ss/,app-usage/,ce-usage/,textbook-usage/"
-            case "creation-metrics"            => "me_app_usage_metrics/,me_ce_usage_metrics/,me_textbook_creation_metrics/,me_textbook_snapshot_metrics/"
-            case _                             => ""
-        }
-    }
-    def getSearchQuery(dataSetID: String, events: Array[String], config: JobConfig, filter: RequestFilter, modelParams: Map[String, AnyRef]): Fetcher = {
+        val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
+        val eventType = eventConf.eventType
+        val filterMapping = eventConf.filterMapping
 
-        config.search.`type`.toLowerCase() match {
-            case "s3" =>
-                val dataSetRawBucket = modelParams.get("dataset-raw-bucket").getOrElse("ekstep-data-sets-dev").asInstanceOf[String];
-                val consumptionRawPrefix = modelParams.get("consumption-raw-prefix").getOrElse("restricted/D001/4208ab995984d222b59299e5103d350a842d8d41/").asInstanceOf[String];
-                val creationRawPrefix = modelParams.get("creation-raw-prefix").getOrElse("portal/").asInstanceOf[String];
-                val bucket = modelParams.get("bucket").getOrElse("ekstep-dev-data-store").asInstanceOf[String];
-                dataSetID match {
-                    case "D002" =>
-                        val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy/MM/dd").withZoneUTC();
-                        val startDate = CommonUtil.dateFormat.parseDateTime(filter.start_date).withTimeAtStartOfDay().getMillis
-                        val endDate = CommonUtil.dateFormat.parseDateTime(filter.end_date).withTimeAtStartOfDay().getMillis
-                        Fetcher("s3", None, Option(Array(Query(Option(dataSetRawBucket), Option(consumptionRawPrefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
-                    case "D003" =>
-                        val finalEvents = if (events.isEmpty) Array("consumption-summary") else events
-                        getFetcher(bucket, finalEvents, filter)
-                    case "D004" =>
-                        val finalEvents = if (events.isEmpty) Array("consumption-metrics") else events
-                        getFetcher(bucket, events, filter, "org.ekstep.consumption.metrics")
-                    case "D005" =>
-                        Fetcher("s3", None, Option(Array(Query(Option(bucket), Option(creationRawPrefix), Option(filter.start_date), Option(filter.end_date)))));
-                    case "D006" =>
-                        val finalEvents = if (events.isEmpty) Array("creation-summary") else events
-                        getFetcher(bucket, events, filter)
-                    case "D007" =>
-                        val finalEvents = if (events.isEmpty) Array("creation-metrics") else events
-                        getFetcher(bucket, events, filter, "org.ekstep.consumption.metrics")
-                    case _ =>
-                        null
+        val filterKeys = filterMapping.keySet
+        val filters = filterKeys.map { key =>
+            val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
+            Filter(defaultFilter.name, defaultFilter.operator, filter.get(key))
+        }.filter(x=> None != x.value).toArray
+
+        data.map { line =>
+            try {
+                val event = eventType match {
+                    case "ConsumptionRaw" => JSONUtils.deserialize[Event](line);
+                    case "Summary"        => JSONUtils.deserialize[DerivedEvent](line);
+                    case "CreationRaw"    => JSONUtils.deserialize[CreationEvent](line);
+                    case "Metrics"        => JSONUtils.deserialize[DerivedEvent](line);
                 }
-            case "local" =>
-                Fetcher("local", None, config.search.queries);
-        }
-
+                val matched = DataFilter.matches(event, filters);
+                if (matched) {
+                    event;
+                } else {
+                    null;
+                }
+            } catch {
+                case ex: Exception =>
+                    null;
+            }
+        }.filter { x => x != null }
     }
 }

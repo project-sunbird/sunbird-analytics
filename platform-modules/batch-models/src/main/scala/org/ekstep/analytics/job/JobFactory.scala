@@ -141,9 +141,9 @@ object JobFactory {
             case "textbook-ss" =>
                 TextbookSessionSummarizer
             case "textbook-usage" =>
-            	TextbookUsageSummarizer
+                TextbookUsageSummarizer
             case "textbook-usage-updater" =>
-            	TextbookUsageUpdater
+                TextbookUsageUpdater
             case "author-usage-summary" =>
                 AuthorUsageSummarizer
             case "author-usage-updater" =>
@@ -162,6 +162,10 @@ object JobFactory {
                 PublishPipelineUpdater
             case "me-metrics" =>
                 MetricsEventCreationJob
+            case "monitor-job-summ" =>
+                MonitorSummarizer
+            case "plugin-snapshot-updater" =>
+                PluginSnapshotMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

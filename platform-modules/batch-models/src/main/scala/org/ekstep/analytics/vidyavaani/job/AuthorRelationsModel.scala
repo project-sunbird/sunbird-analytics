@@ -21,6 +21,23 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.Job_Config
 import org.ekstep.analytics.util.Constants
 
+/**
+*
+* Creates User Node.
+* Creates relation between User and Content (createdBy).
+* Add Property contentCount, liveContentCount on User Node.
+* Creates relation between User and Concept (uses).
+* Add Property contentCount, liveContentCount on uses relation between User and Concept.
+* Add Property conceptCount on User Node.
+* Creates relation between User and Language (createdIn).
+* Add Property contentCount, liveContentCount on createdIn relation between User and Language.
+* Creates ContentType Nodes (Worksheet, Story, Game, Collection)
+* Creates relation between User and ContentType (uses).
+* Add Property contentCount, liveContentCount on uses relation between User and ContentType.
+* Add relation between Content and ContentType (isA).
+* Add Property contentCount, liveContentCount on ContentType Node.
+*/
+
 object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
 
     val NODE_NAME = "User";

@@ -1,36 +1,26 @@
 package org.ekstep.analytics.job
 
-import org.ekstep.analytics.framework.JobDriver
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.IJob
-import org.ekstep.analytics.model.DataExhaustJobModel
-import com.datastax.spark.connector._
-import org.ekstep.analytics.util.Constants
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.JobConfig
-import org.ekstep.analytics.framework.Fetcher
-import org.ekstep.analytics.framework.Query
-import org.ekstep.analytics.framework.DataFetcher
-import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.dataexhaust.DataExhaustUtils
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.util._
+import org.ekstep.analytics.util.JobRequest
+import org.ekstep.analytics.util.RequestConfig
+import scala.collection.JavaConversions._
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.Config
+import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.spark.rdd.RDD
-import java.util.UUID
-import org.ekstep.analytics.framework.util.S3Util
 import org.joda.time.DateTime
 import java.util.Date
 import org.joda.time.DateTimeZone
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.format.DateTimeFormat
-import org.ekstep.analytics.framework.DataExStage
-import java.io.File
-import org.apache.commons.lang3.StringUtils
-import org.ekstep.analytics.dataexhaust.DataExhaustUtils
-import org.ekstep.analytics.util._
+import com.datastax.spark.connector._
+import org.ekstep.analytics.util.Constants
 
 object DataExhaustJob extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
+    val rawDataSetList = List("eks-consumption-raw", "eks-creation-raw")
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
@@ -57,99 +47,76 @@ object DataExhaustJob extends optional.Application with IJob {
         val requests = DataExhaustUtils.getAllRequest
         if (null != requests) {
             _executeRequests(requests.collect(), config);
-            requests.unpersist(true)
         } else {
             JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0)));
         }
     }
 
     private def _executeRequests(requests: Array[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
+        val modelParams = config.modelParams.get
+        implicit val exhaustConfig = config.exhaustConfig.get
+        for (request <- requests) {
+            val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
+            val requestID = request.request_id
+            val clientKey = request.client_key
+            val eventList = requestData.filter.events.getOrElse(List())
+            val dataSetId = requestData.dataset_id.get
 
-        var inputEventsCount = 0l;
-        val jobResponses = for (request <- requests) yield {
+            val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
+                exhaustConfig.get(dataSetId).get.events
+            else
+                eventList
 
-            try {
-                val dtProcessing = DateTime.now(DateTimeZone.UTC);
-                val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
-                val datasetId = requestData.dataset_id.getOrElse("D002");
-                val outputFormat = requestData.output_format.getOrElse("json").asInstanceOf[String]
-                val updatedRequestData = JSONUtils.serialize(RequestConfig(requestData.filter, Option(datasetId), Option(outputFormat)))
-
-                val modelConfig = config.modelParams.get
-                val requestConfig = Map(
-                    "request_id" -> request.request_id,
-                    "client_key" -> request.client_key,
-                    "job_id" -> UUID.randomUUID().toString(),
-                    "data-exhaust-bucket" -> modelConfig.getOrElse("data-exhaust-bucket", "ekstep-public-dev"),
-                    "data-exhaust-prefix" -> modelConfig.getOrElse("data-exhaust-prefix", "data-exhaust/test/"),
-                    "dispatch-to" -> modelConfig.getOrElse("dispatch-to", "s3").asInstanceOf[String].toLowerCase(),
-                    "path" -> modelConfig.getOrElse("tempLocalPath", "/tmp/dataexhaust"),
-                    "output_format" -> outputFormat,
-                    "dataset_id" -> requestData.dataset_id.get);
-
-                val result = CommonUtil.time({
-                    val data = DataExhaustUtils.fetchData(request, config)
-                    inputEventsCount = inputEventsCount + data.count
-                    val response = DataExhaustJobModel.execute(data, Option(requestConfig)).collect().head;
-                    val to = requestConfig.get("dispatch-to").get.asInstanceOf[String]
-                    if (response.output_events > 0 && "s3".equals(to)) {
-                        val localPath = requestConfig.get("path").get.asInstanceOf[String] + "/" + response.request_id;
-                        DataExhaustUtils.downloadOutput(response, localPath)
-                        DataExhaustUtils.uploadZip(response, localPath)
-                    }
-                    response
-                })
-
-                val jobReq = try {
-                    if (result._2.output_events > 0) {
-
-                        val fileDetail = requestConfig.get("dispatch-to").get match {
-                            case "local" =>
-                                val file = new File(result._2.prefix)
-                                val dateTime = new Date(file.lastModified())
-                                val stats = Map("createdDate" -> dateTime, "size" -> file.length())
-                                (result._2.prefix, stats)
-                            case "s3" =>
-                                val stats = S3Util.getObjectDetails(result._2.bucket, result._2.prefix + ".zip");
-                                val s3pubURL = modelConfig.getOrElse("data-exhaust-public-S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
-                                val loc = s3pubURL + "/" + result._2.bucket + "/" + result._2.prefix + ".zip";
-                                (loc, stats)
-                        }
-
-                        val createdDate = new DateTime(fileDetail._2.get("createdDate").get.asInstanceOf[Date].getTime);
-                        JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", updatedRequestData, Option(fileDetail._1),
-                            Option(new DateTime(createdDate)), Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
-                            Option(createdDate.plusDays(30)), Option(request.iteration.getOrElse(0) + 1), request.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
-                            Option(inputEventsCount), Option(result._2.output_events), Option(fileDetail._2.get("size").get.asInstanceOf[Long]), Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
-                    } else {
-                        JobRequest(request.client_key, request.request_id, Option(result._2.job_id), "COMPLETED", updatedRequestData, None,
-                            None, Option(new DateTime(result._2.first_event_date)), Option(new DateTime(result._2.last_event_date)),
-                            None, Option(request.iteration.getOrElse(0) + 1), request.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
-                            Option(inputEventsCount), Option(result._2.output_events), None, Option(0), Option(result._1), None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
-                    }
-                } catch {
-                    case t: Throwable =>
-                        t.printStackTrace()
-                        JobLogger.end("DataExhaust Job Completed.", "FAILED", Option(Map("date" -> "", "inputEvents" -> inputEventsCount)))
-                        DataExhaustUtils.updateStage(request.request_id, request.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED")
-                        null
-                }
-                jobReq;
-            } catch {
-                case t: Throwable =>
-                    t.printStackTrace()
-                    null
+            for (eventId <- events) {
+                _executeEventExhaust(eventId, requestData, requestID, clientKey)
             }
         }
-        val resRDD = sc.makeRDD(jobResponses.filter { x => null != x })
-        try {
-            resRDD.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
-            JobLogger.end("DataExhaust Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> inputEventsCount, "outputEvents" -> 0, "timeTaken" -> 0)));
-        } catch {
-            case t: Throwable =>
-                t.printStackTrace()
-                JobLogger.end("DataExhaust Job Completed.", "FAILED", Option(Map("date" -> "", "inputEvents" -> inputEventsCount)))
-                resRDD.map { x => JobStage(x.request_id, x.client_key, "UPDATE_RESPONSE_TO_DB", "FAILED", "FAILED") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
+        
+        val dataSetId = JSONUtils.deserialize[RequestConfig](requests.head.request_data).dataset_id.get;
+        val dataSet = exhaustConfig.get(dataSetId).get
+        val eventConf = dataSet.eventConfig.get(dataSet.events.head).get
+        val bucket = eventConf.saveConfig.params.getOrElse("bucket", "ekstep-public-dev")
+        val prefix = eventConf.saveConfig.params.getOrElse("prefix", "data-exhaust/test/")
+        val localPath = eventConf.localPath
+        val publicS3URL = modelParams.getOrElse("public_S3URL", "https://s3-ap-southeast-1.amazonaws.com").asInstanceOf[String]
+        val conf = PackagerConfig(eventConf.saveType, bucket, prefix, publicS3URL, localPath)
+        val metadata = DataExhaustPackager.execute(conf)
+
+        val jobResuestStatus = metadata.map { x =>
+            val createdDate = new DateTime(x.stats.get("createdDate").get.asInstanceOf[Date].getTime);
+            val fileInfo = x.metadata.file_info.sortBy { x => x.first_event_date }
+            val first_event_date = fileInfo.head.first_event_date
+            val last_event_date = fileInfo.last.last_event_date
+            val dtProcessing = DateTime.now(DateTimeZone.UTC);
+            JobRequest(x.client_key, x.request_id, Option(x.job_id), "COMPLETED", x.jobRequest.request_data, Option(x.location),
+                Option(createdDate),
+                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(first_event_date).getMillis)),
+                Option(new DateTime(CommonUtil.dateFormat.parseDateTime(last_event_date).getMillis)),
+                Option(createdDate.plusDays(30)), Option(x.jobRequest.iteration.getOrElse(0) + 1), x.jobRequest.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
+                None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), None, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
         }
+        sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
+
+    }
+    private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
+        val dataSetID = request.dataset_id.get
+        val data = DataExhaustUtils.fetchData(eventId, request, requestID, clientKey)
+        val filter = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(request.filter))
+        val filteredData = DataExhaustUtils.filterEvent(data, filter, eventId, dataSetID);
+        DataExhaustUtils.updateStage(requestID, clientKey, "FILTERED_DATA_" + eventId, "COMPLETED")
+        val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
+        val outputFormat = request.output_format.getOrElse("json")
+
+        if ("DEFAULT".equals(eventId) && request.filter.events.isDefined && request.filter.events.get.size > 0) {
+            for (event <- request.filter.events.get) {
+                val filterKey = Filter("eventId", "EQ", Option(event))
+                val data = DataFilter.filter(filteredData, filterKey).map { x => JSONUtils.serialize(x) }
+                DataExhaustUtils.saveData(data, eventConfig, requestID, event, outputFormat, requestID, clientKey)
+            }
+        } else {
+            DataExhaustUtils.saveData(filteredData.map { x => JSONUtils.serialize(x) }, eventConfig, requestID, eventId, outputFormat, requestID, clientKey)
+        }
+        DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3/LOCAL", "COMPLETED", "PENDING_PACKAGING")
+
     }
 }
