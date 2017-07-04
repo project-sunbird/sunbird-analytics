@@ -25,8 +25,8 @@ import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
 
 case class PackagerConfig(saveType: String, bucket: String, prefix: String, public_S3URL: String, localPath: String)
-case class FileInfo(event_id: String, event_count: Long, first_event_date: String, last_event_date: String, file_size: Double)
-case class ManifestFile(id: String, ver: String, ts: String, dataset_id: String, total_event_count: Long, start_date: String, end_end: String, file_info: Array[FileInfo], request: Map[String, AnyRef])
+case class FileInfo(event_id: String, event_count: Long, first_event_date: String, last_event_date: String)
+case class ManifestFile(id: String, ver: String, ets: Long, request_id: String, dataset_id: String, total_event_count: Long, start_date: String, end_end: String, file_info: Array[FileInfo], request: String)
 case class Response(request_id: String, client_key: String, job_id: String, metadata: ManifestFile, location: String, stats: Map[String, Any], jobRequest: JobRequest)
 
 object DataExhaustPackager extends optional.Application {
@@ -70,13 +70,13 @@ object DataExhaustPackager extends optional.Application {
     }
 
     def packageExhaustData(jobRequest: JobRequest)(implicit sc: SparkContext): Response = {
-        
+
         val saveType = AppConf.getConfig("dataexhaust.save_config.save_type")
         val bucket = AppConf.getConfig("dataexhaust.save_config.bucket")
         val prefix = AppConf.getConfig("dataexhaust.save_config.prefix")
         val tmpPath = AppConf.getConfig("dataexhaust.save_config.local_path")
         val public_S3URL = AppConf.getConfig("dataexhaust.save_config.public_s3_url")
-        
+
         val path = saveType match {
             case "s3" =>
                 S3Util.download(bucket, prefix + jobRequest.request_id, tmpPath + "/")
@@ -94,6 +94,7 @@ object DataExhaustPackager extends optional.Application {
 
         val localPath = tmpPath + "/" + jobRequest.request_id
         CommonUtil.zipDir(localPath + ".zip", localPath)
+        println("localPath : " + localPath)
         CommonUtil.deleteDirectory(localPath);
 
         val job_id = UUID.randomUUID().toString()
@@ -110,6 +111,7 @@ object DataExhaustPackager extends optional.Application {
                 (localPath + ".zip", stats)
 
         }
+        CommonUtil.deleteDirectory(localPath + ".zip");
         Response(jobRequest.request_id, jobRequest.client_key, job_id, metadata, fileStats._1, fileStats._2, jobRequest);
     }
 
@@ -117,12 +119,14 @@ object DataExhaustPackager extends optional.Application {
         val fileInfo = data.map { f =>
             val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.head)
             val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.last)
-            FileInfo(f._1, f._2.length, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())), 0.0)
+            FileInfo(f._1, f._2.length, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())))
         }
+        val events = data.map { event => event._2 }.flatten.sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
+        val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](events.head)
+        val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](events.last)
         val totalEventCount = data.map { f => f._2.length }.sum
         val requestData = JSONUtils.deserialize[Map[String, AnyRef]](jobRequest.request_data)
-        val filter = requestData.get("filter").get.asInstanceOf[Map[String, AnyRef]]
-        val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", CommonUtil.dateFormat.print(new DateTime(System.currentTimeMillis())), requestData.get("dataset_id").get.toString(), totalEventCount, filter.get("startDate").toString(), filter.get("endDate").toString(), fileInfo, requestData)
+        val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", new Date().getTime, jobRequest.request_id, requestData.get("dataset_id").get.toString(), totalEventCount, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())), fileInfo, JSONUtils.serialize(requestData))
         val gson = new GsonBuilder().setPrettyPrinting().create();
         val jsonString = gson.toJson(manifest)
         writeToFile(Array(jsonString), localPath + "/" + jobRequest.request_id + "/", "manifest.json")

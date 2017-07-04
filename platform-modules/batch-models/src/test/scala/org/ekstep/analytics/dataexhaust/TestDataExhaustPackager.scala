@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.dataexhaust
 
 import java.io.File
 
@@ -6,18 +6,17 @@ import scala.reflect.runtime.universe
 
 import org.apache.commons.io.FileUtils
 import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
-import org.ekstep.analytics.util.RequestConfig
-import org.ekstep.analytics.util.RequestFilter
-import org.joda.time.DateTime
 
+import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.util.RequestConfig
+import org.ekstep.analytics.util.Constants
+import org.joda.time.DateTime
+import org.ekstep.analytics.util.RequestFilter
 import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.toRDDFunctions
-import org.ekstep.analytics.dataexhaust.DataExhaustPackager
 
 class TestDataExhaustPackager extends SparkSpec(null) {
 
@@ -69,10 +68,10 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
         DataExhaustPackager.execute();
-
-        val files1 = new File("src/test/resources/data-exhaust-package/1234.zip")
-        files1.isFile() should be(true)
-        files1.deleteOnExit()
+        val request = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("request_id = ?", "1234").collect
+        request.map { x =>
+            x.status should be ("COMPLETED")
+        }
     }
 
 }
