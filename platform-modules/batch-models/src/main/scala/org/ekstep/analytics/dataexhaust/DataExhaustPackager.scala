@@ -103,15 +103,17 @@ object DataExhaustPackager extends optional.Application {
                 val s3Prefix = prefix + jobRequest.request_id
                 DataExhaustUtils.uploadZip(bucket, s3Prefix, localPath, jobRequest.request_id, jobRequest.client_key)
                 val stats = S3Util.getObjectDetails(bucket, s3Prefix + ".zip");
+                DataExhaustUtils.deleteS3File(bucket, prefix, Array(jobRequest.request_id))
                 (public_S3URL + "/" + bucket + "/" + s3Prefix + ".zip", stats)
             case "local" =>
                 val file = new File(localPath)
                 val dateTime = new Date(file.lastModified())
                 val stats = Map("createdDate" -> dateTime, "size" -> file.length())
+                CommonUtil.deleteDirectory(localPath + ".zip");
                 (localPath + ".zip", stats)
 
         }
-        CommonUtil.deleteDirectory(localPath + ".zip");
+        
         Response(jobRequest.request_id, jobRequest.client_key, job_id, metadata, fileStats._1, fileStats._2, jobRequest);
     }
 
