@@ -12,6 +12,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.apache.commons.io.FileUtils
 
 class TestDataExhaustPackager extends SparkSpec(null) {
 
@@ -19,9 +20,11 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE platform_db.job_request");
         }
+        
+        FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/test"), new File("src/test/resources/data-exhaust-package/"))
     }
-    
-     private def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
+
+    private def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
 
         for (request_id <- request_ids) {
             val keys1 = S3Util.getPath(bucket, prefix + "/" + request_id)
@@ -32,7 +35,7 @@ class TestDataExhaustPackager extends SparkSpec(null) {
             S3Util.deleteObject(bucket, prefix + "/" + request_id + ".zip");
         }
     }
-    
+
     private def deleteLocalFile(path: String) {
         val file = new File(path)
         if (file.exists())
@@ -51,20 +54,19 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         }
     }
 
-    ignore should "execute DataExhaustPackager job from local data and won't throw any Exception" in {
-     
+    it should "execute DataExhaustPackager job from local data and won't throw any Exception" in {
+
         preProcess()
         val requests = Array(
-            JobRequest("partner1", "1234", None, "PENDING_PACKAGING", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None),Option("eks-consumption-raw"), Option("json"))),
+            JobRequest("partner1", "1234", None, "PENDING_PACKAGING", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None), Option("eks-consumption-raw"), Option("json"))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
-        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust-package/"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/data-exhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false,"modelParams":{}, "exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","saveType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}},"saveConfig":{"params":{"path":"src/test/resources/data-exhaust/test/"}},"localPath":"src/test/resources/data-exhaust-package"}}}}}"""
-        DataExhaustPackager.main(config)(Option(sc));
+        DataExhaustPackager.execute();
 
-        val files1 = new File("src/test/resources/data-exhaust/test/1234.zip")
-        files1.isFile() should be (true)
+        val files1 = new File("src/test/resources/data-exhaust-package/1234.zip")
+        files1.isFile() should be(true)
         files1.deleteOnExit()
     }
 
