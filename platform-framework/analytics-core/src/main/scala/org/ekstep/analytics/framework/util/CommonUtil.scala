@@ -537,4 +537,26 @@ object CommonUtil {
         val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
         dateFormat.parseDateTime(date).plusHours(23).plusMinutes(59).plusSeconds(59).getMillis
     }
+    
+    def getAppDetails(event: Any): PData = {
+        val defaultAppId = PData(AppConf.getConfig("default.app.id"), "1.0")
+        if(event.isInstanceOf[Event]){
+            if(event.asInstanceOf[Event].pdata.isEmpty) defaultAppId else event.asInstanceOf[Event].pdata.get
+        }
+        else if(event.isInstanceOf[DerivedEvent]){
+            if(event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
+        }
+        else defaultAppId;
+    }
+    
+    def getChannelId(event: Any): String = {
+        val defaultChannelId = AppConf.getConfig("default.channel.id")
+        if(event.isInstanceOf[Event]){
+            if(event.asInstanceOf[Event].channel.isEmpty) defaultChannelId else event.asInstanceOf[Event].channel.get
+        }
+        else if(event.isInstanceOf[DerivedEvent]){
+            if(event.asInstanceOf[DerivedEvent].channel.isEmpty) defaultChannelId else event.asInstanceOf[DerivedEvent].channel.get
+        }
+        else defaultChannelId;
+    }
 }
