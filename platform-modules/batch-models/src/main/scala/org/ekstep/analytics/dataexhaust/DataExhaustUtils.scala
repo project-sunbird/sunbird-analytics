@@ -93,12 +93,9 @@ object DataExhaustUtils {
             case t: Throwable => null;
         }
     }
-    def uploadZip(bucket: String, prefix: String, localPath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
+    def uploadZip(bucket: String, filePrefix: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
         try {
-            S3Util.uploadPublic(bucket, localPath + ".zip", prefix + ".zip");
-            S3Util.deleteObject(bucket, prefix);
-            S3Util.deleteObject(bucket, prefix + "_$folder$");
-            CommonUtil.deleteFile(localPath + ".zip")
+            S3Util.uploadPublic(bucket, zipFileAbsolutePath, filePrefix);
             updateStage(request_id, client_key, "UPLOAD_ZIP", "COMPLETED")
         } catch {
             case t: Throwable =>

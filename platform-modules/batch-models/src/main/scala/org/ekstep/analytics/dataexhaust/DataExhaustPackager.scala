@@ -73,38 +73,41 @@ object DataExhaustPackager extends optional.Application {
 		val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
 		val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
 		val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
-		val tmpPath = AppConf.getConfig("data_exhaust.save_config.local_path")
+		val tmpFolderPath = AppConf.getConfig("data_exhaust.save_config.local_path")
 		val public_S3URL = AppConf.getConfig("data_exhaust.save_config.public_s3_url")
 		val deleteSource = AppConf.getConfig("data_exhaust.delete_source");
 		
-		val path = tmpPath + jobRequest.request_id + "/";
+		val requestDataLocalPath = tmpFolderPath + jobRequest.request_id + "/";
+		val requestDataSourcePath = prefix + jobRequest.request_id + "/";
+		val zipFileAbsolutePath = tmpFolderPath + jobRequest.request_id + ".zip";
+		
 		saveType match {
 			case "s3" =>
-				S3Util.downloadDirectory(bucket, prefix + jobRequest.request_id + "/", path)
+				S3Util.downloadDirectory(bucket, requestDataSourcePath, requestDataLocalPath)
 			case "local" =>
-				FileUtils.copyDirectory(new File(prefix + jobRequest.request_id + "/"), new File(path));
+				FileUtils.copyDirectory(new File(requestDataSourcePath), new File(requestDataLocalPath));
 		}
-		deleteInvalidFiles(path);
+		deleteInvalidFiles(requestDataLocalPath);
 		
-		val fileObj = new File(path)
+		val fileObj = new File(requestDataLocalPath)
 		val data = fileObj.listFiles.map { dir =>
 			(dir.getName, getData(dir))
 		}
 
-		val metadata = generateManifestFile(data, jobRequest, tmpPath)
-		generateDataFiles(data, jobRequest, tmpPath)
-		val localPath = tmpPath + jobRequest.request_id
-		CommonUtil.zipDir(localPath + ".zip", localPath)
-		CommonUtil.deleteDirectory(localPath);
+		val metadata = generateManifestFile(data, jobRequest, requestDataLocalPath)
+		generateDataFiles(data, jobRequest, requestDataLocalPath)
+		val localPath = tmpFolderPath + jobRequest.request_id
+		CommonUtil.zipDir(zipFileAbsolutePath, requestDataLocalPath)
+		CommonUtil.deleteDirectory(requestDataLocalPath);
 
 		val job_id = UUID.randomUUID().toString()
 		val fileStats = saveType match {
 			case "s3" =>
-				val s3Prefix = prefix + jobRequest.request_id
-				DataExhaustUtils.uploadZip(bucket, s3Prefix, localPath, jobRequest.request_id, jobRequest.client_key)
-				val stats = S3Util.getObjectDetails(bucket, s3Prefix + ".zip");
+				val s3FilePrefix = prefix + jobRequest.request_id +".zip"
+				DataExhaustUtils.uploadZip(bucket, s3FilePrefix, zipFileAbsolutePath, jobRequest.request_id, jobRequest.client_key)
+				val stats = S3Util.getObjectDetails(bucket, s3FilePrefix);
 				if ("true".equals(deleteSource)) DataExhaustUtils.deleteS3File(bucket, prefix, Array(jobRequest.request_id))
-				(public_S3URL + "/" + bucket + "/" + s3Prefix + ".zip", stats)
+				(public_S3URL + "/" + bucket + "/" + s3FilePrefix, stats)
 			case "local" =>
 				val file = new File(localPath)
 				val dateTime = new Date(file.lastModified())
@@ -123,7 +126,7 @@ object DataExhaustPackager extends optional.Application {
 		.map { x => x.delete() };
 	}
 
-	def generateManifestFile(data: Array[(String, Array[String])], jobRequest: JobRequest, localPath: String): ManifestFile = {
+	def generateManifestFile(data: Array[(String, Array[String])], jobRequest: JobRequest, requestDataLocalPath: String): ManifestFile = {
 		val fileInfo = data.map { f =>
 			val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.head)
 			val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.last)
@@ -137,17 +140,17 @@ object DataExhaustPackager extends optional.Application {
 		val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", new Date().getTime, jobRequest.request_id, requestData.get("dataset_id").get.toString(), totalEventCount, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())), fileInfo, JSONUtils.serialize(requestData))
 		val gson = new GsonBuilder().setPrettyPrinting().create();
 		val jsonString = gson.toJson(manifest)
-		writeToFile(Array(jsonString), localPath + "/" + jobRequest.request_id + "/", "manifest.json")
+		writeToFile(Array(jsonString), requestDataLocalPath, "manifest.json")
 		manifest
 	}
 
-	def generateDataFiles(data: Array[(String, Array[String])], jobRequest: JobRequest, localPath: String) {
+	def generateDataFiles(data: Array[(String, Array[String])], jobRequest: JobRequest, requestDataLocalPath: String) {
 		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
 		data.foreach { events =>
 			val fileName = events._1
 			val fileData = events._2
-			writeToFile(fileData, localPath + "/" + jobRequest.request_id + "/data/", fileName + "." + fileExtenstion)
-			CommonUtil.deleteDirectory(localPath + "/" + jobRequest.request_id + "/" + fileName)
+			writeToFile(fileData, requestDataLocalPath + "data/", fileName + "." + fileExtenstion)
+			CommonUtil.deleteDirectory(requestDataLocalPath + fileName)
 		}
 	}
 
