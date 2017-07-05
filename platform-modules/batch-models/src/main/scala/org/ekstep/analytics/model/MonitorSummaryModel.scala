@@ -1,7 +1,7 @@
 package org.ekstep.analytics.model
 /**
  * @author Yuva
- **/
+ */
 import org.apache.spark.HashPartitioner
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -107,68 +107,82 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val totalTs = milliSecondsToTimeFormat(jobMonitorToSclack.total_ts)
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
-        // filter vidyavaani jobs
-        val vidyavaaniModelsSet = Set("ContentLanguageRelationModel", "ConceptLanguageRelationModel", "AuthorRelationsModel", "CreationRecommendationEnrichmentModel", "ContentAssetRelationModel")
-        val vidyavaaniModels = jobSummaryCaseClass.filter(item => vidyavaaniModelsSet(item.model.trim()))
-
         // filter consumption jobs
         val consumptionModelsSet = Set("UpdateLearnerProfileDB", "UpdateDeviceSpecificationDB", "LearnerSessionSummaryModel", "GenieSessionSummaryModel",
             "GenieLaunchSummaryModel", "ContentPopularitySummaryModel", "EOCRecommendationFunnelModel", "StageSummaryModel", "GenieStageSummaryModel",
             "UpdateContentPopularityDB", "DeviceUsageSummaryModel", "UpdateGenieUsageDB", "UpdateItemSummaryDB", "GenieFunnelAggregatorModel", "GenieUsageSummaryModel",
             "ContentUsageSummaryModel", "ContentSideloadingSummaryModel", "GenieFunnelModel", "ItemUsageSummaryModel", "DeviceContentUsageSummaryModel",
-            "UpdateContentUsageDB", "UpdateContentModel", "ItemSummaryModel", "ConsumptionMetricsUpdater")
+            "UpdateContentUsageDB", "UpdateContentModel", "ItemSummaryModel", "ConsumptionMetricsUpdater", "PrecomputedViews", "DataExhaustJob")
         val consumptionModels = jobSummaryCaseClass.filter(item => consumptionModelsSet(item.model.trim()))
 
         // filter creation jobs
         val creationModelsSet = Set("AppSessionSummaryModel", "ContentEditorSessionSummaryModel", "PublishPipelineSummaryModel", "UpdateObjectLifecycleDB",
             "UpdatePublishPipelineSummarycreation", "AppUsageSummaryModel", "ContentEditorUsageSummaryModel", "UpdateAppUsageDB",
             "UpdateContentEditorUsageDB", "UpdateContentCreationMetricsDB", "AuthorUsageSummaryModel", "TextbookSessionSummaryModel", "UpdateAuthorSummaryDB",
-            "TextbookUsageSummaryModel", "UpdateTextbookUsageDB", "UpdateCreationMetricsDB")
-        val creationModels = jobSummaryCaseClass.filter(item => creationModelsSet(item.model.trim()))
-        // filter other jobs
-        val otherModelsSet = Set("PrecomputedViews", "DataExhaustJob", "DeviceRecommendationTrainingModel", "DeviceRecommendationScoringModel", "ContentVectorsModel", "EndOfContentRecommendationModel")
-        val otherModels = jobSummaryCaseClass.filter { item => otherModelsSet(item.model.trim()) }
-        // filter unclassified jobs
-        val unclassifiedModelsSet = Set("CreationRecommendationModel", "UpdateConceptSnapshotDB", "ContentSnapshotSummaryModel",
+            "TextbookUsageSummaryModel", "UpdateTextbookUsageDB", "UpdateCreationMetricsDB", "UpdateConceptSnapshotDB", "ContentSnapshotSummaryModel",
             "ConceptSnapshotSummaryModel", "UpdateContentSnapshotDB", "AssetSnapshotSummaryModel", "UpdateTextbookSnapshotDB",
-            "UpdateAssetSnapshotDB")
-        val unclassifiedModels = jobSummaryCaseClass.filter { item => unclassifiedModelsSet(item.model) }
+            "UpdateAssetSnapshotDB", "ContentLanguageRelationModel", "ConceptLanguageRelationModel", "AuthorRelationsModel",
+            "CreationRecommendationEnrichmentModel", "ContentAssetRelationModel")
+        val creationModels = jobSummaryCaseClass.filter(item => creationModelsSet(item.model.trim()))
+
+        // filter other jobs
+        val recommendationModelsSet = Set("DeviceRecommendationTrainingModel", "DeviceRecommendationScoringModel", "ContentVectorsModel",
+            "EndOfContentRecommendationModel", "CreationRecommendationModel")
+        val recommendationModels = jobSummaryCaseClass.filter { item => recommendationModelsSet(item.model.trim()) }
 
         //makejob summary to string
-        val vidyavaaniModelsString = vidyavaaniModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
         val consumptionModelsString = consumptionModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
         val creationModelsString = creationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
-        val otherModelsString = otherModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
-        val unclassifiedModelsString = unclassifiedModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        val recommendationModelsString = recommendationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+
+        // Model Mapping Map(input from other data product -> output from data product)
+        val consumptionModelMapping = Map(
+            "ItemSummaryModel" -> "LearnerSessionSummaryModel", "GenieUsageSummaryModel" -> "GenieLaunchSummaryModel",
+            "ItemSummaryModel" -> "LearnerSessionSummaryModel", "GenieStageSummaryModel" -> "GenieLaunchSummaryModel",
+            "ItemUsageSummaryModel" -> "ItemSummaryModel", "DeviceContentUsageSummaryModel" -> "LearnerSessionSummaryModel",
+            "DeviceUsageSummaryModel" -> "GenieLaunchSummaryModel", "UpdateGenieUsageDB" -> "GenieUsageSummaryModel",
+            "UpdateItemSummaryDB" -> "ItemUsageSummaryModel", "UpdateContentPopularityDB" -> "ContentPopularitySummaryModel",
+            "UpdateContentUsageDB" -> "ContentUsageSummaryModel", "ContentUsageSummaryModel" -> "LearnerSessionSummaryModel")
+
+        val creationModelMapping = Map(
+            "AppUsageSummaryModel" -> "AppSessionSummaryModel", "ContentEditorUsageSummaryModel" -> "ContentEditorSessionSummaryModel",
+            "TextbookUsageSummaryModel" -> "TextbookSessionSummaryModel", "UpdateAppUsageDB" -> "AppUsageSummaryModel",
+            "UpdateContentEditorUsageDB" -> "ContentEditorUsageSummaryModel", "UpdateTextbookUsageDB" -> "TextbookUsageSummaryModel",
+            "UpdateAuthorSummaryDB" -> "AuthorUsageSummaryModel")
+
+        val consumptionModelsWarnings = warningMessages(consumptionModelMapping, consumptionModels)
+        val creationModelsWarnings = warningMessages(creationModelMapping, creationModels)
+
+        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time(min) ," + "Status ," + "Day"
+        //println(s"```$header\n$consumptionModelsString```")
+        var data = ""
+        if (jobsFailed > 0 && consumptionModelsWarnings.equals("") && creationModelsWarnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n Error: ```Job Failed```"""
+        } else if (jobsFailed == 0 && consumptionModelsWarnings.equals("") && creationModelsWarnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\nMessage: ```"Job Run Completed Successfully"```"""
+        } else if (jobsFailed == 0 && !consumptionModelsWarnings.equals("") && creationModelsWarnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\n\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n"""
+        } else if (jobsFailed == 0 && !consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n"""
+        } else if (jobsFailed == 0 && consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n"""
+        } else if (jobsFailed > 0 && !consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\n Error: ```Job Failed```"""
+        } else if (jobsFailed > 0 && consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\n Error: ```Job Failed```"""
+        } else {
+            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\n Error: ```Job Failed```"""
+        }
+        return data
+    }
+
+    private def warningMessages(modelMapping: Map[String, String], models: Array[JobSummary]): String = {
         var inputEventMap = collection.mutable.Map[String, Long]()
         var outputEventMap = collection.mutable.Map[String, Long]()
-        jobSummaryCaseClass.map { x =>
+        models.map { x =>
             inputEventMap += (x.model -> x.input_count)
             outputEventMap += (x.model -> x.output_count)
         }
-
-        // Model Mapping Map(input from other data product -> output from data product)
-        val modelMapping = Map("ItemSummaryModel" -> "LearnerSessionSummaryModel",
-            "GenieUsageSummaryModel" -> "GenieLaunchSummaryModel",
-            "ItemSummaryModel" -> "LearnerSessionSummaryModel",
-            "GenieStageSummaryModel" -> "GenieLaunchSummaryModel",
-            "ItemUsageSummaryModel" -> "ItemSummaryModel",
-            "DeviceContentUsageSummaryModel" -> "LearnerSessionSummaryModel",
-            "DeviceUsageSummaryModel" -> "GenieLaunchSummaryModel",
-            "UpdateGenieUsageDB" -> "GenieUsageSummaryModel",
-            "UpdateItemSummaryDB" -> "ItemUsageSummaryModel",
-            "UpdateContentPopularityDB" -> "ContentPopularitySummaryModel",
-            "UpdateContentUsageDB" -> "ContentUsageSummaryModel",
-            "ContentUsageSummaryModel" -> "LearnerSessionSummaryModel",
-            "AppUsageSummaryModel" -> "AppSessionSummaryModel",
-            "ContentEditorUsageSummaryModel" -> "ContentEditorSessionSummaryModel",
-            "TextbookUsageSummaryModel" -> "TextbookSessionSummaryModel",
-            "UpdateItemSummaryDB" -> "ItemUsageSummaryModel",
-            "UpdateAppUsageDB" -> "AppUsageSummaryModel",
-            "UpdateContentEditorUsageDB" -> "ContentEditorUsageSummaryModel",
-            "UpdateTextbookUsageDB" -> "TextbookUsageSummaryModel",
-            "UpdateAuthorSummaryDB" -> "AuthorUsageSummaryModel")
-
         var warnings = ""
         modelMapping.map { x =>
             if (outputEventMap(x._2) != inputEventMap(x._1)) {
@@ -177,19 +191,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
                 warnings += s"output of $output NOT EQUALS to input of $input\n"
             }
         }
-
-        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time ," + "Status ," + "Day "
-        var data = ""
-        if (jobsFailed > 0 && warnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models\n```$header \n $consumptionModelsString```\n\nCreation Models:\n ```$header \n $creationModelsString```\nVidhyavaani Models:\n```$header \n $vidyavaaniModelsString```\n Other Models:\n```$header \n $otherModelsString```\n Unclassified Models:\n```$header \n $unclassifiedModelsString```\n Error: ```"Job Failed"```"""
-        } else if (jobsFailed == 0 && warnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models\n```$header \n $consumptionModelsString```\n\nCreation Models:\n ```$header \n $creationModelsString```\nVidhyavaani Models:\n```$header \n $vidyavaaniModelsString```\n Other Models:\n```$header \n $otherModelsString```\n Unclassified Models:\n```$header \n $unclassifiedModelsString```\n\nMessage: ```"Job Run Completed Successfully"```"""
-        } else if (jobsFailed == 0 && !warnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models\n```$header \n $consumptionModelsString```\n\nCreation Models:\n ```$header \n $creationModelsString```\nVidhyavaani Models:\n```$header \n $vidyavaaniModelsString```\n Other Models:\n```$header \n $otherModelsString```\n Unclassified Models:\n```$header \n $unclassifiedModelsString```\n\nWarnings: ```$warnings```"""
-        } else {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models\n```$header \n $consumptionModelsString```\n\nCreation Models:\n ```$header \n $creationModelsString```\nVidhyavaani Models:\n```$header \n $vidyavaaniModelsString```\n Other Models:\n```$header \n $otherModelsString```\n Unclassified Models:\n```$header \n $unclassifiedModelsString```\n\nWarnings: ```$warnings```\n\n Error: ```Job Failed```"""
-        }
-        return data
+        warnings
     }
 
     private def milliSecondsToTimeFormat(milliSeconds: Double): String = {
