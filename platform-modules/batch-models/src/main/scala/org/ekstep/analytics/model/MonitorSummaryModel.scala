@@ -1,7 +1,7 @@
 package org.ekstep.analytics.model
-/**
- * @author Yuva
- */
+
+import java.util.Date
+
 import org.apache.spark.HashPartitioner
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -13,15 +13,13 @@ import org.ekstep.analytics.framework.DtRange
 import org.ekstep.analytics.framework.IBatchModelTemplate
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.Period._
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.util.Constants
+import org.joda.time.DateTime
 import com.flyberrycapital.slack.SlackClient
 import net.liftweb.json._
-import net.liftweb.json.Serialization.write
 import net.liftweb.json.DefaultFormats
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.conf.AppConf
-import org.joda.time.DateTime
+import net.liftweb.json.Serialization.write
 
 /**
  * @dataproduct
@@ -131,9 +129,9 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val recommendationModels = jobSummaryCaseClass.filter { item => recommendationModelsSet(item.model.trim()) }
 
         //makejob summary to string
-        val consumptionModelsString = consumptionModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
-        val creationModelsString = creationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
-        val recommendationModelsString = recommendationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble(x.time_taken / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        val consumptionModelsString = consumptionModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        val creationModelsString = creationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        val recommendationModelsString = recommendationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
 
         // Model Mapping Map(input from other data product -> output from data product)
         val consumptionModelMapping = Map(
@@ -154,7 +152,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val creationModelsWarnings = warningMessages(creationModelMapping, creationModels)
 
         val header = "Model ," + "Input Events ," + "Output Events ," + "Total time(min) ," + "Status ," + "Day"
-        //println(s"```$header\n$consumptionModelsString```")
+
         var data = ""
         if (jobsFailed > 0 && consumptionModelsWarnings.equals("") && creationModelsWarnings.equals("")) {
             data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n Error: ```Job Failed```"""
@@ -195,9 +193,11 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     }
 
     private def milliSecondsToTimeFormat(milliSeconds: Double): String = {
-        val dt = new DateTime(milliSeconds.asInstanceOf[Number].longValue());
-        val minutes2 = dt.getMinuteOfHour();
-        dt.toString("HH:mm:ss");
+        val seconds = milliSeconds / 1000
+        val s = (seconds % 60).longValue();
+        val m = ((seconds / 60) % 60).longValue();
+        val h = ((seconds / (60 * 60)) % 24).longValue();
+        h + ":" + m + ":" + s
     }
 
 }
