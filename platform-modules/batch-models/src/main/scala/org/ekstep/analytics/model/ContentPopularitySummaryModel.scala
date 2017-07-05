@@ -125,7 +125,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 
     override def postProcess(data: RDD[ContentPopularitySummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { cpMetrics =>
-            val mid = CommonUtil.getMessageId("ME_CONTENT_POPULARITY_SUMMARY", cpMetrics.ck.content_id + cpMetrics.ck.tag + cpMetrics.ck.period, "DAY", cpMetrics.syncts, Option(cpMetrics.ck.app_id), Option(cpMetrics.ck.channel_id));
+            val mid = CommonUtil.getMessageId("ME_CONTENT_POPULARITY_SUMMARY", cpMetrics.ck.content_id + cpMetrics.ck.tag + cpMetrics.ck.period, "DAY", cpMetrics.syncts, Option(cpMetrics.ck.app_id), Option(cpMetrics.ck.channel));
             val measures = Map(
                 "m_downloads" -> cpMetrics.m_downloads,
                 "m_side_loads" -> cpMetrics.m_side_loads,
@@ -134,7 +134,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
                 "m_comments" -> cpMetrics.m_comments,
                 "m_avg_rating" -> cpMetrics.m_avg_rating)
 
-            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.syncts, "1.0", mid, "", Option(cpMetrics.ck.channel_id), None, None,
+            MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.syncts, "1.0", mid, "", Option(cpMetrics.ck.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentPopularitySummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cpMetrics.dt_range),
                 Dimensions(None, None, cpMetrics.gdata, None, None, None, Option(PData(cpMetrics.ck.app_id, "1.")), None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id)),
                 MEEdata(measures));

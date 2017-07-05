@@ -25,7 +25,7 @@ import org.ekstep.analytics.updater.LearnerProfile
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
 
-case class ItemSummaryOutput(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, itemResponse: ItemResponse) extends AlgoOutput
+case class ItemSummaryOutput(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, itemResponse: ItemResponse, pdata: PData, channel: String) extends AlgoOutput
 
 object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ItemSummaryOutput, MeasuredEvent] with Serializable {
 
@@ -42,7 +42,9 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
             if (null != itemResponses && itemResponses.size > 0) {
                 itemResponses.map { x =>
                     val ir = JSONUtils.deserialize[ItemResponse](JSONUtils.serialize(x));
-                    ItemSummaryOutput(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, ir)
+                    val pdata = CommonUtil.getAppDetails(x)
+                    val channel = CommonUtil.getChannelId(x)
+                    ItemSummaryOutput(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, ir, pdata, channel)
                 }
             } else {
                 Array[ItemSummaryOutput]();
@@ -53,12 +55,12 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
     override def postProcess(data: RDD[ItemSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", summary.itemResponse.itemId + summary.uid, "EVENT", DtRange(summary.itemResponse.time_stamp, summary.itemResponse.time_stamp), summary.gdata.id);
+            val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", summary.itemResponse.itemId + summary.uid, "EVENT", DtRange(summary.itemResponse.time_stamp, summary.itemResponse.time_stamp), summary.gdata.id, Option(summary.pdata.id), Option(summary.channel));
             val measures = summary.itemResponse;
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ItemSummary").asInstanceOf[String]));
-            MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, None, Option(summary.gdata.id), None,
+            MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.channel), Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", DtRange(summary.itemResponse.time_stamp, summary.itemResponse.time_stamp)),
-                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, None, None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
+                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
         };
     }
 

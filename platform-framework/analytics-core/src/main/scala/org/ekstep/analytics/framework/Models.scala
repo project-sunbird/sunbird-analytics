@@ -118,9 +118,9 @@ case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_
 
 case class Empty() extends Input with AlgoInput with AlgoOutput with Output
 case class UpdaterOutput(msg: String) extends Output
-case class ContentKey(period: Int, app_id: String, channel_id: String, content_id: String, tag: String);
-case class GenieKey(period: Int, app_id: String, channel_id: String, tag: String);
-case class ItemKey(period: Int, app_id: String, channel_id: String, tag: String, content_id: String, item_id: String);
+case class ContentKey(period: Int, app_id: String, channel: String, content_id: String, tag: String);
+case class GenieKey(period: Int, app_id: String, channel: String, tag: String);
+case class ItemKey(period: Int, app_id: String, channel: String, tag: String, content_id: String, item_id: String);
 case class InCorrectRes(resp: String, mmc: List[String], count: Int) extends Input with AlgoInput;
 case class Misconception(value: String, count: Int) extends Input with AlgoInput;
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
