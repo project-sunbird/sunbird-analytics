@@ -2,14 +2,17 @@ package org.ekstep.analytics.dataexhaust
 
 import java.io.File
 import java.io.FileWriter
-import java.io.FilenameFilter
 import java.io.PrintWriter
 import java.util.Date
 import java.util.UUID
 
 import scala.reflect.runtime.universe
 
+import org.apache.commons.io.FileUtils
 import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
@@ -23,10 +26,9 @@ import org.joda.time.DateTimeZone
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
-import org.apache.commons.io.FileUtils
 
 case class PackagerConfig(saveType: String, bucket: String, prefix: String, public_S3URL: String, localPath: String)
-case class FileInfo(event_id: String, event_count: Long, first_event_date: String, last_event_date: String)
+case class FileInfo(path: String, event_count: Long, first_event_date: String, last_event_date: String)
 case class ManifestFile(id: String, ver: String, ets: Long, request_id: String, dataset_id: String, total_event_count: Long, start_date: String, end_end: String, file_info: Array[FileInfo], request: String)
 case class Response(request_id: String, client_key: String, job_id: String, metadata: ManifestFile, location: String, stats: Map[String, Any], jobRequest: JobRequest)
 
@@ -62,10 +64,11 @@ object DataExhaustPackager extends optional.Application {
 		filePath.endsWith("_SUCCESS") || filePath.endsWith("$folder$") || filePath.endsWith(".crc");
 	}
 	
-	def getData(dir: File)(implicit sc: SparkContext): Array[String] = {
-		dir.listFiles().map { x =>
-			sc.textFile(x.getAbsolutePath)
-		}.flatMap { x => x.collect() }
+	def getData(dir: File)(implicit sc: SparkContext): RDD[String] = {
+		val data = dir.listFiles().map { x =>
+            sc.textFile(x.getAbsolutePath)
+        }
+        sc.union(data.toSeq)
 	}
 
 	def packageExhaustData(jobRequest: JobRequest)(implicit sc: SparkContext): Response = {
@@ -126,46 +129,34 @@ object DataExhaustPackager extends optional.Application {
 		.map { x => x.delete() };
 	}
 
-	def generateManifestFile(data: Array[(String, Array[String])], jobRequest: JobRequest, requestDataLocalPath: String): ManifestFile = {
-		val fileInfo = data.map { f =>
-			val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.head)
-			val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.last)
-			FileInfo(f._1, f._2.length, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())))
+	def generateManifestFile(data: Array[(String, RDD[String])], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext): ManifestFile = {
+		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
+	    val fileInfo = data.map { f =>
+			val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.first())
+			val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.take(f._2.count().toInt).head)
+			FileInfo("data/" + f._1 + "." + fileExtenstion, f._2.count, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())))
 		}
-		val events = data.map { event => event._2 }.flatten.sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
-		val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](events.head)
-		val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](events.last)
-		val totalEventCount = data.map { f => f._2.length }.sum
+		val events = sc.union(data.map { event => event._2 }.toSeq).sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
+		val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](events.first())
+        val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](events.take(events.count().toInt).head)
+		val totalEventCount = events.count()
 		val requestData = JSONUtils.deserialize[Map[String, AnyRef]](jobRequest.request_data)
 		val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", new Date().getTime, jobRequest.request_id, requestData.get("dataset_id").get.toString(), totalEventCount, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())), fileInfo, JSONUtils.serialize(requestData))
 		val gson = new GsonBuilder().setPrettyPrinting().create();
 		val jsonString = gson.toJson(manifest)
-		writeToFile(Array(jsonString), requestDataLocalPath, "manifest.json")
+		val outputManifestPath = requestDataLocalPath + "manifest.json"
+		OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputManifestPath)), Array(jsonString));
 		manifest
 	}
 
-	def generateDataFiles(data: Array[(String, Array[String])], jobRequest: JobRequest, requestDataLocalPath: String) {
+	def generateDataFiles(data: Array[(String, RDD[String])], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext) {
 		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
 		data.foreach { events =>
 			val fileName = events._1
 			val fileData = events._2
-			writeToFile(fileData, requestDataLocalPath + "data/", fileName + "." + fileExtenstion)
+			val path = requestDataLocalPath + "data/" + fileName + "." + fileExtenstion
+            OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> path)), fileData);
 			CommonUtil.deleteDirectory(requestDataLocalPath + fileName)
-		}
-	}
-
-	def writeToFile(data: Array[String], path: String, fileName: String) {
-		if (!new java.io.File(path).exists()) {
-			new File(path).mkdirs()
-		}
-		val out = new PrintWriter(new FileWriter(path + fileName))
-		try {
-			data.foreach { x =>
-				out.write(x)
-				out.write("\n")
-			}
-		} finally {
-			out.close
 		}
 	}
 }
