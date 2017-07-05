@@ -1,5 +1,7 @@
 package org.ekstep.analytics.model
-
+/**
+ * @author Yuva
+ */
 import java.util.Date
 
 import org.apache.spark.HashPartitioner
@@ -18,8 +20,10 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.DateTime
 import com.flyberrycapital.slack.SlackClient
 import net.liftweb.json._
-import net.liftweb.json.DefaultFormats
 import net.liftweb.json.Serialization.write
+import org.ekstep.analytics.framework.util.RestUtil
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.joda.time.format.DateTimeFormat
 
 /**
  * @dataproduct
@@ -31,6 +35,7 @@ import net.liftweb.json.Serialization.write
  * 1. Monitor all data products. This would be used to keep track of all data products.
  * Events used - BE_JOB_*
  */
+case class SlackMessage(channel: String, username: String, text: String, icon_emoji: String = ":ghost:")
 case class JobMonitor(jobs_started: Long, jobs_completed: Long, jobs_failed: Long, total_events_generated: Long, total_ts: Double, syncTs: Long, job_summary: Array[Map[String, Any]], dtange: DtRange) extends AlgoOutput
 case class JobSummary(model: String, input_count: Long, output_count: Long, time_taken: Double, status: String, day: Int) extends AlgoOutput
 
@@ -72,8 +77,8 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
         val message = messageFormatToSlack(data.first())
         if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
-            val token = new SlackClient(AppConf.getConfig("monitor.notification.token"))
-            token.chat.postMessage(AppConf.getConfig("monitor.notification.channel"), message)
+            val slackMessage = SlackMessage(AppConf.getConfig("monitor.notification.channel"), AppConf.getConfig("monitor.notification.name"), message);
+            RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
         } else {
             println(message)
         }
@@ -97,7 +102,6 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
     private def messageFormatToSlack(jobMonitorToSclack: JobMonitor): String = {
 
-        implicit val formats = DefaultFormats
         val jobsStarted = jobMonitorToSclack.jobs_started
         val jobsCompleted = jobMonitorToSclack.jobs_completed
         val jobsFailed = jobMonitorToSclack.jobs_failed
@@ -112,6 +116,8 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
             "ContentUsageSummaryModel", "ContentSideloadingSummaryModel", "GenieFunnelModel", "ItemUsageSummaryModel", "DeviceContentUsageSummaryModel",
             "UpdateContentUsageDB", "UpdateContentModel", "ItemSummaryModel", "ConsumptionMetricsUpdater", "PrecomputedViews", "DataExhaustJob")
         val consumptionModels = jobSummaryCaseClass.filter(item => consumptionModelsSet(item.model.trim()))
+        val consumptionModelsCompleted = consumptionModels.filter { x => x.status.equals("SUCCESS") }.size
+        val consumptionModelsFailed = consumptionModels.filter { x => x.status.equals("FAILED") }.size
 
         // filter creation jobs
         val creationModelsSet = Set("AppSessionSummaryModel", "ContentEditorSessionSummaryModel", "PublishPipelineSummaryModel", "UpdateObjectLifecycleDB",
@@ -122,13 +128,17 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
             "UpdateAssetSnapshotDB", "ContentLanguageRelationModel", "ConceptLanguageRelationModel", "AuthorRelationsModel",
             "CreationRecommendationEnrichmentModel", "ContentAssetRelationModel")
         val creationModels = jobSummaryCaseClass.filter(item => creationModelsSet(item.model.trim()))
+        val creationModelsCompleted = creationModels.filter { x => x.status.equals("SUCCESS") }.size
+        val creationModelsFailed = creationModels.filter { x => x.status.equals("FAILED") }.size
 
         // filter other jobs
         val recommendationModelsSet = Set("DeviceRecommendationTrainingModel", "DeviceRecommendationScoringModel", "ContentVectorsModel",
             "EndOfContentRecommendationModel", "CreationRecommendationModel")
         val recommendationModels = jobSummaryCaseClass.filter { item => recommendationModelsSet(item.model.trim()) }
+        val recommendationModelsCompleted = recommendationModels.filter { x => x.status.equals("SUCCESS") }.size
+        val recommendationModelsFailed = recommendationModels.filter { x => x.status.equals("FAILED") }.size
 
-        //makejob summary to string
+        //make job summary to string
         val consumptionModelsString = consumptionModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
         val creationModelsString = creationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
         val recommendationModelsString = recommendationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
@@ -151,27 +161,16 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val consumptionModelsWarnings = warningMessages(consumptionModelMapping, consumptionModels)
         val creationModelsWarnings = warningMessages(creationModelMapping, creationModels)
 
-        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time(min) ," + "Status ," + "Day"
+        val date: String = DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now())
+        val title = s"""*Jobs | Monitoring Report | $date*"""
+        //total statistics regarding jobs
+        val totalStats = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`"""
 
-        var data = ""
-        if (jobsFailed > 0 && consumptionModelsWarnings.equals("") && creationModelsWarnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n Error: ```Job Failed```"""
-        } else if (jobsFailed == 0 && consumptionModelsWarnings.equals("") && creationModelsWarnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\nMessage: ```"Job Run Completed Successfully"```"""
-        } else if (jobsFailed == 0 && !consumptionModelsWarnings.equals("") && creationModelsWarnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\n\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n"""
-        } else if (jobsFailed == 0 && !consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n"""
-        } else if (jobsFailed == 0 && consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n"""
-        } else if (jobsFailed > 0 && !consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\n Error: ```Job Failed```"""
-        } else if (jobsFailed > 0 && consumptionModelsWarnings.equals("") && !creationModelsWarnings.equals("")) {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\nCreation Models:\n ```$header\n$creationModelsString```\n Warnings: ```$creationModelsWarnings```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\n Error: ```Job Failed```"""
-        } else {
-            data = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`\n\nDetailed Report:\nConsumption Models:\n```$header\n$consumptionModelsString```\n Warnings: ```$consumptionModelsWarnings```\nCreation Models:\n ```$header\n$creationModelsString```\n Recommendation Models:\n```$header\n$recommendationModelsString```\n\n Error: ```Job Failed```"""
-        }
-        return data
+        val consumptionJobSummary = jobSummaryMessage("Consumption", consumptionModelsFailed, consumptionModelsCompleted, consumptionModelsWarnings, consumptionModelsString)
+        val creationJobSummary = jobSummaryMessage("Creation", creationModelsFailed, creationModelsCompleted, creationModelsWarnings, creationModelsString)
+        val recommendationJobSummary = jobSummaryMessage("Recommendation", recommendationModelsFailed, recommendationModelsCompleted, "", recommendationModelsString)
+
+        return title + "\n" + totalStats + "\n\n" + consumptionJobSummary + "\n\n" + creationJobSummary + "\n\n" + recommendationJobSummary
     }
 
     private def warningMessages(modelMapping: Map[String, String], models: Array[JobSummary]): String = {
@@ -200,4 +199,16 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         h + ":" + m + ":" + s
     }
 
+    private def jobSummaryMessage(modelName: String, jobsFailed: Int, jobsCompleted: Int, warnings: String, models: String): String = {
+        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time(min) ," + "Status ," + "Day"
+        if (jobsFailed > 0 && warnings.equals("")) {
+            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\n Error: ```Job Failed```"""
+        } else if (jobsFailed == 0 && warnings.equals("")) {
+            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\n Status: ```Job Run Completed Successfully```"""
+        } else if (jobsFailed == 0 && !warnings.equals("")) {
+            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\nStatus: ```Job Run Completed Successfully```"""
+        } else {
+            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
+        }
+    }
 }
