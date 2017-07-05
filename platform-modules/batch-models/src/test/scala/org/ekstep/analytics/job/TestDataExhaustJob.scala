@@ -17,21 +17,28 @@ import org.ekstep.analytics.util.RequestFilter
 import org.ekstep.analytics.util.RequestConfig
 import org.ekstep.analytics.util.JobRequest
 import org.apache.commons.io.FileUtils
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestDataExhaustJob extends SparkSpec(null) {
 
     private def preProcess() {
-        CassandraConnector(sc.getConf).withSessionDo { session =>
+    	CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE platform_db.job_request");
         }
     }
+    
+    override def afterAll() {
+    	CommonUtil.deleteDirectory(AppConf.getConfig("data_exhaust.save_config.local_path"));
+    	CommonUtil.deleteDirectory(AppConf.getConfig("data_exhaust.save_config.prefix"));
+    	super.afterAll();
+    }
 
-    it should "execute DataExhaustJob job from local data and won't throw any Exception" in {
+    "DataExhaustJob" should "execute DataExhaustJob job from local data and won't throw any Exception" in {
 
         preProcess()
 
         val requests = Array(
-            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None))),
+            JobRequest("partner1", "test_raw", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
@@ -96,21 +103,5 @@ class TestDataExhaustJob extends SparkSpec(null) {
         DataExhaustJob.main(config)(Option(sc));
     }
 
-    //    it should "run the data exhaust for consumption metrics data and save it to S3" in {
-    //
-    //        preProcess()
-    //
-    //        val requests = Array(
-    //            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-22", "2017-06-22", Option(List()), Option(List("ME_CONTENT_USAGE_METRICS")),Option("appId"), Option("ChannelId")), Option("D004"))),
-    //                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
-    //
-    //        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
-    //
-    //        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-raw-bucket":"ekstep-data-sets-dev","bucket":"ekstep-dev-data-store","consumption-raw-prefix":"datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/","creation-raw-prefix":"portal/","data-exhaust-bucket":"ekstep-public-dev","data-exhaust-prefix":"data-exhaust/test","tempLocalPath":"/tmp/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
-    //        DataExhaustJob.main(config)(Option(sc));
-    //
-    //        val fileDetails = Map("fileType" -> "s3", "bucket" -> "ekstep-public-dev", "prefix" -> "data-exhaust/test/")
-    //        val request_ids = Array("requestID1")
-    //        postProcess(fileDetails, request_ids)
-    //    }
+
 }

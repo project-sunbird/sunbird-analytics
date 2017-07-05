@@ -38,13 +38,14 @@ import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.EventId
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.DerivedEvent
 
 object DataExhaustUtils {
 
 	implicit val className = "org.ekstep.analytics.dataexhaust.DataExhaustUtils"
 	
-    def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING")(implicit sc: SparkContext) {
-        sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
+    def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING", err_message: String = "")(implicit sc: SparkContext) {
+        sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status, err_message))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message"))
     }
 	
     def toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
@@ -112,7 +113,7 @@ object DataExhaustUtils {
 	                data.saveAsTextFile(key)
 	                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_" + eventId, "COMPLETED")
 	            case "local" =>
-	                val localPath = path + "/" + requestId + "/" + eventId
+	                val localPath = prefix + requestId + "/" + eventId
 	                data.saveAsTextFile(localPath)
 	                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_LOCAL_" + eventId, "COMPLETED")
 	        }
@@ -155,7 +156,7 @@ object DataExhaustUtils {
             S3Util.deleteObject(bucket, prefix + "/" + request_id + "_$folder$");
         }
     }
-
+    
     def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
         val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
@@ -170,13 +171,8 @@ object DataExhaustUtils {
 
         data.map { line =>
             try {
-                val event = eventType match {
-                    case "ConsumptionRaw" => JSONUtils.deserialize[Event](line);
-                    case "Summary"        => JSONUtils.deserialize[DerivedEvent](line);
-                    case "CreationRaw"    => JSONUtils.deserialize[CreationEvent](line);
-                    case "Metrics"        => JSONUtils.deserialize[DerivedEvent](line);
-                }
-                val matched = DataFilter.matches(event, filters);
+                val event = stringToObject(line, eventType);
+                val matched = DataFilter.matches(event._2, filters);
                 if (matched) {
                     event;
                 } else {
@@ -187,5 +183,22 @@ object DataExhaustUtils {
                     null;
             }
         }.filter { x => x != null }
+    }
+    
+    def stringToObject(event: String, eventType: String) = {
+    	eventType match {
+            case "ConsumptionRaw" => 
+            	val e = JSONUtils.deserialize[Event](event);
+            	(CommonUtil.getEventSyncTS(e), e);
+            case "Summary"        => 
+            	val e = JSONUtils.deserialize[DerivedEvent](event);
+            	(e.syncts, e);
+            case "CreationRaw"    => 
+            	val e = JSONUtils.deserialize[CreationEvent](event);
+            	(CreationEventUtil.getEventSyncTS(e), e);
+            case "Metrics"        => 
+            	val e = JSONUtils.deserialize[DerivedEvent](event);
+            	(e.syncts, e);
+        }
     }
 }

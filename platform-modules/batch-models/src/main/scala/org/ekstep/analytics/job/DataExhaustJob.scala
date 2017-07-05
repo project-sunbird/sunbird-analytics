@@ -18,6 +18,9 @@ import org.joda.time.DateTimeZone
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 
+
+case class DataExhaustExeResult(input_events: Long, output_events: Long, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, status: Option[String] = Option("PROCESSING"), request_id: Option[String] = None, client_key: Option[String] = None);
+
 object DataExhaustJob extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
@@ -69,12 +72,27 @@ object DataExhaustJob extends optional.Application with IJob {
                     else
                         eventList
 
-                    for (eventId <- events) {
-                        _executeEventExhaust(eventId, requestData, request.request_id, request.client_key)
-                    }
+                    val exeMetrics = CommonUtil.time({
+                    	for (eventId <- events) yield {
+                        	_executeEventExhaust(eventId, requestData, request.request_id, request.client_key)
+                    	}
+                    });
+
+                    val inputEventsCount = exeMetrics._2.map { x => x.input_events }.sum;
+                    val outputEventsCount = exeMetrics._2.map { x => x.output_events }.sum
+                    val firstEventDateList = exeMetrics._2.filter { x => x.dt_first_event.isDefined };
+                    val firstEventDate = if (firstEventDateList.size > 0) Option(firstEventDateList.map { x => x.dt_first_event.get }.min) else None;
+                    val lastEventDateList = exeMetrics._2.filter { x => x.dt_last_event.isDefined };
+                    val lastEventDate = if (lastEventDateList.size > 0 ) Option(lastEventDateList.map { x => x.dt_last_event.get }.max) else None;
+                    val status =if ( outputEventsCount > 0) "PENDING_PACKAGING" else "COMPLETED";
+                    val result = DataExhaustExeResult(inputEventsCount, outputEventsCount, firstEventDate, lastEventDate, Option(status), Option(request.request_id), Option(request.client_key));
+                    
+                    sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("input_events", "output_events", "dt_first_event", "dt_last_event", "status", "request_id", "client_key"))
+                    
                 } catch {
                     case ex: Exception =>
-                        DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED")
+                    	ex.printStackTrace()
+                        DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED", ex.getMessage)
                 }
             }
             DataExhaustPackager.execute()
@@ -82,25 +100,40 @@ object DataExhaustJob extends optional.Application with IJob {
         })
         JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1, "jobCount" -> time._2)));
     }
-    private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) = {
+    private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) : DataExhaustExeResult = {
         val dataSetID = request.dataset_id.get
         val data = DataExhaustUtils.fetchData(eventId, request, requestID, clientKey)
         val filter = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(request.filter))
         val filteredData = DataExhaustUtils.filterEvent(data, filter, eventId, dataSetID);
         DataExhaustUtils.updateStage(requestID, clientKey, "FILTERED_DATA_" + eventId, "COMPLETED")
-        val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
-        val outputFormat = request.output_format.getOrElse("json")
+        if (filteredData.count() > 0) {
+	        val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
+	        val outputFormat = request.output_format.getOrElse("json")
 
-        if ("DEFAULT".equals(eventId) && request.filter.events.isDefined && request.filter.events.get.size > 0) {
-            for (event <- request.filter.events.get) {
-                val filterKey = Filter("eventId", "EQ", Option(event))
-                val data = DataFilter.filter(filteredData, filterKey).map { x => JSONUtils.serialize(x) }
-                DataExhaustUtils.saveData(data, eventConfig, requestID, event, outputFormat, requestID, clientKey)
-            }
+	        val exhaustRDD = if ("DEFAULT".equals(eventId) && request.filter.events.isDefined && request.filter.events.get.size > 0) {
+	            val rdds = for (event <- request.filter.events.get) yield {
+	                val filterKey = Filter("eventId", "EQ", Option(event))
+	                val data = DataFilter.filter(filteredData.map(f => f._2), filterKey).map { x => JSONUtils.serialize(x) }
+	                DataExhaustUtils.saveData(data, eventConfig, requestID, event, outputFormat, requestID, clientKey);
+	                data;
+	            }
+	            sc.union(rdds);
+	        } else {
+	        	val rdd = filteredData.map { x => JSONUtils.serialize(x._2) };
+	            DataExhaustUtils.saveData(rdd, eventConfig, requestID, eventId, outputFormat, requestID, clientKey);
+	            rdd;
+	        }
+	        DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3/LOCAL", "COMPLETED");
+	        if (exhaustRDD.count() > 0) {
+	        	val outputRDD = exhaustRDD.map { x => DataExhaustUtils.stringToObject(x, eventConfig.eventType) };
+	        	val firstEventDate = outputRDD.sortBy { x => x._1 }.first()._1;
+	        	val lastEventDate = outputRDD.sortBy({ x => x._1 }, false).first._1;
+	        	DataExhaustExeResult(data.count, exhaustRDD.count, Option(firstEventDate), Option(lastEventDate));
+	        } else {
+	        	DataExhaustExeResult(data.count, exhaustRDD.count);
+	        }
         } else {
-            DataExhaustUtils.saveData(filteredData.map { x => JSONUtils.serialize(x) }, eventConfig, requestID, eventId, outputFormat, requestID, clientKey)
+        	DataExhaustExeResult(data.count, filteredData.count);
         }
-        DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3/LOCAL", "COMPLETED", "PENDING_PACKAGING")
-
     }
 }

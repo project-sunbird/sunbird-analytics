@@ -16,6 +16,8 @@ import org.joda.time.DateTime
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
+import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestDataExhaustPackager extends SparkSpec(null) {
 
@@ -23,11 +25,19 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE platform_db.job_request");
         }
+        
+    }
+    
+    override def afterAll() {
+    	CommonUtil.deleteDirectory(AppConf.getConfig("data_exhaust.save_config.local_path"));
+    	CommonUtil.deleteDirectory(AppConf.getConfig("data_exhaust.save_config.prefix"));
+    	super.afterAll();
     }
     
     "DataExhaustPackager" should "execute jobs from local data and won't throw any Exception" in {
 
         preProcess()
+        FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/1234/"), new File(AppConf.getConfig("data_exhaust.save_config.prefix")+"1234/"));
         val requests = Array(
             JobRequest("partner1", "1234", None, "PENDING_PACKAGING", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None), Option("eks-consumption-raw"), Option("json"))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
