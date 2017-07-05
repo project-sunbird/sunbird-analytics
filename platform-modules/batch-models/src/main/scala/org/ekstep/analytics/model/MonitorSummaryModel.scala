@@ -1,5 +1,7 @@
 package org.ekstep.analytics.model
-
+/**
+ * @author Yuva
+ **/
 import org.apache.spark.HashPartitioner
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -144,8 +146,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
             inputEventMap += (x.model -> x.input_count)
             outputEventMap += (x.model -> x.output_count)
         }
-        println(inputEventMap)
-        println(outputEventMap)
+
         // Model Mapping Map(input from other data product -> output from data product)
         val modelMapping = Map("ItemSummaryModel" -> "LearnerSessionSummaryModel",
             "GenieUsageSummaryModel" -> "GenieLaunchSummaryModel",

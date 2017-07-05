@@ -1,5 +1,7 @@
 package org.ekstep.analytics.model
-
+/**
+ * @author Yuva
+ **/
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.util.SessionBatchModel
