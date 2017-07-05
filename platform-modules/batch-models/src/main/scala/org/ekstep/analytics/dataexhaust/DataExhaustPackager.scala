@@ -36,7 +36,7 @@ import com.google.gson.GsonBuilder
 case class FileInfo(path: String, event_count: Long, first_event_date: String, last_event_date: String)
 case class ManifestFile(id: String, ver: String, ets: Long, request_id: String, dataset_id: String, total_event_count: Long, first_event_date: Long, last_event_date: Long, file_info: Array[FileInfo], request: String)
 case class Response(request_id: String, client_key: String, job_id: String, metadata: ManifestFile, location: String, stats: Map[String, Any], jobRequest: JobRequest)
-
+case class EventData(eventName: String, data: RDD[String]);
 /**
  * @Packager
  *
@@ -84,12 +84,28 @@ object DataExhaustPackager extends optional.Application {
 		filePath.endsWith("_SUCCESS") || filePath.endsWith("$folder$") || filePath.endsWith(".crc");
 	}
 	
+	private def downloadSourceData(saveType: String, source: String, destination: String, bucket: Option[String]) {
+		saveType match {
+			case "s3" =>
+				S3Util.downloadDirectory(bucket.get, source, destination)
+			case "local" =>
+				FileUtils.copyDirectory(new File(source), new File(destination));
+		}
+	}
+	
+	private def getEventsData(requestDataLocalPath: String)(implicit sc: SparkContext): Array[EventData] = {
+		val fileObj = new File(requestDataLocalPath)
+		fileObj.listFiles.map { dir =>
+			EventData(dir.getName, getEventData(dir));
+		}
+	}
+	
 	/**
      * Read all file from a directory and merge into one RDD Type
      * @param dir file directory 
      * @return RDD[String] of merge files
      */
-	def getData(dir: File)(implicit sc: SparkContext): RDD[String] = {
+	def getEventData(dir: File)(implicit sc: SparkContext): RDD[String] = {
 		val data = dir.listFiles().map { x =>
             sc.textFile(x.getAbsolutePath)
         }
@@ -114,18 +130,10 @@ object DataExhaustPackager extends optional.Application {
 		val requestDataSourcePath = prefix + jobRequest.request_id + "/";
 		val zipFileAbsolutePath = tmpFolderPath + jobRequest.request_id + ".zip";
 		
-		saveType match {
-			case "s3" =>
-				S3Util.downloadDirectory(bucket, requestDataSourcePath, requestDataLocalPath)
-			case "local" =>
-				FileUtils.copyDirectory(new File(requestDataSourcePath), new File(requestDataLocalPath));
-		}
-		deleteInvalidFiles(requestDataLocalPath);
+		downloadSourceData(saveType, requestDataSourcePath, requestDataLocalPath, Option(bucket))
 		
-		val fileObj = new File(requestDataLocalPath)
-		val data = fileObj.listFiles.map { dir =>
-			(dir.getName, getData(dir))
-		}
+		deleteInvalidFiles(requestDataLocalPath);
+		val data = getEventsData(requestDataLocalPath);
 
 		val metadata = generateManifestFile(data, jobRequest, requestDataLocalPath)
 		generateDataFiles(data, jobRequest, requestDataLocalPath)
@@ -134,6 +142,8 @@ object DataExhaustPackager extends optional.Application {
 		CommonUtil.deleteDirectory(requestDataLocalPath);
 
 		val job_id = UUID.randomUUID().toString()
+		
+		// TODO: create method uploadZipFile - Start
 		val fileStats = saveType match {
 			case "s3" =>
 				val s3FilePrefix = prefix + jobRequest.request_id +".zip"
@@ -148,6 +158,7 @@ object DataExhaustPackager extends optional.Application {
 				if ("true".equals(deleteSource)) CommonUtil.deleteDirectory(prefix + jobRequest.request_id);
 				(localPath + ".zip", stats)
 		}
+		// TODO: create method uploadZipFile - End
 
 		Response(jobRequest.request_id, jobRequest.client_key, job_id, metadata, fileStats._1, fileStats._2, jobRequest);
 	}
@@ -170,14 +181,14 @@ object DataExhaustPackager extends optional.Application {
      * @param requestDataLocalPath path of the events file  
      * @return manifest case class 
      */
-	def generateManifestFile(data: Array[(String, RDD[String])], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext): ManifestFile = {
+	def generateManifestFile(data: Array[EventData], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext): ManifestFile = {
 		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
 	    val fileInfo = data.map { f =>
-			val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.first())
-			val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](f._2.take(f._2.count().toInt).head)
-			FileInfo("data/" + f._1 + "." + fileExtenstion, f._2.count, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())))
+			val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](f.data.first())
+			val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](f.data.take(f.data.count().toInt).head)
+			FileInfo("data/" + f.eventName + "." + fileExtenstion, f.data.count, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())))
 		}
-		val events = sc.union(data.map { event => event._2 }.toSeq).sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
+		val events = sc.union(data.map { event => event.data }.toSeq).sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
 		val totalEventCount = jobRequest.output_events.get;
 		val requestData = JSONUtils.deserialize[Map[String, AnyRef]](jobRequest.request_data)
 		val firstEventDate = jobRequest.dt_first_event.get.getMillis;
@@ -196,11 +207,11 @@ object DataExhaustPackager extends optional.Application {
      * @param jobRequest request for data-exhaust
      * @param requestDataLocalPath path of the manifest file  
      */
-	def generateDataFiles(data: Array[(String, RDD[String])], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext) {
+	def generateDataFiles(data: Array[EventData], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext) {
 		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
 		data.foreach { events =>
-			val fileName = events._1
-			val fileData = events._2
+			val fileName = events.eventName
+			val fileData = events.data
 			val path = requestDataLocalPath + "data/" + fileName + "." + fileExtenstion
             OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> path)), fileData);
 			CommonUtil.deleteDirectory(requestDataLocalPath + fileName)

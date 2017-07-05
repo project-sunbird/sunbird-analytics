@@ -54,7 +54,7 @@ class DenormInfluxData(rdd: RDD[InfluxRecord], mappingKey: String, newKey: Strin
 	override def compute(split: Partition, context: TaskContext): Iterator[InfluxRecord] = {
 		firstParent[InfluxRecord].iterator(split, context)
 			.map { x =>
-				val key = x.tags.getOrElse(mappingKey, "");
+				val key = getKey(x, mappingKey);
 				if(StringUtils.isBlank(key)) x else {
 					val value = data.getOrElse(key, key);
 					val fields = x.fields ++ Map(newKey -> value);
@@ -62,6 +62,13 @@ class DenormInfluxData(rdd: RDD[InfluxRecord], mappingKey: String, newKey: Strin
 				}
 			};
 	}
+	
+	private def getKey(record: InfluxRecord, mappingKey: String): String = {
+		val fromTags = record.tags.getOrElse(mappingKey, "");
+		if (StringUtils.isBlank(fromTags)) {
+			record.fields.getOrElse(mappingKey, "").asInstanceOf[String];
+		} else fromTags;
+	} 
 
 	override protected def getPartitions: Array[Partition] = firstParent[InfluxRecord].partitions;
 }

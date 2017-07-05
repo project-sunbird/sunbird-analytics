@@ -82,7 +82,7 @@ object UpdatePluginSnapshotDB extends IBatchModelTemplate[Empty, Empty, PluginSn
     private def saveToInfluxDB(data: RDD[PluginSnapshotMetrics])(implicit sc: SparkContext) {
         val metrics = data.map { x =>
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "plugin_id" -> x.d_plugin_id), Map("author" -> x.author, "category" -> x.category, "plugin_name" -> x.plugin_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef]), time._1);
+            InfluxRecord(Map("period" -> time._2, "plugin_id" -> x.d_plugin_id), Map("author_id" -> x.author, "category" -> x.category, "plugin_name" -> x.plugin_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef]), time._1);
         }
         val authors = getDenormalizedData("User", data.map { x => x.author })
         metrics.denormalize("author_id", "author_name", authors).saveToInflux(PLUGIN_SNAPSHOT_METRICS);
