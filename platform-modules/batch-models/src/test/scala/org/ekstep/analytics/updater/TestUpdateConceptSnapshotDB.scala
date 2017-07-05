@@ -10,6 +10,7 @@ import java.net.URI
 import org.ekstep.analytics.framework.conf.AppConf
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.apache.commons.lang3.StringUtils
 
 class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
   
@@ -37,7 +38,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'day'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 0)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "day", "2017-04-26")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("day") should be(true)
             res.get("total_content_count").get.toLong should be(1)
@@ -60,7 +61,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'week'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 0)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "week", "2017-04-30")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("week") should be(true)
             res.get("total_content_count").get.toLong should be(1)
@@ -83,7 +84,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'month'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 0)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "month", "2017-04-30")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("month") should be(true)
             res.get("total_content_count").get.toLong should be(1)
@@ -111,7 +112,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'day'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 3)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "day", "2017-04-27")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("day") should be(true)
             res.get("total_content_count").get.toLong should be(10)
@@ -134,7 +135,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'week'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 0)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "week", "2017-04-30")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("week") should be(true)
             res.get("total_content_count").get.toLong should be(10)
@@ -157,7 +158,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'month'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 1)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "month", "2017-04-30")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("month") should be(true)
             res.get("total_content_count").get.toLong should be(10)
@@ -180,7 +181,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'week'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 1)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "week", "2017-05-14")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("week") should be(true)
             res.get("total_content_count").get.toLong should be(10)
@@ -203,7 +204,7 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("select * from concept_snapshot_metrics where concept_id = 'Num:C1:SC1' AND period = 'month'")
             queryResult.result.isEmpty should be(false)
-            val res = getValuesMap(queryResult, 2)
+            val res = getValuesMap(queryResult, "Num:C1:SC1", "month", "2017-05-31")
             res.get("concept_id").get.contains("Num:C1:SC1") should be(true)
             res.get("period").get.contains("month") should be(true)
             res.get("total_content_count").get.toLong should be(10)
@@ -215,9 +216,11 @@ class TestUpdateConceptSnapshotDB extends SparkSpec(null) {
         }
     }
     
-    def getValuesMap(queryResult: QueryResult, rowIndex: Int): Map[String, String] = {
+    def getValuesMap(queryResult: QueryResult, concept_id: String, period: String, date: String): Map[String, String] = {
+        val row = queryResult.result.singleSeries.rows.toList.map{x => x.values.mkString(",")}.filter { x => x.contains(concept_id) && x.contains(period) && x.contains(date) }.head
+        val values = StringUtils.split(row, ",").map{x => StringUtils.substring(x, StringUtils.indexOf(x, "(")+1, StringUtils.indexOf(x, ")"))}
         val cols = sc.parallelize(queryResult.result.singleSeries.columns).zipWithIndex().map { case (k, v) => (v, k) }
-        val vals = sc.parallelize(queryResult.result.singleSeries.rows(rowIndex).values).zipWithIndex().map { case (k, v) => (v, k) }
-        cols.leftOuterJoin(vals).map(x => x._2).map(f => (f._1.toString(), f._2.get.mkString)).collect().toMap  
+        val vals = sc.parallelize(values).zipWithIndex().map { case (k, v) => (v, k) }
+        cols.leftOuterJoin(vals).map(x => x._2).map(f => (f._1.toString(), f._2.get)).collect().toMap  
     }
 }

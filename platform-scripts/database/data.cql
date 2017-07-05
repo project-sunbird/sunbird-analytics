@@ -223,8 +223,6 @@ CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
     d_period int,
     d_author_id text,
     d_partner_id text,
-    d_app_id text,
-    d_channel_id text,
     total_author_count bigint,
     total_author_count_start bigint,
     active_author_count bigint,
@@ -238,14 +236,14 @@ CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
     creation_ts double,
     avg_creation_ts double,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_author_id, d_partner_id, d_app_id, d_channel_id)
+    PRIMARY KEY (d_period, d_author_id, d_partner_id)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.concept_snapshot_summary (
     d_period int,
     d_concept_id text,
     d_app_id text,
-    d_channel_id text,
+    d_channel text,
     total_content_count bigint,
     total_content_count_start bigint,
     live_content_count bigint,
@@ -253,14 +251,14 @@ CREATE TABLE IF NOT EXISTS content_db.concept_snapshot_summary (
     review_content_count bigint,
     review_content_count_start bigint,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_concept_id, d_app_id, d_channel_id)
+    PRIMARY KEY (d_period, d_concept_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	d_period int,
 	d_partner_id text,
 	d_app_id text,
-	d_channel_id text,
+	d_channel text,
 	total_images_count bigint,
 	total_images_count_start bigint,
 	used_images_count bigint,
@@ -282,7 +280,7 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	used_templates_count bigint,
 	used_templates_count_start bigint,
 	updated_date timestamp,
-	PRIMARY KEY (d_period, d_partner_id, d_app_id, d_channel_id)
+	PRIMARY KEY (d_period, d_partner_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
