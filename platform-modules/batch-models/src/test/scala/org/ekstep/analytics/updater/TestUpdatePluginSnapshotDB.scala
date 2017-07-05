@@ -22,15 +22,15 @@ class TestUpdatePluginSnapshotDB extends SparkGraphSpec(null) {
         GraphQueryDispatcher.dispatch(query)
         UpdatePluginSnapshotDB.execute(sc.makeRDD(List(Empty())), None)
         val data = sc.cassandraTable[PluginSnapshotMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PLUGIN_SNAPSHOT_METRICS_TABLE).collect
-        data.length should be(1)
+        data.length should be(3)
         data.map { x => x.d_plugin_id }.foreach { x =>
             x.nonEmpty should be(true)
         }
-        val test_IdData = data.filter { x => "test-plugin-1".equals(x.d_plugin_id) }.last
+        val test_IdData = data.last
         test_IdData.d_plugin_id should be("test-plugin-1")
         test_IdData.plugin_name should be("Untitled lesson")
-        test_IdData.domain should be("literacy")
-        test_IdData.author_id should be("Manoj Londhe")
+        test_IdData.category should be("")
+        test_IdData.author should be("177")
         test_IdData.content_count should be(1)
 
     }
