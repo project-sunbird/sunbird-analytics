@@ -35,12 +35,12 @@ class TestDataExhaustPackager extends SparkSpec(null) {
     }
     
     "DataExhaustPackager" should "execute jobs from local data and won't throw any Exception" in {
-
+    	
         preProcess()
         FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/1234/"), new File(AppConf.getConfig("data_exhaust.save_config.prefix")+"1234/"));
         val requests = Array(
             JobRequest("partner1", "1234", None, "PENDING_PACKAGING", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None), Option("eks-consumption-raw"), Option("json"))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
+                None, None, Option(DateTime.now), Option(DateTime.now), None, None, DateTime.now(), None, None, None, Option(234L), None, None, None, None, None, None));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
         

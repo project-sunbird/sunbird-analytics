@@ -19,7 +19,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 
 
-case class DataExhaustExeResult(input_events: Long, output_events: Long, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, status: Option[String] = Option("PROCESSING"), request_id: Option[String] = None, client_key: Option[String] = None);
+case class DataExhaustExeResult(input_events: Long, output_events: Long, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, status: Option[String] = Option("PROCESSING"), request_id: Option[String] = None, client_key: Option[String] = None, dt_job_completed: Option[Long] = None);
 
 object DataExhaustJob extends optional.Application with IJob {
 
@@ -85,9 +85,9 @@ object DataExhaustJob extends optional.Application with IJob {
                     val lastEventDateList = exeMetrics._2.filter { x => x.dt_last_event.isDefined };
                     val lastEventDate = if (lastEventDateList.size > 0 ) Option(lastEventDateList.map { x => x.dt_last_event.get }.max) else None;
                     val status =if ( outputEventsCount > 0) "PENDING_PACKAGING" else "COMPLETED";
-                    val result = DataExhaustExeResult(inputEventsCount, outputEventsCount, firstEventDate, lastEventDate, Option(status), Option(request.request_id), Option(request.client_key));
-                    
-                    sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("input_events", "output_events", "dt_first_event", "dt_last_event", "status", "request_id", "client_key"))
+                    val completedDate = if ( outputEventsCount > 0) None else Option(System.currentTimeMillis());
+                    val result = DataExhaustExeResult(inputEventsCount, outputEventsCount, firstEventDate, lastEventDate, Option(status), Option(request.request_id), Option(request.client_key), completedDate);
+                    sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("input_events", "output_events", "dt_first_event", "dt_last_event", "status", "request_id", "client_key", "dt_job_completed"));
                     
                 } catch {
                     case ex: Exception =>
