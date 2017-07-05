@@ -36,12 +36,17 @@ import org.ekstep.analytics.framework.DataSet
 import org.ekstep.analytics.framework.Input
 import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.EventId
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 object DataExhaustUtils {
 
+	implicit val className = "org.ekstep.analytics.dataexhaust.DataExhaustUtils"
+	
     def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING")(implicit sc: SparkContext) {
         sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
     }
+	
     def toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
         val data = rdd.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
         val dataMapRDD = data.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }
@@ -68,18 +73,6 @@ object DataExhaustUtils {
         sc.parallelize(csv, 1);
     }
 
-    def getRequest(request_id: String, client_key: String)(implicit sc: SparkContext): RequestFilter = {
-        try {
-            val request = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("client_key = ? and request_id = ?", client_key, request_id).first();
-            val filter = JSONUtils.deserialize[RequestConfig](request.request_data).filter;
-            updateStage(request_id, client_key, "FETCHING_THE_REQUEST", "COMPLETED")
-            filter;
-        } catch {
-            case t: Throwable =>
-                updateStage(request_id, client_key, "FETCHING_THE_REQUEST", "FAILED", "FAILED")
-                throw t;
-        }
-    }
     def getAllRequest()(implicit sc: SparkContext): RDD[JobRequest] = {
         try {
             val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") }.cache;
@@ -93,6 +86,7 @@ object DataExhaustUtils {
             case t: Throwable => null;
         }
     }
+    
     def uploadZip(bucket: String, filePrefix: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
         try {
             S3Util.uploadPublic(bucket, zipFileAbsolutePath, filePrefix);
@@ -103,39 +97,28 @@ object DataExhaustUtils {
                 throw t
         }
     }
-    def downloadOutput(response: JobResponse, localPath: String)(implicit sc: SparkContext) {
-        try {
-            S3Util.download(response.bucket, response.prefix, localPath + "/")
-            CommonUtil.deleteFile(localPath + "/" + response.request_id + "_$folder$")
-            CommonUtil.deleteFile(localPath + "/_SUCCESS")
-            CommonUtil.zipFolder(localPath + ".zip", localPath)
-            CommonUtil.deleteDirectory(localPath);
-            updateStage(response.request_id, response.client_key, "DOWNLOAD_AND_ZIP_OUTPUT_FILE", "COMPLETED")
-        } catch {
-            case t: Throwable =>
-                updateStage(response.request_id, response.client_key, "DOWNLOAD_AND_ZIP_OUTPUT_FILE", "FAILED", "FAILED")
-                throw t
-        }
-    }
 
     def saveData(rdd: RDD[String], eventConfig: EventId, requestId: String, eventId: String, outputFormat: String, requestID: String, clientKey: String)(implicit sc: SparkContext) {
-
-        val data = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rdd) else rdd;
-        val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
-        val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
-        val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
-        val path = AppConf.getConfig("data_exhaust.save_config.local_path")
-
-        saveType match {
-            case "s3" =>
-                val key = "s3n://" + bucket + "/" + prefix + requestId + "/" + eventId;
-                data.saveAsTextFile(key)
-                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_" + eventId, "COMPLETED")
-            case "local" =>
-                val localPath = path + "/" + requestId + "/" + eventId
-                data.saveAsTextFile(localPath)
-                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_LOCAL_" + eventId, "COMPLETED")
-        }
+    	if (rdd.count() > 0) {
+    		val data = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rdd) else rdd;
+	        val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
+	        val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
+	        val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
+	        val path = AppConf.getConfig("data_exhaust.save_config.local_path")
+	
+	        saveType match {
+	            case "s3" =>
+	                val key = "s3n://" + bucket + "/" + prefix + requestId + "/" + eventId;
+	                data.saveAsTextFile(key)
+	                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_" + eventId, "COMPLETED")
+	            case "local" =>
+	                val localPath = path + "/" + requestId + "/" + eventId
+	                data.saveAsTextFile(localPath)
+	                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_LOCAL_" + eventId, "COMPLETED")
+	        }
+    	} else {
+    		JobLogger.log("No data to save.", None, INFO);
+    	}
     }
     def fetchData(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): RDD[String] = {
         try {

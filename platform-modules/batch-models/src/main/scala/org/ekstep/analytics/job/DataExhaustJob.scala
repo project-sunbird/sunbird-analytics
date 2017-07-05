@@ -62,18 +62,15 @@ object DataExhaustJob extends optional.Application with IJob {
             for (request <- requests) {
                 try {
                     val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
-                    val requestID = request.request_id
-                    val clientKey = request.client_key
                     val eventList = requestData.filter.events.getOrElse(List())
                     val dataSetId = requestData.dataset_id.get
-
                     val events = if (rawDataSetList.contains(dataSetId) || eventList.size == 0)
                         exhaustConfig.get(dataSetId).get.events
                     else
                         eventList
 
                     for (eventId <- events) {
-                        _executeEventExhaust(eventId, requestData, requestID, clientKey)
+                        _executeEventExhaust(eventId, requestData, request.request_id, request.client_key)
                     }
                 } catch {
                     case ex: Exception =>
