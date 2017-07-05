@@ -49,7 +49,8 @@ object CypherQueries {
      * Plugin Snapshot Matrix Cypher Query
      *
      */
-    val PLUGIN_SNAPSHOT_METIRCS = """MATCH (p:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Plugin'}) OPTIONAL MATCH (p)<-[r:uses]-(n:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(n.contentType) in ["game", "worksheet", "story", "collection"] RETURN p.IL_UNIQUE_ID as plugin_id, p.name as name, CASE WHEN p.category IS null THEN [] ELSE p.category END as category, CASE WHEN p.createdBy IS null THEN "" ELSE p.createdBy END as author, count(n) as contentCount"""
+
+    val PLUGIN_SNAPSHOT_METIRCS = """MATCH (p:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Plugin'}) OPTIONAL MATCH (p)<-[r:uses]-(n:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(n.contentType) in ["game", "worksheet", "story", "collection"] RETURN p.IL_UNIQUE_ID as plugin_id, p.name as name, p.domain as domain, p.owner as author_id, count(n) as contentCount"""
 
     /**
      * Content Creation Metrics Cypher Query
