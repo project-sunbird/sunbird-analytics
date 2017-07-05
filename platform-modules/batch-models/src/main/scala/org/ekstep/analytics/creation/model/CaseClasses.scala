@@ -37,4 +37,6 @@ class Eks() extends Serializable;
  * Creation event model 
  */
 @scala.beans.BeanInfo
-case class CreationEvent(val eid: String, val ets: Long, `@timestamp`: String, val ver: String, val mid: String, val channel: Option[String], val pdata: Option[CreationPData] = None, val cdata: Option[List[CreationCData]] = None, val uid: String, val context: Option[CreationContext] = None, val rid: String, val edata: CreationEData, val tags: List[AnyRef]) extends Input with AlgoInput;
+case class CreationEvent(val eid: String, val ets: Long, `@timestamp`: String, val ver: String, val mid: String, val channel: Option[String], val pdata: Option[CreationPData] = None, val cdata: Option[List[CreationCData]] = None, val uid: String, val context: Option[CreationContext] = None, val rid: String, val edata: CreationEData, val tags: List[AnyRef], val etags: Option[ETags] = Option(ETags(None,None,None))) extends Input with AlgoInput;
+case class ETags(app: Option[List[String]], partner: Option[List[String]], dims: Option[List[String]])
+

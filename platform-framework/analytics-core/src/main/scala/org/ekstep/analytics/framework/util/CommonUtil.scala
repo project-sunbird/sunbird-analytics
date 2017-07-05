@@ -414,19 +414,19 @@ object CommonUtil {
     def getDefaultAppChannelIds(): (String, String) = {
         (AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"))
     }
-    
+
     def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA", appId: Option[String] = Option(getDefaultAppChannelIds._1), channelId: Option[String] = Option(getDefaultAppChannelIds._2)): String = {
-        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId, if(appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if(channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
+        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId, if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
     def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long, appId: Option[String], channelId: Option[String]): String = {
-        val key = Array(eventId, userId, dateFormat.print(syncDate), granularity, if(appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if(channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
+        val key = Array(eventId, userId, dateFormat.print(syncDate), granularity, if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
     def getMessageId(eventId: String, level: String, timeStamp: Long, appId: Option[String], channelId: Option[String]): String = {
-        val key = Array(eventId, level, df5.print(timeStamp), if(appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if(channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
+        val key = Array(eventId, level, df5.print(timeStamp), if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
@@ -537,26 +537,35 @@ object CommonUtil {
         val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
         dateFormat.parseDateTime(date).plusHours(23).plusMinutes(59).plusSeconds(59).getMillis
     }
-    
+
     def getAppDetails(event: Any): PData = {
         val defaultAppId = PData(AppConf.getConfig("default.app.id"), "1.0")
-        if(event.isInstanceOf[Event]){
-            if(event.asInstanceOf[Event].pdata.isEmpty) defaultAppId else event.asInstanceOf[Event].pdata.get
-        }
-        else if(event.isInstanceOf[DerivedEvent]){
-            if(event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
-        }
-        else defaultAppId;
+        if (event.isInstanceOf[Event]) {
+            if (event.asInstanceOf[Event].pdata.isEmpty) defaultAppId else event.asInstanceOf[Event].pdata.get
+        } else if (event.isInstanceOf[DerivedEvent]) {
+            if (event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
+        } else defaultAppId;
     }
-    
+
     def getChannelId(event: Any): String = {
         val defaultChannelId = AppConf.getConfig("default.channel.id")
-        if(event.isInstanceOf[Event]){
-            if(event.asInstanceOf[Event].channel.isEmpty) defaultChannelId else event.asInstanceOf[Event].channel.get
+        if (event.isInstanceOf[Event]) {
+            if (event.asInstanceOf[Event].channel.isEmpty) defaultChannelId else event.asInstanceOf[Event].channel.get
+        } else if (event.isInstanceOf[DerivedEvent]) {
+            if (event.asInstanceOf[DerivedEvent].channel.isEmpty) defaultChannelId else event.asInstanceOf[DerivedEvent].channel.get
+        } else defaultChannelId;
+    }
+
+    def getETags(event: Event): ETags = {
+
+        if (event.etags.isDefined) {
+            event.etags.get;
+        } else {
+            val tags = event.tags.asInstanceOf[List[Map[String, List[String]]]]
+            val genieTags = tags.filter(f => f.contains("genie")).map { x => x.get("genie").get }.flatMap { x => x }
+            val partnerTags = tags.filter(f => f.contains("partner")).map { x => x.get("partner").get }.flatMap { x => x }
+            val dims = tags.filter(f => f.contains("dims")).map { x => x.get("dims").get }.flatMap { x => x }
+            ETags(Option(genieTags), Option(partnerTags), Option(dims))
         }
-        else if(event.isInstanceOf[DerivedEvent]){
-            if(event.asInstanceOf[DerivedEvent].channel.isEmpty) defaultChannelId else event.asInstanceOf[DerivedEvent].channel.get
-        }
-        else defaultChannelId;
     }
 }
