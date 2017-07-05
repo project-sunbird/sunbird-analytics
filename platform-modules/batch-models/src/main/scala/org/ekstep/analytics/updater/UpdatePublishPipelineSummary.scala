@@ -61,8 +61,8 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
     val d_period = CommonUtil.getPeriod(DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(d.dimensions.period.get.toString()), period)
     val eks = d.edata.eks.asInstanceOf[Map[String, AnyRef]]
     val pps = eks("publish_pipeline_summary").asInstanceOf[List[Map[String, AnyRef]]]
-    val appId = d.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"));
-    val channelId = d.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+    val appId = CommonUtil.getAppDetails(d).id
+    val channelId = CommonUtil.getChannelId(d)
 
     val facts = pps.map { s =>
       val `type` = s("type").toString()

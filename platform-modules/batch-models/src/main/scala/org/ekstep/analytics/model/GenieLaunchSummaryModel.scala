@@ -19,7 +19,7 @@ import scala.collection.mutable.ListBuffer
 import org.ekstep.analytics.framework.conf.AppConf
 
 case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long,
-                        tags: Option[AnyRef], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], appId: String, channelId: String) extends AlgoOutput
+                        tags: Option[AnyRef], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channelId: String) extends AlgoOutput
 case class LaunchSessions(channelId: String, did: String, events: Buffer[Event]) extends AlgoInput
 case class GenieStageSummary(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]])
 case class StageDetails(timeSpent: Double, interactEvents: Buffer[Event], visitCount: Int, sid: String)
@@ -93,8 +93,8 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             val geStart = x.events.head
             val geEnd = x.events.last
 
-            val appId = geStart.appid.getOrElse(AppConf.getConfig("default.app.id"))
-            val channelId = geStart.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val pdata = CommonUtil.getAppDetails(geStart)
+            val channelId = CommonUtil.getChannelId(geStart)
 
             val syncts = CommonUtil.getEventSyncTS(geEnd)
             val startTimestamp = CommonUtil.getEventTS(geStart)
@@ -103,7 +103,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
             val content = x.events.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.filter { x => x != null }.distinct
             val stageSummary = computeGenieScreenSummary(x.events)
-            GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(geEnd.tags), dtRange, stageSummary, appId, channelId);
+            GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(geEnd.tags), dtRange, stageSummary, pdata, channelId);
         }.filter { x => (x.timeSpent >= 0) }
     }
 
@@ -116,9 +116,9 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
                 "content" -> summary.content,
                 "contentCount" -> summary.contentCount,
                 "screenSummary" -> summary.stageSummary);
-            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
-                Dimensions(None, Option(summary.did), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),
+            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "",Option(summary.channelId), None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
+                Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata)),
                 MEEdata(measures), summary.tags);
         }
     }

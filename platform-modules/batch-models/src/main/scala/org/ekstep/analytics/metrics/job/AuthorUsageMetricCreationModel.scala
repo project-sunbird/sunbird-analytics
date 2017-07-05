@@ -30,7 +30,7 @@ object AuthorUsageMetricCreationModel extends MetricsBatchModel[String, String] 
         val resRDD = res.mapValues { x =>
             x.map { f =>
                 val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_period, "DAY", System.currentTimeMillis(), Option(f.d_app_id), Option(f.d_channel_id));
-                val event = getMeasuredEvent(event_id, mid, "AuthorUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_app_id", "d_channel_id", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), None, None, Option(f.d_app_id), None, None, Option(f.d_channel_id)))
+                val event = getMeasuredEvent(event_id, mid, f.d_channel_id, "AuthorUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_app_id", "d_channel_id", "updated_date"), Dimensions(None, None, None, None, None, None, Option(PData(f.d_app_id, "1.0")), None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id)))
                 JSONUtils.serialize(event)
             }
         }
