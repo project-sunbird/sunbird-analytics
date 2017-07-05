@@ -533,6 +533,8 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
     PRIMARY KEY (d_period)
 );
 
+
+DROP TABLE creation_metrics_db.plugin_snapshot_metrics;
 CREATE TABLE IF NOT EXISTS creation_metrics_db.plugin_snapshot_metrics (
      d_period int, 
      d_plugin_id text, 
