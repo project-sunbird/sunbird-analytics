@@ -121,10 +121,10 @@ object DataExhaustUtils {
     def saveData(rdd: RDD[String], eventConfig: EventId, requestId: String, eventId: String, outputFormat: String, requestID: String, clientKey: String)(implicit sc: SparkContext) {
 
         val data = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rdd) else rdd;
-        val saveType = AppConf.getConfig("dataexhaust.save_config.save_type")
-        val bucket = AppConf.getConfig("dataexhaust.save_config.bucket")
-        val prefix = AppConf.getConfig("dataexhaust.save_config.prefix")
-        val path = AppConf.getConfig("dataexhaust.save_config.local_path")
+        val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
+        val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
+        val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
+        val path = AppConf.getConfig("data_exhaust.save_config.local_path")
 
         saveType match {
             case "s3" =>
