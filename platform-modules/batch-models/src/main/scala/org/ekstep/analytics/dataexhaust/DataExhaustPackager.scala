@@ -64,12 +64,13 @@ object DataExhaustPackager extends optional.Application {
 			val first_event_date = fileInfo.head.first_event_date
 			val last_event_date = fileInfo.last.last_event_date
 			val dtProcessing = DateTime.now(DateTimeZone.UTC);
+			val executionTime = x.jobRequest.execution_time;
 			JobRequest(x.client_key, x.request_id, Option(x.job_id), "COMPLETED", x.jobRequest.request_data, Option(x.location),
 				Option(createdDate),
 				Option(new DateTime(CommonUtil.dateFormat.parseDateTime(first_event_date).getMillis)),
 				Option(new DateTime(CommonUtil.dateFormat.parseDateTime(last_event_date).getMillis)),
 				Option(createdDate.plusDays(30)), Option(x.jobRequest.iteration.getOrElse(0) + 1), x.jobRequest.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
-				None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), None, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
+				None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), executionTime, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
 		}
 		sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
 	}
