@@ -106,7 +106,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
         // filter vidyavaani jobs
-        val vidyavaaniModelsSet = Set("ContentLanguageRelationModel", "ConceptLanguageRelationModel", "AuthorRelationsModel", "CreationRecommendationEnrichmentModel", "ContentAssetRelationModel", "ContentVectorsModel", "EndOfContentRecommendationModel")
+        val vidyavaaniModelsSet = Set("ContentLanguageRelationModel", "ConceptLanguageRelationModel", "AuthorRelationsModel", "CreationRecommendationEnrichmentModel", "ContentAssetRelationModel")
         val vidyavaaniModels = jobSummaryCaseClass.filter(item => vidyavaaniModelsSet(item.model.trim()))
 
         // filter consumption jobs
@@ -124,7 +124,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
             "TextbookUsageSummaryModel", "UpdateTextbookUsageDB", "UpdateCreationMetricsDB")
         val creationModels = jobSummaryCaseClass.filter(item => creationModelsSet(item.model.trim()))
         // filter other jobs
-        val otherModelsSet = Set("PrecomputedViews", "DataExhaustJob", "DeviceRecommendationTrainingModel", "DeviceRecommendationScoringModel")
+        val otherModelsSet = Set("PrecomputedViews", "DataExhaustJob", "DeviceRecommendationTrainingModel", "DeviceRecommendationScoringModel", "ContentVectorsModel", "EndOfContentRecommendationModel")
         val otherModels = jobSummaryCaseClass.filter { item => otherModelsSet(item.model.trim()) }
         // filter unclassified jobs
         val unclassifiedModelsSet = Set("CreationRecommendationModel", "UpdateConceptSnapshotDB", "ContentSnapshotSummaryModel",
@@ -149,7 +149,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         // Model Mapping Map(input from other data product -> output from data product)
         val modelMapping = Map("ItemSummaryModel" -> "LearnerSessionSummaryModel",
             "GenieUsageSummaryModel" -> "GenieLaunchSummaryModel",
-            "ItemSummaryModel" -> "GenieFunnelModel",
+            "ItemSummaryModel" -> "LearnerSessionSummaryModel",
             "GenieStageSummaryModel" -> "GenieLaunchSummaryModel",
             "ItemUsageSummaryModel" -> "ItemSummaryModel",
             "DeviceContentUsageSummaryModel" -> "LearnerSessionSummaryModel",
@@ -158,7 +158,15 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
             "UpdateItemSummaryDB" -> "ItemUsageSummaryModel",
             "UpdateContentPopularityDB" -> "ContentPopularitySummaryModel",
             "UpdateContentUsageDB" -> "ContentUsageSummaryModel",
-            "ContentUsageSummaryModel" -> "LearnerSessionSummaryModel")
+            "ContentUsageSummaryModel" -> "LearnerSessionSummaryModel",
+            "AppUsageSummaryModel" -> "AppSessionSummaryModel",
+            "ContentEditorUsageSummaryModel" -> "ContentEditorSessionSummaryModel",
+            "TextbookUsageSummaryModel" -> "TextbookSessionSummaryModel",
+            "UpdateItemSummaryDB" -> "ItemUsageSummaryModel",
+            "UpdateAppUsageDB" -> "AppUsageSummaryModel",
+            "UpdateContentEditorUsageDB" -> "ContentEditorUsageSummaryModel",
+            "UpdateTextbookUsageDB" -> "TextbookUsageSummaryModel",
+            "UpdateAuthorSummaryDB" -> "AuthorUsageSummaryModel")
 
         var warnings = ""
         modelMapping.map { x =>
