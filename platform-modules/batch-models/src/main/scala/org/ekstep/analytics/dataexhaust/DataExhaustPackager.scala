@@ -44,7 +44,7 @@ case class Response(request_id: String, client_key: String, job_id: String, meta
  *
  * Functionality
  * 1. Package the all the events based upon their identifer either in json or csv format
- * Events used - consumption-raw, consumption-summ, creation-raw
+ * Events used - consumption-raw, consumption-summary, eks-consumption-metrics, creation-raw, eks-creation-summary and eks-creation-metrics
  */
 object DataExhaustPackager extends optional.Application {
 
