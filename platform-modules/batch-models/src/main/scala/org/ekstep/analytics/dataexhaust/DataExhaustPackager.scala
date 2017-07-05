@@ -1,3 +1,6 @@
+/**
+ * @author Jitendra Singh Sankhwar, Mahesh, Amit
+ */
 package org.ekstep.analytics.dataexhaust
 
 import java.io.File
@@ -27,11 +30,22 @@ import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
 
-case class PackagerConfig(saveType: String, bucket: String, prefix: String, public_S3URL: String, localPath: String)
+/**
+ * Case class to hold the manifest json 
+ */
 case class FileInfo(path: String, event_count: Long, first_event_date: String, last_event_date: String)
 case class ManifestFile(id: String, ver: String, ets: Long, request_id: String, dataset_id: String, total_event_count: Long, start_date: String, end_end: String, file_info: Array[FileInfo], request: String)
 case class Response(request_id: String, client_key: String, job_id: String, metadata: ManifestFile, location: String, stats: Map[String, Any], jobRequest: JobRequest)
 
+/**
+ * @Packager
+ *
+ * DataExhaustPackager
+ *
+ * Functionality
+ * 1. Package the all the events based upon their identifer either in json or csv format
+ * Events used - consumption-raw, consumption-summ, creation-raw
+ */
 object DataExhaustPackager extends optional.Application {
 
 	val className = "org.ekstep.analytics.model.DataExhaustPackager"
@@ -59,18 +73,33 @@ object DataExhaustPackager extends optional.Application {
 		}
 		sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
 	}
-
+	
+	/**
+     * To filter the invalid files
+     * @param filePath  
+     * @return true if file is valid and false for invalid file 
+     */
 	private def invalidFileFilter(filePath: String): Boolean = {
 		filePath.endsWith("_SUCCESS") || filePath.endsWith("$folder$") || filePath.endsWith(".crc");
 	}
 	
+	/**
+     * Read all file from a directory and merge into one RDD Type
+     * @param dir file directory 
+     * @return RDD[String] of merge files
+     */
 	def getData(dir: File)(implicit sc: SparkContext): RDD[String] = {
 		val data = dir.listFiles().map { x =>
             sc.textFile(x.getAbsolutePath)
         }
         sc.union(data.toSeq)
 	}
-
+	
+	/**
+     * package all the data according to the request and return the response
+     * @param jobRequest request for data-exhaust 
+     * @return Response for the request
+     */
 	def packageExhaustData(jobRequest: JobRequest)(implicit sc: SparkContext): Response = {
 
 		val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
@@ -122,13 +151,24 @@ object DataExhaustPackager extends optional.Application {
 		Response(jobRequest.request_id, jobRequest.client_key, job_id, metadata, fileStats._1, fileStats._2, jobRequest);
 	}
 	
+	/**
+     * Delete all invalid files in a given file directory
+     * @param path directory path 
+     */
 	private def deleteInvalidFiles(path: String) {
 		val fileObj = new File(path);
 		fileObj.listFiles.map { x => if (x.isDirectory()) deleteInvalidFiles(x.getAbsolutePath); x }
 		.filter { x => invalidFileFilter(x.getAbsolutePath) }
 		.map { x => x.delete() };
 	}
-
+	
+	/**
+     * Generate manifest json file and save into the request folder struture.
+     * @param data Array of all merge data with respect to each event identifier 
+     * @param jobRequest request for data-exhaust
+     * @param requestDataLocalPath path of the events file  
+     * @return manifest case class 
+     */
 	def generateManifestFile(data: Array[(String, RDD[String])], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext): ManifestFile = {
 		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
 	    val fileInfo = data.map { f =>
@@ -148,7 +188,13 @@ object DataExhaustPackager extends optional.Application {
 		OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> outputManifestPath)), Array(jsonString));
 		manifest
 	}
-
+	
+	/**
+     * Generate manifest json file and save into the request folder struture.
+     * @param data Array of all merge data with respect to each event identifier 
+     * @param jobRequest request for data-exhaust
+     * @param requestDataLocalPath path of the manifest file  
+     */
 	def generateDataFiles(data: Array[(String, RDD[String])], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext) {
 		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
 		data.foreach { events =>
