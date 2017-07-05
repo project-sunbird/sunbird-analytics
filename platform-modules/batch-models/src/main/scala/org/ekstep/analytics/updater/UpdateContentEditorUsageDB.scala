@@ -49,8 +49,8 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
         val CESummary = data.map { x =>
 
             val period = x.dimensions.period.get;
-            val appId = x.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = x.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            val appId = CommonUtil.getAppDetails(x).id
+            val channelId = CommonUtil.getChannelId(x)
 
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val unique_users_count = eksMap.get("unique_users_count").get.asInstanceOf[Number].longValue()

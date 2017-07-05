@@ -35,8 +35,8 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val authorMetrics = data.map { x =>
             val period = x.dimensions.period.get
             val author = x.uid
-            val appId = x.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = x.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            val appId = CommonUtil.getAppDetails(x).id
+            val channelId = CommonUtil.getChannelId(x)
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val totalSessions = eksMap.getOrElse("total_sessions", 0L).asInstanceOf[Number].longValue()
             val totalTS = CommonUtil.roundDouble(eksMap.getOrElse("total_ts", 0.0).asInstanceOf[Double], 2)

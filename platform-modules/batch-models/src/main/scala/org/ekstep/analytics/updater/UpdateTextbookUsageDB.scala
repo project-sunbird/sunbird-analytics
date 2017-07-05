@@ -55,8 +55,8 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessionMetricsFact] = {
         val textbook_sessions = data.map { x =>
             val d_period = x.dimensions.period.get
-            val appId = x.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = x.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            val appId = CommonUtil.getAppDetails(x).id
+            val channelId = CommonUtil.getChannelId(x)
 
             val eks_map = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val unique_users_count = eks_map.getOrElse("unique_users_count", 0L).asInstanceOf[Number].longValue()

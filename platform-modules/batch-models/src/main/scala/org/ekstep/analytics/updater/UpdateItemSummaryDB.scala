@@ -36,8 +36,8 @@ object UpdateItemSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEven
             val tag = x.dimensions.tag.get;
             val content = x.dimensions.content_id.get;
             val item = x.dimensions.item_id.get;
-            val appId = x.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = x.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            val appId = CommonUtil.getAppDetails(x).id
+            val channelId = CommonUtil.getChannelId(x)
 
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
 

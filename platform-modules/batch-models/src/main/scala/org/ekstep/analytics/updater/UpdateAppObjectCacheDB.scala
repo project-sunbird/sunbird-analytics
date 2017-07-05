@@ -18,6 +18,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.creation.model._
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.util.CreationEventUtil
 
 /**
  * Case Classes for the data product
@@ -27,10 +28,10 @@ case class UserProfile(user_id: String, app_id: String, channel_id: String, name
 
 /**
  * @dataproduct
- * @updater 
- * 
+ * @updater
+ *
  * UpdateAppObjectCacheDB
- * 
+ *
  * Functionality
  * 1. Updater to populate/update the app specific object cache. This would be used to denormalize object data when pushing the data to influx or when the metrics are served via the APIs
  * 2. Store user profile sent by the app
@@ -48,21 +49,21 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
     override def algorithm(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AppObjectCache] = {
 
         val objectEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("BE_OBJECT_LIFECYCLE")))
-        	.filter { x => StringUtils.isNotBlank(x.edata.eks.id) && StringUtils.isNotBlank(x.edata.eks.`type`)  }
-        	.map { event =>
-        	    val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
-              val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
-            	AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, appId, channelId, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
-        	}
+            .filter { x => StringUtils.isNotBlank(x.edata.eks.id) && StringUtils.isNotBlank(x.edata.eks.`type`) }
+            .map { event =>
+                val pdata = CreationEventUtil.getAppDetails(event)
+                val channelId = CreationEventUtil.getChannelId(event)
+                AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, pdata.id, channelId, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
+            }
         objectEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE);
 
         val profileEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("CP_UPDATE_PROFILE"))).map { event =>
-            val access = if(event.edata.eks.access.isDefined) event.edata.eks.access.get else List();
-            val partners = if(event.edata.eks.partners.isDefined) event.edata.eks.partners.get else List();
-            val profile = if(event.edata.eks.profile.isDefined) event.edata.eks.profile.get else List();
-            val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
-            UserProfile(event.uid, appId, channelId, event.edata.eks.name, event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
+            val access = if (event.edata.eks.access.isDefined) event.edata.eks.access.get else List();
+            val partners = if (event.edata.eks.partners.isDefined) event.edata.eks.partners.get else List();
+            val profile = if (event.edata.eks.profile.isDefined) event.edata.eks.profile.get else List();
+            val pdata = CreationEventUtil.getAppDetails(event)
+            val channelId = CreationEventUtil.getChannelId(event)
+            UserProfile(event.uid, pdata.id, channelId, event.edata.eks.name, event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
         }
         profileEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.USER_PROFILE_TABLE);
         objectEvents;
