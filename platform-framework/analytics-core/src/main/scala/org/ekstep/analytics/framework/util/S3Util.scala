@@ -65,11 +65,16 @@ object S3Util {
     def downloadDirectory(bucketName: String, prefix: String, localPath: String) {
     	val objectArr = s3Service.listObjects(bucketName, prefix, null)
         val objects = getAllKeys(bucketName, prefix)
+        println("Bucket:", bucketName);
+    	println("Prefix:", prefix);
+    	println("LocalPath:", localPath);
         for (obj <- objectArr) {
             val key = obj.getKey
             val file = FilenameUtils.getName(key);
             val fileObj = s3Service.getObject(bucketName, key)
             val downloadPath = localPath + StringUtils.replace(FilenameUtils.getPath(key), prefix, "") + "/";
+            println("DownloadPath:", downloadPath);
+            println("FileName:", file);
             CommonUtil.copyFile(fileObj.getDataInputStream(), downloadPath.replaceAll("//", "/"), file);
         }
     }
