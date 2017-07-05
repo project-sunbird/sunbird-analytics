@@ -24,7 +24,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE platform_db.job_request");
         }
-        FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/test"), new File("src/test/resources/data-exhaust-package/"))
+//        FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/test"), new File("src/test/resources/data-exhaust-package/"))
     }
 
     it should "execute DataExhaustJob job from local data and won't throw any Exception" in {
