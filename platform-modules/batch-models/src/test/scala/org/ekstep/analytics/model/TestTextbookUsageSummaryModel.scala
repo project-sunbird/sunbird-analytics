@@ -21,7 +21,7 @@ class TestTextbookUsageSummaryModel extends SparkSpec(null) {
         val event1 = me(2);
         event1.eid should be("ME_TEXTBOOK_USAGE_SUMMARY");
 //        event1.mid should be("5EC0DED34AEB97221856EA3D1628A71A");
-        event1.context.pdata.model should be("TextbookUsageSummarizer");
+        event1.context.pdata.model.get should be("TextbookUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
         event1.context.date_range should not be null;

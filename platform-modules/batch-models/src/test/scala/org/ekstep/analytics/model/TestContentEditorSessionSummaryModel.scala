@@ -17,7 +17,7 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         val event1 = me(0);
         event1.eid should be("ME_CE_SESSION_SUMMARY");
 //        event1.mid should be("5A1635ABEF6F031C0ABFF70F549DB1C9");
-        event1.context.pdata.model should be("ContentEditorSessionSummary");
+        event1.context.pdata.model.get should be("ContentEditorSessionSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -59,7 +59,7 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         // Validate for event envelope
         event1.eid should be("ME_CE_SESSION_SUMMARY");
 //        event1.mid should be("053D297F9260F68138B02F6FB2C60451");
-        event1.context.pdata.model should be("ContentEditorSessionSummary");
+        event1.context.pdata.model.get should be("ContentEditorSessionSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;

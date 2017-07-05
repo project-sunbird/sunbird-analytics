@@ -32,7 +32,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.channel.get should be ("Ekstep")
         
         event1.eid should be("ME_SESSION_SUMMARY");
-        event1.context.pdata.model should be("GenericSessionSummaryV2");
+        event1.context.pdata.model.get should be("GenericSessionSummaryV2");
         event1.context.pdata.ver should be("1.4");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -78,7 +78,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
-        event1.context.pdata.model should be("GenericContentSummary");
+        event1.context.pdata.model.get should be("GenericContentSummary");
         event1.context.pdata.ver should be("1.2");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -188,7 +188,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
 //        event1.mid should be("27B3CF85556974581D97739493A3FCC8");
-        event1.context.pdata.model should be("LearnerSessionSummary");
+        event1.context.pdata.model.get should be("LearnerSessionSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -287,7 +287,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val event1 = me(0);
         event1.eid should be("ME_SESSION_SUMMARY");
 //        event1.mid should be("288F7A6E4E7BA48031386E84774DC61A");
-        event1.context.pdata.model should be("LearnerSessionSummary");
+        event1.context.pdata.model.get should be("LearnerSessionSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
