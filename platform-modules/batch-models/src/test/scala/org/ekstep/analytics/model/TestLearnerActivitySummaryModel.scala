@@ -70,7 +70,7 @@ class TestLearnerActivitySummaryModel extends SparkSpec(null) {
 
         val event1 = me(0);
         event1.eid should be("ME_LEARNER_ACTIVITY_SUMMARY");
-        event1.context.pdata.model should be("LearnerActivitySummary");
+        event1.context.pdata.model.get should be("LearnerActivitySummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("WEEK");
         event1.context.date_range should not be null;

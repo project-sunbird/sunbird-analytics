@@ -19,7 +19,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
 
         event1.eid should be("ME_CE_USAGE_SUMMARY");
 //        event1.mid should be("E9A898F7B82D74534CBEAA716AB5133F");
-        event1.context.pdata.model should be("ContentEditorUsageSummarizer");
+        event1.context.pdata.model.get should be("ContentEditorUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
         event1.context.date_range should not be null;
@@ -37,7 +37,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
 
         event2.eid should be("ME_CE_USAGE_SUMMARY");
 //        event2.mid should be("9AFAAA707872BB96A049A6A7B0C53217");
-        event2.context.pdata.model should be("ContentEditorUsageSummarizer");
+        event2.context.pdata.model.get should be("ContentEditorUsageSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("DAY");
         event2.context.date_range should not be null;
@@ -55,7 +55,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
 
         event3.eid should be("ME_CE_USAGE_SUMMARY");
 //        event3.mid should be("DD094BEE6CEE287BEE587E6BE6EC4BB2");
-        event3.context.pdata.model should be("ContentEditorUsageSummarizer");
+        event3.context.pdata.model.get should be("ContentEditorUsageSummarizer");
         event3.context.pdata.ver should be("1.0");
         event3.context.granularity should be("DAY");
         event3.context.date_range should not be null;
@@ -78,7 +78,7 @@ class TestContentEditorUsageSummaryModel extends SparkSpec(null) {
         val event1 = me(0);
         event1.eid should be("ME_CE_USAGE_SUMMARY");
 //        event1.mid should be("E9A898F7B82D74534CBEAA716AB5133F");
-        event1.context.pdata.model should be("ContentEditorUsageSummarizer");
+        event1.context.pdata.model.get should be("ContentEditorUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("DAY");
         event1.context.date_range should not be null;

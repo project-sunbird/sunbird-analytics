@@ -22,7 +22,7 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
 
         val event1 = events(0);
 
-        event1.context.pdata.model should be("ConceptSnapshotSummarizer");
+        event1.context.pdata.model.get should be("ConceptSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SNAPSHOT");
         event1.context.date_range should not be null;
@@ -52,7 +52,7 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
 
         val event1 = events(0);
         
-        event1.context.pdata.model should be("ConceptSnapshotSummarizer");
+        event1.context.pdata.model.get should be("ConceptSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SNAPSHOT");
         event1.context.date_range should not be null;

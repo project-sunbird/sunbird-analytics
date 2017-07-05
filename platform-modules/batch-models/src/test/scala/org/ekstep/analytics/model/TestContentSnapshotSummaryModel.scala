@@ -40,7 +40,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val event1 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "all") }.first();
 
         // Check for author_id = all
-        event1.context.pdata.model should be("ContentSnapshotSummarizer");
+        event1.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SNAPSHOT");
         event1.context.date_range should not be null;
@@ -59,7 +59,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val event2 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "290") && StringUtils.equals(x.dimensions.partner_id.get, "all") }.first();
 
         // Check for specific author_id
-        event2.context.pdata.model should be("ContentSnapshotSummarizer");
+        event2.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("SNAPSHOT");
         event2.context.date_range should not be null;
@@ -77,7 +77,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
 
         val event3 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "291") && StringUtils.equals(x.dimensions.partner_id.get, "all") }.first();
 
-        event3.context.pdata.model should be("ContentSnapshotSummarizer");
+        event3.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event3.context.pdata.ver should be("1.0");
         event3.context.granularity should be("SNAPSHOT");
         event3.context.date_range should not be null;
@@ -96,7 +96,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         // check for specific partner_id
         val event4 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "org.ekstep.partner.pratham") }.first();
 
-        event4.context.pdata.model should be("ContentSnapshotSummarizer");
+        event4.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event4.context.pdata.ver should be("1.0");
         event4.context.granularity should be("SNAPSHOT");
         event4.context.date_range should not be null;
@@ -115,7 +115,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         // check for partner_id & author_id combination
         val event5 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "290") && StringUtils.equals(x.dimensions.partner_id.get, "org.ekstep.partner.pratham") }.first();
 
-        event5.context.pdata.model should be("ContentSnapshotSummarizer");
+        event5.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event5.context.pdata.ver should be("1.0");
         event5.context.granularity should be("SNAPSHOT");
         event5.context.date_range should not be null;
@@ -157,7 +157,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         // Check for author_id = all
         val event1 = events(0);
 
-        event1.context.pdata.model should be("ContentSnapshotSummarizer");
+        event1.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SNAPSHOT");
         event1.context.date_range should not be null;
@@ -176,7 +176,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         // Check for specific partner_id
         val event2 = events(5);
 
-        event2.context.pdata.model should be("ContentSnapshotSummarizer");
+        event2.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("SNAPSHOT");
         event2.context.date_range should not be null;
