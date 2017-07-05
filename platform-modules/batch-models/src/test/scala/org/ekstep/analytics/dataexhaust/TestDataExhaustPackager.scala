@@ -23,11 +23,9 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE platform_db.job_request");
         }
-    
-        FileUtils.copyDirectory(new File("src/test/resources/data-exhaust/test"), new File("/data/data-exhaust/1234"))
     }
     
-    it should "execute DataExhaustPackager job from local data and won't throw any Exception" in {
+    "DataExhaustPackager" should "execute jobs from local data and won't throw any Exception" in {
 
         preProcess()
         val requests = Array(
@@ -43,7 +41,7 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         }
     }
     
-    ignore should "execute" in {
+    ignore should "execute jobs having data in s3" in {
     	val requests = Array(
             JobRequest("partner1", "B74846A442BB1B0E94745F3B56957460", None, "PENDING_PACKAGING", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("ME_CONTENT_USAGE_SUMMARY")), None, None), Option("eks-consumption-summary"), Option("json"))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));

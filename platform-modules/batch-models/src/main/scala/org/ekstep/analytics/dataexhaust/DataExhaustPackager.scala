@@ -23,6 +23,7 @@ import org.joda.time.DateTimeZone
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
+import org.apache.commons.io.FileUtils
 
 case class PackagerConfig(saveType: String, bucket: String, prefix: String, public_S3URL: String, localPath: String)
 case class FileInfo(event_id: String, event_count: Long, first_event_date: String, last_event_date: String)
@@ -35,7 +36,7 @@ object DataExhaustPackager extends optional.Application {
 	def name: String = "DataExhaustPackager"
 
 	def execute()(implicit sc: SparkContext) = {
-		// Get all job request with status equals PENDING_PACKAGING
+
 		val jobRequests = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("status = ?", "PENDING_PACKAGING").collect;
 
 		val metadata = jobRequests.map { request =>
@@ -58,7 +59,7 @@ object DataExhaustPackager extends optional.Application {
 	}
 
 	private def invalidFileFilter(filePath: String): Boolean = {
-		filePath.endsWith("_SUCCESS") || filePath.endsWith("$folder$")
+		filePath.endsWith("_SUCCESS") || filePath.endsWith("$folder$") || filePath.endsWith(".crc");
 	}
 	
 	def getData(dir: File)(implicit sc: SparkContext): Array[String] = {
@@ -69,19 +70,19 @@ object DataExhaustPackager extends optional.Application {
 
 	def packageExhaustData(jobRequest: JobRequest)(implicit sc: SparkContext): Response = {
 
-		val saveType = AppConf.getConfig("dataexhaust.save_config.save_type")
-		val bucket = AppConf.getConfig("dataexhaust.save_config.bucket")
-		val prefix = AppConf.getConfig("dataexhaust.save_config.prefix")
-		val tmpPath = AppConf.getConfig("dataexhaust.save_config.local_path")
-		val public_S3URL = AppConf.getConfig("dataexhaust.save_config.public_s3_url")
-
-		val path = saveType match {
+		val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
+		val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
+		val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
+		val tmpPath = AppConf.getConfig("data_exhaust.save_config.local_path")
+		val public_S3URL = AppConf.getConfig("data_exhaust.save_config.public_s3_url")
+		val deleteSource = AppConf.getConfig("data_exhaust.delete_source");
+		
+		val path = tmpPath + jobRequest.request_id + "/";
+		saveType match {
 			case "s3" =>
-				val downloadPath = tmpPath + jobRequest.request_id + "/";
-				S3Util.downloadDirectory(bucket, prefix + jobRequest.request_id + "/", downloadPath)
-				downloadPath;
+				S3Util.downloadDirectory(bucket, prefix + jobRequest.request_id + "/", path)
 			case "local" =>
-				tmpPath + jobRequest.request_id + "/"
+				FileUtils.copyDirectory(new File(prefix + jobRequest.request_id + "/"), new File(path));
 		}
 		deleteInvalidFiles(path);
 		
@@ -92,9 +93,8 @@ object DataExhaustPackager extends optional.Application {
 
 		val metadata = generateManifestFile(data, jobRequest, tmpPath)
 		generateDataFiles(data, jobRequest, tmpPath)
-		val localPath = tmpPath + "/" + jobRequest.request_id
+		val localPath = tmpPath + jobRequest.request_id
 		CommonUtil.zipDir(localPath + ".zip", localPath)
-		
 		CommonUtil.deleteDirectory(localPath);
 
 		val job_id = UUID.randomUUID().toString()
@@ -103,13 +103,13 @@ object DataExhaustPackager extends optional.Application {
 				val s3Prefix = prefix + jobRequest.request_id
 				DataExhaustUtils.uploadZip(bucket, s3Prefix, localPath, jobRequest.request_id, jobRequest.client_key)
 				val stats = S3Util.getObjectDetails(bucket, s3Prefix + ".zip");
-				DataExhaustUtils.deleteS3File(bucket, prefix, Array(jobRequest.request_id))
+				if ("true".equals(deleteSource)) DataExhaustUtils.deleteS3File(bucket, prefix, Array(jobRequest.request_id))
 				(public_S3URL + "/" + bucket + "/" + s3Prefix + ".zip", stats)
 			case "local" =>
 				val file = new File(localPath)
 				val dateTime = new Date(file.lastModified())
 				val stats = Map("createdDate" -> dateTime, "size" -> file.length())
-				CommonUtil.deleteDirectory(localPath + ".zip");
+				if ("true".equals(deleteSource)) CommonUtil.deleteDirectory(prefix + jobRequest.request_id);
 				(localPath + ".zip", stats)
 		}
 
