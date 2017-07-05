@@ -18,10 +18,11 @@ import java.text.SimpleDateFormat
 import org.ekstep.analytics.creation.model.CreationEvent
 import org.ekstep.analytics.util.CreationEventUtil
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.creation.model.CreationPData
 
 case class EventsByPeriod(period: Long, channel_id: String, events: Buffer[CreationEvent]) extends AlgoInput
 case class PublishPipelineSummary(`type`: String, state: String, subtype: String, count: Int)
-case class PipelineSummaryOutput(summary: Iterable[PublishPipelineSummary], date_range: DtRange, period: Long, channel_id: String, app_id: String, syncts: Long) extends AlgoOutput
+case class PipelineSummaryOutput(summary: Iterable[PublishPipelineSummary], date_range: DtRange, period: Long, channel_id: String, pdata: CreationPData, syncts: Long) extends AlgoOutput
 
 object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, EventsByPeriod, PipelineSummaryOutput, MeasuredEvent] with Serializable {
 
@@ -33,7 +34,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
         val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE")))));
         objectLifecycleEvents.sortBy { x => x.ets }.map { x =>
             val period = CommonUtil.getPeriod(x.ets, Period.DAY)
-            val channelId = x.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val channelId = CreationEventUtil.getChannelId(x)
             ((period, channelId), Buffer(x))
         }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b)
@@ -54,8 +55,8 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
             }
 
             val dateRange = DtRange(d.events.head.ets, d.events.last.ets)
-            val appId = d.events.head.appid.getOrElse(AppConf.getConfig("default.app.id"))
-            PipelineSummaryOutput(summaryOutput, dateRange, d.period, appId, d.channel_id, CreationEventUtil.getEventSyncTS(d.events.last))
+            val pdata = CreationEventUtil.getAppDetails(d.events.head)
+            PipelineSummaryOutput(summaryOutput, dateRange, d.period, d.channel_id, pdata, CreationEventUtil.getEventSyncTS(d.events.last))
         }
 
         data.unpersist(true)
@@ -67,10 +68,10 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
         data.map { x =>
             val measures = Map(
                 "publish_pipeline_summary" -> x.summary)
-            val mid = CommonUtil.getMessageId("ME_PUBLISH_PIPELINE_SUMMARY", x.period.toString(), "DAY", x.date_range, "", Option(x.app_id), Option(x.channel_id));
-            MeasuredEvent("ME_PUBLISH_PIPELINE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "PublishPipelineSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", x.date_range),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, Option(x.period.toInt), None, None, None, None, None, None, None, None, None, None, None, None, Option(x.app_id), None, None, Option(x.channel_id)),
+            val mid = CommonUtil.getMessageId("ME_PUBLISH_PIPELINE_SUMMARY", x.period.toString(), "DAY", x.date_range, "", Option(x.pdata.id), Option(x.channel_id));
+            MeasuredEvent("ME_PUBLISH_PIPELINE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", Option(x.channel_id), None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "PublishPipelineSummarizer").asInstanceOf[String])), None, "DAY", x.date_range),
+                Dimensions(None, None, None, None, None, None, Option(PData(x.pdata.id, x.pdata.ver)), None, None, None, None, Option(x.period.toInt)),
                 MEEdata(measures), None);
         }
     }

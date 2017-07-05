@@ -94,7 +94,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             val geEnd = x.events.last
 
             val pdata = CommonUtil.getAppDetails(geStart)
-            val channelId = CommonUtil.getChannelId(geStart)
+            val channelId = x.channelId
 
             val syncts = CommonUtil.getEventSyncTS(geEnd)
             val startTimestamp = CommonUtil.getEventTS(geStart)
@@ -109,14 +109,14 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
 
     override def postProcess(data: RDD[GenieSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_LAUNCH_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.appId), Option(summary.channelId));
+            val mid = CommonUtil.getMessageId("ME_GENIE_LAUNCH_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.pdata.id), Option(summary.channelId));
             val measures = Map(
                 "timeSpent" -> summary.timeSpent,
                 "time_stamp" -> summary.time_stamp,
                 "content" -> summary.content,
                 "contentCount" -> summary.contentCount,
                 "screenSummary" -> summary.stageSummary);
-            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "",Option(summary.channelId), None, None,
+            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channelId), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata)),
                 MEEdata(measures), summary.tags);

@@ -176,7 +176,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 "page_summary" -> session.page_summary);
             MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, "1.0", mid, session.uid, Option(session.channel_id), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String])), None, "SESSION", session.dtRange),
-                Dimensions(None, None, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, Option(session.anonymousUser)),
+                Dimensions(None, None, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid)),
                 MEEdata(measures), None);
         }
     }

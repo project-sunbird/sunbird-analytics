@@ -55,10 +55,10 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
         data.map { summary =>
             val mid = CommonUtil.getMessageId("ME_ITEM_SUMMARY", summary.itemResponse.itemId + summary.uid, "EVENT", DtRange(summary.itemResponse.time_stamp, summary.itemResponse.time_stamp), summary.gdata.id);
             val measures = summary.itemResponse;
-            val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
-            MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.gdata.id), None,
+            val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ItemSummary").asInstanceOf[String]));
+            MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, None, Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", DtRange(summary.itemResponse.time_stamp, summary.itemResponse.time_stamp)),
-                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
+                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, None, None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
         };
     }
 

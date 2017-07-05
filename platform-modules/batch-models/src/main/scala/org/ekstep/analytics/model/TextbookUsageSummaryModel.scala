@@ -79,9 +79,9 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
                 "avg_ts_session" -> usageSumm.avg_ts_session,
                 "unit_summary" -> usageSumm.unit_summary,
                 "lesson_summary" -> usageSumm.lesson_summary);
-            MeasuredEvent("ME_TEXTBOOK_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookUsageSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", usageSumm.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, None, None, None, None),
+            MeasuredEvent("ME_TEXTBOOK_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "TextbookUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dtRange),
+                Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);
         }
     }

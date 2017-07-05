@@ -13,13 +13,14 @@ import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.CreationEventUtil
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.creation.model.CreationPData
 
 /**
  * @author yuva
  */
 case class UnitSummary(added_count: Long, deleted_count: Long, modified_count: Long)
 case class LessonSummary(added_count: Long, deleted_count: Long, modified_count: Long)
-case class TextbookSessionMetrics(uid: String, sid: String, appId: String, channelId: String, syncDate: Long, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
+case class TextbookSessionMetrics(uid: String, sid: String, pdata: CreationPData, channelId: String, syncDate: Long, content_id: String, start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, unit_summary: UnitSummary, lesson_summary: LessonSummary, date_range: DtRange) extends Output with AlgoOutput
 case class TextbookSessions(sessionEvent: Buffer[CreationEvent]) extends AlgoInput
 /**
  * @dataproduct
@@ -48,8 +49,8 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
             val start_time = x.sessionEvent.head.ets
             val end_time = x.sessionEvent.last.ets
             val endEvent = x.sessionEvent.last
-            val appId = endEvent.appid.getOrElse(AppConf.getConfig("default.app.id"))
-            val channelId = endEvent.channelid.getOrElse(AppConf.getConfig("default.channel.id"))
+            val pdata = CreationEventUtil.getAppDetails(endEvent)
+            val channelId = CreationEventUtil.getChannelId(endEvent)
             val date_range = DtRange(start_time, end_time)
             var tmpLastEvent: CreationEvent = null;
             val eventsWithTs = x.sessionEvent.map { x =>
@@ -73,13 +74,13 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
             val total_lessons_added = buffered_map_values.map { x => x.getOrElse("lesson_added", "0").toString().toLong }.sum
             val total_lessons_deleted = buffered_map_values.map { x => x.getOrElse("lesson_deleted", "0").toString().toLong }.sum
             val total_lessons_modified = buffered_map_values.map { x => x.getOrElse("lesson_modified", "0").toString().toLong }.sum
-            TextbookSessionMetrics(uid, sid, appId, channelId, CreationEventUtil.getEventSyncTS(endEvent), content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
+            TextbookSessionMetrics(uid, sid, pdata, channelId, CreationEventUtil.getEventSyncTS(endEvent), content_id, start_time, end_time, time_spent, time_diff, UnitSummary(total_units_added, total_units_deleted, total_units_modified), LessonSummary(total_lessons_added, total_lessons_deleted, total_lessons_modified), date_range)
         }.filter { x => (x.time_spent > 0.0) }
     }
 
     override def postProcess(data: RDD[TextbookSessionMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_SESSION_SUMMARY", summary.uid, config.getOrElse("granularity", "SESSION").asInstanceOf[String], summary.date_range, summary.content_id, Option(summary.appId), Option(summary.channelId));
+            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_SESSION_SUMMARY", summary.uid, config.getOrElse("granularity", "SESSION").asInstanceOf[String], summary.date_range, summary.content_id, Option(summary.pdata.id), Option(summary.channelId));
             val measures = Map(
                 "start_time" -> summary.start_time,
                 "end_time" -> summary.end_time,
@@ -87,10 +88,10 @@ object TextbookSessionSummaryModel extends IBatchModelTemplate[CreationEvent, Te
                 "time_diff" -> summary.time_diff,
                 "unit_summary" -> summary.unit_summary,
                 "lesson_summary" -> summary.lesson_summary);
-            val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
-            MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), summary.syncDate, "1.0", mid, summary.uid, None, None,
+            val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "TextbookSessionSummarizer").asInstanceOf[String]));
+            MeasuredEvent("ME_TEXTBOOK_SESSION_SUMMARY", System.currentTimeMillis(), summary.syncDate, "1.0", mid, summary.uid, Option(summary.channelId), None, None,
                 Context(pdata, None, "SESSION", summary.date_range),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(summary.content_id), None, None, Option(summary.sid), None, None, None, None, None, None, None, None, Option(summary.appId), None, None, Option(summary.channelId)), MEEdata(measures), None);
+                Dimensions(None, None, None, None, None, None, Option(PData(summary.pdata.id, summary.pdata.ver)), None, None, None, None, None, Option(summary.content_id), None, None, Option(summary.sid)), MEEdata(measures), None);
         };
     }
 

@@ -33,7 +33,7 @@ import org.ekstep.analytics.framework.InCorrectRes
 import org.ekstep.analytics.framework.conf.AppConf
 
 case class InputEventsItemSummary(ik: ItemKey, events: Buffer[ItemUsageMetricsSummary]) extends Input with AlgoInput
-case class ItemUsageMetricsSummary(ik: ItemKey, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, m_incorrect_res: List[InCorrectRes], dt_range: DtRange, syncts: Long) extends AlgoOutput;
+case class ItemUsageMetricsSummary(ik: ItemKey, pdata: PData, total_ts: Double, total_count: Int, avg_ts: Double, correct_res_count: Int, correct_res: List[String], inc_res_count: Int, m_incorrect_res: List[InCorrectRes], dt_range: DtRange, syncts: Long) extends AlgoOutput;
 
 object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsItemSummary, ItemUsageMetricsSummary, MeasuredEvent] with Serializable {
 
@@ -54,12 +54,12 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEven
         val correct_res_count = events.map { x => x.correct_res_count }.sum
         val inc_res_count = events.map { x => x.inc_res_count }.sum
         val m_incorrect_res = events.flatMap { x => x.m_incorrect_res }.groupBy(x => (x.resp, x.mmc)).map(f => InCorrectRes(f._1._1, f._1._2, f._2.map(y => y.count).sum)).toList;
-        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, date_range, lastEvent.syncts);
+        ItemUsageMetricsSummary(ik, firstEvent.pdata, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, date_range, lastEvent.syncts);
     }
     
-    private def _getItemUsageSummary(event: DerivedEvent, period: Int, appId: String, channelId: String, tagId: String, content_id: String, item_id: String): ItemUsageMetricsSummary = {
+    private def _getItemUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channelId: String, tagId: String, content_id: String, item_id: String): ItemUsageMetricsSummary = {
 
-        val ik = ItemKey(period, appId, channelId, tagId, content_id, item_id);
+        val ik = ItemKey(period, pdata.id, channelId, tagId, content_id, item_id);
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         val total_ts = eksMap.get("timeSpent").get.asInstanceOf[Double];
         val total_count = 1;
@@ -71,7 +71,7 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEven
         val correct_res_count: Int = if (StringUtils.equals("Yes", pass)) 1 else 0
         val inc_res_count: Int = if (StringUtils.equals("No", pass)) 1 else 0;
         val m_incorrect_res = if (inc_res_count == 1) res.map { x => InCorrectRes(x, mmc, 1) } else List[InCorrectRes]();
-        ItemUsageMetricsSummary(ik, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, event.context.date_range, event.syncts);
+        ItemUsageMetricsSummary(ik, pdata, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, event.context.date_range, event.syncts);
     }
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsItemSummary] = {
@@ -89,13 +89,13 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEven
             val item_id = event.edata.eks.asInstanceOf[Map[String, AnyRef]].get("itemId").get.asInstanceOf[String]
             // For all
             
-            val app_id = event.dimensions.app_id.getOrElse(AppConf.getConfig("default.app.id"))
-            val channel_id = event.dimensions.channel_id.getOrElse(AppConf.getConfig("default.channel.id"))
+            val pdata = CommonUtil.getAppDetails(event)
+            val channel_id = CommonUtil.getChannelId(event)
             
-            list += _getItemUsageSummary(event, period, app_id, channel_id, "all", content_id, item_id);
+            list += _getItemUsageSummary(event, period, pdata, channel_id, "all", content_id, item_id);
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += _getItemUsageSummary(event, period, app_id, channel_id, tag, content_id, item_id);
+                list += _getItemUsageSummary(event, period, pdata, channel_id, tag, content_id, item_id);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };
@@ -114,7 +114,7 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEven
 
     override def postProcess(data: RDD[ItemUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { itSumm =>
-            val mid = CommonUtil.getMessageId("ME_ITEM_USAGE_SUMMARY", itSumm.ik.tag + itSumm.ik.period + itSumm.ik.content_id + itSumm.ik.item_id, "DAY", itSumm.syncts, None, None);
+            val mid = CommonUtil.getMessageId("ME_ITEM_USAGE_SUMMARY", itSumm.ik.tag + itSumm.ik.period + itSumm.ik.content_id + itSumm.ik.item_id, "DAY", itSumm.syncts, Option(itSumm.ik.app_id), Option(itSumm.ik.channel_id));
             val measures = Map(
                 "total_ts" -> itSumm.total_ts,
                 "total_count" -> itSumm.total_count,
@@ -125,9 +125,9 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEven
                 "correct_res" -> itSumm.correct_res
                 )
 
-            MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.syncts, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ItemSummaryModel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], itSumm.dt_range),
-                Dimensions(None, None, None, None, None, None, None, None, None, Option(itSumm.ik.tag), Option(itSumm.ik.period), Option(itSumm.ik.content_id), None, Option(itSumm.ik.item_id)),
+            MeasuredEvent("ME_ITEM_USAGE_SUMMARY", System.currentTimeMillis(), itSumm.syncts, "1.0", mid, "", Option(itSumm.ik.channel_id), None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ItemSummaryModel").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], itSumm.dt_range),
+                Dimensions(None, None, None, None, None, None, Option(itSumm.pdata), None, None, None, Option(itSumm.ik.tag), Option(itSumm.ik.period), Option(itSumm.ik.content_id), None, Option(itSumm.ik.item_id)),
                 MEEdata(measures));
         }
     }

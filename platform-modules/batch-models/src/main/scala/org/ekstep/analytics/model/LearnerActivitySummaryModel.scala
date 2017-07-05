@@ -111,8 +111,8 @@ object LearnerActivitySummaryModel extends IBatchModelTemplate[DerivedEvent, Lea
                 "start_ts" -> summary.start_ts,
                 "end_ts" -> summary.end_ts);
             val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", summary.uid, "WEEK", summary.dtRange.to, None, None);
-            MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), summary.dtRange.to, "1.0", mid, summary.uid, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", summary.dtRange),
+            MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), summary.dtRange.to, "1.0", mid, summary.uid, None, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String])), None, "WEEK", summary.dtRange),
                 Dimensions(None, null, None, None, None, None, None),
                 MEEdata(measures));
         }

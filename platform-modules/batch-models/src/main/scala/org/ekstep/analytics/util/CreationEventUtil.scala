@@ -13,7 +13,7 @@ object CreationEventUtil {
     }
     
     def getAppDetails(event: CreationEvent): CreationPData = {
-        if(event.pdata.isEmpty) new CreationPData(AppConf.getConfig("default.app.id"), "1.0") else event.pdata.get
+        if(event.pdata.isEmpty) new CreationPData(AppConf.getConfig("default.creation.app.id"), "1.0") else event.pdata.get
     }
     
     def getChannelId(event: CreationEvent): String = {

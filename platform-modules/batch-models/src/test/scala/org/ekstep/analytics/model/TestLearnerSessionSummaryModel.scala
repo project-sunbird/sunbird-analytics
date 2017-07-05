@@ -28,8 +28,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(1);
         val event1 = me(0);
-        event1.dimensions.app_id.get should be ("Genie")
-        event1.dimensions.channel_id.get should be ("Ekstep")
+        event1.dimensions.pdata.get.id should be ("Genie")
+        event1.channel.get should be ("Ekstep")
         
         event1.eid should be("ME_SESSION_SUMMARY");
         event1.context.pdata.model should be("GenericSessionSummaryV2");

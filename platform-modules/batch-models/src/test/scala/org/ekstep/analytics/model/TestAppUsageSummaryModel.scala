@@ -29,7 +29,7 @@ class TestAppUsageSummaryModel extends SparkSpec(null) {
         event1.context.date_range should not be null;
         event1.dimensions.period.get should be(20170504);
         event1.dimensions.author_id.get should be("all");
-        event1.dimensions.app_id.get should be("EkstepPortal");
+        event1.dimensions.pdata.get.id should be("EkstepPortal");
 
         val summary1 = JSONUtils.deserialize[PortalUsageOutput](JSONUtils.serialize(event1.edata.eks));
         summary1.new_user_count should be(1);
@@ -58,7 +58,7 @@ class TestAppUsageSummaryModel extends SparkSpec(null) {
         event2.context.date_range should not be null;
         event2.dimensions.period.get should be(20170503);
         event2.dimensions.author_id.get should be("all");
-        event2.dimensions.app_id.get should be("EkstepPortal");
+        event2.dimensions.pdata.get.id should be("EkstepPortal");
 
         val summary2 = JSONUtils.deserialize[PortalUsageOutput](JSONUtils.serialize(event2.edata.eks));
         summary2.new_user_count should be(0);
@@ -87,7 +87,7 @@ class TestAppUsageSummaryModel extends SparkSpec(null) {
         event3.context.date_range should not be null;
         event3.dimensions.period.get should be(20170504);
         event3.dimensions.author_id.get should be("0313e644f8fda754eeeddc6c00eb824b00fea515");
-        event3.dimensions.app_id.get should be("EkstepPortal");
+        event3.dimensions.pdata.get.id should be("EkstepPortal");
 
         val summary3 = JSONUtils.deserialize[PortalUsageOutput](JSONUtils.serialize(event3.edata.eks));
         summary3.new_user_count should be(0);
@@ -123,7 +123,7 @@ class TestAppUsageSummaryModel extends SparkSpec(null) {
         event1.context.date_range should not be null;
         event1.dimensions.period.get should be(20170505);
         event1.dimensions.author_id.get should be("all");
-        event1.dimensions.app_id.get should be("EkstepPortal");
+        event1.dimensions.pdata.get.id should be("EkstepPortal");
 
         val summary1 = JSONUtils.deserialize[PortalUsageOutput](JSONUtils.serialize(event1.edata.eks));
         summary1.new_user_count should be(1);
@@ -152,7 +152,7 @@ class TestAppUsageSummaryModel extends SparkSpec(null) {
         event2.context.date_range should not be null;
         event2.dimensions.period.get should be(20170505);
         event2.dimensions.author_id.get should be("0313e644f8fda754eeeddc6c00eb824b00fea515");
-        event2.dimensions.app_id.get should be("EkstepPortal");
+        event2.dimensions.pdata.get.id should be("EkstepPortal");
 
         val summary2 = JSONUtils.deserialize[PortalUsageOutput](JSONUtils.serialize(event2.edata.eks));
         summary2.new_user_count should be(0);
@@ -188,7 +188,7 @@ class TestAppUsageSummaryModel extends SparkSpec(null) {
         event1.context.date_range should not be null;
         event1.dimensions.period.get should be(20170502);
         event1.dimensions.author_id.get should be("all");
-        event1.dimensions.app_id.get should be("EkstepPortal");
+        event1.dimensions.pdata.get.id should be("EkstepPortal");
 
         val summary1 = JSONUtils.deserialize[PortalUsageOutput](JSONUtils.serialize(event1.edata.eks));
         summary1.new_user_count should be(4);

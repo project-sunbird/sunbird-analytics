@@ -37,7 +37,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
                      val noOfLevelTransitions: Option[Int], val comments: Option[String], val fluency: Option[Int], val loc: Option[String],
                      val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Iterable[ActivitySummary]],
                      val completionStatus: Option[Boolean], val screenSummary: Option[Iterable[ScreenSummary]], val noOfInteractEvents: Int, val eventsSummary: Iterable[EventSummary],
-                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val tags: AnyRef, val telemetryVer: String) extends Serializable {};
+                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val tags: AnyRef, val telemetryVer: String, val pdata: PData) extends Serializable {};
 
 /**
  * @author Santhosh
@@ -329,14 +329,14 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
             }
             val interruptTime = CommonUtil.roundDouble((timeDiff - timeSpent) + (if (interruptSummary.size > 0) interruptSummary.map(f => f._2).sum else 0d), 2);
 
-            val appId = firstEvent.appid.getOrElse(AppConf.getConfig("default.app.id"))
+            val pdata = CommonUtil.getAppDetails(firstEvent)
             val channelId = x.channelId
             
             val did = firstEvent.did
-            (LearnerProfileIndex(x.userId, appId, channelId), new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp,
+            (LearnerProfileIndex(x.userId, pdata.id, channelId), new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp,
                 Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp,
                     endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, firstEvent.tags, telemetryVer));
+                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, firstEvent.tags, telemetryVer, pdata));
 
         }.filter(f => (f._2.timeSpent >= 1)).cache(); // Skipping the events, if timeSpent is -ve
 
@@ -375,9 +375,9 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                 "telemetryVersion" -> game.telemetryVer,
                 "contentType" -> game.contentType,
                 "mimeType" -> game.mimeType);
-            MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, userMap.userId, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", game.dtRange),
-                Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, game.loc, Option(booleanTuple._1), Option(booleanTuple._2), None, None, None, None, None,None, None, None, None, None,None, None, None, None, Option(userMap.appId), None, None, Option(userMap.channelId)),
+            MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, userMap.userId, Option(userMap.channelId), None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String])), None, "SESSION", game.dtRange),
+                Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, Option(game.pdata), game.loc, Option(booleanTuple._1), Option(booleanTuple._2)),
                 MEEdata(measures), Option(game.tags));
         }
     }
