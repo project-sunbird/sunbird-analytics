@@ -22,10 +22,10 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.conf.AppConf
 
 case class GenieSessionSummary(sid: String, groupUser: Boolean, anonymousUser: Boolean, timeSpent: Double, time_stamp: Long,
-                               content: Buffer[String], contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange,
+                               content: Buffer[String], contentCount: Int, syncts: Long, etags: Option[ETags], dateRange: DtRange,
                                learnerId: String, did: String, pdata: PData, channel: String) extends AlgoOutput
 case class Summary(sid: String, did: String, learnerId: String, timeSpent: Double, time_stamp: Long, content: Buffer[String],
-                   contentCount: Int, syncts: Long, tags: Option[AnyRef], dateRange: DtRange, pdata: PData, channel: String)
+                   contentCount: Int, syncts: Long, etags: Option[ETags], dateRange: DtRange, pdata: PData, channel: String)
 case class GenieSessions(channel: String, sid: String, events: Buffer[Event]) extends AlgoInput
 
 object GenieSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, GenieSessions, GenieSessionSummary, MeasuredEvent] with Serializable {
@@ -57,15 +57,15 @@ object GenieSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent] 
             val content = x.events.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.filter { x => x != null }.distinct
             
             
-            Summary(gsStart.sid, gsStart.did, gsStart.uid, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(gsStart.tags), dtRange, pdata, channel)
+            Summary(gsStart.sid, gsStart.did, gsStart.uid, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(CommonUtil.getETags(gsStart)), dtRange, pdata, channel)
         }.filter { x => (x.timeSpent >= 0) }.map { x =>
-            (LearnerProfileIndex(x.learnerId, x.pdata.id, x.channel), Summary(x.sid, x.did, x.learnerId, x.timeSpent, x.time_stamp, x.content, x.contentCount, x.syncts, x.tags, x.dateRange, x.pdata, x.channel))
+            (LearnerProfileIndex(x.learnerId, x.pdata.id, x.channel), Summary(x.sid, x.did, x.learnerId, x.timeSpent, x.time_stamp, x.content, x.contentCount, x.syncts, x.etags, x.dateRange, x.pdata, x.channel))
         }
 
         val groupInfoSummary = gsSummary.map(f => LearnerProfileIndex(f._1.learner_id, f._1.app_id, f._1.channel)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (LearnerProfileIndex(x._1.learner_id, x._1.app_id, x._1.channel), (x._2.group_user, x._2.anonymous_user)); }
         gsSummary.leftOuterJoin(groupInfoSummary).map { x =>
             val summary = x._2._1
-            GenieSessionSummary(summary.sid, x._2._2.getOrElse((false, false))._1, x._2._2.getOrElse((false, false))._2, summary.timeSpent, summary.time_stamp, summary.content, summary.contentCount, summary.syncts, summary.tags, summary.dateRange, summary.learnerId, summary.did, summary.pdata, summary.channel)
+            GenieSessionSummary(summary.sid, x._2._2.getOrElse((false, false))._1, x._2._2.getOrElse((false, false))._2, summary.timeSpent, summary.time_stamp, summary.content, summary.contentCount, summary.syncts, summary.etags, summary.dateRange, summary.learnerId, summary.did, summary.pdata, summary.channel)
         }
     }
 
@@ -80,7 +80,7 @@ object GenieSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent] 
             MeasuredEvent("ME_GENIE_SESSION_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser)),
-                MEEdata(measures), summary.tags);
+                MEEdata(measures), summary.etags);
         }
     }
 }

@@ -1,25 +1,30 @@
 package org.ekstep.analytics.model
 
-import org.apache.spark.rdd.RDD
-import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework._
-import org.ekstep.analytics.util.SessionBatchModel
-import org.ekstep.analytics.framework.util.CommonUtil
 import scala.collection.mutable.Buffer
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.Dimensions
-import org.ekstep.analytics.framework.MEEdata
-import org.ekstep.analytics.framework.util.JobLogger
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
-import org.ekstep.analytics.framework.conf.AppConf
+
+import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.AlgoInput
+import org.ekstep.analytics.framework.AlgoOutput
+import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.Dimensions
+import org.ekstep.analytics.framework.DtRange
+import org.ekstep.analytics.framework.ETags
+import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.Filter
+import org.ekstep.analytics.framework.IBatchModelTemplate
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.framework.exception.DataFilterException
+import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.util.SessionBatchModel
 
 case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long,
-                        tags: Option[AnyRef], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
+                        etags: Option[ETags], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
 case class LaunchSessions(channel: String, did: String, events: Buffer[Event]) extends AlgoInput
 case class GenieStageSummary(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]])
 case class StageDetails(timeSpent: Double, interactEvents: Buffer[Event], visitCount: Int, sid: String)
@@ -103,7 +108,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
             val content = x.events.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.filter { x => x != null }.distinct
             val stageSummary = computeGenieScreenSummary(x.events)
-            GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(geEnd.tags), dtRange, stageSummary, pdata, channel);
+            GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(CommonUtil.getETags(geEnd)), dtRange, stageSummary, pdata, channel);
         }.filter { x => (x.timeSpent >= 0) }
     }
 
@@ -119,7 +124,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata)),
-                MEEdata(measures), summary.tags);
+                MEEdata(measures), summary.etags);
         }
     }
 }

@@ -26,9 +26,10 @@ import org.ekstep.analytics.framework.OtherStage
 import org.ekstep.analytics.framework.Stage
 import org.ekstep.analytics.framework.CData
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.ETags
 
 case class GenieFunnelSession(channel: String, did: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event], onbFlag: Boolean) extends AlgoInput
-case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, tags: Option[AnyRef], pdata: PData, channel: String) extends AlgoOutput
+case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, etags: Option[ETags], pdata: PData, channel: String) extends AlgoOutput
 
 case class FunnelStageSummary(label: String, count: Option[Int] = Option(0), stageInvoked: Option[Int] = Option(0))
 
@@ -89,7 +90,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         if ("GenieOnboarding".equals(funnel)) {
             stageMap = _updateSkippedStageSummary(stageMap);
         }
-        GenieFunnel(funnel, event.cid, event.did, firstEvent.sid, event.dspec, firstEvent.gdata.ver, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(endEvent.tags), pdata, channel);
+        GenieFunnel(funnel, event.cid, event.did, firstEvent.sid, event.dspec, firstEvent.gdata.ver, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(CommonUtil.getETags(endEvent)), pdata, channel);
     }
 
     private def _updateSkippedStageSummary(stageMap: HashMap[String, FunnelStageSummary]): HashMap[String, FunnelStageSummary] = {
@@ -197,7 +198,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
             MeasuredEvent("ME_GENIE_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieFunnel").asInstanceOf[String])), None, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, None, None, None, Option(summary.sid), None, Option(summary.funnel), Option(summary.dspec), Option(summary.onboarding), Option(summary.genieVer)),
-                MEEdata(measures), summary.tags);
+                MEEdata(measures), summary.etags);
         }
     }
 

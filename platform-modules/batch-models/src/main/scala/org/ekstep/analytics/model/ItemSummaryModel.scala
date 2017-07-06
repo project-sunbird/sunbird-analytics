@@ -26,7 +26,7 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.ETags
 
-case class ItemSummaryOutput(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: ETags, itemResponse: ItemResponse, pdata: PData, channel: String) extends AlgoOutput
+case class ItemSummaryOutput(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: Option[ETags], itemResponse: ItemResponse, pdata: PData, channel: String) extends AlgoOutput
 
 object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ItemSummaryOutput, MeasuredEvent] with Serializable {
 
@@ -61,7 +61,7 @@ object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ItemSummary").asInstanceOf[String]));
             MeasuredEvent("ME_ITEM_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.channel), Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", DtRange(summary.itemResponse.time_stamp, summary.itemResponse.time_stamp)),
-                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.etags));
+                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), summary.etags);
         };
     }
 

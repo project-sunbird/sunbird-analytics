@@ -25,8 +25,9 @@ import org.ekstep.analytics.updater.LearnerProfile
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.ETags
 
-case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long, pdata: PData, channel: String) extends AlgoOutput
+case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: Option[ETags], dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long, pdata: PData, channel: String) extends AlgoOutput
 
 object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, StageSummary, MeasuredEvent] with Serializable {
 
@@ -45,7 +46,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
             if (null != screenSummaries && screenSummaries.size > 0) {
                 screenSummaries.map { x =>
                     val ss = JSONUtils.deserialize[ScreenSummary](JSONUtils.serialize(x));
-                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount, pdata, channel)
+                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.etags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount, pdata, channel)
                 }
             } else {
                 Array[StageSummary]();
@@ -64,7 +65,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ScreenSummary").asInstanceOf[String]));
             MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.channel), Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", summary.dt_range),
-                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
+                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), summary.etags);
         };
     }
 }

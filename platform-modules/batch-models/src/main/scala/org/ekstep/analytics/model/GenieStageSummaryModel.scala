@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.conf.AppConf
 
-case class GenieStageAlgoOut(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]], dt_range: DtRange, did: String, tags: Option[AnyRef], syncts: Long, pdata: PData, channel: String) extends AlgoOutput
+case class GenieStageAlgoOut(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]], dt_range: DtRange, did: String, etags: Option[ETags], syncts: Long, pdata: PData, channel: String) extends AlgoOutput
 
 object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEvent] with IBatchModelTemplate[DerivedEvent, DerivedEvent, GenieStageAlgoOut, MeasuredEvent] with Serializable {
   
@@ -25,7 +25,7 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
             val screenSummaries = event.edata.eks.screenSummary;
             
             val did = event.dimensions.did
-            val tags = event.tags
+            val tags = event.etags.get
             
             val pdata = CommonUtil.getAppDetails(event)
             val channel = CommonUtil.getChannelId(event)
@@ -53,7 +53,7 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieStageSummary").asInstanceOf[String]));
             MeasuredEvent("ME_GENIE_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, null, Option(summary.channel), None, None,
                 Context(pdata, None, "GENIE SESSION", summary.dt_range),
-                Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, None, None, Option(summary.sid), Option(summary.stageId)), MEEdata(measures), summary.tags);
+                Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, None, None, Option(summary.sid), Option(summary.stageId)), MEEdata(measures), summary.etags);
         };
     }
 }
