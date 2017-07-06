@@ -4,7 +4,9 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.creation.model.CreationEvent
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.creation.model.CreationPData
-import org.ekstep.analytics.creation.model.ETags
+import org.ekstep.analytics.framework.ETags
+
+//import org.ekstep.analytics.creation.model.ETags
 
 object CreationEventUtil {
   

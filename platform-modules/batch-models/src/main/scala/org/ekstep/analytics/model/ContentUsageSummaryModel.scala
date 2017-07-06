@@ -1,30 +1,24 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.IBatchModel
-import org.ekstep.analytics.framework._
-import org.apache.spark.rdd.RDD
-import org.apache.spark.SparkContext
 import scala.collection.mutable.Buffer
-import org.apache.spark.HashPartitioner
-import org.ekstep.analytics.framework.JobContext
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.GData
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.framework.Dimensions
-import org.ekstep.analytics.framework.MEEdata
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.Filter
-import org.ekstep.analytics.framework.DataFilter
-import org.ekstep.analytics.framework.util.JobLogger
-import com.datastax.spark.connector._
-import org.ekstep.analytics.util.Constants
-import org.joda.time.DateTime
-import org.apache.commons.lang3.StringUtils
 import scala.collection.mutable.ListBuffer
+
+import org.apache.commons.lang3.StringUtils
+import org.apache.spark.HashPartitioner
+import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.Context
+import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.Filter
+import org.ekstep.analytics.framework.GData
+import org.ekstep.analytics.framework.IBatchModel
+import org.ekstep.analytics.framework.MEEdata
+import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.DerivedEvent
-import org.ekstep.analytics.framework.conf.AppConf
+
+import com.datastax.spark.connector._
 
 case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, device_ids: Array[String], pdata: PData) extends AlgoOutput;
 case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
@@ -65,13 +59,11 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
     }
 
     private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
-
-        val tagList = event.tags.asInstanceOf[List[Map[String, List[String]]]]
-        val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
-        val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
-        tempList.filter { x => registeredTags.contains(x) }.toArray;
+        val appTag = event.etags.get.app
+        val genieTagFilter = if (appTag.isDefined) appTag.get else List()
+        genieTagFilter.filter { x => registeredTags.contains(x) }.toArray;
     }
-
+    
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentSummary] = {
 
         val configMapping = sc.broadcast(config);
