@@ -65,7 +65,7 @@ object UpdateGenieUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent
             val d_period = CommonUtil.getPeriod(x.m_last_gen_date, period);
             (GenieUsageSummaryIndex(d_period, x.d_tag, x.d_app_id, x.d_channel), GenieUsageSummaryFact_T(d_period, x.d_tag, x.d_app_id, x.d_channel, x.m_total_sessions, x.m_total_ts, x.m_avg_ts_session, x.m_last_gen_date, x.m_contents, x.m_device_ids));
         }.reduceByKey(reduceGUS);
-        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[GenieUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.GENIE_LAUNCH_SUMMARY_FACT).on(SomeColumns("d_period", "d_tag", "d_app_id", "d_channel_id"));
+        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[GenieUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.GENIE_LAUNCH_SUMMARY_FACT).on(SomeColumns("d_period", "d_tag", "d_app_id", "d_channel"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
