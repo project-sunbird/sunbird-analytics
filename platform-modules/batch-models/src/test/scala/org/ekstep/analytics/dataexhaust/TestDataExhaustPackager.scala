@@ -48,6 +48,7 @@ class TestDataExhaustPackager extends SparkSpec(null) {
         val request = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("request_id = ?", "1234").collect
         request.map { x =>
             x.status should be ("COMPLETED")
+            x.client_key should be ("partner1")
         }
     }
     
@@ -58,5 +59,24 @@ class TestDataExhaustPackager extends SparkSpec(null) {
     	sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
     	DataExhaustPackager.execute();
     }
+    
+    it should "execute jobs from local data and will throw FileNotFoundException Exception" in {
+    	
+        preProcess()
+        val requests = Array(
+            JobRequest("partner2", "request1234", None, "PENDING_PACKAGING", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None), Option("eks-consumption-raw"), Option("json"))),
+                None, None, Option(DateTime.now), Option(DateTime.now), None, None, DateTime.now(), None, None, None, Option(234L), None, None, None, None, None, None));
+
+        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+        
+        DataExhaustPackager.execute();
+        val request = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("request_id = ?", "request1234").collect
+        request.map { x =>
+            x.status should be ("FAILED")
+            x.file_size should be (None)
+            x.err_message should be(None)
+        }
+    }
+    
 
 }
