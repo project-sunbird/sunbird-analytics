@@ -18,8 +18,8 @@ import org.joda.time.DateTimeZone
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 
-
-case class DataExhaustExeResult(input_events: Long, output_events: Long, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, status: Option[String] = Option("PROCESSING"), execution_time: Option[Double] = None, request_id: Option[String] = None, client_key: Option[String] = None, dt_job_completed: Option[Long] = None);
+case class DataExhaustOutput(input_events: Long, output_events: Long, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None);
+case class DataExhaustExeResult(request_id: String, client_key: String, status: Option[String] = Option("PROCESSING"), iteration: Option[Int] = None, err_message: Option[String] = None, input_events: Option[Long]=None, output_events: Option[Long]=None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, execution_time: Option[Double] = None, dt_job_completed: Option[Long] = None);
 
 object DataExhaustJob extends optional.Application with IJob {
 
@@ -63,6 +63,9 @@ object DataExhaustJob extends optional.Application with IJob {
             val modelParams = config.modelParams.get
             implicit val exhaustConfig = config.exhaustConfig.get
             for (request <- requests) {
+            	val iteration = request.iteration.getOrElse(0) + 1;
+            	val requestId = request.request_id;
+            	val clientKey = request.client_key;
                 try {
                     val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
                     val eventList = requestData.filter.events.getOrElse(List())
@@ -78,8 +81,6 @@ object DataExhaustJob extends optional.Application with IJob {
                     	}
                     });
 
-                    println("ExeTime:", exeMetrics._1);
-                    
                     val inputEventsCount = exeMetrics._2.map { x => x.input_events }.sum;
                     val outputEventsCount = exeMetrics._2.map { x => x.output_events }.sum
                     val firstEventDateList = exeMetrics._2.filter { x => x.dt_first_event.isDefined };
@@ -88,21 +89,27 @@ object DataExhaustJob extends optional.Application with IJob {
                     val lastEventDate = if (lastEventDateList.size > 0 ) Option(lastEventDateList.map { x => x.dt_last_event.get }.max) else None;
                     val status =if ( outputEventsCount > 0) "PENDING_PACKAGING" else "COMPLETED";
                     val completedDate = if ( outputEventsCount > 0) None else Option(System.currentTimeMillis());
-                    val result = DataExhaustExeResult(inputEventsCount, outputEventsCount, firstEventDate, lastEventDate, Option(status), Option(exeMetrics._1), Option(request.request_id), Option(request.client_key), completedDate);
-                    sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("input_events", "output_events", "dt_first_event", "dt_last_event", "status", "execution_time", "request_id", "client_key", "dt_job_completed"));
+
+                    val result = DataExhaustExeResult(requestId, clientKey, Option(status), Option(iteration), None, Option(inputEventsCount), Option(outputEventsCount),
+                    		firstEventDate, lastEventDate, Option(exeMetrics._1), completedDate);
+                    
+                    sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "status", "iteration", "err_message", "input_events", "output_events", "dt_first_event", "dt_last_event", "execution_time", "dt_job_completed"));
                     
                 } catch {
                     case ex: Exception =>
                     	ex.printStackTrace()
-                        DataExhaustUtils.updateStage(request.request_id, request.client_key, "", "", "FAILED", ex.getMessage)
+                    	val result = DataExhaustExeResult(requestId, clientKey, Option("FAILED"), Option(iteration), Option(ex.getMessage));
+                    	sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "status", "iteration", "err_message"));
                 }
             }
-            DataExhaustPackager.execute()
+            if ("true".equals(AppConf.getConfig("data_exhaust.package.enable"))) {
+            	DataExhaustPackager.execute()	
+            }
             requests.length
         })
         JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1, "jobCount" -> time._2)));
     }
-    private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) : DataExhaustExeResult = {
+    private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]) : DataExhaustOutput = {
         val dataSetID = request.dataset_id.get
         val data = DataExhaustUtils.fetchData(eventId, request, requestID, clientKey)
         val filter = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(request.filter))
@@ -130,12 +137,12 @@ object DataExhaustJob extends optional.Application with IJob {
 	        	val outputRDD = exhaustRDD.map { x => DataExhaustUtils.stringToObject(x, eventConfig.eventType) };
 	        	val firstEventDate = outputRDD.sortBy { x => x._1 }.first()._1;
 	        	val lastEventDate = outputRDD.sortBy({ x => x._1 }, false).first._1;
-	        	DataExhaustExeResult(data.count, exhaustRDD.count, Option(firstEventDate), Option(lastEventDate));
+	        	DataExhaustOutput(data.count, exhaustRDD.count, Option(firstEventDate), Option(lastEventDate));
 	        } else {
-	        	DataExhaustExeResult(data.count, exhaustRDD.count);
+	        	DataExhaustOutput(data.count, exhaustRDD.count);
 	        }
         } else {
-        	DataExhaustExeResult(data.count, filteredData.count);
+        	DataExhaustOutput(data.count, filteredData.count);
         }
     }
 }

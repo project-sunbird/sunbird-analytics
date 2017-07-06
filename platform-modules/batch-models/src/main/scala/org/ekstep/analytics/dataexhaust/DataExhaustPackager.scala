@@ -29,6 +29,7 @@ import org.joda.time.DateTimeZone
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
+import com.datastax.spark.connector.SomeColumns
 
 /**
  * Case class to hold the manifest json 
@@ -36,6 +37,7 @@ import com.google.gson.GsonBuilder
 case class FileInfo(path: String, event_count: Long, first_event_date: String, last_event_date: String)
 case class ManifestFile(id: String, ver: String, ets: Long, request_id: String, dataset_id: String, total_event_count: Long, first_event_date: Long, last_event_date: Long, file_info: Array[FileInfo], request: String)
 case class Response(request_id: String, client_key: String, job_id: String, metadata: ManifestFile, location: String, stats: Map[String, Any], jobRequest: JobRequest)
+case class DataExhaustPackage(request_id: String, client_key: String, job_id: String, execution_time: Long, status: String = "FAILED", latency: Long = 0, dt_job_completed: Option[DateTime] = None, location: Option[String] = None, file_size: Option[Long] = None,  dt_file_created: Option[DateTime]=None, dt_expiration: Option[DateTime]=None)
 case class EventData(eventName: String, data: RDD[String]);
 /**
  * @Packager
@@ -55,24 +57,9 @@ object DataExhaustPackager extends optional.Application {
 
 		val jobRequests = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("status = ?", "PENDING_PACKAGING").collect;
 
-		val metadata = jobRequests.map { request =>
+		jobRequests.map { request =>
 			packageExhaustData(request)
 		}
-		val jobResuestStatus = metadata.map { x =>
-			val createdDate = new DateTime(x.stats.get("createdDate").get.asInstanceOf[Date].getTime);
-			val fileInfo = x.metadata.file_info.sortBy { x => x.first_event_date }
-			val first_event_date = fileInfo.head.first_event_date
-			val last_event_date = fileInfo.last.last_event_date
-			val dtProcessing = DateTime.now(DateTimeZone.UTC);
-			val executionTime = x.jobRequest.execution_time;
-			JobRequest(x.client_key, x.request_id, Option(x.job_id), "COMPLETED", x.jobRequest.request_data, Option(x.location),
-				Option(createdDate),
-				Option(new DateTime(CommonUtil.dateFormat.parseDateTime(first_event_date).getMillis)),
-				Option(new DateTime(CommonUtil.dateFormat.parseDateTime(last_event_date).getMillis)),
-				Option(createdDate.plusDays(30)), Option(x.jobRequest.iteration.getOrElse(0) + 1), x.jobRequest.dt_job_submitted, Option(dtProcessing), Option(DateTime.now(DateTimeZone.UTC)),
-				None, Option(x.metadata.total_event_count), Option(x.stats.get("size").get.asInstanceOf[Long]), Option(0), executionTime, None, Option("UPDATE_RESPONSE_TO_DB"), Option("COMPLETED"));
-		}
-		sc.makeRDD(jobResuestStatus).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST);
 	}
 	
 	/**
@@ -84,10 +71,13 @@ object DataExhaustPackager extends optional.Application {
 		filePath.endsWith("_SUCCESS") || filePath.endsWith("$folder$") || filePath.endsWith(".crc");
 	}
 	
-	private def downloadSourceData(saveType: String, source: String, destination: String, bucket: Option[String]) {
+	private def downloadSourceData(saveType: String,  requestId: String) {
+		val source = requestDataSourcePath(requestId);
+		val destination = requestDataLocalPath(requestId)
 		saveType match {
 			case "s3" =>
-				S3Util.downloadDirectory(bucket.get, source, destination)
+				val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
+				S3Util.downloadDirectory(bucket, source, destination)
 			case "local" =>
 				FileUtils.copyDirectory(new File(source), new File(destination));
 		}
@@ -112,55 +102,85 @@ object DataExhaustPackager extends optional.Application {
         sc.union(data.toSeq)
 	}
 	
+	private def uploadZipFile(saveType: String, requestId: String, clientKey: String)(implicit sc: SparkContext):  (String, Map[String, Any]) = {
+		val zipfilePath = zipFileAbsolutePath(requestId)
+		val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
+		val deleteSource = AppConf.getConfig("data_exhaust.delete_source");
+		val fileStats = saveType match {
+			case "s3" =>
+				val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
+				val publicS3URL = AppConf.getConfig("data_exhaust.save_config.public_s3_url")
+				val s3FilePrefix = prefix + requestId +".zip"
+				DataExhaustUtils.uploadZip(bucket, s3FilePrefix, zipfilePath, requestId, clientKey)
+				val stats = S3Util.getObjectDetails(bucket, s3FilePrefix);
+				if ("true".equals(deleteSource)) DataExhaustUtils.deleteS3File(bucket, prefix, Array(requestId))
+				(publicS3URL + "/" + bucket + "/" + s3FilePrefix, stats)
+			case "local" =>
+				val file = new File(zipfilePath)
+				val dateTime = new Date(file.lastModified())
+				val stats = Map("createdDate" -> dateTime, "size" -> file.length())
+				if ("true".equals(deleteSource)) CommonUtil.deleteDirectory(prefix + requestId);
+				(zipfilePath, stats)
+		}
+		fileStats;
+	}
+	
+	
+	private def requestDataLocalPath(requestId: String): String = {
+		val tmpFolderPath = AppConf.getConfig("data_exhaust.save_config.local_path")
+		return tmpFolderPath + requestId + "/"
+	};
+	private def requestDataSourcePath(requestId: String): String = {
+		val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
+		prefix + requestId + "/"
+	}
+	private def zipFileAbsolutePath(requestId: String): String = {
+		val tmpFolderPath = AppConf.getConfig("data_exhaust.save_config.local_path")
+		tmpFolderPath + requestId + ".zip";
+	}
+	
 	/**
      * package all the data according to the request and return the response
      * @param jobRequest request for data-exhaust 
      * @return Response for the request
      */
-	def packageExhaustData(jobRequest: JobRequest)(implicit sc: SparkContext): Response = {
+	def packageExhaustData(jobRequest: JobRequest)(implicit sc: SparkContext) {
 
-		val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
-		val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
-		val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
-		val tmpFolderPath = AppConf.getConfig("data_exhaust.save_config.local_path")
-		val public_S3URL = AppConf.getConfig("data_exhaust.save_config.public_s3_url")
-		val deleteSource = AppConf.getConfig("data_exhaust.delete_source");
+		val requestId = jobRequest.request_id;
+		val clientKey = jobRequest.client_key;
+		val jobId = UUID.randomUUID().toString();
+		val exhaustExeTime = jobRequest.execution_time.getOrElse(0).asInstanceOf[Number].longValue();
+		try {
+		  	val time = CommonUtil.time({
+		  		val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
+				downloadSourceData(saveType, requestId);
+				deleteInvalidFiles(requestDataLocalPath(requestId));
+				val data = getEventsData(requestDataLocalPath(requestId));
 		
-		val requestDataLocalPath = tmpFolderPath + jobRequest.request_id + "/";
-		val requestDataSourcePath = prefix + jobRequest.request_id + "/";
-		val zipFileAbsolutePath = tmpFolderPath + jobRequest.request_id + ".zip";
-		
-		downloadSourceData(saveType, requestDataSourcePath, requestDataLocalPath, Option(bucket))
-		
-		deleteInvalidFiles(requestDataLocalPath);
-		val data = getEventsData(requestDataLocalPath);
+				val metadata = generateManifestFile(data, jobRequest, requestDataLocalPath(requestId))
+				generateDataFiles(data, jobRequest, requestDataLocalPath(requestId))
+				CommonUtil.zipDir(zipFileAbsolutePath(requestId), requestDataLocalPath(requestId))
+				CommonUtil.deleteDirectory(requestDataLocalPath(requestId));
+				uploadZipFile(saveType, requestId, clientKey);
+		  	});
 
-		val metadata = generateManifestFile(data, jobRequest, requestDataLocalPath)
-		generateDataFiles(data, jobRequest, requestDataLocalPath)
-		val localPath = tmpFolderPath + jobRequest.request_id
-		CommonUtil.zipDir(zipFileAbsolutePath, requestDataLocalPath)
-		CommonUtil.deleteDirectory(requestDataLocalPath);
+		  	val packageExeTime = time._1;
+		  	val fileStats = time._2;
 
-		val job_id = UUID.randomUUID().toString()
-		
-		// TODO: create method uploadZipFile - Start
-		val fileStats = saveType match {
-			case "s3" =>
-				val s3FilePrefix = prefix + jobRequest.request_id +".zip"
-				DataExhaustUtils.uploadZip(bucket, s3FilePrefix, zipFileAbsolutePath, jobRequest.request_id, jobRequest.client_key)
-				val stats = S3Util.getObjectDetails(bucket, s3FilePrefix);
-				if ("true".equals(deleteSource)) DataExhaustUtils.deleteS3File(bucket, prefix, Array(jobRequest.request_id))
-				(public_S3URL + "/" + bucket + "/" + s3FilePrefix, stats)
-			case "local" =>
-				val file = new File(localPath)
-				val dateTime = new Date(file.lastModified())
-				val stats = Map("createdDate" -> dateTime, "size" -> file.length())
-				if ("true".equals(deleteSource)) CommonUtil.deleteDirectory(prefix + jobRequest.request_id);
-				(localPath + ".zip", stats)
+			val fieCreatedDate = new DateTime(fileStats._2.get("createdDate").get.asInstanceOf[Date].getTime);
+			val fileExpiryDate = fieCreatedDate.plusDays(30);
+			val filePath = fileStats._1;
+			val fileSize = fileStats._2.getOrElse("size",0).asInstanceOf[Number].longValue();
+
+			val completedDate = DateTime.now(DateTimeZone.UTC);
+			val result = DataExhaustPackage(requestId, clientKey, jobId, exhaustExeTime + packageExeTime, "COMPLETED", 0L, Option(completedDate), Option(filePath), Option(fileSize), Option(fieCreatedDate), Option(fileExpiryDate));
+			sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "execution_time", "status", "latency", "dt_job_completed", "location", "file_size", "dt_file_created", "dt_expiration"));
+		} catch {
+		  case t: Throwable => 
+		 	  t.printStackTrace();
+		 	  val result = DataExhaustPackage(requestId, clientKey, jobId, exhaustExeTime, "FAILED");
+		 	  sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "execution_time", "status", "latency"));
 		}
-		// TODO: create method uploadZipFile - End
-
-		Response(jobRequest.request_id, jobRequest.client_key, job_id, metadata, fileStats._1, fileStats._2, jobRequest);
 	}
 	
 	/**

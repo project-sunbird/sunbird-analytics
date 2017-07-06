@@ -28,7 +28,6 @@ class TestDataExhaustJob extends SparkSpec(null) {
     }
     
     override def afterAll() {
-    	CommonUtil.deleteDirectory(AppConf.getConfig("data_exhaust.save_config.local_path"));
     	CommonUtil.deleteDirectory(AppConf.getConfig("data_exhaust.save_config.prefix"));
     	super.afterAll();
     }
