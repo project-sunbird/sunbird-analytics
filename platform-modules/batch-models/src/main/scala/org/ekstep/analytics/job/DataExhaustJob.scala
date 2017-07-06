@@ -120,7 +120,7 @@ object DataExhaustJob extends optional.Application with IJob {
 	        val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
 	        val outputFormat = request.output_format.getOrElse("json")
 
-	        val exhaustRDD = if ("DEFAULT".equals(eventId) && request.filter.events.isDefined && request.filter.events.get.size > 0) {
+	        val exhaustRDD = if (eventId.endsWith("-raw") && request.filter.events.isDefined && request.filter.events.get.size > 0) {
 	            val rdds = for (event <- request.filter.events.get) yield {
 	                val filterKey = Filter("eventId", "EQ", Option(event))
 	                val data = DataFilter.filter(filteredData.map(f => f._2), filterKey).map { x => JSONUtils.serialize(x) }

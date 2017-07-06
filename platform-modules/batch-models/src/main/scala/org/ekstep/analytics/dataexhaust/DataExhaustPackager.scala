@@ -204,18 +204,17 @@ object DataExhaustPackager extends optional.Application {
      * @return manifest case class 
      */
 	def generateManifestFile(data: Array[EventData], jobRequest: JobRequest, requestDataLocalPath: String)(implicit sc: SparkContext): ManifestFile = {
-		val fileExtenstion = JSONUtils.deserialize[RequestConfig](jobRequest.request_data).output_format.getOrElse("json").toLowerCase()
+		val requestData = JSONUtils.deserialize[RequestConfig](jobRequest.request_data)
+		val fileExtenstion = requestData.output_format.getOrElse("json").toLowerCase()
 	    val fileInfo = data.map { f =>
-			val firstEvent = JSONUtils.deserialize[Map[String, AnyRef]](f.data.first())
-			val lastEvent = JSONUtils.deserialize[Map[String, AnyRef]](f.data.take(f.data.count().toInt).head)
-			FileInfo("data/" + f.eventName + "." + fileExtenstion, f.data.count, CommonUtil.dateFormat.print(new DateTime(firstEvent.get("ets").get.asInstanceOf[Number].longValue())), CommonUtil.dateFormat.print(new DateTime(lastEvent.get("ets").get.asInstanceOf[Number].longValue())))
+	        val synctsRDD = f.data.map { x => DataExhaustUtils.stringToObject(x, requestData.dataset_id.get.toString())._1 }
+			FileInfo("data/" + f.eventName + "." + fileExtenstion, f.data.count, CommonUtil.dateFormat.print(new DateTime(synctsRDD.min())), CommonUtil.dateFormat.print(new DateTime(synctsRDD.max())))
 		}
 		val events = sc.union(data.map { event => event.data }.toSeq).sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
 		val totalEventCount = jobRequest.output_events.get;
-		val requestData = JSONUtils.deserialize[Map[String, AnyRef]](jobRequest.request_data)
 		val firstEventDate = jobRequest.dt_first_event.get.getMillis;
 		val lastEventDate = jobRequest.dt_last_event.get.getMillis;
-		val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", new Date().getTime, jobRequest.request_id, requestData.get("dataset_id").get.toString(), totalEventCount, firstEventDate, lastEventDate, fileInfo, JSONUtils.serialize(requestData))
+		val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", new Date().getTime, jobRequest.request_id, requestData.dataset_id.get.toString(), totalEventCount, firstEventDate, lastEventDate, fileInfo, JSONUtils.serialize(requestData))
 		val gson = new GsonBuilder().setPrettyPrinting().create();
 		val jsonString = gson.toJson(manifest)
 		val outputManifestPath = requestDataLocalPath + "manifest.json"
