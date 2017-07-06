@@ -29,10 +29,10 @@ import org.ekstep.analytics.creation.model.CreationPData
 /**
  * Case Classes for the data product
  */
-case class PortalSessionInput(channelId: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
+case class PortalSessionInput(channel: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
 case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
 case class EnvSummary(env: String, time_spent: Double, count: Long)
-case class PortalSessionOutput(sid: String, uid: String, pdata: CreationPData, channel_id: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
+case class PortalSessionOutput(sid: String, uid: String, pdata: CreationPData, channel: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
                                start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, page_views_count: Long,
                                first_visit: Boolean, ce_visits: Long, interact_events_count: Long, interact_events_per_min: Double,
                                env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
@@ -77,7 +77,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
             val startTimestamp = firstEvent.ets;
             val endTimestamp = lastEvent.ets;
             val pdata = CreationEventUtil.getAppDetails(firstEvent)
-            val channelId = x.channelId
+            val channelId = x.channel
             val uid = if (lastEvent.uid.isEmpty()) "" else lastEvent.uid
             val isAnonymous = if (uid.isEmpty()) true else false
             val lifeCycleEvent = events.filter { x => "BE_OBJECT_LIFECYCLE".equals(x.eid) && "User".equals(x.edata.eks.`type`) && "Create".equals(x.edata.eks.state) }
@@ -160,7 +160,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
 
     override def postProcess(data: RDD[PortalSessionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { session =>
-            val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.pdata.id), Option(session.channel_id));
+            val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.pdata.id), Option(session.channel));
             val measures = Map(
                 "start_time" -> session.start_time,
                 "end_time" -> session.end_time,
@@ -174,7 +174,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 "env_summary" -> session.env_summary,
                 "events_summary" -> session.events_summary,
                 "page_summary" -> session.page_summary);
-            MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, "1.0", mid, session.uid, Option(session.channel_id), None, None,
+            MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, "1.0", mid, session.uid, Option(session.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String])), None, "SESSION", session.dtRange),
                 Dimensions(None, None, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid)),
                 MEEdata(measures), None);

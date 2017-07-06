@@ -52,9 +52,9 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
         ContentUsageMetricsSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, date_range, lastEvent.syncts, gdata, device_ids, firstEvent.pdata);
     }
 
-    private def getContentUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channelId: String, contentId: String, tagId: String): ContentUsageMetricsSummary = {
+    private def getContentUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, contentId: String, tagId: String): ContentUsageMetricsSummary = {
 
-        val ck = ContentKey(period, pdata.id, channelId, contentId, tagId);
+        val ck = ContentKey(period, pdata.id, channel, contentId, tagId);
         val gdata = event.dimensions.gdata;
         val total_ts = event.edata.eks.timeSpent;
         val total_sessions = 1;
@@ -86,14 +86,14 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
             val pdata = CommonUtil.getAppDetails(event)
-            val channel_id = CommonUtil.getChannelId(event)
+            val channel = CommonUtil.getChannelId(event)
 
-            list += getContentUsageSummary(event, period, pdata, channel_id, "all", "all");
-            list += getContentUsageSummary(event, period, pdata, channel_id, event.dimensions.gdata.id, "all");
+            list += getContentUsageSummary(event, period, pdata, channel, "all", "all");
+            list += getContentUsageSummary(event, period, pdata, channel, event.dimensions.gdata.id, "all");
             val tags = _getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += getContentUsageSummary(event, period, pdata, channel_id, event.dimensions.gdata.id, tag);
-                list += getContentUsageSummary(event, period, pdata, channel_id, "all", tag);
+                list += getContentUsageSummary(event, period, pdata, channel, event.dimensions.gdata.id, tag);
+                list += getContentUsageSummary(event, period, pdata, channel, "all", tag);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };

@@ -27,8 +27,8 @@ import org.ekstep.analytics.framework.Stage
 import org.ekstep.analytics.framework.CData
 import org.ekstep.analytics.framework.conf.AppConf
 
-case class GenieFunnelSession(channelId: String, did: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event], onbFlag: Boolean) extends AlgoInput
-case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, tags: Option[AnyRef], pdata: PData, channelId: String) extends AlgoOutput
+case class GenieFunnelSession(channel: String, did: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event], onbFlag: Boolean) extends AlgoInput
+case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, tags: Option[AnyRef], pdata: PData, channel: String) extends AlgoOutput
 
 case class FunnelStageSummary(label: String, count: Option[Int] = Option(0), stageInvoked: Option[Int] = Option(0))
 
@@ -79,7 +79,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         val endEvent = events.last
 
         val pdata = CommonUtil.getAppDetails(firstEvent)
-        val channelId = event.channelId
+        val channel = event.channel
 
         val totalTimeSpent = CommonUtil.roundDouble(stageList.map { x => x._2 }.sum, 2)
 
@@ -89,7 +89,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         if ("GenieOnboarding".equals(funnel)) {
             stageMap = _updateSkippedStageSummary(stageMap);
         }
-        GenieFunnel(funnel, event.cid, event.did, firstEvent.sid, event.dspec, firstEvent.gdata.ver, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(endEvent.tags), pdata, channelId);
+        GenieFunnel(funnel, event.cid, event.did, firstEvent.sid, event.dspec, firstEvent.gdata.ver, stageMap, totalTimeSpent, event.onbFlag, syncts, dateRange, Option(endEvent.tags), pdata, channel);
     }
 
     private def _updateSkippedStageSummary(stageMap: HashMap[String, FunnelStageSummary]): HashMap[String, FunnelStageSummary] = {
@@ -173,12 +173,12 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
             filteredData.flatMap { x => x.cdata.filter { x => null != x.id }.map { y => (y.id, y, x) } }.groupBy { x => x._1 }.map { x => (x._1, dspec, x._2.map(y => y._3), x._2.map(y => y._2).head, onbflag) };
         }.map { x =>
             val did = x._1._2
-            val channelId = x._1._1
+            val channel = x._1._1
             x._2.map { x =>
                 val events = x._3.sortBy { x => CommonUtil.getEventTS(x) }
                 val firstEvent = events.head
                 val funnel = _getFunnelId(x._4, firstEvent.edata.eks.stageid, firstEvent.edata.eks.subtype)
-                GenieFunnelSession(channelId, did, x._1, x._2, funnel, events, x._5)
+                GenieFunnelSession(channel, did, x._1, x._2, funnel, events, x._5)
             };
         }.flatMap { x => x }.filter { x => !"".equals(x.funnel) };
 
@@ -192,9 +192,9 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
 
     override def postProcess(data: RDD[GenieFunnel], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.filter { x => x.timeSpent > 0 }.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL", summary.funnel + summary.cid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.pdata.id), Option(summary.channelId));
+            val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL", summary.funnel + summary.cid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.pdata.id), Option(summary.channel));
             val measures = summary.summary.toMap ++ Map("timeSpent" -> summary.timeSpent, "correlationID" -> summary.cid)
-            MeasuredEvent("ME_GENIE_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channelId), None, None,
+            MeasuredEvent("ME_GENIE_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieFunnel").asInstanceOf[String])), None, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, None, None, None, Option(summary.sid), None, Option(summary.funnel), Option(summary.dspec), Option(summary.onboarding), Option(summary.genieVer)),
                 MEEdata(measures), summary.tags);

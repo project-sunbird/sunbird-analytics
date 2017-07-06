@@ -36,7 +36,7 @@ case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var 
                         var userId: String = "", var dtRange: DtRange = DtRange(0l, 0l), var gameId: String = "",
                         var gameVersion: String = "", var did: String = "", var timeStamp: Long = 0l) extends AlgoOutput
 
-case class AserScreenerInput(channelId: String, userId: String, gameSessions: Buffer[Event]) extends AlgoInput
+case class AserScreenerInput(channel: String, userId: String, gameSessions: Buffer[Event]) extends AlgoInput
 
 /**
  * Aser Screen Summary Model

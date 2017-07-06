@@ -112,7 +112,7 @@ case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[D
 case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult);
 
 // Common models for all data products
-case class LearnerProfileIndex(learner_id: String, app_id: String, channel_id: String)
+case class LearnerProfileIndex(learner_id: String, app_id: String, channel: String)
 case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 

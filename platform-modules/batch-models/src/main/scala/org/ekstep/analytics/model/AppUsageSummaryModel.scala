@@ -27,7 +27,7 @@ import org.ekstep.analytics.framework.conf.AppConf
  * Case Classes for the data product
  */
 case class PortalUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class PortalUsageOutput(period: Int, author_id: String, pdata: PData, channel_id: String, dtRange: DtRange, anon_total_sessions: Long, anon_total_ts: Double,
+case class PortalUsageOutput(period: Int, author_id: String, pdata: PData, channel: String, dtRange: DtRange, anon_total_sessions: Long, anon_total_ts: Double,
                              total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                              total_pageviews_count: Long, unique_users: List[String], unique_users_count: Long, avg_pageviews: Double,
                              avg_ts_session: Double, anon_avg_ts_session: Double, new_user_count: Long,
@@ -66,7 +66,7 @@ object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsag
                 val lastEvent = f._2.sortBy { x => x.context.date_range.to }.last
                 val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
                 val pdata = CommonUtil.getAppDetails(firstEvent)
-                val channelId = CommonUtil.getChannelId(firstEvent)
+                val channel = CommonUtil.getChannelId(firstEvent)
 
                 val anonymousSessions = f._2.filter { x => true == x.dimensions.anonymous_user.get }
                 val anonymousTotalSessions = if (anonymousSessions.length > 0) anonymousSessions.length.toLong else 0L
@@ -101,14 +101,14 @@ object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsag
                 }.filter(f => f._1 == (true)).length.toLong
                 val percentNewUsersCount = if (newUserCount == 0 || uniqueUsersCount == 0) 0d else BigDecimal((newUserCount / (uniqueUsersCount * 1d)) * 100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
-                PortalUsageOutput(event.period, f._1, pdata, channelId, date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount, lastEvent.syncts)
+                PortalUsageOutput(event.period, f._1, pdata, channel, date_range, anonymousTotalSessions, anonymousTotalTS, totalSessions, totalTS, ceTotalSessions, cePercentSessions, totalPageviewsCount, uniqueUsers, uniqueUsersCount, avgPageviews, avgSessionTS, anonymousAvgSessionTS, newUserCount, percentNewUsersCount, lastEvent.syncts)
             }
         }.flatMap { x => x }
     }
 
     override def postProcess(data: RDD[PortalUsageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { usageSumm =>
-            val mid = CommonUtil.getMessageId("ME_APP_USAGE_SUMMARY", usageSumm.author_id, "DAY", usageSumm.dtRange);
+            val mid = CommonUtil.getMessageId("ME_APP_USAGE_SUMMARY", usageSumm.author_id, "DAY", usageSumm.dtRange, "NA", Option(usageSumm.pdata.id), Option(usageSumm.channel));
             val measures = Map(
                 "anon_total_sessions" -> usageSumm.anon_total_sessions,
                 "anon_total_ts" -> usageSumm.anon_total_ts,
@@ -124,7 +124,7 @@ object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsag
                 "anon_avg_ts_session" -> usageSumm.anon_avg_ts_session,
                 "new_user_count" -> usageSumm.new_user_count,
                 "percent_new_users_count" -> usageSumm.percent_new_users_count);
-            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", Option(usageSumm.channel_id), None, None,
+            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", Option(usageSumm.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AppUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dtRange),
                 Dimensions(None, None, None, None, None, None, Option(usageSumm.pdata), None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, Option(usageSumm.author_id)),
                 MEEdata(measures), None);

@@ -18,7 +18,7 @@ import org.ekstep.analytics.framework.ContentKey
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.framework.conf.AppConf
 
-case class ContentPopularitySummary(ck: ContentKey, m_comments: List[Map[String, AnyRef]], m_ratings: List[Map[String, AnyRef]], m_avg_rating: Double, m_downloads: Int, m_side_loads: Int, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None) extends AlgoOutput;
+case class ContentPopularitySummary(ck: ContentKey, m_comments: List[Map[String, AnyRef]], m_ratings: List[Map[String, AnyRef]], m_avg_rating: Double, m_downloads: Int, m_side_loads: Int, dt_range: DtRange, syncts: Long, pdata: PData, gdata: Option[GData] = None) extends AlgoOutput;
 case class InputEventsContentPopularity(ck: ContentKey, events: Buffer[ContentPopularitySummary]) extends Input with AlgoInput
 
 object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEventsContentPopularity, ContentPopularitySummary, MeasuredEvent] with Serializable {
@@ -42,7 +42,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
             val total_rating = ratings.map(f => f.getOrElse("rating", 0.0).asInstanceOf[Double]).sum;
             CommonUtil.roundDouble(total_rating / ratings.length, 2);
         } else 0.0;
-        ContentPopularitySummary(ck, comments, ratings, avg_rating, downloads, side_loads, dt_range, lastEvent.syncts, gdata);
+        ContentPopularitySummary(ck, comments, ratings, avg_rating, downloads, side_loads, dt_range, lastEvent.syncts, firstEvent.pdata, gdata);
     }
 
     private def getContentPopularitySummary(event: Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
@@ -51,29 +51,29 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
             val cId = getFeedbackContentId(event, contentId);
 
             val pdata = CommonUtil.getAppDetails(event)
-            val channel_id = CommonUtil.getChannelId(event)
+            val channel = CommonUtil.getChannelId(event)
 
-            val ck = ContentKey(period, pdata.id, channel_id, cId, tagId);
+            val ck = ContentKey(period, pdata.id, channel, cId, tagId);
             val gdata = event.gdata;
             val comments = List(Map("comment" -> event.edata.eks.comments, "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
             val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef], "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
             val avg_rating = event.edata.eks.rating;
-            Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), Option(gdata)));
+            Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), pdata, Option(gdata)));
         } else if ("GE_TRANSFER".equals(event.eid)) {
             val contents = event.edata.eks.contents;
 
             val pdata = CommonUtil.getAppDetails(event)
-            val channel_id = CommonUtil.getChannelId(event)
+            val channel = CommonUtil.getChannelId(event)
 
             contents.map { content =>
                 val tsContentId = if ("all".equals(contentId)) contentId else content.get("identifier").get.asInstanceOf[String];
 
-                val ck = ContentKey(period, pdata.id, channel_id, tsContentId, tagId);
+                val ck = ContentKey(period, pdata.id, channel, tsContentId, tagId);
                 val gdata = if ("all".equals(contentId)) None else Option(new GData(tsContentId, content.get("pkgVersion").getOrElse("").toString));
                 val transferCount = content.get("transferCount").get.asInstanceOf[Double];
                 val downloads = if (transferCount == 0.0) 1 else 0;
                 val side_loads = if (transferCount >= 1.0) 1 else 0;
-                ContentPopularitySummary(ck, List(), List(), 0.0, downloads, side_loads, dt_range, CommonUtil.getEventSyncTS(event), gdata);
+                ContentPopularitySummary(ck, List(), List(), 0.0, downloads, side_loads, dt_range, CommonUtil.getEventSyncTS(event), pdata, gdata);
             }
         } else {
             Array();
@@ -136,7 +136,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 
             MeasuredEvent("ME_CONTENT_POPULARITY_SUMMARY", System.currentTimeMillis(), cpMetrics.syncts, "1.0", mid, "", Option(cpMetrics.ck.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentPopularitySummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cpMetrics.dt_range),
-                Dimensions(None, None, cpMetrics.gdata, None, None, None, Option(PData(cpMetrics.ck.app_id, "1.")), None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id)),
+                Dimensions(None, None, cpMetrics.gdata, None, None, None, Option(cpMetrics.pdata), None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id)),
                 MEEdata(measures));
         }
     }

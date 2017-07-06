@@ -19,8 +19,8 @@ import scala.collection.mutable.ListBuffer
 import org.ekstep.analytics.framework.conf.AppConf
 
 case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long,
-                        tags: Option[AnyRef], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channelId: String) extends AlgoOutput
-case class LaunchSessions(channelId: String, did: String, events: Buffer[Event]) extends AlgoInput
+                        tags: Option[AnyRef], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
+case class LaunchSessions(channel: String, did: String, events: Buffer[Event]) extends AlgoInput
 case class GenieStageSummary(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]])
 case class StageDetails(timeSpent: Double, interactEvents: Buffer[Event], visitCount: Int, sid: String)
 
@@ -94,7 +94,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             val geEnd = x.events.last
 
             val pdata = CommonUtil.getAppDetails(geStart)
-            val channelId = x.channelId
+            val channel = x.channel
 
             val syncts = CommonUtil.getEventSyncTS(geEnd)
             val startTimestamp = CommonUtil.getEventTS(geStart)
@@ -103,20 +103,20 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
             val content = x.events.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.filter { x => x != null }.distinct
             val stageSummary = computeGenieScreenSummary(x.events)
-            GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(geEnd.tags), dtRange, stageSummary, pdata, channelId);
+            GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(geEnd.tags), dtRange, stageSummary, pdata, channel);
         }.filter { x => (x.timeSpent >= 0) }
     }
 
     override def postProcess(data: RDD[GenieSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_LAUNCH_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.pdata.id), Option(summary.channelId));
+            val mid = CommonUtil.getMessageId("ME_GENIE_LAUNCH_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.pdata.id), Option(summary.channel));
             val measures = Map(
                 "timeSpent" -> summary.timeSpent,
                 "time_stamp" -> summary.time_stamp,
                 "content" -> summary.content,
                 "contentCount" -> summary.contentCount,
                 "screenSummary" -> summary.stageSummary);
-            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channelId), None, None,
+            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata)),
                 MEEdata(measures), summary.tags);

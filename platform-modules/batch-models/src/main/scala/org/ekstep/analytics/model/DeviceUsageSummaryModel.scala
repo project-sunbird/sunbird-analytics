@@ -16,7 +16,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.conf.AppConf
 
-case class DeviceUsageSummary(device_id: String, app_id: String, channel_id: String, start_time: Option[Long], end_time: Option[Long], num_days: Option[Long], total_launches: Option[Long], total_timespent: Option[Double],
+case class DeviceUsageSummary(device_id: String, app_id: String, channel: String, start_time: Option[Long], end_time: Option[Long], num_days: Option[Long], total_launches: Option[Long], total_timespent: Option[Double],
                               avg_num_launches: Option[Double], avg_time: Option[Double], num_contents: Option[Long], play_start_time: Option[Long], last_played_on: Option[Long],
                               total_play_time: Option[Double], num_sessions: Option[Long], mean_play_time: Option[Double],
                               mean_play_time_interval: Option[Double], last_played_content: Option[String], updated_date: Option[DateTime] = Option(DateTime.now()))
@@ -34,8 +34,8 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
         val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")));
         val newGroupedEvents = filteredEvents.map{event => 
             val pdata = CommonUtil.getAppDetails(event)
-            val channelId = CommonUtil.getChannelId(event)
-            (DeviceSummaryIndex(event.dimensions.did.get, pdata.id, channelId), Buffer(event))
+            val channel = CommonUtil.getChannelId(event)
+            (DeviceSummaryIndex(event.dimensions.did.get, pdata.id, channel), Buffer(event))
         }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
@@ -52,7 +52,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
             val endEvent = eventsSortedByTS.last
             val pdata = CommonUtil.getAppDetails(endEvent)
             val eventsSortedByDateRange = events.currentData.sortBy { x => x.context.date_range.from };
-            val prevUsageSummary = events.previousData.getOrElse(DeviceUsageSummary(events.index.device_id, events.index.app_id, events.index.channel_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+            val prevUsageSummary = events.previousData.getOrElse(DeviceUsageSummary(events.index.device_id, events.index.app_id, events.index.channel, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
             val tsInString = configMapping.value.getOrElse("startTime", "2015-03-01").asInstanceOf[String]
             val ts = CommonUtil.getTimestamp(tsInString, CommonUtil.dateFormat, "yyyy-MM-dd");
             val eventStartTime = if (eventsSortedByDateRange.head.context.date_range.from < ts) ts else eventsSortedByDateRange.head.context.date_range.from
@@ -67,7 +67,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
             val totalTimeSpent = if (prevUsageSummary.total_timespent.isEmpty) current_ts else current_ts + prevUsageSummary.total_timespent.get
             val avg_time = if (num_days == 0) totalTimeSpent else CommonUtil.roundDouble(totalTimeSpent / num_days, 2)
 
-            DeviceUsageSummary_T(DeviceUsageSummary(events.index.device_id, events.index.app_id, events.index.channel_id, Option(start_time), Option(end_time), Option(num_days), Option(num_launches), Option(totalTimeSpent), Option(avg_num_launches), Option(avg_time), prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.last_played_content), endEvent.syncts, pdata)
+            DeviceUsageSummary_T(DeviceUsageSummary(events.index.device_id, events.index.app_id, events.index.channel, Option(start_time), Option(end_time), Option(num_days), Option(num_launches), Option(totalTimeSpent), Option(avg_num_launches), Option(avg_time), prevUsageSummary.num_contents, prevUsageSummary.play_start_time, prevUsageSummary.last_played_on, prevUsageSummary.total_play_time, prevUsageSummary.num_sessions, prevUsageSummary.mean_play_time, prevUsageSummary.mean_play_time_interval, prevUsageSummary.last_played_content), endEvent.syncts, pdata)
         }.cache();
     }
 
@@ -75,7 +75,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
         data.map { x => x.data }.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE);
         data.map { x =>
             val usageSummary  = x.data
-            val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, "CUMULATIVE", DtRange(0l, 0l), "NA", Option(usageSummary.app_id), Option(usageSummary.channel_id));
+            val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, "CUMULATIVE", DtRange(0l, 0l), "NA", Option(usageSummary.app_id), Option(usageSummary.channel));
             val measures = Map(
                 "start_time" -> usageSummary.start_time,
                 "end_time" -> usageSummary.end_time,
@@ -90,7 +90,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
                 "mean_play_time" -> usageSummary.mean_play_time,
                 "mean_play_time_interval" -> usageSummary.mean_play_time_interval,
                 "last_played_content" -> usageSummary.last_played_content);
-            MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", Option(usageSummary.channel_id), None, None,
+            MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", Option(usageSummary.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "CUMULATIVE").asInstanceOf[String], DtRange(usageSummary.start_time.get, usageSummary.end_time.get)),
                 Dimensions(None, Option(usageSummary.device_id), None, None, None, None, Option(x.pdata)),
                 MEEdata(measures));

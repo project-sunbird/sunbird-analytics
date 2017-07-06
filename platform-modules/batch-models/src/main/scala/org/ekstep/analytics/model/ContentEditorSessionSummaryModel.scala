@@ -41,8 +41,8 @@ case class CEStageSummary(added_count: Int, deleted_count: Int, modified_count: 
 /**
  * Case class to hold the session summary input and output
  */
-case class CESessionSummaryInput(channelId: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
-case class CESessionSummaryOutput(uid: String, sid: String, pdata: CreationPData, channel_id: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
+case class CESessionSummaryInput(channel: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
+case class CESessionSummaryOutput(uid: String, sid: String, pdata: CreationPData, channel: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
 
 /**
  * Case class to hold the screener summary
@@ -121,7 +121,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val startEvent = events.head
             val endEvent = events.last
             val pdata = CreationEventUtil.getAppDetails(startEvent)
-            val channelId = x.channelId
+            val channelId = x.channel
             val interactEvents = events.filter { x => x.eid.equals("CE_INTERACT") }
             val pluginEvents = events.filter { x => x.eid.equals("CE_PLUGIN_LIFECYCLE") }
             val apiEvents = events.filter { x => x.eid.equals("CE_API_CALL") }
@@ -160,7 +160,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
     override def postProcess(data: RDD[CESessionSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { sessionMap =>
             val session = sessionMap.ss;
-            val mid = CommonUtil.getMessageId("ME_CE_SESSION_SUMMARY", sessionMap.contentId, "SESSION", sessionMap.dateRange, sessionMap.sid, Option(sessionMap.pdata.id), Option(sessionMap.channel_id));
+            val mid = CommonUtil.getMessageId("ME_CE_SESSION_SUMMARY", sessionMap.contentId, "SESSION", sessionMap.dateRange, sessionMap.sid, Option(sessionMap.pdata.id), Option(sessionMap.channel));
             val measures = Map(
                 "time_spent" -> session.time_spent,
                 "start_time" -> session.start_time,
@@ -176,7 +176,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
                 "api_calls_count" -> session.api_calls_count,
                 "sidebar_events_count" -> session.sidebar_events_count,
                 "menu_events_count" -> session.menu_events_count);
-            MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.syncDate, "1.0", mid, sessionMap.uid, Option(sessionMap.channel_id), Option(sessionMap.contentId), None,
+            MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.syncDate, "1.0", mid, sessionMap.uid, Option(sessionMap.channel), Option(sessionMap.contentId), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentEditorSessionSummary").asInstanceOf[String])), None, "SESSION", sessionMap.dateRange),
                 Dimensions(None, None, None, None, None, None, Option(PData(sessionMap.pdata.id, sessionMap.pdata.ver)), None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, Option(sessionMap.client), None),
                 MEEdata(measures));

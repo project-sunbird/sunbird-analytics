@@ -52,9 +52,9 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
         GenieUsageMetricsSummary(gk, firstEvent.pdata, total_ts, total_sessions, avg_ts_session, date_range, lastEvent.syncts, contents, device_ids);
     }
     
-    private def getGenieUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channelId: String, tagId: String): GenieUsageMetricsSummary = {
+    private def getGenieUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, tagId: String): GenieUsageMetricsSummary = {
 
-        val gk = GenieKey(period, pdata.id, channelId, tagId);
+        val gk = GenieKey(period, pdata.id, channel, tagId);
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         val total_ts = eksMap.get("timeSpent").get.asInstanceOf[Double];
         val total_sessions = 1;
@@ -77,12 +77,12 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
             // For all
             
             val pdata = CommonUtil.getAppDetails(event)
-            val channel_id = CommonUtil.getChannelId(event)
+            val channel = CommonUtil.getChannelId(event)
             
-            list += getGenieUsageSummary(event, period, pdata, channel_id, "all");
+            list += getGenieUsageSummary(event, period, pdata, channel, "all");
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += getGenieUsageSummary(event, period, pdata, channel_id, tag);
+                list += getGenieUsageSummary(event, period, pdata, channel, tag);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };

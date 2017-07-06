@@ -57,9 +57,9 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEven
         ItemUsageMetricsSummary(ik, firstEvent.pdata, total_ts, total_count, avg_ts, correct_res_count, correct_res, inc_res_count, m_incorrect_res, date_range, lastEvent.syncts);
     }
     
-    private def _getItemUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channelId: String, tagId: String, content_id: String, item_id: String): ItemUsageMetricsSummary = {
+    private def _getItemUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, tagId: String, content_id: String, item_id: String): ItemUsageMetricsSummary = {
 
-        val ik = ItemKey(period, pdata.id, channelId, tagId, content_id, item_id);
+        val ik = ItemKey(period, pdata.id, channel, tagId, content_id, item_id);
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         val total_ts = eksMap.get("timeSpent").get.asInstanceOf[Double];
         val total_count = 1;
@@ -90,12 +90,12 @@ object ItemUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEven
             // For all
             
             val pdata = CommonUtil.getAppDetails(event)
-            val channel_id = CommonUtil.getChannelId(event)
+            val channel = CommonUtil.getChannelId(event)
             
-            list += _getItemUsageSummary(event, period, pdata, channel_id, "all", content_id, item_id);
+            list += _getItemUsageSummary(event, period, pdata, channel, "all", content_id, item_id);
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += _getItemUsageSummary(event, period, pdata, channel_id, tag, content_id, item_id);
+                list += _getItemUsageSummary(event, period, pdata, channel, tag, content_id, item_id);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };
