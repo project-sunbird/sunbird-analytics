@@ -23,8 +23,8 @@ import org.ekstep.analytics.util.CreationEventUtil
 /**
  * Case Classes for the data product
  */
-case class AppObjectCache(`type`: String, id: String, app_id: String, channel_id: String, subtype: String, parentid: Option[String], parenttype: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
-case class UserProfile(user_id: String, app_id: String, channel_id: String, name: String, email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class AppObjectCache(`type`: String, id: String, app_id: String, channel: String, subtype: String, parentid: Option[String], parenttype: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class UserProfile(user_id: String, app_id: String, channel: String, name: String, email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
 
 /**
  * @dataproduct
@@ -52,8 +52,8 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
             .filter { x => StringUtils.isNotBlank(x.edata.eks.id) && StringUtils.isNotBlank(x.edata.eks.`type`) }
             .map { event =>
                 val pdata = CreationEventUtil.getAppDetails(event)
-                val channelId = CreationEventUtil.getChannelId(event)
-                AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, pdata.id, channelId, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
+                val channel = CreationEventUtil.getChannelId(event)
+                AppObjectCache(event.edata.eks.`type`, event.edata.eks.id, pdata.id, channel, event.edata.eks.subtype, event.edata.eks.parentid, event.edata.eks.parenttype, event.edata.eks.code, event.edata.eks.name, event.edata.eks.state, event.edata.eks.prevstate, Option(new DateTime(event.ets)));
             }
         objectEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE);
 
@@ -62,8 +62,8 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
             val partners = if (event.edata.eks.partners.isDefined) event.edata.eks.partners.get else List();
             val profile = if (event.edata.eks.profile.isDefined) event.edata.eks.profile.get else List();
             val pdata = CreationEventUtil.getAppDetails(event)
-            val channelId = CreationEventUtil.getChannelId(event)
-            UserProfile(event.uid, pdata.id, channelId, event.edata.eks.name, event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
+            val channel = CreationEventUtil.getChannelId(event)
+            UserProfile(event.uid, pdata.id, channel, event.edata.eks.name, event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
         }
         profileEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.USER_PROFILE_TABLE);
         objectEvents;

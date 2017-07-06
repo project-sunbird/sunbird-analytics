@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 /**
  * @author Santhosh
  */
-case class LearnerProfile(learner_id: String, app_id: String, channel_id: String, did: String, gender: Option[String], language: Option[String], loc: Option[String], standard: Int, age: Int, year_of_birth: Int, group_user: Boolean, anonymous_user: Boolean, created_date: Option[DateTime], updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class LearnerProfile(learner_id: String, app_id: String, channel: String, did: String, gender: Option[String], language: Option[String], loc: Option[String], standard: Int, age: Int, year_of_birth: Int, group_user: Boolean, anonymous_user: Boolean, created_date: Option[DateTime], updated_date: Option[DateTime]) extends Output with AlgoOutput;
 
 object UpdateLearnerProfileDB extends IBatchModelTemplate[ProfileEvent, ProfileEvent, LearnerProfile, UpdaterOutput] with Serializable {
 
@@ -31,25 +31,25 @@ object UpdateLearnerProfileDB extends IBatchModelTemplate[ProfileEvent, ProfileE
     override def algorithm(data: RDD[ProfileEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerProfile] = {
 
         val userEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_CREATE_USER"))).map { event =>
-            val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
-            LearnerProfile(event.edata.eks.uid, appId, channelId, event.did, None, None, Option(event.edata.eks.loc), -1, -1, -1, false, true, Option(new DateTime(CommonUtil.getTimestamp(event.ts))), Option(new DateTime(CommonUtil.getTimestamp(event.ts))));
+            val appId = CommonUtil.getAppDetails(event).id
+            val channel = CommonUtil.getChannelId(event)
+            LearnerProfile(event.edata.eks.uid, appId, channel, event.did, None, None, Option(event.edata.eks.loc), -1, -1, -1, false, true, Option(new DateTime(CommonUtil.getTimestamp(event.ts))), Option(new DateTime(CommonUtil.getTimestamp(event.ts))));
         }
-        userEvents.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
+        userEvents.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
 
         val newProfileEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_CREATE_PROFILE"))).map { event =>
-            val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
-            LearnerProfile(event.edata.eks.uid, appId, channelId, event.did, Option(event.edata.eks.gender), Option(event.edata.eks.language), Option(event.edata.eks.loc), event.edata.eks.standard, event.edata.eks.age, getYearOfBirth(event), event.edata.eks.is_group_user, false, None, Option(new DateTime(CommonUtil.getTimestamp(event.ts))));
+            val appId = CommonUtil.getAppDetails(event).id
+            val channel = CommonUtil.getChannelId(event)
+            LearnerProfile(event.edata.eks.uid, appId, channel, event.did, Option(event.edata.eks.gender), Option(event.edata.eks.language), Option(event.edata.eks.loc), event.edata.eks.standard, event.edata.eks.age, getYearOfBirth(event), event.edata.eks.is_group_user, false, None, Option(new DateTime(CommonUtil.getTimestamp(event.ts))));
         }
-        newProfileEvents.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "updated_date"));
+        newProfileEvents.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "updated_date"));
 
         val updProfileEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_UPDATE_PROFILE"))).map { event =>
-            val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
-            LearnerProfile(event.edata.eks.uid, appId, channelId, event.did, Option(event.edata.eks.gender), Option(event.edata.eks.language), Option(event.edata.eks.loc), event.edata.eks.standard, event.edata.eks.age, getYearOfBirth(event), event.edata.eks.is_group_user, false, None, Option(new DateTime(CommonUtil.getTimestamp(event.ts))));
+            val appId = CommonUtil.getAppDetails(event).id
+            val channel = CommonUtil.getChannelId(event)
+            LearnerProfile(event.edata.eks.uid, appId, channel, event.did, Option(event.edata.eks.gender), Option(event.edata.eks.language), Option(event.edata.eks.loc), event.edata.eks.standard, event.edata.eks.age, getYearOfBirth(event), event.edata.eks.is_group_user, false, None, Option(new DateTime(CommonUtil.getTimestamp(event.ts))));
         }
-        updProfileEvents.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "updated_date"));
+        updProfileEvents.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "updated_date"));
 
         newProfileEvents.union(updProfileEvents);
     }

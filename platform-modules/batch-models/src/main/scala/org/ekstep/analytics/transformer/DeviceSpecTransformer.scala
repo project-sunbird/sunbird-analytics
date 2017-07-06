@@ -35,6 +35,6 @@ object DeviceSpecTransformer extends DeviceRecommendationTransformer[DeviceSpec,
         val psc_t = f4_t.join(f5_t).mapValues{f => List(f._1,f._2).mkString(",")}
         
         input.join(f1_t).join(f2_t).join(f3_t).join(psc_t)
-        .mapValues(f => DeviceSpec(f._1._1._1._1.device_id, f._1._1._1._1.app_id, f._1._1._1._1.channel_id, f._1._1._1._1.device_name, f._1._1._1._1.device_local_name, f._1._1._1._1.os, f._1._1._1._1.make, f._1._1._1._1.memory, f._1._1._1._2, f._1._1._2, f._1._2, f._2, f._1._1._1._1.cpu, f._1._1._1._1.num_sims, f._1._1._1._1.capabilities));
+        .mapValues(f => DeviceSpec(f._1._1._1._1.device_id, f._1._1._1._1.app_id, f._1._1._1._1.channel, f._1._1._1._1.device_name, f._1._1._1._1.device_local_name, f._1._1._1._1.os, f._1._1._1._1.make, f._1._1._1._1.memory, f._1._1._1._2, f._1._1._2, f._1._2, f._2, f._1._1._1._1.cpu, f._1._1._1._1.num_sims, f._1._1._1._1.capabilities));
     }
 }

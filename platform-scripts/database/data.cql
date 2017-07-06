@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS learner_db.conceptsimilaritymatrix (
 CREATE TABLE IF NOT EXISTS learner_db.learnerprofile (
 	learner_id text,
 	app_id text,
-	channel_id text,
+	channel text,
 	did text,
 	gender text,
 	language text,
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS learner_db.learnerprofile (
 	anonymous_user boolean,
 	created_date timestamp,
 	updated_date timestamp,
-	PRIMARY KEY (learner_id, app_id, channel_id)
+	PRIMARY KEY (learner_id, app_id, channel)
 );
 
 CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_usage_summary_fact (
     d_tag text,
     d_content_id text,
     d_app_id text,
-    d_channel_id text,
+    d_channel text,
     m_publish_date timestamp,
     m_last_sync_date timestamp,
     m_last_gen_date timestamp,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_usage_summary_fact (
     m_total_interactions bigint,
     m_avg_interactions_min double,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_tag, d_content_id, d_app_id, d_channel_id)
+    PRIMARY KEY (d_period, d_tag, d_content_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.content_popularity_summary_fact (
@@ -138,14 +138,14 @@ CREATE TABLE IF NOT EXISTS content_db.content_popularity_summary_fact (
 	d_tag text,
 	d_content_id text,
 	d_app_id text,
-	d_channel_id text,
+	d_channel text,
 	m_downloads bigint,
 	m_side_loads bigint,
 	m_comments list<frozen <tuple<text, timestamp>>>,
 	m_ratings list<frozen <tuple<double, timestamp>>>,
 	m_avg_rating double,
 	updated_date timestamp,
-	PRIMARY KEY (d_period, d_tag, d_content_id, d_app_id, d_channel_id)
+	PRIMARY KEY (d_period, d_tag, d_content_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
 	d_content_id text,
 	d_item_id text,
 	d_app_id text,
-	d_channel_id text,
+	d_channel text,
 	m_total_ts double,
 	m_total_count int,
 	m_correct_res_count int,
@@ -165,14 +165,14 @@ CREATE TABLE IF NOT EXISTS content_db.item_usage_summary_fact (
 	m_top5_mmc list<frozen <tuple<text, int>>>,
 	m_avg_ts double,
 	updated_date timestamp,
-	PRIMARY KEY (d_period, d_tag, d_content_id, d_item_id, d_app_id, d_channel_id)
+	PRIMARY KEY (d_period, d_tag, d_content_id, d_item_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
 	d_period int,
 	d_tag text,
 	d_app_id text,
-	d_channel_id text,
+	d_channel text,
 	m_total_sessions bigint,
 	m_total_ts double,
 	m_total_devices bigint,
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS content_db.genie_launch_summary_fact (
 	m_avg_ts_session double,
 	m_contents list<text>,
 	updated_date timestamp,
-	PRIMARY KEY (d_period, d_tag, d_app_id, d_channel_id)
+	PRIMARY KEY (d_period, d_tag, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.content_sideloading_summary (
@@ -286,13 +286,13 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
 	d_period int,
 	d_app_id text,
-	d_channel_id text,
+	d_channel text,
 	type text,
 	state text,
 	subtype text,
 	count int,
 	updated_at timestamp,
-	PRIMARY KEY (d_period, type, state, subtype, d_app_id, d_channel_id)
+	PRIMARY KEY (d_period, type, state, subtype, d_app_id, d_channel)
 );
 
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
@@ -310,7 +310,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_recos(
 CREATE TABLE IF NOT EXISTS device_db.device_specification (
 	device_id text,
 	app_id text,
-	channel_id text,
+	channel text,
 	device_name text,
 	device_local_name text,
 	os text,
@@ -324,7 +324,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_specification (
 	num_sims double,
 	capabilities list<text>,
 	updated_date timestamp,
-	PRIMARY KEY (device_id, app_id, channel_id)
+	PRIMARY KEY (device_id, app_id, channel)
 );
 
 CREATE TABLE IF NOT EXISTS device_db.device_usage_summary (
@@ -439,7 +439,7 @@ CREATE TABLE IF NOT EXISTS creation_db.app_object_cache (
 	type text,
 	id text,
 	app_id text,
-	channel_id text,
+	channel text,
 	subtype text,
 	parentid text,
 	parenttype text,
@@ -448,20 +448,20 @@ CREATE TABLE IF NOT EXISTS creation_db.app_object_cache (
 	state text,
 	prevstate text,
 	updated_date timestamp,
-	PRIMARY KEY (type, id, app_id, channel_id)
+	PRIMARY KEY (type, id, app_id, channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_db.user_profile (
 	user_id text,
 	app_id text,
-	channel_id text,
+	channel text,
 	name text,
 	email text,
 	access text,
 	partners text,
 	profile text,
 	updated_date timestamp,
-	PRIMARY KEY (user_id, app_id, channel_id)
+	PRIMARY KEY (user_id, app_id, channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.content_creation_metrics_fact(
@@ -487,20 +487,20 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.ce_usage_summary_fact (
     d_period int,
     d_content_id text,
     d_app_id text,
-    d_channel_id text,
+    d_channel text,
     unique_users_count bigint,
     total_sessions bigint,
     total_ts double,
     avg_ts_session double,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_content_id, d_app_id, d_channel_id)
+    PRIMARY KEY (d_period, d_content_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     d_period int,
     d_author_id text,
     d_app_id text,
-    d_channel_id text,
+    d_channel text,
     anon_total_sessions bigint,
     anon_total_ts double,
     total_sessions bigint,
@@ -516,14 +516,14 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.app_usage_summary_fact (
     new_user_count bigint,
     percent_new_users_count double,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_author_id, d_app_id, d_channel_id)
+    PRIMARY KEY (d_period, d_author_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
     d_period int,
     d_author_id text,
     d_app_id text,
-    d_channel_id text,
+    d_channel text,
     total_sessions bigint,
     total_ts double,
     total_ce_ts double,
@@ -533,14 +533,12 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
     avg_ts_session double,
     percent_ce_ts double,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_author_id, d_app_id, d_channel_id)
+    PRIMARY KEY (d_period, d_author_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	d_period int,
 	d_textbook_id text,
-	d_app_id text,
-	d_channel_id text,
 	status text,
 	author_id text,
 	content_count bigint,
@@ -552,13 +550,13 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	board text,
 	medium text,
 	updated_date timestamp,
-	PRIMARY KEY (d_period, d_textbook_id, d_app_id, d_channel_id)
+	PRIMARY KEY (d_period, d_textbook_id)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
     d_period text,
     d_app_id text,
-    d_channel_id text,
+    d_channel text,
     unique_users_count bigint,
     total_sessions bigint,
     total_ts double,
@@ -567,7 +565,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
     unit_summary map<text,bigint>,
     lesson_summary map<text,bigint>,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_app_id, d_channel_id)
+    PRIMARY KEY (d_period, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.plugin_snapshot_metrics (

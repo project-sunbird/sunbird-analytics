@@ -8,8 +8,9 @@ import com.datastax.spark.connector._
 import scala.reflect.runtime.universe
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.CommonUtil
 
-case class DeviceSpec(device_id: String, app_id: String, channel_id: String, device_name: String, device_local_name: String, os: String, make: String,
+case class DeviceSpec(device_id: String, app_id: String, channel: String, device_name: String, device_local_name: String, os: String, make: String,
                       memory: Double, internal_disk: Double, external_disk: Double, screen_size: Double,
                       primary_secondary_camera: String, cpu: String, num_sims: Double, capabilities: List[String], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 
@@ -28,8 +29,8 @@ object UpdateDeviceSpecificationDB extends IBatchModelTemplate[ProfileEvent, Pro
         data.map { event =>
             val deviceSpec = event.edata.eks.dspec.asInstanceOf[Map[String, AnyRef]]
             val deviceId = event.did
-            val appId = event.appid.getOrElse(AppConf.getConfig("default.app.id"));
-            val channelId = event.channelid.getOrElse(AppConf.getConfig("default.channel.id"));
+            val pdata = CommonUtil.getAppDetails(event)
+            val channel = CommonUtil.getChannelId(event)
             val deviceName = deviceSpec.getOrElse("dname", "").asInstanceOf[String]
             val deviceLocalName = deviceSpec.getOrElse("dlocname", "").asInstanceOf[String]
             val os = deviceSpec.getOrElse("os", "").asInstanceOf[String]
@@ -43,7 +44,7 @@ object UpdateDeviceSpecificationDB extends IBatchModelTemplate[ProfileEvent, Pro
             val numSims = deviceSpec.getOrElse("sims", "").asInstanceOf[Double]
             val capabilities = deviceSpec.getOrElse("cap", "").asInstanceOf[List[String]]
 
-            DeviceSpec(deviceId, appId, channelId, deviceName, deviceLocalName, os, make, memory, internalDisk, externalDisk, screenSize, primarySecondaryCamera, cpu, numSims, capabilities)
+            DeviceSpec(deviceId, pdata.id, channel, deviceName, deviceLocalName, os, make, memory, internalDisk, externalDisk, screenSize, primarySecondaryCamera, cpu, numSims, capabilities)
         }.cache();
     }
 

@@ -22,7 +22,7 @@ import org.ekstep.analytics.util.ContentUsageSummaryFact
 import org.ekstep.analytics.util.ContentSummaryIndex
 import org.ekstep.analytics.framework.conf.AppConf
 
-case class ContentUsageSummaryFact_T(d_period: Int, d_content_id: String, d_tag: String, d_app_id: String, d_channel_id: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime,
+case class ContentUsageSummaryFact_T(d_period: Int, d_content_id: String, d_tag: String, d_app_id: String, d_channel: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime,
                                      m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double,
                                      m_device_ids: List[String]) extends AlgoOutput
 
@@ -43,7 +43,7 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
             val contentId = x.dimensions.content_id.get;
             val tag = x.dimensions.tag.get;
             val appId = CommonUtil.getAppDetails(x).id
-            val channelId = CommonUtil.getChannelId(x)
+            val channel = CommonUtil.getChannelId(x)
 
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val publish_date = new DateTime(x.context.date_range.from)
@@ -54,7 +54,7 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
             val avg_interactions_min = eksMap.get("avg_interactions_min").get.asInstanceOf[Double]
             val device_ids = eksMap.get("device_ids").getOrElse(List("")).asInstanceOf[List[String]];
 
-            ContentUsageSummaryFact_T(period, contentId, tag, appId, channelId, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), total_ts, total_sessions, avg_ts_session,
+            ContentUsageSummaryFact_T(period, contentId, tag, appId, channel, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), total_ts, total_sessions, avg_ts_session,
                 total_interactions, avg_interactions_min, device_ids);
         }.cache();
 
@@ -65,7 +65,7 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
     override def postProcess(data: RDD[ContentUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSummaryIndex] = {
         // Update the database
         data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT)
-        data.map { x => ContentSummaryIndex(x.d_period, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel_id) };
+        data.map { x => ContentSummaryIndex(x.d_period, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel) };
     }
 
     /**
@@ -75,14 +75,14 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
 
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.m_last_gen_date.getMillis, period);
-            (ContentSummaryIndex(d_period, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel_id), ContentUsageSummaryFact_T(d_period, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel_id, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_device_ids));
+            (ContentSummaryIndex(d_period, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel), ContentUsageSummaryFact_T(d_period, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_device_ids));
         }.reduceByKey(reduceCUS);
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[ContentUsageSummaryFact](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_content_id", "d_tag", "d_app_id", "d_channel_id"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
             val newSumm = x._2._1
-            val prvSumm = x._2._2.getOrElse(ContentUsageSummaryFact(index.d_period, index.d_content_id, index.d_tag, index.d_app_id, index.d_channel_id, newSumm.m_publish_date, newSumm.m_last_sync_date, newSumm.m_last_gen_date, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, BloomFilterUtil.getDefaultBytes(period)));
+            val prvSumm = x._2._2.getOrElse(ContentUsageSummaryFact(index.d_period, index.d_content_id, index.d_tag, index.d_app_id, index.d_channel, newSumm.m_publish_date, newSumm.m_last_sync_date, newSumm.m_last_gen_date, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, BloomFilterUtil.getDefaultBytes(period)));
             reduce(prvSumm, newSumm, period);
         }
         rollupSummaries;
@@ -107,7 +107,7 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
         val avg_sess_device = CommonUtil.roundDouble(total_sessions.toDouble / total_devices, 2);
         val device_ids = BloomFilterUtil.serialize(bf);
 
-        ContentUsageSummaryFact(fact1.d_period, fact1.d_content_id, fact1.d_tag, fact1.d_app_id, fact1.d_channel_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_devices, avg_sess_device, device_ids);
+        ContentUsageSummaryFact(fact1.d_period, fact1.d_content_id, fact1.d_tag, fact1.d_app_id, fact1.d_channel, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_devices, avg_sess_device, device_ids);
     }
 
     /**
@@ -123,7 +123,7 @@ object UpdateContentUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEve
         val sync_date = if (fact2.m_last_sync_date.isAfter(fact1.m_last_sync_date)) fact2.m_last_sync_date else fact1.m_last_sync_date;
         val device_ids = (fact2.m_device_ids ++ fact1.m_device_ids).distinct
 
-        ContentUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, fact1.d_tag, fact1.d_app_id, fact1.d_channel_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, device_ids);
+        ContentUsageSummaryFact_T(fact1.d_period, fact1.d_content_id, fact1.d_tag, fact1.d_app_id, fact1.d_channel, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, device_ids);
     }
 
 }
