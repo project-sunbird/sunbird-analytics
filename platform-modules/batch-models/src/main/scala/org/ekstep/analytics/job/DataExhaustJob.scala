@@ -135,7 +135,7 @@ object DataExhaustJob extends optional.Application with IJob {
 	        }
 	        DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3/LOCAL", "COMPLETED");
 	        if (exhaustRDD.count() > 0) {
-	        	val outputRDD = exhaustRDD.map { x => DataExhaustUtils.stringToObject(x, eventConfig.eventType) };
+	        	val outputRDD = exhaustRDD.map { x => DataExhaustUtils.stringToObject(x, dataSetID) };
 	        	val firstEventDate = outputRDD.sortBy { x => x._1 }.first()._1;
 	        	val lastEventDate = outputRDD.sortBy({ x => x._1 }, false).first._1;
 	        	DataExhaustOutput(data.count, exhaustRDD.count, Option(firstEventDate), Option(lastEventDate));

@@ -167,7 +167,6 @@ object DataExhaustUtils {
     def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
         val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
-        val eventType = eventConf.eventType
         val filterMapping = eventConf.filterMapping
 
         val filterKeys = filterMapping.keySet
@@ -178,7 +177,7 @@ object DataExhaustUtils {
 
         data.map { line =>
             try {
-                val event = stringToObject(line, eventType);
+                val event = stringToObject(line, dataSetId);
                 val matched = DataFilter.matches(event._2, filters);
                 if (matched) {
                     event;
@@ -192,20 +191,17 @@ object DataExhaustUtils {
         }.filter { x => x != null }
     }
 
-    def stringToObject(event: String, eventType: String) = {
-        eventType match {
-            case "ConsumptionRaw" =>
-                val e = JSONUtils.deserialize[Event](event);
-                (CommonUtil.getEventSyncTS(e), e);
-            case "Summary" =>
-                val e = JSONUtils.deserialize[DerivedEvent](event);
-                (e.syncts, e);
-            case "CreationRaw" =>
-                val e = JSONUtils.deserialize[CreationEvent](event);
-                (CreationEventUtil.getEventSyncTS(e), e);
-            case "Metrics" =>
-                val e = JSONUtils.deserialize[DerivedEvent](event);
-                (e.syncts, e);
+    def stringToObject(event: String, dataSetId: String) = {
+    	dataSetId match {
+            case "eks-consumption-raw" => 
+            	val e = JSONUtils.deserialize[Event](event);
+            	(CommonUtil.getEventSyncTS(e), e);
+            case "eks-creation-raw"    => 
+            	val e = JSONUtils.deserialize[CreationEvent](event);
+            	(CreationEventUtil.getEventSyncTS(e), e);
+            case "eks-consumption-summary" | "eks-consumption-metrics" | "eks-creation-summary" | "eks-creation-metrics" => 
+            	val e = JSONUtils.deserialize[DerivedEvent](event);
+            	(e.syncts, e);
         }
     }
 }
