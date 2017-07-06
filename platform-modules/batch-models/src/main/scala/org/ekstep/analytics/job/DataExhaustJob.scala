@@ -66,6 +66,7 @@ object DataExhaustJob extends optional.Application with IJob {
             	val iteration = request.iteration.getOrElse(0) + 1;
             	val requestId = request.request_id;
             	val clientKey = request.client_key;
+            	println("Processing data-exhaust for request:", requestId);
                 try {
                     val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
                     val eventList = requestData.filter.events.getOrElse(List())
@@ -103,7 +104,7 @@ object DataExhaustJob extends optional.Application with IJob {
                 }
             }
             if ("true".equals(AppConf.getConfig("data_exhaust.package.enable"))) {
-            	DataExhaustPackager.execute()	
+            	DataExhaustPackager.execute();
             }
             requests.length
         })

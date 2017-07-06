@@ -148,6 +148,8 @@ object DataExhaustPackager extends optional.Application {
 
 		val requestId = jobRequest.request_id;
 		val clientKey = jobRequest.client_key;
+		println("Processing package for request:", requestId);
+
 		val jobId = UUID.randomUUID().toString();
 		val exhaustExeTime = jobRequest.execution_time.getOrElse(0).asInstanceOf[Number].longValue();
 		try {

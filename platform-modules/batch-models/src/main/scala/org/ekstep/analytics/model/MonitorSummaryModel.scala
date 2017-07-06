@@ -1,8 +1,4 @@
 package org.ekstep.analytics.model
-/**
- * @author Yuva
- */
-import java.util.Date
 
 import org.apache.spark.HashPartitioner
 import org.apache.spark.SparkContext
@@ -17,13 +13,14 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
-import org.joda.time.DateTime
-import com.flyberrycapital.slack.SlackClient
-import net.liftweb.json._
-import net.liftweb.json.Serialization.write
-import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.util.RestUtil
+import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+
+import com.flyberrycapital.slack.SlackClient
+
+import net.liftweb.json.Serialization.write
 
 /**
  * @dataproduct
@@ -77,8 +74,13 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
         val message = messageFormatToSlack(data.first())
         if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
+
             val slackMessage = SlackMessage(AppConf.getConfig("monitor.notification.channel"), AppConf.getConfig("monitor.notification.name"), message);
-            RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
+            try {
+                RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
+            } catch {
+                case e: Exception => println("exception caught:", e.getMessage);
+            }
         } else {
             println(message)
         }
