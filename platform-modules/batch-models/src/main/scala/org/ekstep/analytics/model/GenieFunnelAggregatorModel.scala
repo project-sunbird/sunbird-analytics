@@ -25,9 +25,10 @@ import org.ekstep.analytics.framework.OnboardStage
 import org.ekstep.analytics.framework.OtherStage
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.ETags
 
 case class DeviceFunnelSummary(channel: String, did: String, funnel: String, events: Buffer[DerivedEvent]) extends AlgoInput
-case class FunnelSummary(funnel: String, did: String, period: Int, pdata: PData, channel: String, dspec: Map[String, AnyRef], genieVer: String, summary: Map[String, StageAggSumm], totalCount: Int, totalTimeSpent: Double, avgTimeSpent: Double, syncts: Long, dateRange: DtRange, tags: Option[AnyRef]) extends AlgoOutput
+case class FunnelSummary(funnel: String, did: String, period: Int, pdata: PData, channel: String, dspec: Map[String, AnyRef], genieVer: String, summary: Map[String, StageAggSumm], totalCount: Int, totalTimeSpent: Double, avgTimeSpent: Double, syncts: Long, dateRange: DtRange, etags: Option[ETags]) extends AlgoOutput
 case class StageAggSumm(label: String, totalCount: Int, totalInvocations: Int, completionPercentage: Double, dropoffPercentage: Double)
 
 object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, DeviceFunnelSummary, FunnelSummary, MeasuredEvent] with Serializable {
@@ -61,7 +62,7 @@ object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, Devi
         val avgTimeSpent = if (0 != eventCount) CommonUtil.roundDouble(totalTimeSpent / eventCount, 2) else 0d
 
         val stageSumm = _getStageSummMap(eksMaps, stage)
-        FunnelSummary(data.funnel, data.did, period, pdata, data.channel, dimensions.dspec.getOrElse(Map()), dimensions.genieVer.get, stageSumm, eventCount, totalTimeSpent, avgTimeSpent, firstEvent.syncts, DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to), firstEvent.tags)
+        FunnelSummary(data.funnel, data.did, period, pdata, data.channel, dimensions.dspec.getOrElse(Map()), dimensions.genieVer.get, stageSumm, eventCount, totalTimeSpent, avgTimeSpent, firstEvent.syncts, DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to), firstEvent.etags)
     }
 
     private def _getStageSummMap(eksMaps: Buffer[Map[String, AnyRef]], stage: Stage): Map[String, StageAggSumm] = {
@@ -109,7 +110,7 @@ object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, Devi
             MeasuredEvent("ME_GENIE_FUNNEL_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieFunnelAggregator").asInstanceOf[String])),None, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, Option(summary.period), None, None, None, None, None, Option(summary.funnel), Option(summary.dspec), None, Option(summary.genieVer)),
-                MEEdata(measures), summary.tags);
+                MEEdata(measures), summary.etags);
         }
     }
 }
