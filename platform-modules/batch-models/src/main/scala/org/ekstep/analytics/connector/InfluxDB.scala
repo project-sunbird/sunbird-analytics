@@ -40,7 +40,7 @@ object InfluxDB {
 	def getDenormalizedData(`type`: String, data: RDD[String])(implicit sc: SparkContext): Map[String, AnyRef] = {
 		`type` match {
 			case "User" =>
-				val users = data.map { x => UserProfileIndex(x) }.joinWithCassandraTable[UserProfile](Constants.CREATION_KEY_SPACE_NAME, Constants.USER_PROFILE_TABLE).on(SomeColumns("user_id"))
+				val users = data.filter { x => StringUtils.isNotBlank(x) }.map { x => UserProfileIndex(x) }.joinWithCassandraTable[UserProfile](Constants.CREATION_KEY_SPACE_NAME, Constants.USER_PROFILE_TABLE).on(SomeColumns("user_id"))
 				users.map(f => (f._1.user_id, f._2.name)).collectAsMap().toMap;
 			case _ =>
 				val cacheObjects = data.map { x => AppObjectCacheIndex(`type`, x) }.joinWithCassandraTable[AppObjectCache](Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE).on(SomeColumns("type", "id"));
