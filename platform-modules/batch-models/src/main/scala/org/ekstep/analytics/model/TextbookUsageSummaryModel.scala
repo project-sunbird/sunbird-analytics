@@ -21,8 +21,9 @@ import org.ekstep.analytics.util.Constants
 /**
  * @author yuva
  */
-case class TextbookUsageInput(period: Int, session_events: Buffer[DerivedEvent]) extends AlgoInput
-case class TextbookUsageOutput(period: Int, dtRange: DtRange, unique_users_count: Long, time_spent: Double, total_sessions: Long, avg_ts_session: Double, textbooks_count: Long, unit_summary: UnitSummary, lesson_summary: LessonSummary, syncts: Long) extends AlgoOutput with Output
+case class TextbookUsageInput(index: TextbookUsageIndex, session_events: Buffer[DerivedEvent]) extends AlgoInput
+case class TextbookUsageOutput(period: Int, channel: String, pdata: PData, dtRange: DtRange, unique_users_count: Long, time_spent: Double, total_sessions: Long, avg_ts_session: Double, textbooks_count: Long, unit_summary: UnitSummary, lesson_summary: LessonSummary, syncts: Long) extends AlgoOutput with Output
+case class TextbookUsageIndex(period: Int, app_id: String, channel: String)
 /**
  * @dataproduct
  * @Summarizer
@@ -42,7 +43,9 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
         val session_events = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_TEXTBOOK_SESSION_SUMMARY")));
         session_events.map { f =>
             val period = CommonUtil.getPeriod(f.context.date_range.to, Period.DAY);
-            (period, Buffer(f))
+            val pdata = CommonUtil.getAppDetails(f)
+            val channel = CommonUtil.getChannelId(f)
+            (TextbookUsageIndex(period, pdata.id, channel), Buffer(f))
         }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x => TextbookUsageInput(x._1, x._2) };
     }
@@ -52,6 +55,8 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
         data.map { event =>
             val first_event = event.session_events.sortBy { x => x.context.date_range.from }.head
             val last_event = event.session_events.sortBy { x => x.context.date_range.to }.last
+            val pdata = CommonUtil.getAppDetails(first_event)
+            val channel = event.index.channel
             val unique_users_count = event.session_events.map(x => x.uid).distinct.filterNot { x => x.isEmpty() }.toList.length.toLong
             val textbooks_count = event.session_events.map(x => x.dimensions.content_id.get).distinct.filterNot { x => x.isEmpty() }.toList.length.toLong
             val total_sessions = event.session_events.length.toLong
@@ -64,13 +69,13 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
             val total_lessons_deleted = event.session_events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("deleted_count", 0l).asInstanceOf[Number].longValue() }
             val total_lessons_modified = event.session_events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("lesson_summary").get.asInstanceOf[Map[String, AnyRef]].getOrElse("modified_count", 0l).asInstanceOf[Number].longValue() }
             val avg_ts_session = if (time_spent == 0 || total_sessions == 0) 0d else BigDecimal(time_spent / total_sessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
-            TextbookUsageOutput(event.period, date_range, unique_users_count, time_spent, total_sessions, avg_ts_session, textbooks_count, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), LessonSummary(total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum), last_event.syncts)
+            TextbookUsageOutput(event.index.period, channel, pdata, date_range, unique_users_count, time_spent, total_sessions, avg_ts_session, textbooks_count, UnitSummary(total_units_added.sum, total_units_deleted.sum, total_units_modified.sum), LessonSummary(total_lessons_added.sum, total_lessons_deleted.sum, total_lessons_modified.sum), last_event.syncts)
         }
     }
 
     override def postProcess(data: RDD[TextbookUsageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { usageSumm =>
-            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_USAGE_SUMMARY", "", "DAY", usageSumm.dtRange);
+            val mid = CommonUtil.getMessageId("ME_TEXTBOOK_USAGE_SUMMARY", "", "DAY", usageSumm.dtRange, "NA", Option(usageSumm.pdata.id), Option(usageSumm.channel));
             val measures = Map(
                 "unique_users_count" -> usageSumm.unique_users_count,
                 "total_sessions" -> usageSumm.total_sessions,
@@ -79,9 +84,9 @@ object TextbookUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Textb
                 "avg_ts_session" -> usageSumm.avg_ts_session,
                 "unit_summary" -> usageSumm.unit_summary,
                 "lesson_summary" -> usageSumm.lesson_summary);
-            MeasuredEvent("ME_TEXTBOOK_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None, None,
+            MeasuredEvent("ME_TEXTBOOK_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", Option(usageSumm.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "TextbookUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, None, None, None, None),
+                Dimensions(None, None, None, None, None, None, Option(usageSumm.pdata), None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);
         }
     }

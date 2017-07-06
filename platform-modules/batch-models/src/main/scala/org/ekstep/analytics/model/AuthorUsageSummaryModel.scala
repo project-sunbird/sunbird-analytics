@@ -16,8 +16,8 @@ import scala.collection.mutable.ListBuffer
  * @author yuva/Amit
  */
 
-case class AuthorUsageSummary(ak: AuthorKey, total_session: Long, total_ts: Double, ce_total_ts: Double, total_ce_visit: Long, ce_visits_count: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long) extends AlgoOutput
-case class AuthorKey(period: Int, author: String)
+case class AuthorUsageSummary(ak: AuthorKey, total_session: Long, total_ts: Double, ce_total_ts: Double, total_ce_visit: Long, ce_visits_count: Long, percent_ce_sessions: Double, avg_session_ts: Double, percent_ce_ts: Double, dt_range: DtRange, syncts: Long, pdata: PData) extends AlgoOutput
+case class AuthorKey(period: Int, author: String, app_id: String, channel: String)
 case class AuthorUsageInput(ck: AuthorKey, events: Buffer[AuthorUsageSummary]) extends AlgoInput
 
 /**
@@ -53,11 +53,13 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
         
         val cePercentSessions = CommonUtil.roundDouble((ceVisitsOccurrence * 1.0 / totalSessions) * 100, 2)
         val cePercentTS = CommonUtil.roundDouble(if (totalTS > 0.0) ((ceTotalTS / totalTS) * 100) else (0d), 2)
-        AuthorUsageSummary(ak, totalSessions, totalTS, ceTotalTS, totalCEVisits, ceVisitsOccurrence, cePercentSessions, avgSessionTS, cePercentTS, dateRange, lastEvent.syncts)
+        AuthorUsageSummary(ak, totalSessions, totalTS, ceTotalTS, totalCEVisits, ceVisitsOccurrence, cePercentSessions, avgSessionTS, cePercentTS, dateRange, lastEvent.syncts, firstEvent.pdata)
     }
     
     def getAuthorUsageSummary(event: DerivedEvent, period: Int, authorId: String): AuthorUsageSummary = {
-        val ak = AuthorKey(period, authorId)
+        val pdata = CommonUtil.getAppDetails(event)
+        val channel = CommonUtil.getChannelId(event)
+        val ak = AuthorKey(period, authorId, pdata.id, channel)
         val totalSessions = 1
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         val totalTS = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Double]
@@ -72,7 +74,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
         val cePercentSessions = (ceVisits * 1.0 / totalSessions) * 100
         val cePercentTS = if (totalTS > 0.0) ((ceTotalTS / totalTS) * 100) else (0d)
         
-        AuthorUsageSummary(ak, totalSessions, totalTS, ceTotalTS, ceVisits, ceVisitOccurrence, cePercentSessions, avgSessionTS, cePercentTS, event.context.date_range, event.syncts)
+        AuthorUsageSummary(ak, totalSessions, totalTS, ceTotalTS, ceVisits, ceVisitOccurrence, cePercentSessions, avgSessionTS, cePercentTS, event.context.date_range, event.syncts, pdata)
     }
     /**
      *  Input Portal session summary
@@ -104,7 +106,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
 
     override def postProcess(data: RDD[AuthorUsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_AUTHOR_USAGE_SUMMARY",summary.ak.author, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dt_range);
+            val mid = CommonUtil.getMessageId("ME_AUTHOR_USAGE_SUMMARY",summary.ak.author, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dt_range, "NA", Option(summary.ak.app_id), Option(summary.ak.channel));
             val measures = Map(
                 "total_sessions" -> summary.total_session,
                 "total_ts" -> summary.total_ts,
@@ -115,9 +117,9 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
                 "avg_ts_session" -> summary.avg_session_ts,
                 "ce_percent_ts" -> summary.percent_ce_ts);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AuthorUsageSummarizer").asInstanceOf[String]));
-            MeasuredEvent("ME_AUTHOR_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.ak.author, None, None, None,
+            MeasuredEvent("ME_AUTHOR_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.ak.author, Option(summary.ak.channel), None, None,
                 Context(pdata, None, "DAY", summary.dt_range),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(summary.ak.period), None, None, None, None, None), MEEdata(measures), None);
+                Dimensions(None, None, None, None, None, None, Option(summary.pdata), None, None, None, None, Option(summary.ak.period), None, None, None, None, None), MEEdata(measures), None);
         };
     }
 }

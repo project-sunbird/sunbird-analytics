@@ -539,6 +539,8 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.author_usage_summary_fact (
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	d_period int,
 	d_textbook_id text,
+	d_app_id text,
+	d_channel text,
 	status text,
 	author_id text,
 	content_count bigint,
@@ -550,7 +552,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_snapshot_metrics(
 	board text,
 	medium text,
 	updated_date timestamp,
-	PRIMARY KEY (d_period, d_textbook_id)
+	PRIMARY KEY (d_period, d_textbook_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(

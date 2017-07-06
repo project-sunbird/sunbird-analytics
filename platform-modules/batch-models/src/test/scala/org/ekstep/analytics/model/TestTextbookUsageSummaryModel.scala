@@ -18,7 +18,7 @@ class TestTextbookUsageSummaryModel extends SparkSpec(null) {
         val rdd2 = TextbookUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         me.length should be(4)
-        val event1 = me(2);
+        val event1 = me(3);
         event1.eid should be("ME_TEXTBOOK_USAGE_SUMMARY");
 //        event1.mid should be("5EC0DED34AEB97221856EA3D1628A71A");
         event1.context.pdata.model.get should be("TextbookUsageSummarizer");

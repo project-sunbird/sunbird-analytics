@@ -25,7 +25,8 @@ import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.connector.InfluxDB._
 import org.ekstep.analytics.framework.CassandraTable
 
-case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String, updated_date: DateTime) extends AlgoOutput with Output with CassandraTable
+case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, d_app_id: String, d_channel: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String, updated_date: DateTime) extends AlgoOutput with Output with CassandraTable
+case class TextbookSnapshotIndex(d_textbook_id: String, d_app_id: String, d_channel: String)
 
 /**
  * @author Mahesh Kumar Gangula
@@ -50,8 +51,8 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 	private def getSnapshotSummary(ts: Int)(implicit sc: SparkContext): RDD[TextbookSnapshotSummary] = {
 		val bookUnitRDD = getQueryResultRDD(CypherQueries.TEXTBOOK_SNAPSHOT_UNIT_COUNT)
 		val contentRDD = getQueryResultRDD(CypherQueries.TEXTBOOK_SNAPSHOT_CONTENT_COUNT);
-		val resultRDD = bookUnitRDD.map(f => (f.get("identifier").get.toString(), f))
-			.union(contentRDD.map(f => (f.get("identifier").get.toString(), f))).groupByKey().map(f => (f._1, f._2.reduce((a,b) => a ++ b)))
+		val resultRDD = bookUnitRDD.map(f => (TextbookSnapshotIndex(f.get("identifier").get.toString(), f.get("appId").get.toString(), f.get("channel").get.toString()), f))
+			.union(contentRDD.map(f => (TextbookSnapshotIndex(f.get("identifier").get.toString(), f.get("appId").get.toString(), f.get("channel").get.toString()), f))).groupByKey().map(f => (f._1, f._2.reduce((a,b) => a ++ b)))
 		val updatedAt = DateTime.now();
 		resultRDD.map { f => 
 			val status = f._2.getOrElse("status", noValue).toString();
@@ -64,7 +65,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			val contentTypes = f._2.getOrElse("content_types", List()).asInstanceOf[java.util.List[String]].asScala.toList;
 			val avgContent = if (textbookunitCount == 0) 0 else contentCount/textbookunitCount;
 			// TODO: We need to add ts.
-			TextbookSnapshotSummary(ts, f._1, status, authorId, contentCount, textbookunitCount, avgContent, contentTypes, 0, creatorsCount, board, medium, updatedAt);
+			TextbookSnapshotSummary(ts, f._1.d_textbook_id, f._1.d_app_id, f._1.d_channel, status, authorId, contentCount, textbookunitCount, avgContent, contentTypes, 0, creatorsCount, board, medium, updatedAt);
 		}
 	}
 
@@ -75,7 +76,7 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 			snapshotRDD.map { x => 
 				periodsList.map { period => 
 					val ts = CommonUtil.getPeriod(DateTime.now(), period);
-					TextbookSnapshotSummary(ts, x.d_textbook_id, x.status, x.author_id, x.content_count, x.textbookunit_count, x.avg_content, x.content_types, x.total_ts, x.creators_count, x.board, x.medium, x.updated_date);
+					TextbookSnapshotSummary(ts, x.d_textbook_id, x.d_app_id, x.d_channel, x.status, x.author_id, x.content_count, x.textbookunit_count, x.avg_content, x.content_types, x.total_ts, x.creators_count, x.board, x.medium, x.updated_date);
 				};
 			}.flatMap { x => x };
 		} else {
@@ -107,9 +108,9 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 	private def saveToInfluxDB(data: RDD[TextbookSnapshotSummary])(implicit sc: SparkContext) {
 		val influxRDD = data.map{ f => 
 			val time = getDateTime(f.d_period);
-			val tags = Map("textbook_id" -> f.d_textbook_id, "period" -> time._2);
+			val tags = Map("textbook_id" -> f.d_textbook_id, "period" -> time._2, "app_id" -> f.d_app_id, "channel" -> f.d_channel);
 			val map = CommonUtil.caseClassToMap(f)
-			val fields = map - ("d_textbook_id", "d_period", "content_types", "updated_date") ++ Map("content_types" -> f.content_types.mkString(","));
+			val fields = map - ("d_textbook_id", "d_period", "d_app_id", "d_channel", "content_types", "updated_date") ++ Map("content_types" -> f.content_types.mkString(","));
 			InfluxRecord(tags, fields, time._1);
 		}
 		val denormData = getDenormalizedData("Content", data.map { x => x.d_textbook_id });

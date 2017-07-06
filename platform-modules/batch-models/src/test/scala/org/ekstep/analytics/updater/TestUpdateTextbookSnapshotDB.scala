@@ -30,6 +30,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 	it should "return zero textbookunits for empty textbook" in {
 		deleteTextbookData;
 		createTextbooks;
+		updateAppIdChannel;
 		val rdd = invokeSnapshotUpdater;
 		rdd.count should be(6);
 		val snapshot = rdd.first();
@@ -40,6 +41,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 		deleteTextbookData;
 		createTextbooks;
 		createBookunits;
+		updateAppIdChannel;
 		val rdd = invokeSnapshotUpdater;
 		rdd.count should be(6);
 		val snapshot = rdd.first();
@@ -55,6 +57,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 		createTextbooks;
 		createBookunits;
 		linkBookUnitsWithContents;
+		updateAppIdChannel;
 		val rdd = invokeSnapshotUpdater;
 		rdd.count should be(6);
 		val snapshot = rdd.first();
@@ -94,6 +97,11 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 			"""MATCH (n: domain{IL_UNIQUE_ID:'do_112196375456505856121'}), (c: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_5391b1d669702d107e030000'}) CREATE (n)-[r:hasSequenceMember]->(c)""",
 			"""MATCH (n: domain{IL_UNIQUE_ID:'do_112196375456505856121'}), (c: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00'}) CREATE (n)-[r:hasSequenceMember]->(c)""");
 		executeQueries(queries);
+	}
+	
+	private def updateAppIdChannel() {
+	    val queries = List("MATCH (n:domain) SET n.appid='Genie', n.channel='Ekstep'")
+	    executeQueries(queries);
 	}
 
 }

@@ -14,8 +14,9 @@ import org.ekstep.analytics.framework.util.CommonUtil
 /**
  * Case class to hold the usage summary input and output
  */
-case class CEUsageInput(period: Int, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
-case class CEUsageMetricsSummary(period: Int, content_id: String, dtRange: DtRange, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, syncts: Long) extends AlgoOutput;
+case class CEUsageInput(index: CEUsageIndex, sessionEvents: Buffer[DerivedEvent]) extends AlgoInput
+case class CEUsageMetricsSummary(period: Int, content_id: String, pdata: PData, channel: String, dtRange: DtRange, unique_users_count: Long, total_sessions: Long, total_ts: Double, avg_ts_session: Double, syncts: Long) extends AlgoOutput;
+case class CEUsageIndex(period: Int, app_id: String, channel: String)
 
 /**
  * @dataproduct
@@ -44,6 +45,9 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
                 val firstEvent = f._2.sortBy { x => x.context.date_range.from }.head
                 val lastEvent = f._2.sortBy { x => x.context.date_range.to }.last
                 val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
+                val pdata = CommonUtil.getAppDetails(firstEvent)
+                val channel = event.index.channel
+
                 val userCount = f._2.map(x => x.uid).distinct.filterNot { x => x.isEmpty() }.toList.length.toLong;
                 val eksMapList = f._2.map { x =>
                     x.edata.eks.asInstanceOf[Map[String, AnyRef]]
@@ -53,7 +57,7 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
                     x.get("time_spent").get.asInstanceOf[Double]
                 }.sum
                 val avgSessionTS = if (totalTS == 0 || totalSessions == 0) 0d else BigDecimal(totalTS / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
-                CEUsageMetricsSummary(event.period, f._1.get, date_range, userCount, totalSessions, totalTS, avgSessionTS, lastEvent.syncts);
+                CEUsageMetricsSummary(event.index.period, f._1.get, pdata, channel, date_range, userCount, totalSessions, totalTS, avgSessionTS, lastEvent.syncts);
             }
         }.flatMap { x => x }
     }
@@ -61,7 +65,9 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CEUsageInput] = {
         data.map { f =>
             val period = CommonUtil.getPeriod(f.context.date_range.to, Period.DAY);
-            (period, Buffer(f))
+            val pdata = CommonUtil.getAppDetails(f)
+            val channel = CommonUtil.getChannelId(f)
+            (CEUsageIndex(period, pdata.id, channel), Buffer(f))
         }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x => CEUsageInput(x._1, x._2) };
     }
@@ -72,6 +78,8 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
             val firstEvent = f.sessionEvents.sortBy { x => x.context.date_range.from }.head
             val lastEvent = f.sessionEvents.sortBy { x => x.context.date_range.to }.last
             val date_range = DtRange(firstEvent.context.date_range.from, lastEvent.context.date_range.to);
+            val pdata = CommonUtil.getAppDetails(firstEvent)
+            val channel = f.index.channel
 
             val eksMapList = f.sessionEvents.map { x =>
                 x.edata.eks.asInstanceOf[Map[String, AnyRef]]
@@ -84,21 +92,21 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
 
             val avgSessionTS = if (totalTS == 0 || totalSessions == 0) 0d else BigDecimal(totalTS / totalSessions).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
             
-            CEUsageMetricsSummary(f.period, "all", date_range, userCount, totalSessions, totalTS, avgSessionTS, lastEvent.syncts)
+            CEUsageMetricsSummary(f.index.period, "all", pdata, channel, date_range, userCount, totalSessions, totalTS, avgSessionTS, lastEvent.syncts)
         } ++ contentSpecificUsage
     }
 
     override def postProcess(data: RDD[CEUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { usageSumm =>
-            val mid = CommonUtil.getMessageId("ME_CE_USAGE_SUMMARY", usageSumm.content_id, "DAY", usageSumm.dtRange);
+            val mid = CommonUtil.getMessageId("ME_CE_USAGE_SUMMARY", usageSumm.content_id, "DAY", usageSumm.dtRange, "NA", Option(usageSumm.pdata.id), Option(usageSumm.channel));
             val measures = Map(
                 "unique_users_count" -> usageSumm.unique_users_count,
                 "total_sessions" -> usageSumm.total_sessions,
                 "total_ts" -> usageSumm.total_ts,
                 "avg_ts_session" -> usageSumm.avg_ts_session);
-            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", None, None, None,
+            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", Option(usageSumm.channel), None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentEditorUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.period), Option(usageSumm.content_id)),
+                Dimensions(None, None, None, None, None, None, Option(usageSumm.pdata), None, None, None, None, Option(usageSumm.period), Option(usageSumm.content_id)),
                 MEEdata(measures), None);
         }
     }
