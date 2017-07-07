@@ -537,7 +537,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.plugin_snapshot_metrics (
      d_period int, 
      d_plugin_id text, 
      plugin_name text, 
-     domain text, 
+     category text, 
      author text, 
      content_count bigint, 
      content_count_start bigint,
