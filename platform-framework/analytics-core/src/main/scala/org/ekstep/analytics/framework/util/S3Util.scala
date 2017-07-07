@@ -18,6 +18,8 @@ import org.ekstep.analytics.framework.Level._
 import java.io.InputStream
 import java.util.Calendar
 import java.util.TimeZone
+import org.apache.commons.io.FilenameUtils
+import org.apache.commons.lang3.StringUtils
 
 object S3Util {
 
@@ -57,6 +59,18 @@ object S3Util {
             val file = key.split("/").last
             val fileObj = s3Service.getObject(bucketName, key)
             CommonUtil.copyFile(fileObj.getDataInputStream(), localPath, file);
+        }
+    }
+    
+    def downloadDirectory(bucketName: String, prefix: String, localPath: String) {
+    	val objectArr = s3Service.listObjects(bucketName, prefix, null)
+        val objects = getAllKeys(bucketName, prefix)
+        for (obj <- objectArr) {
+            val key = obj.getKey
+            val file = FilenameUtils.getName(key);
+            val fileObj = s3Service.getObject(bucketName, key)
+            val downloadPath = localPath + StringUtils.replace(FilenameUtils.getPath(key), prefix, "") + "/";
+            CommonUtil.copyFile(fileObj.getDataInputStream(), downloadPath.replaceAll("//", "/"), file);
         }
     }
 

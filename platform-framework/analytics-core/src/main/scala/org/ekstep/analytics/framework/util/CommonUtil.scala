@@ -300,18 +300,18 @@ object CommonUtil {
         addDir(dirObj, out);
         out.close();
     }
-    def addDir(dirObj: File, out: ZipOutputStream) {
+    def addDir(dirObj: File, out: ZipOutputStream, basePath: String = "") {
         val files = dirObj.listFiles();
         val tmpBuf = new Array[Byte](1024);
 
         for (file <- files) {
             breakable {
                 if (file.isDirectory()) {
-                    addDir(file, out);
+                    addDir(file, out, basePath + file.getName.split("/").last + "/");
                     break;
                 } else {
                     val in = new FileInputStream(file.getAbsolutePath());
-                    out.putNextEntry(new ZipEntry(file.getAbsolutePath()));
+                    out.putNextEntry(new ZipEntry(basePath + file.getName.split("/").last));
                     var len: Int = in.read(tmpBuf);
                     while (len > 0) {
                         out.write(tmpBuf, 0, len);

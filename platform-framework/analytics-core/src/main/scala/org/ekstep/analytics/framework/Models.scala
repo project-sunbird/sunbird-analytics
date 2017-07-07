@@ -134,7 +134,7 @@ case class Job_Config(category: String, config_key: String, config_value: Map[St
 
 /* Data Exhaust*/
 case class DataSet(events: List[String], eventConfig: Map[String, EventId])
-case class EventId(eventType: String, searchType: String, saveType: String, fetchConfig: FetchConfig, filterMapping: Map[String, Filter], saveConfig: SaveConfig, localPath: String = "/mnt/data/analytics/data-exhaust")
+case class EventId(eventType: String, searchType: String, fetchConfig: FetchConfig, filterMapping: Map[String, Filter])
 case class FetchConfig(params: Map[String, String])
 case class SaveConfig(params: Map[String, String])
 
