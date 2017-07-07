@@ -199,9 +199,12 @@ object DataExhaustUtils {
             case "eks-creation-raw"    => 
             	val e = JSONUtils.deserialize[CreationEvent](event);
             	(CreationEventUtil.getEventSyncTS(e), e);
-            case "eks-consumption-summary" | "eks-consumption-metrics" | "eks-creation-summary" | "eks-creation-metrics" => 
+            case "eks-consumption-summary" | "eks-creation-summary" => 
             	val e = JSONUtils.deserialize[DerivedEvent](event);
             	(e.syncts, e);
+            case "eks-consumption-metrics" | "eks-creation-metrics" =>
+                val e = JSONUtils.deserialize[DerivedEvent](event);
+            	(CommonUtil.dayPeriodToLong(e.dimensions.period.getOrElse(0)), e);
         }
     }
 }
