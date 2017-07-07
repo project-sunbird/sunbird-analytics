@@ -24,7 +24,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.SessionBatchModel
 
 case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long,
-                        etags: Option[ETags], dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
+                        etags: Option[ETags] = Option(ETags(None, None, None)), dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
 case class LaunchSessions(channel: String, did: String, events: Buffer[Event]) extends AlgoInput
 case class GenieStageSummary(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]])
 case class StageDetails(timeSpent: Double, interactEvents: Buffer[Event], visitCount: Int, sid: String)

@@ -20,7 +20,7 @@ class CaseClasses extends Serializable {}
 
 @scala.beans.BeanInfo
 class DerivedEvent(val eid: String, val ets: Long, val syncts: Long, val ver: String, val mid: String, val uid: String, val content_id: String,
-                   val context: Context, val dimensions: Dimensions, val edata: MEEdata, val etags: Option[ETags] = None) extends Input with AlgoInput;
+                   val context: Context, val dimensions: Dimensions, val edata: MEEdata, val etags: Option[ETags] = Option(ETags(None, None, None))) extends Input with AlgoInput;
 
 @scala.beans.BeanInfo
 class Dimensions(val uid: String, val did: String, val gdata: GData, val domain: String, val loc: String, val group_user: Boolean, val anonymous_user: Boolean, val app_id: Option[String] = Option(AppConf.getConfig("default.app.id")), val client: Option[Map[String, AnyRef]] = None, val textbook_id: Option[String] = None, val channel_id: Option[String] = Option(AppConf.getConfig("default.channel.id"))) extends Serializable;

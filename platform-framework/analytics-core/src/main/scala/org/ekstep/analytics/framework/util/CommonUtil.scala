@@ -566,7 +566,7 @@ object CommonUtil {
                 val dims = tags.filter(f => f.contains("dims")).map { x => x.get("dims").get }.flatMap { x => x }
                 ETags(Option(genieTags), Option(partnerTags), Option(dims))
             } else {
-                null
+                ETags(None, None, None)
             }
             
         }

@@ -27,7 +27,7 @@ import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.ETags
 
-case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: Option[ETags], dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long, pdata: PData, channel: String) extends AlgoOutput
+case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: Option[ETags] = Option(ETags(None, None, None)), dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long, pdata: PData, channel: String) extends AlgoOutput
 
 object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, StageSummary, MeasuredEvent] with Serializable {
 

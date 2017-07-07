@@ -26,7 +26,7 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.ETags
 
-case class ItemSummaryOutput(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: Option[ETags], itemResponse: ItemResponse, pdata: PData, channel: String) extends AlgoOutput
+case class ItemSummaryOutput(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: Option[ETags] = Option(ETags(None, None, None)), itemResponse: ItemResponse, pdata: PData, channel: String) extends AlgoOutput
 
 object ItemSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ItemSummaryOutput, MeasuredEvent] with Serializable {
 

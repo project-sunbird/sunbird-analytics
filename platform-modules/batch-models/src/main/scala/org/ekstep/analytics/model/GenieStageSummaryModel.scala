@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.conf.AppConf
 
-case class GenieStageAlgoOut(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]], dt_range: DtRange, did: String, etags: Option[ETags], syncts: Long, pdata: PData, channel: String) extends AlgoOutput
+case class GenieStageAlgoOut(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]], dt_range: DtRange, did: String, etags: Option[ETags] = Option(ETags(None, None, None)), syncts: Long, pdata: PData, channel: String) extends AlgoOutput
 
 object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEvent] with IBatchModelTemplate[DerivedEvent, DerivedEvent, GenieStageAlgoOut, MeasuredEvent] with Serializable {
   

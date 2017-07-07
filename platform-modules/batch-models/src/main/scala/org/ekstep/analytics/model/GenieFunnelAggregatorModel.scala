@@ -28,7 +28,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.ETags
 
 case class DeviceFunnelSummary(channel: String, did: String, funnel: String, events: Buffer[DerivedEvent]) extends AlgoInput
-case class FunnelSummary(funnel: String, did: String, period: Int, pdata: PData, channel: String, dspec: Map[String, AnyRef], genieVer: String, summary: Map[String, StageAggSumm], totalCount: Int, totalTimeSpent: Double, avgTimeSpent: Double, syncts: Long, dateRange: DtRange, etags: Option[ETags]) extends AlgoOutput
+case class FunnelSummary(funnel: String, did: String, period: Int, pdata: PData, channel: String, dspec: Map[String, AnyRef], genieVer: String, summary: Map[String, StageAggSumm], totalCount: Int, totalTimeSpent: Double, avgTimeSpent: Double, syncts: Long, dateRange: DtRange, etags: Option[ETags] = Option(ETags(None, None, None))) extends AlgoOutput
 case class StageAggSumm(label: String, totalCount: Int, totalInvocations: Int, completionPercentage: Double, dropoffPercentage: Double)
 
 object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, DeviceFunnelSummary, FunnelSummary, MeasuredEvent] with Serializable {

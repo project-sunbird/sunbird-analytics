@@ -29,7 +29,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.ETags
 
 case class GenieFunnelSession(channel: String, did: String, cid: String, dspec: Map[String, AnyRef], funnel: String, events: Buffer[Event], onbFlag: Boolean) extends AlgoInput
-case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, etags: Option[ETags], pdata: PData, channel: String) extends AlgoOutput
+case class GenieFunnel(funnel: String, cid: String, did: String, sid: String, dspec: Map[String, AnyRef], genieVer: String, summary: HashMap[String, FunnelStageSummary], timeSpent: Double, onboarding: Boolean, syncts: Long, dateRange: DtRange, etags: Option[ETags] = Option(ETags(None, None, None)), pdata: PData, channel: String) extends AlgoOutput
 
 case class FunnelStageSummary(label: String, count: Option[Int] = Option(0), stageInvoked: Option[Int] = Option(0))
 
