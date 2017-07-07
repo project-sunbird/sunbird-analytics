@@ -26,17 +26,17 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         // Populate ce usage summary fact table
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel_id, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel_id, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d02eae69702d0905cf0800', 'Genie', 'Ekstep', 0, 0, 0.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel_id, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_5391b1d669702d107e030000', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel_id, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'test_content', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d02eae69702d0905cf0800', 'Genie', 'Ekstep', 0, 0, 0.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_5391b1d669702d107e030000', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'test_content', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
         }
 
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
 
         events.length should be(9)
-
+        
         val event1 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "all") }.first();
 
         // Check for author_id = all

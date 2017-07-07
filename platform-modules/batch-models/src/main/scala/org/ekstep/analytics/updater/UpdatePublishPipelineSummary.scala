@@ -43,7 +43,7 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   private def computeForPeriod(p: Period, data: RDD[DerivedEvent])(implicit sc: SparkContext): RDD[PublishPipelineSummaryFact] = {
     val newData = createAndFlattenFacts(p, data)
     val deDuplicatedFacts = sc.makeRDD(newData).reduceByKey(combineFacts)
-    val existingData = deDuplicatedFacts.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PUBLISH_PIPELINE_SUMMARY_FACT).on(SomeColumns("d_period", "d_app_id", "d_channel_id", "type", "state", "subtype"))
+    val existingData = deDuplicatedFacts.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PUBLISH_PIPELINE_SUMMARY_FACT).on(SomeColumns("d_period", "d_app_id", "d_channel", "type", "state", "subtype"))
     val joined = deDuplicatedFacts.leftOuterJoin(existingData)
     joined.map { d =>
       val newFact = d._2._1

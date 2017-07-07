@@ -542,6 +542,8 @@ object CommonUtil {
             if (event.asInstanceOf[Event].pdata.isEmpty) defaultAppId else event.asInstanceOf[Event].pdata.get
         } else if (event.isInstanceOf[DerivedEvent]) {
             if (event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
+        } else if (event.isInstanceOf[ProfileEvent]) {
+            if (event.asInstanceOf[ProfileEvent].pdata.isEmpty) defaultAppId else event.asInstanceOf[ProfileEvent].pdata.get
         } else defaultAppId;
     }
 
