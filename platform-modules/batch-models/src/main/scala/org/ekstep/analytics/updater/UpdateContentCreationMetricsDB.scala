@@ -79,8 +79,8 @@ object UpdateContentCreationMetricsDB extends IBatchModelTemplate[CreationEvent,
 		};
 		
 		val liveContentMetrics = data.filter { x => "Live".equals(x.edata.eks.state) }
-			.map { x => x.edata.eks.id }.distinct().map { x => CEUsageSummaryIndex(0, x, AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id")) }
-			.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id"))
+			.map { x => x.edata.eks.id }.distinct().map { x => CEUsageSummaryIndex(0, x, CommonUtil.getDefaultAppChannelIds()._1, CommonUtil.getDefaultAppChannelIds()._2) }
+			.joinWithCassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).on(SomeColumns("d_period", "d_content_id", "d_app_id", "d_channel"))
 			.map(f => (f._1.d_content_id, f._2)).collectAsMap().toMap
 
 		val lifecycleEvents = data.map { x => (ContentCreationMetricsIndex(x.edata.eks.id), Buffer(x)) }

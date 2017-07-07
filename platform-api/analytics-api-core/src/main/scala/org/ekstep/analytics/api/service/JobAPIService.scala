@@ -73,7 +73,7 @@ object JobAPIService {
 
 	private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
 		val outputFormat = body.request.output_format.getOrElse(config.getString("data_exhaust.output_format"))
-		val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset"));
+		val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default"));
 		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId);
 		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
 		val usrReq = body.request;
@@ -89,7 +89,7 @@ object JobAPIService {
 		}
 	}
 	
-	private def _validateReq(body: RequestBody): Map[String, String] = {
+	private def _validateReq(body: RequestBody)(implicit config: Config): Map[String, String] = {
 		val params = body.params
 		val filter = body.request.filter;
 		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
@@ -97,8 +97,9 @@ object JobAPIService {
 			val message = if (filter.isEmpty) "filter is empty" else "params is empty" ;
 			Map("status" -> "false", "message" -> message);
 		} else {
+			val datasetList = config.getStringList("data_exhaust.dataset.list");
 			if (outputFormat != null && !outputFormat.isEmpty && !(outputFormat.equals(OutputFormat.CSV) || outputFormat.equals(OutputFormat.JSON))) {
-				Map("status" -> "false", "message" -> "invalid type: should be [csv, json].");
+				Map("status" -> "false", "message" -> "invalid type. It should be one of [csv, json].");
 			} else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
 				Map("status" -> "false", "message" -> "events should contains only one event.");
 			} else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.get.length.equals(1) && !(filter.get.events.get.contains("OE_ASSESS") || filter.get.events.get.contains("OE_ITEM_RESPONSE")))) {
@@ -108,6 +109,9 @@ object JobAPIService {
 				else if (filter.get.tags.isEmpty)
 					"tags are empty"
 				else "start date or end date is empty"
+				Map("status" -> "false", "message" -> message);
+			} else if (!datasetList.contains(body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default")))) {
+				val message = "invalid dataset_id. It should be one of "+ datasetList;
 				Map("status" -> "false", "message" -> message);
 			} else {
 				val endDate = filter.get.end_date.get
