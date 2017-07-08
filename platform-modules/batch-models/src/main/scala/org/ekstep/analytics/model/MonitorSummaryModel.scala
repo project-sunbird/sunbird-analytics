@@ -118,7 +118,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val date: String = DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now())
         val title = s"""*Jobs | Monitoring Report | $date*"""
         //total statistics regarding jobs
-        val totalStats = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`"""
+        val totalStats = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of Failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`"""
         return title + "\n" + totalStats + "\n\n" + consumptionJobSummary + "\n\n" + creationJobSummary + "\n\n" + recommendationJobSummary
     }
 
