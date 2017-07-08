@@ -110,49 +110,15 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val totalTs = milliSecondsToTimeFormat(jobMonitorToSclack.total_ts)
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
-        // filter consumption jobs
-        val modelMap = config.get("model").get.asInstanceOf[List[Map[String, AnyRef]]]
-        val modelMapping = modelMap.map { x => ModelMapping(x.get("model").get.asInstanceOf[String], x.get("category").get.asInstanceOf[String], x.get("input_dependency").get.asInstanceOf[String]) }.toSet
-        val consumptionModelsFilter = modelMapping.filter { x => (x.category.equals("consumption")) }
-        val consumptionModelsSet = consumptionModelsFilter.map { x => x.model }
-        val consumptionModelMapping = consumptionModelsFilter.filter { x => !x.input_dependency.equals("None") }.map { x => (x.model, x.input_dependency) }.toMap
-        val consumptionModels = jobSummaryCaseClass.filter(item => consumptionModelsSet(item.model.trim()))
-        val consumptionModelsCompleted = consumptionModels.filter { x => x.status.equals("SUCCESS") }.size
-        val consumptionModelsFailed = consumptionModels.filter { x => x.status.equals("FAILED") }.size
-
-        // filter creation jobs
-        val creationModelsFiltering = modelMapping.filter { x => (x.category.equals("creation")) }
-        val creationModelsSet = creationModelsFiltering.map { x => x.model }
-        val creationModelsMapping = creationModelsFiltering.filter { x => !x.input_dependency.equals("None") }.map { x => (x.model, x.input_dependency) }.toMap
-        val creationModels = jobSummaryCaseClass.filter(item => creationModelsSet(item.model.trim()))
-        val creationModelsCompleted = creationModels.filter { x => x.status.equals("SUCCESS") }.size
-        val creationModelsFailed = creationModels.filter { x => x.status.equals("FAILED") }.size
-
-        // filter other jobs
-        val recommendationModelsFilter = modelMapping.filter { x => (x.category.equals("recommendation")) }
-        val recommendationModelsSet = recommendationModelsFilter.map { x => x.model }.toSet
-        val recommendationModelsMapping = recommendationModelsFilter.map { x => (x.model, x.input_dependency) }.toMap
-        val recommendationModels = jobSummaryCaseClass.filter { item => recommendationModelsSet(item.model.trim()) }
-        val recommendationModelsCompleted = recommendationModels.filter { x => x.status.equals("SUCCESS") }.size
-        val recommendationModelsFailed = recommendationModels.filter { x => x.status.equals("FAILED") }.size
-
-        //make job summary to string
-        val consumptionModelsString = consumptionModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
-        val creationModelsString = creationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
-        val recommendationModelsString = recommendationModels.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
-
-        val consumptionModelsWarnings = warningMessages(consumptionModelMapping, consumptionModels)
-        val creationModelsWarnings = warningMessages(creationModelsMapping, creationModels)
+        val modelMapping = JSONUtils.deserialize[List[ModelMapping]](config.get("model").get.asInstanceOf[String]).toSet
+        val consumptionJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "consumption")
+        val creationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "creation")
+        val recommendationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "recommendation")
 
         val date: String = DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now())
         val title = s"""*Jobs | Monitoring Report | $date*"""
         //total statistics regarding jobs
         val totalStats = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`"""
-
-        val consumptionJobSummary = jobSummaryMessage("Consumption", consumptionModelsFailed, consumptionModelsCompleted, consumptionModelsWarnings, consumptionModelsString)
-        val creationJobSummary = jobSummaryMessage("Creation", creationModelsFailed, creationModelsCompleted, creationModelsWarnings, creationModelsString)
-        val recommendationJobSummary = jobSummaryMessage("Recommendation", recommendationModelsFailed, recommendationModelsCompleted, "", recommendationModelsString)
-
         return title + "\n" + totalStats + "\n\n" + consumptionJobSummary + "\n\n" + creationJobSummary + "\n\n" + recommendationJobSummary
     }
 
@@ -193,5 +159,17 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         } else {
             s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
         }
+    }
+
+    private def modelStats(jobSummary: Array[JobSummary], modelMapping: Set[ModelMapping], category: String): String = {
+        val modelsCategoryFilter = modelMapping.filter { x => (x.category.equals(s"$category")) }
+        val modelsSet = modelsCategoryFilter.map { x => x.model }
+        val modelMappingWithInputDependency = modelsCategoryFilter.filter { x => !x.input_dependency.equals("None") }.map { x => (x.model, x.input_dependency) }.toMap
+        val filterModelsFromJobSummary = jobSummary.filter(item => modelsSet(item.model.trim()))
+        val modelsCompleted = filterModelsFromJobSummary.filter { x => x.status.equals("SUCCESS") }.size
+        val modelsFailed = filterModelsFromJobSummary.filter { x => x.status.equals("FAILED") }.size
+        val modelsWarnings = warningMessages(modelMappingWithInputDependency, filterModelsFromJobSummary)
+        val modelsString = filterModelsFromJobSummary.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        jobSummaryMessage(s"$category", modelsFailed, modelsCompleted, modelsWarnings, modelsString)
     }
 }
