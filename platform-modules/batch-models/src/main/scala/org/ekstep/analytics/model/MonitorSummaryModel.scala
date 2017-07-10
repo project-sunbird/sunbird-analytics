@@ -131,7 +131,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         }
         var warnings = ""
         modelMapping.map { x =>
-            if (outputEventMap(x._2) != inputEventMap(x._1)) {
+            if (outputEventMap.contains(x._2) && inputEventMap.contains(x._1) && outputEventMap(x._2) != inputEventMap(x._1)) {
                 val output = x._2
                 val input = x._1
                 warnings += s"output of $output NOT EQUALS to input of $input\n"
