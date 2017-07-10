@@ -573,4 +573,13 @@ object CommonUtil {
             
         }
     }
+    
+    def dayPeriodToLong(period: Int): Long = {
+        val p = period.toString()
+        if (8 == p.length()) {
+            val date = p.substring(0, 4) + "-" + p.substring(4, 6) + "-" + p.substring(6)
+            dateFormat.parseMillis(date)
+        } else 0l;
+    }
+    
 }
