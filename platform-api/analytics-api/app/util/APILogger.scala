@@ -48,8 +48,8 @@ object APILogger {
 
 	private def getAccessMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): MeasuredEvent = {
 		val mid = "";
-		MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "", None, None,
-			Context(PData("AnalyticsAPI", "org.ekstep.analytics.api", "1.0"), None, "EVENT", null),
+		MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "", None, None, None,
+			Context(PData("AnalyticsAPI", "1.0", Option("org.ekstep.analytics.api")), None, "EVENT", null),
 			null,
 			MEEdata(data));
 	}

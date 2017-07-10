@@ -25,7 +25,6 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.ItemConcept
 import org.apache.spark.broadcast.Broadcast
-import org.ekstep.analytics.framework.LearnerId
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.DataFilter
 import java.security.MessageDigest
@@ -35,6 +34,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime,
                               model_params: Map[String, String], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput
+case class LearnerId(learner_id: String)
 case class ModelParam(concept: String, alpha: Double, beta: Double)
 case class ProficiencySummary(conceptId: String, proficiency: Double)
 case class LearnerProficiencyInput(learnerId: String, newEvidences: Iterable[(String, Evidence, Long, Long)], prevLearnerState: Option[LearnerProficiency]) extends AlgoInput
@@ -212,8 +212,8 @@ object LearnerProficiencySummaryModel extends IBatchModelTemplate[DerivedEvent, 
             val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "CUMULATIVE", DtRange(0L, 0L));
             val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2) }
             val measures = Map("proficiencySummary" -> proficiencySummary)
-            MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, userProf.learner_id, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "CUMULATIVE", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
+            MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, userProf.learner_id, "", None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String])), None, "CUMULATIVE", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
                 Dimensions(None, None, None, None, None, None, None),
                 MEEdata(measures));
         }

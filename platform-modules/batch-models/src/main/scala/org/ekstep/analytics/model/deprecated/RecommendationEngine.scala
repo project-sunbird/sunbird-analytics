@@ -20,7 +20,6 @@ import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.LearnerId
 import org.ekstep.analytics.framework.DtRange
 import org.joda.time.DateTime
 import breeze.linalg._
@@ -160,11 +159,10 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
         }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
 
         data.map { learner =>
-            val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", learner.learnerId.learner_id, "DAY", learner.dtRange.to);
-            MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), learner.dtRange.to, "1.0", mid, learner.learnerId.learner_id, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String],
-                    config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "DAY", learner.dtRange),
-                Dimensions(None, None, None, None, None, None),
+            val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", learner.learnerId.learner_id, "DAY", learner.dtRange.to, None, None);
+            MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), learner.dtRange.to, "1.0", mid, learner.learnerId.learner_id, "", None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String])), None, "DAY", learner.dtRange),
+                Dimensions(None, None, None, None, None, None, None),
                 MEEdata(Map("relevanceScores" -> learner.relevanceScores.map(f => RelevanceScore(f._1, f._2)))));
         }
     }

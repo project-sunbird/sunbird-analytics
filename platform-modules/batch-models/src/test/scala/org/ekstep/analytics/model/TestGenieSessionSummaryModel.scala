@@ -16,9 +16,9 @@ class TestGenieSessionSummaryModel extends SparkSpec(null) {
 
     "GenieSessionSummaryModel" should "generate content summary events" in {
 
-        val sampleSumm = LearnerProfile("6eddac9b-ccdb-47aa-be06-a44b06f7fe62", "5c7567479e8515e740eaa2d21157f610bf057831", Option("male"), Option("en"), None, 2, 7, 2009, false, true, None, None)
+        val sampleSumm = LearnerProfile("6eddac9b-ccdb-47aa-be06-a44b06f7fe62", "Genie", "Ekstep", "5c7567479e8515e740eaa2d21157f610bf057831", Option("male"), Option("en"), None, 2, 7, 2009, false, true, None, None)
         val sampleRDD = sc.parallelize(Array(sampleSumm));
-        sampleRDD.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
+        sampleRDD.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE, SomeColumns("learner_id", "app_id", "channel", "did", "gender", "language", "loc", "standard", "age", "year_of_birth", "group_user", "anonymous_user", "created_date", "updated_date"));
 
         val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data1.log");
         val rdd2 = GenieSessionSummaryModel.execute(rdd, None);
@@ -30,7 +30,8 @@ class TestGenieSessionSummaryModel extends SparkSpec(null) {
         val zeroTimeSpentGS = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
         zeroTimeSpentGS.size should be(8)
 
-        val event2 = events(3)
+        val event2 = events.filter { x => x.mid.equals("74A610217F317A24C5076698B01A32DF") }.last
+
         event2.dimensions.did.get should be("3fdf3dfc1f004ffa3762fdadded8f44208c8d06c")
         event2.dimensions.group_user.get should be(false)
         event2.dimensions.anonymous_user.get should be(false)
@@ -53,7 +54,7 @@ class TestGenieSessionSummaryModel extends SparkSpec(null) {
         val events = rdd2.collect
         events.size should be(5)
 
-        val event2 = events.last
+        val event2 = events.filter { x => x.dimensions.did.get.equals("5c7567479e8515e740eaa2d21157f610bf057831") }.head
         event2.dimensions.did.get should be("5c7567479e8515e740eaa2d21157f610bf057831")
         event2.dimensions.group_user.get should be(false)
         event2.dimensions.anonymous_user.get should be(false)

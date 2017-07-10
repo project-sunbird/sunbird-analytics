@@ -70,9 +70,9 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsag
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min,
                 "content_type" -> cuMetrics.content_type,
                 "mime_type" -> cuMetrics.mime_type);
-            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, "1.0", mid, "", Option(cuMetrics.content_id), None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
-                Dimensions(None, None, Option(new GData(cuMetrics.content_id, cuMetrics.content_ver)), None, None, None, None, Option(cuMetrics.is_group_user)),
+            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, "1.0", mid, "", "", Option(cuMetrics.content_id), None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
+                Dimensions(None, None, Option(new GData(cuMetrics.content_id, cuMetrics.content_ver)), None, None, None, None, None, Option(cuMetrics.is_group_user)),
                 MEEdata(measures));
         }
 

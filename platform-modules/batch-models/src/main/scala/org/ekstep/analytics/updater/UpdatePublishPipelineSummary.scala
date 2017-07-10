@@ -22,9 +22,10 @@ import org.ekstep.analytics.framework.JobContext
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.connector.InfluxDB._
+import org.ekstep.analytics.framework.conf.AppConf
 
-case class PublishPipelineSummaryFact(d_period: Int, `type`: String, state: String, subtype: String, count: Int, updated_at: Long) extends AlgoOutput
-case class ContentPublishFactIndex(d_period: Int, `type`: String, state: String, subtype: String) extends Output
+case class PublishPipelineSummaryFact(d_period: Int, d_app_id: String, d_channel: String, `type`: String, state: String, subtype: String, count: Int, updated_at: Long) extends AlgoOutput
+case class ContentPublishFactIndex(d_period: Int, d_app_id: String, d_channel: String, `type`: String, state: String, subtype: String) extends Output
 
 object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, DerivedEvent, PublishPipelineSummaryFact, ContentPublishFactIndex] with IInfluxDBUpdater with Serializable {
   val className = "org.ekstep.analytics.updater.UpdatePublishPipelineSummary"
@@ -42,11 +43,11 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   private def computeForPeriod(p: Period, data: RDD[DerivedEvent])(implicit sc: SparkContext): RDD[PublishPipelineSummaryFact] = {
     val newData = createAndFlattenFacts(p, data)
     val deDuplicatedFacts = sc.makeRDD(newData).reduceByKey(combineFacts)
-    val existingData = deDuplicatedFacts.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PUBLISH_PIPELINE_SUMMARY_FACT).on(SomeColumns("d_period", "type", "state", "subtype"))
+    val existingData = deDuplicatedFacts.map { x => x._1 }.joinWithCassandraTable[PublishPipelineSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PUBLISH_PIPELINE_SUMMARY_FACT).on(SomeColumns("d_period", "d_app_id", "d_channel", "type", "state", "subtype"))
     val joined = deDuplicatedFacts.leftOuterJoin(existingData)
     joined.map { d =>
       val newFact = d._2._1
-      val existingFact = d._2._2.getOrElse(PublishPipelineSummaryFact(newFact.d_period, newFact.`type`, newFact.state, newFact.subtype, 0, DateTime.now().getMillis))
+      val existingFact = d._2._2.getOrElse(PublishPipelineSummaryFact(newFact.d_period, newFact.d_app_id, newFact.d_channel, newFact.`type`, newFact.state, newFact.subtype, 0, DateTime.now().getMillis))
       combineFacts(newFact, existingFact)
     }
   }
@@ -60,12 +61,15 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
     val d_period = CommonUtil.getPeriod(DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(d.dimensions.period.get.toString()), period)
     val eks = d.edata.eks.asInstanceOf[Map[String, AnyRef]]
     val pps = eks("publish_pipeline_summary").asInstanceOf[List[Map[String, AnyRef]]]
+    val appId = CommonUtil.getAppDetails(d).id
+    val channel = CommonUtil.getChannelId(d)
+
     val facts = pps.map { s =>
       val `type` = s("type").toString()
       val state = s("state").toString()
       val subtype = s("subtype").toString()
       val count = s("count").asInstanceOf[Int]
-      (ContentPublishFactIndex(d_period, `type`, state, subtype), PublishPipelineSummaryFact(d_period, `type`, state, subtype, count, DateTime.now().getMillis))
+      (ContentPublishFactIndex(d_period, appId, channel, `type`, state, subtype), PublishPipelineSummaryFact(d_period, appId, channel, `type`, state, subtype, count, DateTime.now().getMillis))
     }
     List(acc, facts).flatMap(f => f)
   }
@@ -75,20 +79,20 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   }
 
   private def combineFacts(f1: PublishPipelineSummaryFact, f2: PublishPipelineSummaryFact): PublishPipelineSummaryFact = {
-    PublishPipelineSummaryFact(f1.d_period, f1.`type`, f1.state, f1.subtype, f1.count + f2.count, DateTime.now().getMillis)
+    PublishPipelineSummaryFact(f1.d_period, f1.d_app_id, f1.d_channel, f1.`type`, f1.state, f1.subtype, f1.count + f2.count, DateTime.now().getMillis)
   }
 
   override def postProcess(data: RDD[PublishPipelineSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPublishFactIndex] = {
     val d = data.collect()
     data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PUBLISH_PIPELINE_SUMMARY_FACT)
     saveToInfluxDB(data);
-    data.map { d => ContentPublishFactIndex(d.d_period, d.`type`, d.state, d.subtype) }
+    data.map { d => ContentPublishFactIndex(d.d_period, d.d_app_id, d.d_channel, d.`type`, d.state, d.subtype) }
   }
 
   private def saveToInfluxDB(data: RDD[PublishPipelineSummaryFact])(implicit sc: SparkContext) {
 		val influxRDD = data.filter(f => f.d_period != 0).map{ f =>
 			val time = getDateTime(f.d_period)
-			var tags = Map("type" -> f.`type`, "state" -> f.state, "period" -> time._2)
+			var tags = Map("type" -> f.`type`, "state" -> f.state, "period" -> time._2, "app_id" -> f.d_app_id, "channel" -> f.d_channel)
 			if (f.subtype != "") {
 			  tags += "subtype" -> f.subtype
 			}

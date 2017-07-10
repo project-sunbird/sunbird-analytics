@@ -9,18 +9,23 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.creation.model.CreationEvent
+import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * @author Santhosh
  */
 trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
 
-    def getGameSessions(data: RDD[Event]): RDD[(String, Buffer[Event])] = {
+    def getGameSessions(data: RDD[Event]): RDD[((String, String), Buffer[Event])] = {
         data.filter { x => x.uid != null && x.gdata.id != null }
-            .map(event => (event.uid, Buffer(event)))
-            .partitionBy(new HashPartitioner(JobContext.parallelization))
+            .map { event =>
+                val channelId = CommonUtil.getChannelId(event)
+                ((channelId, event.uid), Buffer(event))
+            }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
-                events.sortBy { x => CommonUtil.getEventTS(x) }.groupBy { e => (e.sid, e.ver) }.mapValues { x =>
+                events.sortBy { x => CommonUtil.getEventTS(x) }.groupBy { e =>
+                    (e.sid, e.ver)
+                }.mapValues { x =>
                     var sessions = Buffer[Buffer[Event]]();
                     var tmpArr = Buffer[Event]();
                     var lastContentId: String = x(0).gdata.id;
@@ -49,13 +54,15 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                     sessions += tmpArr;
                     sessions;
                 }.map(f => f._2).reduce((a, b) => a ++ b);
+                //}.flatMap(f => f._2.map { x => ((f._1._2, f._1._1), x) }).filter(f => f._2.nonEmpty);
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 
-    def getGenieLaunchSessions(data: RDD[Event], idleTime: Int): RDD[(String, Buffer[Event])] = {
-        data.filter { x => x.did != null }
-            .map(event => (event.did, Buffer(event)))
-            .partitionBy(new HashPartitioner(JobContext.parallelization))
+    def getGenieLaunchSessions(data: RDD[Event], idleTime: Int): RDD[((String, String), Buffer[Event])] = {
+        data.filter { x => x.did != null }.map { event =>
+            val channelId = CommonUtil.getChannelId(event)
+            ((channelId, event.did), Buffer(event))
+        }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
                 val sortedEvents = events.sortBy { x => CommonUtil.getEventTS(x) }
                 var sessions = Buffer[Buffer[Event]]();
@@ -92,10 +99,10 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                                     tmpArr = Buffer[Event]();
                                     tmpArr += y;
                                 }
-                            }else {
+                            } else {
                                 tmpArr += y;
                             }
-                            
+
                     }
                 }
                 sessions += tmpArr;
@@ -103,9 +110,11 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 
-    def getGenieSessions(data: RDD[Event], idleTime: Int): RDD[(String, Buffer[Event])] = {
-        data.map(event => (event.sid, Buffer(event)))
-            .partitionBy(new HashPartitioner(JobContext.parallelization))
+    def getGenieSessions(data: RDD[Event], idleTime: Int): RDD[((String, String), Buffer[Event])] = {
+        data.map { event =>
+            val channelId = CommonUtil.getChannelId(event)
+            ((channelId, event.sid), Buffer(event))
+        }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events =>
                 val sortedEvents = events.sortBy { x => CommonUtil.getEventTS(x) }
                 var sessions = Buffer[Buffer[Event]]();
@@ -138,7 +147,7 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                                     tmpArr = Buffer[Event]();
                                     tmpArr += y;
                                 }
-                            }else {
+                            } else {
                                 tmpArr += y;
                             }
                     }
@@ -147,13 +156,15 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                 sessions;
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
-    
-    def getCESessions(data: RDD[CreationEvent]): RDD[(String, Buffer[CreationEvent])] = {
+
+    def getCESessions(data: RDD[CreationEvent]): RDD[((String, String), Buffer[CreationEvent])] = {
         data.filter { x => x.context.get.sid != null }
-        .map { x => (x.context.get.sid, Buffer(x)) }
-        .partitionBy(new HashPartitioner(JobContext.parallelization))
-        .reduceByKey((a, b) => a ++ b).mapValues { events =>
-            events.sortBy { x => x.ets }.groupBy { e => (e.context.get.content_id) }.mapValues { x =>
+            .map { x =>
+                val channelId = CreationEventUtil.getChannelId(x)
+                ((channelId, x.context.get.sid), Buffer(x))
+            }.partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).mapValues { events =>
+                events.sortBy { x => x.ets }.groupBy { e => (e.context.get.content_id) }.mapValues { x =>
                     var sessions = Buffer[Buffer[CreationEvent]]();
                     var tmpArr = Buffer[CreationEvent]();
                     var lastContentId: String = x(0).context.get.content_id;

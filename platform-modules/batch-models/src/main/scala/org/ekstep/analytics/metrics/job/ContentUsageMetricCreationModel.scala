@@ -25,13 +25,13 @@ object ContentUsageMetricCreationModel extends MetricsBatchModel[String,String] 
         val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics.dispatch.params"));
         
-        val groupFn = (x: ContentUsageSummaryFact) => { (x.d_period + "-" + x.d_tag + "-" + x.d_content_id) };
+        val groupFn = (x: ContentUsageSummaryFact) => { (x.d_period + "-" + x.d_tag + "-" + x.d_content_id + "-" + x.d_app_id + "-" + x.d_channel) };
         val fetchDetails = ConfigDetails(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT, start_date, end_date, AppConf.getConfig("metrics.consumption.dataset.id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics.dispatch.to"), dispatchParams)
         val res = processQueryAndComputeMetrics(fetchDetails, groupFn)
         val resRDD = res.mapValues { x =>
             x.map { f =>
-                val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_tag + f.d_period, "DAY", System.currentTimeMillis());
-                val event = getMeasuredEvent(event_id, mid, "ContentUsageMetrics", CommonUtil.caseClassToMapWithDateConversion(f) - ("d_period", "d_tag", "d_content_id", "m_device_ids", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id), None, None, None, None, None, None, None, None, None, None, None, None))
+                val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_tag + f.d_period, "DAY", System.currentTimeMillis(), Option(f.d_app_id), Option(f.d_channel));
+                val event = getMeasuredEvent(event_id, mid, f.d_channel, "ContentUsageMetrics", CommonUtil.caseClassToMapWithDateConversion(f) - ("d_period", "d_tag", "d_content_id", "d_app_id", "d_channel", "m_device_ids", "updated_date"), Dimensions(None, None, None, None, None, None, Option(PData(f.d_app_id, "1.0")), None, None, None, Option(f.d_tag), Option(f.d_period), Option(f.d_content_id)))
                 JSONUtils.serialize(event)
             }
         }

@@ -9,6 +9,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.creation.model.CreationEvent
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 
@@ -105,7 +106,7 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 		loadCassandraData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, "src/test/resources/content-creation-metrics/content_data_test.txt", ";")
 		loadGraphData("src/test/resources/content-creation-metrics/graph-data1.json")
 
-		sc.makeRDD(Seq(CEUsageSummaryFact(0, "do_112238916211949568137", 6, 67, 657456, 9812.78, System.currentTimeMillis())))
+		sc.makeRDD(Seq(CEUsageSummaryFact(0, "do_112238916211949568137", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 6, 67, 657456, 9812.78, System.currentTimeMillis())))
 			.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY);
 		val rdd = loadFile[CreationEvent]("src/test/resources/content-creation-metrics/test_data2.log");
 		UpdateContentCreationMetricsDB.execute(rdd, None);

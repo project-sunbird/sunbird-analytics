@@ -2,6 +2,7 @@ package org.ekstep.analytics.creation.model
 
 import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.Input
+import org.ekstep.analytics.framework.ETags
 
 
 /**
@@ -22,7 +23,7 @@ class CreationEks(val defaultPlugins: List[String], val loadtimes: Map[String, D
         val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]], val values: Option[List[Map[String, AnyRef]]]) extends Serializable {}
 
 @scala.beans.BeanInfo
-class CreationPData(val id: String, val pid: String, val ver: String) extends Serializable;
+class CreationPData(val id: String, val ver: String, val pid: Option[String] = None) extends Serializable;
 @scala.beans.BeanInfo
 class CreationCData(val `type`: String, val id: String) extends Serializable;
 @scala.beans.BeanInfo
@@ -37,4 +38,5 @@ class Eks() extends Serializable;
  * Creation event model 
  */
 @scala.beans.BeanInfo
-case class CreationEvent(val eid: String, val ets: Long, `@timestamp`: String, val ver: String, val mid: String, val pdata: Option[CreationPData] = None, val cdata: Option[List[CreationCData]] = None, val uid: String, val context: Option[CreationContext] = None, val rid: String, val edata: CreationEData, val tags: List[AnyRef]) extends Input with AlgoInput;
+case class CreationEvent(val eid: String, val ets: Long, `@timestamp`: String, val ver: String, val mid: String, val channel: Option[String], val pdata: Option[CreationPData] = None, val cdata: Option[List[CreationCData]] = None, val uid: String, val context: Option[CreationContext] = None, val rid: String, val edata: CreationEData, val tags: List[AnyRef], val etags: Option[ETags] = Option(ETags(None,None,None))) extends Input with AlgoInput;
+

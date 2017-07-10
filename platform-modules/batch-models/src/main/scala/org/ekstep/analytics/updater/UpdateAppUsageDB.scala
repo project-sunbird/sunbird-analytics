@@ -21,17 +21,18 @@ import org.ekstep.analytics.util.BloomFilterUtil
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * Case Classes for the data product
  */
-case class PortalUsageSummaryIndex(d_period: Int, d_author_id: String, d_app_id: String) extends Output
-case class PortalUsageSummaryFact(d_period: Int, d_author_id: String, d_app_id: String, anon_total_sessions: Long, anon_total_ts: Double,
+case class PortalUsageSummaryIndex(d_period: Int, d_author_id: String, d_app_id: String, d_channel: String) extends Output
+case class PortalUsageSummaryFact(d_period: Int, d_author_id: String, d_app_id: String, d_channel: String, anon_total_sessions: Long, anon_total_ts: Double,
                                   total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                                   total_pageviews_count: Long, unique_users: Array[Byte], unique_users_count: Long, avg_pageviews: Double,
                                   avg_ts_session: Double, anon_avg_ts_session: Double, new_user_count: Long,
                                   percent_new_users_count: Double, updated_date: Long) extends AlgoOutput with CassandraTable
-case class PortalUsageSummaryFact_T(d_period: Int, d_author_id: String, d_app_id: String, last_gen_date: Long, anon_total_sessions: Long, anon_total_ts: Double,
+case class PortalUsageSummaryFact_T(d_period: Int, d_author_id: String, d_app_id: String, d_channel: String, last_gen_date: Long, anon_total_sessions: Long, anon_total_ts: Double,
                                     total_sessions: Long, total_ts: Double, ce_total_sessions: Long, ce_percent_sessions: Double,
                                     total_pageviews_count: Long, unique_users: List[String], unique_users_count: Long, avg_pageviews: Double,
                                     avg_ts_session: Double, anon_avg_ts_session: Double, new_user_count: Long,
@@ -63,7 +64,8 @@ object UpdateAppUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
 
             val period = x.dimensions.period.get;
             val authorId = x.dimensions.author_id.get;
-            val appId = x.dimensions.app_id.get;
+            val appId = CommonUtil.getAppDetails(x).id
+            val channel = CommonUtil.getChannelId(x)
 
             val eksMap = x.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
@@ -82,7 +84,7 @@ object UpdateAppUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
             val new_user_count = eksMap.get("new_user_count").get.asInstanceOf[Number].longValue()
             val percent_new_users_count = eksMap.get("percent_new_users_count").get.asInstanceOf[Double]
 
-            PortalUsageSummaryFact_T(period, authorId, appId, x.context.date_range.to, anon_total_sessions, anon_total_ts, total_sessions, total_ts, ce_total_sessions, ce_percent_sessions,
+            PortalUsageSummaryFact_T(period, authorId, appId, channel, x.context.date_range.to, anon_total_sessions, anon_total_ts, total_sessions, total_ts, ce_total_sessions, ce_percent_sessions,
                 total_pageviews_count, unique_users, unique_users_count, avg_pageviews, avg_ts_session, anon_avg_ts_session, new_user_count, percent_new_users_count);
         }.cache();
 
@@ -95,22 +97,22 @@ object UpdateAppUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT)
         // Save to influx by filtering cumulative record
         saveToInfluxDB(data);
-        data.map { x => PortalUsageSummaryIndex(x.d_period, x.d_author_id, x.d_app_id) };
+        data.map { x => PortalUsageSummaryIndex(x.d_period, x.d_author_id, x.d_app_id, x.d_channel) };
     }
 
     private def rollup(data: RDD[PortalUsageSummaryFact_T], period: Period): RDD[PortalUsageSummaryFact] = {
 
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.last_gen_date, period);
-            (PortalUsageSummaryIndex(d_period, x.d_author_id, x.d_app_id), PortalUsageSummaryFact_T(d_period, x.d_author_id, x.d_app_id, x.last_gen_date, x.anon_total_sessions, x.anon_total_ts, x.total_sessions, x.total_ts, x.ce_total_sessions, x.ce_percent_sessions,
+            (PortalUsageSummaryIndex(d_period, x.d_author_id, x.d_app_id, x.d_channel), PortalUsageSummaryFact_T(d_period, x.d_author_id, x.d_app_id, x.d_channel, x.last_gen_date, x.anon_total_sessions, x.anon_total_ts, x.total_sessions, x.total_ts, x.ce_total_sessions, x.ce_percent_sessions,
                 x.total_pageviews_count, x.unique_users, x.unique_users_count, x.avg_pageviews, x.avg_ts_session, x.anon_avg_ts_session, x.new_user_count, x.percent_new_users_count));
         }.reduceByKey(reducePUS);
-        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[PortalUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_author_id", "d_app_id"));
+        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[PortalUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_author_id", "d_app_id", "d_channel"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
             val newSumm = x._2._1
-            val prvSumm = x._2._2.getOrElse(PortalUsageSummaryFact(index.d_period, index.d_author_id, index.d_app_id, 0L, 0.0, 0L, 0.0, 0L, 0.0, 0L, BloomFilterUtil.getDefaultBytes(period), 0L, 0.0, 0.0, 0.0, 0L, 0.0, 0L));
+            val prvSumm = x._2._2.getOrElse(PortalUsageSummaryFact(index.d_period, index.d_author_id, index.d_app_id, index.d_channel, 0L, 0.0, 0L, 0.0, 0L, 0.0, 0L, BloomFilterUtil.getDefaultBytes(period), 0L, 0.0, 0.0, 0.0, 0L, 0.0, 0L));
             reduce(prvSumm, newSumm, period);
         }
         rollupSummaries;
@@ -132,7 +134,7 @@ object UpdateAppUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
         val new_user_count = fact2.new_user_count + fact1.new_user_count
         val percent_new_users_count = if (new_user_count == 0 || unique_users_count == 0) 0d else CommonUtil.roundDouble(((new_user_count / (unique_users_count * 1d)) * 100), 2);
 
-        PortalUsageSummaryFact_T(fact1.d_period, fact1.d_author_id, fact1.d_app_id, fact1.last_gen_date, anon_total_sessions, anon_total_ts, total_sessions, total_ts, ce_total_sessions, ce_percent_sessions,
+        PortalUsageSummaryFact_T(fact1.d_period, fact1.d_author_id, fact1.d_app_id, fact1.d_channel, fact1.last_gen_date, anon_total_sessions, anon_total_ts, total_sessions, total_ts, ce_total_sessions, ce_percent_sessions,
             total_pageviews_count, unique_users, unique_users_count, avg_pageviews, avg_ts_session, anon_avg_ts_session, new_user_count, percent_new_users_count);
     }
 
@@ -154,15 +156,15 @@ object UpdateAppUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
         val unique_users = BloomFilterUtil.serialize(bf);
         val percent_new_users_count = if (new_user_count == 0 || unique_users_count == 0) 0d else CommonUtil.roundDouble(((new_user_count / (unique_users_count * 1d)) * 100), 2);
 
-        PortalUsageSummaryFact(fact1.d_period, fact1.d_author_id, fact1.d_app_id, anon_total_sessions, anon_total_ts, total_sessions, total_ts, ce_total_sessions, ce_percent_sessions,
+        PortalUsageSummaryFact(fact1.d_period, fact1.d_author_id, fact1.d_app_id, fact1.d_channel, anon_total_sessions, anon_total_ts, total_sessions, total_ts, ce_total_sessions, ce_percent_sessions,
             total_pageviews_count, unique_users, unique_users_count, avg_pageviews, avg_ts_session, anon_avg_ts_session, new_user_count, percent_new_users_count, System.currentTimeMillis());
     }
 
     private def saveToInfluxDB(data: RDD[PortalUsageSummaryFact])(implicit sc: SparkContext) {
         val metrics = data.filter { x => x.d_period != 0 }.map { x =>
-            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_app_id", "unique_users", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_app_id", "d_channel", "unique_users", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "app_id" -> x.d_app_id), fields, time._1);
+            InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "app_id" -> x.d_app_id, "channel" -> x.d_channel), fields, time._1);
         };
         val authors  = getDenormalizedData("User", data.map { x => x.d_author_id })
         metrics.denormalize("author_id", "author_name", authors).saveToInflux(APP_USAGE_METRICS);

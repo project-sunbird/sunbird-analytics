@@ -24,8 +24,10 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.updater.LearnerProfile
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.ETags
 
-case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, tags: AnyRef, dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long) extends AlgoOutput
+case class StageSummary(uid: String, groupUser: Boolean, anonymousUser: Boolean, sid: String, syncts: Long, gdata: GData, did: String, etags: Option[ETags] = Option(ETags(None, None, None)), dt_range: DtRange, stageId: String, timeSpent: Double, visitCount: Long, pdata: PData, channel: String) extends AlgoOutput
 
 object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, StageSummary, MeasuredEvent] with Serializable {
 
@@ -38,11 +40,13 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
 
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[StageSummary] = {
         data.map { event =>
+            val pdata = CommonUtil.getAppDetails(event)
+            val channel = CommonUtil.getChannelId(event)
             val screenSummaries = event.edata.eks.screenSummary;
             if (null != screenSummaries && screenSummaries.size > 0) {
                 screenSummaries.map { x =>
                     val ss = JSONUtils.deserialize[ScreenSummary](JSONUtils.serialize(x));
-                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.tags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount)
+                    StageSummary(event.uid, event.dimensions.group_user, event.dimensions.anonymous_user, event.mid, event.syncts, event.dimensions.gdata, event.dimensions.did, event.etags, event.context.date_range, ss.id, ss.timeSpent, ss.visitCount, pdata, channel)
                 }
             } else {
                 Array[StageSummary]();
@@ -53,15 +57,15 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
     override def postProcess(data: RDD[StageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
         data.map { summary =>
-            val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to);
+            val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to, Option(summary.pdata.id), Option(summary.channel));
             val measures = Map(
                 "stageId" -> summary.stageId,
                 "timeSpent" -> summary.timeSpent,
                 "visitCount" -> summary.visitCount);
-            val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ScreenSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]);
-            MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.gdata.id), None,
+            val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ScreenSummary").asInstanceOf[String]));
+            MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, summary.channel, Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", summary.dt_range),
-                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), Option(summary.tags));
+                Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), summary.etags);
         };
     }
 }

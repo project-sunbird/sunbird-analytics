@@ -10,7 +10,7 @@ object SessionSummaryJobs extends optional.Application with IJob {
     val className = "org.ekstep.analytics.job.SessionSummaryJobs";
     
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
-        val models = List(ContentUsageSummaryModel, ItemUsageSummaryModel, StageSummaryModel)
+        val models = List(ContentUsageSummaryModel, ItemSummaryModel, StageSummaryModel)
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, models, className);
     }

@@ -26,10 +26,11 @@ import org.ekstep.analytics.framework.Period
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.conf.AppConf
 
 
 case class InputEventsGenieSummary(gk: GenieKey, events: Buffer[GenieUsageMetricsSummary]) extends Input with AlgoInput
-case class GenieUsageMetricsSummary(gk: GenieKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, dt_range: DtRange, syncts: Long, contents: Array[String], device_ids: Array[String]) extends AlgoOutput;
+case class GenieUsageMetricsSummary(gk: GenieKey, pdata: PData, total_ts: Double, total_sessions: Long, avg_ts_session: Double, dt_range: DtRange, syncts: Long, contents: Array[String], device_ids: Array[String]) extends AlgoOutput;
 
 object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsGenieSummary, GenieUsageMetricsSummary, MeasuredEvent] with Serializable {
 
@@ -48,18 +49,18 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
         val contents = events.map { x => x.contents }.reduce((a,b) => a ++ b).distinct;
         val device_ids = events.map { x => x.device_ids }.reduce((a,b) => a ++ b).distinct;
-        GenieUsageMetricsSummary(gk, total_ts, total_sessions, avg_ts_session, date_range, lastEvent.syncts, contents, device_ids);
+        GenieUsageMetricsSummary(gk, firstEvent.pdata, total_ts, total_sessions, avg_ts_session, date_range, lastEvent.syncts, contents, device_ids);
     }
     
-    private def getGenieUsageSummary(event: DerivedEvent, period: Int, tagId: String): GenieUsageMetricsSummary = {
+    private def getGenieUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, tagId: String): GenieUsageMetricsSummary = {
 
-        val gk = GenieKey(period, tagId);
+        val gk = GenieKey(period, pdata.id, channel, tagId);
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         val total_ts = eksMap.get("timeSpent").get.asInstanceOf[Double];
         val total_sessions = 1;
         val avg_ts_session = total_ts;
         val contents = eksMap.get("content").get.asInstanceOf[List[String]].toArray;
-        GenieUsageMetricsSummary(gk, total_ts, total_sessions, avg_ts_session, event.context.date_range, event.syncts, contents, Array(event.dimensions.did.get));
+        GenieUsageMetricsSummary(gk, pdata, total_ts, total_sessions, avg_ts_session, event.context.date_range, event.syncts, contents, Array(event.dimensions.did.get));
     }
     
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsGenieSummary] = {
@@ -74,10 +75,14 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
             var list: ListBuffer[GenieUsageMetricsSummary] = ListBuffer[GenieUsageMetricsSummary]();
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
-            list += getGenieUsageSummary(event, period, "all");
+            
+            val pdata = CommonUtil.getAppDetails(event)
+            val channel = CommonUtil.getChannelId(event)
+            
+            list += getGenieUsageSummary(event, period, pdata, channel, "all");
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += getGenieUsageSummary(event, period, tag);
+                list += getGenieUsageSummary(event, period, pdata, channel, tag);
             }
             list.toArray;
         }.flatMap { x => x.map { x => x } };
@@ -94,7 +99,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
 
     override def postProcess(data: RDD[GenieUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { guMetrics =>
-            val mid = CommonUtil.getMessageId("ME_GENIE_USAGE_SUMMARY", guMetrics.gk.tag + guMetrics.gk.period, "DAY", guMetrics.syncts);
+            val mid = CommonUtil.getMessageId("ME_GENIE_USAGE_SUMMARY", guMetrics.gk.tag + guMetrics.gk.period, "DAY", guMetrics.syncts, Option(guMetrics.gk.app_id), Option(guMetrics.gk.channel));
             val measures = Map(
                 "total_ts" -> guMetrics.total_ts,
                 "total_sessions" -> guMetrics.total_sessions,
@@ -102,9 +107,9 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
                 "contents" -> guMetrics.contents,
                 "device_ids" -> guMetrics.device_ids)
 
-            MeasuredEvent("ME_GENIE_USAGE_SUMMARY", System.currentTimeMillis(), guMetrics.syncts, "1.0", mid, "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "GenieUsageSummaryModel").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], guMetrics.dt_range),
-                Dimensions(None, None, None, None, None, None, None, None, None, Option(guMetrics.gk.tag), Option(guMetrics.gk.period)),
+            MeasuredEvent("ME_GENIE_USAGE_SUMMARY", System.currentTimeMillis(), guMetrics.syncts, "1.0", mid, "", guMetrics.gk.channel, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummaryModel").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], guMetrics.dt_range),
+                Dimensions(None, None, None, None, None, None, Option(guMetrics.pdata), None, None, None, Option(guMetrics.gk.tag), Option(guMetrics.gk.period)),
                 MEEdata(measures));
         }
     }
