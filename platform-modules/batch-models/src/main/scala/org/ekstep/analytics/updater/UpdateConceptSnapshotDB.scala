@@ -45,7 +45,7 @@ object UpdateConceptSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
                 (ConceptSnapshotKey(d_period, x.dimensions.concept_id.get, appId, channel), x);
             }
         }.flatMap(f => f)
-        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[ConceptSnapshotSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONCEPT_SNAPSHOT_SUMMARY).on(SomeColumns("d_period", "d_concept_id"));
+        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[ConceptSnapshotSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONCEPT_SNAPSHOT_SUMMARY).on(SomeColumns("d_period", "d_concept_id", "d_app_id", "d_channel"));
         val joinedData = currentData.leftOuterJoin(prvData)
         joinedData.map { f =>
             val prevSumm = f._2._2.getOrElse(null)

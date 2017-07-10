@@ -223,6 +223,8 @@ CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
     d_period int,
     d_author_id text,
     d_partner_id text,
+    d_app_id text,
+    d_channel text,
     total_author_count bigint,
     total_author_count_start bigint,
     active_author_count bigint,
@@ -236,7 +238,7 @@ CREATE TABLE IF NOT EXISTS content_db.content_snapshot_summary (
     creation_ts double,
     avg_creation_ts double,
     updated_date timestamp,
-    PRIMARY KEY (d_period, d_author_id, d_partner_id)
+    PRIMARY KEY (d_period, d_author_id, d_partner_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS content_db.concept_snapshot_summary (
