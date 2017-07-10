@@ -104,7 +104,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
 
             list ++= getContentPopularitySummary(event, period, "all", "all");
             list ++= getContentPopularitySummary(event, period, event.gdata.id, "all");
-            val tags = _getValidTags(Option(event.tags), registeredTags);
+            val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
                 list ++= getContentPopularitySummary(event, period, "all", tag); // for tag
                 list ++= getContentPopularitySummary(event, period, event.gdata.id, tag); // for tag and content
@@ -139,12 +139,5 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
                 Dimensions(None, None, cpMetrics.gdata, None, None, None, Option(cpMetrics.pdata), None, None, None, Option(cpMetrics.ck.tag), Option(cpMetrics.ck.period), Option(cpMetrics.ck.content_id)),
                 MEEdata(measures));
         }
-    }
-
-    private def _getValidTags(tags: Option[AnyRef], registeredTags: Array[String]): Array[String] = {
-        val tagList = tags.getOrElse(List()).asInstanceOf[List[Map[String, List[String]]]]
-        val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
-        val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
-        tempList.filter { x => registeredTags.contains(x) }.toArray;
     }
 }

@@ -511,8 +511,15 @@ object CommonUtil {
         x.toArray;
     }
 
-    def getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
-        val appTag = event.etags.get.app
+    def getValidTags(event: Any, registeredTags: Array[String]): Array[String] = {
+
+        val appTag = if (event.isInstanceOf[DerivedEvent]) {
+            event.asInstanceOf[DerivedEvent].etags.get.app
+        } else if (event.isInstanceOf[Event]) {
+            getETags(event.asInstanceOf[Event]).app
+        } else {
+            None
+        }
         val genieTagFilter = if (appTag.isDefined) appTag.get else List()
         genieTagFilter.filter { x => registeredTags.contains(x) }.toArray;
     }
@@ -557,11 +564,10 @@ object CommonUtil {
     }
 
     def getETags(event: Event): ETags = {
-
         if (event.etags.isDefined) {
             event.etags.get;
         } else {
-            if(event.tags != null) {
+            if (event.tags != null) {
                 val tags = event.tags.asInstanceOf[List[Map[String, List[String]]]]
                 val genieTags = tags.filter(f => f.contains("genie")).map { x => x.get("genie").get }.flatMap { x => x }
                 val partnerTags = tags.filter(f => f.contains("partner")).map { x => x.get("partner").get }.flatMap { x => x }
@@ -570,10 +576,10 @@ object CommonUtil {
             } else {
                 ETags(None, None, None)
             }
-            
+
         }
     }
-    
+
     def dayPeriodToLong(period: Int): Long = {
         val p = period.toString()
         if (8 == p.length()) {
@@ -581,5 +587,5 @@ object CommonUtil {
             dateFormat.parseMillis(date)
         } else 0l;
     }
-    
+
 }
