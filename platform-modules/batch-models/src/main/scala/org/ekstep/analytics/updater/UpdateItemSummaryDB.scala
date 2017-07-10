@@ -59,7 +59,7 @@ object UpdateItemSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEven
             							case None => 0
             						  	case Some(value) => value.asInstanceOf[Int]
             						}
-            						InCorrectRes(resp, mmc, count);
+            						InCorrectRes(resp.filter { x => null != x }, mmc.filter { x => null != x }, count);
             					}
             val correct_res = eksMap.get("correct_res").get.asInstanceOf[List[String]]
             val avg_ts = CommonUtil.roundDouble(total_ts / total_count, 2)
