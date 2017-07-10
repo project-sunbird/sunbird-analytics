@@ -23,6 +23,9 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         ContentAssetRelationModel.main("{}")(Option(sc));
         AuthorRelationsModel.main("{}")(Option(sc));
 
+        val setQuery = "MATCH (n) SET n.appid='Genie', n.channel='Ekstep'";
+        GraphQueryDispatcher.dispatch(setQuery)
+        
         // Populate ce usage summary fact table
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
@@ -34,7 +37,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
 
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
-
+        
         events.length should be(9)
         
         val event1 = rdd.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "all") }.first();
@@ -149,6 +152,9 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content', contentType:'story', createdFor:['org.ekstep.partner1'], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn"
         GraphQueryDispatcher.dispatch(query1)
 
+        val setQuery = "MATCH (n) SET n.appid='Genie', n.channel='Ekstep'";
+        GraphQueryDispatcher.dispatch(setQuery)
+        
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
 
@@ -187,7 +193,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks2.get("live_content_count").get should be(1)
         eks2.get("total_content_count").get should be(3)
         eks2.get("review_content_count").get should be(0)
-        eks2.get("total_user_count").get should be(1)
+        eks2.get("total_user_count").get should be(2)
         eks2.get("active_user_count").get should be(1)
         eks2.get("creation_ts").get should be(0.0)
         eks2.get("avg_creation_ts").get should be(0.0)
@@ -206,6 +212,9 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author_1', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content_1', contentType:'story', createdFor:[''], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn, cnt.createdFor"
         val res = GraphQueryDispatcher.dispatch(query1)
 
+        val setQuery = "MATCH (n) SET n.appid='Genie', n.channel='Ekstep'";
+        GraphQueryDispatcher.dispatch(setQuery)
+        
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
         val events = rdd.collect
 
