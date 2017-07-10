@@ -63,7 +63,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
                 "timeSpent" -> summary.timeSpent,
                 "visitCount" -> summary.visitCount);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ScreenSummary").asInstanceOf[String]));
-            MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, Option(summary.channel), Option(summary.gdata.id), None,
+            MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, summary.channel, Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", summary.dt_range),
                 Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), summary.etags);
         };

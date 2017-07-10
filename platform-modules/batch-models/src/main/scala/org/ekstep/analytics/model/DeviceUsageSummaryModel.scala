@@ -90,7 +90,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
                 "mean_play_time" -> usageSummary.mean_play_time,
                 "mean_play_time_interval" -> usageSummary.mean_play_time_interval,
                 "last_played_content" -> usageSummary.last_played_content);
-            MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", Option(usageSummary.channel), None, None,
+            MeasuredEvent("ME_DEVICE_USAGE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", usageSummary.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "DeviceUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "CUMULATIVE").asInstanceOf[String], DtRange(usageSummary.start_time.get, usageSummary.end_time.get)),
                 Dimensions(None, Option(usageSummary.device_id), None, None, None, None, Option(x.pdata)),
                 MEEdata(measures));

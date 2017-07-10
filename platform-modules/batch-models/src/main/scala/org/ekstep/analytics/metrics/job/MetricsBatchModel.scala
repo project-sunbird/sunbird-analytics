@@ -28,7 +28,7 @@ trait MetricsBatchModel[T, R] extends IBatchModel[T, R] {
 
     def getMeasuredEvent[T <: CassandraTable](eid: String, mid: String, channel: String, modelName: String, metrics: Map[String, AnyRef], dimension: Dimensions): MeasuredEvent = {
 
-        MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", Option(channel), None, None,
+        MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", channel, None, None,
             Context(PData("AnalyticsDataPipeline", "1.0", Option(modelName)), None, "DAY", null),
             dimension,
             MEEdata(metrics));

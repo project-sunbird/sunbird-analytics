@@ -195,7 +195,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         data.filter { x => x.timeSpent > 0 }.map { summary =>
             val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL", summary.funnel + summary.cid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.pdata.id), Option(summary.channel));
             val measures = summary.summary.toMap ++ Map("timeSpent" -> summary.timeSpent, "correlationID" -> summary.cid)
-            MeasuredEvent("ME_GENIE_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
+            MeasuredEvent("ME_GENIE_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", summary.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieFunnel").asInstanceOf[String])), None, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, None, None, None, Option(summary.sid), None, Option(summary.funnel), Option(summary.dspec), Option(summary.onboarding), Option(summary.genieVer)),
                 MEEdata(measures), summary.etags);

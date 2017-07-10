@@ -559,7 +559,9 @@ object CommonUtil {
         if (event.isInstanceOf[Event]) {
             if (event.asInstanceOf[Event].channel.isEmpty) defaultChannelId else event.asInstanceOf[Event].channel.get
         } else if (event.isInstanceOf[DerivedEvent]) {
-            if (event.asInstanceOf[DerivedEvent].channel.isEmpty) defaultChannelId else event.asInstanceOf[DerivedEvent].channel.get
+            if (null == event.asInstanceOf[DerivedEvent].channel) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
+        } else if (event.isInstanceOf[ProfileEvent]) {
+            if (event.asInstanceOf[ProfileEvent].channel.isEmpty) defaultChannelId else event.asInstanceOf[ProfileEvent].channel.get
         } else defaultChannelId;
     }
 

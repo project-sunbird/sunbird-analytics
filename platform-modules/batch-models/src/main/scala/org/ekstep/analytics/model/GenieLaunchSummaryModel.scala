@@ -121,7 +121,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
                 "content" -> summary.content,
                 "contentCount" -> summary.contentCount,
                 "screenSummary" -> summary.stageSummary);
-            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
+            MeasuredEvent("ME_GENIE_LAUNCH_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", summary.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata)),
                 MEEdata(measures), summary.etags);

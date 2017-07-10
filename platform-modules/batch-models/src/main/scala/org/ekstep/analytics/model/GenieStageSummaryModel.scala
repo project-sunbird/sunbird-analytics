@@ -51,7 +51,7 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
                 "interactEventsCount" -> summary.interactEventsCount,
                 "interactEvents" -> summary.interactEvents);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieStageSummary").asInstanceOf[String]));
-            MeasuredEvent("ME_GENIE_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, null, Option(summary.channel), None, None,
+            MeasuredEvent("ME_GENIE_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, null, summary.channel, None, None,
                 Context(pdata, None, "GENIE SESSION", summary.dt_range),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, None, None, Option(summary.sid), Option(summary.stageId)), MEEdata(measures), summary.etags);
         };

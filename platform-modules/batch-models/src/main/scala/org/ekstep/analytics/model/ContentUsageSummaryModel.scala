@@ -113,7 +113,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min,
                 "device_ids" -> cuMetrics.device_ids)
 
-            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, "1.0", mid, "", Option(cuMetrics.ck.channel), None, None,
+            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, "1.0", mid, "", cuMetrics.ck.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
                 Dimensions(None, None, cuMetrics.gdata, None, None, None, Option(cuMetrics.pdata), None, None, None, Option(cuMetrics.ck.tag), Option(cuMetrics.ck.period), Option(cuMetrics.ck.content_id)),
                 MEEdata(measures));

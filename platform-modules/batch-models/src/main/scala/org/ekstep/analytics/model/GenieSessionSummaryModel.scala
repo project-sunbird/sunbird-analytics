@@ -77,7 +77,7 @@ object GenieSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent] 
                 "time_stamp" -> summary.time_stamp,
                 "content" -> summary.content,
                 "contentCount" -> summary.contentCount);
-            MeasuredEvent("ME_GENIE_SESSION_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", Option(summary.channel), None, None,
+            MeasuredEvent("ME_GENIE_SESSION_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", summary.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser)),
                 MEEdata(measures), summary.etags);

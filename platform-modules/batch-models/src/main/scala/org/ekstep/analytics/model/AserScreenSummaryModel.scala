@@ -185,7 +185,7 @@ object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] wi
                 "scorecard" -> aserScreener.scorecard.get,
                 "summary" -> aserScreener.summary.get);
             val mid = CommonUtil.getMessageId("ME_ASER_SCREEN_SUMMARY", aserScreener.userId, "SESSION", aserScreener.dtRange, aserScreener.gameId);
-            MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), aserScreener.timeStamp, mid, "1.0", aserScreener.userId, None, None, None,
+            MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), aserScreener.timeStamp, mid, "1.0", aserScreener.userId, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String])), None, "SESSION", aserScreener.dtRange),
                 Dimensions(None, Option(aserScreener.did), Option(new GData(aserScreener.gameId, aserScreener.gameVersion)), None, None, None, None),
                 MEEdata(measures));

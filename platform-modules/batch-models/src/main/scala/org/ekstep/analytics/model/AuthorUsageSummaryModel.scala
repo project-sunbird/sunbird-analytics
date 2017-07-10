@@ -117,7 +117,7 @@ object AuthorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, AuthorU
                 "avg_ts_session" -> summary.avg_session_ts,
                 "ce_percent_ts" -> summary.percent_ce_ts);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AuthorUsageSummarizer").asInstanceOf[String]));
-            MeasuredEvent("ME_AUTHOR_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.ak.author, Option(summary.ak.channel), None, None,
+            MeasuredEvent("ME_AUTHOR_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.ak.author, summary.ak.channel, None, None,
                 Context(pdata, None, "DAY", summary.dt_range),
                 Dimensions(None, None, None, None, None, None, Option(summary.pdata), None, None, None, None, Option(summary.ak.period), None, None, None, None, None), MEEdata(measures), None);
         };

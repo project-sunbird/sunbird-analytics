@@ -97,7 +97,7 @@ object ContentSideloadingSummaryModel extends IBatchModelTemplate[Event, Content
                 "num_downloads" -> csSummary.summary.num_downloads,
                 "num_sideloads" -> csSummary.summary.num_sideloads,
                 "avg_depth" -> csSummary.summary.avg_depth);
-            MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), csSummary.synts, "1.0", mid, "", Option(csSummary.summary.channel), Option(csSummary.summary.content_id), None,
+            MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), csSummary.synts, "1.0", mid, "", csSummary.summary.channel, Option(csSummary.summary.content_id), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentSideloadingSummary").asInstanceOf[String])), None, "CUMULATIVE", csSummary.dtRange),
                 Dimensions(None, None, Option(new GData(csSummary.summary.content_id, "")), None, None, None, Option(csSummary.pdata)),
                 MEEdata(measures));
