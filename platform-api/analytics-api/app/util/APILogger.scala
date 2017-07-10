@@ -48,6 +48,7 @@ object APILogger {
 
 	private def getAccessMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): MeasuredEvent = {
 		val mid = "";
+		val apiConf = ConfigFactory.load();
 		val channel = apiConf.getString("log4j.appender.kafka.broker_host")
 		MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "",channel, None, None,
 			Context(PData("AnalyticsAPI", "1.0", Option("org.ekstep.analytics.api")), None, "EVENT", null),
