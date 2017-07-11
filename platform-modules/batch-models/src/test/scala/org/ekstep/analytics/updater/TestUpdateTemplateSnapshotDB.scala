@@ -33,11 +33,8 @@ class TestUpdateTemplateSnapshotDB extends SparkGraphSpec(null) {
         val query1 = "CREATE (as:domain{IL_FUNC_OBJECT_TYPE:'AssessmentItem', IL_UNIQUE_ID:'test-question1',template:'test-template1'}) RETURN as"
         GraphQueryDispatcher.dispatch(query1)
         
-        val test = "MATCH (as:domain{IL_FUNC_OBJECT_TYPE:'AssessmentItem'}) RETURN as.IL_UNIQUE_ID"
-        val res = GraphQueryDispatcher.dispatch(test)
-        println(res.list())
-
         UpdateTemplateSnapshotDB.execute(sc.makeRDD(List(Empty())), None)
+        
         /*  val data = sc.cassandraTable[TemplateSnapshotMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.TEMPLATE_SNAPSHOT_METRICS_TABLE).collect
         data.length should be(3)
         data.map { x => x.d_template_id }.foreach { x =>

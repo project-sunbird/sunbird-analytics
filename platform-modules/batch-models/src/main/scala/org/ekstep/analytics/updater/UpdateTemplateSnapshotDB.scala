@@ -41,7 +41,7 @@ object UpdateTemplateSnapshotDB extends IBatchModelTemplate[Empty, Empty, Templa
     }
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
 
-        val res = GraphQueryDispatcher.dispatch(CypherQueries.TEMPLATE_ASSES_REL_CREATION)
+        GraphQueryDispatcher.dispatch(CypherQueries.TEMPLATE_ASSES_REL_CREATION)
         GraphQueryDispatcher.dispatch(CypherQueries.TEMPLATE_CONTENT_REL_CREATION)
 
         data
