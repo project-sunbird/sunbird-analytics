@@ -116,14 +116,14 @@ object DataFilter {
         name match {
             case "eventId" => getBeanProperty(event, "eid");
             case "ts"      => CommonUtil.getTimestamp(getBeanProperty(event, "ts").asInstanceOf[String]).asInstanceOf[AnyRef];
-            case "eventts"  =>
-                if(event.isInstanceOf[Event]){
-                    CommonUtil.getTimestamp(getBeanProperty(event, "metadata.sync_timestamp").asInstanceOf[String]).asInstanceOf[AnyRef];    
-                }else if(event.isInstanceOf[MeasuredEvent]){
-                    getBeanProperty(event, "syncts").asInstanceOf[AnyRef];    
-                }else {
+            case "eventts" =>
+                if (event.isInstanceOf[Event]) {
+                    CommonUtil.getTimestamp(getBeanProperty(event, "metadata.sync_timestamp").asInstanceOf[String]).asInstanceOf[AnyRef];
+                } else if (event.isInstanceOf[MeasuredEvent]) {
+                    getBeanProperty(event, "syncts").asInstanceOf[AnyRef];
+                } else {
                     val eventMap = CommonUtil.caseClassToMap(event)
-                    CommonUtil.getTimestamp(eventMap.get("$attimestamp").get.asInstanceOf[String]).asInstanceOf[AnyRef];    
+                    CommonUtil.getTimestamp(eventMap.get("$attimestamp").get.asInstanceOf[String]).asInstanceOf[AnyRef];
                 }
             case "gameId" =>
                 val gid = getBeanProperty(event, "edata.eks.gid");
@@ -132,9 +132,8 @@ object DataFilter {
                 else
                     gid;
             case "genieTag" =>
-                val tags = getBeanProperty(event, "tags").asInstanceOf[List[Map[String, List[String]]]];
-                val genieTagFilter = if (null != tags && tags.nonEmpty) tags.filter(f => f.contains("genie")) else List()
-                if (genieTagFilter.nonEmpty) genieTagFilter.last.get("genie").get; else List();
+                val tags = getBeanProperty(event, "etags").asInstanceOf[ETags].app;
+                if (tags.isDefined) tags.get else List()
             case "gameVersion"      => getBeanProperty(event, "gdata.ver");
             case "userId"           => getBeanProperty(event, "uid");
             case "sessionId"        => getBeanProperty(event, "sid");
