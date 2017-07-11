@@ -85,7 +85,7 @@ object UpdateTemplateSnapshotDB extends IBatchModelTemplate[Empty, Empty, Templa
     private def saveToInfluxDB(data: RDD[TemplateSnapshotMetrics])(implicit sc: SparkContext) {
         val metrics = data.map { x =>
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "template_id" -> x.d_template_id), Map("author_id" -> x.author_id, "category" -> x.category, "template_name" -> x.template_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef]), time._1);
+            InfluxRecord(Map("period" -> time._2, "template_id" -> x.d_template_id), Map("author_id" -> x.author_id, "category" -> x.category, "template_name" -> x.template_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef], "question_count_start" -> x.question_count_start.asInstanceOf[AnyRef], "question_count" -> x.question_count.asInstanceOf[AnyRef]), time._1);
         }
         val authors = getDenormalizedData("User", data.map { x => x.author_id })
         metrics.denormalize("author_id", "author_name", authors).saveToInflux(TEMPLATE_SNAPSHOT_METRICS);
