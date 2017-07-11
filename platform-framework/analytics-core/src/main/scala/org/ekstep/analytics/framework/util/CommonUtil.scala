@@ -412,7 +412,7 @@ object CommonUtil {
     }
 
     def getDefaultAppChannelIds(): (String, String) = {
-        (AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"))
+        (AppConf.getConfig("default.consumption.app.id"), AppConf.getConfig("default.channel.id"))
     }
 
     def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA", appId: Option[String] = Option(getDefaultAppChannelIds._1), channelId: Option[String] = Option(getDefaultAppChannelIds._2)): String = {
@@ -544,7 +544,7 @@ object CommonUtil {
     }
 
     def getAppDetails(event: Any): PData = {
-        val defaultAppId = PData(AppConf.getConfig("default.app.id"), "1.0")
+        val defaultAppId = PData(AppConf.getConfig("default.consumption.app.id"), "1.0")
         if (event.isInstanceOf[Event]) {
             if (event.asInstanceOf[Event].pdata.isEmpty) defaultAppId else event.asInstanceOf[Event].pdata.get
         } else if (event.isInstanceOf[DerivedEvent]) {
