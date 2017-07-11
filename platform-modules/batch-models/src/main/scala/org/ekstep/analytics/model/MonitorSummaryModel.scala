@@ -19,8 +19,8 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import collection.JavaConversions._
 import com.flyberrycapital.slack.SlackClient
-
 import net.liftweb.json.Serialization.write
+import org.apache.commons.math3.analysis.function.Asin
 
 /**
  * @dataproduct
@@ -109,7 +109,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val totalTs = milliSecondsToTimeFormat(jobMonitorToSclack.total_ts)
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
-        val modelMapping = JSONUtils.deserialize[List[ModelMapping]](config.get("model").get.asInstanceOf[String]).toSet
+        val modelMapping = config.get("model").get.asInstanceOf[List[AnyRef]].map { x => JSONUtils.deserialize[ModelMapping](JSONUtils.serialize(x))}.toSet
         val consumptionJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "consumption")
         val creationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "creation")
         val recommendationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "recommendation")
