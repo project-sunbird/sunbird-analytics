@@ -584,6 +584,20 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.plugin_snapshot_metrics (
      PRIMARY KEY (d_period, d_plugin_id)
 );
 
+CREATE TABLE IF NOT EXISTS creation_metrics_db.template_snapshot_metrics (
+     d_period int, 
+     d_template_id text, 
+     template_name text, 
+     category text, 
+     author_id text, 
+     content_count bigint, 
+     content_count_start bigint,
+     question_count bigint,
+     question_count_start bigint,
+     updated_date timestamp,
+     PRIMARY KEY (d_period, d_template_id)
+);
+
 
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
 INSERT INTO platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
