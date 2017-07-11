@@ -25,18 +25,17 @@ object CypherQueries {
 
     /**
      * Concept Snapshot Summarizer Cypher Query
-     **/
-    
+     */
+
     val CONCEPT_SNAPSHOT_TOTAL_CONTENT_COUNT = "MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) RETURN cnc.IL_UNIQUE_ID AS identifier, cnc.appid as appId, cnc.channel as channel, cnc.contentCount AS count"
     val CONCEPT_SNAPSHOT_REVIEW_CONTENT_COUNT = "MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[r:associatedTo]->(cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) WHERE lower(cnt.contentType) IN ['story', 'game', 'collection', 'worksheet'] AND cnt.status='Review' WITH cnc, count(r) AS count RETURN cnc.IL_UNIQUE_ID AS identifier, cnc.appid as appId, cnc.channel as channel, count"
     val CONCEPT_SNAPSHOT_LIVE_CONTENT_COUNT = "MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:'Concept'}) RETURN cnc.IL_UNIQUE_ID AS identifier, cnc.appid as appId, cnc.channel as channel, cnc.liveContentCount AS count"
-    
-   
+
     /**
      * Asset Snapshot Summarizer Cypher Query
-     * 
-     **/
-    
+     *
+     */
+
     val ASSET_SNAP_MEDIA_TOTAL = "MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:'Content',contentType:'Asset'}) RETURN ast.appid as appId, ast.channel as channel, ast.mediaType as mediaType, count(ast.IL_UNIQUE_ID) as count" //"MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:'Content',contentType:'Asset'}) RETURN ast.mediaType as mediaType, count(ast.IL_UNIQUE_ID) as count"
     val ASSET_SNAP_MEDIA_USED = "MATCH p=(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[r:uses]->(ast:domain{IL_FUNC_OBJECT_TYPE:'Content',contentType:'Asset'}) RETURN ast.appid as appId, ast.channel as channel, ast.mediaType as mediaType, count(distinct ast.IL_UNIQUE_ID) as count" //"MATCH p=(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'})-[r:uses]->(ast:domain{IL_FUNC_OBJECT_TYPE:'Content',contentType:'Asset'}) RETURN ast.mediaType as mediaType, count(distinct ast.IL_UNIQUE_ID) as count"
     val ASSET_SNAP_TOTAL_QUESTION = "MATCH (as: domain {IL_FUNC_OBJECT_TYPE:'AssessmentItem'}) return as.appid as appId, as.channel as channel, count(as) as count" //"match (as: domain {IL_FUNC_OBJECT_TYPE:'AssessmentItem'}) return count(as) as count"
@@ -52,6 +51,23 @@ object CypherQueries {
      */
 
     val PLUGIN_SNAPSHOT_METIRCS = """MATCH (p:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Plugin'}) OPTIONAL MATCH (p)<-[r:uses]-(n:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(n.contentType) in ["game", "worksheet", "story", "collection"] RETURN p.IL_UNIQUE_ID as plugin_id, p.name as name, CASE WHEN p.category IS null THEN [] ELSE p.category END as category, CASE WHEN p.createdBy IS null THEN "" ELSE p.createdBy END as author, count(n) as contentCount"""
+
+    /**
+     * Create Relationship AssessmentItem and Template
+     *
+     */
+    val TEMPLATE_ASSES_REL_CREATION = """MATCH (q: domain {IL_FUNC_OBJECT_TYPE:'AssessmentItem'}), (temp:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Template'}) WHERE q.template = temp.IL_UNIQUE_ID MERGE (q)-[r:uses]->(temp)"""
+    /**
+     * Create Relationship Content and Template
+     *
+     */
+
+    val TEMPLATE_CONTENT_REL_CREATION = """MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}), (temp:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType: 'Template'}) WHERE cnt.template = temp.IL_UNIQUE_ID MERGE (cnt)-[r:uses]->(temp)"""
+    /**
+     * Template Snapshot Matrix Cypher Query
+     *
+     */
+    val TEMPLATE_SNAPSHOT_METIRCS = """MATCH (temp:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Template'}) OPTIONAL MATCH (temp)<-[r:uses]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) in ["game", "worksheet", "story", "collection"] with temp, count(cnt) as contentCount OPTIONAL MATCH (temp)<-[re:uses]-(q:domain{IL_FUNC_OBJECT_TYPE:'AssessmentItem'}) with temp, contentCount, count(q) as questionCount RETURN temp.IL_UNIQUE_ID as template_id, temp.name as name, CASE WHEN temp.category IS null THEN [] ELSE temp.category END as category, CASE WHEN temp.createdBy IS null THEN "" ELSE temp.createdBy END as author, contentCount, questionCount""" //"""MATCH (temp:domain{IL_FUNC_OBJECT_TYPE:'Content', contentType:'Template'}) OPTIONAL MATCH (temp)<-[r:uses]-(cnt:domain{IL_FUNC_OBJECT_TYPE:'Content'}) WHERE lower(cnt.contentType) in ["game", "worksheet", "story", "collection"] OPTIONAL MATCH (temp)<-[re:uses]-(q:domain{IL_FUNC_OBJECT_TYPE:'AssessmentItem'})  RETURN temp.IL_UNIQUE_ID as template_id, temp.name as name, CASE WHEN temp.category IS null THEN [] ELSE temp.category END as category, CASE WHEN temp.createdBy IS null THEN "" ELSE temp.createdBy END as author, count(cnt) as contentCount,count(q) as questionCount"""
 
     /**
      * Content Creation Metrics Cypher Query

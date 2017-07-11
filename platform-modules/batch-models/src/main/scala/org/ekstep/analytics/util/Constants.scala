@@ -52,6 +52,7 @@ object Constants {
     val TEXTBOOK_SNAPSHOT_METRICS_TABLE = "textbook_snapshot_metrics";
     val TEXTBOOK_SESSION_METRICS_FACT = "textbook_metrics_summary_fact";
     val PLUGIN_SNAPSHOT_METRICS_TABLE = "plugin_snapshot_metrics";
+    val TEMPLATE_SNAPSHOT_METRICS_TABLE = "template_snapshot_metrics";
 
     val DEFAULT_APP_ID = "EkstepPortal";
 
