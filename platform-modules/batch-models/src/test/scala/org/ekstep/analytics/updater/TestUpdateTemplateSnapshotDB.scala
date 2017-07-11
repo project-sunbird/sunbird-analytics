@@ -27,25 +27,24 @@ class TestUpdateTemplateSnapshotDB extends SparkGraphSpec(null) {
         }
     }
 
-    "TemplateSnapshotMetric" should "generate All plugin matrix data" in {
+    "TemplateSnapshotMetric" should "generate All Template metrics data" in {
         val query2 = "CREATE (temp:domain{IL_FUNC_OBJECT_TYPE:'Content',contentType:'Template',category:['domain'],name:'test-temp',createdBy:'test-author1', IL_UNIQUE_ID:'test-template1'}) RETURN temp"
         GraphQueryDispatcher.dispatch(query2)
         val query1 = "CREATE (as:domain{IL_FUNC_OBJECT_TYPE:'AssessmentItem', IL_UNIQUE_ID:'test-question1',template:'test-template1'}) RETURN as"
         GraphQueryDispatcher.dispatch(query1)
-        
         UpdateTemplateSnapshotDB.execute(sc.makeRDD(List(Empty())), None)
-        
-        /*  val data = sc.cassandraTable[TemplateSnapshotMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.TEMPLATE_SNAPSHOT_METRICS_TABLE).collect
+        val data = sc.cassandraTable[TemplateSnapshotMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.TEMPLATE_SNAPSHOT_METRICS_TABLE).collect
         data.length should be(3)
         data.map { x => x.d_template_id }.foreach { x =>
             x.nonEmpty should be(true)
         }
-        val test_IdData = data.filter { x => "test-template-1".equals(x.d_template_id) }.last
-        test_IdData.d_template_id should be("test-plugin-1")
-        test_IdData.template_name should be("Untitled lesson")
-        test_IdData.author_id should be("177")
-        test_IdData.content_count should be(1)*/
-
+        val test_IdData = data.filter { x => "test-template1".equals(x.d_template_id) }.last
+        test_IdData.d_template_id should be("test-template1")
+        test_IdData.template_name should be("test-temp")
+        test_IdData.author_id should be("test-author1")
+        test_IdData.category should be("domain")
+        test_IdData.content_count should be(3)
+        test_IdData.question_count should be(1)
     }
 
 }

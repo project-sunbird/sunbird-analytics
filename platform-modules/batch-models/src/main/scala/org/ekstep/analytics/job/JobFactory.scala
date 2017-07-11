@@ -168,6 +168,8 @@ object JobFactory {
                 PluginSnapshotMetricsUpdater
             case "api-usage-summ" =>
                 APIUsageSummarizer
+            case "template-snapshot-updater" =>
+                TemplateSnapshotMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
