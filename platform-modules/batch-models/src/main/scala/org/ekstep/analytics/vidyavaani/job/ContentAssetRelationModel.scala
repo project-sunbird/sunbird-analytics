@@ -47,12 +47,10 @@ object ContentAssetRelationModel extends IGraphExecutionModel with Serializable 
             .map(f => (f._1, getAssetIds(f._2, f._1))).filter { x => x._2.nonEmpty }
 
         val relationsData = data.map { x =>
-            val startNode = DataNode(x._1, None, Option(List("domain")));
-            x._2.map { x =>
-                val endNode = DataNode(x, None, Option(List("domain")));
-                GraphDBUtil.addRelationQuery(startNode, endNode, RELATION, RelationshipDirection.OUTGOING.toString)
-            }
-        }.flatMap { x => x }
+        	if (x._2.length > 0)
+        		"""MATCH (ee:domain{IL_UNIQUE_ID:""""+x._1+""""}), (aa:domain{}) WHERE aa.IL_UNIQUE_ID IN [""""+x._2.mkString("""","""")+""""] CREATE (ee)-[r:uses]->(aa)""";
+        	else "";
+        }.filter { x => StringUtils.isNotBlank(x) }
         ppQueries.union(relationsData).union(sc.parallelize(algorithmQueries, JobContext.parallelization));
     }
 
