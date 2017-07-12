@@ -249,8 +249,9 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                 val itemObj = getItem(itemMapping.value, x);
                 val metadata = itemObj.metadata;
 
+                // TODO: We need to inverse this logic by checking RAW telemetry version numbers before 2.0
                 val resValues = telemetryVer match {
-                    case "2.0" =>
+                    case "2.0" | "2.1" =>
                         if (null == x.edata.eks.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(x.edata.eks.resvalues.map(f => f.asInstanceOf[AnyRef]))
                     case _ =>
                         None;
