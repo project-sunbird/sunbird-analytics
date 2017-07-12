@@ -130,7 +130,7 @@ class TestUpdateAssetSnapshotDB extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM asset_snapshot_metrics where period = 'week' and partner_id = 'all'")
-            val recordMap = getInfluxRecordMap(queryResult, 0)
+            val recordMap = getInfluxRecordMap(queryResult, "all", "week", "2017-04-30")
             recordMap.get("used_images_count").get.toLong should be(29542L)
             recordMap.get("used_audio_count").get.toLong should be(23258L)
 
@@ -147,9 +147,11 @@ class TestUpdateAssetSnapshotDB extends SparkSpec(null) {
 
         }
     }
-    def getInfluxRecordMap(queryResult: QueryResult, rowIndex: Int): Map[String, String] = {
+    def getInfluxRecordMap(queryResult: QueryResult, partner_id: String, period: String, date: String): Map[String, String] = {
+        val row = queryResult.result.singleSeries.rows.toList.map{x => x.values.mkString(",")}.filter { x => x.contains(partner_id) && x.contains(period) && x.contains(date) }.head
+        val values = StringUtils.split(row, ",").map{x => StringUtils.substring(x, StringUtils.indexOf(x, "(")+1, StringUtils.indexOf(x, ")"))}
         val cols = sc.parallelize(queryResult.result.singleSeries.columns).zipWithIndex().map { case (k, v) => (v, k) }
-        val vals = sc.parallelize(queryResult.result.singleSeries.rows(rowIndex).values).zipWithIndex().map { case (k, v) => (v, k) }
-        cols.leftOuterJoin(vals).map(x => x._2).map(f => (f._1.toString(), f._2.get.mkString)).collect().toMap
+        val vals = sc.parallelize(values).zipWithIndex().map { case (k, v) => (v, k) }
+        cols.leftOuterJoin(vals).map(x => x._2).map(f => (f._1.toString(), f._2.get)).collect().toMap  
     }
 }

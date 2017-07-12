@@ -161,7 +161,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         events.length should be(11)
 
         // Check for author_id = all
-        val event1 = events(0);
+        val event1 = events.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "all") }.head;
 
         event1.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
@@ -180,7 +180,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks1.get("avg_creation_ts").get should be(0.0)
 
         // Check for specific partner_id
-        val event2 = events(5);
+        val event2 = events.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "org.ekstep.partner1") }.head;
 
         event2.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event2.context.pdata.ver should be("1.0");
