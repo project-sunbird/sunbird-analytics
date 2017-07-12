@@ -52,7 +52,7 @@ case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, gran
 @scala.beans.BeanInfo
 case class MEEdata(eks: AnyRef);
 @scala.beans.BeanInfo
-case class ETags(app: Option[List[String]], partner: Option[List[String]], dims: Option[List[String]])
+case class ETags(app: Option[List[String]] = None, partner: Option[List[String]] = None, dims: Option[List[String]] = None)
 
 // User profile event models
 

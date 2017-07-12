@@ -30,7 +30,7 @@ class TestGenieSessionSummaryModel extends SparkSpec(null) {
         val zeroTimeSpentGS = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
         zeroTimeSpentGS.size should be(8)
 
-        val event2 = events.filter { x => x.mid.equals("74A610217F317A24C5076698B01A32DF") }.last
+        val event2 = events.filter { x => x.mid.equals("82B461CA5B7446C1146777D146E1DDB6") }.last
 
         event2.dimensions.did.get should be("3fdf3dfc1f004ffa3762fdadded8f44208c8d06c")
         event2.dimensions.group_user.get should be(false)

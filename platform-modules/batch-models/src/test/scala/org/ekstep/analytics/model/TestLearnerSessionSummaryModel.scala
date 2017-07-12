@@ -256,7 +256,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
         oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be(10)
 
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
 
         itemRes.res.get.asInstanceOf[Array[String]].last should be("ans1:10")
@@ -264,7 +264,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     it should "generate None for qtitle and qdesc when raw telemetry not having qtitle and qdesc" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle should be(None)
         itemRes.qdesc should be(None)
@@ -272,7 +272,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate title for qtitle and description for qdesc when raw telemetry having qtitle as tile and qdesc as description" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle.get should be("title")
         itemRes.qdesc.get should be("description")
@@ -378,7 +378,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate array if  mmc is present in raw telemetry" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data8.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         val mmc = itemRes.mmc.get.asInstanceOf[List[String]]
         mmc(0) should be("m4")
@@ -387,7 +387,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate none if no mmc field present in raw telemetry " in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc should be(None)
 
@@ -395,7 +395,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate Empty List if mmc have no values present in raw telemetry " in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data9.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc.get should be(List())
 
