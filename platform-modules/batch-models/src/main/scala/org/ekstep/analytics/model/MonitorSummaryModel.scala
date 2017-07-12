@@ -110,9 +110,9 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
         val modelMapping = config.get("model").get.asInstanceOf[List[AnyRef]].map { x => JSONUtils.deserialize[ModelMapping](JSONUtils.serialize(x))}.toSet
-        val consumptionJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "consumption")
-        val creationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "creation")
-        val recommendationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "recommendation")
+        val consumptionJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Consumption")
+        val creationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Creation")
+        val recommendationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Recommendation")
 
         val date: String = DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now())
         val title = s"""*Jobs | Monitoring Report | $date*"""
@@ -161,7 +161,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     }
 
     private def modelStats(jobSummary: Array[JobSummary], modelMapping: Set[ModelMapping], category: String): String = {
-        val modelsCategoryFilter = modelMapping.filter { x => (x.category.equals(s"$category")) }
+        val modelsCategoryFilter = modelMapping.filter { x => (x.category.equalsIgnoreCase(s"$category")) }
         val modelsSet = modelsCategoryFilter.map { x => x.model }
         val modelMappingWithInputDependency = modelsCategoryFilter.filter { x => !x.input_dependency.equals("None") }.map { x => (x.model, x.input_dependency) }.toMap
         val filterModelsFromJobSummary = jobSummary.filter(item => modelsSet(item.model.trim()))
