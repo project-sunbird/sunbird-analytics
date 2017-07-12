@@ -148,15 +148,15 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     }
 
     private def jobSummaryMessage(modelName: String, jobsFailed: Int, jobsCompleted: Int, warnings: String, models: String): String = {
-        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time(min) ," + "Status ," + "Day"
+        val header = "Model, " + "Input Events, " + "Output Events, " + "Total time(min), " + "Status, " + "Day"
         if (jobsFailed > 0 && warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\n Error: ```Job Failed```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\n Error: ```Job Failed```"""
         } else if (jobsFailed == 0 && warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\n Status: ```Job Run Completed Successfully```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\n Status: ```Job Run Completed Successfully```"""
         } else if (jobsFailed == 0 && !warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\nStatus: ```Job Run Completed Successfully```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\nStatus: ```Job Run Completed Successfully```"""
         } else {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
         }
     }
 
@@ -168,7 +168,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val modelsCompleted = filterModelsFromJobSummary.filter { x => x.status.equals("SUCCESS") }.size
         val modelsFailed = filterModelsFromJobSummary.filter { x => x.status.equals("FAILED") }.size
         val modelsWarnings = warningMessages(modelMappingWithInputDependency, filterModelsFromJobSummary)
-        val modelsString = filterModelsFromJobSummary.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        val modelsString = filterModelsFromJobSummary.map { x => x.model.trim() + ", " + x.input_count + ", " + x.output_count + ", " + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + ", " + x.status + ", " + x.day + "\n" }.mkString("")
         jobSummaryMessage(s"$category", modelsFailed, modelsCompleted, modelsWarnings, modelsString)
     }
 }
