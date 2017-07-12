@@ -119,6 +119,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
     }
 
     override def postProcess(data: RDD[EOCFunnel], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { summary =>
             val dtRange = DtRange(summary.startDate, summary.endDate);
             val mid = CommonUtil.getMessageId("ME_EOC_RECOMMENDATION_FUNNEL", summary.uid, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], dtRange, summary.did + summary.sid + summary.contentId, Option(summary.appId), Option(summary.channel));
@@ -131,7 +132,7 @@ object EOCRecommendationFunnelModel extends IBatchModelTemplate[Event, EventsGro
                 "download_complete" -> summary.downloadComplete,
                 "content_played" -> summary.played)
 
-            MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, summary.channel, None, None,
+            MeasuredEvent("ME_EOC_RECOMMENDATION_FUNNEL", System.currentTimeMillis(), summary.syncts, meEventVersion, mid, summary.uid, summary.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "EOCRecommendationFunnelSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "EVENT").asInstanceOf[String], dtRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, Option(summary.contentId)),
                 MEEdata(measures), None);

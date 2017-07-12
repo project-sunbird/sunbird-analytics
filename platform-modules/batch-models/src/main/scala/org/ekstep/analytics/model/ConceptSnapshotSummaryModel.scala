@@ -36,14 +36,14 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
     }
 
     override def postProcess(data: RDD[ConceptSnapshotAlgoOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_CONCEPT_SNAPSHOT_SUMMARY", x.concept_id, "SNAPSHOT", DtRange(System.currentTimeMillis(), System.currentTimeMillis()), "NA", Option(x.app_id), Option(x.channel));
             val measures = Map(
                 "total_content_count" -> x.total_content_count,
                 "live_content_count" -> x.live_content_count,
                 "review_content_count" -> x.review_content_count);
-            MeasuredEvent("ME_CONCEPT_SNAPSHOT_SUMMARY", System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", x.channel, None, None,
+            MeasuredEvent("ME_CONCEPT_SNAPSHOT_SUMMARY", System.currentTimeMillis(), System.currentTimeMillis(), meEventVersion, mid, "", x.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ConceptSnapshotSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "SNAPSHOT").asInstanceOf[String], DtRange(System.currentTimeMillis(), System.currentTimeMillis())),
                 Dimensions(None, None, None, None, None, None, Option(PData(x.app_id, "1.0")), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(x.concept_id)),
                 MEEdata(measures));

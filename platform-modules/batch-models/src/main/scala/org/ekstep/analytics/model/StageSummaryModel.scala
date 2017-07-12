@@ -55,7 +55,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
     }
 
     override def postProcess(data: RDD[StageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { summary =>
             val mid = CommonUtil.getMessageId("ME_STAGE_SUMMARY", summary.stageId + summary.sid, summary.uid, summary.dt_range.to, Option(summary.pdata.id), Option(summary.channel));
             val measures = Map(
@@ -63,7 +63,7 @@ object StageSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent,
                 "timeSpent" -> summary.timeSpent,
                 "visitCount" -> summary.visitCount);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ScreenSummary").asInstanceOf[String]));
-            MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, summary.uid, summary.channel, Option(summary.gdata.id), None,
+            MeasuredEvent("ME_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, meEventVersion, mid, summary.uid, summary.channel, Option(summary.gdata.id), None,
                 Context(pdata, None, "EVENT", summary.dt_range),
                 Dimensions(None, Option(summary.did), Option(summary.gdata), None, None, None, Option(summary.pdata), None, Option(summary.groupUser), Option(summary.anonymousUser), None, None, None, Option(summary.sid)), MEEdata(measures), summary.etags);
         };

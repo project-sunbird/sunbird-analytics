@@ -42,7 +42,7 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
     }
 
     override def postProcess(data: RDD[GenieStageAlgoOut], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { summary =>
             val mid = CommonUtil.getMessageId("ME_GENIE_STAGE_SUMMARY", summary.stageId + summary.sid, config.getOrElse("granularity", "GENIE SESSION").asInstanceOf[String], summary.dt_range.to, Option(summary.pdata.id), Option(summary.channel));
             val measures = Map(
@@ -51,7 +51,7 @@ object GenieStageSummaryModel extends SessionBatchModel[DerivedEvent, MeasuredEv
                 "interactEventsCount" -> summary.interactEventsCount,
                 "interactEvents" -> summary.interactEvents);
             val pdata = PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieStageSummary").asInstanceOf[String]));
-            MeasuredEvent("ME_GENIE_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, null, summary.channel, None, None,
+            MeasuredEvent("ME_GENIE_STAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, meEventVersion, mid, null, summary.channel, None, None,
                 Context(pdata, None, "GENIE SESSION", summary.dt_range),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, None, None, None, Option(summary.sid), Option(summary.stageId)), MEEdata(measures), summary.etags);
         };

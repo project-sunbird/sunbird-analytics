@@ -82,7 +82,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         } else {
             println(message)
         }
-
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_MONITOR_SUMMARY", "", "DAY", x.dtange);
             val measures = Map(
@@ -93,7 +93,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
                 "total_ts" -> x.total_ts,
                 "jobs_summary" -> x.job_summary);
 
-            MeasuredEvent("ME_MONITOR_SUMMARY", System.currentTimeMillis(), x.syncTs, "1.0", mid, "", "", None, None,
+            MeasuredEvent("ME_MONITOR_SUMMARY", System.currentTimeMillis(), x.syncTs, meEventVersion, mid, "", "", None, None,
                 Context(PData(config.getOrElse("id", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "MonitorSummarizer").asInstanceOf[String])), None, "DAY", x.dtange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(CommonUtil.getPeriod(x.syncTs, DAY)), None, None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);

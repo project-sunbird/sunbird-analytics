@@ -159,6 +159,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
     }
 
     override def postProcess(data: RDD[PortalSessionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { session =>
             val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.pdata.id), Option(session.channel));
             val measures = Map(
@@ -174,7 +175,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 "env_summary" -> session.env_summary,
                 "events_summary" -> session.events_summary,
                 "page_summary" -> session.page_summary);
-            MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, "1.0", mid, session.uid, session.channel, None, None,
+            MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, meEventVersion, mid, session.uid, session.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String])), None, "SESSION", session.dtRange),
                 Dimensions(None, None, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid)),
                 MEEdata(measures), None);

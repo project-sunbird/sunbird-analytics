@@ -349,6 +349,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
     }
 
     override def postProcess(data: RDD[SessionSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { userMap =>
             val game = userMap.ss;
             val booleanTuple = userMap.groupInfo.getOrElse((false, false))
@@ -376,7 +377,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
                 "telemetryVersion" -> game.telemetryVer,
                 "contentType" -> game.contentType,
                 "mimeType" -> game.mimeType);
-            MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, "1.0", mid, userMap.userId, userMap.channel, None, None,
+            MeasuredEvent("ME_SESSION_SUMMARY", System.currentTimeMillis(), game.syncDate, meEventVersion, mid, userMap.userId, userMap.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "LearnerSessionSummary").asInstanceOf[String])), None, "SESSION", game.dtRange),
                 Dimensions(None, Option(game.did), Option(new GData(game.id, game.ver)), None, None, None, Option(game.pdata), game.loc, Option(booleanTuple._1), Option(booleanTuple._2)),
                 MEEdata(measures), game.etags);

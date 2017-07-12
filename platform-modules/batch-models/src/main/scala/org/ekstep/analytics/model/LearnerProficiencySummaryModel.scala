@@ -30,6 +30,7 @@ import org.ekstep.analytics.framework.DataFilter
 import java.security.MessageDigest
 import org.apache.log4j.Logger
 import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class Evidence(learner_id: String, itemId: String, itemMC: String, score: Int, maxScore: Int)
 case class LearnerProficiency(learner_id: String, proficiency: Map[String, Double], start_time: DateTime, end_time: DateTime,
@@ -208,11 +209,12 @@ object LearnerProficiencySummaryModel extends IBatchModelTemplate[DerivedEvent, 
     override def postProcess(data: RDD[LearnerProficiency], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         JobLogger.log("Saving data to cassandra")
         data.saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFICIENCY_TABLE);
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { userProf =>
             val mid = CommonUtil.getMessageId("ME_LEARNER_PROFICIENCY_SUMMARY", userProf.learner_id, "CUMULATIVE", DtRange(0L, 0L));
             val proficiencySummary = userProf.proficiency.map { x => ProficiencySummary(x._1, x._2) }
             val measures = Map("proficiencySummary" -> proficiencySummary)
-            MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, "1.0", mid, userProf.learner_id, "", None, None,
+            MeasuredEvent("ME_LEARNER_PROFICIENCY_SUMMARY", System.currentTimeMillis(), userProf.end_time.getMillis, meEventVersion, mid, userProf.learner_id, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ProficiencyUpdater").asInstanceOf[String])), None, "CUMULATIVE", DtRange(userProf.start_time.getMillis, userProf.end_time.getMillis)),
                 Dimensions(None, None, None, None, None, None, None),
                 MEEdata(measures));
