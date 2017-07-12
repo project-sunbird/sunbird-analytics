@@ -3,6 +3,7 @@ package org.ekstep.analytics.model
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestStageSummaryModel extends SparkSpec(null) {
 
@@ -18,7 +19,7 @@ class TestStageSummaryModel extends SparkSpec(null) {
         val event1 = JSONUtils.deserialize[DerivedEvent](me(0));
         event1.eid should be("ME_STAGE_SUMMARY")
         event1.syncts should be(1474356964993L)
-        event1.ver should be("1.0")
+        event1.ver should be(AppConf.getConfig("telemetry.version"))
 //        event1.mid should be("C3CB530BB4FD462079CABB34DEE21716")
         event1.uid should be("0d254525-2911-411b-9bb4-4351eab2d916")
         event1.context.granularity should be("EVENT")
