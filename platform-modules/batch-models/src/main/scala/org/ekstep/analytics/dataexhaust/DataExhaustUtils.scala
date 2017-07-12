@@ -173,7 +173,7 @@ object DataExhaustUtils {
         val filters = filterKeys.map { key =>
             val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
             Filter(defaultFilter.name, defaultFilter.operator, filter.get(key))
-        }.filter(x => None != x.value).toArray
+        }.filter(x => x.value.isDefined).toArray
 
         data.map { line =>
             try {
@@ -192,19 +192,19 @@ object DataExhaustUtils {
     }
 
     def stringToObject(event: String, dataSetId: String) = {
-    	dataSetId match {
-            case "eks-consumption-raw" => 
-            	val e = JSONUtils.deserialize[Event](event);
-            	(CommonUtil.getEventSyncTS(e), e);
-            case "eks-creation-raw"    => 
-            	val e = JSONUtils.deserialize[CreationEvent](event);
-            	(CreationEventUtil.getEventSyncTS(e), e);
-            case "eks-consumption-summary" | "eks-creation-summary" => 
-            	val e = JSONUtils.deserialize[DerivedEvent](event);
-            	(e.syncts, e);
+        dataSetId match {
+            case "eks-consumption-raw" =>
+                val e = JSONUtils.deserialize[Event](event);
+                (CommonUtil.getEventSyncTS(e), e);
+            case "eks-creation-raw" =>
+                val e = JSONUtils.deserialize[CreationEvent](event);
+                (CreationEventUtil.getEventSyncTS(e), e);
+            case "eks-consumption-summary" | "eks-creation-summary" =>
+                val e = JSONUtils.deserialize[DerivedEvent](event);
+                (e.syncts, e);
             case "eks-consumption-metrics" | "eks-creation-metrics" =>
                 val e = JSONUtils.deserialize[DerivedEvent](event);
-            	(CommonUtil.dayPeriodToLong(e.dimensions.period.getOrElse(0)), e);
+                (CommonUtil.dayPeriodToLong(e.dimensions.period.getOrElse(0)), e);
         }
     }
 }
