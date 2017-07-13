@@ -51,7 +51,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 	}
 	
 	it should "return textbook snapshot metrics for textbook having bookunits and subunits(contents)" in {
-		val stories = List(AppObjectCache("Content", "do_212198568993210368181", "Genie", "Ekstep", "Story", None, None, None, "Test Story 1", "Draft", "", None), AppObjectCache("Content", "do_21219907978217062412", "Genie", "Ekstep", "Story", None, None, None, "Test Story 2", "Draft", "", None));
+		val stories = List(AppObjectCache("Content", "do_212198568993210368181", "genie", "in.ekstep", "Story", None, None, None, "Test Story 1", "Draft", "", None), AppObjectCache("Content", "do_21219907978217062412", "genie", "in.ekstep", "Story", None, None, None, "Test Story 2", "Draft", "", None));
 		sc.parallelize(stories, JobContext.parallelization).saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE)
 		deleteTextbookData;
 		createTextbooks;
@@ -100,7 +100,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 	}
 	
 	private def updateAppIdChannel() {
-	    val queries = List("MATCH (n:domain) SET n.appid='Genie', n.channel='Ekstep'")
+	    val queries = List("MATCH (n:domain) SET n.appId='genie', n.channel='in.ekstep'")
 	    executeQueries(queries);
 	}
 

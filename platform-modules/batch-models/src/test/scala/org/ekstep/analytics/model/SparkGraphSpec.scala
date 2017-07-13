@@ -79,7 +79,7 @@ class SparkGraphSpec(override val file: String = "src/test/resources/sample_tele
         val nodes = sc.textFile(file, 1);
         val queries = List("MATCH (n) DETACH DELETE n") ++ nodes.map { x => s"CREATE (n:domain $x) return n" }.collect().toList ++
             List("MATCH (n: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d02eae69702d0905cf0800'}), (c: domain{IL_UNIQUE_ID:'Num:C1:SC1'}) CREATE (n)-[r:associatedTo]->(c) RETURN r") ++
-            List("MATCH (n) SET n.appid='Genie', n.channel='Ekstep'");
+            List("MATCH (n) SET n.appId='genie', n.channel='in.ekstep'");
         executeQueries(queries);
     }
 }
