@@ -42,7 +42,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     override def name: String = "MonitorSummaryModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
-        val filteredData = data.filter { x => (x.eid.equals("BE_JOB_START") || (x.eid.equals("BE_JOB_END"))) }.filter { x => !x.context.pdata.model.equals("MonitorSummaryModel") }
+        val filteredData = data.filter { x => (x.eid.equals("BE_JOB_START") || (x.eid.equals("BE_JOB_END"))) }.filter { x => !x.context.pdata.model.get.equals("MonitorSummaryModel") }
         filteredData.sortBy(_.ets)
     }
 
