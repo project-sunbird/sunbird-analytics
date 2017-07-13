@@ -86,6 +86,10 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
     }
 
     override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LaunchSessions] = {
+        val eventList = List("GE_GENIE_START","GE_GENIE_END","GE_SESSION_START","GE_SESSION_END","GE_LAUNCH_GAME","GE_GAME_END","GE_PROFILE_SET","GE_VIEW_PROGRESS","GE_GENIE_UPDATE","GE_GAME_UPDATE","GE_API_CALL","GE_GENIE_RESUME","GE_INTERACT","GE_INTERRUPT","GE_ERROR","GE_TRANSFER","GE_SERVICE_API_CALL","GE_CREATE_USER","GE_CREATE_PROFILE","GE_FEEDBACK","GE_DELETE_PROFILE","GE_IMPORT","GE_MISC","OE_START","OE_END","OE_NAVIGATE","OE_LEARN","OE_ASSESS","OE_ITEM_RESPONSE","OE_EARN","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT","OE_FEEDBACK","OE_ERROR","OE_SUMMARY","OE_MISC")
+        val eids = sc.broadcast(eventList);
+        
+        val events = DataFilter.filter(data, Filter("eid", "IN", Option(eids.value)))
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
         val filteredData = data.filter { x => !"AutoSync-Initiated".equals(x.edata.eks.subtype) }
