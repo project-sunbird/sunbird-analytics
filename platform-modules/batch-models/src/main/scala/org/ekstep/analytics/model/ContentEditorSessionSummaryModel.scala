@@ -4,10 +4,8 @@
 package org.ekstep.analytics.model
 
 import java.net.URLDecoder
-
 import scala.BigDecimal
 import scala.collection.mutable.Buffer
-
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.creation.model.CreationEvent
@@ -137,7 +135,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val startTimestamp = startEvent.ets
             val endTimestamp = endEvent.ets
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
-            val loadTime = if ("CE_START".equals(startEvent.eid)) startEvent.edata.eks.loadtimes.getOrElse("contentLoad", 0.0) else 0.0
+            val loadTime = if ("CE_START".equals(startEvent.eid)) startEvent.edata.eks.loadtimes.asInstanceOf[Map[String, Number]].getOrElse("contentLoad", Double.box(0.0)).doubleValue() else 0.0
             val noOfInteractEvents = interactEvents.length
             val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) noOfInteractEvents.toDouble
