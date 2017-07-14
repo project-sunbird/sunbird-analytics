@@ -193,9 +193,12 @@ object DataExhaustUtils {
                             null
                     }
                 }.filter { x => null != x }
-
+                println("Input count: ", rawRDD.count())
                 val channelFltrRDD = DataFilter.filter[Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                DataFilter.filter[Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
+                val appFltrRDD = DataFilter.filter[Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
+                appFltrRDD;
             } else {
                 val channelFilter = (event: CreationEvent, channel: String) => {
                     if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
@@ -222,9 +225,12 @@ object DataExhaustUtils {
                             null
                     }
                 }.filter { x => null != x }
-
+                println("Input count: ", rawRDD.count())
                 val channelFltrRDD = DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                DataFilter.filter[CreationEvent, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
+                val appFltrRDD = DataFilter.filter[CreationEvent, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
+                appFltrRDD;
             }
             filteredRDD.map { x => JSONUtils.serialize(x) };
         } else {
@@ -257,7 +263,7 @@ object DataExhaustUtils {
             }
         }.filter(x => x.value.isDefined).toArray
 
-        filteredRDD.map { line =>
+        val finalRDD = filteredRDD.map { line =>
             try {
                 val event = stringToObject(line, dataSetId);
                 val matched = if (null != event) { DataFilter.matches(event._2, filters) } else false;
@@ -267,6 +273,8 @@ object DataExhaustUtils {
                     null;
             }
         }.filter { x => x != null }
+        println("After tags filter count: ", finalRDD.count())
+        finalRDD;
     }
 
     def stringToObject(event: String, dataSetId: String) = {
