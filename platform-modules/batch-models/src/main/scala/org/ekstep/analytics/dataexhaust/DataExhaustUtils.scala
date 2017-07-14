@@ -243,24 +243,24 @@ object DataExhaustUtils {
         val filterKeys = filterMapping.keySet
 
         val filters = filterKeys.map { key =>
-            val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
-            (key, Filter(defaultFilter.name, defaultFilter.operator, filter.get(key)))
-        }.filter(x => x._2.value.isDefined).toArray
+            val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)));
+            if (rawDatasets.contains(dataSetId) && orgFilterKeys.contains(key)) {
+            	Filter(defaultFilter.name, defaultFilter.operator, None);
+            } else {
+            	if ("channel".equals(key)) {
+            		val value = if (filter.get(key).isDefined) filter.get(key) else Option(AppConf.getConfig("default.channel.id"));
+            		Filter(defaultFilter.name, defaultFilter.operator, value);
+            	} else {
+            		Filter(defaultFilter.name, defaultFilter.operator, filter.get(key));
+            	}
+            }
+        }.filter(x => x.value.isDefined).toArray
 
         filteredRDD.map { line =>
             try {
-                val event = stringToObject(line, dataSetId)
-                val finalFilters = if (rawDatasets.contains(dataSetId)) filters.filter(f => !orgFilterKeys.contains(f._1)); else filters;
-                val matched = if(null!=event){
-                    DataFilter.matches(event._2, finalFilters.map { f => f._2 });    
-                }else {
-                    false
-                }
-                if (matched) {
-                    event;
-                } else {
-                    null;
-                }
+                val event = stringToObject(line, dataSetId);
+                val matched = if (null != event) { DataFilter.matches(event._2, filters) } else false;
+                if (matched) event else null;
             } catch {
                 case ex: Exception =>
                     null;
