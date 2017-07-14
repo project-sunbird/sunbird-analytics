@@ -164,6 +164,24 @@ object DataExhaustUtils {
         }
     }
 
+    private def getFilter(defaultFilter: Filter, dataSetId: String, filterKey: Option[AnyRef]): Array[Filter] = {
+        val channel = AppConf.getConfig("default.channel.id")
+        val appId = AppConf.getConfig("default.consumption.app.id")
+        val creationAppId = AppConf.getConfig("default.creation.app.id")
+        val channelFlag = StringUtils.equals("channel", defaultFilter.name) && (defaultFilter.value.isEmpty || (defaultFilter.value.isDefined && StringUtils.equals(channel, defaultFilter.value.get.asInstanceOf[String])))
+        dataSetId match {
+            case "eks-consumption-raw" =>
+                if (channelFlag) Array(Filter(defaultFilter.name, defaultFilter.operator, Option(null)), Filter(defaultFilter.name, defaultFilter.operator, Option(channel))) else Array(Filter(defaultFilter.name, defaultFilter.operator, filterKey))
+                val appIdFlag = StringUtils.equals("pdata.id", defaultFilter.name) && (defaultFilter.value.isEmpty || (defaultFilter.value.isDefined && StringUtils.equals(appId, defaultFilter.value.get.asInstanceOf[String])))
+                if (appIdFlag) Array(Filter(defaultFilter.name, defaultFilter.operator, Option(null)), Filter(defaultFilter.name, defaultFilter.operator, Option(appId))) else Array(Filter(defaultFilter.name, defaultFilter.operator, filterKey))
+            case "eks-creation-raw" =>
+                if (channelFlag) Array(Filter(defaultFilter.name, defaultFilter.operator, Option(null)), Filter(defaultFilter.name, defaultFilter.operator, Option(channel))) else Array(Filter(defaultFilter.name, defaultFilter.operator, filterKey))
+                val appIdFlag = StringUtils.equals("pdata.id", defaultFilter.name) && (defaultFilter.value.isEmpty || (defaultFilter.value.isDefined && StringUtils.equals(creationAppId, defaultFilter.value.get.asInstanceOf[String])))
+                if (appIdFlag) Array(Filter(defaultFilter.name, defaultFilter.operator, Option(null)), Filter(defaultFilter.name, defaultFilter.operator, Option(creationAppId))) else Array(Filter(defaultFilter.name, defaultFilter.operator, filterKey))
+            case _ =>
+                Array(Filter(defaultFilter.name, defaultFilter.operator, filterKey))
+        }
+    }
     def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
         val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
@@ -172,8 +190,10 @@ object DataExhaustUtils {
         val filterKeys = filterMapping.keySet
         val filters = filterKeys.map { key =>
             val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
-            Filter(defaultFilter.name, defaultFilter.operator, filter.get(key))
-        }.filter(x => x.value.isDefined).toArray
+            val filterKey = filter.get(key)
+            getFilter(defaultFilter, dataSetId, filterKey);
+
+        }.flatMap { x => x }.filter(x => x.value.isDefined).toArray
 
         data.map { line =>
             try {
