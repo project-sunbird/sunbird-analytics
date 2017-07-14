@@ -574,19 +574,23 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.textbook_metrics_summary_fact(
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.plugin_snapshot_metrics (
      d_period int, 
-     d_plugin_id text, 
+     d_plugin_id text,
+     d_app_id text,
+     d_channel text,
      plugin_name text, 
      category text, 
      author text, 
      content_count bigint, 
      content_count_start bigint,
      updated_date timestamp,
-     PRIMARY KEY (d_period, d_plugin_id)
+     PRIMARY KEY (d_period, d_plugin_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS creation_metrics_db.template_snapshot_metrics (
      d_period int, 
-     d_template_id text, 
+     d_template_id text,
+     d_app_id text,
+     d_channel text,
      template_name text, 
      category text, 
      author_id text, 
@@ -595,7 +599,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.template_snapshot_metrics (
      question_count bigint,
      question_count_start bigint,
      updated_date timestamp,
-     PRIMARY KEY (d_period, d_template_id)
+     PRIMARY KEY (d_period, d_template_id, d_app_id, d_channel)
 );
 
 

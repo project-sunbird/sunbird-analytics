@@ -26,13 +26,16 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
     override def name(): String = "AssetSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.AssetSnapshotSummaryModel";
 
+    val defaultAppId = AppConf.getConfig("default.creation.app.id");
+    val defaultChannel = AppConf.getConfig("default.channel.id");
+    
     private def getMediaMap(query: String)(implicit sc: SparkContext): RDD[(AssetSnapshotIndex, Iterable[MediaKey])] = {
-        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId").asString(), x.get("channel").asString(), x.get("mediaType").asString(), x.get("count").asLong()) } //.toMap
+        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("mediaType").asString(), x.get("count").asLong()) } //.toMap
         sc.parallelize(x.map(f => (AssetSnapshotIndex(f._1, f._2), MediaKey(f._3, f._4)))).groupByKey()
     }
 
     private def getAssetCount(query: String)(implicit sc: SparkContext): RDD[(AssetSnapshotIndex, Long)] = {
-        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId").asString(), x.get("channel").asString(), x.get("count").asLong()) };
+        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("count").asLong()) };
         sc.parallelize(x.map(f => (AssetSnapshotIndex(f._1, f._2), f._3)))
     }
 

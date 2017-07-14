@@ -13,10 +13,10 @@ case class ConceptSnapshotAlgoOutput(concept_id: String, app_id: String, channel
 case class ConceptSnapshotIndex(concept_id: String, app_id: String, channel: String)
 
 object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, ConceptSnapshotAlgoOutput, MeasuredEvent] with Serializable {
-  
+
     override def name(): String = "ConceptSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.ConceptSnapshotSummaryModel";
-    
+
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
         data;
     }
@@ -26,7 +26,7 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val totalContentRDD = sc.parallelize(getConceptsCount(CypherQueries.CONCEPT_SNAPSHOT_TOTAL_CONTENT_COUNT))
         val liveContentRDD = sc.parallelize(getConceptsCount(CypherQueries.CONCEPT_SNAPSHOT_LIVE_CONTENT_COUNT))
         val reviewContentRDD = sc.parallelize(getConceptsCount(CypherQueries.CONCEPT_SNAPSHOT_REVIEW_CONTENT_COUNT))
-        val rdd = totalContentRDD.fullOuterJoin(liveContentRDD).fullOuterJoin(reviewContentRDD).map{f =>
+        val rdd = totalContentRDD.fullOuterJoin(liveContentRDD).fullOuterJoin(reviewContentRDD).map { f =>
             val totalCount = f._2._1.getOrElse(Option(0L), Option(0L))._1.get
             val liveCount = f._2._1.getOrElse(Option(0L), Option(0L))._2.get
             val reviewCount = f._2._2.getOrElse(0L)
@@ -51,8 +51,10 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
     }
 
     private def getConceptsCount(query: String)(implicit sc: SparkContext): Array[(ConceptSnapshotIndex, Long)] = {
-    	GraphQueryDispatcher.dispatch(query).list().toArray()
-    	.map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map{x => (ConceptSnapshotIndex(x.get("identifier").asString(), x.get("appId").asString(), x.get("channel").asString()), x.get("count").asLong())}
+        val defaultAppId = AppConf.getConfig("default.creation.app.id");
+        val defaultChannel = AppConf.getConfig("default.channel.id");
+        GraphQueryDispatcher.dispatch(query).list().toArray()
+            .map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (ConceptSnapshotIndex(x.get("identifier").asString(), x.get("appId", defaultAppId), x.get("channel", defaultChannel)), x.get("count").asLong()) }
     }
-    
+
 }

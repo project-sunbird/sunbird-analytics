@@ -41,7 +41,6 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 		deleteTextbookData;
 		createTextbooks;
 		createBookunits;
-		updateAppIdChannel;
 		val rdd = invokeSnapshotUpdater;
 		rdd.count should be(6);
 		val snapshot = rdd.first();
@@ -57,7 +56,6 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 		createTextbooks;
 		createBookunits;
 		linkBookUnitsWithContents;
-		updateAppIdChannel;
 		val rdd = invokeSnapshotUpdater;
 		rdd.count should be(6);
 		val snapshot = rdd.first();
