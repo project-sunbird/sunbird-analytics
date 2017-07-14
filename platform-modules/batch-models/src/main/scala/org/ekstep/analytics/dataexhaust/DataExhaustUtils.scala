@@ -250,7 +250,7 @@ object DataExhaustUtils {
         filteredRDD.map { line =>
             try {
                 val event = stringToObject(line, dataSetId)
-                val finalFilters = if (rawDatasets.contains(dataSetId)) filters.filter(f => orgFilterKeys.contains(f._1)); else filters;
+                val finalFilters = if (rawDatasets.contains(dataSetId)) filters.filter(f => !orgFilterKeys.contains(f._1)); else filters;
                 val matched = if(null!=event){
                     DataFilter.matches(event._2, finalFilters.map { f => f._2 });    
                 }else {
