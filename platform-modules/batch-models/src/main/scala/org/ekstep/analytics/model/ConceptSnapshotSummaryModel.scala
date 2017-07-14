@@ -8,6 +8,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.CypherQueries
+import org.apache.commons.lang3.StringUtils
 
 case class ConceptSnapshotAlgoOutput(concept_id: String, app_id: String, channel: String, total_content_count: Long, live_content_count: Long, review_content_count: Long) extends AlgoOutput
 case class ConceptSnapshotIndex(concept_id: String, app_id: String, channel: String)
@@ -54,7 +55,7 @@ object ConceptSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val defaultAppId = AppConf.getConfig("default.creation.app.id");
         val defaultChannel = AppConf.getConfig("default.channel.id");
         GraphQueryDispatcher.dispatch(query).list().toArray()
-            .map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (ConceptSnapshotIndex(x.get("identifier").asString(), x.get("appId", defaultAppId), x.get("channel", defaultChannel)), x.get("count").asLong()) }
+            .map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (ConceptSnapshotIndex(x.get("identifier").asString(), if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel)), x.get("count").asLong()) }
     }
 
 }

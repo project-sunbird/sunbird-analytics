@@ -60,10 +60,10 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         // For author_id = partner_id = all
         val totalUserCount = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_SNAPSHOT_TOTAL_USER_COUNT).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (ContentSnapshotIndex(x.get("appId", defaultAppId), x.get("channel", defaultChannel), "all", "all"), x.get("userCount").asLong()) }
+            .map { x => (ContentSnapshotIndex(if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), "all", "all"), x.get("userCount").asLong()) }
         val activeUsers = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_SNAPSHOT_ACTIVE_USER_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x =>
             val ts = CommonUtil.getTimestamp(x.get("cnt.createdOn").asString(), CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-            (ContentSnapshotIndex(x.get("appId", defaultAppId), x.get("channel", defaultChannel), "all", "all"), (x.get("usr.IL_UNIQUE_ID").asString(), ts))
+            (ContentSnapshotIndex(if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), "all", "all"), (x.get("usr.IL_UNIQUE_ID").asString(), ts))
         }
         val activeUserCount = sc.parallelize(activeUsers).groupByKey.map { f =>
             (f._1, f._2.filter(x => x._2 >= days_limit_timestamp).toList.map(x => x._1).distinct.size.toLong)
@@ -72,7 +72,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         val userCounts = sc.parallelize(totalUserCount).fullOuterJoin(activeUserCount).map(f => (f._1, (f._2._1.getOrElse(0L), f._2._2.getOrElse(0L))))
         val contentCountByStatus = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_COUNT_BY_STATUS).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (ContentSnapshotIndex(x.get("appId", defaultAppId), x.get("channel", defaultChannel), "all", "all"), (x.get("status").asString(), x.get("count").asLong())) } //.toMap;
+            .map { x => (ContentSnapshotIndex(if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), "all", "all"), (x.get("status").asString(), x.get("count").asLong())) } //.toMap;
         val contentCounts = sc.parallelize(contentCountByStatus).groupByKey.map { f =>
             val contentCountMap = f._2.toMap
             val totalCount = contentCountMap.values.reduce((a, b) => a + b);
@@ -93,11 +93,11 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         // For specific author_id
         val contentCountPerAuthorByStatus = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_COUNT_PER_AUTHOR_BY_STATUS).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (ContentSnapshotIndex(x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("identifier").asString(), "all"), (x.get("status").asString(), x.get("count").asLong())) } //.groupBy(f => f._1);
+            .map { x => (ContentSnapshotIndex(if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("identifier").asString(), "all"), (x.get("status").asString(), x.get("count").asLong())) } //.groupBy(f => f._1);
 
         val authorContentTSRDD = sc.makeRDD(GraphQueryDispatcher.dispatch(CypherQueries.AUTHOR_CONTENT_LIST).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (ContentSnapshotIndex(x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("author").asString(), "all"), x.get("contentList").asList().toList.map { x => x.toString() }) }
+            .map { x => (ContentSnapshotIndex(if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("author").asString(), "all"), x.get("contentList").asList().toList.map { x => x.toString() }) }
             .map { x =>
                 val ts = contentTimespentB.value.filter(f => x._1.app_id.equals(f._1) && x._1.channel.equals(f._2))
                 val contentTsList = ts.filter(f => x._2.contains(f._3)).filter(f => f._4 > 0.0)
@@ -121,7 +121,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
 
         // For specific partner_id
         val partner_user = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_SNAPSHOT_PARTNER_USER_COUNT).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-        .map { x => (x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.createdOn").asString()) }
+        .map { x => (if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("usr.IL_UNIQUE_ID").asString(), x.get("cnt.createdFor").asList().toList, x.get("cnt.createdOn").asString()) }
         val partner_active_users = partner_user.map { x =>
             val ts = CommonUtil.getTimestamp(x._5, CommonUtil.df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
             val partners = x._4.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }
@@ -134,7 +134,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         
         val partnerContentTSRDD = sc.makeRDD(GraphQueryDispatcher.dispatch(CypherQueries.PARTNER_CONTENT_LIST).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (ContentSnapshotIndex(x.get("appId", defaultAppId), x.get("channel", defaultChannel), "all", x.get("partner").asString()), x.get("contentList").asList().toList.map { x => x.toString() }) }.filterNot { x => StringUtils.isBlank(x._1.partner_id) }
+            .map { x => (ContentSnapshotIndex(if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), "all", x.get("partner").asString()), x.get("contentList").asList().toList.map { x => x.toString() }) }.filterNot { x => StringUtils.isBlank(x._1.partner_id) }
             .map { x =>
                 val ts = contentTimespentB.value.filter(f => x._1.app_id.equals(f._1) && x._1.channel.equals(f._2))
                 val contentTsList = ts.filter(f => x._2.contains(f._3)).filter(f => f._4 > 0.0)
@@ -145,7 +145,7 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
 
         val contentCountPerPartnerByStatus = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_COUNT_PER_PARTNER_BY_STATUS).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("identifier").asList().toList.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }, x.get("status").asString(), x.get("count").asLong()) }
+            .map { x => (if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("identifier").asList().toList.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }, x.get("status").asString(), x.get("count").asLong()) }
             .map(f => for (i <- f._3) yield (ContentSnapshotIndex(f._1, f._2, "all", i), (f._4, f._5))).flatMap(f => f).groupBy(f => f._1).map(x => (x._1, x._2.map(f => f._2))).toSeq
 
         val partnerContentCounts = sc.parallelize(contentCountPerPartnerByStatus).map { f =>
@@ -166,12 +166,12 @@ object ContentSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Der
         // For partner_id and author_id combinations
         val contentCountPerPartnerPerAuthorByStatus = GraphQueryDispatcher.dispatch(CypherQueries.CONTENT_COUNT_PER_AUTHOR_PER_PARTNER_BY_STATUS).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("author").asString(), x.get("partner").asList().toList.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }, x.get("status").asString(), x.get("count").asLong()) }
+            .map { x => (if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("author").asString(), x.get("partner").asList().toList.map { x => x.toString() }.filterNot { x => StringUtils.isBlank(x) }, x.get("status").asString(), x.get("count").asLong()) }
             .map(f => for (i <- f._4) yield (ContentSnapshotIndex(f._1, f._2, f._3, i), (f._5, f._6))).flatMap(f => f).groupBy(f => f._1).map(x => (x._1, x._2.map(f => f._2))).toSeq
 
         val authorPartnerContentTSRDD = sc.makeRDD(GraphQueryDispatcher.dispatch(CypherQueries.AUTHOR_PARTNER_CONTENT_LIST).list()
             .toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }
-            .map { x => (ContentSnapshotIndex(x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("author").asString(), x.get("partner").asString()), x.get("contentList").asList().toList.map { x => x.toString() }) }.filterNot { x => StringUtils.isBlank(x._1.partner_id) }
+            .map { x => (ContentSnapshotIndex(if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("author").asString(), x.get("partner").asString()), x.get("contentList").asList().toList.map { x => x.toString() }) }.filterNot { x => StringUtils.isBlank(x._1.partner_id) }
             .map { x =>
                 val ts = contentTimespentB.value.filter(f => x._1.app_id.equals(f._1) && x._1.channel.equals(f._2))
                 val contentTsList = ts.filter(f => x._2.contains(f._3)).filter(f => f._4 > 0.0)

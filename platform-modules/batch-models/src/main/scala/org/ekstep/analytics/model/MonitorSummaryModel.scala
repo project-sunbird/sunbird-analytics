@@ -70,17 +70,19 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
     override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
-        val message = messageFormatToSlack(data.first(), config)
-        if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
+        val messages = messageFormatToSlack(data.first(), config)
 
-            val slackMessage = SlackMessage(AppConf.getConfig("monitor.notification.channel"), AppConf.getConfig("monitor.notification.name"), message);
-            try {
-                RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
-            } catch {
-                case e: Exception => println("exception caught:", e.getMessage);
+        if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
+            for (message <- messages.split("\n\n")) {
+                val slackMessage = SlackMessage(AppConf.getConfig("monitor.notification.channel"), AppConf.getConfig("monitor.notification.name"), message);
+                try {
+                    RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
+                } catch {
+                    case e: Exception => println("exception caught:", e.getMessage);
+                }
             }
         } else {
-            println(message)
+            println(messages)
         }
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { x =>
@@ -109,16 +111,15 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val totalTs = milliSecondsToTimeFormat(jobMonitorToSclack.total_ts)
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
-        val modelMapping = config.get("model").get.asInstanceOf[List[AnyRef]].map { x => JSONUtils.deserialize[ModelMapping](JSONUtils.serialize(x))}.toSet
+        val modelMapping = config.get("model").get.asInstanceOf[List[AnyRef]].map { x => JSONUtils.deserialize[ModelMapping](JSONUtils.serialize(x)) }.toSet
         val consumptionJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Consumption")
         val creationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Creation")
         val recommendationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Recommendation")
-
         val date: String = DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now())
         val title = s"""*Jobs | Monitoring Report | $date*"""
         //total statistics regarding jobs
         val totalStats = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of Failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`"""
-        return title + "\n" + totalStats + "\n\n" + consumptionJobSummary + "\n\n" + creationJobSummary + "\n\n" + recommendationJobSummary
+        return title + "\n\n" + totalStats + "\n\n" + consumptionJobSummary + "\n\n" + creationJobSummary + "\n\n" + recommendationJobSummary
     }
 
     private def warningMessages(modelMapping: Map[String, String], models: Array[JobSummary]): String = {
@@ -150,13 +151,13 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     private def jobSummaryMessage(modelName: String, jobsFailed: Int, jobsCompleted: Int, warnings: String, models: String): String = {
         val header = "Model, " + "Input Events, " + "Output Events, " + "Total time(min), " + "Status, " + "Day"
         if (jobsFailed > 0 && warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\n Error: ```Job Failed```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nError: ```Job Failed``` """
         } else if (jobsFailed == 0 && warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\n Status: ```Job Run Completed Successfully```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\n Status: ```Job Run Completed Successfully```"""
         } else if (jobsFailed == 0 && !warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\nStatus: ```Job Run Completed Successfully```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\nStatus: ```Job Run Completed Successfully```"""
         } else {
-            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
         }
     }
 

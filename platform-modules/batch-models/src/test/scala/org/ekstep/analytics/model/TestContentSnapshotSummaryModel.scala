@@ -224,4 +224,26 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         out.count() should be(0)
 
     }
+    
+    it should "check content snapshot summary event for empty app_id" in {
+
+        // Running all VV jobs
+        ContentLanguageRelationModel.main("{}")(Option(sc));
+        ConceptLanguageRelationModel.main("{}")(Option(sc));
+        ContentAssetRelationModel.main("{}")(Option(sc));
+        AuthorRelationsModel.main("{}")(Option(sc));
+
+        val createdOn = new DateTime().toString()
+        val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author_2', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content_1', contentType:'story', createdFor:[''], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn, cnt.createdFor"
+        val res = GraphQueryDispatcher.dispatch(query1)
+
+        val setQuery = "MATCH (usr:User {type:'author', IL_UNIQUE_ID:'test_author_2'}) SET usr.appId='', usr.channel='in.ekstep'";
+        GraphQueryDispatcher.dispatch(setQuery)
+        
+        val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
+        val events = rdd.collect
+
+        events.length should be(11)
+
+    }
 }

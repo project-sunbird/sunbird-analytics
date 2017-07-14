@@ -25,6 +25,7 @@ import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
 import org.ekstep.analytics.connector.InfluxDB._
 import org.ekstep.analytics.framework.CassandraTable
 import org.ekstep.analytics.framework.conf.AppConf
+import org.apache.commons.lang3.StringUtils
 
 case class TextbookSnapshotSummary(d_period: Int, d_textbook_id: String, d_app_id: String, d_channel: String, status: String, author_id: String, content_count: Long, textbookunit_count: Long, avg_content: Double, content_types: List[String], total_ts: Double, creators_count: Long, board: String, medium: String, updated_date: DateTime) extends AlgoOutput with Output with CassandraTable
 case class TextbookSnapshotIndex(d_textbook_id: String, d_app_id: String, d_channel: String)
@@ -54,8 +55,8 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
         val contentRDD = getQueryResultRDD(CypherQueries.TEXTBOOK_SNAPSHOT_CONTENT_COUNT);
         val defaultAppId = AppConf.getConfig("default.creation.app.id");
         val defaultChannel = AppConf.getConfig("default.channel.id");
-        val resultRDD = bookUnitRDD.map(f => (TextbookSnapshotIndex(f.get("identifier").get.toString(), f.getOrElse("appId", defaultAppId).toString(), f.getOrElse("channel", defaultChannel).toString()), f))
-            .union(contentRDD.map(f => (TextbookSnapshotIndex(f.get("identifier").get.toString(), f.getOrElse("appId", defaultAppId).toString(), f.getOrElse("channel", defaultChannel).toString()), f))).groupByKey().map(f => (f._1, f._2.reduce((a, b) => a ++ b)))
+        val resultRDD = bookUnitRDD.map(f => (TextbookSnapshotIndex(f.get("identifier").get.toString(), if (StringUtils.isBlank(f.getOrElse("appId", defaultAppId).toString())) defaultAppId else f.getOrElse("appId", defaultAppId).toString(), if (StringUtils.isBlank(f.getOrElse("channel", defaultChannel).toString())) defaultChannel else f.getOrElse("channel", defaultChannel).toString()), f))
+            .union(contentRDD.map(f => (TextbookSnapshotIndex(f.get("identifier").get.toString(), if (StringUtils.isBlank(f.getOrElse("appId", defaultAppId).toString())) defaultAppId else f.getOrElse("appId", defaultAppId).toString(), if (StringUtils.isBlank(f.getOrElse("channel", defaultChannel).toString())) defaultChannel else f.getOrElse("channel", defaultChannel).toString()), f))).groupByKey().map(f => (f._1, f._2.reduce((a, b) => a ++ b)))
         val updatedAt = DateTime.now();
         resultRDD.map { f =>
             val status = f._2.getOrElse("status", noValue).toString();
