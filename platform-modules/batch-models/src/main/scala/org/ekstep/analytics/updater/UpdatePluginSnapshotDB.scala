@@ -23,6 +23,7 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher
 import org.ekstep.analytics.connector.InfluxDB._
 import org.ekstep.analytics.framework.conf.AppConf
+import org.apache.commons.lang3.StringUtils
 
 case class PluginMetrics(d_plugin_id: String, d_app_id: String, d_channel: String, plugin_name: String, category: String, author: String, content_count: Int)
 case class PluginSnapshotMetrics(d_period: Int, d_plugin_id: String, d_app_id: String, d_channel: String, plugin_name: String, category: String, author: String, content_count: Int, content_count_start: Int, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
@@ -41,7 +42,7 @@ object UpdatePluginSnapshotDB extends IBatchModelTemplate[Empty, Empty, PluginSn
         val defaultAppId = AppConf.getConfig("default.creation.app.id");
         val defaultChannel = AppConf.getConfig("default.channel.id");
         GraphQueryDispatcher.dispatch(query).list().map { x =>
-            PluginMetrics(x.get("plugin_id").asString(), x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("name").asString(), x.get("category").asList().mkString(","), x.get("author").asString(), x.get("contentCount").asInt)
+            PluginMetrics(x.get("plugin_id").asString(), if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("name").asString(), x.get("category").asList().mkString(","), x.get("author").asString(), x.get("contentCount").asInt)
         }.toList
     }
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {

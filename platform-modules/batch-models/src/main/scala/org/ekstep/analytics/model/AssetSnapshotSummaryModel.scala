@@ -16,6 +16,7 @@ import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.commons.lang3.StringUtils
 
 case class AssetSnapshotAlgoOutput(partner_id: String, app_id: String, channel: String, totalImageCount: Long, usedImageCount: Long, totalAudioCount: Long, usedAudioCount: Long, totalQCount: Long, usedQCount: Long, totalActCount: Long, usedActCount: Long, totalTempCount: Long, usedTempCount: Long) extends AlgoOutput
 case class AssetSnapshotIndex(app_id: String, channel: String)
@@ -30,7 +31,7 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
     val defaultChannel = AppConf.getConfig("default.channel.id");
     
     private def getMediaMap(query: String)(implicit sc: SparkContext): RDD[(AssetSnapshotIndex, Iterable[MediaKey])] = {
-        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("mediaType").asString(), x.get("count").asLong()) } //.toMap
+        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("mediaType").asString(), x.get("count").asLong()) } //.toMap
         sc.parallelize(x.map(f => (AssetSnapshotIndex(f._1, f._2), MediaKey(f._3, f._4)))).groupByKey()
     }
 

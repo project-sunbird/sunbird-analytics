@@ -22,6 +22,7 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.toRDDFunctions
 import org.ekstep.analytics.framework.conf.AppConf
+import org.apache.commons.lang3.StringUtils
 
 case class TemplateSnapshotMetrics(d_period: Int, d_template_id: String, d_app_id: String, d_channel: String, template_name: String, category: String, author_id: String, content_count: Long, content_count_start: Long, question_count: Long, question_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class TemplateMetrics(d_template_id: String, d_app_id: String, d_channel: String, template_name: String, category: String, author_id: String, content_count: Long, question_count: Long)
@@ -39,7 +40,7 @@ object UpdateTemplateSnapshotDB extends IBatchModelTemplate[Empty, Empty, Templa
         val defaultAppId = AppConf.getConfig("default.creation.app.id");
         val defaultChannel = AppConf.getConfig("default.channel.id");
         GraphQueryDispatcher.dispatch(query).list().map { x =>
-            TemplateMetrics(x.get("template_id").asString(), x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("name").asString(), x.get("category").asList().mkString(","), x.get("author").asString(), x.get("contentCount").asLong(), x.get("questionCount").asLong())
+            TemplateMetrics(x.get("template_id").asString(), if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("name").asString(), x.get("category").asList().mkString(","), x.get("author").asString(), x.get("contentCount").asLong(), x.get("questionCount").asLong())
         }.toList
     }
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
