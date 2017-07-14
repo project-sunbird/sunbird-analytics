@@ -180,7 +180,7 @@ object DataExhaustUtils {
                 	val defaultAppId = AppConf.getConfig("default.consumption.app.id");
                     val app = event.pdata;
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
-                        appId.equals(app.getOrElse(PData(null, null)).id);
+                        appId.equals(app.getOrElse(PData("", "")).id);
                     } else {
                         app.isEmpty || app.getOrElse(PData("", "")).id.equals(defaultAppId)
                     }
