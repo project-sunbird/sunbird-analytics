@@ -182,7 +182,7 @@ object DataExhaustUtils {
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
                         appId.equals(app.getOrElse(PData(null, null)).id);
                     } else {
-                        app.isEmpty || app.getOrElse(PData(null, null)).id.equals(defaultAppId)
+                        app.isEmpty || app.getOrElse(PData("", "")).id.equals(defaultAppId)
                     }
                 };
                 val rawRDD = data.map { event =>
