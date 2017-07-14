@@ -69,6 +69,16 @@ object DataFilter {
             true
         }
     }
+    
+    
+    @throws(classOf[DataFilterException])
+    def filter[T, S](events: RDD[T], value: S, filter: (T, S) => Boolean): RDD[T] = {
+        if (null != filter) {
+            events.filter { event => filter(event, value) };
+        } else {
+            events;
+        }
+    }
 
     @throws(classOf[DataFilterException])
     def matches[T](event: T, filters: Array[Filter]): Boolean = {

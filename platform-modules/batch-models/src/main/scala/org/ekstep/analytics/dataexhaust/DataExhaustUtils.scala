@@ -39,6 +39,8 @@ import org.ekstep.analytics.framework.EventId
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.creation.model.CreationPData
 
 object DataExhaustUtils {
 
@@ -164,21 +166,76 @@ object DataExhaustUtils {
         }
     }
 
+    private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
+    	
+        if(List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
+        	val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
+        		val channelFilter = (event: Event, channel: String) => {
+		        	if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
+		        		channel.equals(event.channel.get);
+		        	} else {
+		        		event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+		        	}
+		        };
+		        val appIdFilter =  (event: Event, appId: String) => {
+		        	val app = event.pdata;
+		        	if (StringUtils.isNotBlank(appId) && !AppConf.getConfig("default.consumption.app.id").equals(appId)) {
+		        		appId.equals(app.getOrElse(PData(null,null)).id);
+		        	} else {
+		        		app.isEmpty
+		        	}
+		        };
+        		val rawRDD = data.map { event => JSONUtils.deserialize[Event](event) };
+        		val channelFltrRDD = DataFilter.filter[Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+        		DataFilter.filter[Event, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);	
+        	} else {
+        		val channelFilter = (event: CreationEvent, channel: String) => {
+		        	if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
+		        		channel.equals(event.channel.get);
+		        	} else {
+		        		event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+		        	}
+		        }
+		        val appIdFilter =  (event: CreationEvent, appId: String) => {
+		        	val app = event.pdata;
+		        	if (StringUtils.isNotBlank(appId) && !AppConf.getConfig("default.creation.app.id").equals(appId)) {
+		        		appId.equals(app.getOrElse(new CreationPData("","")).id);
+		        	} else {
+		        		app.isEmpty
+		        	}
+		        }
+
+        		val rawRDD = data.map { event => JSONUtils.deserialize[CreationEvent](event) };
+        		val channelFltrRDD = DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+        		DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+        	}
+        	filteredRDD.map { x => JSONUtils.serialize(x) };
+        } else {
+        	data;
+        }
+    }
+    
     def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
+    	val rawDatasets = List("eks-consumption-raw", "eks-creation-raw");
+    	val orgFilterKeys = List("channel", "app_id");
         val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
         val filterMapping = eventConf.filterMapping
 
+        val filteredRDD = filterChannelAndApp(dataSetId, data, filter);
+        
         val filterKeys = filterMapping.keySet
+
         val filters = filterKeys.map { key =>
             val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
-            Filter(defaultFilter.name, defaultFilter.operator, filter.get(key))
-        }.filter(x => x.value.isDefined).toArray
-
-        data.map { line =>
+            (key, Filter(defaultFilter.name, defaultFilter.operator, filter.get(key)))
+        }.filter(x => x._2.value.isDefined).toArray
+        
+        filteredRDD.map { line =>
             try {
                 val event = stringToObject(line, dataSetId);
-                val matched = DataFilter.matches(event._2, filters);
+                val finalFilters = if (rawDatasets.contains(dataSetId)) filters.filter(f =>  orgFilterKeys.contains(f._1)); else filters;
+                val matched = DataFilter.matches(event._2, finalFilters.map {f => f._2});
                 if (matched) {
                     event;
                 } else {
