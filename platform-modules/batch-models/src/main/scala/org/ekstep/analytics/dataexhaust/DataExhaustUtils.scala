@@ -213,7 +213,7 @@ object DataExhaustUtils {
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
                         appId.equals(app.getOrElse(new CreationPData("", "")).id);
                     } else {
-                        app.isEmpty || app.getOrElse(new CreationPData("", "")).id.equals(defaultAppId);
+                        true;
                     }
                 }
 
