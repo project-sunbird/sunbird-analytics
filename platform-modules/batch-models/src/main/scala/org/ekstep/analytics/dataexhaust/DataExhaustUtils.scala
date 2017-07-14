@@ -167,7 +167,6 @@ object DataExhaustUtils {
     }
 
     private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
-
         if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
             val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
                 val channelFilter = (event: Event, channel: String) => {
@@ -178,11 +177,12 @@ object DataExhaustUtils {
                     }
                 };
                 val appIdFilter = (event: Event, appId: String) => {
+                	val defaultAppId = AppConf.getConfig("default.consumption.app.id");
                     val app = event.pdata;
-                    if (StringUtils.isNotBlank(appId) && !AppConf.getConfig("default.consumption.app.id").equals(appId)) {
+                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
                         appId.equals(app.getOrElse(PData(null, null)).id);
                     } else {
-                        app.isEmpty
+                        app.isEmpty || app.getOrElse(PData(null, null)).id.equals(defaultAppId)
                     }
                 };
                 val rawRDD = data.map { event =>
@@ -195,7 +195,7 @@ object DataExhaustUtils {
                 }.filter { x => null != x }
 
                 val channelFltrRDD = DataFilter.filter[Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                DataFilter.filter[Event, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                DataFilter.filter[Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
             } else {
                 val channelFilter = (event: CreationEvent, channel: String) => {
                     if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
@@ -205,11 +205,12 @@ object DataExhaustUtils {
                     }
                 }
                 val appIdFilter = (event: CreationEvent, appId: String) => {
+                	val defaultAppId = AppConf.getConfig("default.creation.app.id");
                     val app = event.pdata;
-                    if (StringUtils.isNotBlank(appId) && !AppConf.getConfig("default.creation.app.id").equals(appId)) {
+                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
                         appId.equals(app.getOrElse(new CreationPData("", "")).id);
                     } else {
-                        app.isEmpty
+                        app.isEmpty || app.getOrElse(new CreationPData("", "")).id.equals(defaultAppId);
                     }
                 }
 
@@ -223,7 +224,7 @@ object DataExhaustUtils {
                 }.filter { x => null != x }
 
                 val channelFltrRDD = DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                DataFilter.filter[CreationEvent, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
             }
             filteredRDD.map { x => JSONUtils.serialize(x) };
         } else {
@@ -240,8 +241,6 @@ object DataExhaustUtils {
 
         val filteredRDD = filterChannelAndApp(dataSetId, data, filter);
 
-        println("After channel filter: "+ filteredRDD.count)
-        
         val filterKeys = filterMapping.keySet
 
         val filters = filterKeys.map { key =>
