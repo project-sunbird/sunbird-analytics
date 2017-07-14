@@ -190,7 +190,6 @@ object DataExhaustUtils {
                         JSONUtils.deserialize[Event](event)
                     } catch {
                         case t: Throwable =>
-                            println(event)
                             null
                     }
                 }.filter { x => null != x }
@@ -214,7 +213,15 @@ object DataExhaustUtils {
                     }
                 }
 
-                val rawRDD = data.map { event => JSONUtils.deserialize[CreationEvent](event) };
+                val rawRDD = data.map { event =>
+                    try {
+                        JSONUtils.deserialize[CreationEvent](event)
+                    } catch {
+                        case t: Throwable =>
+                            null
+                    }
+                }.filter { x => null != x }
+
                 val channelFltrRDD = DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
                 DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
             }
@@ -242,9 +249,13 @@ object DataExhaustUtils {
 
         filteredRDD.map { line =>
             try {
-                val event = stringToObject(line, dataSetId);
+                val event = stringToObject(line, dataSetId)
                 val finalFilters = if (rawDatasets.contains(dataSetId)) filters.filter(f => orgFilterKeys.contains(f._1)); else filters;
-                val matched = DataFilter.matches(event._2, finalFilters.map { f => f._2 });
+                val matched = if(null!=event){
+                    DataFilter.matches(event._2, finalFilters.map { f => f._2 });    
+                }else {
+                    false
+                }
                 if (matched) {
                     event;
                 } else {
@@ -258,7 +269,8 @@ object DataExhaustUtils {
     }
 
     def stringToObject(event: String, dataSetId: String) = {
-        dataSetId match {
+        try {
+          dataSetId match {
             case "eks-consumption-raw" =>
                 val e = JSONUtils.deserialize[Event](event);
                 (CommonUtil.getEventSyncTS(e), e);
@@ -271,6 +283,10 @@ object DataExhaustUtils {
             case "eks-consumption-metrics" | "eks-creation-metrics" =>
                 val e = JSONUtils.deserialize[DerivedEvent](event);
                 (CommonUtil.dayPeriodToLong(e.dimensions.period.getOrElse(0)), e);
+        }
+        } catch {
+          case t: Throwable => 
+              null
         }
     }
 }
