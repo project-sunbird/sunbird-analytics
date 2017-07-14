@@ -240,6 +240,8 @@ object DataExhaustUtils {
 
         val filteredRDD = filterChannelAndApp(dataSetId, data, filter);
 
+        println("After channel filter: "+ filteredRDD.count)
+        
         val filterKeys = filterMapping.keySet
 
         val filters = filterKeys.map { key =>
