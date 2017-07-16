@@ -39,6 +39,8 @@ import org.ekstep.analytics.framework.EventId
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.creation.model.CreationPData
 
 object DataExhaustUtils {
 
@@ -164,47 +166,136 @@ object DataExhaustUtils {
         }
     }
 
+    private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
+        if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
+            val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
+                val channelFilter = (event: Event, channel: String) => {
+                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
+                        channel.equals(event.channel.get);
+                    } else {
+                        event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+                    }
+                };
+                val appIdFilter = (event: Event, appId: String) => {
+                	val defaultAppId = AppConf.getConfig("default.consumption.app.id");
+                    val app = event.pdata;
+                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
+                        appId.equals(app.getOrElse(PData("", "")).id);
+                    } else {
+                        app.isEmpty || defaultAppId.equals(app.getOrElse(PData("", "")).id)
+                    }
+                };
+                val rawRDD = data.map { event =>
+                    try {
+                        JSONUtils.deserialize[Event](event)
+                    } catch {
+                        case t: Throwable =>
+                            null
+                    }
+                }.filter { x => null != x }
+                println("Input count: ", rawRDD.count())
+                val channelFltrRDD = DataFilter.filter[Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
+                val appFltrRDD = DataFilter.filter[Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
+                appFltrRDD;
+            } else {
+                val channelFilter = (event: CreationEvent, channel: String) => {
+                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
+                        channel.equals(event.channel.get);
+                    } else {
+                        event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+                    }
+                }
+                val appIdFilter = (event: CreationEvent, appId: String) => {
+                	val defaultAppId = AppConf.getConfig("default.creation.app.id");
+                    val app = event.pdata;
+                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
+                        appId.equals(app.getOrElse(new CreationPData("", "")).id);
+                    } else {
+                        true;
+                    }
+                }
+
+                val rawRDD = data.map { event =>
+                    try {
+                        JSONUtils.deserialize[CreationEvent](event)
+                    } catch {
+                        case t: Throwable =>
+                            null
+                    }
+                }.filter { x => null != x }
+                println("Input count: ", rawRDD.count())
+                val channelFltrRDD = DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
+                val appFltrRDD = DataFilter.filter[CreationEvent, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
+                appFltrRDD;
+            }
+            filteredRDD.map { x => JSONUtils.serialize(x) };
+        } else {
+            data;
+        }
+    }
+
     def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
+        val rawDatasets = List("eks-consumption-raw", "eks-creation-raw");
+        val orgFilterKeys = List("channel", "app_id");
         val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
         val filterMapping = eventConf.filterMapping
 
-        val filterKeys = filterMapping.keySet
-        val filters = filterKeys.map { key =>
-            val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
-            Filter(defaultFilter.name, defaultFilter.operator, filter.get(key))
-        }.filter(x => None != x.value).toArray
+        val filteredRDD = filterChannelAndApp(dataSetId, data, filter);
 
-        data.map { line =>
+        val filterKeys = filterMapping.keySet
+
+        val filters = filterKeys.map { key =>
+            val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)));
+            if (rawDatasets.contains(dataSetId) && orgFilterKeys.contains(key)) {
+            	Filter(defaultFilter.name, defaultFilter.operator, None);
+            } else {
+            	if ("channel".equals(key)) {
+            		val value = if (filter.get(key).isDefined) filter.get(key) else Option(AppConf.getConfig("default.channel.id"));
+            		Filter(defaultFilter.name, defaultFilter.operator, value);
+            	} else {
+            		Filter(defaultFilter.name, defaultFilter.operator, filter.get(key));
+            	}
+            }
+        }.filter(x => x.value.isDefined).toArray
+
+        val finalRDD = filteredRDD.map { line =>
             try {
                 val event = stringToObject(line, dataSetId);
-                val matched = DataFilter.matches(event._2, filters);
-                if (matched) {
-                    event;
-                } else {
-                    null;
-                }
+                val matched = if (null != event) { DataFilter.matches(event._2, filters) } else false;
+                if (matched) event else null;
             } catch {
                 case ex: Exception =>
                     null;
             }
         }.filter { x => x != null }
+        println("After tags filter count: ", finalRDD.count())
+        finalRDD;
     }
 
     def stringToObject(event: String, dataSetId: String) = {
-    	dataSetId match {
-            case "eks-consumption-raw" => 
-            	val e = JSONUtils.deserialize[Event](event);
-            	(CommonUtil.getEventSyncTS(e), e);
-            case "eks-creation-raw"    => 
-            	val e = JSONUtils.deserialize[CreationEvent](event);
-            	(CreationEventUtil.getEventSyncTS(e), e);
-            case "eks-consumption-summary" | "eks-creation-summary" => 
-            	val e = JSONUtils.deserialize[DerivedEvent](event);
-            	(e.syncts, e);
+        try {
+          dataSetId match {
+            case "eks-consumption-raw" =>
+                val e = JSONUtils.deserialize[Event](event);
+                (CommonUtil.getEventSyncTS(e), e);
+            case "eks-creation-raw" =>
+                val e = JSONUtils.deserialize[CreationEvent](event);
+                (CreationEventUtil.getEventSyncTS(e), e);
+            case "eks-consumption-summary" | "eks-creation-summary" =>
+                val e = JSONUtils.deserialize[DerivedEvent](event);
+                (e.syncts, e);
             case "eks-consumption-metrics" | "eks-creation-metrics" =>
                 val e = JSONUtils.deserialize[DerivedEvent](event);
-            	(CommonUtil.dayPeriodToLong(e.dimensions.period.getOrElse(0)), e);
+                (CommonUtil.dayPeriodToLong(e.dimensions.period.getOrElse(0)), e);
+        }
+        } catch {
+          case t: Throwable => 
+              null
         }
     }
 }

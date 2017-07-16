@@ -42,7 +42,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
-        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false,"modelParams":{}, "exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}}}}}}}"""
+        val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/2017-06-22-1498096911578.json"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","output":[{"to":"file","params":{"file": "/tmp/dataexhaust"}}],"parallelization":8,"appName":"Data Exhaust","deviceMapping":false,"modelParams":{}, "exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}}}}}}}"""
         DataExhaustJob.main(config)(Option(sc));
     }
 
@@ -93,14 +93,13 @@ class TestDataExhaustJob extends SparkSpec(null) {
         preProcess()
 
         val requests = Array(
-            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-18", "2017-06-18", Option(List()), Option(List("ME_SESSION_SUMMARY")), Option("appId"), Option("ChannelId")), Option("D003"))),
+            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-01", "2017-06-10", Option(List()), Option(List("ME_SESSION_SUMMARY")), None, None), Option("eks-consumption-summary"))),
                 None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
-        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-raw-bucket":"ekstep-dev-data-store","consumption-raw-prefix":"ss/","data-exhaust-bucket":"ekstep-public-dev","data-exhaust-prefix":"data-exhaust/test","tempLocalPath":"/tmp/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
+        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "exhaustConfig":{"eks-consumption-summary":{"events":["ME_SESSION_SUMMARY","ME_CONTENT_USAGE_SUMMARY","ME_GENIE_LAUNCH_SUMMARY","ME_ITEM_SUMMARY","ME_GENIE_USAGE_SUMMARY","ME_ITEM_USAGE_SUMMARY"],"eventConfig":{"ME_SESSION_SUMMARY":{"searchType":"s3","fetchConfig":{"params":{"bucket":"ekstep-dev-data-store","prefix":"ss/"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"},"channel":{"name":"channel","operator":"EQ"},"app_id":{"name":"dimensions.pdata.id","operator":"EQ"}}},"ME_CONTENT_USAGE_SUMMARY":{"searchType":"s3","fetchConfig":{"params":{"bucket":"ekstep-dev-data-store","prefix":"cus/"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"},"channel":{"name":"channel","operator":"EQ"},"app_id":{"name":"dimensions.pdata.id","operator":"EQ"}}},"ME_GENIE_LAUNCH_SUMMARY":{"searchType":"s3","fetchConfig":{"params":{"bucket":"ekstep-dev-data-store","prefix":"gls/"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"},"channel":{"name":"channel","operator":"EQ"},"app_id":{"name":"dimensions.pdata.id","operator":"EQ"}}},"ME_ITEM_SUMMARY":{"searchType":"s3","fetchConfig":{"params":{"bucket":"ekstep-dev-data-store","prefix":"is/"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"},"channel":{"name":"channel","operator":"EQ"},"app_id":{"name":"dimensions.pdata.id","operator":"EQ"}}},"ME_GENIE_USAGE_SUMMARY":{"searchType":"s3","fetchConfig":{"params":{"bucket":"ekstep-dev-data-store","prefix":"genie-launch-summ/"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"},"channel":{"name":"channel","operator":"EQ"},"app_id":{"name":"dimensions.pdata.id","operator":"EQ"}}},"ME_ITEM_USAGE_SUMMARY":{"searchType":"s3","fetchConfig":{"params":{"bucket":"ekstep-dev-data-store","prefix":"item-usage-summ/"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"},"channel":{"name":"channel","operator":"EQ"},"app_id":{"name":"dimensions.pdata.id","operator":"EQ"}}}}}}}"""
         DataExhaustJob.main(config)(Option(sc));
     }
-
 
 }

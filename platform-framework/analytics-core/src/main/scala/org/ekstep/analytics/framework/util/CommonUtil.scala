@@ -412,7 +412,7 @@ object CommonUtil {
     }
 
     def getDefaultAppChannelIds(): (String, String) = {
-        (AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"))
+        (AppConf.getConfig("default.consumption.app.id"), AppConf.getConfig("default.channel.id"))
     }
 
     def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA", appId: Option[String] = Option(getDefaultAppChannelIds._1), channelId: Option[String] = Option(getDefaultAppChannelIds._2)): String = {
@@ -544,24 +544,24 @@ object CommonUtil {
     }
 
     def getAppDetails(event: Any): PData = {
-        val defaultAppId = PData(AppConf.getConfig("default.app.id"), "1.0")
+        val defaultAppId = PData(AppConf.getConfig("default.consumption.app.id"), "1.0")
         if (event.isInstanceOf[Event]) {
-            if (event.asInstanceOf[Event].pdata.isEmpty) defaultAppId else event.asInstanceOf[Event].pdata.get
+            if (event.asInstanceOf[Event].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].pdata.get.id)) event.asInstanceOf[Event].pdata.get else defaultAppId
         } else if (event.isInstanceOf[DerivedEvent]) {
             if (event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
         } else if (event.isInstanceOf[ProfileEvent]) {
-            if (event.asInstanceOf[ProfileEvent].pdata.isEmpty) defaultAppId else event.asInstanceOf[ProfileEvent].pdata.get
+            if (event.asInstanceOf[ProfileEvent].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].pdata.get.id)) event.asInstanceOf[ProfileEvent].pdata.get else defaultAppId
         } else defaultAppId;
     }
 
     def getChannelId(event: Any): String = {
         val defaultChannelId = AppConf.getConfig("default.channel.id")
         if (event.isInstanceOf[Event]) {
-            if (event.asInstanceOf[Event].channel.isEmpty) defaultChannelId else event.asInstanceOf[Event].channel.get
+            if (event.asInstanceOf[Event].channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].channel.get)) event.asInstanceOf[Event].channel.get else defaultChannelId
         } else if (event.isInstanceOf[DerivedEvent]) {
-            if (null == event.asInstanceOf[DerivedEvent].channel) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
+            if (StringUtils.isBlank(event.asInstanceOf[DerivedEvent].channel)) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
         } else if (event.isInstanceOf[ProfileEvent]) {
-            if (event.asInstanceOf[ProfileEvent].channel.isEmpty) defaultChannelId else event.asInstanceOf[ProfileEvent].channel.get
+            if (event.asInstanceOf[ProfileEvent].channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].channel.get)) event.asInstanceOf[ProfileEvent].channel.get else defaultChannelId
         } else defaultChannelId;
     }
 
@@ -576,7 +576,7 @@ object CommonUtil {
                 val dims = tags.filter(f => f.contains("dims")).map { x => x.get("dims").get }.flatMap { x => x }
                 ETags(Option(genieTags), Option(partnerTags), Option(dims))
             } else {
-                ETags(None, None, None)
+                ETags()
             }
 
         }

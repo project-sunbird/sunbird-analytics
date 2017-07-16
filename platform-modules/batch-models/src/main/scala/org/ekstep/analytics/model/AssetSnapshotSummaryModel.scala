@@ -16,6 +16,7 @@ import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.commons.lang3.StringUtils
 
 case class AssetSnapshotAlgoOutput(partner_id: String, app_id: String, channel: String, totalImageCount: Long, usedImageCount: Long, totalAudioCount: Long, usedAudioCount: Long, totalQCount: Long, usedQCount: Long, totalActCount: Long, usedActCount: Long, totalTempCount: Long, usedTempCount: Long) extends AlgoOutput
 case class AssetSnapshotIndex(app_id: String, channel: String)
@@ -26,13 +27,16 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
     override def name(): String = "AssetSnapshotSummaryModel";
     implicit val className = "org.ekstep.analytics.model.AssetSnapshotSummaryModel";
 
+    val defaultAppId = AppConf.getConfig("default.creation.app.id");
+    val defaultChannel = AppConf.getConfig("default.channel.id");
+    
     private def getMediaMap(query: String)(implicit sc: SparkContext): RDD[(AssetSnapshotIndex, Iterable[MediaKey])] = {
-        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId").asString(), x.get("channel").asString(), x.get("mediaType").asString(), x.get("count").asLong()) } //.toMap
+        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (if (StringUtils.isBlank(x.get("appId", defaultAppId))) defaultAppId else x.get("appId", defaultAppId), if (StringUtils.isBlank(x.get("channel", defaultChannel))) defaultChannel else x.get("channel", defaultChannel), x.get("mediaType").asString(), x.get("count").asLong()) } //.toMap
         sc.parallelize(x.map(f => (AssetSnapshotIndex(f._1, f._2), MediaKey(f._3, f._4)))).groupByKey()
     }
 
     private def getAssetCount(query: String)(implicit sc: SparkContext): RDD[(AssetSnapshotIndex, Long)] = {
-        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId").asString(), x.get("channel").asString(), x.get("count").asLong()) };
+        val x = GraphQueryDispatcher.dispatch(query).list().toArray().map { x => x.asInstanceOf[org.neo4j.driver.v1.Record] }.map { x => (x.get("appId", defaultAppId), x.get("channel", defaultChannel), x.get("count").asLong()) };
         sc.parallelize(x.map(f => (AssetSnapshotIndex(f._1, f._2), f._3)))
     }
 
@@ -60,6 +64,7 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
         res ++ (allRDD)
     }
     override def postProcess(data: RDD[AssetSnapshotAlgoOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_ASSET_SNAPSHOT_SUMMARY", x.partner_id, "SNAPSHOT", DtRange(System.currentTimeMillis(), System.currentTimeMillis()), "NA", Option(x.app_id), Option(x.channel));
 
@@ -74,7 +79,7 @@ object AssetSnapshotSummaryModel extends IBatchModelTemplate[DerivedEvent, Deriv
                 "used_activities_count" -> x.usedActCount,
                 "total_templates_count" -> x.totalTempCount,
                 "used_templates_count" -> x.usedTempCount);
-            MeasuredEvent("ME_ASSET_SNAPSHOT_SUMMARY", System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", x.channel, None, None,
+            MeasuredEvent("ME_ASSET_SNAPSHOT_SUMMARY", System.currentTimeMillis(), System.currentTimeMillis(), meEventVersion, mid, "", x.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AssetSnapshotSummarizer").asInstanceOf[String])), None, config.getOrElse("granularity", "SNAPSHOT").asInstanceOf[String], DtRange(System.currentTimeMillis(), System.currentTimeMillis())),
                 Dimensions(None, None, None, None, None, None, Option(PData(x.app_id, "1.0")), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(x.partner_id)),
                 MEEdata(measures));

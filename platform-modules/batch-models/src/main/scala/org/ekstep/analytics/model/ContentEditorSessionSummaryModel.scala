@@ -4,10 +4,8 @@
 package org.ekstep.analytics.model
 
 import java.net.URLDecoder
-
 import scala.BigDecimal
 import scala.collection.mutable.Buffer
-
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.creation.model.CreationEvent
@@ -137,7 +135,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             val startTimestamp = startEvent.ets
             val endTimestamp = endEvent.ets
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
-            val loadTime = if ("CE_START".equals(startEvent.eid)) startEvent.edata.eks.loadtimes.getOrElse("contentLoad", 0.0) else 0.0
+            val loadTime = if ("CE_START".equals(startEvent.eid)) startEvent.edata.eks.loadtimes.getOrElse("contentLoad", Double.box(0.0)).doubleValue() else 0.0
             val noOfInteractEvents = interactEvents.length
             val interactEventsPerMin: Double = if (noOfInteractEvents == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) noOfInteractEvents.toDouble
@@ -158,6 +156,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
     }
 
     override def postProcess(data: RDD[CESessionSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { sessionMap =>
             val session = sessionMap.ss;
             val mid = CommonUtil.getMessageId("ME_CE_SESSION_SUMMARY", sessionMap.contentId, "SESSION", sessionMap.dateRange, sessionMap.sid, Option(sessionMap.pdata.id), Option(sessionMap.channel));
@@ -176,7 +175,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
                 "api_calls_count" -> session.api_calls_count,
                 "sidebar_events_count" -> session.sidebar_events_count,
                 "menu_events_count" -> session.menu_events_count);
-            MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.syncDate, "1.0", mid, sessionMap.uid, sessionMap.channel, Option(sessionMap.contentId), None,
+            MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.syncDate, meEventVersion, mid, sessionMap.uid, sessionMap.channel, Option(sessionMap.contentId), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentEditorSessionSummary").asInstanceOf[String])), None, "SESSION", sessionMap.dateRange),
                 Dimensions(None, None, None, None, None, None, Option(PData(sessionMap.pdata.id, sessionMap.pdata.ver)), None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, Option(sessionMap.client), None),
                 MEEdata(measures));

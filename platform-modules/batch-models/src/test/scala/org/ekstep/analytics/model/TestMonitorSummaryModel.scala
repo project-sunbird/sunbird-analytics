@@ -10,9 +10,9 @@ import org.ekstep.analytics.framework.util.JSONUtils
 class TestMonitorSummaryModel extends SparkSpec(null) {
 
     "Monitor Summary Model" should "monitor the data products logs" in {
-        val modelMapping = loadFile[ModelMapping]("src/test/resources/monitor-summary/model-mapping.log").collect() //.map { x => JSONUtils.serialize(x) };
+        val modelMapping = loadFile[ModelMapping]("src/test/resources/monitor-summary/model-mapping.log").collect().toList;
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/monitor-summary/2017-06-28.log");
-        val rdd2 = MonitorSummaryModel.execute(rdd1, Option(Map("model" -> JSONUtils.serialize(modelMapping))));
+        val rdd2 = MonitorSummaryModel.execute(rdd1, Option(Map("model" -> modelMapping)));
         val eks_map = rdd2.first().edata.eks.asInstanceOf[Map[String, AnyRef]]
         eks_map.get("jobs_completed_count").get.asInstanceOf[Number].longValue() should be(59)
         eks_map.get("total_events_generated").get.asInstanceOf[Number].longValue() should be(16128)

@@ -104,12 +104,11 @@ object JobAPIService {
 				Map("status" -> "false", "message" -> "events should contains only one event.");
 			} else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.get.length.equals(1) && !(filter.get.events.get.contains("OE_ASSESS") || filter.get.events.get.contains("OE_ITEM_RESPONSE")))) {
 				Map("status" -> "false", "message" -> "events should be [OE_ASSESS, OE_ITEM_RESPONSE].");
-			} else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty || filter.get.tags.isEmpty) {
-				val message = if (params.get.client_key.isEmpty) "client_key is empty"
-				else if (filter.get.tags.isEmpty)
-					"tags are empty"
-				else "start date or end date is empty"
+			} else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty) {
+				val message = if (params.get.client_key.isEmpty) "client_key is empty" else "start date or end date is empty"
 				Map("status" -> "false", "message" -> message);
+			} else if (filter.get.tags.nonEmpty && 0 == filter.get.tags.getOrElse(Array()).length) {
+				Map("status" -> "false", "message" -> "tags are empty");
 			} else if (!datasetList.contains(body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default")))) {
 				val message = "invalid dataset_id. It should be one of "+ datasetList;
 				Map("status" -> "false", "message" -> message);
@@ -163,7 +162,7 @@ object JobAPIService {
 	private def _getRequestId(filter: Filter, outputFormat: String, datasetId: String): String = {
 		Sorting.quickSort(filter.tags.getOrElse(Array()));
 		Sorting.quickSort(filter.events.getOrElse(Array()));
-		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.get.mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId).mkString("|");
+		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId).mkString("|");
 		MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
 	}
 

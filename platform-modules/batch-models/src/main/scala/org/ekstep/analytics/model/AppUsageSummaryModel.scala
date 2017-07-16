@@ -110,6 +110,7 @@ object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsag
     }
 
     override def postProcess(data: RDD[PortalUsageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_APP_USAGE_SUMMARY", usageSumm.author_id, "DAY", usageSumm.dtRange, "NA", Option(usageSumm.pdata.id), Option(usageSumm.channel));
             val measures = Map(
@@ -127,7 +128,7 @@ object AppUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, PortalUsag
                 "anon_avg_ts_session" -> usageSumm.anon_avg_ts_session,
                 "new_user_count" -> usageSumm.new_user_count,
                 "percent_new_users_count" -> usageSumm.percent_new_users_count);
-            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", usageSumm.channel, None, None,
+            MeasuredEvent("ME_APP_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, meEventVersion, mid, "", usageSumm.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AppUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dtRange),
                 Dimensions(None, None, None, None, None, None, Option(usageSumm.pdata), None, None, None, None, Option(usageSumm.period), None, None, None, None, None, None, None, None, None, Option(usageSumm.author_id)),
                 MEEdata(measures), None);

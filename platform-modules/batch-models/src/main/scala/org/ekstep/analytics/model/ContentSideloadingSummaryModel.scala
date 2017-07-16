@@ -91,13 +91,14 @@ object ContentSideloadingSummaryModel extends IBatchModelTemplate[Event, Content
     override def postProcess(data: RDD[ContentSideloadingOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map(x => x.summary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SIDELOADING_SUMMARY)
 
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { csSummary =>
             val mid = CommonUtil.getMessageId("ME_CONTENT_SIDELOADING_SUMMARY", null, "CUMULATIVE", DtRange(0l, 0l), csSummary.summary.content_id, Option(csSummary.summary.appId), Option(csSummary.summary.channel));
             val measures = Map(
                 "num_downloads" -> csSummary.summary.num_downloads,
                 "num_sideloads" -> csSummary.summary.num_sideloads,
                 "avg_depth" -> csSummary.summary.avg_depth);
-            MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), csSummary.synts, "1.0", mid, "", csSummary.summary.channel, Option(csSummary.summary.content_id), None,
+            MeasuredEvent("ME_CONTENT_SIDELOADING_SUMMARY", System.currentTimeMillis(), csSummary.synts, meEventVersion, mid, "", csSummary.summary.channel, Option(csSummary.summary.content_id), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentSideloadingSummary").asInstanceOf[String])), None, "CUMULATIVE", csSummary.dtRange),
                 Dimensions(None, None, Option(new GData(csSummary.summary.content_id, "")), None, None, None, Option(csSummary.pdata)),
                 MEEdata(measures));

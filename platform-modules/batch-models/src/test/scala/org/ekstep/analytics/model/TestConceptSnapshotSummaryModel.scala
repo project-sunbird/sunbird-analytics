@@ -50,7 +50,7 @@ class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
         val events = rdd.collect
         events.length should be(2)
 
-        val event1 = events(0);
+        val event1 = events.filter { x => "test_concept".equals(x.dimensions.concept_id.get) }.head;
         
         event1.context.pdata.model.get should be("ConceptSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");

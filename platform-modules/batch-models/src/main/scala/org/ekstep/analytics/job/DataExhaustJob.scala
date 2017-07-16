@@ -115,6 +115,7 @@ object DataExhaustJob extends optional.Application with IJob {
         val data = DataExhaustUtils.fetchData(eventId, request, requestID, clientKey)
         val filter = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(request.filter))
         val filteredData = DataExhaustUtils.filterEvent(data, filter, eventId, dataSetID);
+        println("After All Filter: "+ filteredData.count)
         DataExhaustUtils.updateStage(requestID, clientKey, "FILTERED_DATA_" + eventId, "COMPLETED")
         if (filteredData.count() > 0) {
 	        val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get

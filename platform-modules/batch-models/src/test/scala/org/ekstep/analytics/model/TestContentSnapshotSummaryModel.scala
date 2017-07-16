@@ -23,16 +23,16 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         ContentAssetRelationModel.main("{}")(Option(sc));
         AuthorRelationsModel.main("{}")(Option(sc));
 
-        val setQuery = "MATCH (n) SET n.appid='Genie', n.channel='Ekstep'";
+        val setQuery = "MATCH (n) SET n.appId='genie', n.channel='in.ekstep'";
         GraphQueryDispatcher.dispatch(setQuery)
         
         // Populate ce usage summary fact table
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d02eae69702d0905cf0800', 'Genie', 'Ekstep', 0, 0, 0.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_5391b1d669702d107e030000', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'test_content', 'Genie', 'Ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d02eae69702d0905cf0800', 'genie', 'in.ekstep', 0, 0, 0.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_5391b1d669702d107e030000', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'test_content', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
         }
 
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
@@ -152,7 +152,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content', contentType:'story', createdFor:['org.ekstep.partner1'], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn"
         GraphQueryDispatcher.dispatch(query1)
 
-        val setQuery = "MATCH (n) SET n.appid='Genie', n.channel='Ekstep'";
+        val setQuery = "MATCH (n) SET n.appId='genie', n.channel='in.ekstep'";
         GraphQueryDispatcher.dispatch(setQuery)
         
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
@@ -161,7 +161,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         events.length should be(11)
 
         // Check for author_id = all
-        val event1 = events(0);
+        val event1 = events.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "all") }.head;
 
         event1.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event1.context.pdata.ver should be("1.0");
@@ -180,7 +180,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         eks1.get("avg_creation_ts").get should be(0.0)
 
         // Check for specific partner_id
-        val event2 = events(5);
+        val event2 = events.filter { x => StringUtils.equals(x.dimensions.author_id.get, "all") && StringUtils.equals(x.dimensions.partner_id.get, "org.ekstep.partner1") }.head;
 
         event2.context.pdata.model.get should be("ContentSnapshotSummarizer");
         event2.context.pdata.ver should be("1.0");
@@ -212,7 +212,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author_1', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content_1', contentType:'story', createdFor:[''], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn, cnt.createdFor"
         val res = GraphQueryDispatcher.dispatch(query1)
 
-        val setQuery = "MATCH (n) SET n.appid='Genie', n.channel='Ekstep'";
+        val setQuery = "MATCH (n) SET n.appId='genie', n.channel='in.ekstep'";
         GraphQueryDispatcher.dispatch(setQuery)
         
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
@@ -222,6 +222,28 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
 
         val out = rdd.filter { x => StringUtils.isBlank(x.dimensions.partner_id.get) }
         out.count() should be(0)
+
+    }
+    
+    it should "check content snapshot summary event for empty app_id" in {
+
+        // Running all VV jobs
+        ContentLanguageRelationModel.main("{}")(Option(sc));
+        ConceptLanguageRelationModel.main("{}")(Option(sc));
+        ContentAssetRelationModel.main("{}")(Option(sc));
+        AuthorRelationsModel.main("{}")(Option(sc));
+
+        val createdOn = new DateTime().toString()
+        val query1 = s"CREATE (usr:User {type:'author', IL_UNIQUE_ID:'test_author_2', contentCount:0, liveContentCount:0})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:'Content', IL_UNIQUE_ID:'test_content_1', contentType:'story', createdFor:[''], createdOn:'$createdOn'}) RETURN usr.IL_UNIQUE_ID, cnt.createdOn, cnt.createdFor"
+        val res = GraphQueryDispatcher.dispatch(query1)
+
+        val setQuery = "MATCH (usr:User {type:'author', IL_UNIQUE_ID:'test_author_2'}) SET usr.appId='', usr.channel='in.ekstep'";
+        GraphQueryDispatcher.dispatch(setQuery)
+        
+        val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
+        val events = rdd.collect
+
+        events.length should be(11)
 
     }
 }

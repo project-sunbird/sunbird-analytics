@@ -19,7 +19,7 @@ class TestContentSideloadingSummaryModel extends SparkSpec(null) {
         val rdd2 = ContentSideloadingSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.length should be(2)
-        val event1 = events(1);
+        val event1 = events.filter { x => "org.ekstep.story.en.family".equals(x.content_id.get) }.head;
         event1.syncts should be(1459849146717l)
         event1.eid should be("ME_CONTENT_SIDELOADING_SUMMARY");
 //        event1.mid should be("56C7D87F4E861BD50E97076168607FBD");

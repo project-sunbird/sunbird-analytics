@@ -5,6 +5,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.OutputDispatcher
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestItemSummaryModel extends SparkSpec(null) {
 
@@ -20,7 +21,7 @@ class TestItemSummaryModel extends SparkSpec(null) {
         val event = JSONUtils.deserialize[DerivedEvent](me(7));
         event.eid should be("ME_ITEM_SUMMARY")
         event.syncts should be(1474356964993L)
-        event.ver should be("1.0")
+        event.ver should be(AppConf.getConfig("telemetry.version"))
 //        event.mid should be("34E364B2E1D30B91D5D9CF062D51EC2E")
         event.uid should be("0d254525-2911-411b-9bb4-4351eab2d916")
         event.context.granularity should be("EVENT")

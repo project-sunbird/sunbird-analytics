@@ -26,6 +26,7 @@ import java.security.MessageDigest
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
 import org.ekstep.analytics.util.SessionBatchModel
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class AserScreener(var activationKeyPage: Option[Double] = Option(0d), var surveyCodePage: Option[Double] = Option(0d),
                         var childReg1: Option[Double] = Option(0d), var childReg2: Option[Double] = Option(0d), var childReg3: Option[Double] = Option(0d),
@@ -168,7 +169,8 @@ object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] wi
     }
 
     override def postProcess(data: RDD[AserScreener], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        data.map { aserScreener =>
+        val meEventVersion = AppConf.getConfig("telemetry.version");
+    	data.map { aserScreener =>
             val measures = Map(
                 "activationKeyPage" -> aserScreener.activationKeyPage.get,
                 "surveyCodePage" -> aserScreener.surveyCodePage.get,
@@ -185,7 +187,7 @@ object AserScreenSummaryModel extends SessionBatchModel[Event, MeasuredEvent] wi
                 "scorecard" -> aserScreener.scorecard.get,
                 "summary" -> aserScreener.summary.get);
             val mid = CommonUtil.getMessageId("ME_ASER_SCREEN_SUMMARY", aserScreener.userId, "SESSION", aserScreener.dtRange, aserScreener.gameId);
-            MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), aserScreener.timeStamp, mid, "1.0", aserScreener.userId, "", None, None,
+            MeasuredEvent("ME_ASER_SCREEN_SUMMARY", System.currentTimeMillis(), aserScreener.timeStamp, meEventVersion, mid, aserScreener.userId, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AserScreenerSummary").asInstanceOf[String])), None, "SESSION", aserScreener.dtRange),
                 Dimensions(None, Option(aserScreener.did), Option(new GData(aserScreener.gameId, aserScreener.gameVersion)), None, None, None, None),
                 MEEdata(measures));

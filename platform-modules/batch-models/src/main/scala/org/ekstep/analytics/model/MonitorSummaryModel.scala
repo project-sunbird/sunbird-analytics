@@ -19,8 +19,8 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import collection.JavaConversions._
 import com.flyberrycapital.slack.SlackClient
-
 import net.liftweb.json.Serialization.write
+import org.apache.commons.math3.analysis.function.Asin
 
 /**
  * @dataproduct
@@ -42,7 +42,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     override def name: String = "MonitorSummaryModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
-        val filteredData = data.filter { x => (x.eid.equals("BE_JOB_START") || (x.eid.equals("BE_JOB_END"))) }.filter { x => !x.context.pdata.model.equals("MonitorSummaryModel") }
+        val filteredData = data.filter { x => (x.eid.equals("BE_JOB_START") || (x.eid.equals("BE_JOB_END"))) }.filter { x => !x.context.pdata.model.get.equals("MonitorSummaryModel") }
         filteredData.sortBy(_.ets)
     }
 
@@ -70,19 +70,21 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
     override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
 
-        val message = messageFormatToSlack(data.first(), config)
-        if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
+        val messages = messageFormatToSlack(data.first(), config)
 
-            val slackMessage = SlackMessage(AppConf.getConfig("monitor.notification.channel"), AppConf.getConfig("monitor.notification.name"), message);
-            try {
-                RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
-            } catch {
-                case e: Exception => println("exception caught:", e.getMessage);
+        if ("true".equalsIgnoreCase(AppConf.getConfig("monitor.notification.slack"))) {
+            for (message <- messages.split("\n\n")) {
+                val slackMessage = SlackMessage(AppConf.getConfig("monitor.notification.channel"), AppConf.getConfig("monitor.notification.name"), message);
+                try {
+                    RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
+                } catch {
+                    case e: Exception => println("exception caught:", e.getMessage);
+                }
             }
         } else {
-            println(message)
+            println(messages)
         }
-
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_MONITOR_SUMMARY", "", "DAY", x.dtange);
             val measures = Map(
@@ -93,7 +95,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
                 "total_ts" -> x.total_ts,
                 "jobs_summary" -> x.job_summary);
 
-            MeasuredEvent("ME_MONITOR_SUMMARY", System.currentTimeMillis(), x.syncTs, "1.0", mid, "", "", None, None,
+            MeasuredEvent("ME_MONITOR_SUMMARY", System.currentTimeMillis(), x.syncTs, meEventVersion, mid, "", "", None, None,
                 Context(PData(config.getOrElse("id", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "MonitorSummarizer").asInstanceOf[String])), None, "DAY", x.dtange),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, None, Option(CommonUtil.getPeriod(x.syncTs, DAY)), None, None, None, None, None, None, None, None, None, None, None, None, None),
                 MEEdata(measures), None);
@@ -109,16 +111,15 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
         val totalTs = milliSecondsToTimeFormat(jobMonitorToSclack.total_ts)
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
-        val modelMapping = JSONUtils.deserialize[List[ModelMapping]](config.get("model").get.asInstanceOf[String]).toSet
-        val consumptionJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "consumption")
-        val creationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "creation")
-        val recommendationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "recommendation")
-
+        val modelMapping = config.get("model").get.asInstanceOf[List[AnyRef]].map { x => JSONUtils.deserialize[ModelMapping](JSONUtils.serialize(x)) }.toSet
+        val consumptionJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Consumption")
+        val creationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Creation")
+        val recommendationJobSummary = modelStats(jobSummaryCaseClass, modelMapping, "Recommendation")
         val date: String = DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now())
         val title = s"""*Jobs | Monitoring Report | $date*"""
         //total statistics regarding jobs
         val totalStats = s"""Number of Jobs Started: `$jobsStarted`\nNumber of Completed Jobs: `$jobsCompleted` \nNumber of Failed Jobs: `$jobsFailed` \nTotal time taken: `$totalTs`\nTotal events generated: `$totalEventsGenerated`"""
-        return title + "\n" + totalStats + "\n\n" + consumptionJobSummary + "\n\n" + creationJobSummary + "\n\n" + recommendationJobSummary
+        return title + "\n\n" + totalStats + "\n\n" + consumptionJobSummary + "\n\n" + creationJobSummary + "\n\n" + recommendationJobSummary
     }
 
     private def warningMessages(modelMapping: Map[String, String], models: Array[JobSummary]): String = {
@@ -148,27 +149,27 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     }
 
     private def jobSummaryMessage(modelName: String, jobsFailed: Int, jobsCompleted: Int, warnings: String, models: String): String = {
-        val header = "Model ," + "Input Events ," + "Output Events ," + "Total time(min) ," + "Status ," + "Day"
+        val header = "Model, " + "Input Events, " + "Output Events, " + "Total time(min), " + "Status, " + "Day"
         if (jobsFailed > 0 && warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\n Error: ```Job Failed```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nError: ```Job Failed``` """
         } else if (jobsFailed == 0 && warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\n Status: ```Job Run Completed Successfully```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\n Status: ```Job Run Completed Successfully```"""
         } else if (jobsFailed == 0 && !warnings.equals("")) {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\nStatus: ```Job Run Completed Successfully```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\nStatus: ```Job Run Completed Successfully```"""
         } else {
-            s"""*Number of $modelName Jobs Completed :* `$jobsCompleted` \n*Number of $modelName Jobs Failed:* `$jobsFailed`\n\n*Detailed Report:*\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
+            s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nWarnings: ```$warnings```\n Error: ```Job Failed```"""
         }
     }
 
     private def modelStats(jobSummary: Array[JobSummary], modelMapping: Set[ModelMapping], category: String): String = {
-        val modelsCategoryFilter = modelMapping.filter { x => (x.category.equals(s"$category")) }
+        val modelsCategoryFilter = modelMapping.filter { x => (x.category.equalsIgnoreCase(s"$category")) }
         val modelsSet = modelsCategoryFilter.map { x => x.model }
         val modelMappingWithInputDependency = modelsCategoryFilter.filter { x => !x.input_dependency.equals("None") }.map { x => (x.model, x.input_dependency) }.toMap
         val filterModelsFromJobSummary = jobSummary.filter(item => modelsSet(item.model.trim()))
         val modelsCompleted = filterModelsFromJobSummary.filter { x => x.status.equals("SUCCESS") }.size
         val modelsFailed = filterModelsFromJobSummary.filter { x => x.status.equals("FAILED") }.size
         val modelsWarnings = warningMessages(modelMappingWithInputDependency, filterModelsFromJobSummary)
-        val modelsString = filterModelsFromJobSummary.map { x => x.model.trim() + " ," + x.input_count + " ," + x.output_count + " ," + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + " ," + x.status + " ," + x.day + "\n" }.mkString("")
+        val modelsString = filterModelsFromJobSummary.map { x => x.model.trim() + ", " + x.input_count + ", " + x.output_count + ", " + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + ", " + x.status + ", " + x.day + "\n" }.mkString("")
         jobSummaryMessage(s"$category", modelsFailed, modelsCompleted, modelsWarnings, modelsString)
     }
 }

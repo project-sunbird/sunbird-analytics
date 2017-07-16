@@ -104,10 +104,11 @@ object GenieFunnelAggregatorModel extends IBatchModelTemplate[DerivedEvent, Devi
     }
 
     override def postProcess(data: RDD[FunnelSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { summary =>
             val mid = CommonUtil.getMessageId("ME_GENIE_FUNNEL_USAGE_SUMMARY", summary.funnel, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange, summary.did, Option(summary.pdata.id), Option(summary.channel));
             val measures = summary.summary.toMap ++ Map("totalTimeSpent" -> summary.totalTimeSpent, "totalCount" -> summary.totalCount, "avgTimeSpent" -> summary.avgTimeSpent) //, "completionPercentage" -> summary.completionPercentage)
-            MeasuredEvent("ME_GENIE_FUNNEL_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, "1.0", mid, "", summary.channel, None, None,
+            MeasuredEvent("ME_GENIE_FUNNEL_USAGE_SUMMARY", System.currentTimeMillis(), summary.syncts, meEventVersion, mid, "", summary.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieFunnelAggregator").asInstanceOf[String])),None, config.getOrElse("granularity", "FUNNEL").asInstanceOf[String], summary.dateRange),
                 Dimensions(None, Option(summary.did), None, None, None, None, Option(summary.pdata), None, None, None, None, Option(summary.period), None, None, None, None, None, Option(summary.funnel), Option(summary.dspec), None, Option(summary.genieVer)),
                 MEEdata(measures), summary.etags);

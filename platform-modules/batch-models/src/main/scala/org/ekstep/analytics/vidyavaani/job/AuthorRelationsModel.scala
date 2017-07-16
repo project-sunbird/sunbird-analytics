@@ -61,13 +61,17 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
         val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
 
         val authorNodes = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-            .map(f => (f.getOrElse("createdBy", "").asInstanceOf[String], f.getOrElse("creator", "").asInstanceOf[String]))
+            .map(f => (f.getOrElse("createdBy", "").asInstanceOf[String], f.getOrElse("creator", "").asInstanceOf[String], f.getOrElse("appId", "").asInstanceOf[String], f.getOrElse("channel", "in.ekstep").asInstanceOf[String]))
             .groupBy(f => f._1).filter(p => !StringUtils.isBlank(p._1))
             .map { f =>
                 val identifier = f._1;
                 val namesList = f._2.filter(p => !StringUtils.isBlank(p._2));
                 val name = if (namesList.isEmpty) identifier else namesList.last._2;
-                DataNode(identifier, Option(Map("name" -> name, "type" -> "author")), Option(List(NODE_NAME)));
+                val defaultAppId = AppConf.getConfig("default.creation.app.id");
+                val defaultChannel = AppConf.getConfig("default.channel.id");
+                val appId = if (namesList.isEmpty) defaultAppId else if (StringUtils.isBlank(namesList.last._3)) defaultAppId else namesList.last._3;
+                val channel = if (namesList.isEmpty) defaultChannel else if (StringUtils.isBlank(namesList.last._4)) defaultChannel else namesList.last._4;
+                DataNode(identifier, Option(Map("name" -> name, "type" -> "author", "appId" -> appId, "channel" -> channel)), Option(List(NODE_NAME)));
             }
 
         val authorQuery = GraphDBUtil.createNodesQuery(authorNodes)

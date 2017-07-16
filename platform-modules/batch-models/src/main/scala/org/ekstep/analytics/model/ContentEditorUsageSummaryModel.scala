@@ -10,6 +10,7 @@ import org.apache.spark.SparkContext
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.HashPartitioner
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * Case class to hold the usage summary input and output
@@ -97,6 +98,7 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
     }
 
     override def postProcess(data: RDD[CEUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_CE_USAGE_SUMMARY", usageSumm.content_id, "DAY", usageSumm.dtRange, "NA", Option(usageSumm.pdata.id), Option(usageSumm.channel));
             val measures = Map(
@@ -104,7 +106,7 @@ object ContentEditorUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
                 "total_sessions" -> usageSumm.total_sessions,
                 "total_ts" -> usageSumm.total_ts,
                 "avg_ts_session" -> usageSumm.avg_ts_session);
-            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, "1.0", mid, "", usageSumm.channel, None, None,
+            MeasuredEvent("ME_CE_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, meEventVersion, mid, "", usageSumm.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentEditorUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dtRange),
                 Dimensions(None, None, None, None, None, None, Option(usageSumm.pdata), None, None, None, None, Option(usageSumm.period), Option(usageSumm.content_id)),
                 MEEdata(measures), None);

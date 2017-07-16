@@ -98,6 +98,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
     }
 
     override def postProcess(data: RDD[GenieUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { guMetrics =>
             val mid = CommonUtil.getMessageId("ME_GENIE_USAGE_SUMMARY", guMetrics.gk.tag + guMetrics.gk.period, "DAY", guMetrics.syncts, Option(guMetrics.gk.app_id), Option(guMetrics.gk.channel));
             val measures = Map(
@@ -107,7 +108,7 @@ object GenieUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEve
                 "contents" -> guMetrics.contents,
                 "device_ids" -> guMetrics.device_ids)
 
-            MeasuredEvent("ME_GENIE_USAGE_SUMMARY", System.currentTimeMillis(), guMetrics.syncts, "1.0", mid, "", guMetrics.gk.channel, None, None,
+            MeasuredEvent("ME_GENIE_USAGE_SUMMARY", System.currentTimeMillis(), guMetrics.syncts, meEventVersion, mid, "", guMetrics.gk.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "GenieUsageSummaryModel").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], guMetrics.dt_range),
                 Dimensions(None, None, None, None, None, None, Option(guMetrics.pdata), None, None, None, Option(guMetrics.gk.tag), Option(guMetrics.gk.period)),
                 MEEdata(measures));

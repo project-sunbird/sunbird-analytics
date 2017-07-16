@@ -29,6 +29,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 import org.apache.log4j.Logger
 import org.apache.spark.broadcast.Broadcast
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class LearnerConceptRelevance(learner_id: String, relevance: Map[String, Double], updated_date: Option[DateTime] = Option(DateTime.now()))
 case class LearnerState(learnerId: LearnerId, proficiency: LearnerProficiency, contentSummaries: Iterable[LearnerContentActivity], prevConceptRelevance: LearnerConceptRelevance, dtRange: DtRange) extends AlgoInput;
@@ -157,10 +158,10 @@ object RecommendationEngine extends IBatchModelTemplate[DerivedEvent, LearnerSta
         data.map(f => {
             LearnerConceptRelevance(f.learnerId.learner_id, f.relevanceScores);
         }).saveToCassandra(Constants.KEY_SPACE_NAME, Constants.LEARNER_CONCEPT_RELEVANCE_TABLE);
-
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { learner =>
             val mid = CommonUtil.getMessageId("ME_LEARNER_CONCEPT_RELEVANCE", learner.learnerId.learner_id, "DAY", learner.dtRange.to, None, None);
-            MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), learner.dtRange.to, "1.0", mid, learner.learnerId.learner_id, "", None, None,
+            MeasuredEvent("ME_LEARNER_CONCEPT_RELEVANCE", System.currentTimeMillis(), learner.dtRange.to, meEventVersion, mid, learner.learnerId.learner_id, "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "RecommendationEngine").asInstanceOf[String])), None, "DAY", learner.dtRange),
                 Dimensions(None, None, None, None, None, None, None),
                 MEEdata(Map("relevanceScores" -> learner.relevanceScores.map(f => RelevanceScore(f._1, f._2)))));

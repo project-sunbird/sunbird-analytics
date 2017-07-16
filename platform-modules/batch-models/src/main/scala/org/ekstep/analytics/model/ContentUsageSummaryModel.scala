@@ -19,6 +19,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.DerivedEvent
 
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class ContentUsageMetricsSummary(ck: ContentKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, device_ids: Array[String], pdata: PData) extends AlgoOutput;
 case class InputEventsContentSummary(ck: ContentKey, events: Buffer[ContentUsageMetricsSummary]) extends Input with AlgoInput
@@ -103,6 +104,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
     }
 
     override def postProcess(data: RDD[ContentUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { cuMetrics =>
             val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts, Option(cuMetrics.ck.app_id), Option(cuMetrics.ck.channel));
             val measures = Map(
@@ -113,7 +115,7 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min,
                 "device_ids" -> cuMetrics.device_ids)
 
-            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, "1.0", mid, "", cuMetrics.ck.channel, None, None,
+            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, meEventVersion, mid, "", cuMetrics.ck.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
                 Dimensions(None, None, cuMetrics.gdata, None, None, None, Option(cuMetrics.pdata), None, None, None, Option(cuMetrics.ck.tag), Option(cuMetrics.ck.period), Option(cuMetrics.ck.content_id)),
                 MEEdata(measures));

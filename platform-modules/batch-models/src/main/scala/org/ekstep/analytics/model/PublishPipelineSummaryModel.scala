@@ -65,11 +65,12 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
     }
 
     override def postProcess(data: RDD[PipelineSummaryOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { x =>
             val measures = Map(
                 "publish_pipeline_summary" -> x.summary)
             val mid = CommonUtil.getMessageId("ME_PUBLISH_PIPELINE_SUMMARY", x.period.toString(), "DAY", x.date_range, "", Option(x.pdata.id), Option(x.channel));
-            MeasuredEvent("ME_PUBLISH_PIPELINE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, "", x.channel, None, None,
+            MeasuredEvent("ME_PUBLISH_PIPELINE_SUMMARY", System.currentTimeMillis(), x.syncts, meEventVersion, mid, "", x.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "PublishPipelineSummarizer").asInstanceOf[String])), None, "DAY", x.date_range),
                 Dimensions(None, None, None, None, None, None, Option(PData(x.pdata.id, x.pdata.ver)), None, None, None, None, Option(x.period.toInt)),
                 MEEdata(measures), None);
