@@ -88,7 +88,7 @@ object JobAPIService {
 			} else job
 		}
 	}
-	
+
 	private def _validateReq(body: RequestBody)(implicit config: Config): Map[String, String] = {
 		val params = body.params
 		val filter = body.request.filter;
@@ -102,8 +102,6 @@ object JobAPIService {
 				Map("status" -> "false", "message" -> "invalid type. It should be one of [csv, json].");
 			} else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
 				Map("status" -> "false", "message" -> "events should contains only one event.");
-			} else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.get.length.equals(1) && !(filter.get.events.get.contains("OE_ASSESS") || filter.get.events.get.contains("OE_ITEM_RESPONSE")))) {
-				Map("status" -> "false", "message" -> "events should be [OE_ASSESS, OE_ITEM_RESPONSE].");
 			} else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty) {
 				val message = if (params.get.client_key.isEmpty) "client_key is empty" else "start date or end date is empty"
 				Map("status" -> "false", "message" -> message);
@@ -140,7 +138,7 @@ object JobAPIService {
 			val de = getDateInMillis(job.dt_expiration.getOrElse(null))
 			Option(JobOutput(job.location, job.file_size, Option(created), dfe, dle, de))
 		} else Option(JobOutput());
-		
+
 		val djp = getDateInMillis(job.dt_job_processing.getOrElse(null))
 		val djc = getDateInMillis(job.dt_job_completed.getOrElse(null))
 		val stats = if (processed) {

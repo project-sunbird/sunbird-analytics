@@ -134,8 +134,10 @@ case class Job_Config(category: String, config_key: String, config_value: Map[St
 
 /* Data Exhaust*/
 case class DataSet(events: List[String], eventConfig: Map[String, EventId])
-case class EventId(eventType: String, searchType: String, fetchConfig: FetchConfig, filterMapping: Map[String, Filter])
+case class EventId(eventType: String, searchType: String, fetchConfig: FetchConfig, csvConfig: CsvConfig, filterMapping: Map[String, Filter])
 case class FetchConfig(params: Map[String, String])
+case class CsvColumnMapping(to: String, hidden: Boolean, mapFunc: String)
+case class CsvConfig(auto_extract_column_names: Boolean, columnMappings: Map[String, CsvColumnMapping])
 case class SaveConfig(params: Map[String, String])
 
 object Period extends Enumeration {
