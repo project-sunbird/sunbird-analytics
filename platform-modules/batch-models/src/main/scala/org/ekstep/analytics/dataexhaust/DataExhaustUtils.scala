@@ -322,27 +322,6 @@ object DataExhaustUtils {
           case t: Throwable =>
               null
         }
-      } catch {
-        case ex: Exception =>
-          null;
-      }
-    }.filter { x => x != null }
   }
 
-  def stringToObject(event: String, dataSetId: String) = {
-    dataSetId match {
-      case "eks-consumption-raw" =>
-        val e = JSONUtils.deserialize[Event](event);
-        (CommonUtil.getEventSyncTS(e), e);
-      case "eks-creation-raw" =>
-        val e = JSONUtils.deserialize[CreationEvent](event);
-        (CreationEventUtil.getEventSyncTS(e), e);
-      case "eks-consumption-summary" | "eks-creation-summary" =>
-        val e = JSONUtils.deserialize[DerivedEvent](event);
-        (e.syncts, e);
-      case "eks-consumption-metrics" | "eks-creation-metrics" =>
-        val e = JSONUtils.deserialize[DerivedEvent](event);
-        (CommonUtil.dayPeriodToLong(e.dimensions.period.getOrElse(0)), e);
-    }
-  }
 }
