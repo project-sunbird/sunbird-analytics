@@ -35,7 +35,7 @@ import com.datastax.spark.connector.SomeColumns
  * Case class to hold the manifest json
  */
 case class FileInfo(path: String, event_count: Long)
-case class ManifestFile(id: String, ver: String, ets: Long, request_id: String, dataset_id: String, total_event_count: Long, first_event_date: Long, last_event_date: Long, file_info: Array[FileInfo], request: String)
+case class ManifestFile(id: String, ver: String, ets: Long, request_id: String, dataset_id: String, total_event_count: Long, first_event_date: String, last_event_date: String, file_info: Array[FileInfo], request: String)
 case class Response(request_id: String, client_key: String, job_id: String, metadata: ManifestFile, location: String, stats: Map[String, Any], jobRequest: JobRequest)
 case class DataExhaustPackage(request_id: String, client_key: String, job_id: String, execution_time: Long, status: String = "FAILED", latency: Long = 0, dt_job_completed: Option[DateTime] = None, location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[DateTime] = None, dt_expiration: Option[DateTime] = None)
 case class EventData(eventName: String, data: RDD[String]);
@@ -211,8 +211,8 @@ object DataExhaustPackager extends optional.Application {
 		}
 		//val events = sc.union(data.map { event => event.data }.toSeq).sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
 		val totalEventCount = jobRequest.output_events.get;
-		val firstEventDate = jobRequest.dt_first_event.get.getMillis;
-		val lastEventDate = jobRequest.dt_last_event.get.getMillis;
+		val firstEventDate = jobRequest.dt_first_event.get.toString();
+		val lastEventDate = jobRequest.dt_last_event.get.toString();
 		val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", new Date().getTime, jobRequest.request_id, requestData.dataset_id.get.toString(), totalEventCount, firstEventDate, lastEventDate, fileInfo, JSONUtils.serialize(requestData))
 		val gson = new GsonBuilder().setPrettyPrinting().create();
 		val jsonString = gson.toJson(manifest)
