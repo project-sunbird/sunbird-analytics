@@ -35,7 +35,6 @@ class TestDataExhaustJob extends SparkSpec(null) {
   "DataExhaustJob" should "execute DataExhaustJob job from local data and won't throw any Exception" in {
 
     preProcess()
-    CommonUtil.deleteDirectory("/tmp/data-exhaust/");
     val requests = Array(
       JobRequest("partner1", "test_raw", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("OE_INTERACT", "GE_INTERACT")), None, None))),
         None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
