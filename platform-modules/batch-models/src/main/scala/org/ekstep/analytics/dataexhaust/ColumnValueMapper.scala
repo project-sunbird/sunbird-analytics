@@ -1,6 +1,8 @@
 package org.ekstep.analytics.dataexhaust
 
 import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+import java.util.TimeZone
 
 object ColumnValueMapper {
   def mapValue(funcName: String, arg: String): String = {
@@ -16,6 +18,6 @@ object ColumnValueMapper {
   }
 
   def timestampToDateTime(value: String): String = {
-    new DateTime(value.toLong).toString()
+    new DateTime(value.toLong, DateTimeZone.forTimeZone(TimeZone.getTimeZone("Asia/Kolkata"))).toString()
   }
 }
