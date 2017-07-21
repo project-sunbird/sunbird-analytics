@@ -207,10 +207,11 @@ object DataExhaustPackager extends optional.Application {
 		val fileExtenstion = requestData.output_format.getOrElse("json").toLowerCase()
 	    val fileInfo = data.map { f =>
 	        //val synctsRDD = f.data.map { x => DataExhaustUtils.stringToObject(x, requestData.dataset_id.get.toString())._1 }
-			FileInfo("data/" + f.eventName + "." + fileExtenstion, f.data.count)
+	        val count = if("csv".equals(fileExtenstion)) f.data.count - 1 else f.data.count
+			FileInfo("data/" + f.eventName + "." + fileExtenstion, count)
 		}
 		//val events = sc.union(data.map { event => event.data }.toSeq).sortBy { x => JSONUtils.deserialize[Map[String, AnyRef]](x).get("ets").get.asInstanceOf[Number].longValue() }
-		val totalEventCount = jobRequest.output_events.get;
+		val totalEventCount = jobRequest.output_events.get
 		val firstEventDate = jobRequest.dt_first_event.get.toString();
 		val lastEventDate = jobRequest.dt_last_event.get.toString();
 		val manifest = ManifestFile("ekstep.analytics.dataset", "1.0", new Date().getTime, jobRequest.request_id, requestData.dataset_id.get.toString(), totalEventCount, firstEventDate, lastEventDate, fileInfo, JSONUtils.serialize(requestData))
