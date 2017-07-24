@@ -78,7 +78,7 @@ trait IGraphExecutionModelTemplate extends IBatchModel[String, String] {
 				t.printStackTrace();
 				tx.failure();
 		} finally {
-			if (null != tx) tx.close();
+		    if (null != tx && tx.isOpen()) tx.close();
 			if (null != session) session.close();
 			if (null != driver) driver.close();
 		}
