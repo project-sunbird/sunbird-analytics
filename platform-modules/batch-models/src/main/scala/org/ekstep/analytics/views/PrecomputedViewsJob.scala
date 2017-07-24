@@ -20,10 +20,8 @@ object PrecomputedViewsJob extends Application with IJob {
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
-        JobLogger.start("Started executing PrecomputedViewsJob")
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, PrecomputedViews);
-        JobLogger.log("Job Completed.")
 
     }
 
