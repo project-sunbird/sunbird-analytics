@@ -86,7 +86,7 @@ object DataExhaustUtils {
             StringEscapeUtils.escapeCsv(transformed);
           }
           else {
-            StringEscapeUtils.escapeCsv(value.toString());
+            StringEscapeUtils.escapeCsv(JSONUtils.serialize(value));
           }
         }
       }
