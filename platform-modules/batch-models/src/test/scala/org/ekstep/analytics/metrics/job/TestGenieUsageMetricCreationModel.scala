@@ -25,5 +25,7 @@ class TestGenieUsageMetricCreationModel extends SparkSpec(null) {
         
         val data = sc.parallelize(List(""))
         val rdd2 = GenieUsageMetricCreationModel.execute(data, Option(Map("start_date" -> start_date.asInstanceOf[AnyRef], "end_date" -> start_date.asInstanceOf[AnyRef])));
+        
+        rdd2.count() should be(55)
     }
 }
