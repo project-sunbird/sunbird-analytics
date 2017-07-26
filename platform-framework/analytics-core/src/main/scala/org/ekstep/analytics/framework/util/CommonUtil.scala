@@ -589,5 +589,10 @@ object CommonUtil {
             dateFormat.parseMillis(date)
         } else 0l;
     }
+    
+    def getTimestampOfDayPeriod(period: Int): Long = {
+        val periodDateTime = dayPeriod.parseDateTime(period.toString()).withTimeAtStartOfDay()
+        periodDateTime.getMillis
+    }
 
 }

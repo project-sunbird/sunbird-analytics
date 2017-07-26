@@ -12,14 +12,15 @@ import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.updater.CEUsageSummaryFact
 import org.joda.time.DateTime
+import org.apache.commons.lang3.StringUtils
 
-object CEUsageMetricCreationModel extends MetricsBatchModel[String,String] with Serializable {
+object CEUsageMetricCreationModel extends MetricsBatchModel[String, MeasuredEvent] with Serializable {
   
     implicit val className = "org.ekstep.analytics.model.CEUsageMetricCreationModel"
     override def name(): String = "CEUsageMetricCreationModel";
     val event_id = "ME_CE_USAGE_METRICS"
 
-    def execute(events: RDD[String], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String] ={
+    def execute(events: RDD[String], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[MeasuredEvent] ={
         
         val start_date = jobParams.getOrElse(Map()).getOrElse("start_date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String];
         val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
@@ -28,15 +29,12 @@ object CEUsageMetricCreationModel extends MetricsBatchModel[String,String] with 
         val groupFn = (x: CEUsageSummaryFact) => { (x.d_period + "-" + x.d_content_id + "-" + x.d_app_id + "-" + x.d_channel) };
         val details = ConfigDetails(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY, start_date, end_date, AppConf.getConfig("metrics.creation.dataset.id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics.dispatch.to"), dispatchParams)
         val res = processQueryAndComputeMetrics(details, groupFn)
-        val resRDD = res.mapValues { x =>
-            x.map { f =>
-                val mid = CommonUtil.getMessageId(event_id, f.d_content_id + f.d_period, "DAY", System.currentTimeMillis(), Option(f.d_app_id), Option(f.d_channel));
-                val event = getMeasuredEvent(event_id, mid, f.d_channel, "CEUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_content_id", "d_app_id", "d_channel", "updated_date"), Dimensions(None, None, None, None, None, None, Option(PData(f.d_app_id, "1.0")), None, None, None, None, Option(f.d_period), Option(f.d_content_id)))
-                JSONUtils.serialize(event)
+        res.map { x =>
+            x._2.map { f =>
+                val syncts = CommonUtil.getTimestampOfDayPeriod(f.d_period)
+                val mid = CommonUtil.getMessageId(event_id, f.d_content_id, "DAY", syncts, Option(f.d_app_id), Option(f.d_channel));
+                getMeasuredEvent(event_id, syncts, mid, f.d_channel, "CEUsageMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_content_id", "d_app_id", "d_channel", "updated_date"), Dimensions(None, None, None, None, None, None, Option(PData(f.d_app_id, "1.0")), None, None, None, None, Option(f.d_period), Option(f.d_content_id)))
             }
-        }
-        val count = saveToS3(resRDD, details)
-        JobLogger.log("CE usage metrics pushed.", Option(Map("count" -> count)), INFO);
-        resRDD.map(x => x._2).flatMap { x => x };
+        }.flatMap { x => x }
     }
 }
