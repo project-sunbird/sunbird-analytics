@@ -10,6 +10,7 @@ import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.conf.AppConf
+import org.apache.commons.lang3.StringUtils
 
 case class DeviceSummaryInput(index: DeviceSummaryIndex, data: Buffer[DerivedEvent], prevData: Option[DeviceUsageSummary]) extends AlgoInput
 case class DeviceContentUsageSummaryInput(index: DeviceContentSummaryIndex, data: Buffer[DerivedEvent], prevData: Option[DeviceContentSummary])
@@ -26,7 +27,7 @@ object DeviceContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, 
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceSummaryInput] = {
 
-        val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY")));
+        val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_SESSION_SUMMARY"))).filter { x => StringUtils.isNotBlank(x.dimensions.did.get) };
         val deviceSessions = filteredEvents.map { event =>
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
             val did = event.dimensions.did.get

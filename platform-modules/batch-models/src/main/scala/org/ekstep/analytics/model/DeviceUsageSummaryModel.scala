@@ -15,6 +15,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.conf.AppConf
+import org.apache.commons.lang3.StringUtils
 
 case class DeviceUsageSummary(device_id: String, app_id: String, channel: String, start_time: Option[Long], end_time: Option[Long], num_days: Option[Long], total_launches: Option[Long], total_timespent: Option[Double],
                               avg_num_launches: Option[Double], avg_time: Option[Double], num_contents: Option[Long], play_start_time: Option[Long], last_played_on: Option[Long],
@@ -31,8 +32,8 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
     override def name: String = "DeviceUsageSummaryModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceUsageInput] = {
-        val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY")));
-        val newGroupedEvents = filteredEvents.map{event => 
+        val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_GENIE_LAUNCH_SUMMARY"))).filter { x => StringUtils.isNotBlank(x.dimensions.did.get) };
+        val newGroupedEvents = filteredEvents.map { event =>
             val pdata = CommonUtil.getAppDetails(event)
             val channel = CommonUtil.getChannelId(event)
             (DeviceSummaryIndex(event.dimensions.did.get, pdata.id, channel), Buffer(event))
@@ -75,7 +76,7 @@ object DeviceUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, DeviceU
         data.map { x => x.data }.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE);
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { x =>
-            val usageSummary  = x.data
+            val usageSummary = x.data
             val mid = CommonUtil.getMessageId("ME_DEVICE_USAGE_SUMMARY", usageSummary.device_id, "CUMULATIVE", DtRange(0l, 0l), "NA", Option(usageSummary.app_id), Option(usageSummary.channel));
             val measures = Map(
                 "start_time" -> usageSummary.start_time,
