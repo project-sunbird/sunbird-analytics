@@ -17,7 +17,7 @@ case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean]
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
 case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int], output_format: Option[String], dataset_id: Option[String]);
 case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
-case class MetricsRequest(period: String, filter: Option[Filter]);
+case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None);
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)

@@ -42,8 +42,10 @@ object MetricsAPIService {
       try {
         val filter = body.request.filter.getOrElse(Filter());
         val contentId = filter.content_id.getOrElse("all");
+        println(config.getString("default.channel.id"))
+        val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
         val tag = getTag(filter);
-        val result = CotentUsageMetricsModel.fetch(contentId, tag, body.request.period);
+        val result = CotentUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
         JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result));
       } catch {
         case ex: Exception =>
@@ -62,7 +64,8 @@ object MetricsAPIService {
       try {
         val contentId = filter.content_id.get;
         val tag = getTag(filter);
-        val result = ContentPopularityMetricsModel.fetch(contentId, tag, body.request.period, fields);
+        val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
+        val result = ContentPopularityMetricsModel.fetch(contentId, tag, body.request.period, fields, channelId);
         JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_POPULARITY, result));
       } catch {
         case ex: Exception =>
@@ -79,7 +82,8 @@ object MetricsAPIService {
         val filter = body.request.filter.getOrElse(Filter());
         val contentId = filter.content_id.getOrElse("all");
         val tag = getTag(filter);
-        val result = ContentUsageListMetricsModel.fetch(contentId, tag, body.request.period);
+        val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
+        val result = ContentUsageListMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
         JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_LIST, result));
       } catch {
         case ex: Exception =>
@@ -96,7 +100,8 @@ object MetricsAPIService {
         val filter = body.request.filter.getOrElse(Filter());
         val contentId = filter.content_id.getOrElse("all");
         val tag = getTag(filter);
-        val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period);
+        val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
+        val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
         JSONUtils.serialize(CommonUtil.OK(APIIds.GENIE_LUNCH, result));
       } catch {
         case ex: Exception =>
@@ -116,7 +121,8 @@ object MetricsAPIService {
       try {
         val contentId = filter.content_id.get;
         val tag = getTag(filter);
-        val result = ItemUsageMetricsModel.fetch(contentId, tag, body.request.period);
+        val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
+        val result = ItemUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
         JSONUtils.serialize(CommonUtil.OK(APIIds.ITEM_USAGE, result));
       } catch {
         case ex: Exception =>
