@@ -16,8 +16,8 @@ import org.apache.commons.lang3.StringUtils
 
 object ConceptSnapshotMetricCreationModel extends MetricsBatchModel[String, MeasuredEvent] with Serializable {
   
-    implicit val className = "org.ekstep.analytics.model.ContentSnapshotMetricCreationModel"
-    override def name(): String = "ContentSnapshotMetricCreationModel";
+    implicit val className = "org.ekstep.analytics.model.ConceptSnapshotMetricCreationModel"
+    override def name(): String = "ConceptSnapshotMetricCreationModel";
     val event_id = "ME_CONCEPT_SNAPSHOT_METRICS"
 
     def execute(events: RDD[String], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[MeasuredEvent] ={

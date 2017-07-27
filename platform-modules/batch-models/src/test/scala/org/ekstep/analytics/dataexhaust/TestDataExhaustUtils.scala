@@ -1,10 +1,10 @@
 
-package org.ekstep.analytics.util
+package org.ekstep.analytics.dataexhaust
 
 import org.ekstep.analytics.framework.EventId
-import org.ekstep.analytics.framework.SparkSpec
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.dataexhaust.DataExhaustUtils
+import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.util.DerivedEvent
 
 class TestDataExhaustUtils extends SparkSpec {
     "DataExhaustUtils" should "pass all test cases" in {
