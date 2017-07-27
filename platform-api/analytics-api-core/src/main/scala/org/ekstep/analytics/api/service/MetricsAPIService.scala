@@ -42,7 +42,6 @@ object MetricsAPIService {
       try {
         val filter = body.request.filter.getOrElse(Filter());
         val contentId = filter.content_id.getOrElse("all");
-        println(config.getString("default.channel.id"))
         val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
         val tag = getTag(filter);
         val result = CotentUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
