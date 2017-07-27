@@ -32,53 +32,62 @@ import akka.routing.FromConfig
 
 @Singleton
 class Metrics @Inject() (system: ActorSystem) extends BaseController {
-  implicit val className = "controllers.Metrics";
-  val metricsAPIActor = system.actorOf(Props[MetricsAPIService].withRouter(FromConfig()), name = "metricsApiActor");
+    implicit val className = "controllers.Metrics";
+    val metricsAPIActor = system.actorOf(Props[MetricsAPIService].withRouter(FromConfig()), name = "metricsApiActor");
 
-  def contentUsage() = Action.async { implicit request =>
-    val body = _getMetricsRequest(request);
-    val result = ask(metricsAPIActor, ContentUsage(body, Context.sc, config)).mapTo[String];
+    // dummy API
+    def usageMetrics(datasetId: String, summary: String) = Action.async { implicit request =>
+        // TODO: Add code for all metrics of both consumption & creation  
+        val result = """{"id":"ekstep.analytics.metrics.content-usage","ver":"1.0","ts":"2017-07-27T09:35:15.027+00:00","params":{"resmsgid":"56de001d-b8e2-4a9e-b631-9a1b59b12e71","status":"successful"},"responseCode":"OK","result":{"metrics":[{"d_period":20170726,"label":"Jul 26 Wed","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170725,"label":"Jul 25 Tue","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170724,"label":"Jul 24 Mon","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170723,"label":"Jul 23 Sun","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170722,"label":"Jul 22 Sat","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170721,"label":"Jul 21 Fri","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170720,"label":"Jul 20 Thu","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0}],"summary":{"m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0}}}"""
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
     
-    result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
-    }
-  }
+    def contentUsage() = Action.async { implicit request =>
+        val body = _getMetricsRequest(request);
+        val result = ask(metricsAPIActor, ContentUsage(body, Context.sc, config)).mapTo[String];
 
-  def contentPopularity() = Action.async { implicit request =>
-    val body = _getMetricsRequest(request);
-    val fields = request.getQueryString("fields").getOrElse("NA").split(",");
-    val result = ask(metricsAPIActor, ContentPopularity(body, fields, Context.sc, config)).mapTo[String];
-    result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
     }
-  }
 
-  def itemUsage() = Action.async { implicit request =>
-    val body = _getMetricsRequest(request);
-    val result = ask(metricsAPIActor, ItemUsage(body, Context.sc, config)).mapTo[String];
-    result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+    def contentPopularity() = Action.async { implicit request =>
+        val body = _getMetricsRequest(request);
+        val fields = request.getQueryString("fields").getOrElse("NA").split(",");
+        val result = ask(metricsAPIActor, ContentPopularity(body, fields, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
     }
-  }
 
-  def genieLaunch() = Action.async { implicit request =>
-    val body = _getMetricsRequest(request);
-    val result = ask(metricsAPIActor, GenieLaunch(body, Context.sc, config)).mapTo[String];
-    result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+    def itemUsage() = Action.async { implicit request =>
+        val body = _getMetricsRequest(request);
+        val result = ask(metricsAPIActor, ItemUsage(body, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
     }
-  }
 
-  def contentList() = Action.async { implicit request =>
-    val body = _getMetricsRequest(request);
-    val result = ask(metricsAPIActor, ContentList(body, Context.sc, config)).mapTo[String];
-    result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+    def genieLaunch() = Action.async { implicit request =>
+        val body = _getMetricsRequest(request);
+        val result = ask(metricsAPIActor, GenieLaunch(body, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
     }
-  }
 
-  private def _getMetricsRequest(request: Request[AnyContent]) = {
-    val body: String = Json.stringify(request.body.asJson.get);
-    JSONUtils.deserialize[MetricsRequestBody](body);
-  }
+    def contentList() = Action.async { implicit request =>
+        val body = _getMetricsRequest(request);
+        val result = ask(metricsAPIActor, ContentList(body, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
+
+    private def _getMetricsRequest(request: Request[AnyContent]) = {
+        val body: String = Json.stringify(request.body.asJson.get);
+        JSONUtils.deserialize[MetricsRequestBody](body);
+    }
 }
