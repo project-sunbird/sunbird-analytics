@@ -11,6 +11,8 @@ import play.api.mvc.AnyContent
 import play.api.mvc.Request
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
+import scala.concurrent.Future
+
 import org.ekstep.analytics.api.ResponseCode
 import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.util.CommonUtil
