@@ -21,12 +21,12 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         zeroTimeSpentGE.size should be(10)
 
         val event1 = events.last
-        val tags = event1.tags.get
+        val tags = event1.etags.get
         //tags.size should be (0)
 
         val event0 = events(0)
 
-        val tags0 = event0.tags.get
+        val tags0 = event0.etags.get
 
         val eksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap1.get("timeSpent").get.asInstanceOf[Double] should be(493.0)
@@ -83,7 +83,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         val gseEksMap1 = gseEvent1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         gseEksMap1.get("timeSpent").get.asInstanceOf[Double] should not be (0)
 
-        val tags = gseEvent1.tags.get
+        val tags = gseEvent1.etags.get
         /*
         tags.size should be (3)
         

@@ -11,7 +11,7 @@ import org.ekstep.analytics.model.SparkSpec
 class TestPluginSnapshotMetricsUpdater extends SparkGraphSpec {
 
     "PluginSnapshotMetricsUpdater" should "execute the job and shouldn't throw any exception" in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/asset-snapshot-updater/test1.log"))))), None, None, "org.ekstep.analytics.updater.UpdatePluginSnapshotMetrics", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestPluginSnapshotMetricsUpdater"), Option(false))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/asset-snapshot-updater/test1.log"))))), None, None, "org.ekstep.analytics.updater.UpdatePluginSnapshotMetrics", Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestPluginSnapshotMetricsUpdater"), Option(false))
         PluginSnapshotMetricsUpdater.main(JSONUtils.serialize(config))(Option(sc));
     }
 

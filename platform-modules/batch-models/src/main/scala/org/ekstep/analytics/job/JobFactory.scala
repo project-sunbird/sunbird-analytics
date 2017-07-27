@@ -53,7 +53,7 @@ object JobFactory {
             case "dsu" =>
                 DeviceSpecificationUpdater
             case "is" =>
-                ItemUsageSummarizer
+                ItemSummarizer
             case "dcus" =>
                 DeviceContentUsageSummarizer
             case "csv" =>
@@ -77,7 +77,7 @@ object JobFactory {
             case "genie-launch-metrics" =>
                 GenieUsageUpdater
             case "item-usage-summ" =>
-                ItemSummarizer
+                ItemUsageSummarizer
             case "item-usage-metrics" =>
                 ItemSummaryUpdater
             case "gsts" =>
@@ -166,6 +166,10 @@ object JobFactory {
                 MonitorSummarizer
             case "plugin-snapshot-updater" =>
                 PluginSnapshotMetricsUpdater
+            case "api-usage-summ" =>
+                APIUsageSummarizer
+            case "template-snapshot-updater" =>
+                TemplateSnapshotMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

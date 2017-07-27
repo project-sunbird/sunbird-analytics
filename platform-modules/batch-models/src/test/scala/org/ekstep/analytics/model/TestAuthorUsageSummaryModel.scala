@@ -14,26 +14,30 @@ import org.apache.spark.rdd.RDD
 class TestAuthorUsageSummaryModel extends SparkSpec(null) {
 
     "AuthorUsageSummaryModel" should "generate metrics per author" in {
-        val rdd3 = loadData()
-        val events = rdd3.filter { x => (x.uid == "316") }.collect()
-        val event3 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event3.get("total_sessions").get.asInstanceOf[Number].longValue() should be(3)
-        event3.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(874.8)
-        event3.get("ce_total_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
-        event3.get("ce_total_visits").get.asInstanceOf[Number].longValue() should be(7)
-        event3.get("ce_visits_count").get.asInstanceOf[Number].longValue() should be(1)
-        event3.get("ce_percent_sessions").get.asInstanceOf[Number].doubleValue() should be(33.33)
-        event3.get("avg_ts_session").get.asInstanceOf[Number].doubleValue() should be(291.6)
-        event3.get("ce_percent_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
+        val rdd = loadData()
+        val events = rdd.filter { x => (x.uid == "316") }.collect()
+        
+        events.size should be(2)
+        
+        val event1 = events(0).edata.eks.asInstanceOf[Map[String, AnyRef]]
+        event1.get("total_sessions").get.asInstanceOf[Number].longValue() should be(3)
+        event1.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(874.8)
+        event1.get("ce_total_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
+        event1.get("ce_total_visits").get.asInstanceOf[Number].longValue() should be(7)
+        event1.get("ce_visits_count").get.asInstanceOf[Number].longValue() should be(1)
+        event1.get("ce_percent_sessions").get.asInstanceOf[Number].doubleValue() should be(33.33)
+        event1.get("avg_ts_session").get.asInstanceOf[Number].doubleValue() should be(291.6)
+        event1.get("ce_percent_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
 
-        //return number of measured events based on time period per author
-        rdd3.filter { x => (x.uid == "316") }.count() should be(2)
-
-        //return different time spents for two different period events
-        val event5 = events(0).edata.eks.asInstanceOf[Map[String, AnyRef]]
-        val event6 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event5.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(679.27)
-        event6.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(874.8)
+        val event2 = events(1).edata.eks.asInstanceOf[Map[String, AnyRef]]
+        event2.get("total_sessions").get.asInstanceOf[Number].longValue() should be(2)
+        event2.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(679.27)
+        event2.get("ce_total_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
+        event2.get("ce_total_visits").get.asInstanceOf[Number].longValue() should be(2)
+        event2.get("ce_visits_count").get.asInstanceOf[Number].longValue() should be(1)
+        event2.get("ce_percent_sessions").get.asInstanceOf[Number].doubleValue() should be(50.0)
+        event2.get("avg_ts_session").get.asInstanceOf[Number].doubleValue() should be(339.64)
+        event2.get("ce_percent_ts").get.asInstanceOf[Number].doubleValue() should be(0.0)
     }
 
     it should "not generate events if anonymous_user is true " in {

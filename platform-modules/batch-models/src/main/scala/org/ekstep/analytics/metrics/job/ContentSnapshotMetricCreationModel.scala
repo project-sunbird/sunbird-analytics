@@ -12,31 +12,29 @@ import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.updater.ContentSnapshotSummary
 import org.joda.time.DateTime
+import org.apache.commons.lang3.StringUtils
 
-object ContentSnapshotMetricCreationModel extends MetricsBatchModel[String,String] with Serializable {
+object ContentSnapshotMetricCreationModel extends MetricsBatchModel[String, MeasuredEvent] with Serializable {
   
     implicit val className = "org.ekstep.analytics.model.ContentSnapshotMetricCreationModel"
     override def name(): String = "ContentSnapshotMetricCreationModel";
     val event_id = "ME_CONTENT_SNAPSHOT_METRICS"
 
-    def execute(events: RDD[String], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[String] ={
+    def execute(events: RDD[String], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext) : RDD[MeasuredEvent] ={
         
         val start_date = jobParams.getOrElse(Map()).getOrElse("start_date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String];
         val end_date = jobParams.getOrElse(Map()).getOrElse("end_date", start_date).asInstanceOf[String];
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("metrics.dispatch.params"));
         
-        val groupFn = (x: ContentSnapshotSummary) => { (x.d_period + "-" + x.d_author_id + "-" + x.d_partner_id) };
+        val groupFn = (x: ContentSnapshotSummary) => { (x.d_period + "-" + x.d_author_id + "-" + x.d_partner_id + "-" + x.d_app_id + "-" + x.d_channel) };
         val fetchDetails = ConfigDetails(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SNAPSHOT_SUMMARY, start_date, end_date, AppConf.getConfig("metrics.consumption.dataset.id") + event_id.toLowerCase() + "/", ".json", AppConf.getConfig("metrics.dispatch.to"), dispatchParams)
         val res = processQueryAndComputeMetrics(fetchDetails, groupFn)
-        val resRDD = res.mapValues { x =>
-            x.map { f =>
-                val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_partner_id + f.d_period, "DAY", System.currentTimeMillis());
-                val event = getMeasuredEvent(event_id, mid, "ContentSnapshotMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_partner_id", "updated_date"), Dimensions(None, None, None, None, None, None, None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), Option(f.d_partner_id), None, None))
-                JSONUtils.serialize(event)
+        res.map { x =>
+            x._2.map { f =>
+                val syncts = CommonUtil.getTimestampOfDayPeriod(f.d_period)
+                val mid = CommonUtil.getMessageId(event_id, f.d_author_id + f.d_partner_id, "DAY", syncts, Option(f.d_app_id), Option(f.d_channel));
+                getMeasuredEvent(event_id, syncts, mid, f.d_channel, "ContentSnapshotMetrics", CommonUtil.caseClassToMap(f) - ("d_period", "d_author_id", "d_partner_id", "d_app_id", "d_channel", "updated_date"), Dimensions(None, None, None, None, None, None, Option(PData(f.d_app_id, "1.0")), None, None, None, None, Option(f.d_period), None, None, None, None, None, None, None, None, None, Option(f.d_author_id), Option(f.d_partner_id), None, None))
             }
-        }
-        val count = saveToS3(resRDD, fetchDetails)
-        JobLogger.log("Content Snapshot metrics pushed.", Option(Map("count" -> count)), INFO);
-        resRDD.map(x => x._2).flatMap { x => x };
+        }.flatMap { x => x }
     }
 }

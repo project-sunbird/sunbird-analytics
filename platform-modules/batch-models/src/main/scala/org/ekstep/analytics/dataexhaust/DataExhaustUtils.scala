@@ -36,50 +36,70 @@ import org.ekstep.analytics.framework.DataSet
 import org.ekstep.analytics.framework.Input
 import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.EventId
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.CsvConfig
+import org.ekstep.analytics.framework.CsvColumnMapping
+import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.creation.model.CreationPData
 
 object DataExhaustUtils {
 
-    def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING")(implicit sc: SparkContext) {
-        sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
+    implicit val className = "org.ekstep.analytics.dataexhaust.DataExhaustUtils"
+
+    def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING", err_message: String = "")(implicit sc: SparkContext) {
+        sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status, err_message))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message"))
     }
-    def toCSV(rdd: RDD[String])(implicit sc: SparkContext): RDD[String] = {
+
+    def toCSV(rdd: RDD[String], eventConfig: EventId)(implicit sc: SparkContext): RDD[String] = {
         val data = rdd.map { x => new JsonFlattener(x).withFlattenMode(FlattenMode.KEEP_ARRAYS).flatten() }
         val dataMapRDD = data.map { x => JSONUtils.deserialize[Map[String, AnyRef]](x) }
-        val headers = dataMapRDD.map(f => f.keys).flatMap { x => x }.distinct().collect();
-        val rows = dataMapRDD.map { x =>
-            for (f <- headers) yield {
+        val allHeaders = dataMapRDD.map(f => f.keys).flatMap { x => x }.distinct().collect();
+        val visibleHeaders = allHeaders.filter { h =>
+            val columnMapping = eventConfig.csvConfig.columnMappings.getOrElse(h, CsvColumnMapping(to = h, hidden = false, mapFunc = null))
+            !columnMapping.hidden
+        }
+
+        // removing hidden columns
+        val filteredMapRdd = dataMapRDD.map { x =>
+            var newData = x
+            for (f <- allHeaders) yield {
+                val columnMapping = eventConfig.csvConfig.columnMappings.getOrElse(f, CsvColumnMapping(to = f, hidden = false, mapFunc = null))
+                if (columnMapping.hidden) {
+                    newData = newData - f
+                }
+            }
+            newData
+        }
+
+        val rows = filteredMapRdd.map { x =>
+            for (f <- visibleHeaders) yield {
                 val value = x.getOrElse(f, "")
+                val columnMapping = eventConfig.csvConfig.columnMappings.getOrElse(f, CsvColumnMapping(to = f, hidden = false, mapFunc = null))
                 if (value.isInstanceOf[List[AnyRef]]) {
                     StringEscapeUtils.escapeCsv(JSONUtils.serialize(value));
-                } else if (value.isInstanceOf[Long]) {
-                    StringEscapeUtils.escapeCsv(value.asInstanceOf[Long].toString());
-                } else if (value.isInstanceOf[Double]) {
-                    StringEscapeUtils.escapeCsv(value.asInstanceOf[Double].toString());
-                } else if (value.isInstanceOf[Integer]) {
-                    StringEscapeUtils.escapeCsv(value.asInstanceOf[Integer].toString());
                 } else {
-                    StringEscapeUtils.escapeCsv(value.asInstanceOf[String]);
+                    val mapFuncName = columnMapping.mapFunc
+                    if (mapFuncName != null) {
+                        val transformed = ColumnValueMapper.mapValue(mapFuncName, value.toString())
+                        StringEscapeUtils.escapeCsv(transformed);
+                    } else {
+                        StringEscapeUtils.escapeCsv(JSONUtils.serialize(value));
+                    }
                 }
-
             }
         }.map { x => x.mkString(",") }.collect();
 
-        val csv = Array(headers.mkString(",")) ++ rows;
+        val renamedHeaders = visibleHeaders.map { header =>
+            val columnMapping = eventConfig.csvConfig.columnMappings.getOrElse(header, CsvColumnMapping(to = header, hidden = false, mapFunc = null))
+            if (columnMapping.to == null) header else columnMapping.to
+        }
+
+        val csv = Array(renamedHeaders.mkString(",")) ++ rows;
         sc.parallelize(csv, 1);
     }
 
-    def getRequest(request_id: String, client_key: String)(implicit sc: SparkContext): RequestFilter = {
-        try {
-            val request = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).where("client_key = ? and request_id = ?", client_key, request_id).first();
-            val filter = JSONUtils.deserialize[RequestConfig](request.request_data).filter;
-            updateStage(request_id, client_key, "FETCHING_THE_REQUEST", "COMPLETED")
-            filter;
-        } catch {
-            case t: Throwable =>
-                updateStage(request_id, client_key, "FETCHING_THE_REQUEST", "FAILED", "FAILED")
-                throw t;
-        }
-    }
     def getAllRequest()(implicit sc: SparkContext): RDD[JobRequest] = {
         try {
             val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") }.cache;
@@ -93,12 +113,10 @@ object DataExhaustUtils {
             case t: Throwable => null;
         }
     }
-    def uploadZip(bucket: String, prefix: String, localPath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
+
+    def uploadZip(bucket: String, filePrefix: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
         try {
-            S3Util.uploadPublic(bucket, localPath + ".zip", prefix + ".zip");
-            S3Util.deleteObject(bucket, prefix);
-            S3Util.deleteObject(bucket, prefix + "_$folder$");
-            CommonUtil.deleteFile(localPath + ".zip")
+            S3Util.uploadPublic(bucket, zipFileAbsolutePath, filePrefix);
             updateStage(request_id, client_key, "UPLOAD_ZIP", "COMPLETED")
         } catch {
             case t: Throwable =>
@@ -106,36 +124,27 @@ object DataExhaustUtils {
                 throw t
         }
     }
-    def downloadOutput(response: JobResponse, localPath: String)(implicit sc: SparkContext) {
-        try {
-            S3Util.download(response.bucket, response.prefix, localPath + "/")
-            CommonUtil.deleteFile(localPath + "/" + response.request_id + "_$folder$")
-            CommonUtil.deleteFile(localPath + "/_SUCCESS")
-            CommonUtil.zipFolder(localPath + ".zip", localPath)
-            CommonUtil.deleteDirectory(localPath);
-            updateStage(response.request_id, response.client_key, "DOWNLOAD_AND_ZIP_OUTPUT_FILE", "COMPLETED")
-        } catch {
-            case t: Throwable =>
-                updateStage(response.request_id, response.client_key, "DOWNLOAD_AND_ZIP_OUTPUT_FILE", "FAILED", "FAILED")
-                throw t
-        }
-    }
 
     def saveData(rdd: RDD[String], eventConfig: EventId, requestId: String, eventId: String, outputFormat: String, requestID: String, clientKey: String)(implicit sc: SparkContext) {
+        if (rdd.count() > 0) {
+            val data = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rdd, eventConfig) else rdd;
+            val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
+            val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
+            val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
+            val path = AppConf.getConfig("data_exhaust.save_config.local_path")
 
-        val data = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rdd) else rdd;
-        
-        eventConfig.saveType match {
-            case "s3" =>
-                val bucket = eventConfig.saveConfig.params.get("bucket").get
-                val prefix = eventConfig.saveConfig.params.get("prefix").get
-                val key = "s3n://" + bucket + "/" + prefix + requestId + "/" + eventId;
-                data.saveAsTextFile(key)
-                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_"+eventId, "COMPLETED")
-            case "local" =>
-                val localPath = eventConfig.saveConfig.params.get("path").get + requestId + "/" + eventId
-                data.saveAsTextFile(localPath)
-                DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_LOCAL_"+eventId, "COMPLETED")
+            saveType match {
+                case "s3" =>
+                    val key = "s3n://" + bucket + "/" + prefix + requestId + "/" + eventId;
+                    data.saveAsTextFile(key)
+                    DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_" + eventId, "COMPLETED")
+                case "local" =>
+                    val localPath = prefix + requestId + "/" + eventId
+                    data.saveAsTextFile(localPath)
+                    DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_LOCAL_" + eventId, "COMPLETED")
+            }
+        } else {
+            JobLogger.log("No data to save.", None, INFO);
         }
     }
     def fetchData(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): RDD[String] = {
@@ -147,51 +156,168 @@ object DataExhaustUtils {
                 case "s3" =>
                     val bucket = eventConfig.fetchConfig.params.get("bucket").get
                     val prefix = eventConfig.fetchConfig.params.get("prefix").get
-                    val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
-                    Fetcher(searchType, None, Option(queries))
+                    if (StringUtils.equals("eks-consumption-raw", request.dataset_id.get)) {
+                        val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy/MM/dd").withZoneUTC();
+                        val startDate = CommonUtil.dateFormat.parseDateTime(request.filter.start_date).withTimeAtStartOfDay().getMillis
+                        val endDate = CommonUtil.dateFormat.parseDateTime(request.filter.end_date).withTimeAtStartOfDay().getMillis
+                        Fetcher(searchType, None, Option(Array(Query(Option(bucket), Option(prefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
+                    } else {
+                        val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
+                        Fetcher(searchType, None, Option(queries))
+                    }
                 case "local" =>
                     val filePath = eventConfig.fetchConfig.params.get("file").get
                     val queries = Array(Query(None, None, None, None, None, None, None, None, None, Option(filePath)))
                     Fetcher(searchType, None, Option(queries))
             }
             val data = DataFetcher.fetchBatchData[String](fetcher);
-            DataExhaustUtils.updateStage(requestID, clientKey, "FETCH_DATA_"+eventId, "COMPLETED")
+            DataExhaustUtils.updateStage(requestID, clientKey, "FETCH_DATA_" + eventId, "COMPLETED")
             data;
         } catch {
             case t: Throwable =>
                 throw t;
         }
     }
+
+    def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
+
+        for (request_id <- request_ids) {
+            val keys1 = S3Util.getPath(bucket, prefix + "/" + request_id)
+            for (key <- keys1) {
+                S3Util.deleteObject(bucket, key.replace(s"s3n://$bucket/", ""))
+            }
+            S3Util.deleteObject(bucket, prefix + "/" + request_id + "_$folder$");
+        }
+    }
+
+    private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
+        if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
+            val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
+                val channelFilter = (event: Event, channel: String) => {
+                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
+                        channel.equals(event.channel.get);
+                    } else {
+                        event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+                    }
+                };
+                val appIdFilter = (event: Event, appId: String) => {
+                    val defaultAppId = AppConf.getConfig("default.consumption.app.id");
+                    val app = event.pdata;
+                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
+                        appId.equals(app.getOrElse(PData("", "")).id);
+                    } else {
+                        app.isEmpty || defaultAppId.equals(app.getOrElse(PData("", "")).id)
+                    }
+                };
+                val rawRDD = data.map { event =>
+                    try {
+                        JSONUtils.deserialize[Event](event)
+                    } catch {
+                        case t: Throwable =>
+                            null
+                    }
+                }.filter { x => null != x }
+                println("Input count: ", rawRDD.count())
+                val channelFltrRDD = DataFilter.filter[Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
+                val appFltrRDD = DataFilter.filter[Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
+                appFltrRDD;
+            } else {
+                val channelFilter = (event: CreationEvent, channel: String) => {
+                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
+                        channel.equals(event.channel.get);
+                    } else {
+                        event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+                    }
+                }
+                val appIdFilter = (event: CreationEvent, appId: String) => {
+                    val defaultAppId = AppConf.getConfig("default.creation.app.id");
+                    val app = event.pdata;
+                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
+                        appId.equals(app.getOrElse(new CreationPData("", "")).id);
+                    } else {
+                        true;
+                    }
+                }
+
+                val rawRDD = data.map { event =>
+                    try {
+                        JSONUtils.deserialize[CreationEvent](event)
+                    } catch {
+                        case t: Throwable =>
+                            null
+                    }
+                }.filter { x => null != x }
+                println("Input count: ", rawRDD.count())
+                val channelFltrRDD = DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
+                val appFltrRDD = DataFilter.filter[CreationEvent, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
+                appFltrRDD;
+            }
+            filteredRDD.map { x => JSONUtils.serialize(x) };
+        } else {
+            data;
+        }
+    }
+
     def filterEvent(data: RDD[String], filter: Map[String, AnyRef], eventId: String, dataSetId: String)(implicit exhaustConfig: Map[String, DataSet]) = {
 
+        val rawDatasets = List("eks-consumption-raw", "eks-creation-raw");
+        val orgFilterKeys = List("channel", "app_id");
         val eventConf = exhaustConfig.get(dataSetId).get.eventConfig.get(eventId).get
-        val eventType = eventConf.eventType
         val filterMapping = eventConf.filterMapping
 
-        val filterKeys = filterMapping.keySet
-        val filters = filterKeys.map { key =>
-            val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)))
-            Filter(defaultFilter.name, defaultFilter.operator, filter.get(key))
-        }.filter(x=> None != x.value).toArray
+        val filteredRDD = filterChannelAndApp(dataSetId, data, filter);
 
-        data.map { line =>
-            try {
-                val event = eventType match {
-                    case "ConsumptionRaw" => JSONUtils.deserialize[Event](line);
-                    case "Summary"        => JSONUtils.deserialize[DerivedEvent](line);
-                    case "CreationRaw"    => JSONUtils.deserialize[CreationEvent](line);
-                    case "Metrics"        => JSONUtils.deserialize[DerivedEvent](line);
-                }
-                val matched = DataFilter.matches(event, filters);
-                if (matched) {
-                    event;
+        val filterKeys = filterMapping.keySet
+
+        val filters = filterKeys.map { key =>
+            val defaultFilter = JSONUtils.deserialize[Filter](JSONUtils.serialize(filterMapping.get(key)));
+            if (rawDatasets.contains(dataSetId) && orgFilterKeys.contains(key)) {
+                Filter(defaultFilter.name, defaultFilter.operator, None);
+            } else {
+                if ("channel".equals(key)) {
+                    val value = if (filter.get(key).isDefined) filter.get(key) else Option(AppConf.getConfig("default.channel.id"));
+                    Filter(defaultFilter.name, defaultFilter.operator, value);
                 } else {
-                    null;
+                    Filter(defaultFilter.name, defaultFilter.operator, filter.get(key));
                 }
+            }
+        }.filter(x => x.value.isDefined).toArray
+
+        val finalRDD = filteredRDD.map { line =>
+            try {
+                val event = stringToObject(line, dataSetId);
+                val matched = if (null != event) { DataFilter.matches(event._2, filters) } else false;
+                if (matched) event else null;
             } catch {
                 case ex: Exception =>
                     null;
             }
         }.filter { x => x != null }
+        println("After tags filter count: ", finalRDD.count())
+        finalRDD;
     }
+
+    def stringToObject(event: String, dataSetId: String) = {
+        try {
+            dataSetId match {
+                case "eks-consumption-raw" =>
+                    val e = JSONUtils.deserialize[Event](event);
+                    (CommonUtil.getEventSyncTS(e), e);
+                case "eks-creation-raw" =>
+                    val e = JSONUtils.deserialize[CreationEvent](event);
+                    (CreationEventUtil.getEventSyncTS(e), e);
+                case "eks-consumption-summary" | "eks-creation-summary" | "eks-consumption-metrics" | "eks-creation-metrics" =>
+                    val e = JSONUtils.deserialize[DerivedEvent](event);
+                    (e.syncts, e);
+            }
+        } catch {
+            case t: Throwable =>
+                null
+        }
+    }
+
 }

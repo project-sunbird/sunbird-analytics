@@ -300,18 +300,18 @@ object CommonUtil {
         addDir(dirObj, out);
         out.close();
     }
-    def addDir(dirObj: File, out: ZipOutputStream) {
+    def addDir(dirObj: File, out: ZipOutputStream, basePath: String = "") {
         val files = dirObj.listFiles();
         val tmpBuf = new Array[Byte](1024);
 
         for (file <- files) {
             breakable {
                 if (file.isDirectory()) {
-                    addDir(file, out);
+                    addDir(file, out, basePath + file.getName.split("/").last + "/");
                     break;
                 } else {
                     val in = new FileInputStream(file.getAbsolutePath());
-                    out.putNextEntry(new ZipEntry(file.getAbsolutePath()));
+                    out.putNextEntry(new ZipEntry(basePath + file.getName.split("/").last));
                     var len: Int = in.read(tmpBuf);
                     while (len > 0) {
                         out.write(tmpBuf, 0, len);
@@ -411,18 +411,22 @@ object CommonUtil {
         BigDecimal(value).setScale(precision, BigDecimal.RoundingMode.HALF_UP).toDouble;
     }
 
-    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA"): String = {
-        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId).mkString("|");
+    def getDefaultAppChannelIds(): (String, String) = {
+        (AppConf.getConfig("default.consumption.app.id"), AppConf.getConfig("default.channel.id"))
+    }
+
+    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String = "NA", appId: Option[String] = Option(getDefaultAppChannelIds._1), channelId: Option[String] = Option(getDefaultAppChannelIds._2)): String = {
+        val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId, if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
-    def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long): String = {
-        val key = Array(eventId, userId, dateFormat.print(syncDate), granularity).mkString("|");
+    def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long, appId: Option[String], channelId: Option[String]): String = {
+        val key = Array(eventId, userId, dateFormat.print(syncDate), granularity, if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
-    def getMessageId(eventId: String, level: String, timeStamp: Long): String = {
-        val key = Array(eventId, level, df5.print(timeStamp)).mkString("|");
+    def getMessageId(eventId: String, level: String, timeStamp: Long, appId: Option[String], channelId: Option[String]): String = {
+        val key = Array(eventId, level, df5.print(timeStamp), if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
 
@@ -507,12 +511,17 @@ object CommonUtil {
         x.toArray;
     }
 
-    def getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
+    def getValidTags(event: Any, registeredTags: Array[String]): Array[String] = {
 
-        val tagList = event.tags.get.asInstanceOf[List[Map[String, List[String]]]]
-        val genieTagFilter = if (tagList.nonEmpty) tagList.filter(f => f.contains("genie")) else List()
-        val tempList = if (genieTagFilter.nonEmpty) genieTagFilter.filter(f => f.contains("genie")).last.get("genie").get; else List();
-        tempList.filter { x => registeredTags.contains(x) }.toArray;
+        val appTag = if (event.isInstanceOf[DerivedEvent]) {
+            event.asInstanceOf[DerivedEvent].etags.get.app
+        } else if (event.isInstanceOf[Event]) {
+            getETags(event.asInstanceOf[Event]).app
+        } else {
+            None
+        }
+        val genieTagFilter = if (appTag.isDefined) appTag.get else List()
+        genieTagFilter.filter { x => registeredTags.contains(x) }.toArray;
     }
 
     def caseClassToMap(ccObj: Any) =
@@ -533,4 +542,57 @@ object CommonUtil {
         val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
         dateFormat.parseDateTime(date).plusHours(23).plusMinutes(59).plusSeconds(59).getMillis
     }
+
+    def getAppDetails(event: Any): PData = {
+        val defaultAppId = PData(AppConf.getConfig("default.consumption.app.id"), "1.0")
+        if (event.isInstanceOf[Event]) {
+            if (event.asInstanceOf[Event].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].pdata.get.id)) event.asInstanceOf[Event].pdata.get else defaultAppId
+        } else if (event.isInstanceOf[DerivedEvent]) {
+            if (event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
+        } else if (event.isInstanceOf[ProfileEvent]) {
+            if (event.asInstanceOf[ProfileEvent].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].pdata.get.id)) event.asInstanceOf[ProfileEvent].pdata.get else defaultAppId
+        } else defaultAppId;
+    }
+
+    def getChannelId(event: Any): String = {
+        val defaultChannelId = AppConf.getConfig("default.channel.id")
+        if (event.isInstanceOf[Event]) {
+            if (event.asInstanceOf[Event].channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].channel.get)) event.asInstanceOf[Event].channel.get else defaultChannelId
+        } else if (event.isInstanceOf[DerivedEvent]) {
+            if (StringUtils.isBlank(event.asInstanceOf[DerivedEvent].channel)) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
+        } else if (event.isInstanceOf[ProfileEvent]) {
+            if (event.asInstanceOf[ProfileEvent].channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].channel.get)) event.asInstanceOf[ProfileEvent].channel.get else defaultChannelId
+        } else defaultChannelId;
+    }
+
+    def getETags(event: Event): ETags = {
+        if (event.etags.isDefined) {
+            event.etags.get;
+        } else {
+            if (event.tags != null) {
+                val tags = event.tags.asInstanceOf[List[Map[String, List[String]]]]
+                val genieTags = tags.filter(f => f.contains("genie")).map { x => x.get("genie").get }.flatMap { x => x }
+                val partnerTags = tags.filter(f => f.contains("partner")).map { x => x.get("partner").get }.flatMap { x => x }
+                val dims = tags.filter(f => f.contains("dims")).map { x => x.get("dims").get }.flatMap { x => x }
+                ETags(Option(genieTags), Option(partnerTags), Option(dims))
+            } else {
+                ETags()
+            }
+
+        }
+    }
+
+    def dayPeriodToLong(period: Int): Long = {
+        val p = period.toString()
+        if (8 == p.length()) {
+            val date = p.substring(0, 4) + "-" + p.substring(4, 6) + "-" + p.substring(6)
+            dateFormat.parseMillis(date)
+        } else 0l;
+    }
+    
+    def getTimestampOfDayPeriod(period: Int): Long = {
+        val periodDateTime = dayPeriod.parseDateTime(period.toString()).withTimeAtStartOfDay()
+        periodDateTime.getMillis
+    }
+
 }

@@ -34,7 +34,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
     override def name: String = "UpdateContentModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterInput] = {
-        val usageContents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_CONTENT_USAGE_SUMMARY"))).map { x => ContentSummaryIndex(0, x.dimensions.content_id.get, "all") }.distinct();
+        val usageContents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_CONTENT_USAGE_SUMMARY"))).map { x => ContentSummaryIndex(0, x.dimensions.content_id.get, "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id")) }.distinct();
         val usageSummaries = usageContents.joinWithCassandraTable[ContentUsageSummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_content_id", "d_tag")).map(f => (f._1.d_content_id, f._2));
 
         val popularitySummaries = usageContents.joinWithCassandraTable[ContentPopularitySummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).on(SomeColumns("d_period", "d_content_id", "d_tag")).map(f => (f._1.d_content_id, f._2));

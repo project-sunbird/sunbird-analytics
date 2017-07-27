@@ -21,16 +21,16 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         val mex = DeviceContentUsageSummaryModel.execute(rdd, None);
         
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_1.log");
-        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "CUMULATIVE")));
         val me = rdd2.collect()
         me.length should be(1)
         val event1 = me(0);
 
         event1.eid should be("ME_DEVICE_USAGE_SUMMARY");
         event1.syncts should be (1460627728979L)
-        event1.context.pdata.model should be("DeviceUsageSummarizer");
+        event1.context.pdata.model.get should be("DeviceUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
-        event1.context.granularity should be("DAY");
+        event1.context.granularity should be("CUMULATIVE");
         event1.context.date_range should not be null;
 
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
@@ -45,10 +45,10 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         val me2 = rdd4.collect()
         me2.length should be(2)
 
-        val event2 = me2(1);
+        val event2 = me2(0);
 
         event2.eid should be("ME_DEVICE_USAGE_SUMMARY");
-        event2.context.pdata.model should be("DeviceUsageSummarizer");
+        event2.context.pdata.model.get should be("DeviceUsageSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("CUMULATIVE");
         event2.context.date_range should not be null;
@@ -60,10 +60,10 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         eks2.get("avg_num_launches").get should be(Some(0.09))
         eks2.get("end_time").get should be(Some(1462869647260L))
 
-        val event3 = me2(0);
+        val event3 = me2(1);
 
         event3.eid should be("ME_DEVICE_USAGE_SUMMARY");
-        event3.context.pdata.model should be("DeviceUsageSummarizer");
+        event3.context.pdata.model.get should be("DeviceUsageSummarizer");
         event3.context.pdata.ver should be("1.0");
         event3.context.granularity should be("CUMULATIVE");
         event3.context.date_range should not be null;
@@ -89,15 +89,15 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
         val me1 = DeviceContentUsageSummaryModel.execute(rdd, None);
         
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_3.log");
-        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "DAY")));
+        val rdd2 = DeviceUsageSummaryModel.execute(rdd1, Option(Map("modelId" -> "DeviceUsageSummarizer", "granularity" -> "CUMULATIVE")));
         val me = rdd2.collect()
         me.length should be(1)
         val event1 = me(0);
 
         event1.eid should be("ME_DEVICE_USAGE_SUMMARY");
-        event1.context.pdata.model should be("DeviceUsageSummarizer");
+        event1.context.pdata.model.get should be("DeviceUsageSummarizer");
         event1.context.pdata.ver should be("1.0");
-        event1.context.granularity should be("DAY");
+        event1.context.granularity should be("CUMULATIVE");
         event1.context.date_range should not be null;
 
         val eks = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]

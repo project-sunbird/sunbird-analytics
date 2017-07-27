@@ -30,6 +30,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 	it should "return zero textbookunits for empty textbook" in {
 		deleteTextbookData;
 		createTextbooks;
+		updateAppIdChannel;
 		val rdd = invokeSnapshotUpdater;
 		rdd.count should be(6);
 		val snapshot = rdd.first();
@@ -49,7 +50,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 	}
 	
 	it should "return textbook snapshot metrics for textbook having bookunits and subunits(contents)" in {
-		val stories = List(AppObjectCache("Content", "do_212198568993210368181", "Story", None, None, None, "Test Story 1", "Draft", "", None), AppObjectCache("Content", "do_21219907978217062412", "Story", None, None, None, "Test Story 2", "Draft", "", None));
+		val stories = List(AppObjectCache("Content", "do_212198568993210368181", "genie", "in.ekstep", "Story", None, None, None, "Test Story 1", "Draft", "", None), AppObjectCache("Content", "do_21219907978217062412", "genie", "in.ekstep", "Story", None, None, None, "Test Story 2", "Draft", "", None));
 		sc.parallelize(stories, JobContext.parallelization).saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE)
 		deleteTextbookData;
 		createTextbooks;
@@ -94,6 +95,11 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 			"""MATCH (n: domain{IL_UNIQUE_ID:'do_112196375456505856121'}), (c: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_5391b1d669702d107e030000'}) CREATE (n)-[r:hasSequenceMember]->(c)""",
 			"""MATCH (n: domain{IL_UNIQUE_ID:'do_112196375456505856121'}), (c: domain{IL_UNIQUE_ID:'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00'}) CREATE (n)-[r:hasSequenceMember]->(c)""");
 		executeQueries(queries);
+	}
+	
+	private def updateAppIdChannel() {
+	    val queries = List("MATCH (n:domain) SET n.appId='genie', n.channel='in.ekstep'")
+	    executeQueries(queries);
 	}
 
 }

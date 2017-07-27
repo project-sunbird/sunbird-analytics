@@ -29,8 +29,8 @@ import org.ekstep.analytics.connector.InfluxDB._
 /**
  * Case Classes for the data product
  */
-case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, creation_ts: Option[Double], avg_creation_ts: Option[Double], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output with CassandraTable
-case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String)
+case class ContentSnapshotSummary(d_period: Int, d_author_id: String, d_partner_id: String, d_app_id: String, d_channel: String, total_author_count: Long, total_author_count_start: Long, active_author_count: Long, active_author_count_start: Long, total_content_count: Long, total_content_count_start: Long, live_content_count: Long, live_content_count_start: Long, review_content_count: Long, review_content_count_start: Long, creation_ts: Option[Double], avg_creation_ts: Option[Double], updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output with CassandraTable
+case class ContentSnapshotIndex(d_period: Int, d_author_id: String, d_partner_id: String, d_app_id: String, d_channel: String)
 
 /**
  * @dataproduct
@@ -58,10 +58,12 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
         val currentData = data.map { x =>
             for (p <- periodsList) yield {
                 val d_period = CommonUtil.getPeriod(x.syncts, p);
-                (ContentSnapshotIndex(d_period, x.dimensions.author_id.get, x.dimensions.partner_id.get), x);
+                val appId = CommonUtil.getAppDetails(x).id
+                val channel = CommonUtil.getChannelId(x)
+                (ContentSnapshotIndex(d_period, x.dimensions.author_id.get, x.dimensions.partner_id.get, appId, channel), x);
             }
         }.flatMap(f => f)
-        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[ContentSnapshotSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SNAPSHOT_SUMMARY).on(SomeColumns("d_period", "d_author_id", "d_partner_id"));
+        val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[ContentSnapshotSummary](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SNAPSHOT_SUMMARY).on(SomeColumns("d_period", "d_author_id", "d_partner_id", "d_app_id", "d_channel"));
         val joinedData = currentData.leftOuterJoin(prvData)
         joinedData.map { f =>
             val prevSumm = f._2._2.getOrElse(null)
@@ -76,9 +78,9 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
             val avg_creation_ts = eksMap.get("avg_creation_ts").get.asInstanceOf[Number].doubleValue()
 
             if (null == prevSumm)
-                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, total_author_count, total_author_count, active_author_count, active_author_count, total_content_count, total_content_count, live_content_count, live_content_count, review_content_count, review_content_count, Option(creation_ts), Option(avg_creation_ts))
+                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, f._1.d_app_id, f._1.d_channel, total_author_count, total_author_count, active_author_count, active_author_count, total_content_count, total_content_count, live_content_count, live_content_count, review_content_count, review_content_count, Option(creation_ts), Option(avg_creation_ts))
             else
-                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, total_author_count, prevSumm.total_author_count_start, active_author_count, prevSumm.active_author_count_start, total_content_count, prevSumm.total_content_count_start, live_content_count, prevSumm.live_content_count_start, review_content_count, prevSumm.review_content_count_start, Option(creation_ts), Option(avg_creation_ts))
+                ContentSnapshotSummary(f._1.d_period, f._1.d_author_id, f._1.d_partner_id, f._1.d_app_id, f._1.d_channel, total_author_count, prevSumm.total_author_count_start, active_author_count, prevSumm.active_author_count_start, total_content_count, prevSumm.total_content_count_start, live_content_count, prevSumm.live_content_count_start, review_content_count, prevSumm.review_content_count_start, Option(creation_ts), Option(avg_creation_ts))
         }
     }
 
@@ -91,9 +93,9 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
     private def saveToInfluxDB(data: RDD[ContentSnapshotSummary])(implicit sc: SparkContext) {
         val metrics = data.map { x =>
             val creationTsMap = Map("creation_ts" -> x.creation_ts.get.asInstanceOf[AnyRef], "avg_creation_ts" -> x.avg_creation_ts.get.asInstanceOf[AnyRef])
-            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_partner_id", "updated_date", "creation_ts", "avg_creation_ts")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef])) ++ creationTsMap;
+            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_author_id", "d_partner_id", "d_app_id", "d_channel", "updated_date", "creation_ts", "avg_creation_ts")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef])) ++ creationTsMap;
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "partner_id" -> x.d_partner_id), fields, time._1);
+            InfluxRecord(Map("period" -> time._2, "author_id" -> x.d_author_id, "partner_id" -> x.d_partner_id, "app_id" -> x.d_app_id, "channel" -> x.d_channel), fields, time._1);
         };
         val partners = getDenormalizedData("Partner", data.map { x => x.d_partner_id })
         val authors = getDenormalizedData("User", data.map { x => x.d_author_id })

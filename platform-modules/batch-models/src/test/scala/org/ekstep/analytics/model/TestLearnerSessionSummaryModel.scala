@@ -28,9 +28,11 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(1);
         val event1 = me(0);
+        event1.dimensions.pdata.get.id should be ("genie")
+        event1.channel should be ("in.ekstep")
+        
         event1.eid should be("ME_SESSION_SUMMARY");
-        event1.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
-        event1.context.pdata.model should be("GenericSessionSummaryV2");
+        event1.context.pdata.model.get should be("GenericSessionSummaryV2");
         event1.context.pdata.ver should be("1.4");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -71,11 +73,12 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be(3);
-        val event1 = me(0);
+        
+        val event1 = me.filter { x => x.uid.equals("34a50115-737f-47ee-999c-952c02e374fe") }.last
+        
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
-        event1.mid should be("A78764A945C237B2A1F837130212A5C7");
-        event1.context.pdata.model should be("GenericContentSummary");
+        event1.context.pdata.model.get should be("GenericContentSummary");
         event1.context.pdata.ver should be("1.2");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -113,8 +116,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         summary1.mimeType.get should be("application/vnd.android.package-archive");
         summary1.contentType.get should be("Game");
 
-        val event2 = me(1);
-        event2.mid should be("06D6C96652BA3F3473661EBC1E2CDCF0");
+        val event2 = me.filter { x => x.uid.equals("2ac2ebf4-89bb-4d5d-badd-ba402ee70182") }.last
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.noOfLevelTransitions.get should be(0);
         summary2.levels should not be (None);
@@ -149,8 +151,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         summary2.mimeType.get should be("application/vnd.android.package-archive");
         summary2.contentType.get should be("Game");
 
-        val event3 = me(2);
-        event3.mid should be("08D37F42C718121C6140EDF9F89889B2");
+        val event3 = me.filter { x => x.uid.equals("d47c4108-d348-4805-b3e8-5a34cc4fc2c2") }.last;
 
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
         summary3.noOfLevelTransitions.get should be(-1);
@@ -186,8 +187,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val event1 = me(0);
         // Validate for event envelope
         event1.eid should be("ME_SESSION_SUMMARY");
-        event1.mid should be("27B3CF85556974581D97739493A3FCC8");
-        event1.context.pdata.model should be("LearnerSessionSummary");
+//        event1.mid should be("27B3CF85556974581D97739493A3FCC8");
+        event1.context.pdata.model.get should be("LearnerSessionSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -255,7 +256,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
         oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be(10)
 
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
 
         itemRes.res.get.asInstanceOf[Array[String]].last should be("ans1:10")
@@ -263,7 +264,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     it should "generate None for qtitle and qdesc when raw telemetry not having qtitle and qdesc" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle should be(None)
         itemRes.qdesc should be(None)
@@ -271,7 +272,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate title for qtitle and description for qdesc when raw telemetry having qtitle as tile and qdesc as description" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle.get should be("title")
         itemRes.qdesc.get should be("description")
@@ -285,8 +286,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
         val event1 = me(0);
         event1.eid should be("ME_SESSION_SUMMARY");
-        event1.mid should be("288F7A6E4E7BA48031386E84774DC61A");
-        event1.context.pdata.model should be("LearnerSessionSummary");
+//        event1.mid should be("288F7A6E4E7BA48031386E84774DC61A");
+        event1.context.pdata.model.get should be("LearnerSessionSummary");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
@@ -377,7 +378,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate array if  mmc is present in raw telemetry" in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data8.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         val mmc = itemRes.mmc.get.asInstanceOf[List[String]]
         mmc(0) should be("m4")
@@ -386,7 +387,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate none if no mmc field present in raw telemetry " in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc should be(None)
 
@@ -394,7 +395,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate Empty List if mmc have no values present in raw telemetry " in {
         val rdd = loadFile[Event]("src/test/resources/session-summary/test_data9.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(0)
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc.get should be(List())
 

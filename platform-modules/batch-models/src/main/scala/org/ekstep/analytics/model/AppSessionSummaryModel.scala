@@ -23,14 +23,16 @@ import org.ekstep.analytics.creation.model.CreationEks
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.CreationEventUtil
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.creation.model.CreationPData
 
 /**
  * Case Classes for the data product
  */
-case class PortalSessionInput(sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
+case class PortalSessionInput(channel: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
 case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
 case class EnvSummary(env: String, time_spent: Double, count: Long)
-case class PortalSessionOutput(sid: String, uid: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
+case class PortalSessionOutput(sid: String, uid: String, pdata: CreationPData, channel: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
                                start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, page_views_count: Long,
                                first_visit: Boolean, ce_visits: Long, interact_events_count: Long, interact_events_per_min: Double,
                                env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
@@ -54,10 +56,13 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
     override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
         val filteredData = DataFilter.filter(data, Array(Filter("context", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE", "CP_SESSION_START", "CP_INTERACT", "CP_IMPRESSION", "CE_START", "CE_END")))));
-        filteredData.map(event => (event.context.get.sid, Buffer(event)))
+        filteredData.map { event =>
+            val channel = CreationEventUtil.getChannelId(event)
+            ((channel, event.context.get.sid), Buffer(event))
+        }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events => events.sortBy { x => x.ets } }
-            .map { x => PortalSessionInput(x._1, x._2) }
+            .map { x => PortalSessionInput(x._1._1, x._1._2, x._2) }
     }
 
     override def algorithm(data: RDD[PortalSessionInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionOutput] = {
@@ -71,6 +76,8 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
             val telemetryVer = firstEvent.ver;
             val startTimestamp = firstEvent.ets;
             val endTimestamp = lastEvent.ets;
+            val pdata = CreationEventUtil.getAppDetails(firstEvent)
+            val channelId = x.channel
             val uid = if (lastEvent.uid.isEmpty()) "" else lastEvent.uid
             val isAnonymous = if (uid.isEmpty()) true else false
             val lifeCycleEvent = events.filter { x => "BE_OBJECT_LIFECYCLE".equals(x.eid) && "User".equals(x.edata.eks.`type`) && "Create".equals(x.edata.eks.state) }
@@ -123,7 +130,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 if ("CE_START".equals(f._1.eid)) {
                     val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "pageid" -> "ce"))
                     val eks = JSONUtils.deserialize[CreationEks](eksString)
-                    (CreationEvent("CP_IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.pdata, f._1.cdata, f._1.uid, f._1.context, f._1.rid, new CreationEData(eks), f._1.tags), f._2)
+                    (CreationEvent("CP_IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.channel, f._1.pdata, f._1.cdata, f._1.uid, f._1.context, f._1.rid, new CreationEData(eks), f._1.tags), f._2)
                 } else f;
             }.map(x => (x._1.edata.eks.pageid, x))
 
@@ -147,13 +154,14 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 }
             } else Iterable[EnvSummary]();
 
-            PortalSessionOutput(x.sid, uid, CreationEventUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries))
+            PortalSessionOutput(x.sid, uid, pdata, channelId, CreationEventUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries))
         }.filter(f => (f.time_spent >= 1))
     }
 
     override def postProcess(data: RDD[PortalSessionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { session =>
-            val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange);
+            val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.pdata.id), Option(session.channel));
             val measures = Map(
                 "start_time" -> session.start_time,
                 "end_time" -> session.end_time,
@@ -167,9 +175,9 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 "env_summary" -> session.env_summary,
                 "events_summary" -> session.events_summary,
                 "page_summary" -> session.page_summary);
-            MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, "1.0", mid, session.uid, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "SESSION", session.dtRange),
-                Dimensions(None, None, None, None, None, None, None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid), None, None, None, None, None, None, None, None, Option(config.getOrElse("appId", Constants.DEFAULT_APP_ID).asInstanceOf[String])),
+            MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, meEventVersion, mid, session.uid, session.channel, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String])), None, "SESSION", session.dtRange),
+                Dimensions(None, None, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid)),
                 MEEdata(measures), None);
         }
     }

@@ -17,6 +17,7 @@ import org.ekstep.analytics.framework.Filter
 import org.ekstep.analytics.framework.DataFilter
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import scala.BigDecimal
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class ContentUsageMetrics(content_id: String, content_ver: String, is_group_user: Boolean, total_ts: Double, total_sessions: Int, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, content_type: String, mime_type: String, dt_range: DtRange) extends AlgoOutput;
 case class ContentUsageSummaryInput(contentId: String, isGroupUser: Boolean, data: Buffer[DerivedEvent]) extends AlgoInput;
@@ -60,6 +61,7 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsag
     }
 
     override def postProcess(data: RDD[ContentUsageMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { cuMetrics =>
             val mid = CommonUtil.getMessageId("ME_CONTENT_USAGE_SUMMARY", null, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range, cuMetrics.content_id + cuMetrics.is_group_user);
             val measures = Map(
@@ -70,9 +72,9 @@ object ContentUsageSummary extends IBatchModelTemplate[DerivedEvent, ContentUsag
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min,
                 "content_type" -> cuMetrics.content_type,
                 "mime_type" -> cuMetrics.mime_type);
-            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, "1.0", mid, "", Option(cuMetrics.content_id), None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
-                Dimensions(None, None, Option(new GData(cuMetrics.content_id, cuMetrics.content_ver)), None, None, None, None, Option(cuMetrics.is_group_user)),
+            MeasuredEvent("ME_CONTENT_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.dt_range.to, meEventVersion, mid, "", "", Option(cuMetrics.content_id), None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentUsageSummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
+                Dimensions(None, None, Option(new GData(cuMetrics.content_id, cuMetrics.content_ver)), None, None, None, None, None, Option(cuMetrics.is_group_user)),
                 MEEdata(measures));
         }
 

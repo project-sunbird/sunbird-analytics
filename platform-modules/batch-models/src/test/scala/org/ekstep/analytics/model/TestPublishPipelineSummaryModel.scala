@@ -17,7 +17,7 @@ class TestPublishPipelineSummaryModel extends SparkSpec(null) {
       e.eid should be("ME_PUBLISH_PIPELINE_SUMMARY")
       val context = e.context;
       context.pdata.id should be("AnalyticsDataPipeline")
-      context.pdata.model should be("PublishPipelineSummarizer")
+      context.pdata.model.get should be("PublishPipelineSummarizer")
       context.pdata.ver should be("1.0")
       context.granularity should be("DAY")
       e.syncts shouldNot be(0)

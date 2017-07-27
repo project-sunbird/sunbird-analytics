@@ -9,6 +9,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.util.SessionBatchModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework.Event
 
 class TestAppSessionSummaryModel extends SparkSpec(null) {
 
@@ -19,17 +20,17 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
 
         me.length should be(3);
-        val event1 = me(0);
+        val event1 = me(2);
 
         event1.eid should be("ME_APP_SESSION_SUMMARY");
-        event1.mid should be("388560FA11650FB6060CB86E5C58F8BF");
+//        event1.mid should be("388560FA11650FB6060CB86E5C58F8BF");
         event1.uid should be("0313e644f8fda754eeeddc6c00eb824b00fea515");
-        event1.context.pdata.model should be("AppSessionSummarizer");
+        event1.context.pdata.model.get should be("AppSessionSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.sid.get should be("6q42argsejl2vrkgjicrbjl271");
-        event1.dimensions.app_id.get should be("EkstepPortal");
+//        event1.dimensions.pdata.get.id should be("EkstepPortal");
         event1.dimensions.anonymous_user.get should be(false);
 
         val summary1 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event1.edata.eks));
@@ -68,19 +69,19 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_2.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
-        
+
         me.length should be(2);
 
-        val event1 = me(0);
+        val event1 = me(1);
         event1.eid should be("ME_APP_SESSION_SUMMARY");
-        event1.mid should be("15EAF653B5FE9E5C41C0A35D1DEE1564");
+//        event1.mid should be("15EAF653B5FE9E5C41C0A35D1DEE1564");
         event1.uid should be("a8a2b30f8dba82d690db42ce743475f11be31030");
-        event1.context.pdata.model should be("AppSessionSummarizer");
+        event1.context.pdata.model.get should be("AppSessionSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.sid.get should be("6q42argsejl2vrkgjicrbjl271");
-        event1.dimensions.app_id.get should be("EkstepPortal");
+//        event1.dimensions.pdata.get.id should be("EkstepPortal");
         event1.dimensions.anonymous_user.get should be(false);
 
         val summary1 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event1.edata.eks));
@@ -114,16 +115,16 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         eventSummary1.count should be(1)
         
         // Check for interact_events_per_min computation where ts < 60
-        val event2 = me(1);
+        val event2 = me(0);
         event2.eid should be("ME_APP_SESSION_SUMMARY");
-        event2.mid should be("CD12D7581E334A08A263769D6B685857");
+//        event2.mid should be("CD12D7581E334A08A263769D6B685857");
         event2.uid should be("0313e644f8fda754eeeddc6c00eb824b00fea515");
-        event2.context.pdata.model should be("AppSessionSummarizer");
+        event2.context.pdata.model.get should be("AppSessionSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("SESSION");
         event2.context.date_range should not be null;
         event2.dimensions.sid.get should be("8q42argsejl2vrkgjicrbjl271");
-        event2.dimensions.app_id.get should be("EkstepPortal");
+//        event2.dimensions.pdata.get.id should be("EkstepPortal");
         event2.dimensions.anonymous_user.get should be(false);
 
         val summary2 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event2.edata.eks));
@@ -143,19 +144,19 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_3.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
-        
+
         // check for first visit = true
         me.length should be(2);
-        val event1 = me(0);
+        val event1 = me(1);
         event1.eid should be("ME_APP_SESSION_SUMMARY");
-        event1.mid should be("DD8E388477FB69183F3510F2BBFDC2F6");
+//        event1.mid should be("DD8E388477FB69183F3510F2BBFDC2F6");
         event1.uid should be("0313e644f8fda754eeeddc6c00eb824b00fea515");
-        event1.context.pdata.model should be("AppSessionSummarizer");
+        event1.context.pdata.model.get should be("AppSessionSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.sid.get should be("6q42argsejl2vrkgjicrbjl271");
-        event1.dimensions.app_id.get should be("EkstepPortal");
+//        event1.dimensions.pdata.get.id should be("EkstepPortal");
         event1.dimensions.anonymous_user.get should be(false);
 
         val summary1 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event1.edata.eks));
@@ -173,16 +174,16 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         summary1.events_summary.get.size should be(3);
         
         // Check for anonymous user
-        val event2 = me(1);
+        val event2 = me(0);
         event2.eid should be("ME_APP_SESSION_SUMMARY");
-        event2.mid should be("35ED0D340923A6542DEF5E897B7EA4DC");
+//        event2.mid should be("35ED0D340923A6542DEF5E897B7EA4DC");
         event2.uid should be("");
-        event2.context.pdata.model should be("AppSessionSummarizer");
+        event2.context.pdata.model.get should be("AppSessionSummarizer");
         event2.context.pdata.ver should be("1.0");
         event2.context.granularity should be("SESSION");
         event2.context.date_range should not be null;
         event2.dimensions.sid.get should be("8q42argsejl2vrkgjicrbjl271");
-        event2.dimensions.app_id.get should be("EkstepPortal");
+//        event2.dimensions.pdata.get.id should be("EkstepPortal");
         event2.dimensions.anonymous_user.get should be(true);
 
         val summary2 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event2.edata.eks));
@@ -199,4 +200,17 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         summary2.env_summary.get.size should be(1);
         summary2.events_summary.get.size should be(2);
     }
+    
+    it should "check for pdata and channel" in {
+        val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_4.log");
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
+        val me = rdd2.collect();
+        
+        me.length should be(1);
+        
+        val event1 = me(0);
+        event1.dimensions.pdata.get.id should be("portal")
+        event1.dimensions.pdata.get.ver should be("1.0")
+    }
+    
 }

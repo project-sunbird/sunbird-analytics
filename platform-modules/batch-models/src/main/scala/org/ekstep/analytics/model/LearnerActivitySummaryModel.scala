@@ -20,6 +20,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.log4j.Logger
+import org.ekstep.analytics.framework.conf.AppConf
 
 /**
  * @author Amit Behera
@@ -95,6 +96,7 @@ object LearnerActivitySummaryModel extends IBatchModelTemplate[DerivedEvent, Lea
     }
 
     override def postProcess(data: RDD[TimeSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { summary =>
             val measures = Map(
                 "meanTimeSpent" -> summary.meanTimeSpent,
@@ -110,9 +112,9 @@ object LearnerActivitySummaryModel extends IBatchModelTemplate[DerivedEvent, Lea
                 "topKcontent" -> summary.topKcontent,
                 "start_ts" -> summary.start_ts,
                 "end_ts" -> summary.end_ts);
-            val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", summary.uid, "WEEK", summary.dtRange.to);
-            MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), summary.dtRange.to, "1.0", mid, summary.uid, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String]), None, "WEEK", summary.dtRange),
+            val mid = CommonUtil.getMessageId("ME_LEARNER_ACTIVITY_SUMMARY", summary.uid, "WEEK", summary.dtRange.to, None, None);
+            MeasuredEvent("ME_LEARNER_ACTIVITY_SUMMARY", System.currentTimeMillis(), summary.dtRange.to, meEventVersion, mid, summary.uid, "", None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "LearnerActivitySummary").asInstanceOf[String])), None, "WEEK", summary.dtRange),
                 Dimensions(None, null, None, None, None, None, None),
                 MEEdata(measures));
         }

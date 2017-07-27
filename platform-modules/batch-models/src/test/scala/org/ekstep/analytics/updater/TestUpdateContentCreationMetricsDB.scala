@@ -9,12 +9,14 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.creation.model.CreationEvent
+import org.ekstep.analytics.framework.conf.AppConf
 
 class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 
 	"UpdateContentCreationMetricsDB" should "take the snapshot data for the content having no plugins and no tags update in DB" in {
 
 		DBUtil.truncateTable(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE)
+		DBUtil.truncateTable(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE)
 		loadCassandraData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, "src/test/resources/vidyavaani-data/content_data.csv")
 		loadGraphData("src/test/resources/content-creation-metrics/graph-data.json")
 		UpdateContentCreationMetricsDB.execute(sc.emptyRDD[CreationEvent], None)
@@ -105,12 +107,13 @@ class TestUpdateContentCreationMetricsDB extends SparkGraphSpec(null) {
 		loadCassandraData(Constants.CONTENT_STORE_KEY_SPACE_NAME, Constants.CONTENT_DATA_TABLE, "src/test/resources/content-creation-metrics/content_data_test.txt", ";")
 		loadGraphData("src/test/resources/content-creation-metrics/graph-data1.json")
 
-		sc.makeRDD(Seq(CEUsageSummaryFact(0, "do_112238916211949568137", 6, 67, 657456, 9812.78, System.currentTimeMillis())))
+		sc.makeRDD(Seq(CEUsageSummaryFact(0, "do_112238916211949568137", AppConf.getConfig("default.consumption.app.id"), AppConf.getConfig("default.channel.id"), 6, 67, 657456, 9812.78, System.currentTimeMillis())))
 			.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY);
 		val rdd = loadFile[CreationEvent]("src/test/resources/content-creation-metrics/test_data2.log");
 		UpdateContentCreationMetricsDB.execute(rdd, None);
 		val metrics = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).collect
 		metrics.length should be(2)
+
 		val cnt = metrics.filter { x => StringUtils.equals("do_112238916211949568137", x.d_content_id) }.last
 		cnt.last_status.get should be("Live");
 		cnt.time_spent_draft.get should be(0.2);

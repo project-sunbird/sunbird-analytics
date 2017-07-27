@@ -5,6 +5,7 @@ import java.io.Serializable
 import java.util.Date
 import scala.beans.BeanProperty
 import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.conf.AppConf
 
 class Models extends Serializable {}
 
@@ -16,8 +17,8 @@ class Eks(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val
           val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String,
           val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
           val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]],
-          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], 
-          val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef], 
+          val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]],
+          val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef],
           val method: String, val request: AnyRef) extends Serializable {}
 
 @scala.beans.BeanInfo
@@ -31,25 +32,27 @@ class EventMetadata(val sync_timestamp: String, val public: String) extends Seri
 
 @scala.beans.BeanInfo
 class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String,
-            val uid: String, val did: String, val edata: EData, val tags: AnyRef = null, val cdata: List[CData] = List(), val metadata: EventMetadata = null) extends AlgoInput with Input {}
+            val uid: String, val did: String, val channel: Option[String], val pdata: Option[PData], val edata: EData, val etags: Option[ETags], val tags: AnyRef = null, val cdata: List[CData] = List(), val metadata: EventMetadata = null) extends AlgoInput with Input {}
 
 // Computed Event Model
 @scala.beans.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.beans.BeanInfo
-case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Input with AlgoInput;
+case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, channel: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, etags: Option[ETags] = Option(ETags(None, None, None))) extends Input with AlgoInput;
 @scala.beans.BeanInfo
-case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Output;
+case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, channel: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, etags: Option[ETags] = Option(ETags(None, None, None))) extends Output;
 @scala.beans.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None, author_id: Option[String] = None, partner_id: Option[String] = None, concept_id: Option[String] = None, app_id: Option[String] = None, client: Option[Map[String, AnyRef]] = None, textbook_id: Option[String] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], pdata: Option[PData], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None, author_id: Option[String] = None, partner_id: Option[String] = None, concept_id: Option[String] = None, client: Option[Map[String, AnyRef]] = None, textbook_id: Option[String] = None);
 @scala.beans.BeanInfo
-case class PData(id: String, model: String, ver: String, pid: Option[String] = None);
+case class PData(id: String, ver: String, model: Option[String] = None, pid: Option[String] = None);
 @scala.beans.BeanInfo
 case class DtRange(from: Long, to: Long);
 @scala.beans.BeanInfo
 case class Context(pdata: PData, dspec: Option[Map[String, String]] = None, granularity: String, date_range: DtRange, status: Option[String] = None, client_id: Option[String] = None, attempt: Option[Int] = None);
 @scala.beans.BeanInfo
 case class MEEdata(eks: AnyRef);
+@scala.beans.BeanInfo
+case class ETags(app: Option[List[String]] = None, partner: Option[List[String]] = None, dims: Option[List[String]] = None)
 
 // User profile event models
 
@@ -58,7 +61,7 @@ class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err
 @scala.beans.BeanInfo
 class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.beans.BeanInfo
-class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
+class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val pdata: Option[PData] = None, val channel: Option[String] = None, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
@@ -109,30 +112,32 @@ case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[D
 case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult);
 
 // Common models for all data products
-case class LearnerId(learner_id: String)
+case class LearnerProfileIndex(learner_id: String, app_id: String, channel: String)
 case class ContentId(content_id: String)
 case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
 
 case class Empty() extends Input with AlgoInput with AlgoOutput with Output
 case class UpdaterOutput(msg: String) extends Output
-case class ContentKey(period: Int, content_id: String, tag: String);
-case class GenieKey(period: Int, tag: String);
-case class ItemKey(period: Int, tag: String, content_id: String, item_id: String);
+case class ContentKey(period: Int, app_id: String, channel: String, content_id: String, tag: String);
+case class GenieKey(period: Int, app_id: String, channel: String, tag: String);
+case class ItemKey(period: Int, app_id: String, channel: String, tag: String, content_id: String, item_id: String);
 case class InCorrectRes(resp: String, mmc: List[String], count: Int) extends Input with AlgoInput;
 case class Misconception(value: String, count: Int) extends Input with AlgoInput;
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean);
 trait CassandraTable extends AnyRef with Serializable;
 
 /* Neo4j case classes */
-case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
+case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]] = Option(List())) extends Serializable;
 case class Relation(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = Option(Map())) extends Serializable;
-case class UpdateDataNode(identifier: String, propertyName: String, propertyValue: AnyRef, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]]= Option(List())) extends Serializable;
+case class UpdateDataNode(identifier: String, propertyName: String, propertyValue: AnyRef, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]] = Option(List())) extends Serializable;
 case class Job_Config(category: String, config_key: String, config_value: Map[String, List[String]])
 
 /* Data Exhaust*/
 case class DataSet(events: List[String], eventConfig: Map[String, EventId])
-case class EventId(eventType: String, searchType: String, saveType: String, fetchConfig: FetchConfig, filterMapping: Map[String, Filter], saveConfig: SaveConfig, localPath: String = "/mnt/data/analytics/data-exhaust")
+case class EventId(eventType: String, searchType: String, fetchConfig: FetchConfig, csvConfig: CsvConfig, filterMapping: Map[String, Filter])
 case class FetchConfig(params: Map[String, String])
+case class CsvColumnMapping(to: String, hidden: Boolean, mapFunc: String)
+case class CsvConfig(auto_extract_column_names: Boolean, columnMappings: Map[String, CsvColumnMapping])
 case class SaveConfig(params: Map[String, String])
 
 object Period extends Enumeration {
