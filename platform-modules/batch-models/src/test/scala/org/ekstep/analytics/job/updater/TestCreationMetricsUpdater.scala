@@ -41,7 +41,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
-            queryResult.result.singleSeries.columns(0) should be("time")
+            queryResult.result.series.apply(0).columns(0) should be("time")
         }
     }
 
@@ -49,7 +49,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT contents FROM template_metrics where template_id = 'id6' ")
-            queryResult.row.mkString.split(",")(1).trim() should be("2")
+            queryResult.rows.apply(0).mkString.split(",")(1).trim() should be("2")
         }
     }
 }
