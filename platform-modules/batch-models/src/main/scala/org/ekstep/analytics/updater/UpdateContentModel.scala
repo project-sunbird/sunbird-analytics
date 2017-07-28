@@ -24,11 +24,13 @@ import org.ekstep.analytics.framework.Level._
 
 case class PopularityUpdaterInput(contentId: String, contentSummary: Option[ContentUsageSummaryView], popularitySummary: Option[ContentPopularitySummaryView]) extends AlgoInput
 case class PopularityUpdaterOutput(contentId: String, metrics: Map[String, AnyVal], reponseCode: String, errorMsg: Option[String]) extends AlgoOutput with Output
+case class OldNewValue(ov: Option[AnyVal], nv: AnyVal)
+case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, OldNewValue]]) extends AlgoOutput with Output
 
 /**
  * @author Santhosh
  */
-object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUpdaterInput, PopularityUpdaterOutput, PopularityUpdaterOutput] with Serializable {
+object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUpdaterInput, GraphUpdateEvent, GraphUpdateEvent] with Serializable {
 
     val className = "org.ekstep.analytics.updater.UpdateContentModel"
     override def name: String = "UpdateContentModel"
@@ -44,7 +46,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             PopularityUpdaterInput(f._1, if (f._2._1.size > 0) Option(f._2._1.head) else None, if (f._2._2.size > 0) Option(f._2._2.head) else None))
     }
 
-    override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutput] = {
+    override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
         data.map { x =>
             val url = Constants.getContentUpdateAPIUrl(x.contentId);
             val usageMap = if (x.contentSummary.isDefined) {
@@ -71,14 +73,19 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             val versionKey = AppConf.getConfig("lp.contentmodel.versionkey").asInstanceOf[AnyVal];
             val metrics = usageMap ++ popularityMap
             val contentMap = metrics ++ Map("versionKey" -> versionKey);
-            val request = Map("request" -> Map("content" -> contentMap));            
-            val r = RestUtil.patch[Response](url, JSONUtils.serialize(request));
-            JobLogger.log("org.ekstep.analytics.updater.UpdateContentModel", Option(Map("contentId" -> x.contentId, "metrics" -> metrics, "responseCode" -> r.responseCode, "errorMsg" ->  r.params.errmsg)), INFO)("org.ekstep.analytics.updater.UpdateContentModel");
-            PopularityUpdaterOutput(x.contentId, metrics, r.responseCode, r.params.errmsg)
+            val finalContentMap = contentMap.map{ x => (x._1 -> OldNewValue(null, x._2))}.toList.toMap ++ Map("IL_UNIQUE_ID" -> OldNewValue(null, x.contentId.asInstanceOf[AnyVal]))
+            val jsonData = GraphUpdateEvent(DateTime.now().getMillis, x.contentId, Map("properties" -> finalContentMap))
+            println(JSONUtils.serialize(jsonData))
+            
+//            val request = Map("request" -> Map("content" -> contentMap));            
+//            val r = RestUtil.patch[Response](url, JSONUtils.serialize(request));
+//            JobLogger.log("org.ekstep.analytics.updater.UpdateContentModel", Option(Map("contentId" -> x.contentId, "metrics" -> metrics, "responseCode" -> r.responseCode, "errorMsg" ->  r.params.errmsg)), INFO)("org.ekstep.analytics.updater.UpdateContentModel");
+//            PopularityUpdaterOutput(x.contentId, metrics, r.responseCode, r.params.errmsg)
+            jsonData
         }.cache();
     }
 
-    override def postProcess(data: RDD[PopularityUpdaterOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterOutput] = {
+    override def postProcess(data: RDD[GraphUpdateEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
     	data
     }
 }
