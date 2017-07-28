@@ -59,11 +59,15 @@ object JobLogger {
     }
 
     def start(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        logger(name).info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_START", "INFO", msg, data)));
+        val event = JSONUtils.serialize(getMeasuredEvent("BE_JOB_START", "INFO", msg, data));
+        EventBusUtil.dipatchEvent(event);
+        logger(name).info(event);
     }
 
     def end(msg: String, status: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        logger(name).info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_END", "INFO", msg, data, Option(status))));
+        val event = JSONUtils.serialize(getMeasuredEvent("BE_JOB_END", "INFO", msg, data, Option(status)));
+        EventBusUtil.dipatchEvent(event);
+        logger(name).info(event);
     }
 
     def log(msg: String, data: Option[AnyRef] = None, logLevel: Level = DEBUG, name: String = "org.ekstep.analytics")(implicit className: String) = {

@@ -10,8 +10,13 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 import java.util.concurrent.CountDownLatch
+import org.ekstep.analytics.framework.util.EventBusUtil
+import com.google.common.eventbus.Subscribe
+import org.ekstep.analytics.framework.MeasuredEvent
+import org.ekstep.analytics.framework.OutputDispatcher
+import org.ekstep.analytics.framework.Dispatcher
 
-case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String);
+case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String, slackChannel: String = "#test_channel", slackUserName: String = "job-manager");
 
 object JobManager extends optional.Application {
 
@@ -27,6 +32,7 @@ object JobManager extends optional.Application {
         val consumer = initializeConsumer(config, jobQueue);
         val executor = Executors.newFixedThreadPool(1);
         val doneSignal = new CountDownLatch(config.jobsCount);
+        EventBusUtil.register(new JobEventListener(config.slackChannel, config.slackUserName));
         executor.submit(new JobRunner(config, jobQueue, doneSignal));
 
         doneSignal.await();
@@ -39,6 +45,22 @@ object JobManager extends optional.Application {
         val consumer = new JobConsumer(config.topic, props, jobQueue);
         consumer.start();
         consumer;
+    }
+}
+
+class JobEventListener(channel: String, userName: String) {
+    
+    private val dispatcher = Dispatcher("slack", Map("channel" -> channel, "userName" -> userName));
+    
+    @Subscribe def onMessage(event: String) {
+        Console.println(event);
+        val meEvent = JSONUtils.deserialize[MeasuredEvent](event);
+        meEvent.eid match {
+            case "BE_JOB_START" =>
+                OutputDispatcher.dispatch(dispatcher, Array("Job Started - " + event))
+            case "BE_JOB_END" =>
+                OutputDispatcher.dispatch(dispatcher, Array("Job ended - " + event))
+        }
     }
 }
 
@@ -57,10 +79,7 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     private def executeJob(record: String) {
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
-        JobLogger.log(modelName.toUpperCase() + " job started.", None, INFO)
         JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
-        JobLogger.log(modelName.toUpperCase() + " job finished.", None, INFO)
-        println(modelName.toUpperCase() + " job finished.")
     }
 }
 
