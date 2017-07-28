@@ -14,7 +14,7 @@ class TestDataExhaustUtils extends SparkSpec {
        val data = loadFile[DerivedEvent]("src/test/resources/learner-activity-summary/learner_activity_summary_sample1.log");
        
        val d = data.map(f => JSONUtils.serialize(f))
-       val finalData = DataExhaustUtils.toCSV(d, config)
+       val finalData = DataExhaustUtils.toCSV(d, config)(sc)
         
        finalData.count() should be (8)
        
