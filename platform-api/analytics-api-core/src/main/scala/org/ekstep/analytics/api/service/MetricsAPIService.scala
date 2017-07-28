@@ -48,6 +48,7 @@ object MetricsAPIService {
         JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result));
       } catch {
         case ex: Exception =>
+            ex.printStackTrace()
           CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
       }
     }
