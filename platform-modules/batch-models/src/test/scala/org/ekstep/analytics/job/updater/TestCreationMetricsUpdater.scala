@@ -17,7 +17,6 @@ import scala.concurrent.duration._
 import org.joda.time.DateTimeUtils
 
 class TestCreationMetricsUpdater extends SparkSpec(null) {
-    DateTimeUtils.setCurrentMillisFixed(1487788200000L);
     val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/template.json")), Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/asset.json"))))), None, None, "org.ekstep.analytics.updater.ConsumptionMetricsUpdater", Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("Consumption Metrics Updater"), Option(false))
     val strConfig = JSONUtils.serialize(config);
     CreationMetricsUpdater.main(strConfig)(Option(sc));
