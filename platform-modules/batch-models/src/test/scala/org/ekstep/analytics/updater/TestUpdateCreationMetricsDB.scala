@@ -11,7 +11,7 @@ import com.pygmalios.reactiveinflux._
 import org.joda.time.DateTimeUtils
 
 class TestUpdateCreationMetricsDB extends SparkSpec(null) {
-    DateTimeUtils.setCurrentMillisFixed(1487788200000L);
+    
     "UpdateCreationMetricsDB" should "push data into influxDB" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/concepts.json");
         UpdateCreationMetricsDB.execute(rdd, None);

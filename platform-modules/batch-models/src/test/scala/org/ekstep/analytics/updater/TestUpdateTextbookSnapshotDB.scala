@@ -18,9 +18,7 @@ import org.ekstep.analytics.util.Constants
  */
 
 class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
-	
 
-	DateTimeUtils.setCurrentMillisFixed(1487788200000L);
 	
 	"UpdateTextbookSnapshotDB" should "return zero snapshots" in {
 		val rdd = invokeSnapshotUpdater;
