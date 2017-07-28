@@ -56,7 +56,7 @@ class TestUpdateCreationMetricsDB extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT items FROM concept_metrics where concept_id = 'id7'")
-            queryResult.row.mkString.split(",")(1).trim() should be("22")
+            queryResult.rows.apply(0).mkString.split(",")(1).trim() should be("22")
 
         }
     }
