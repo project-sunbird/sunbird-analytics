@@ -278,7 +278,6 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return error response on invalid request" in {
     	val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
     	val response = MetricsAPIService.genieLaunch(JSONUtils.deserialize[MetricsRequestBody](request));
-    	println("response: "+JSONUtils.serialize(response))
       val result = JSONUtils.deserialize[MetricsResponse](response)
       result.responseCode should be("CLIENT_ERROR")
       result.params.errmsg should be("period is missing or invalid.")
@@ -287,7 +286,6 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
         val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1475b1d70a66a0f2c22dd1096b98030cb7d9bacb"}}}""";
         val response = getGenieLaunchMetrics(request);
-        println("response: "+JSONUtils.serialize(response))
         response.result.metrics.length should be(7);
         response.result.summary should not be empty;
         checkGLMetricsEmpty(response.result.metrics(1));
@@ -301,7 +299,6 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return tag metrics when, last 7 days data present for tag1, tag2, tag3 in S3 & API inputs (tag: tag1)" in {
         val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb"}}}""";
         val response = getGenieLaunchMetrics(request);
-        println("response: "+JSONUtils.serialize(response))
         response.result.metrics.length should be(7);
         response.result.summary should not be empty;
     }
@@ -309,7 +306,6 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return last 5 weeks metrics when, when 5 weeks data present" in {
         val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_5_WEEKS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb"}}}""";
         val response = getGenieLaunchMetrics(request);
-        println("response: "+JSONUtils.serialize(response))
         response.result.metrics.length should be(5);
         response.result.summary should not be empty;
     }
@@ -317,7 +313,6 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return last 12 months metrics when, when 12 months data present" in {
         val request = """{"id":"ekstep.analytics.metrics.genie-launch","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_12_MONTHS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb"}}}""";
         val response = getGenieLaunchMetrics(request);
-        println("response: "+JSONUtils.serialize(response))
         response.result.metrics.length should be(12);
         response.result.summary should not be empty;
     }
@@ -325,14 +320,12 @@ class TestMetricsAPIService extends SparkSpec {
     "ContentUsageListMetricsAPIService" should "return empty result when, no pre-computed tag summary data is there in S3 location" in {
         val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"4f04da60-1e24-4d31-aa7b-1daf91c46341"}}}""";
         val response = getContentUsageListMetrics(request);
-        println("response: "+JSONUtils.serialize(response))
         response.result.summary should be (Map("m_contents"-> List(),"content"->List()))
     }
     
     it should "return error response on invalid request" in {
     	val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{}}""";
     	val response = MetricsAPIService.contentList(JSONUtils.deserialize[MetricsRequestBody](request));
-    	println("response: "+JSONUtils.serialize(response))
       val result = JSONUtils.deserialize[MetricsResponse](response)
       result.responseCode should be("CLIENT_ERROR")
       result.params.errmsg should be("period is missing or invalid.")
@@ -341,7 +334,6 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return one day metrics of last 7days when, only one day pre-computed tag summary data is there in S3 location for last 7days" in {
         val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag":"1475b1d70a66a0f2c22dd1096b98030cb7d9bacb"}}}""";
         val response = getContentUsageListMetrics(request);
-        println("response: "+JSONUtils.serialize(response))
         response.result.metrics.length should be(7);
         response.result.summary should not be empty;
         response.result.metrics(1).get("content") should be(Some(List()));

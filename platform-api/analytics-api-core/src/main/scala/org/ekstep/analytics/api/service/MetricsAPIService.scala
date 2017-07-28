@@ -48,7 +48,6 @@ object MetricsAPIService {
         JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result));
       } catch {
         case ex: Exception =>
-            ex.printStackTrace()
           CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
       }
     }
@@ -102,7 +101,6 @@ object MetricsAPIService {
         val tag = getTag(filter);
         val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
         val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
-        println("result: "+ JSONUtils.serialize(result))
         JSONUtils.serialize(CommonUtil.OK(APIIds.GENIE_LUNCH, result));
       } catch {
         case ex: Exception =>
