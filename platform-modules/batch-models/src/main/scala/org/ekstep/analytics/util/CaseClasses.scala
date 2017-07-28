@@ -57,7 +57,7 @@ case class ItemUsageSummaryView(d_period: Int, d_content_id: String, d_tag: Stri
 case class ConfigDetails(keyspace: String, table: String, periodfrom: String, periodUpTo: String, filePrefix: String, fileSuffix: String, dispatchTo: String, dispatchParams: Map[String, AnyRef]);
 
 // Content Store
-case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
+case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]], stageicons: Option[Array[Byte]]);
 
 /* Job Request & Data Exhaust */
 case class JobRequest(client_key: String, request_id: String, job_id: Option[String], status: String, request_data: String,
