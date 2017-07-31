@@ -41,7 +41,7 @@ object InfluxDB {
 		`type` match {
 			case "User" =>
 				val users = data.filter { x => StringUtils.isNotBlank(x) }.map { x => UserProfileIndex(x) }.joinWithCassandraTable[UserProfile](Constants.CREATION_KEY_SPACE_NAME, Constants.USER_PROFILE_TABLE).on(SomeColumns("user_id"))
-				users.map(f => (f._1.user_id, f._2.name)).collectAsMap().toMap;
+				users.map(f => (f._1.user_id, f._2.name.getOrElse(""))).collectAsMap().toMap;
 			case _ =>
 				val cacheObjects = data.map { x => AppObjectCacheIndex(`type`, x) }.joinWithCassandraTable[AppObjectCache](Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE).on(SomeColumns("type", "id"));
 				cacheObjects.map(f => (f._1.id, f._2.name)).collectAsMap().toMap;
