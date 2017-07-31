@@ -24,7 +24,7 @@ import org.ekstep.analytics.util.CreationEventUtil
  * Case Classes for the data product
  */
 case class AppObjectCache(`type`: String, id: String, app_id: String, channel: String, subtype: String, parentid: Option[String], parenttype: Option[String], code: Option[String], name: String, state: String, prevstate: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
-case class UserProfile(user_id: String, app_id: String, channel: String, name: String, email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
+case class UserProfile(user_id: String, app_id: String, channel: String, name: Option[String], email: Option[String], access: String, partners: String, profile: String, updated_date: Option[DateTime]) extends Output with AlgoOutput;
 
 /**
  * @dataproduct
@@ -63,7 +63,7 @@ object UpdateAppObjectCacheDB extends IBatchModelTemplate[CreationEvent, Creatio
             val profile = if (event.edata.eks.profile.isDefined) event.edata.eks.profile.get else List();
             val pdata = CreationEventUtil.getAppDetails(event)
             val channel = CreationEventUtil.getChannelId(event)
-            UserProfile(event.uid, pdata.id, channel, event.edata.eks.name, event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
+            UserProfile(event.uid, pdata.id, channel, Option(event.edata.eks.name), event.edata.eks.email, JSONUtils.serialize(access), JSONUtils.serialize(partners), JSONUtils.serialize(profile), Option(new DateTime(event.ets)));
         }
         profileEvents.saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.USER_PROFILE_TABLE);
         objectEvents;
