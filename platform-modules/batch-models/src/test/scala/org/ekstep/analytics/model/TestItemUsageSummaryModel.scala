@@ -105,4 +105,21 @@ class TestItemUsageSummaryModel extends SparkSpec(null) {
         val maping = domain_4564EventEksMap.get("incorrect_res").get.asInstanceOf[List[InCorrectRes]]
         maping.length should be (2)
     }
+    
+    it should "generate item summary from the input data having pre-registered dimensions tag" in {
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.registered_tags");
+        }
+
+        val tag1 = RegisteredTag("e8d7a0063b665b7a718e8f7e4014e59e28642f8c", System.currentTimeMillis(), true)
+        val tag2 = RegisteredTag("e4d7a0063b665b7a718e8f7e4014e59e28642f8c", System.currentTimeMillis(), true)
+        sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
+
+        val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-model/item_summary_4.log");
+        val out = ItemUsageSummaryModel.execute(rdd, None);
+        val events = out.collect()
+        events.length should be(9)
+        val dimTagEvents = events.filter { x => StringUtils.equals("e8d7a0063b665b7a718e8f7e4014e59e28642f8c", x.dimensions.tag.get) }
+        dimTagEvents.length should be (3)
+    }
 }
