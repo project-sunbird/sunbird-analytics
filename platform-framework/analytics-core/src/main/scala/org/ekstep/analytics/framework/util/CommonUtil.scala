@@ -521,8 +521,17 @@ object CommonUtil {
         } else {
             None
         }
+        val dimTag = if (event.isInstanceOf[DerivedEvent]) {
+            event.asInstanceOf[DerivedEvent].etags.get.dims
+        } else if (event.isInstanceOf[Event]) {
+            getETags(event.asInstanceOf[Event]).dims
+        } else {
+            None
+        }
         val genieTagFilter = if (appTag.isDefined) appTag.get else List()
-        genieTagFilter.filter { x => registeredTags.contains(x) }.toArray;
+        val dimTagFilter = if (dimTag.isDefined) dimTag.get else List()
+        val tagFilter = genieTagFilter ++ dimTagFilter
+        tagFilter.filter { x => registeredTags.contains(x) }.toArray;
     }
 
     def caseClassToMap(ccObj: Any) =
