@@ -23,9 +23,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.Level._
 
 case class PopularityUpdaterInput(contentId: String, contentSummary: Option[ContentUsageSummaryView], popularitySummary: Option[ContentPopularitySummaryView]) extends AlgoInput
-case class PopularityUpdaterOutput(contentId: String, metrics: Map[String, AnyVal], reponseCode: String, errorMsg: Option[String]) extends AlgoOutput with Output
-case class OldNewValue(ov: Option[AnyVal], nv: AnyVal)
-case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, OldNewValue]]) extends AlgoOutput with Output
+case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]]) extends AlgoOutput with Output
 
 /**
  * @author Santhosh
@@ -36,12 +34,14 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
     override def name: String = "UpdateContentModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterInput] = {
-        val usageContents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_CONTENT_USAGE_SUMMARY"))).map { x => ContentSummaryIndex(0, x.dimensions.content_id.get, "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id")) }.distinct();
-        val usageSummaries = usageContents.joinWithCassandraTable[ContentUsageSummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_content_id", "d_tag")).map(f => (f._1.d_content_id, f._2));
 
-        val popularitySummaries = usageContents.joinWithCassandraTable[ContentPopularitySummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).on(SomeColumns("d_period", "d_content_id", "d_tag")).map(f => (f._1.d_content_id, f._2));
+        val end_date = config.getOrElse("start_date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String]
+        val start_time = CommonUtil.dateFormat.parseDateTime(end_date).getMillis
+        val end_time = CommonUtil.getEndTimestampOfDay(end_date)
+        val usageInfo = sc.cassandraTable[ContentUsageSummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
+        val popularityInfo = sc.cassandraTable[ContentPopularitySummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
 
-        val groupSummaries = usageSummaries.cogroup(popularitySummaries);
+        val groupSummaries = usageInfo.cogroup(popularityInfo);
         groupSummaries.map(f =>
             PopularityUpdaterInput(f._1, if (f._2._1.size > 0) Option(f._2._1.head) else None, if (f._2._2.size > 0) Option(f._2._2.head) else None))
     }
@@ -50,8 +50,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
         data.map { x =>
             val url = Constants.getContentUpdateAPIUrl(x.contentId);
             val usageMap = if (x.contentSummary.isDefined) {
-                Map("popularity" -> x.contentSummary.get.m_total_ts,
-                    "me_totalSessionsCount" -> x.contentSummary.get.m_total_sessions,
+                Map("me_totalSessionsCount" -> x.contentSummary.get.m_total_sessions,
                     "me_totalTimespent" -> x.contentSummary.get.m_total_ts,
                     "me_totalInteractions" -> x.contentSummary.get.m_total_interactions,
                     "me_averageInteractionsPerMin" -> x.contentSummary.get.m_avg_interactions_min,
@@ -70,17 +69,11 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             } else {
                 Map();
             }
-            val versionKey = AppConf.getConfig("lp.contentmodel.versionkey").asInstanceOf[AnyVal];
             val metrics = usageMap ++ popularityMap
-            val contentMap = metrics ++ Map("versionKey" -> versionKey);
-            val finalContentMap = contentMap.map{ x => (x._1 -> OldNewValue(null, x._2))}.toList.toMap ++ Map("IL_UNIQUE_ID" -> OldNewValue(null, x.contentId.asInstanceOf[AnyVal]))
+            val finalContentMap = metrics.map{ x => (x._1 -> Map("ov" -> null, "nv" -> x._2))}.toList.toMap
             val jsonData = GraphUpdateEvent(DateTime.now().getMillis, x.contentId, Map("properties" -> finalContentMap))
             println(JSONUtils.serialize(jsonData))
             
-//            val request = Map("request" -> Map("content" -> contentMap));            
-//            val r = RestUtil.patch[Response](url, JSONUtils.serialize(request));
-//            JobLogger.log("org.ekstep.analytics.updater.UpdateContentModel", Option(Map("contentId" -> x.contentId, "metrics" -> metrics, "responseCode" -> r.responseCode, "errorMsg" ->  r.params.errmsg)), INFO)("org.ekstep.analytics.updater.UpdateContentModel");
-//            PopularityUpdaterOutput(x.contentId, metrics, r.responseCode, r.params.errmsg)
             jsonData
         }.cache();
     }
