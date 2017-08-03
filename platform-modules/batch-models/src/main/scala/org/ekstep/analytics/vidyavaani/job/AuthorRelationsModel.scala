@@ -61,7 +61,7 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
 
         val authors = GraphQueryDispatcher.dispatch(getUniqueAuthorsQuery).list().toArray();
-        val authorsRDD = authors.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("author").asString(), x.get("name").asString(), x.get("appId").asString(), x.get("channel").asString())}.map{ f =>
+        val authorsRDD = authors.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("author").asObject().toString(), x.get("name").asObject().toString(), x.get("appId").asString(), x.get("channel").asString())}.map{ f =>
             DataNode(f._1, Option(Map("name" -> f._2, "type" -> "author", "appId" -> f._3, "channel" -> f._4)), Option(List(NODE_NAME)));
         }
         val authorQuery = GraphDBUtil.createNodesQuery(sc.parallelize(authorsRDD))
