@@ -22,7 +22,7 @@ import org.ekstep.analytics.util.ContentSummaryIndex
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.Level._
 
-case class PopularityUpdaterInput(contentId: String, contentSummary: Option[ContentUsageSummaryView], popularitySummary: Option[ContentPopularitySummaryView]) extends AlgoInput
+case class PopularityUpdaterInput(contentId: String, contentSummary: Option[ContentUsageSummaryView], popularitySummary: Option[ContentPopularitySummaryView], creationSummary: Option[CEUsageSummaryFact], creationMetrics: Option[ContentCreationMetrics]) extends AlgoInput
 case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]]) extends AlgoOutput with Output
 
 /**
@@ -35,15 +35,22 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PopularityUpdaterInput] = {
 
-        val end_date = config.getOrElse("start_date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String]
-        val start_time = CommonUtil.dateFormat.parseDateTime(end_date).getMillis
-        val end_time = CommonUtil.getEndTimestampOfDay(end_date)
+        val date = config.getOrElse("date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String]
+        val start_time = CommonUtil.dateFormat.parseDateTime(date).getMillis
+        val end_time = CommonUtil.getEndTimestampOfDay(date)
         val usageInfo = sc.cassandraTable[ContentUsageSummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
         val popularityInfo = sc.cassandraTable[ContentPopularitySummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
 
-        val groupSummaries = usageInfo.cogroup(popularityInfo);
-        groupSummaries.map(f =>
-            PopularityUpdaterInput(f._1, if (f._2._1.size > 0) Option(f._2._1.head) else None, if (f._2._2.size > 0) Option(f._2._2.head) else None))
+        val creationUsageInfo = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) }.map(f => (f.d_content_id, f));
+        val creationMetricsInfo = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).where("updated_date>=?", start_time).where("updated_date<=?", end_time).map(f => (f.d_content_id, f));
+        val creationSummaries = creationUsageInfo.cogroup(creationMetricsInfo)
+        
+        val groupSummaries = usageInfo.cogroup(popularityInfo).cogroup(creationSummaries);
+        groupSummaries.map{ f =>
+            val consumptionSummaries = if(f._2._1.size > 0) f._2._1.head else (Iterable(), Iterable())
+            val creationSummaries = if(f._2._2.size > 0) f._2._2.head else (Iterable(), Iterable())
+            PopularityUpdaterInput(f._1, if (consumptionSummaries._1.size > 0) Option(consumptionSummaries._1.head) else None, if (consumptionSummaries._2.size > 0) Option(consumptionSummaries._2.head) else None, if (creationSummaries._1.size > 0) Option(creationSummaries._1.head) else None, if (creationSummaries._2.size > 0) Option(creationSummaries._2.head) else None)
+        }
     }
 
     override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
@@ -69,12 +76,25 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             } else {
                 Map();
             }
-            val metrics = usageMap ++ popularityMap
+            val creationUsageMap = if (x.creationSummary.isDefined) {
+                Map("me_creationTimespent" -> x.creationSummary.get.total_ts,
+                    "me_creationSessions" -> x.creationSummary.get.total_sessions,
+                    "me_avgCreationTsPerSession" -> x.creationSummary.get.avg_ts_session)
+            } else {
+                Map();
+            }
+            val creationMetricsMap = if (x.creationMetrics.isDefined) {
+                Map("me_imagesCount" -> x.creationMetrics.get.images_count,
+                    "me_audiosCount" -> x.creationMetrics.get.audios_count,
+                    "me_videosCount" -> x.creationMetrics.get.videos_count,
+                    "me_timespentDraft" -> x.creationMetrics.get.time_spent_draft.get,
+                    "me_timespentReview" -> x.creationMetrics.get.time_spent_review.get);
+            } else {
+                Map();
+            }
+            val metrics = usageMap ++ popularityMap ++ creationUsageMap ++ creationMetricsMap
             val finalContentMap = metrics.map{ x => (x._1 -> Map("ov" -> null, "nv" -> x._2))}.toList.toMap
-            val jsonData = GraphUpdateEvent(DateTime.now().getMillis, x.contentId, Map("properties" -> finalContentMap))
-            println(JSONUtils.serialize(jsonData))
-            
-            jsonData
+            GraphUpdateEvent(DateTime.now().getMillis, x.contentId, Map("properties" -> finalContentMap))            
         }.cache();
     }
 
