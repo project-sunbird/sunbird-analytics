@@ -17,7 +17,6 @@ import scala.concurrent.duration._
 import org.joda.time.DateTimeUtils
 
 class TestCreationMetricsUpdater extends SparkSpec(null) {
-    DateTimeUtils.setCurrentMillisFixed(1487788200000L);
     val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/template.json")), Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/influxDB-updater/asset.json"))))), None, None, "org.ekstep.analytics.updater.ConsumptionMetricsUpdater", Option(Map("periodType" -> "ALL", "periodUpTo" -> 100.asInstanceOf[AnyRef])), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("Consumption Metrics Updater"), Option(false))
     val strConfig = JSONUtils.serialize(config);
     CreationMetricsUpdater.main(strConfig)(Option(sc));
@@ -42,7 +41,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
-            queryResult.result.singleSeries.columns(0) should be("time")
+            queryResult.result.series.apply(0).columns(0) should be("time")
         }
     }
 
@@ -50,7 +49,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT contents FROM template_metrics where template_id = 'id6' ")
-            queryResult.row.mkString.split(",")(1).trim() should be("2")
+            queryResult.rows.apply(0).mkString.split(",")(1).trim() should be("2")
         }
     }
 }

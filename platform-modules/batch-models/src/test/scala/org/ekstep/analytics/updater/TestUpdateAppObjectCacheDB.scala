@@ -49,7 +49,7 @@ class TestUpdateAppObjectCacheDB extends SparkSpec(null) {
         profile.access should be ("""[{"id":"2","value":"Registered"},{"id":"8","value":"Super Users"},{"id":"12","value":"Words-creator"},{"id":"13","value":"Quiz-items-creator"},{"id":"17","value":"Content-creator"},{"id":"19","value":"Concepts-creator"},{"id":"21","value":"Ekstep Admins"},{"id":"22","value":"Words-editor"},{"id":"23","value":"Partner-admin"}]""");
         profile.partners should be ("""[{"id":"org.ekstep.partner.pratham","value":"Pratham"},{"id":"org.ekstep.girlchild","value":"save girl child"}]""");
         profile.profile should be ("[]");
-        profile.name should be ("Test User");
+        profile.name.get should be ("Test User");
         profile.email.get should be ("test_user@ekstep.com");
         profile.user_id should be ("387");
     }
@@ -93,7 +93,7 @@ class TestUpdateAppObjectCacheDB extends SparkSpec(null) {
         profile.access should be ("""[{"id":"2","value":"Registered"},{"id":"17","value":"Content-creator"}]""");
         profile.partners should be ("""[{"id":"org.ekstep.girlchild","value":"save girl child"}]""");
         profile.profile should be ("[]");
-        profile.name should be ("Test User");
+        profile.name.get should be ("Test User");
         profile.email.get should be ("test_user@ekstep.com");
         profile.user_id should be ("387");
     }

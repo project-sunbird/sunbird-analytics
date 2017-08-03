@@ -21,7 +21,6 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
 
     override def beforeAll() {
         super.beforeAll()
-        DateTimeUtils.setCurrentMillisFixed(1487788200000L);
         val connector = CassandraConnector(sc.getConf);
         val session = connector.openSession();
         session.execute("TRUNCATE content_db.content_usage_summary_fact;");
