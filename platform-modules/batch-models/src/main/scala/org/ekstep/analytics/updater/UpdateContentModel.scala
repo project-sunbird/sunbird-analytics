@@ -23,7 +23,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.Level._
 
 case class PopularityUpdaterInput(contentId: String, contentSummary: Option[ContentUsageSummaryView], popularitySummary: Option[ContentPopularitySummaryView], creationSummary: Option[CEUsageSummaryFact], creationMetrics: Option[ContentCreationMetrics]) extends AlgoInput
-case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", objectType: String = "Content", nodeGraphId: Int = 0, createdOn: String = DateTime.now().toString(CommonUtil.df5)) extends AlgoOutput with Output
+case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", objectType: String = "Content", nodeGraphId: Int = 0) extends AlgoOutput with Output
 
 /**
  * @author Santhosh
