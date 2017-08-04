@@ -38,12 +38,14 @@ object MetricsAPIService {
     case class CreationMetricsES(body: CreationMetricsBody, config: Config);
 
     def creationMetricsES(body: CreationMetricsBody)(implicit config: Config): String = {
-         val request = ESRequest(body.request.rawQuery, body.request.aggregates)
+         val request = ESRequest(body.request.rawQuery.getOrElse(Map()), body.request.aggregates.getOrElse(Map()))
          val url = config.getString("metrics.creation.es.url")
          val indexes = config.getString("metrics.creation.es.indexes")
          val apiURL = url + "/" + indexes + "/" + "_search"
-         val response = RestUtil.post[String](apiURL, JSONUtils.serialize(request))
-         println(response)
+         println("apiURL: "+ apiURL)
+         val abc = RestUtil.post[AnyRef](apiURL, JSONUtils.serialize(request))
+         val response = JSONUtils.serialize(abc)
+         println("response: "+ response)
          response
     }
 

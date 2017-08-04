@@ -21,7 +21,7 @@ case class MetricsRequest(period: String, filter: Option[Filter], channel: Optio
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
 case class CreationMetricsBody(id: String, ver: String, ts: String, request: CreationMetricsRequest, param: Option[Params]) 
-case class CreationMetricsRequest(filters: Option[AnyRef], aggregates: Option[AnyRef], rawQuery: AnyRef)
+case class CreationMetricsRequest(filters: Option[AnyRef], aggregates: Option[AnyRef], rawQuery: Option[AnyRef])
 case class ESRequest(query: AnyRef, aggs: AnyRef, size: Int = 0)
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
