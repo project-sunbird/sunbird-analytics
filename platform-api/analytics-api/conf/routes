@@ -18,6 +18,8 @@ DELETE /metrics/tag/delete/:tagId @controllers.Application.deleteTag(tagId: Stri
 
 POST /metrics/:datasetId/:summary @controllers.Metrics.usageMetrics(datasetId: String, summary: String)
 
+POST /metrics/creation/content-snapshot/aggregate @controllers.Metrics.creationMetrics
+
 # Data Exhaust
 POST /dataset/request/submit @controllers.JobController.dataRequest
 GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)

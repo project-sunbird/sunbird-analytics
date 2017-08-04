@@ -20,6 +20,10 @@ case class RequestBody(id: String, ver: String, ts: String, request: Request, pa
 case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None);
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
+case class CreationMetricsBody(id: String, ver: String, ts: String, request: CreationMetricsRequest, param: Option[Params]) 
+case class CreationMetricsRequest(filters: Option[AnyRef], aggregates: Option[AnyRef], rawQuery: AnyRef)
+case class ESRequest(query: AnyRef, aggs: AnyRef, size: Int = 0)
+
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
 case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Integer, m_correct_res_count: Integer, m_inc_res_count: Integer, m_top5_incorrect_res: Array[String], m_avg_ts: Double)
 case class Comment(comment: String, date: Int);
