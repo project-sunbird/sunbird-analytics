@@ -170,9 +170,9 @@ object JobFactory {
                 APIUsageSummarizer
             case "template-snapshot-updater" =>
                 TemplateSnapshotMetricsUpdater
-            case "me-usage" =>
+            case "usage-summary" =>
                 MEUsageSummarizer
-            case "me-usage-updater" =>
+            case "usage-updater" =>
                 MEUsageUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
