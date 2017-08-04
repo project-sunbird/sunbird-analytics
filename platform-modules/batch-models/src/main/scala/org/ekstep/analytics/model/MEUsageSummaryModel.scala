@@ -123,7 +123,7 @@ object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents
     override def postProcess(data: RDD[MEUsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { cuMetrics =>
-            val mid = CommonUtil.getMessageId("ME_USAGE_SUMMARY", cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts, Option(cuMetrics.ck.app_id), Option(cuMetrics.ck.channel));
+            val mid = CommonUtil.getMessageId("ME_USAGE_SUMMARY", cuMetrics.ck.user_id + cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts, Option(cuMetrics.ck.app_id), Option(cuMetrics.ck.channel));
             val measures = Map(
                 "total_ts" -> cuMetrics.total_ts,
                 "total_sessions" -> cuMetrics.total_sessions,
@@ -135,7 +135,7 @@ object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents
 
             MeasuredEvent("ME_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, meEventVersion, mid, "", cuMetrics.ck.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ME.UsageSummary").asInstanceOf[String])), None, config.getOrElse("granularity", "DAY").asInstanceOf[String], cuMetrics.dt_range),
-                Dimensions(Option(cuMetrics.uid), None, cuMetrics.gdata, None, None, None, Option(cuMetrics.pdata), None, None, None, Option(cuMetrics.ck.tag), Option(cuMetrics.ck.period), Option(cuMetrics.ck.content_id)),
+                Dimensions(Option(cuMetrics.uid), None, None, None, None, None, Option(cuMetrics.pdata), None, None, None, Option(cuMetrics.ck.tag), Option(cuMetrics.ck.period), Option(cuMetrics.ck.content_id)),
                 MEEdata(measures));
         }
     }
