@@ -25,6 +25,8 @@ import org.ekstep.analytics.api.service.MetricsAPIService.ContentList
 import org.ekstep.analytics.api.service.MetricsAPIService.ContentList
 import org.ekstep.analytics.api.service.MetricsAPIService.GenieLaunch
 import org.ekstep.analytics.api.MetricsRequestBody
+import org.ekstep.analytics.api.CreationMetricsBody
+import org.ekstep.analytics.api.service.MetricsAPIService.CreationMetricsES
 import akka.actor.Props
 import akka.routing.FromConfig
 
@@ -50,7 +52,7 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
     def creationMetrics() = Action.async { implicit request =>
 
         val bodyStr: String = Json.stringify(request.body.asJson.get);
-        val body = JSONUtils.deserialize[CreationMetricsBody](body);
+        val body = JSONUtils.deserialize[CreationMetricsBody](bodyStr);
         val result = ask(metricsAPIActor, CreationMetricsES(body, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
