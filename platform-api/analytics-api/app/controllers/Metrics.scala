@@ -53,6 +53,7 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
 
         val bodyStr: String = Json.stringify(request.body.asJson.get);
         val body = JSONUtils.deserialize[CreationMetricsBody](bodyStr);
+        println("bodyStr: "+ bodyStr)
         val result = ask(metricsAPIActor, CreationMetricsES(body, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
