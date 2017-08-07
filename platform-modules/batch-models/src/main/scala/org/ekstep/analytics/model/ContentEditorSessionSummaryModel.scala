@@ -27,6 +27,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.commons.validator.UrlValidator
 import org.ekstep.analytics.util.CreationEventUtil
 import org.ekstep.analytics.creation.model.CreationPData
+import org.ekstep.analytics.framework.ETags
 
 /**
  * Case class to hold the screener summary fields
@@ -40,7 +41,7 @@ case class CEStageSummary(added_count: Int, deleted_count: Int, modified_count: 
  * Case class to hold the session summary input and output
  */
 case class CESessionSummaryInput(channel: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
-case class CESessionSummaryOutput(uid: String, sid: String, pdata: CreationPData, channel: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary) extends AlgoOutput
+case class CESessionSummaryOutput(uid: String, sid: String, pdata: CreationPData, channel: String, syncDate: Long ,contentId: String, client: Map[String, AnyRef], dateRange: DtRange, ss: CESessionSummary, etags: Option[ETags]) extends AlgoOutput
 
 /**
  * Case class to hold the screener summary
@@ -151,7 +152,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
 
             CESessionSummaryOutput(startEvent.uid, startEvent.context.get.sid, pdata, channelId, CreationEventUtil.getEventSyncTS(endEvent), startEvent.context.get.content_id, startEvent.edata.eks.client, DtRange(startTimestamp,
                 endTimestamp), new CESessionSummary(timeSpent, startTimestamp, endTimestamp, timeDiff, loadTime, noOfInteractEvents,
-                interactEventsPerMin, pluginSummary, saveSummary, stageSummary, eventSummary, apiCallCount, sideBarEventCount, menuEventCount));
+                interactEventsPerMin, pluginSummary, saveSummary, stageSummary, eventSummary, apiCallCount, sideBarEventCount, menuEventCount), Option(CreationEventUtil.getETags(startEvent)));
         }.filter(f => (f.ss.time_spent >= 1)).cache()
     }
 
@@ -178,7 +179,7 @@ object ContentEditorSessionSummaryModel extends SessionBatchModel[CreationEvent,
             MeasuredEvent("ME_CE_SESSION_SUMMARY", System.currentTimeMillis(), sessionMap.syncDate, meEventVersion, mid, sessionMap.uid, sessionMap.channel, Option(sessionMap.contentId), None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "ContentEditorSessionSummary").asInstanceOf[String])), None, "SESSION", sessionMap.dateRange),
                 Dimensions(None, None, None, None, None, None, Option(PData(sessionMap.pdata.id, sessionMap.pdata.ver)), None, None, None, None, None, None, None, None, Option(sessionMap.sid), None, None, None, None, None, None, None, None, Option(sessionMap.client), None),
-                MEEdata(measures));
+                MEEdata(measures), sessionMap.etags);
         }
     }
 
