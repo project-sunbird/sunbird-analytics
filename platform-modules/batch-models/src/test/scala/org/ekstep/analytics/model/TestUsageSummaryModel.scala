@@ -12,7 +12,7 @@ import org.ekstep.analytics.util.DerivedEvent
 
 class TestUsageSummaryModel extends SparkSpec(null) {
 
-    "MEUsageSummaryModel" should "generate ME summary events for (all, per user, per content, per tag, per user & per content, per tag & per user, per tag & per content) dimensions" in {
+    "UsageSummaryModel" should "generate ME summary events for (all, per user, per content, per tag, per user & per content, per tag & per user, per tag & per content) dimensions" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE content_db.registered_tags");
@@ -25,10 +25,6 @@ class TestUsageSummaryModel extends SparkSpec(null) {
         val rdd = loadFile[DerivedEvent]("src/test/resources/me-usage-summary-model/me_summary_test_data.log");
         val out = UsageSummaryModel.execute(rdd, None);
         val events = out.collect()
-        
-        val fileData = out.map(f => JSONUtils.serialize(f))
-        val path = "src/test/resources/me-usage-updater/test.log"
-        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> path)), fileData);
         
         // All Summary
         val allSum = events.filter { x => "all".equals(x.dimensions.tag.getOrElse("")) && "all".equals(x.dimensions.content_id.getOrElse("")) && "all".equals(x.dimensions.uid.get)}
