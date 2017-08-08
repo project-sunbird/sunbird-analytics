@@ -7,15 +7,15 @@ import org.apache.spark.SparkContext
 import optional.Application
 import org.ekstep.analytics.framework.JobDriver
 import org.ekstep.analytics.framework.IJob
-import org.ekstep.analytics.updater.UpdateMEUsageDB
+import org.ekstep.analytics.updater.UpdateUsageDB
 
-object MEUsageUpdater extends Application with IJob {
+object UsageUpdater extends Application with IJob {
     
     implicit val className = "org.ekstep.analytics.job.updater.MEUsageUpdater"
   
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run("batch", config, UpdateMEUsageDB);
+        JobDriver.run("batch", config, UpdateUsageDB);
      }
   
 }

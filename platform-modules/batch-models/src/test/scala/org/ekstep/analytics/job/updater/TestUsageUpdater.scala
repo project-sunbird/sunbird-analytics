@@ -7,10 +7,10 @@ import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.Dispatcher
 
-class TestMEUsageUpdater extends SparkSpec(null) {
+class TestUsageUpdater extends SparkSpec(null) {
 
-    "MEUsageUpdater" should "execute the job and shouldn't throw any exception" in {
+    "UsageUpdater" should "execute the job and shouldn't throw any exception" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/me-usage-updater/us_1.log"))))), None, None, "org.ekstep.analytics.updater.MEUsageUpdater", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestMEUsageUpdater"), Option(false))
-        MEUsageUpdater.main(JSONUtils.serialize(config))(Option(sc));
+        UsageUpdater.main(JSONUtils.serialize(config))(Option(sc));
     }
 }
