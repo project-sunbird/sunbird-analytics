@@ -21,7 +21,7 @@ case class MetricsRequest(period: String, filter: Option[Filter], channel: Optio
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
 case class AggregateMetricsRequestBody(id: String, ver: String, ts: String, request: AggregateMetricsRequest, param: Option[Params]) 
-case class AggregateMetricsRequest(filters: Option[AnyRef], aggregates: Option[AnyRef], rawQuery: Option[AnyRef])
+case class AggregateMetricsRequest(filters: Option[AnyRef], aggregates: Option[AnyRef], rawQuery: Option[Map[String, AnyRef]])
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
 case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Integer, m_correct_res_count: Integer, m_inc_res_count: Integer, m_top5_incorrect_res: Array[String], m_avg_ts: Double)

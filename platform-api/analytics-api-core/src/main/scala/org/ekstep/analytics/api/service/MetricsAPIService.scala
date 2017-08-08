@@ -63,19 +63,24 @@ object MetricsAPIService {
         val url = config.getString("metrics.creation.es.url")
         val indexes = config.getString("metrics.creation.es.indexes")
         val apiURL = url + "/" + indexes + "/" + "_search"
-        val result = RestUtil.post[Map[String, AnyRef]](apiURL, JSONUtils.serialize(body.request.rawQuery))
-        try {
-            JSONUtils.serialize(CommonUtil.OK(APIIds.METRICS_AGGREGRATIONS, result));
-        } catch {
-            case ex: Exception =>
-                CommonUtil.errorResponseSerialized(APIIds.METRICS_AGGREGRATIONS, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+        if(body.request.rawQuery.isDefined) {
+            val query = body.request.rawQuery.get ++ Map("size" -> 0)
+            val result = RestUtil.post[Map[String, AnyRef]](apiURL, JSONUtils.serialize(query))
+            try {
+                JSONUtils.serialize(CommonUtil.OK(APIIds.METRICS_AGGREGRATIONS, result));
+            } catch {
+                case ex: Exception =>
+                    CommonUtil.errorResponseSerialized(APIIds.METRICS_AGGREGRATIONS, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+            }
+        } else {
+            CommonUtil.errorResponseSerialized(APIIds.METRICS_AGGREGRATIONS, "Raw query cannot be empty", ResponseCode.SERVER_ERROR.toString())
         }
     }
 
     def main(args: Array[String]): Unit = {
 
         val rawQuery = """{"query": {"filtered": {"query": {"bool": {"must": [{"query": {"range": {"lastUpdatedOn": {"gt": "2017-07-24T00:00:00.000+0530", "lte": "2017-08-01T00:00:00.000+0530"} } } }, {"match": {"createdFor.raw": "Sunbird"} } ] } } } }, "size": 0, "aggs": {"created_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} }, "status": {"terms": {"field": "status.raw", "include": ["draft", "live", "review"] }, "aggs": {"updated_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} } } }, "authors.count": {"cardinality": {"field": "createdBy.raw", "precision_threshold": 100 } }, "content_count": {"terms": {"field": "objectType.raw", "include": "content"} } } }""";
-        val request = AggregateMetricsRequest(None, None, Option(JSONUtils.deserialize[Map[String, AnyRef]](rawQuery)));
+        val request = AggregateMetricsRequest(None, None, None);
         val body = AggregateMetricsRequestBody("org.ekstep.analytics.aggregate-metrics", "1.0", "", request, None)
         implicit val config = ConfigFactory.parseMap(Map("metrics.creation.es.url" -> "http://localhost:9200", "metrics.creation.es.indexes" -> "compositesearch").asJava);
         println(aggregateMetrics("creation", "content-snapshot", body));
