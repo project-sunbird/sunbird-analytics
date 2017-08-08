@@ -18,9 +18,11 @@ import com.typesafe.config.Config
 import akka.actor.Actor
 import akka.actor.Props
 import akka.actor.actorRef2Scala
-import org.ekstep.analytics.api.CreationMetricsBody
-import org.ekstep.analytics.api.ESRequest
+import org.ekstep.analytics.api.AggregateMetricsRequestBody
 import org.ekstep.analytics.framework.util.RestUtil
+import org.ekstep.analytics.api.AggregateMetricsRequest
+import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 /**
  * @author mahesh
@@ -35,18 +37,48 @@ object MetricsAPIService {
     case class ContentList(body: MetricsRequestBody, sc: SparkContext, config: Config);
     case class GenieLaunch(body: MetricsRequestBody, sc: SparkContext, config: Config);
     case class ItemUsage(body: MetricsRequestBody, sc: SparkContext, config: Config);
-    case class CreationMetricsES(body: CreationMetricsBody, config: Config);
+    case class AggregateMetrics(dataset: String, summary: String, body: AggregateMetricsRequestBody, config: Config);
 
-    def creationMetricsES(body: CreationMetricsBody)(implicit config: Config): String = {
-         val request = ESRequest(body.request.rawQuery.getOrElse(Map()), body.request.aggregates.getOrElse(Map()))
-         val url = config.getString("metrics.creation.es.url")
-         val indexes = config.getString("metrics.creation.es.indexes")
-         val apiURL = url + "/" + indexes + "/" + "_search"
-         println("apiURL: "+ apiURL)
-         val abc = RestUtil.post[AnyRef](apiURL, JSONUtils.serialize(request))
-         val response = JSONUtils.serialize(abc)
-         println("response: "+ response)
-         response
+    def aggregateMetrics(dataset: String, summary: String, body: AggregateMetricsRequestBody)(implicit config: Config): String = {
+
+        dataset match {
+            case "creation" =>
+                aggCreationMetrics(summary, body);
+            case _ =>
+                CommonUtil.errorResponseSerialized(APIIds.METRICS_AGGREGRATIONS, "Aggregations are not supported for dataset - " + summary, ResponseCode.SERVER_ERROR.toString())
+        }
+    }
+
+    private def aggCreationMetrics(summary: String, body: AggregateMetricsRequestBody)(implicit config: Config): String = {
+        
+        summary match {
+            case "content-snapshot" =>
+                contentSnapshotAggregateMetrics(body);
+            case _ =>
+                CommonUtil.errorResponseSerialized(APIIds.METRICS_AGGREGRATIONS, "Aggregations are not supported for summary - " + summary, ResponseCode.SERVER_ERROR.toString())
+        }
+    }
+
+    private def contentSnapshotAggregateMetrics(body: AggregateMetricsRequestBody)(implicit config: Config): String = {
+        val url = config.getString("metrics.creation.es.url")
+        val indexes = config.getString("metrics.creation.es.indexes")
+        val apiURL = url + "/" + indexes + "/" + "_search"
+        val result = RestUtil.post[Map[String, AnyRef]](apiURL, JSONUtils.serialize(body.request.rawQuery))
+        try {
+            JSONUtils.serialize(CommonUtil.OK(APIIds.METRICS_AGGREGRATIONS, result));
+        } catch {
+            case ex: Exception =>
+                CommonUtil.errorResponseSerialized(APIIds.METRICS_AGGREGRATIONS, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+        }
+    }
+
+    def main(args: Array[String]): Unit = {
+
+        val rawQuery = """{"query": {"filtered": {"query": {"bool": {"must": [{"query": {"range": {"lastUpdatedOn": {"gt": "2017-07-24T00:00:00.000+0530", "lte": "2017-08-01T00:00:00.000+0530"} } } }, {"match": {"createdFor.raw": "Sunbird"} } ] } } } }, "size": 0, "aggs": {"created_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} }, "status": {"terms": {"field": "status.raw", "include": ["draft", "live", "review"] }, "aggs": {"updated_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} } } }, "authors.count": {"cardinality": {"field": "createdBy.raw", "precision_threshold": 100 } }, "content_count": {"terms": {"field": "objectType.raw", "include": "content"} } } }""";
+        val request = AggregateMetricsRequest(None, None, Option(JSONUtils.deserialize[Map[String, AnyRef]](rawQuery)));
+        val body = AggregateMetricsRequestBody("org.ekstep.analytics.aggregate-metrics", "1.0", "", request, None)
+        implicit val config = ConfigFactory.parseMap(Map("metrics.creation.es.url" -> "http://localhost:9200", "metrics.creation.es.indexes" -> "compositesearch").asJava);
+        println(aggregateMetrics("creation", "content-snapshot", body));
     }
 
     def contentUsage(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
@@ -159,10 +191,11 @@ class MetricsAPIService extends Actor {
     import MetricsAPIService._;
 
     def receive = {
-        case ContentUsage(body: MetricsRequestBody, sc: SparkContext, config: Config)                             => sender() ! contentUsage(body)(sc, config);
-        case ContentPopularity(body: MetricsRequestBody, fields: Array[String], sc: SparkContext, config: Config) => sender() ! contentPopularity(body, fields)(sc, config);
-        case ContentList(body: MetricsRequestBody, sc: SparkContext, config: Config)                              => sender() ! contentList(body)(sc, config);
-        case GenieLaunch(body: MetricsRequestBody, sc: SparkContext, config: Config)                              => sender() ! genieLaunch(body)(sc, config);
-        case ItemUsage(body: MetricsRequestBody, sc: SparkContext, config: Config)                                => sender() ! itemUsage(body)(sc, config);
+        case ContentUsage(body: MetricsRequestBody, sc: SparkContext, config: Config)                              => sender() ! contentUsage(body)(sc, config);
+        case ContentPopularity(body: MetricsRequestBody, fields: Array[String], sc: SparkContext, config: Config)  => sender() ! contentPopularity(body, fields)(sc, config);
+        case ContentList(body: MetricsRequestBody, sc: SparkContext, config: Config)                               => sender() ! contentList(body)(sc, config);
+        case GenieLaunch(body: MetricsRequestBody, sc: SparkContext, config: Config)                               => sender() ! genieLaunch(body)(sc, config);
+        case ItemUsage(body: MetricsRequestBody, sc: SparkContext, config: Config)                                 => sender() ! itemUsage(body)(sc, config);
+        case AggregateMetrics(dataset: String, summary: String, body: AggregateMetricsRequestBody, config: Config) => sender() ! aggregateMetrics(dataset, summary, body)(config);
     }
 }

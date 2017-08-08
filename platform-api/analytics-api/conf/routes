@@ -16,9 +16,9 @@ POST /metrics/list/content @controllers.Metrics.contentList
 POST /metrics/tag/register/:tagId @controllers.Application.registerTag(tagId: String)
 DELETE /metrics/tag/delete/:tagId @controllers.Application.deleteTag(tagId: String)
 
-POST /metrics/:datasetId/:summary @controllers.Metrics.usageMetrics(datasetId: String, summary: String)
+POST /metrics/read/:datasetId/:summary @controllers.Metrics.usageMetrics(datasetId: String, summary: String)
 
-POST /metrics/creation/content-snapshot/aggregate @controllers.Metrics.creationMetrics
+POST /metrics/aggregate/:datasetId/:summary @controllers.Metrics.aggregateMetrics(datasetId: String, summary: String)
 
 # Data Exhaust
 POST /dataset/request/submit @controllers.JobController.dataRequest
