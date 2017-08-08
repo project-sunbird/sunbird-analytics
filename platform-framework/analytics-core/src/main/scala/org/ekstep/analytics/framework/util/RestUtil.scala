@@ -9,7 +9,6 @@ import org.ekstep.analytics.framework.Response
 import com.fasterxml.jackson.core.JsonParseException
 import org.apache.http.client.methods.HttpPatch
 import org.ekstep.analytics.framework.Level._
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase
 import org.apache.http.client.methods.HttpRequestBase
 
 /**

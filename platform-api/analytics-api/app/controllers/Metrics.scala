@@ -25,8 +25,7 @@ import org.ekstep.analytics.api.service.MetricsAPIService.ContentList
 import org.ekstep.analytics.api.service.MetricsAPIService.ContentList
 import org.ekstep.analytics.api.service.MetricsAPIService.GenieLaunch
 import org.ekstep.analytics.api.MetricsRequestBody
-import org.ekstep.analytics.api.AggregateMetricsRequestBody
-import org.ekstep.analytics.api.service.MetricsAPIService.AggregateMetrics
+import org.ekstep.analytics.api.service.MetricsAPIService.Metrics
 import akka.actor.Props
 import akka.routing.FromConfig
 
@@ -39,22 +38,12 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
     implicit val className = "controllers.Metrics";
     val metricsAPIActor = system.actorOf(Props[MetricsAPIService].withRouter(FromConfig()), name = "metricsApiActor");
 
-    // dummy API
-    def usageMetrics(datasetId: String, summary: String) = Action.async { implicit request =>
-        // TODO: Add code for all metrics of both consumption & creation  
-        val response = """{"id":"ekstep.analytics.metrics.content-usage","ver":"1.0","ts":"2017-07-27T09:35:15.027+00:00","params":{"resmsgid":"56de001d-b8e2-4a9e-b631-9a1b59b12e71","status":"successful"},"responseCode":"OK","result":{"metrics":[{"d_period":20170726,"label":"Jul 26 Wed","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170725,"label":"Jul 25 Tue","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170724,"label":"Jul 24 Mon","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170723,"label":"Jul 23 Sun","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170722,"label":"Jul 22 Sat","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170721,"label":"Jul 21 Fri","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0},{"d_period":20170720,"label":"Jul 20 Thu","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0}],"summary":{"m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices":0,"m_avg_sess_device":0}}}"""
-        val result: Future[String] = Future { response }
-        result.map { x =>
-            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
-        }
-    }
-
-    def aggregateMetrics(datasetId: String, summary: String) = Action.async { implicit request =>
+    def get(datasetId: String, summary: String) = Action.async { implicit request =>
 
         val bodyStr: String = Json.stringify(request.body.asJson.get);
-        val body = JSONUtils.deserialize[AggregateMetricsRequestBody](bodyStr);
+        val body = JSONUtils.deserialize[MetricsRequestBody](bodyStr);
         println("bodyStr: "+ bodyStr)
-        val result = ask(metricsAPIActor, AggregateMetrics(datasetId, summary, body, config)).mapTo[String];
+        val result = ask(metricsAPIActor, Metrics(datasetId, summary, body, Context.sc, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }
