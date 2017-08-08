@@ -36,16 +36,16 @@ import com.datastax.spark.connector.toSparkContextFunctions
 
 
 case class MEKey(period: Int, app_id: String, channel: String, user_id: String, content_id: String, tag: String);
-case class MEUsageSummary(ck: MEKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, user_count: Long, device_ids: Array[String], uid: String, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, pdata: PData) extends AlgoOutput;
-case class InputEventsMESummary(ck: MEKey, events: Buffer[MEUsageSummary]) extends Input with AlgoInput
+case class MEUsageSummary(ck: MEKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, total_users_count: Long, total_content_count: Long, total_devices_count : Long, user_ids: Array[String], content_ids: Array[String], device_ids: Array[String], uid: String, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, pdata: PData) extends AlgoOutput;
+case class PreMEUsageSummary(ck: MEKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, user_ids: Array[String], content_ids: Array[String], device_ids: Array[String], uid: String, dt_range: DtRange, syncts: Long, gdata: Option[GData] = None, pdata: PData) extends AlgoOutput;
+case class InputEventsMESummary(ck: MEKey, events: Buffer[PreMEUsageSummary]) extends Input with AlgoInput
 
-object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsMESummary, MEUsageSummary, MeasuredEvent] with Serializable {
+object UsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEventsMESummary, MEUsageSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.MEUsageSummaryModel"
     override def name: String = "MEUsageSummaryModel"
 
-    private def _computeMetrics(events: Buffer[MEUsageSummary], ck: MEKey): MEUsageSummary = {
-        
+    private def _computeMetrics(events: Buffer[PreMEUsageSummary], ck: MEKey): MEUsageSummary = {
         val firstEvent = events.sortBy { x => x.dt_range.from }.head;
         val lastEvent = events.sortBy { x => x.dt_range.to }.last;
         val ck = firstEvent.ck;
@@ -58,12 +58,13 @@ object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
         val total_interactions = events.map { x => x.total_interactions }.sum;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        val user_count = events.map { f => f.uid }.distinct.size
+        val user_ids = events.map { x => x.user_ids }.reduce((a, b) => a ++ b).distinct;
+        val content_ids = events.map { x => x.content_ids }.reduce((a, b) => a ++ b).distinct;
         val device_ids = events.map { x => x.device_ids }.reduce((a, b) => a ++ b).distinct;
-        MEUsageSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, user_count, device_ids, ck.user_id, date_range, lastEvent.syncts, gdata, firstEvent.pdata);
+        MEUsageSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, user_ids.size, content_ids.size, device_ids.size, user_ids, content_ids, device_ids, ck.user_id, date_range, lastEvent.syncts, gdata, firstEvent.pdata);
     }
 
-    private def getMEUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, userId: String, contentId: String, tagId: String): MEUsageSummary = {
+    private def getMEUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, userId: String, contentId: String, tagId: String): PreMEUsageSummary = {
 
         val ck = MEKey(period, pdata.id, channel, userId, contentId, tagId)
         val gdata = event.dimensions.gdata
@@ -71,9 +72,11 @@ object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents
         val total_sessions = 1
         val avg_ts_session = total_ts
         val total_interactions = event.edata.eks.noOfInteractEvents
-        val user_count = 1
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        MEUsageSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, user_count, Array(event.dimensions.did), event.uid, event.context.date_range, event.syncts, Option(gdata), pdata);
+        val content_ids = if("all".equals(contentId)) Array(event.dimensions.gdata.id) else Array[String]() 
+        val user_ids = if("all".equals(userId)) Array(event.uid) else Array[String]()
+
+        PreMEUsageSummary(ck, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, user_ids, content_ids, Array(event.dimensions.did), event.uid, event.context.date_range, event.syncts, Option(gdata), pdata);
     }
 
     private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
@@ -90,7 +93,7 @@ object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents
 
         val normalizeEvents = sessionEvents.map { event =>
 
-            var list: ListBuffer[MEUsageSummary] = ListBuffer[MEUsageSummary]();
+            var list: ListBuffer[PreMEUsageSummary] = ListBuffer[PreMEUsageSummary]();
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
             val pdata = CommonUtil.getAppDetails(event)
@@ -120,17 +123,22 @@ object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents
         }
     }
 
-    override def postProcess(data: RDD[MEUsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[MEUsageSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {        
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { cuMetrics =>
             val mid = CommonUtil.getMessageId("ME_USAGE_SUMMARY", cuMetrics.ck.user_id + cuMetrics.ck.content_id + cuMetrics.ck.tag + cuMetrics.ck.period, "DAY", cuMetrics.syncts, Option(cuMetrics.ck.app_id), Option(cuMetrics.ck.channel));
+            
             val measures = Map(
                 "total_ts" -> cuMetrics.total_ts,
                 "total_sessions" -> cuMetrics.total_sessions,
                 "avg_ts_session" -> cuMetrics.avg_ts_session,
                 "total_interactions" -> cuMetrics.total_interactions,
                 "avg_interactions_min" -> cuMetrics.avg_interactions_min,
-                "user_count" -> cuMetrics.user_count,
+                "total_users_count" -> cuMetrics.total_users_count,
+                "total_content_count" -> cuMetrics.total_content_count,
+                "total_devices_count" -> cuMetrics.total_devices_count,
+                "user_ids" -> cuMetrics.user_ids,
+                "content_ids" -> cuMetrics.content_ids,
                 "device_ids" -> cuMetrics.device_ids)
 
             MeasuredEvent("ME_USAGE_SUMMARY", System.currentTimeMillis(), cuMetrics.syncts, meEventVersion, mid, "", cuMetrics.ck.channel, None, None,
@@ -139,5 +147,7 @@ object MEUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputEvents
                 MEEdata(measures));
         }
     }
+    
+    
 
 }

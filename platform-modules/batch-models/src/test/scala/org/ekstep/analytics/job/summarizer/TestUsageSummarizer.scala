@@ -11,7 +11,7 @@ class TestMEUsageSummarizer extends SparkSpec(null) {
     
     "MEUsageSummarizer" should "execute the job and shouldn't throw any exception" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/me-usage-summary-model/me_summary_test_data.log"))))), None, None, "org.ekstep.analytics.model.MEUsageSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestMEUsageSummarizer"), Option(false))
-        MEUsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
+        UsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
   
 }

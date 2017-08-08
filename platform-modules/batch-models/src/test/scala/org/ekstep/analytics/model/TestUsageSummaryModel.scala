@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.RegisteredTag
 import org.ekstep.analytics.util.DerivedEvent
 
-class TestMEUsageSummaryModel extends SparkSpec(null) {
+class TestUsageSummaryModel extends SparkSpec(null) {
 
     "MEUsageSummaryModel" should "generate ME summary events for (all, per user, per content, per tag, per user & per content, per tag & per user, per tag & per content) dimensions" in {
 
@@ -23,22 +23,29 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/me-usage-summary-model/me_summary_test_data.log");
-        val out = MEUsageSummaryModel.execute(rdd, None);
+        val out = UsageSummaryModel.execute(rdd, None);
         val events = out.collect()
-
+        
+        val fileData = out.map(f => JSONUtils.serialize(f))
+        val path = "src/test/resources/me-usage-updater/test.log"
+        OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> path)), fileData);
+        
         // All Summary
-        val allSum = events.filter { x => "all".equals(x.dimensions.tag.getOrElse("")) && "all".equals(x.dimensions.content_id.getOrElse("")) }
-        allSum.size should be(249)
-
-        val event_20160909 = allSum.filter { x => 20160909 == x.dimensions.period.get }.apply(0)
+        val allSum = events.filter { x => "all".equals(x.dimensions.tag.getOrElse("")) && "all".equals(x.dimensions.content_id.getOrElse("")) && "all".equals(x.dimensions.uid.get)}
+        allSum.size should be(28)
+        
+        val event_20160909 = allSum.filter { x => 20160920 == x.dimensions.period.get }.apply(0)
+        
         event_20160909.eid should be("ME_USAGE_SUMMARY")
         val event_20160909EksMap = event_20160909.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        event_20160909EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(273.25)
-        event_20160909EksMap.get("total_sessions").get.asInstanceOf[Long] should be(8L)
-        event_20160909EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(13.26)
-        event_20160909EksMap.get("total_interactions").get.asInstanceOf[Long] should be(483L)
-        event_20160909EksMap.get("total_ts").get.asInstanceOf[Double] should be(2186.01)
-        event_20160909EksMap.get("user_count").get.asInstanceOf[Long] should be(8L)
+        event_20160909EksMap.get("avg_ts_session").get.asInstanceOf[Double] should be(147.65)
+        event_20160909EksMap.get("total_sessions").get.asInstanceOf[Long] should be(496L)
+        event_20160909EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(16.87)
+        event_20160909EksMap.get("total_interactions").get.asInstanceOf[Long] should be(20588L)
+        event_20160909EksMap.get("total_ts").get.asInstanceOf[Double] should be(73234.46)
+        event_20160909EksMap.get("total_users_count").get.asInstanceOf[Long] should be(47L)
+        event_20160909EksMap.get("total_content_count").get.asInstanceOf[Long] should be(100L)
+        event_20160909EksMap.get("total_devices_count").get.asInstanceOf[Long] should be(42L)
         
         // user_id Summary
         val userSum = events.filter { x => "all".equals(x.dimensions.tag.get) && "all".equals(x.dimensions.content_id.get) && !"all".equals(x.dimensions.uid.get) }
@@ -56,7 +63,9 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         userIdSum_20160901EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(81.24)
         userIdSum_20160901EksMap.get("total_interactions").get.asInstanceOf[Long] should be(265)
         userIdSum_20160901EksMap.get("total_ts").get.asInstanceOf[Double] should be(195.72)
-        userIdSum_20160901EksMap.get("user_count").get.asInstanceOf[Long] should be(1L)
+        userIdSum_20160901EksMap.get("total_users_count").get.asInstanceOf[Long] should be(0)
+        userIdSum_20160901EksMap.get("total_content_count").get.asInstanceOf[Long] should be(2L)
+        userIdSum_20160901EksMap.get("total_devices_count").get.asInstanceOf[Long] should be(1L)
         
         // Content Summary
         val contentSum = events.filter { x => "all".equals(x.dimensions.tag.get) && !"all".equals(x.dimensions.content_id.get) && "all".equals(x.dimensions.uid.get) }
@@ -65,7 +74,7 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         val do_30031115Sum = contentSum.filter { x => "do_30031115".equals(x.dimensions.content_id.get) }
         do_30031115Sum.size should be(13)
         val do_30031115Sum_20160901 = do_30031115Sum.filter { x => 20160901 == x.dimensions.period.get }.apply(0)
-
+               
         do_30031115Sum_20160901.eid should be("ME_USAGE_SUMMARY")
 
         val do_30031115Sum_20160901EksMap = do_30031115Sum_20160901.edata.eks.asInstanceOf[Map[String, AnyRef]]
@@ -75,7 +84,9 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         do_30031115Sum_20160901EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(81.08)
         do_30031115Sum_20160901EksMap.get("total_interactions").get.asInstanceOf[Long] should be(2L)
         do_30031115Sum_20160901EksMap.get("total_ts").get.asInstanceOf[Double] should be(1.48)
-        do_30031115Sum_20160901EksMap.get("user_count").get.asInstanceOf[Long] should be(1L)
+        do_30031115Sum_20160901EksMap.get("total_users_count").get.asInstanceOf[Long] should be(1L)
+        do_30031115Sum_20160901EksMap.get("total_devices_count").get.asInstanceOf[Long] should be(1L)
+        do_30031115Sum_20160901EksMap.get("total_content_count").get.asInstanceOf[Long] should be(0L)
 
         // Tag Summary
         val tagSum = events.filter { x => !"all".equals(x.dimensions.tag.get) && "all".equals(x.dimensions.content_id.get) && "all".equals(x.dimensions.uid.get) }
@@ -94,7 +105,10 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         tag1Sum_20160902EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(3.3)
         tag1Sum_20160902EksMap.get("total_interactions").get.asInstanceOf[Long] should be(6L)
         tag1Sum_20160902EksMap.get("total_ts").get.asInstanceOf[Double] should be(109)
-        tag1Sum_20160902EksMap.get("user_count").get.asInstanceOf[Long] should be(1L)
+        tag1Sum_20160902EksMap.get("total_users_count").get.asInstanceOf[Long] should be(1L)
+        tag1Sum_20160902EksMap.get("total_devices_count").get.asInstanceOf[Long] should be(1L)
+        tag1Sum_20160902EksMap.get("total_content_count").get.asInstanceOf[Long] should be(1L)
+        
 
         val tagOther = events.filter { x => "becb887fe82f24c644482eb30041da6d88bd8150".equals(x.dimensions.tag.get) || "fd0a685649d43e543d9ccd22b3b341b42fb1f5c5".equals(x.dimensions.tag.get) }
         tagOther.size should be(0)
@@ -120,7 +134,9 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         content1UserSum_do_30031115EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(18.89)
         content1UserSum_do_30031115EksMap.get("total_interactions").get.asInstanceOf[Long] should be(42)
         content1UserSum_do_30031115EksMap.get("total_ts").get.asInstanceOf[Double] should be(133.38)
-        content1UserSum_do_30031115EksMap.get("user_count").get.asInstanceOf[Long] should be(1)
+        content1UserSum_do_30031115EksMap.get("total_users_count").get.asInstanceOf[Long] should be(0)
+        content1UserSum_do_30031115EksMap.get("total_devices_count").get.asInstanceOf[Long] should be(1L)
+        content1UserSum_do_30031115EksMap.get("total_content_count").get.asInstanceOf[Long] should be(0L)
         
         // tag content Summary
         val tagContentSum = events.filter { x => !"all".equals(x.dimensions.tag.get) && !"all".equals(x.dimensions.content_id.get) && "all".equals(x.dimensions.uid.get) }
@@ -143,6 +159,8 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         tag1Sum_do_30031115EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(18.89)
         tag1Sum_do_30031115EksMap.get("total_interactions").get.asInstanceOf[Long] should be(42L)
         tag1Sum_do_30031115EksMap.get("total_ts").get.asInstanceOf[Double] should be(133.38)
+        tag1Sum_do_30031115EksMap.get("total_devices_count").get.asInstanceOf[Long] should be(1L)
+        tag1Sum_do_30031115EksMap.get("total_content_count").get.asInstanceOf[Long] should be(0L)
         
         // tag user_id Summary
         val tagUserSum = events.filter { x => !"all".equals(x.dimensions.tag.get) && !"all".equals(x.dimensions.uid.get) && "all".equals(x.dimensions.content_id.get) }
@@ -165,8 +183,9 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         tag1UserSum_do_30031115EksMap.get("avg_interactions_min").get.asInstanceOf[Double] should be(26.21)
         tag1UserSum_do_30031115EksMap.get("total_interactions").get.asInstanceOf[Long] should be(461)
         tag1UserSum_do_30031115EksMap.get("total_ts").get.asInstanceOf[Double] should be(1055.14)
-        tag1UserSum_do_30031115EksMap.get("user_count").get.asInstanceOf[Long] should be(1)
-        
+        tag1UserSum_do_30031115EksMap.get("total_users_count").get.asInstanceOf[Long] should be(0) 
+        tag1UserSum_do_30031115EksMap.get("total_devices_count").get.asInstanceOf[Long] should be(1L)
+        tag1UserSum_do_30031115EksMap.get("total_content_count").get.asInstanceOf[Long] should be(9L)
     }
 
     it should "test the summary for one week ss data as input" in {
@@ -180,7 +199,7 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/me-usage-summary-model/test_data_one_week.log");
-        val out = MEUsageSummaryModel.execute(rdd, None);
+        val out = UsageSummaryModel.execute(rdd, None);
         val events = out.collect()
 
         // All Summary
@@ -229,7 +248,7 @@ class TestMEUsageSummaryModel extends SparkSpec(null) {
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-summary-model/test_data_1month.log");
-        val out = MEUsageSummaryModel.execute(rdd, None);
+        val out = UsageSummaryModel.execute(rdd, None);
         val events = out.collect()
         val lastWeekEvents = events.filter { x => x.dimensions.period.get > 20160924 }
         lastWeekEvents.size should be(0)

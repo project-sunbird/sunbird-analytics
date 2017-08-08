@@ -300,7 +300,11 @@ CREATE TABLE IF NOT EXISTS content_db.usage_summary_fact (
     m_avg_ts_session double,
     m_total_interactions bigint,
     m_avg_interactions_min double,
-    m_user_count bigint,
+    m_total_users_count bigint,
+    m_total_content_count bigint,
+    m_total_devices_count bigint,
+    m_user_ids blob,
+    m_content_ids blob,
     m_device_ids blob,
     updated_date timestamp,
     PRIMARY KEY (d_period, d_user_id, d_content_id, d_tag, d_app_id, d_channel)
