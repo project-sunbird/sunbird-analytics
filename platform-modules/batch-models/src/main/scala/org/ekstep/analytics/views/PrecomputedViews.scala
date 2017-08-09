@@ -30,7 +30,7 @@ object PrecomputedViews extends IBatchModel[String,String] with Serializable {
         precomputeContentPopularityMetrics();
         precomputeGenieLaunchMetrics();
         precomputeItemUsageMetrics();
-        precomputeMEUsageMetrics()
+        precomputeUsageMetrics()
         events
     }
     
@@ -74,13 +74,13 @@ object PrecomputedViews extends IBatchModel[String,String] with Serializable {
         
     }
     
-    def precomputeMEUsageMetrics()(implicit sc: SparkContext) {
+    def precomputeUsageMetrics()(implicit sc: SparkContext) {
     	val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("pc_dispatch_params"));
         val groupFn = (x: UsageSummaryView) => { (x.d_tag + "-" + x.d_user_id + "-" + x.d_content_id + "-" + x.d_channel) };
-        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 7, "DAY", AppConf.getConfig("pc_files_prefix") + "ius", "7DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
-        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 5, "WEEK", AppConf.getConfig("pc_files_prefix") +"ius", "5WEEKS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
-        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 12, "MONTH", AppConf.getConfig("pc_files_prefix") +"ius", "12MONTHS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
-        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 1, "CUMULATIVE", AppConf.getConfig("pc_files_prefix") + "ius", "CUMULATIVE.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 7, "DAY", AppConf.getConfig("pc_files_prefix") + "us", "7DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 5, "WEEK", AppConf.getConfig("pc_files_prefix") +"us", "5WEEKS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 12, "MONTH", AppConf.getConfig("pc_files_prefix") +"us", "12MONTHS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 1, "CUMULATIVE", AppConf.getConfig("pc_files_prefix") + "us", "CUMULATIVE.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
         
     }
 
