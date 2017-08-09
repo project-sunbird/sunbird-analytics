@@ -38,11 +38,11 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      * Wrapper for the actual fetch implementation.
      * Here we are computing actual time taken to fetch data.
      */
-    def fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array(), channel: String)(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
+    def fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array(), channel: String, userId: String = "all")(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         preProcess();
         val tags = tag.split(",").distinct
         val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
-            _fetch(contentId, tags, period, fields, channel);
+            _fetch(contentId, tags, period, fields, channel, userId);
         });
         timeTaken._2;
     }
@@ -55,10 +55,10 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      * 4. Compute summary by taking period metrics as input.
      * 5. Return Map as a result.
      */
-    private def _fetch(contentId: String, tags: Array[String], period: String, fields: Array[String] = Array(), channel: String)(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
+    private def _fetch(contentId: String, tags: Array[String], period: String, fields: Array[String] = Array(), channel: String, userId: String = "all")(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         try {
             val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
-                val records = getData[T](contentId, tags, period.replace("LAST_", "").replace("_", ""), channel).cache();
+                val records = getData[T](contentId, tags, period.replace("LAST_", "").replace("_", ""), channel, userId).cache();
                 records;
             });
 
@@ -118,11 +118,13 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      * Generic method to fetch data from S3 for the metrics.
      * It is based on request (type, tags, content_id, period)
      */
-    private def getData[T](contentId: String, tags: Array[String], period: String, channel: String)(implicit mf: Manifest[T], sc: SparkContext, config: Config): RDD[T] = {
+    private def getData[T](contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all")(implicit mf: Manifest[T], sc: SparkContext, config: Config): RDD[T] = {
         val basePath = config.getString("metrics.search.params.path");
         val filePaths = tags.map { tag =>
             if ("gls".equals(metric)) {
                 s"$basePath$metric-$tag-$channel-$period.json";
+            } else if ("us".equals(metric)) {
+                s"$basePath$metric-$tag-$userId-$contentId-$channel-$period.json";
             } else {
                 s"$basePath$metric-$tag-$contentId-$channel-$period.json";
             }

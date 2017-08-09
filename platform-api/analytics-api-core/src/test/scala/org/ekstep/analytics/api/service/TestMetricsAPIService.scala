@@ -42,6 +42,11 @@ class TestMetricsAPIService extends SparkSpec {
         val result = MetricsAPIService.contentList(JSONUtils.deserialize[MetricsRequestBody](request));
         JSONUtils.deserialize[MetricsResponse](result);
     }
+    
+    private def getUsageMetrics(dataset: String, summary: String, request: String): MetricsResponse = {
+        val result = MetricsAPIService.metrics(dataset, summary, JSONUtils.deserialize[MetricsRequestBody](request));
+        JSONUtils.deserialize[MetricsResponse](result);
+    }
 
     private def checkCUMetricsEmpty(metric: Map[String, AnyRef]) {
         metric.get("m_total_ts") should be(Some(0.0));
@@ -361,6 +366,13 @@ class TestMetricsAPIService extends SparkSpec {
     it should "return last 12 months metrics when, when 12 months data present" in {
         val request = """{"id":"ekstep.analytics.content-list","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_12_MONTHS","filter":{"tag":"1375b1d70a66a0f2c22dd1096b98030cb7d9bacb"}}}""";
         val response = getContentUsageListMetrics(request);
+        response.result.metrics.length should be(12);
+        response.result.summary should not be empty;
+    }
+    
+    "UsageMetricsAPIService" should "check consumption metrics api" in {
+        val request = """{"id":"ekstep.analytics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_12_MONTHS","filter":{"tag":"c6ed6e6849303c77c0182a282ebf318aad28f8d1", "user_id": "c30db6bd-f403-4cc8-aa30-82ec150fe6ba", "content_id": "all"}}}""";
+        val response = getUsageMetrics("consumption", "content-usage", request);
         response.result.metrics.length should be(12);
         response.result.summary should not be empty;
     }
