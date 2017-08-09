@@ -67,7 +67,7 @@ object UpdateUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, MEU
     override def postProcess(data: RDD[MEUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MESummaryIndex] = {
         // Update the database
         data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT)
-        //saveToInfluxDB(data)
+        saveToInfluxDB(data)
         data.map { x => MESummaryIndex(x.d_period, x.d_user_id, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel) };
     }
 
@@ -143,7 +143,7 @@ object UpdateUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, MEU
     
     private def saveToInfluxDB(data: RDD[MEUsageSummaryFact])(implicit sc: SparkContext) {
         val metrics = data.filter { x => x.d_period != 0 } map { x =>
-            val fields = (CommonUtil.caseClassToMap(x) - ("d_period", "d_user_id", "d_content_id", "d_tag", "d_app_id", "d_channel", "updated_date")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val fields = (CommonUtil.caseClassToMapWithDateConversion(x) - ("d_period", "d_user_id", "d_content_id", "d_tag", "d_app_id", "d_channel", "updated_date", "m_content_ids", "m_user_ids", "m_device_ids")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
             InfluxRecord(Map("period" -> time._2, "user_id" -> x.d_user_id, "content_id" -> x.d_content_id, "d_tag" -> x.d_tag, "app_id" -> x.d_app_id, "channel" -> x.d_channel), fields, time._1);
         };
