@@ -42,7 +42,7 @@ class TestUpdateUsageDB extends SparkSpec(null) {
 
     "UpdateUsageDB" should "update the usage updater db and check the updated fields" in {
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/me-usage-updater/us_1.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/usage-updater/us_1.log");
         val rdd2 = UpdateUsageDB.execute(rdd, None);
 
         // cumulative (period = 0)  
