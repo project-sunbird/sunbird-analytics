@@ -1,14 +1,11 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.OutputDispatcher
-import org.ekstep.analytics.framework.Dispatcher
-import com.datastax.spark.connector._
-import org.ekstep.analytics.util.Constants
-import com.datastax.spark.connector.cql.CassandraConnector
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.RegisteredTag
-import org.ekstep.analytics.util.DerivedEvent
+import org.ekstep.analytics.util.Constants
+
+import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.spark.connector.toRDDFunctions
 
 class TestUsageSummaryModel extends SparkSpec(null) {
 
@@ -22,7 +19,7 @@ class TestUsageSummaryModel extends SparkSpec(null) {
         val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/me-usage-summary-model/me_summary_test_data.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/usage-summary-model/me_summary_test_data.log");
         val out = UsageSummaryModel.execute(rdd, None);
         val events = out.collect()
         
@@ -194,7 +191,7 @@ class TestUsageSummaryModel extends SparkSpec(null) {
         val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/me-usage-summary-model/test_data_one_week.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/usage-summary-model/test_data_one_week.log");
         val out = UsageSummaryModel.execute(rdd, None);
         val events = out.collect()
 
@@ -243,7 +240,7 @@ class TestUsageSummaryModel extends SparkSpec(null) {
         val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
         sc.makeRDD(List(tag1, tag2)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-summary-model/test_data_1month.log");
+        val rdd = loadFile[DerivedEvent]("src/test/resources/usage-summary-model/test_data_1month.log");
         val out = UsageSummaryModel.execute(rdd, None);
         val events = out.collect()
         val lastWeekEvents = events.filter { x => x.dimensions.period.get > 20160924 }
