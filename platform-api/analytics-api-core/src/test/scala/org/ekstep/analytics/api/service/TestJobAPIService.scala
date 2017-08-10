@@ -135,5 +135,16 @@ class TestJobAPIService extends SparkSpec {
         
         
     }
+    
+    "JobAPIService" should "return different request id for same data having different client keys" in {
+        val request1 = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}""";
+        val result1 = JobAPIService.dataRequest(request1);
+        val response1 = JSONUtils.deserialize[Response](result1)
+        val request2 = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-test"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}""";
+        val result2 = JobAPIService.dataRequest(request2);
+        val response2 = JSONUtils.deserialize[Response](result2)
+        response2.result.head.get("request_id").get should not be (response1.result.head.get("request_id").get)
+
+    }
 
 }
