@@ -376,5 +376,12 @@ class TestMetricsAPIService extends SparkSpec {
         response.result.metrics.length should be(12);
         response.result.summary should not be empty;
     }
+    
+    it should "check consumption metrics api for 14days" in {
+        val request = """{"id":"ekstep.analytics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_14_DAYS","filter":{"tag":"c6ed6e6849303c77c0182a282ebf318aad28f8d1", "user_id": "c30db6bd-f403-4cc8-aa30-82ec150fe6ba", "content_id": "all"}}}""";
+        val response = getUsageMetrics("consumption", "content-usage", request);
+        response.result.metrics.length should be(14);
+        response.result.summary should not be empty;
+    }
 
 }
