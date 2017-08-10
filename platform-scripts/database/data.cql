@@ -1,11 +1,11 @@
 CREATE KEYSPACE IF NOT EXISTS learner_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS learner_db.learnersnapshot (
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS learner_db.learnerprofile (
 
 CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS content_db.content_cumulative_summary (
@@ -324,7 +324,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
 
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS device_db.device_recos(
@@ -400,7 +400,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
 
 CREATE KEYSPACE IF NOT EXISTS platform_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS platform_db.job_request (
@@ -459,7 +459,7 @@ CREATE TABLE IF NOT EXISTS platform_db.job_config(
 
 CREATE KEYSPACE IF NOT EXISTS creation_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS creation_db.app_object_cache (
