@@ -143,9 +143,9 @@ object UpdateUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, MEU
     
     private def saveToInfluxDB(data: RDD[MEUsageSummaryFact])(implicit sc: SparkContext) {
         val metrics = data.filter { x => x.d_period != 0 } map { x =>
-            val fields = (CommonUtil.caseClassToMapWithDateConversion(x) - ("d_period", "d_user_id", "d_content_id", "d_tag", "d_app_id", "d_channel", "updated_date", "m_content_ids", "m_user_ids", "m_device_ids")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
+            val fields = (CommonUtil.caseClassToMapWithDateConversion(x) - ("d_period", "d_user_id", "d_content_id", "d_tag", "d_app_id", "d_channel", "updated_date", "m_publish_date", "m_last_sync_date", "m_last_gen_date", "m_content_ids", "m_user_ids", "m_device_ids")).map(f => (f._1, f._2.asInstanceOf[Number].doubleValue().asInstanceOf[AnyRef]));
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "user_id" -> x.d_user_id, "content_id" -> x.d_content_id, "d_tag" -> x.d_tag, "app_id" -> x.d_app_id, "channel" -> x.d_channel), fields, time._1);
+            InfluxRecord(Map("period" -> time._2, "user_id" -> x.d_user_id, "content_id" -> x.d_content_id, "d_tag" -> x.d_tag, "app_id" -> x.d_app_id, "channel" -> x.d_channel), Map("total_ts" -> fields.get("m_total_ts").get, "total_sessions" -> fields.get("m_total_sessions").get, "avg_ts_session" -> fields.get("m_avg_ts_session").get, "total_interactions" -> fields.get("m_total_interactions").get, "avg_interactions_min" -> fields.get("m_avg_interactions_min").get, "total_users_count" -> fields.get("m_total_users_count").get, "total_content_count" -> fields.get("m_total_content_count").get, "total_devices_count" -> fields.get("m_total_devices_count").get), time._1);
         };
         val usageEvents  = getDenormalizedData("usageEvents", data.map { x => x.d_content_id })
         metrics.denormalize("content_id", "content_name", usageEvents).saveToInflux(USAGE_SUMMARY_METRICS);
