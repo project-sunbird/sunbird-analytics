@@ -400,5 +400,13 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         itemRes.mmc.get should be(List())
 
     }
+    
+    it should  "filter edata.eks.type = scroll  along with TOUCH DRAG, DROP, PINCH, ZOOM, SHAKE, ROTATE, SPEAK, LISTEN, WRITE, DRAW, START, END, CHOOSE, ACTIVATEfrom events for calculating  No.Of InteractEvents " in {
+        val rdd = loadFile[Event]("src/test/resources/session-summary/test-data10.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect().head
+        val map= event.edata.eks.asInstanceOf[Map[String,AnyRef]]
+        map.get("noOfInteractEvents").get should be(1)
+  
+    }
 
 }
