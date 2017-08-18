@@ -21,13 +21,12 @@ object SlackDispatcher extends IDispatcher {
         
 
         if (null == channel || null == userName) {
-            throw new DispatcherException("'channel' & 'userName' parameters are required to send output to S3")
+            throw new DispatcherException("'channel' & 'userName' parameters are required to send output to slack")
         }
         
         val text = events.mkString(",");
         val message = SlackMessage(channel, userName, text);
         val resp = RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(message));
-        println("Slack Response", resp);
         events;
     }
     
