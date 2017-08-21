@@ -32,6 +32,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.sid.get should be("6q42argsejl2vrkgjicrbjl271");
 //        event1.dimensions.pdata.get.id should be("EkstepPortal");
         event1.dimensions.anonymous_user.get should be(false);
+        event1.etags.isDefined should be(true)
 
         val summary1 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event1.edata.eks));
         summary1.interact_events_per_min should be(0.07);
@@ -209,8 +210,10 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         me.length should be(1);
         
         val event1 = me(0);
+
         event1.dimensions.pdata.get.id should be("portal")
         event1.dimensions.pdata.get.ver should be("1.0")
+        event1.etags.isDefined should be(true)
     }
     
 }

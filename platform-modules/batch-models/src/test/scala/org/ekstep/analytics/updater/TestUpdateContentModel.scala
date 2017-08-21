@@ -14,83 +14,178 @@ import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.util.ContentPopularitySummaryFact2
+import org.ekstep.analytics.framework.util.JSONUtils
 
 /**
  * @author Santhosh
  */
 class TestUpdateContentModel extends SparkSpec(null) {
 
-    override def beforeAll() {
-        super.beforeAll()
+    "UpdateContentModel" should "populate content usage and popularity metrics in content model" in {
 
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.content_usage_summary_fact");
+            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
+            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE creation_metrics_db.content_creation_metrics_fact");
+        }
         val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null),
+            ContentUsageSummaryFact(0, "numeracy_374", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null, Option(DateTime.now().minusDays(2))));
+        sc.parallelize(usageSummaries).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT);
+
+        val popularitySummary = Array(ContentPopularitySummaryFact2(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33),
+            ContentPopularitySummaryFact2(0, "org.ekstep.vayuthewind", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33))
+        sc.parallelize(popularitySummary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT);
+        
+        val creationSummary = Array(CEUsageSummaryFact(0, "org.ekstep.delta", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 2, 6, 48.0, 8.0, DateTime.now().getMillis),
+                CEUsageSummaryFact(0, "org.ekstep.vayuthewind", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 2, 6, 48.0, 8.0, DateTime.now().getMillis))
+        sc.parallelize(creationSummary).saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY);
+        
+        val creationMetrics = Array(ContentCreationMetrics("org.ekstep.delta", 1, 0, 12, 6, 3, Map(), Option(48.0), Option(8.0), Option("Draft"), Option(DateTime.now().getMillis), 1, DateTime.now().getMillis),
+                ContentCreationMetrics("org.ekstep.vayuthewind", 1, 0, 12, 6, 3, Map(), Option(48.0), Option(8.0), Option("Draft"), Option(DateTime.now().getMillis), 1, DateTime.now().getMillis))
+        sc.parallelize(creationMetrics).saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE);
+        
+        val rdd = UpdateContentModel.execute(sc.emptyRDD, Option(Map("date" -> new DateTime().toString(CommonUtil.dateFormat).asInstanceOf[AnyRef])));
+        val out = rdd.collect();
+        out.length should be(2);
+        
+        val data1 = out.filter { x => "org.ekstep.delta".equals(x.nodeUniqueId) }.head
+        data1.nodeUniqueId should be("org.ekstep.delta")
+        val dataMap = data1.transactionData.get("properties").get
+        //consumption data
+        dataMap.get("me_totalSessionsCount").get.get("nv").get should be(4)
+        dataMap.get("me_totalTimespent").get.get("nv").get should be(450.0)
+        dataMap.get("me_totalInteractions").get.get("nv").get should be(100)
+        dataMap.get("me_averageInteractionsPerMin").get.get("nv").get should be(23.56)
+        dataMap.get("me_averageSessionsPerDevice").get.get("nv").get should be(2.15)
+        dataMap.get("me_totalDevices").get.get("nv").get should be(11)
+        dataMap.get("me_averageTimespentPerSession").get.get("nv").get should be(112.5)
+        dataMap.get("me_averageRating").get.get("nv").get should be(3.33)
+        dataMap.get("me_totalDownloads").get.get("nv").get should be(22)
+        dataMap.get("me_totalSideloads").get.get("nv").get should be(53)
+        dataMap.get("me_totalRatings").get.get("nv").get should be(3)
+        dataMap.get("me_totalComments").get.get("nv").get should be(2)
+        // creation data
+        dataMap.get("me_creationTimespent").get.get("nv").get should be(48.0)
+        dataMap.get("me_creationSessions").get.get("nv").get should be(6)
+        dataMap.get("me_avgCreationTsPerSession").get.get("nv").get should be(8.0)
+        dataMap.get("me_imagesCount").get.get("nv").get should be(12)
+        dataMap.get("me_audiosCount").get.get("nv").get should be(6)
+        dataMap.get("me_videosCount").get.get("nv").get should be(3)
+        dataMap.get("me_timespentDraft").get.get("nv").get should be(48.0)
+        dataMap.get("me_timespentReview").get.get("nv").get should be(8.0)
+    }
+
+    it should "populate content usage metrics when popularity metrics are blank in content model and vice-versa" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.content_usage_summary_fact");
+            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
+            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE creation_metrics_db.content_creation_metrics_fact");
+        }
+        val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null, Option(DateTime.now().minusDays(2))),
             ContentUsageSummaryFact(0, "numeracy_374", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null));
         sc.parallelize(usageSummaries).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT);
 
-        val popularitySummary = Array(ContentPopularitySummaryFact2(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis),("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis),(4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33),
-            ContentPopularitySummaryFact2(0, "org.ekstep.vayuthewind", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis),("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis),(4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33))
+        val popularitySummary = Array(ContentPopularitySummaryFact2(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33, Option(DateTime.now().minusDays(2))),
+            ContentPopularitySummaryFact2(0, "org.ekstep.vayuthewind", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33))
         sc.parallelize(popularitySummary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT);
-    }
-
-    override def afterAll() {
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_USAGE_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='org.ekstep.delta'");
-            session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_USAGE_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='numeracy_374'");
-            session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_POPULARITY_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='org.ekstep.delta'");
-            session.execute("DELETE FROM " + Constants.CONTENT_KEY_SPACE_NAME +"." + Constants.CONTENT_POPULARITY_SUMMARY_FACT + " where d_period = 0 and d_tag = 'all' and d_content_id ='org.ekstep.vayuthewind'");
-        }
-        super.afterAll();
-    }
-
-    "UpdateContentPopularityDB" should "populate content usage and popularity metrics in content model" in {
-
-        val rdd = DataFetcher.fetchBatchData[DerivedEvent](Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/content-popularity/test-data.json"))))));
-        val rdd2 = UpdateContentModel.execute(rdd, Option(Map()));
-        var out = rdd2.collect();
-        out.length should be(2);
-
-        val resp = RestUtil.get[ContentResponse](Constants.getContent("org.ekstep.delta") + "?fields=popularity,me_totalSessionsCount,me_totalTimespent,me_totalInteractions,me_averageInteractionsPerMin,me_averageSessionsPerDevice,me_totalDevices,me_averageTimespentPerSession,me_averageRating,me_totalDownloads,me_totalSideloads,me_totalRatings,me_totalComments")
-        resp.result.content.get("identifier").get should be ("org.ekstep.delta");
-        resp.result.content.get("popularity").get should be (450.0);
-        resp.result.content.get("me_totalSessionsCount").get should be (4);
-        resp.result.content.get("me_totalTimespent").get should be (450.0);
-        resp.result.content.get("me_totalInteractions").get should be (100);
-        resp.result.content.get("me_averageInteractionsPerMin").get should be (23.56);
-        resp.result.content.get("me_averageSessionsPerDevice").get should be (2.15);
-        resp.result.content.get("me_totalDevices").get should be (11);
-        resp.result.content.get("me_averageTimespentPerSession").get should be (112.5);
         
-        resp.result.content.get("me_averageRating").get should be (3.33);
-        resp.result.content.get("me_totalDownloads").get should be (22);
-        resp.result.content.get("me_totalSideloads").get should be (53);
-        resp.result.content.get("me_totalRatings").get should be (3);
-        resp.result.content.get("me_totalComments").get should be (2);
+        val creationSummary = Array(CEUsageSummaryFact(0, "org.ekstep.delta", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 2, 6, 48.0, 8.0, DateTime.now().minusDays(2).getMillis),
+                CEUsageSummaryFact(0, "org.ekstep.vayuthewind", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 2, 6, 48.0, 8.0, DateTime.now().getMillis),
+                CEUsageSummaryFact(0, "numeracy_374", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 2, 6, 48.0, 8.0, DateTime.now().minusDays(2).getMillis))
+        sc.parallelize(creationSummary).saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY);
+        
+        val creationMetrics = Array(ContentCreationMetrics("org.ekstep.delta", 1, 0, 12, 6, 3, Map(), Option(48.0), Option(8.0), Option("Draft"), Option(DateTime.now().getMillis), 1, DateTime.now().minusDays(2).getMillis),
+                ContentCreationMetrics("org.ekstep.vayuthewind", 1, 0, 12, 6, 3, Map(), Option(48.0), Option(8.0), Option("Draft"), Option(DateTime.now().getMillis), 1, DateTime.now().minusDays(2).getMillis),
+                ContentCreationMetrics("numeracy_374", 1, 0, 12, 6, 3, Map(), Option(48.0), Option(8.0), Option("Draft"), Option(DateTime.now().getMillis), 1, DateTime.now().getMillis))
+        sc.parallelize(creationMetrics).saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE);
+        
+        val rdd = UpdateContentModel.execute(sc.emptyRDD, Option(Map()));
+        val out = rdd.collect();
+        out.length should be(2);
+        
+        val data1 = out.filter { x => "numeracy_374".equals(x.nodeUniqueId) }.head
+        data1.nodeUniqueId should be("numeracy_374")
+        val dataMap1 = data1.transactionData.get("properties").get
+        //consumption data
+        dataMap1.get("me_totalSessionsCount").get.get("nv").get should be(4)
+        dataMap1.get("me_totalTimespent").get.get("nv").get should be(220.5)
+        dataMap1.get("me_totalInteractions").get.get("nv").get should be(76)
+        dataMap1.get("me_averageInteractionsPerMin").get.get("nv").get should be(23.56)
+        dataMap1.get("me_averageSessionsPerDevice").get.get("nv").get should be(3.14)
+        dataMap1.get("me_totalDevices").get.get("nv").get should be(15)
+        dataMap1.get("me_averageTimespentPerSession").get.get("nv").get should be(52.5)
+        dataMap1.get("me_averageRating").isDefined should be(false)
+        dataMap1.get("me_totalDownloads").isDefined should be(false)
+        dataMap1.get("me_totalSideloads").isDefined should be(false)
+        dataMap1.get("me_totalRatings").isDefined should be(false)
+        dataMap1.get("me_totalComments").isDefined should be(false)
+        // creation data
+        dataMap1.get("me_creationTimespent").isDefined should be(false)
+        dataMap1.get("me_creationSessions").isDefined should be(false)
+        dataMap1.get("me_avgCreationTsPerSession").isDefined should be(false)
+        dataMap1.get("me_imagesCount").get.get("nv").get should be(12)
+        dataMap1.get("me_audiosCount").get.get("nv").get should be(6)
+        dataMap1.get("me_videosCount").get.get("nv").get should be(3)
+        dataMap1.get("me_timespentDraft").get.get("nv").get should be(48.0)
+        dataMap1.get("me_timespentReview").get.get("nv").get should be(8.0)
+        
+        val data2 = out.filter { x => "org.ekstep.vayuthewind".equals(x.nodeUniqueId) }.head
+        data2.nodeUniqueId should be("org.ekstep.vayuthewind")
+        val dataMap2 = data2.transactionData.get("properties").get
+        //consumption data
+        dataMap2.get("me_totalSessionsCount").isDefined should be(false)
+        dataMap2.get("me_totalTimespent").isDefined should be(false)
+        dataMap2.get("me_totalInteractions").isDefined should be(false)
+        dataMap2.get("me_averageInteractionsPerMin").isDefined should be(false)
+        dataMap2.get("me_averageSessionsPerDevice").isDefined should be(false)
+        dataMap2.get("me_totalDevices").isDefined should be(false)
+        dataMap2.get("me_averageTimespentPerSession").isDefined should be(false)
+        dataMap2.get("me_averageRating").get.get("nv").get should be(3.33)
+        dataMap2.get("me_totalDownloads").get.get("nv").get should be(22)
+        dataMap2.get("me_totalSideloads").get.get("nv").get should be(53)
+        dataMap2.get("me_totalRatings").get.get("nv").get should be(3)
+        dataMap2.get("me_totalComments").get.get("nv").get should be(2)
+        // creation data
+        dataMap2.get("me_creationTimespent").get.get("nv").get should be(48.0)
+        dataMap2.get("me_creationSessions").get.get("nv").get should be(6)
+        dataMap2.get("me_avgCreationTsPerSession").get.get("nv").get should be(8.0)
+        dataMap2.get("me_imagesCount").isDefined should be(false)
+        dataMap2.get("me_audiosCount").isDefined should be(false)
+        dataMap2.get("me_videosCount").isDefined should be(false)
+        dataMap2.get("me_timespentDraft").isDefined should be(false)
+        dataMap2.get("me_timespentReview").isDefined should be(false)
     }
     
-    it should "populate content usage metrics when popularity metrics are blank in content model" in {
+    it should "return zero output when no records found for given date" in {
 
-        val rdd = DataFetcher.fetchBatchData[DerivedEvent](Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/content-popularity/test-data-2.json"))))));
-        val rdd2 = UpdateContentModel.execute(rdd, Option(Map()));
-        var out = rdd2.collect();
-        out.length should be(1);
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.content_usage_summary_fact");
+            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
+            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE creation_metrics_db.content_creation_metrics_fact");
+            
+        }
+        val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null, Option(DateTime.now().minusDays(2))),
+            ContentUsageSummaryFact(0, "numeracy_374", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null, Option(DateTime.now().minusDays(2))));
+        sc.parallelize(usageSummaries).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT);
 
-        val resp = RestUtil.get[ContentResponse](Constants.getContent("numeracy_374") + "?fields=popularity,me_totalSessionsCount,me_totalTimespent,me_totalInteractions,me_averageInteractionsPerMin,me_averageSessionsPerDevice,me_totalDevices,me_averageTimespentPerSession,me_averageRating,me_totalDownloads,me_totalSideloads,me_totalRatings,me_totalComments")
-        resp.result.content.get("identifier").get should be ("numeracy_374");
-        resp.result.content.get("popularity").get should be (220.5);
-        resp.result.content.get("me_totalSessionsCount").get should be (4);
-        resp.result.content.get("me_totalTimespent").get should be (220.5);
-        resp.result.content.get("me_totalInteractions").get should be (76);
-        resp.result.content.get("me_averageInteractionsPerMin").get should be (23.56);
-        resp.result.content.get("me_averageSessionsPerDevice").get should be (3.14);
-        resp.result.content.get("me_totalDevices").get should be (15);
-        resp.result.content.get("me_averageTimespentPerSession").get should be (52.5);
+        val popularitySummary = Array(ContentPopularitySummaryFact2(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33, Option(DateTime.now().minusDays(2))),
+            ContentPopularitySummaryFact2(0, "org.ekstep.vayuthewind", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33, Option(DateTime.now().minusDays(2))))
+        sc.parallelize(popularitySummary).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT);
         
-        resp.result.content.get("me_averageRating").isDefined should be (false);
-        resp.result.content.get("me_totalDownloads").isDefined should be (false);
-        resp.result.content.get("me_totalSideloads").isDefined should be (false);
-        resp.result.content.get("me_totalRatings").isDefined should be (false);
-        resp.result.content.get("me_totalComments").isDefined should be (false);
+        val creationSummary = Array(CEUsageSummaryFact(0, "org.ekstep.delta", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 2, 6, 48.0, 8.0, DateTime.now().minusDays(2).getMillis),
+                CEUsageSummaryFact(0, "org.ekstep.vayuthewind", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 2, 6, 48.0, 8.0, DateTime.now().minusDays(2).getMillis))
+        sc.parallelize(creationSummary).saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY);
+        
+        val creationMetrics = Array(ContentCreationMetrics("org.ekstep.delta", 1, 0, 12, 6, 3, Map(), Option(48.0), Option(8.0), Option("Draft"), Option(DateTime.now().getMillis), 1, DateTime.now().minusDays(2).getMillis),
+                ContentCreationMetrics("org.ekstep.vayuthewind", 1, 0, 12, 6, 3, Map(), Option(48.0), Option(8.0), Option("Draft"), Option(DateTime.now().getMillis), 1, DateTime.now().minusDays(2).getMillis))
+        sc.parallelize(creationMetrics).saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE);
+        
+        val rdd = UpdateContentModel.execute(sc.emptyRDD, Option(Map()));
+        val out = rdd.collect();
+        out.length should be(0);
     }
 }
-case class ContentResult(content: Map[String, AnyRef]); 
-case class ContentResponse(id: String, result: ContentResult);

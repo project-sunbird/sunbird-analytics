@@ -1,11 +1,11 @@
 CREATE KEYSPACE IF NOT EXISTS learner_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE KEYSPACE IF NOT EXISTS creation_metrics_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS learner_db.learnersnapshot (
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS learner_db.learnerprofile (
 
 CREATE KEYSPACE IF NOT EXISTS content_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS content_db.content_cumulative_summary (
@@ -285,6 +285,31 @@ CREATE TABLE IF NOT EXISTS content_db.asset_snapshot_summary(
 	PRIMARY KEY (d_period, d_partner_id, d_app_id, d_channel)
 );
 
+CREATE TABLE IF NOT EXISTS content_db.usage_summary_fact (
+    d_period Int,
+    d_user_id text,
+    d_content_id text,
+    d_tag text,
+    d_app_id text,
+    d_channel text,
+    m_publish_date timestamp,
+    m_last_sync_date timestamp,
+    m_last_gen_date timestamp,
+    m_total_ts double,
+    m_total_sessions bigint,
+    m_avg_ts_session double,
+    m_total_interactions bigint,
+    m_avg_interactions_min double,
+    m_total_users_count bigint,
+    m_total_content_count bigint,
+    m_total_devices_count bigint,
+    m_user_ids blob,
+    m_content_ids blob,
+    m_device_ids blob,
+    updated_date timestamp,
+    PRIMARY KEY (d_period, d_user_id, d_content_id, d_tag, d_app_id, d_channel)
+);
+
 CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
 	d_period int,
 	d_app_id text,
@@ -299,7 +324,7 @@ CREATE TABLE IF NOT EXISTS creation_metrics_db.publish_pipeline_summary_fact(
 
 CREATE KEYSPACE IF NOT EXISTS device_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS device_db.device_recos(
@@ -375,7 +400,7 @@ CREATE TABLE IF NOT EXISTS device_db.device_content_summary_fact (
 
 CREATE KEYSPACE IF NOT EXISTS platform_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS platform_db.job_request (
@@ -434,7 +459,7 @@ CREATE TABLE IF NOT EXISTS platform_db.job_config(
 
 CREATE KEYSPACE IF NOT EXISTS creation_db WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': '2'
 };
 
 CREATE TABLE IF NOT EXISTS creation_db.app_object_cache (

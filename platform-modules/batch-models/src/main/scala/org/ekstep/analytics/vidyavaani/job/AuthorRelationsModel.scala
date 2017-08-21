@@ -44,6 +44,8 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
     val CONTENT_AUTHOR_RELATION = "createdBy";
     var algorithmQueries: List[String] = List();
     
+    val getUniqueAuthorsQuery = "MATCH (n:domain) WHERE (n.createdBy IS NOT null AND NOT n.createdBy = '') WITH n.createdBy AS author, CASE WHEN  last(collect(n.creator))IS null THEN n.createdBy ELSE last(collect(n.creator)) END AS name, CASE WHEN  last(collect(n.appId))IS null THEN 'NA' ELSE last(collect(n.appId)) END AS appId, CASE WHEN  last(collect(n.channel))IS null THEN 'in.ekstep' ELSE last(collect(n.channel)) END AS channel  RETURN author, name, appId, channel"
+    
     override def name(): String = "AuthorRelationsModel";
     override implicit val className = "org.ekstep.analytics.vidyavaani.job.AuthorRelationsModel"
 
@@ -58,23 +60,11 @@ object AuthorRelationsModel extends IGraphExecutionModel with Serializable {
 
     override def algorithm(ppQueries: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[String] = {
 
-        val contentNodes = GraphDBUtil.findNodes(Map("IL_FUNC_OBJECT_TYPE" -> "Content"), Option(List("domain")));
-
-        val authorNodes = contentNodes.map { x => x.metadata.getOrElse(Map()) }
-            .map(f => (f.getOrElse("createdBy", "").asInstanceOf[String], f.getOrElse("creator", "").asInstanceOf[String], f.getOrElse("appId", "").asInstanceOf[String], f.getOrElse("channel", "in.ekstep").asInstanceOf[String]))
-            .groupBy(f => f._1).filter(p => !StringUtils.isBlank(p._1))
-            .map { f =>
-                val identifier = f._1;
-                val namesList = f._2.filter(p => !StringUtils.isBlank(p._2));
-                val name = if (namesList.isEmpty) identifier else namesList.last._2;
-                val defaultAppId = AppConf.getConfig("default.creation.app.id");
-                val defaultChannel = AppConf.getConfig("default.channel.id");
-                val appId = if (namesList.isEmpty) defaultAppId else if (StringUtils.isBlank(namesList.last._3)) defaultAppId else namesList.last._3;
-                val channel = if (namesList.isEmpty) defaultChannel else if (StringUtils.isBlank(namesList.last._4)) defaultChannel else namesList.last._4;
-                DataNode(identifier, Option(Map("name" -> name, "type" -> "author", "appId" -> appId, "channel" -> channel)), Option(List(NODE_NAME)));
-            }
-
-        val authorQuery = GraphDBUtil.createNodesQuery(authorNodes)
+        val authors = GraphQueryDispatcher.dispatch(getUniqueAuthorsQuery).list().toArray();
+        val authorsRDD = authors.map(x => x.asInstanceOf[org.neo4j.driver.v1.Record]).map{x => (x.get("author").asObject().toString(), x.get("name").asObject().toString(), x.get("appId").asString(), x.get("channel").asString())}.map{ f =>
+            DataNode(f._1, Option(Map("name" -> f._2, "type" -> "author", "appId" -> f._3, "channel" -> f._4)), Option(List(NODE_NAME)));
+        }
+        val authorQuery = GraphDBUtil.createNodesQuery(sc.parallelize(authorsRDD))
         ppQueries.union(sc.parallelize(Seq(authorQuery) ++ algorithmQueries, JobContext.parallelization));
     }
 }

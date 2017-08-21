@@ -140,10 +140,10 @@ class TestCommonUtil extends BaseSpec {
 
             CommonUtil.getParallelization(None) should be(10);
 
-            CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L)) should be("5368CB682B37D8F7681922042B0DC9E8");
-            CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L), "org.ekstep.aser.lite") should be("D0A8CB5F1F16E3614EC7D5A41F24D978");
+            CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L)) should be("1D99B2F1C6637AE21081CD981AFFB56F");
+            CommonUtil.getMessageId("ME_TEST", "123", "MONTH", DtRange(1451650400000L, 1451650400000L), "org.ekstep.aser.lite") should be("6D5DCB288B1A9BC3036D04C37FF08EDF");
 
-            CommonUtil.getMessageId("ME_TEST", "123", "MONTH", 1451650400000L, None, None) should be("D3A92D90D4B412EEAB71942F0A07151B");
+            CommonUtil.getMessageId("ME_TEST", "123", "MONTH", 1451650400000L, None, None) should be("D0BF57F856E3B7FAD5E47CCD4B31DE57");
 
             val res = CommonUtil.time({
 

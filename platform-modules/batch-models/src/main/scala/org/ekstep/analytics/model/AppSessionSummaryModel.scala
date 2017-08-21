@@ -36,7 +36,7 @@ case class PortalSessionOutput(sid: String, uid: String, pdata: CreationPData, c
                                start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, page_views_count: Long,
                                first_visit: Boolean, ce_visits: Long, interact_events_count: Long, interact_events_per_min: Double,
                                env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
-                               page_summary: Option[Iterable[PageSummary]]) extends AlgoOutput
+                               page_summary: Option[Iterable[PageSummary]], etags: Option[ETags]) extends AlgoOutput
 
 /**
  * @dataproduct
@@ -154,7 +154,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
                 }
             } else Iterable[EnvSummary]();
 
-            PortalSessionOutput(x.sid, uid, pdata, channelId, CreationEventUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries))
+            PortalSessionOutput(x.sid, uid, pdata, channelId, CreationEventUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries), Option(CreationEventUtil.getETags(firstEvent)))
         }.filter(f => (f.time_spent >= 1))
     }
 
@@ -178,7 +178,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[CreationEvent, PortalS
             MeasuredEvent("ME_APP_SESSION_SUMMARY", System.currentTimeMillis(), session.syncTs, meEventVersion, mid, session.uid, session.channel, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "AppSessionSummarizer").asInstanceOf[String])), None, "SESSION", session.dtRange),
                 Dimensions(None, None, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, Option(session.anonymousUser), None, None, None, None, None, Option(session.sid)),
-                MEEdata(measures), None);
+                MEEdata(measures), session.etags);
         }
     }
 }

@@ -16,6 +16,8 @@ POST /metrics/list/content @controllers.Metrics.contentList
 POST /metrics/tag/register/:tagId @controllers.Application.registerTag(tagId: String)
 DELETE /metrics/tag/delete/:tagId @controllers.Application.deleteTag(tagId: String)
 
+POST /metrics/:datasetId/:summary @controllers.Metrics.get(datasetId: String, summary: String)
+
 # Data Exhaust
 POST /dataset/request/submit @controllers.JobController.dataRequest
 GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)

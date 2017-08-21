@@ -74,7 +74,7 @@ object JobAPIService {
 	private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
 		val outputFormat = body.request.output_format.getOrElse(config.getString("data_exhaust.output_format"))
 		val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default"));
-		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId);
+		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId, body.params.get.client_key.get);
 		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
 		val usrReq = body.request;
 		val request = Request(usrReq.filter, usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId));
@@ -157,10 +157,10 @@ object JobAPIService {
 		jobRequest;
 	}
 
-	private def _getRequestId(filter: Filter, outputFormat: String, datasetId: String): String = {
+	private def _getRequestId(filter: Filter, outputFormat: String, datasetId: String, clientKey: String): String = {
 		Sorting.quickSort(filter.tags.getOrElse(Array()));
 		Sorting.quickSort(filter.events.getOrElse(Array()));
-		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId).mkString("|");
+		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId, clientKey).mkString("|");
 		MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
 	}
 

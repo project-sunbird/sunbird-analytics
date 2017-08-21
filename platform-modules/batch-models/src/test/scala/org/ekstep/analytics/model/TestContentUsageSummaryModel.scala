@@ -183,4 +183,28 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
         exceptLastWeek.size should be(events.size)
         events.size should be > (0)
     }
+    
+    it should "test the summarizer for dims tags" in {
+
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE content_db.registered_tags");
+        }
+
+        val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
+        val tag2 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
+        val tag3 = RegisteredTag("becb887fe82f24c644482eb30041da6d88bd8150", System.currentTimeMillis(), true)
+        sc.makeRDD(List(tag1, tag2, tag3)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
+
+        val rdd = loadFile[DerivedEvent]("src/test/resources/content-usage-summary-model/test_data_dims_tags.log");
+        val out = ContentUsageSummaryModel.execute(rdd, None);
+        val events = out.collect()
+        events.size should be > (0)
+        
+        val dimsTagEvents1 = events.filter { x => "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb".equals(x.dimensions.tag.get) }
+        dimsTagEvents1.size should be(4)
+        val dimsTagEvents2 = events.filter { x => "c6ed6e6849303c77c0182a282ebf318aad28f8d1".equals(x.dimensions.tag.get) }
+        dimsTagEvents2.size should be(4)
+        val appTagEvents = events.filter { x => "becb887fe82f24c644482eb30041da6d88bd8150".equals(x.dimensions.tag.get) }
+        appTagEvents.size should be(4)
+    }
 }

@@ -22,6 +22,7 @@ class TestContentEditorSessionSummaryModel extends SparkSpec(null) {
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.client.get should not be null;
+        event1.etags.isDefined should be(true)
 
         val summary1 = JSONUtils.deserialize[CESessionSummary](JSONUtils.serialize(event1.edata.eks));
         summary1.time_spent should be(154.51);

@@ -61,8 +61,11 @@ object ContentUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, InputE
 
     private def _getValidTags(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
         val appTag = event.etags.get.app
+        val dimsTag = event.etags.get.dims
         val genieTagFilter = if (appTag.isDefined) appTag.get else List()
-        genieTagFilter.filter { x => registeredTags.contains(x) }.toArray;
+        val dimsTagFilter = if (dimsTag.isDefined) dimsTag.get else List()
+        val tagFilter = genieTagFilter ++ dimsTagFilter
+        tagFilter.filter { x => registeredTags.contains(x) }.toArray;
     }
     
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentSummary] = {

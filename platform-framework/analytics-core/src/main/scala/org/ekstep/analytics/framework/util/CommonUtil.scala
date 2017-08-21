@@ -49,7 +49,8 @@ object CommonUtil {
     @transient val weekPeriodLabel: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww").withZoneUTC();
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
     @transient val monthPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMM").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
-
+    @transient val dayPeriodFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZoneUTC();
+    
     def getParallelization(config: JobConfig): Int = {
 
         val defParallelization = AppConf.getConfig("default.parallelization").toInt;
@@ -520,8 +521,17 @@ object CommonUtil {
         } else {
             None
         }
+        val dimTag = if (event.isInstanceOf[DerivedEvent]) {
+            event.asInstanceOf[DerivedEvent].etags.get.dims
+        } else if (event.isInstanceOf[Event]) {
+            getETags(event.asInstanceOf[Event]).dims
+        } else {
+            None
+        }
         val genieTagFilter = if (appTag.isDefined) appTag.get else List()
-        genieTagFilter.filter { x => registeredTags.contains(x) }.toArray;
+        val dimTagFilter = if (dimTag.isDefined) dimTag.get else List()
+        val tagFilter = genieTagFilter ++ dimTagFilter
+        tagFilter.filter { x => registeredTags.contains(x) }.toArray;
     }
 
     def caseClassToMap(ccObj: Any) =
@@ -591,7 +601,7 @@ object CommonUtil {
     }
     
     def getTimestampOfDayPeriod(period: Int): Long = {
-        val periodDateTime = dayPeriod.parseDateTime(period.toString()).withTimeAtStartOfDay()
+        val periodDateTime = dayPeriodFormat.parseDateTime(period.toString()).withTimeAtStartOfDay()
         periodDateTime.getMillis
     }
 
