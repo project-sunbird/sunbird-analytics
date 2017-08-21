@@ -31,7 +31,7 @@ import org.ekstep.analytics.api.metrics.UsageMetricsModel
 
 object MetricsAPIService {
 
-    val reqPeriods = Array("LAST_7_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
+    val reqPeriods = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
 
     case class ContentUsage(body: MetricsRequestBody, sc: SparkContext, config: Config);
     case class ContentPopularity(body: MetricsRequestBody, fields: Array[String], sc: SparkContext, config: Config);
@@ -89,8 +89,6 @@ object MetricsAPIService {
                     CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
             }
         }
-//        val response = """{"id":"ekstep.analytics.metrics","ver":"1.0","ts":"2017-07-27T09:35:15.027+00:00","params":{"resmsgid":"56de001d-b8e2-4a9e-b631-9a1b59b12e71","status":"successful"},"responseCode":"OK","result":{"metrics":[{"d_period":20170726,"label":"Jul 26 Wed","m_total_ts":234,"m_total_sessions":23,"m_avg_ts_session":10.003,"m_total_interactions":160,"m_avg_interactions_min":40,"m_total_devices_count":4,"m_total_users_count":20,"m_total_content_count":2},{"d_period":20170725,"label":"Jul 25 Tue","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices_count":0,"m_total_users_count":0,"m_total_content_count":0},{"d_period":20170724,"label":"Jul 24 Mon","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices_count":0,"m_total_users_count":0,"m_total_content_count":0},{"d_period":20170723,"label":"Jul 23 Sun","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices_count":0,"m_total_users_count":0,"m_total_content_count":0},{"d_period":20170722,"label":"Jul 22 Sat","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices_count":0,"m_total_users_count":0,"m_total_content_count":0},{"d_period":20170721,"label":"Jul 21 Fri","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices_count":0,"m_total_users_count":0,"m_total_content_count":0},{"d_period":20170720,"label":"Jul 20 Thu","m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices_count":0,"m_total_users_count":0,"m_total_content_count":0}],"summary":{"m_total_ts":0,"m_total_sessions":0,"m_avg_ts_session":0,"m_total_interactions":0,"m_avg_interactions_min":0,"m_total_devices_count":0,"m_total_users_count":0,"m_total_content_count":0}}}""";
-//        response;
     }
 
     private def contentSnapshotMetrics(body: MetricsRequestBody)(implicit config: Config): String = {
