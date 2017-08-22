@@ -17,7 +17,7 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.S3Util
 
-case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String);
+case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String, runMode: String = "shutdown");
 
 object JobManager extends optional.Application {
 
@@ -39,7 +39,7 @@ object JobManager extends optional.Application {
         JobLogger.log("Initialized the job consumer", None, INFO);
         val executor = Executors.newFixedThreadPool(1);
         val doneSignal = new CountDownLatch(config.jobsCount);
-        EventBusUtil.register(new JobEventListener(config.slackChannel, config.slackUserName));
+        JobMonitor.init(config);
         JobLogger.log("Initialized the job event listener. Starting the job executor", None, INFO);
         executor.submit(new JobRunner(config, jobQueue, doneSignal));
 
@@ -54,21 +54,6 @@ object JobManager extends optional.Application {
         val consumer = new JobConsumer(config.topic, props, jobQueue);
         consumer.start();
         consumer;
-    }
-}
-
-class JobEventListener(channel: String, userName: String) {
-    
-    private val dispatcher = Dispatcher("slack", Map("channel" -> channel, "userName" -> userName));
-    
-    @Subscribe def onMessage(event: String) {
-        val meEvent = JSONUtils.deserialize[MeasuredEvent](event);
-        meEvent.eid match {
-            case "BE_JOB_START" =>
-                OutputDispatcher.dispatch(dispatcher, Array("Job Started - " + event))
-            case "BE_JOB_END" =>
-                OutputDispatcher.dispatch(dispatcher, Array("Job ended - " + event))
-        }
     }
 }
 
@@ -87,7 +72,12 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     private def executeJob(record: String) {
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
-        JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
+        try {
+            JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
+        } catch {
+            case ex: Exception =>
+                ex.printStackTrace()
+        }
     }
 }
 

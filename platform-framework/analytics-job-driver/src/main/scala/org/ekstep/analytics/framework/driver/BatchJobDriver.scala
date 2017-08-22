@@ -48,14 +48,15 @@ object BatchJobDriver {
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         models.foreach { model =>
             JobContext.jobName = model.name
-            JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config)));
+            // TODO: It is not necessary that the end date always exists. The below log statement might throw exceptions
+            JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config, "model" -> model.name, "date" -> config.search.queries.get.last.endDate)));
             try {
                 val result = _processModel(config, data, model);
-                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
+                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("model" -> model.name, "date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
             } catch {
                 case ex: Exception =>
                     JobLogger.log(ex.getMessage, None, ERROR);
-                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("date" -> config.search.queries.get.last.endDate, "inputEvents" -> count)));
+                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("model" -> model.name, "date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "statusMsg" -> ex.getMessage)));
                     ex.printStackTrace();
             }
         }
