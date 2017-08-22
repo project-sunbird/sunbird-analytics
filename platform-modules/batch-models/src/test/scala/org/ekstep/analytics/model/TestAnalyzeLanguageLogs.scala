@@ -7,18 +7,18 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 
-case class BEEventEks(rid: Option[String], duration: Option[Int], status: Option[Int], method: Option[String])
-case class BEEventEdata(eks: BEEventEks)
-case class BEEvent(eid: String, edata: BEEventEdata)
+case class TestBEEventEks(rid: Option[String], duration: Option[Int], status: Option[Int], method: Option[String])
+case class TestBEEventEdata(eks: TestBEEventEks)
+case class TestBEEvent(eid: String, edata: TestBEEventEdata)
 
 case class LETransactionData(addedRelations: Array[AnyRef], removedRelations: Array[AnyRef], properties: Map[String, AnyRef])
 case class LearningEvent(objectType: String, transactionData: LETransactionData)
 
 class TestAnalyzeLanguageLogs extends SparkSpec(null) {
 
-    "TestAnalyzeLanguageLogs" should "generate access summaries" in {
+    ignore should "generate access summaries" in {
 
-        val rdd = loadFile[BEEvent]("/Users/santhosh/ekStep/telemetry_dump/2017-06-19-backend-events.json");
+        val rdd = loadFile[TestBEEvent]("/Users/santhosh/ekStep/telemetry_dump/2017-06-19-backend-events.json");
         println(rdd.count());
         val accessEvents = rdd.filter { x => x.eid.equals("BE_ACCESS") };
         println("Total Access Events:" + accessEvents.count());
@@ -31,7 +31,7 @@ class TestAnalyzeLanguageLogs extends SparkSpec(null) {
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "output/backend-events-metrics-20170619.csv")), result);
     }
     
-    it should "generate transaction summaries" in {
+    ignore should "generate transaction summaries" in {
         val rdd = loadFile[LearningEvent]("/Users/santhosh/ekStep/telemetry_dump/2017-06-19-learning-events.json");
         println(rdd.count());
         println("Total Learning Events:" + rdd.count());
