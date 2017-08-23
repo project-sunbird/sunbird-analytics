@@ -57,7 +57,12 @@ object ContentVectorsModel extends IBatchModelTemplate[Empty, ContentAsString, C
             println("Total download files:", downloadRDD.count());
             val localDownloadPath = if (downloadPath.endsWith(File.separator)) downloadPath else downloadPath + File.separator;
             downloadRDD.map { downloadUrl =>
-                downloadECARFile(new URL(downloadUrl), localDownloadPath, downloadFilePrefix)
+                try {
+                     downloadECARFile(new URL(downloadUrl), localDownloadPath, downloadFilePrefix) 
+                } catch {
+                  case t: Throwable => t.printStackTrace() // TODO: handle error
+                  println("downloadUrl: "+downloadUrl + ", downloadFilePrefix: "+downloadFilePrefix)
+                }
             }.collect; // Invoke the download
         }
         println("Time taken to download files(in secs):", (downloadTime._1 / 1000));

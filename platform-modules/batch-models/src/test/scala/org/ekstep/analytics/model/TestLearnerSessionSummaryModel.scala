@@ -195,7 +195,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("org.ekstep.story.hi.nature");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-
+        
         val ssList = summary1.screenSummary.get
         ssList.size should be(18);
         val summaryMap = ssList.map { x => (x.id, (x.timeSpent, x.visitCount)) }.toMap
@@ -218,14 +218,14 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         summaryMap.getOrElse("scene8", (0d, 0L)) should be(10.0, 3);
         summaryMap.getOrElse("scene2", (0d, 0L)) should be(9.0, 2);
         summaryMap.getOrElse("splash", (0d, 0L)) should be(14.0, 4);
-        summary1.mimeType.get should be("application/vnd.ekstep.ecml-archive");
-        summary1.contentType.get should be("Story");
+        summary1.mimeType.get should be("application/vnd.android.package-archive");
+        summary1.contentType.get should be("Game");
 
         val event2 = me(1);
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
         summary2.screenSummary.get.size should be(2);
-        summary2.mimeType.get should be("application/vnd.ekstep.ecml-archive");
-        summary2.contentType.get should be("Worksheet");
+        summary2.mimeType.get should be("application/vnd.android.package-archive");
+        summary2.contentType.get should be("Game");
     }
 
     it should "generate a session even though OE_START and OE_END are present" in {
