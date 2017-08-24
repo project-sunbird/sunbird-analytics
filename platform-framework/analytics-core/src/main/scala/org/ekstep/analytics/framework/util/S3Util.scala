@@ -98,7 +98,20 @@ object S3Util {
                 JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
         }
     }
-
+    
+    def deleteFolder(bucketName: String, folder: String) = {
+        try {
+            val s3Objects = s3Service.listObjects(bucketName, folder, null);
+            s3Objects.foreach { x =>  
+                s3Service.deleteObject(bucketName, x.getKey)
+            }
+        } catch {
+            case ex: S3ServiceException =>
+                ex.printStackTrace();
+                JobLogger.log("Unable to delete folder", Option(Map("bucket" -> bucketName, "folder" -> folder)), ERROR);
+        }
+    }
+    
     def getObject(bucketName: String, key: String): Array[String] = {
 
         try {

@@ -16,10 +16,9 @@ import org.apache.spark.util.Distribution
 import org.ekstep.analytics.updater.IInfluxDBUpdater
 import org.ekstep.analytics.framework.Empty
 import org.ekstep.analytics.framework.dispatcher.InfluxDBDispatcher.InfluxRecord
+import org.ekstep.analytics.util.BEEvent
 
-case class BEEventEks(rid: Option[String], duration: Option[Int], status: Option[Int], method: Option[String], path: Option[String])
-case class BEEventEdata(eks: BEEventEks)
-case class BEEvent(eid: String, edata: BEEventEdata) extends Input with AlgoInput;
+
 
 case class APIUsageSummary(rid: String, path: String, method: String, count: Int, min: Double, max: Double, average: Double) extends AlgoOutput with Output
 

@@ -13,9 +13,9 @@ import org.apache.spark.SparkContext
 /**
  * @author Santhosh
  */
-object S3Dispatcher extends IDispatcher {
+object S3FileDispatcher extends IDispatcher {
 
-    implicit val className = "org.ekstep.analytics.framework.dispatcher.S3Dispatcher"
+    implicit val className = "org.ekstep.analytics.framework.dispatcher.S3FileDispatcher"
 
     @throws(classOf[DispatcherException])
     def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
@@ -44,15 +44,7 @@ object S3Dispatcher extends IDispatcher {
     }
     
     def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
-        
-        val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
-        val key = config.getOrElse("key", null).asInstanceOf[String];
-        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
-
-        if (null == bucket || null == key) {
-            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to S3")
-        }
-        events.saveAsTextFile("s3n://" + bucket + "/" + key);
+        dispatch(events.collect(), config);
     }
 
 }
