@@ -48,15 +48,14 @@ object BatchJobDriver {
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         models.foreach { model =>
             JobContext.jobName = model.name
-            // TODO: It is not necessary that the end date always exists. The below log statement might throw exceptions
-            JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config, "model" -> model.name, "date" -> config.search.queries.get.last.endDate)));
+            JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config)));
             try {
                 val result = _processModel(config, data, model);
-                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("model" -> model.name, "date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
+                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
             } catch {
                 case ex: Exception =>
                     JobLogger.log(ex.getMessage, None, ERROR);
-                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("model" -> model.name, "date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "statusMsg" -> ex.getMessage)));
+                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("date" -> config.search.queries.get.last.endDate, "inputEvents" -> count)));
                     ex.printStackTrace();
             }
         }
@@ -75,8 +74,7 @@ object BatchJobDriver {
     private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext): (Long, Long) = {
 
         CommonUtil.time({
-            val output = model.execute(data, config.modelParams).cache();
-            JobContext.recordRDD(output);
+            val output = model.execute(data, config.modelParams);
             val count = OutputDispatcher.dispatch(config.output, output);
             JobContext.cleanUpRDDs();
             count;

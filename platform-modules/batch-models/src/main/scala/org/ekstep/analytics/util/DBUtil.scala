@@ -12,7 +12,7 @@ object DBUtil {
          rdd.map { x => 
              val values = x.split(text_delimiter)
              val body = values(1).getBytes
-             ContentData(values(0), Option(body), Option(new DateTime(System.currentTimeMillis())), Option(body), None)
+             ContentData(values(0), Option(body), Option(new DateTime(System.currentTimeMillis())), Option(body))
          }.saveToCassandra(keyspace, table)
     }
     

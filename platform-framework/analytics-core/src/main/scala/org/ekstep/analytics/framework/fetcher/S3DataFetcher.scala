@@ -20,11 +20,7 @@ object S3DataFetcher {
     def getObjectKeys(queries: Array[Query]): Array[String] = {
 
         val keys = for(query <- queries) yield {
-            val paths = if(query.folder.isDefined && query.endDate.isDefined && query.folder.getOrElse("false").equals("true")) {
-                Array("s3n://"+getBucket(query.bucket)+"/"+getPrefix(query.prefix) + query.endDate.get)
-            } else {
-                getKeys(query);
-            }
+            val paths = S3Util.search(getBucket(query.bucket), getPrefix(query.prefix), query.startDate, query.endDate, query.delta, query.datePattern.getOrElse("yyyy-MM-dd")).filterNot { x => x.isEmpty() };
             if(query.excludePrefix.isDefined) {
                 paths.filter { x => !x.contains(query.excludePrefix.get) }
             } else {
@@ -34,16 +30,12 @@ object S3DataFetcher {
         keys.flatMap { x => x.map { x => x } }
     }
     
-    private def getKeys(query: Query) : Array[String] = {
-        S3Util.search(getBucket(query.bucket), getPrefix(query.prefix), query.startDate, query.endDate, query.delta, query.datePattern.getOrElse("yyyy-MM-dd")).filterNot { x => x.isEmpty() }
-    }
-    
     private def getBucket(bucket: Option[String]) : String = {
-        bucket.getOrElse("ekstep-prod-data-store");
+        bucket.getOrElse("ekstep-telemetry");
     }
     
     private def getPrefix(prefix: Option[String]) : String = {
-        prefix.getOrElse("raw/");
+        prefix.getOrElse("prod.telemetry.unique-");
     }
 
 }

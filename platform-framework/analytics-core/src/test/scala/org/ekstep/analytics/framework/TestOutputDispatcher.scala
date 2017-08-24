@@ -34,8 +34,8 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
     }
     
     it should "dispatch output to s3" in {
-        val output1 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
-        val output2 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
+        val output1 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
+        val output2 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         noException should be thrownBy {
             OutputDispatcher.dispatch(output1, events);
             OutputDispatcher.dispatch(output2, events);

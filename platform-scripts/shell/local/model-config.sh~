@@ -10,9 +10,6 @@ config() {
 	   	"is")
 	   	echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ItemSummary","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":8,"appName":"Item Summarizer","deviceMapping":false}'
 	   	;;
-        "precomp-views")
-	   	echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"raw/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.views.PrecomputedViews","modelParams":{"apiVersion":"v2"},"output":[{"to":"console","params":{"printEvent": false}}],"parallelization":8,"appName":"Pre-computed Views","deviceMapping":false}'
-	   	;;
 	   	"dcus") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceContentUsageSummary","output":[{"to":"console","params":{"printEvent":false}},{"to":"file","params":{"file":"telemetry-derived.log"}}],"parallelization":10,"appName":"DeviceContentUsageSummary","deviceMapping":false}'
 		;;
@@ -64,12 +61,9 @@ config() {
 		"device-recos") 
 		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceRecommendationModel","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"DeviceRecommendationModel","deviceMapping":false}'
 		;;
-                "influxdb-updater") 
-		echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"ss/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.ContentVectorsModel","modelParams":{"content2vec.s3_bucket":"sandbox-data-store","content2vec.s3_key_prefix":"model/","python.home":"/usr/local/bin/","content2vec.model_path":"/tmp/content2vec/model/","content2vec_scripts_path":"../../python/main/vidyavaani","content2vec.kafka_topic":"sandbox.learning.graph.events","content2vec.kafka_broker_list":"172.31.1.92:9092","content2vec.corpus_path":"/tmp/content2vec/content_corpus/","content2vec.download_path":"/tmp/content2vec/download/","content2vec.search_request":{"request":{"filters":{"objectType":["Content"],"contentType":["Story","Worksheet","Collection","Game"],"status":["Live"]},"limit":100}}},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"ContentVectorsModel","deviceMapping":false}'
-		;;
-                "EOCRecommendation")
-               echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceRecommendationModel","output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"EOCRecommendationFunnelModel","deviceMapping":false}'
-                ;;
+		"RE-training-aggregation") 
+        	echo '{"search":{"type":"s3","queries":[{"bucket":"sandbox-data-store","prefix":"dus/","endDate":"'$endDate'","delta":0}]},"model":"org.ekstep.analytics.model.DeviceRecommendationTrainingModel","modelParams":{"bucket":"sandbox-data-store", "libfm.executable_path":"/usr/local/bin/", "libFMTrainConfig":"-dim 1,5,5 -iter 2000 -method als -task r -regular 1,1,0 -learn_rate 10 -seed 1000 -init_stdev 0.1", "localPath":"/mnt/data/analytics/RE-data", "key":"model/", "trainRatio":0.8, "testRatio":0.2, "dataLimit":-1, "live_content_limit":1000, "upload_model_s3":true, "num_bins":4, "tag_dimensions":15, "text_dimensions":15, "model_name":"fm.model"},"output":[{"to":"console","params":{"printEvent":false}}],"parallelization":10,"appName":"DeviceRecommendationTrainingModel","deviceMapping":false}'
+        	;;
 		*)  
 		echo "Unknown model code" 
       	exit 1 # Command to come out of the program with status 1

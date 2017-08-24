@@ -21,7 +21,6 @@
 	<modules>
 		<module>optional-master</module>
 		<module>batch-models</module>
-		<module>job-manager</module>
 	</modules>
 
 	<dependencies>
