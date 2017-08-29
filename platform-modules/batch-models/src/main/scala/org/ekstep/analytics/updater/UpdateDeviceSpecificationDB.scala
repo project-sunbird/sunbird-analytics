@@ -20,7 +20,7 @@ object UpdateDeviceSpecificationDB extends IBatchModelTemplate[ProfileEvent, Pro
     override def name: String = "UpdateDeviceSpecificationDB"
 
     override def preProcess(data: RDD[ProfileEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ProfileEvent] = {
-        val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_GENIE_START")));
+        val events = DataFilter.filter(data, Filter("eid", "IN", Option(List("GE_GENIE_START", "GE_START"))));
         DataFilter.filter(DataFilter.filter(events, Filter("edata", "ISNOTNULL", None)), Filter("edata.eks.dspec", "ISNOTNULL", None));
     }
 

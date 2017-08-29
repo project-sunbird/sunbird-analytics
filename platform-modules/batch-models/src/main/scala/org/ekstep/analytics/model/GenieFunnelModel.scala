@@ -161,7 +161,7 @@ object GenieFunnelModel extends SessionBatchModel[Event, MeasuredEvent] with IBa
         val genieLaunchSessions = getGenieLaunchSessions(data, idleTime);
 
         genieLaunchSessions.mapValues { x =>
-            val geStartEvents = DataFilter.filter(x, Filter("eid", "EQ", Option("GE_GENIE_START")))
+            val geStartEvents = DataFilter.filter(x, Filter("eid", "IN", Option(List("GE_GENIE_START", "GE_START"))))
             val dspec = if (geStartEvents.size > 0) {
                 if (null != geStartEvents.last.edata)
                     geStartEvents.last.edata.eks.dspec;

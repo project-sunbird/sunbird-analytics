@@ -66,7 +66,7 @@ object BatchJobDriver {
         if (config.deviceMapping.nonEmpty && config.deviceMapping.get) {
             JobContext.deviceMapping = mf.toString() match {
                 case "org.ekstep.analytics.framework.Event" =>
-                    data.map(x => x.asInstanceOf[Event]).filter { x => "GE_GENIE_START".equals(x.eid) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
+                    data.map(x => x.asInstanceOf[Event]).filter { x => ("GE_GENIE_START".equals(x.eid) || "GE_START".equals(x.eid)) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
                 case _ => Map()
             }
         }
