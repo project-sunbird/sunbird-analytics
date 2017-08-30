@@ -22,29 +22,38 @@ import play.api.mvc.Action
 
 @Singleton
 class JobController @Inject() (system: ActorSystem) extends BaseController {
-	implicit val className = "controllers.JobController";
-	val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor");
+    implicit val className = "controllers.JobController";
+    val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor");
 
-	def dataRequest() = Action.async { implicit request =>
-		val body: String = Json.stringify(request.body.asJson.get);
-		val result = ask(jobAPIActor, DataRequest(body, Context.sc, config)).mapTo[String];
-		result.map { x =>
-			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
-		}
-	}
+    def dataRequest() = Action.async { implicit request =>
+        val body: String = Json.stringify(request.body.asJson.get);
+        val result = ask(jobAPIActor, DataRequest(body, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
 
-	def getJob(clientKey: String, requestId: String) = Action.async { implicit request =>
-		val result = ask(jobAPIActor, GetDataRequest(clientKey, requestId, Context.sc, config)).mapTo[String];
-		result.map { x =>
-			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
-		}
-	}
+    def getJob(clientKey: String, requestId: String) = Action.async { implicit request =>
+        val result = ask(jobAPIActor, GetDataRequest(clientKey, requestId, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
 
-	def getJobList(clientKey: String) = Action.async { implicit request =>
-		val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.list.limit")))
-		val result = ask(jobAPIActor, DataRequestList(clientKey, limit, Context.sc, config)).mapTo[String];
-		result.map { x =>
-			Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
-		}
-	}
+    def getJobList(clientKey: String) = Action.async { implicit request =>
+        val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.list.limit")))
+        val result = ask(jobAPIActor, DataRequestList(clientKey, limit, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
+
+    def getTelemetry(channel: String) = Action.async { implicit request =>
+        val from = request.getQueryString("from").getOrElse("")
+        val to = request.getQueryString("to").getOrElse("")
+        val result = ask(jobAPIActor, ChannelData(channel, from, to, Context.sc, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
 }

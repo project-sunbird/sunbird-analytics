@@ -29,6 +29,11 @@ import org.ekstep.analytics.api.APIIds
 import org.joda.time.DateTime
 import org.ekstep.analytics.api.OutputFormat
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.util.S3Util
+import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.auth.profile.ProfileCredentialsProvider
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
+import com.amazonaws.HttpMethod
 
 /**
  * @author mahesh
@@ -37,141 +42,167 @@ import org.apache.commons.lang3.StringUtils
 // TODO: Need to refactor the entire Service.
 object JobAPIService {
 
-	case class DataRequest(request: String, sc: SparkContext, config: Config);
-	case class GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config);
-	case class DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config);
+    case class DataRequest(request: String, sc: SparkContext, config: Config);
+    case class GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config);
+    case class DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config);
 
-	def dataRequest(request: String)(implicit sc: SparkContext, config: Config): String = {
-		val body = JSONUtils.deserialize[RequestBody](request);
-		val isValid = _validateReq(body)
-		if ("true".equals(isValid.get("status").get)) {
-			val job = upsertRequest(body);
-			val response = CommonUtil.caseClassToMap(_createJobResponse(job))
-			JSONUtils.serialize(CommonUtil.OK(APIIds.DATA_REQUEST, response));
-		} else {
-			CommonUtil.errorResponseSerialized(APIIds.DATA_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
-		}
-	}
+    case class ChannelData(channel: String, from: String, to: String, sc: SparkContext, config: Config);
 
-	def getDataRequest(clientKey: String, requestId: String)(implicit sc: SparkContext, config: Config): String = {
-		val job = DBUtil.getJobRequest(requestId, clientKey);
-		if (null == job) {
-			CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
-		} else {
-			val jobStatusRes = _createJobResponse(job);
-			JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.caseClassToMap(jobStatusRes)));
-		}
-	}
+    def dataRequest(request: String)(implicit sc: SparkContext, config: Config): String = {
+        val body = JSONUtils.deserialize[RequestBody](request);
+        val isValid = _validateReq(body)
+        if ("true".equals(isValid.get("status").get)) {
+            val job = upsertRequest(body);
+            val response = CommonUtil.caseClassToMap(_createJobResponse(job))
+            JSONUtils.serialize(CommonUtil.OK(APIIds.DATA_REQUEST, response));
+        } else {
+            CommonUtil.errorResponseSerialized(APIIds.DATA_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
+        }
+    }
 
-	def getDataRequestList(clientKey: String, limit: Int)(implicit sc: SparkContext, config: Config): String = {
-		val currDate = DateTime.now();
-		val rdd = DBUtil.getJobRequestList(clientKey);
-		val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
-		val result = jobs.take(limit).map { x => _createJobResponse(x) }
-		JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.count()), "jobs" -> result)));
-	}
+    def getDataRequest(clientKey: String, requestId: String)(implicit sc: SparkContext, config: Config): String = {
+        val job = DBUtil.getJobRequest(requestId, clientKey);
+        if (null == job) {
+            CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
+        } else {
+            val jobStatusRes = _createJobResponse(job);
+            JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.caseClassToMap(jobStatusRes)));
+        }
+    }
 
-	private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
-		val outputFormat = body.request.output_format.getOrElse(config.getString("data_exhaust.output_format"))
-		val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default"));
-		val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId, body.params.get.client_key.get);
-		val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
-		val usrReq = body.request;
-		val request = Request(usrReq.filter, usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId));
-		if (null == job) {
-			_saveJobRequest(requestId, body.params.get.client_key.get, request);
-		} else {
-			if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
-				val retryLimit = config.getInt("data_exhaust.retry.limit");
-				val attempts = job.iteration.getOrElse(0);
-				if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, request, attempts); else job
-			} else job
-		}
-	}
+    def getDataRequestList(clientKey: String, limit: Int)(implicit sc: SparkContext, config: Config): String = {
+        val currDate = DateTime.now();
+        val rdd = DBUtil.getJobRequestList(clientKey);
+        val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
+        val result = jobs.take(limit).map { x => _createJobResponse(x) }
+        JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.count()), "jobs" -> result)));
+    }
 
-	private def _validateReq(body: RequestBody)(implicit config: Config): Map[String, String] = {
-		val params = body.params
-		val filter = body.request.filter;
-		val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
-		if (filter.isEmpty || params.isEmpty) {
-			val message = if (filter.isEmpty) "filter is empty" else "params is empty" ;
-			Map("status" -> "false", "message" -> message);
-		} else {
-			val datasetList = config.getStringList("data_exhaust.dataset.list");
-			if (outputFormat != null && !outputFormat.isEmpty && !(outputFormat.equals(OutputFormat.CSV) || outputFormat.equals(OutputFormat.JSON))) {
-				Map("status" -> "false", "message" -> "invalid type. It should be one of [csv, json].");
-			} else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
-				Map("status" -> "false", "message" -> "events should contains only one event.");
-			} else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty) {
-				val message = if (params.get.client_key.isEmpty) "client_key is empty" else "start date or end date is empty"
-				Map("status" -> "false", "message" -> message);
-			} else if (filter.get.tags.nonEmpty && 0 == filter.get.tags.getOrElse(Array()).length) {
-				Map("status" -> "false", "message" -> "tags are empty");
-			} else if (!datasetList.contains(body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default")))) {
-				val message = "invalid dataset_id. It should be one of "+ datasetList;
-				Map("status" -> "false", "message" -> message);
-			} else {
-				val endDate = filter.get.end_date.get
-				val startDate = filter.get.start_date.get
-				val days = CommonUtil.getDaysBetween(startDate, endDate)
-				if (CommonUtil.getPeriod(endDate) >= CommonUtil.getPeriod(CommonUtil.getToday))
-					Map("status" -> "false", "message" -> "end_date should be lesser than today's date..");
-				else if (0 > days)
-					Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your start_date & end_date");
-				else if (30 < days)
-					Map("status" -> "false", "message" -> "Date range should be < 30 days");
-				else Map("status" -> "true");
-			}
-		}
-	}
+    def getChannelData(channel: String, from: String, to: String)(implicit sc: SparkContext, config: Config): String = {
+        val bucket = config.getString("channel.data_exhaust.bucket")
 
-	private def getDateInMillis(date: DateTime): Option[Long] = {
-		if (null != date) Option(date.getMillis) else None
-	}
+        if (StringUtils.isBlank(from) || StringUtils.isBlank(to)) {
+            CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, "please provide 'from' & 'to' in query string", ResponseCode.CLIENT_ERROR.toString())
+        } else {
+            val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
+            
+            val listObjs = for (date <- dates) yield {
+                S3Util.getAllKeys(bucket, channel + "/" + date);
+            }
+            val objectKeys = listObjs.flatMap { x => x }
+            
+            if (objectKeys.length > 0) {
+                val urls = S3Util.getPreSignedUrls(bucket, objectKeys)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> urls._1, "expiresAt" -> urls._2)));
+            } else {
+                CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, "no data available with the given channel & date range", ResponseCode.CLIENT_ERROR.toString())
+            }
+        }
 
-	private def _createJobResponse(job: JobRequest): JobResponse = {
-		val processed = List(JobStatus.COMPLETED.toString(), JobStatus.FAILED.toString()).contains(job.status.get);
-		val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
-		val output = if (processed) {
-			val dfe = getDateInMillis(job.dt_first_event.getOrElse(null))
-			val dle = getDateInMillis(job.dt_last_event.getOrElse(null))
-			val de = getDateInMillis(job.dt_expiration.getOrElse(null))
-			Option(JobOutput(job.location, job.file_size, Option(created), dfe, dle, de))
-		} else Option(JobOutput());
+    }
 
-		val djp = getDateInMillis(job.dt_job_processing.getOrElse(null))
-		val djc = getDateInMillis(job.dt_job_completed.getOrElse(null))
-		val stats = if (processed) {
-			Option(JobStats(job.dt_job_submitted.get.getMillis, djp, djc, Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L))))
-		} else Option(JobStats(job.dt_job_submitted.get.getMillis))
-		val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
-		val lastupdated = djc.getOrElse(djp.getOrElse(job.dt_job_submitted.get.getMillis));
-		JobResponse(job.request_id.get, job.status.get, lastupdated, request, job.iteration.getOrElse(0), output, stats);
-	}
+    private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
+        val outputFormat = body.request.output_format.getOrElse(config.getString("data_exhaust.output_format"))
+        val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default"));
+        val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId, body.params.get.client_key.get);
+        val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
+        val usrReq = body.request;
+        val request = Request(usrReq.filter, usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId));
+        if (null == job) {
+            _saveJobRequest(requestId, body.params.get.client_key.get, request);
+        } else {
+            if (StringUtils.equalsIgnoreCase(JobStatus.FAILED.toString(), job.status.get)) {
+                val retryLimit = config.getInt("data_exhaust.retry.limit");
+                val attempts = job.iteration.getOrElse(0);
+                if (attempts < retryLimit) _saveJobRequest(requestId, body.params.get.client_key.get, request, attempts); else job
+            } else job
+        }
+    }
 
-	private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
-		val status = JobStatus.SUBMITTED.toString()
-		val jobSubmitted = DateTime.now()
-		val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-		DBUtil.saveJobRequest(jobRequest);
-		jobRequest;
-	}
+    private def _validateReq(body: RequestBody)(implicit config: Config): Map[String, String] = {
+        val params = body.params
+        val filter = body.request.filter;
+        val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
+        if (filter.isEmpty || params.isEmpty) {
+            val message = if (filter.isEmpty) "filter is empty" else "params is empty";
+            Map("status" -> "false", "message" -> message);
+        } else {
+            val datasetList = config.getStringList("data_exhaust.dataset.list");
+            if (outputFormat != null && !outputFormat.isEmpty && !(outputFormat.equals(OutputFormat.CSV) || outputFormat.equals(OutputFormat.JSON))) {
+                Map("status" -> "false", "message" -> "invalid type. It should be one of [csv, json].");
+            } else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
+                Map("status" -> "false", "message" -> "events should contains only one event.");
+            } else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty) {
+                val message = if (params.get.client_key.isEmpty) "client_key is empty" else "start date or end date is empty"
+                Map("status" -> "false", "message" -> message);
+            } else if (filter.get.tags.nonEmpty && 0 == filter.get.tags.getOrElse(Array()).length) {
+                Map("status" -> "false", "message" -> "tags are empty");
+            } else if (!datasetList.contains(body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default")))) {
+                val message = "invalid dataset_id. It should be one of " + datasetList;
+                Map("status" -> "false", "message" -> message);
+            } else {
+                val endDate = filter.get.end_date.get
+                val startDate = filter.get.start_date.get
+                val days = CommonUtil.getDaysBetween(startDate, endDate)
+                if (CommonUtil.getPeriod(endDate) >= CommonUtil.getPeriod(CommonUtil.getToday))
+                    Map("status" -> "false", "message" -> "end_date should be lesser than today's date..");
+                else if (0 > days)
+                    Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your start_date & end_date");
+                else if (30 < days)
+                    Map("status" -> "false", "message" -> "Date range should be < 30 days");
+                else Map("status" -> "true");
+            }
+        }
+    }
 
-	private def _getRequestId(filter: Filter, outputFormat: String, datasetId: String, clientKey: String): String = {
-		Sorting.quickSort(filter.tags.getOrElse(Array()));
-		Sorting.quickSort(filter.events.getOrElse(Array()));
-		val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId, clientKey).mkString("|");
-		MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
-	}
+    private def getDateInMillis(date: DateTime): Option[Long] = {
+        if (null != date) Option(date.getMillis) else None
+    }
+
+    private def _createJobResponse(job: JobRequest): JobResponse = {
+        val processed = List(JobStatus.COMPLETED.toString(), JobStatus.FAILED.toString()).contains(job.status.get);
+        val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
+        val output = if (processed) {
+            val dfe = getDateInMillis(job.dt_first_event.getOrElse(null))
+            val dle = getDateInMillis(job.dt_last_event.getOrElse(null))
+            val de = getDateInMillis(job.dt_expiration.getOrElse(null))
+            Option(JobOutput(job.location, job.file_size, Option(created), dfe, dle, de))
+        } else Option(JobOutput());
+
+        val djp = getDateInMillis(job.dt_job_processing.getOrElse(null))
+        val djc = getDateInMillis(job.dt_job_completed.getOrElse(null))
+        val stats = if (processed) {
+            Option(JobStats(job.dt_job_submitted.get.getMillis, djp, djc, Option(job.input_events.getOrElse(0)), Option(job.output_events.getOrElse(0)), Option(job.latency.getOrElse(0)), Option(job.execution_time.getOrElse(0L))))
+        } else Option(JobStats(job.dt_job_submitted.get.getMillis))
+        val request = JSONUtils.deserialize[Request](job.request_data.getOrElse("{}"))
+        val lastupdated = djc.getOrElse(djp.getOrElse(job.dt_job_submitted.get.getMillis));
+        JobResponse(job.request_id.get, job.status.get, lastupdated, request, job.iteration.getOrElse(0), output, stats);
+    }
+
+    private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
+        val status = JobStatus.SUBMITTED.toString()
+        val jobSubmitted = DateTime.now()
+        val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+        DBUtil.saveJobRequest(jobRequest);
+        jobRequest;
+    }
+
+    private def _getRequestId(filter: Filter, outputFormat: String, datasetId: String, clientKey: String): String = {
+        Sorting.quickSort(filter.tags.getOrElse(Array()));
+        Sorting.quickSort(filter.events.getOrElse(Array()));
+        val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId, clientKey).mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
+    }
 
 }
 
 class JobAPIService extends Actor {
-	import JobAPIService._;
+    import JobAPIService._;
 
-	def receive = {
-		case DataRequest(request: String, sc: SparkContext, config: Config) => sender() ! dataRequest(request)(sc, config);
-		case GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config) => sender() ! getDataRequest(clientKey, requestId)(sc, config);
-		case DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config) => sender() ! getDataRequestList(clientKey, limit)(sc, config);
-	}
+    def receive = {
+        case DataRequest(request: String, sc: SparkContext, config: Config)                           => sender() ! dataRequest(request)(sc, config);
+        case GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config)   => sender() ! getDataRequest(clientKey, requestId)(sc, config);
+        case DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config)         => sender() ! getDataRequestList(clientKey, limit)(sc, config);
+        case ChannelData(channel: String, from: String, to: String, sc: SparkContext, config: Config) => sender() ! getChannelData(channel, from, to)(sc, config);
+    }
 }

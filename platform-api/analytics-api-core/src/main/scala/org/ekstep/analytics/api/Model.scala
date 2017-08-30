@@ -92,6 +92,7 @@ object APIIds {
 	val GENIE_LUNCH = "ekstep.analytics.metrics.genie-launch"
 	val CREATION_RECOMMENDATIONS = "ekstep.analytics.creation.recommendations"
 	val METRICS_API = "org.ekstep.analytics.metrics"
+	val CHANNEL_TELEMETRY_EXHAUST = "org.ekstep.analytics.telemetry"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);

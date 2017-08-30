@@ -132,8 +132,6 @@ class TestJobAPIService extends SparkSpec {
         val res1 = JSONUtils.deserialize[Response](jobs1)
         val resultMap1 = res1.result.get.asInstanceOf[Map[String, AnyRef]]
         resultMap1.get("count").get.asInstanceOf[Int] should be (0)
-        
-        
     }
     
     "JobAPIService" should "return different request id for same data having different client keys" in {
@@ -147,4 +145,8 @@ class TestJobAPIService extends SparkSpec {
 
     }
 
+    it should "test channel based raw-telemetry exhaust data" in {
+        val res = JobAPIService.getChannelData("secor-upgrade/backend", "2017-08-27", "2017-08-29")
+        println(res)
+    }
 }

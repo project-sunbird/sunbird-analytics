@@ -20,6 +20,16 @@ import java.util.Calendar
 import java.util.TimeZone
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
+import com.amazonaws.services.s3.AmazonS3Client
+import com.typesafe.config.Config
+import com.amazonaws.ClientConfiguration
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
+import com.amazonaws.HttpMethod
+import java.util.Date
+import com.amazonaws.SDKGlobalConfiguration
+import com.amazonaws.regions.Region
+import com.amazonaws.regions.Regions
 
 object S3Util {
 
@@ -34,6 +44,30 @@ object S3Util {
         s3Object.setKey(key)
         val fileObj = s3Service.putObject(bucketName, s3Object);
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
+    }
+
+    def getPreSignedUrls(bucket: String, objectKeys: Array[String])(implicit config: Config): (Array[String], Date) = {
+
+        val s3Client = new AmazonS3Client(new BasicAWSCredentials(AppConf.getAwsKey(), AppConf.getAwsSecret()));
+        System.setProperty(SDKGlobalConfiguration.ENABLE_S3_SIGV4_SYSTEM_PROPERTY, "true");
+
+        val expHours = config.getInt("channel.data_exhaust.expiration")
+        val expiration = new java.util.Date();
+        val msec = expiration.getTime() + 1000 * 60 * 60 * expHours;
+        expiration.setTime(msec);
+
+        val urls = objectKeys.map { objectKey =>
+            val generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucket, objectKey);
+            generatePresignedUrlRequest.setMethod(HttpMethod.PUT);
+            generatePresignedUrlRequest.setExpiration(expiration);
+            s3Client.generatePresignedUrl(generatePresignedUrlRequest)
+        }.map { url => url.toString }
+
+        for (url <- urls) {
+            println(url)
+        }
+
+        (urls, expiration)
     }
 
     def uploadDirectory(bucketName: String, prefix: String, dir: String) {
@@ -61,9 +95,9 @@ object S3Util {
             CommonUtil.copyFile(fileObj.getDataInputStream(), localPath, file);
         }
     }
-    
+
     def downloadDirectory(bucketName: String, prefix: String, localPath: String) {
-    	val objectArr = s3Service.listObjects(bucketName, prefix, null)
+        val objectArr = s3Service.listObjects(bucketName, prefix, null)
         val objects = getAllKeys(bucketName, prefix)
         for (obj <- objectArr) {
             val key = obj.getKey
@@ -134,7 +168,7 @@ object S3Util {
         val fileObj = s3Service.putObject(bucketName, s3Object);
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
-    
+
     def uploadPublicWithExpiry(bucketName: String, filePath: String, key: String, expiryInDays: Int): String = {
 
         val s3Object = new S3Object(new File(filePath));
@@ -146,7 +180,7 @@ object S3Util {
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag, "signedUrl" -> signedUrl)));
         signedUrl;
     }
-    
+
     def getAllKeys(bucketName: String, prefix: String): Array[String] = {
         val s3Objects = s3Service.listObjects(bucketName, prefix, null);
         s3Objects.map { x => x.getKey }
@@ -168,5 +202,4 @@ object S3Util {
     def getPath(bucket: String, prefix: String): Array[String] = {
         S3Util.getAllKeys(bucket, prefix).map { x => "s3n://" + bucket + "/" + x };
     }
-
 }
