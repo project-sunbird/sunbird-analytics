@@ -69,14 +69,14 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                 var tmpArr = Buffer[Event]();
                 sortedEvents.foreach { y =>
                     y.eid match {
-                        case "GE_GENIE_START" =>
+                        case "GE_GENIE_START" | "GE_START" =>
                             if (tmpArr.length > 0) {
                                 sessions += tmpArr;
                                 tmpArr = Buffer[Event]();
                             }
                             tmpArr += y;
 
-                        case "GE_GENIE_END" =>
+                        case "GE_GENIE_END" | "GE_END" =>
                             if (!tmpArr.isEmpty) {
                                 val event = tmpArr.last
                                 val timeSpent = CommonUtil.getTimeDiff(CommonUtil.getEventTS(event), CommonUtil.getEventTS(y)).get

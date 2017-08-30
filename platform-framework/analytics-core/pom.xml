@@ -55,6 +55,12 @@
 			<artifactId>spark-streaming-kafka_${scala.maj.version}</artifactId>
 			<version>1.6.2</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.kafka</groupId>
+		    		<artifactId>kafka_2.11</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.thoughtworks.paranamer</groupId>
@@ -145,6 +151,18 @@
 			<artifactId>netty-http-pipelining</artifactId>
 			<version>1.1.4</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.10.0.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka_2.11 -->
+		<dependency>
+		    <groupId>org.apache.kafka</groupId>
+		    <artifactId>kafka_2.11</artifactId>
+		    <version>0.10.0.1</version>
+		    <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>

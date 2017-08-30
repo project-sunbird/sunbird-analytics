@@ -58,7 +58,7 @@ case class UsageSummaryView(d_period: Int, d_user_id: String, d_content_id: Stri
 case class ConfigDetails(keyspace: String, table: String, periodfrom: String, periodUpTo: String, filePrefix: String, fileSuffix: String, dispatchTo: String, dispatchParams: Map[String, AnyRef]);
 
 // Content Store
-case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]]);
+case class ContentData(content_id: String, body: Option[Array[Byte]], last_updated_on: Option[DateTime], oldbody: Option[Array[Byte]], stageicons: Option[Array[Byte]]);
 
 /* Job Request & Data Exhaust */
 case class JobRequest(client_key: String, request_id: String, job_id: Option[String], status: String, request_data: String,
@@ -73,3 +73,8 @@ case class RequestOutput(request_id: String, output_events: Int)
 case class DataExhaustJobInput(eventDate: Long, event: String, eid: String) extends AlgoInput;
 case class JobResponse(client_key: String, request_id: String, job_id: String, output_events: Long, bucket: String, prefix: String, first_event_date: Long, last_event_date: Long);
 case class JobStage(request_id: String, client_key: String, stage: String, stage_status: String, status: String, err_message: String = "")
+
+// Backend Event
+case class BEEventEks(rid: Option[String], duration: Option[Int], status: Option[Int], method: Option[String], path: Option[String])
+case class BEEventEdata(eks: BEEventEks)
+case class BEEvent(eid: String, edata: BEEventEdata) extends Input with AlgoInput;
