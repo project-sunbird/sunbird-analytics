@@ -16,6 +16,8 @@ import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.Action
+import akka.dispatch.Await
+
 
 /**
  * @author mahesh
@@ -53,7 +55,8 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         val from = request.getQueryString("from").getOrElse("")
         val to = request.getQueryString("to").getOrElse(org.ekstep.analytics.api.util.CommonUtil.getToday())
         val result = ask(jobAPIActor, ChannelData(datasetId, channel, from, to, Context.sc, config)).mapTo[String];
-        result.map { x =>
+        val res = Await.result(result, 100 second)
+        res.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }
     }
