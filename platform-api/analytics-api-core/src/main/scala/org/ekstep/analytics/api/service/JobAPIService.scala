@@ -201,7 +201,7 @@ object JobAPIService {
             return Map("status" -> "false", "message" -> "Please provide 'from' in query string");
         }
         val days = CommonUtil.getDaysBetween(from, to)
-        if (StringUtils.equals("eks-consumption-raw", datasetId)) {
+        if (!StringUtils.equals("eks-consumption-raw", datasetId)) {
             return Map("status" -> "false", "message" -> "Please provide 'datasetId' as 'eks-consumption-raw' in your request URL");
         } else if (CommonUtil.getPeriod(to) > CommonUtil.getPeriod(CommonUtil.getToday))
             return Map("status" -> "false", "message" -> "'to' should be LESSER OR EQUAL TO today's date..");
