@@ -46,7 +46,7 @@ object JobAPIService {
     case class GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config);
     case class DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config);
 
-    case class ChannelData(channel: String, from: String, to: String, sc: SparkContext, config: Config);
+    case class ChannelData(datasetId: String, channel: String, from: String, to: String, sc: SparkContext, config: Config);
 
     def dataRequest(request: String)(implicit sc: SparkContext, config: Config): String = {
         val body = JSONUtils.deserialize[RequestBody](request);
@@ -78,25 +78,27 @@ object JobAPIService {
         JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.count()), "jobs" -> result)));
     }
 
-    def getChannelData(channel: String, from: String, to: String)(implicit sc: SparkContext, config: Config): String = {
-        val bucket = config.getString("channel.data_exhaust.bucket")
+    def getChannelData(datasetId: String, channel: String, from: String, to: String)(implicit sc: SparkContext, config: Config): String = {
 
-        if (StringUtils.isBlank(from) || StringUtils.isBlank(to)) {
-            CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, "please provide 'from' & 'to' in query string", ResponseCode.CLIENT_ERROR.toString())
-        } else {
+        val isValid = _validateChannelDataReqDtRange(datasetId, from, to)
+        if ("true".equals(isValid.get("status").get)) {
+            val bucket = config.getString("channel.data_exhaust.bucket")
+            val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
-            
+
             val listObjs = for (date <- dates) yield {
                 S3Util.getAllKeys(bucket, channel + "/" + date);
             }
             val objectKeys = listObjs.flatMap { x => x }
-            
+
             if (objectKeys.length > 0) {
-                val urls = S3Util.getPreSignedUrls(bucket, objectKeys)
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> urls._1, "expiresAt" -> urls._2)));
+                val res = objectKeys.map { key => S3Util.getPreSignedURL(bucket, key, expiry) }
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res.map(x => x._1), "expiresAt" -> Long.box(res.map(x => x._2).last))));
             } else {
-                CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, "no data available with the given channel & date range", ResponseCode.CLIENT_ERROR.toString())
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l))));
             }
+        } else {
+            CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
         }
 
     }
@@ -193,16 +195,31 @@ object JobAPIService {
         val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId, clientKey).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
+    private def _validateChannelDataReqDtRange(datasetId: String, from: String, to: String): Map[String, String] = {
 
+        if (StringUtils.isBlank(from)) {
+            return Map("status" -> "false", "message" -> "Please provide 'from' in query string");
+        }
+        val days = CommonUtil.getDaysBetween(from, to)
+        if (StringUtils.equals("eks-consumption-raw", datasetId)) {
+            return Map("status" -> "false", "message" -> "Please provide 'datasetId' as 'eks-consumption-raw' in your request URL");
+        } else if (CommonUtil.getPeriod(to) > CommonUtil.getPeriod(CommonUtil.getToday))
+            return Map("status" -> "false", "message" -> "'to' should be LESSER OR EQUAL TO today's date..");
+        else if (0 > days)
+            return Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your 'from' & 'to'");
+        else if (10 < days)
+            return Map("status" -> "false", "message" -> "Date range should be < 10 days");
+        else return Map("status" -> "true");
+    }
 }
 
 class JobAPIService extends Actor {
     import JobAPIService._;
 
     def receive = {
-        case DataRequest(request: String, sc: SparkContext, config: Config)                           => sender() ! dataRequest(request)(sc, config);
-        case GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config)   => sender() ! getDataRequest(clientKey, requestId)(sc, config);
-        case DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config)         => sender() ! getDataRequestList(clientKey, limit)(sc, config);
-        case ChannelData(channel: String, from: String, to: String, sc: SparkContext, config: Config) => sender() ! getChannelData(channel, from, to)(sc, config);
+        case DataRequest(request: String, sc: SparkContext, config: Config) => sender() ! dataRequest(request)(sc, config);
+        case GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config) => sender() ! getDataRequest(clientKey, requestId)(sc, config);
+        case DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config) => sender() ! getDataRequestList(clientKey, limit)(sc, config);
+        case ChannelData(datasetId: String, channel: String, from: String, to: String, sc: SparkContext, config: Config) => sender() ! getChannelData(datasetId, channel, from, to)(sc, config);
     }
 }

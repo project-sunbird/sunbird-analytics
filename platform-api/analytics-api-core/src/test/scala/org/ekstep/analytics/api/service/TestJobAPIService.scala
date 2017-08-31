@@ -146,7 +146,8 @@ class TestJobAPIService extends SparkSpec {
     }
 
     it should "test channel based raw-telemetry exhaust data" in {
-        val res = JobAPIService.getChannelData("secor-upgrade/backend", "2017-08-27", "2017-08-29")
+        //val res = JobAPIService.getChannelData("secor-upgrade/backend", "2017-08-27", "2017-08-29")
+        val res = JobAPIService.getChannelData("eks-consumption-raw","raw", "2017-08-28", "2017-08-31")
         println(res)
     }
 }

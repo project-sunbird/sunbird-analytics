@@ -38,6 +38,9 @@ object S3Util {
     private val awsCredentials = new AWSCredentials(AppConf.getAwsKey(), AppConf.getAwsSecret());
     private val s3Service = new RestS3Service(awsCredentials);
 
+    private val signatureVersion = AppConf.getConfig("storage-service.request-signature-version");
+    private val storageRegion = AppConf.getConfig("s3service.region");
+
     def upload(bucketName: String, filePath: String, key: String) {
         JobLogger.log("Uploading file to S3. Bucket", Option(Map("bucketName" -> bucketName, "FilePath" -> filePath)))
         val s3Object = new S3Object(new File(filePath));
@@ -46,28 +49,12 @@ object S3Util {
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
 
-    def getPreSignedUrls(bucket: String, objectKeys: Array[String])(implicit config: Config): (Array[String], Date) = {
+    def getPreSignedURL(bucketName: String, key: String, expiry: Int): (String, Long) = {
 
-        val s3Client = new AmazonS3Client(new BasicAWSCredentials(AppConf.getAwsKey(), AppConf.getAwsSecret()));
-        System.setProperty(SDKGlobalConfiguration.ENABLE_S3_SIGV4_SYSTEM_PROPERTY, "true");
-
-        val expHours = config.getInt("channel.data_exhaust.expiration")
-        val expiration = new java.util.Date();
-        val msec = expiration.getTime() + 1000 * 60 * 60 * expHours;
-        expiration.setTime(msec);
-
-        val urls = objectKeys.map { objectKey =>
-            val generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucket, objectKey);
-            generatePresignedUrlRequest.setMethod(HttpMethod.PUT);
-            generatePresignedUrlRequest.setExpiration(expiration);
-            s3Client.generatePresignedUrl(generatePresignedUrlRequest)
-        }.map { url => url.toString }
-
-        for (url <- urls) {
-            println(url)
-        }
-
-        (urls, expiration)
+        val calendar = Calendar.getInstance();
+        calendar.add(Calendar.MINUTE, expiry);
+        val expiryTime = calendar.getTime().getTime() / 1000;
+        (s3Service.createSignedUrlUsingSignatureVersion(signatureVersion, storageRegion, "GET", bucketName, key, null, null, expiryTime, false, true, false), expiryTime);
     }
 
     def uploadDirectory(bucketName: String, prefix: String, dir: String) {
@@ -132,11 +119,11 @@ object S3Util {
                 JobLogger.log("Key not found in the given bucket", Option(Map("bucket" -> bucketName, "key" -> key)), ERROR);
         }
     }
-    
+
     def deleteFolder(bucketName: String, folder: String) = {
         try {
             val s3Objects = s3Service.listObjects(bucketName, folder, null);
-            s3Objects.foreach { x =>  
+            s3Objects.foreach { x =>
                 s3Service.deleteObject(bucketName, x.getKey)
             }
         } catch {
@@ -145,7 +132,7 @@ object S3Util {
                 JobLogger.log("Unable to delete folder", Option(Map("bucket" -> bucketName, "folder" -> folder)), ERROR);
         }
     }
-    
+
     def getObject(bucketName: String, key: String): Array[String] = {
 
         try {
