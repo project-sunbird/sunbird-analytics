@@ -4,6 +4,7 @@ import org.ekstep.analytics.api.service.JobAPIService
 import org.ekstep.analytics.api.service.JobAPIService.DataRequest
 import org.ekstep.analytics.api.service.JobAPIService.DataRequestList
 import org.ekstep.analytics.api.service.JobAPIService.GetDataRequest
+import org.ekstep.analytics.api.service.JobAPIService.ChannelData
 
 import akka.actor.ActorSystem
 import akka.actor.Props
