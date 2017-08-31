@@ -92,8 +92,8 @@ object JobAPIService {
             val objectKeys = listObjs.flatMap { x => x }
 
             if (objectKeys.length > 0) {
-                val res = objectKeys.map { key => S3Util.getPreSignedURL(bucket, key, expiry) }
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res.map(x => x._1), "expiresAt" -> Long.box(res.map(x => x._2).last))));
+                val res = S3Util.getPreSignedURL(bucket, objectKeys, expiry)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res._1, "expiresAt" -> Long.box(res._2))));
             } else {
                 JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l))));
             }

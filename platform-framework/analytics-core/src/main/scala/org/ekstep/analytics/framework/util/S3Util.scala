@@ -49,12 +49,15 @@ object S3Util {
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
 
-    def getPreSignedURL(bucketName: String, key: String, expiry: Int): (String, Long) = {
+    def getPreSignedURL(bucketName: String, keys: Array[String], expiry: Int): (Array[String], Long) = {
 
         val calendar = Calendar.getInstance();
         calendar.add(Calendar.MINUTE, expiry);
         val expiryTime = calendar.getTime().getTime() / 1000;
-        (s3Service.createSignedUrlUsingSignatureVersion(signatureVersion, storageRegion, "GET", bucketName, key, null, null, expiryTime, false, true, false), expiryTime);
+        val urls = for (key <- keys) yield {
+            s3Service.createSignedUrlUsingSignatureVersion(signatureVersion, storageRegion, "GET", bucketName, key, null, null, expiryTime, false, true, false);
+        }
+        (urls, expiryTime)
     }
 
     def uploadDirectory(bucketName: String, prefix: String, dir: String) {

@@ -171,6 +171,13 @@ class JobsAPISpec extends BaseSpec with Serializable {
             status(response) must equalTo(OK)
             contentAsString(response) must contain(""""count":1""")
         }
+        
+        "return telemetry with channel" in {
+            val response = route(FakeRequest(GET, "/dataset/request/eks-consumption-raw/raw?from=2017-08-28&to=2017-08-30")).get
+            status(response) must equalTo(OK)
+            println(response)
+            contentAsString(response) must contain(""""count":1""")
+        }
 
     }
 }
