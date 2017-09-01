@@ -16,9 +16,6 @@ import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.Action
-import akka.actor._
-import akka.util.Timeout
-
 
 /**
  * @author mahesh
@@ -55,11 +52,8 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
     def getTelemetry(datasetId: String, channel: String) = Action.async { implicit request =>
         val from = request.getQueryString("from").getOrElse("")
         val to = request.getQueryString("to").getOrElse(org.ekstep.analytics.api.util.CommonUtil.getToday())
-        implicit val timeout = Timeout(100 seconds)
-        
         val result = ask(jobAPIActor, ChannelData(datasetId, channel, from, to, Context.sc, config)).mapTo[String];
-        val res = Await.result(result, timeout.duration)
-        res.map { x =>
+        result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }
     }
