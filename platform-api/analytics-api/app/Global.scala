@@ -7,11 +7,13 @@ import context.Context
 import org.ekstep.analytics.framework.util.RestUtil
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.ContentCacheUtil
+import util.APILogger
 
 object Global extends WithFilters(RequestInterceptor) {
 
     override def beforeStart(app: Application) {
         Context.setSparkContext();
+        APILogger.init("org.ekstep.analytics-api")
         Logger.info("Caching content")
         val config: Config = play.Play.application.configuration.underlying();
         ContentCacheUtil.initCache()(Context.sc, config);

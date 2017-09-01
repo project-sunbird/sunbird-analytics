@@ -49,15 +49,9 @@ object S3Util {
         JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
     }
 
-    def getPreSignedURL(bucketName: String, keys: Array[String], expiry: Int): (Array[String], Long) = {
+    def getPreSignedURL(bucketName: String, key: String, expiryTimeInSecs: Long): String = {
 
-        val calendar = Calendar.getInstance();
-        calendar.add(Calendar.MINUTE, expiry);
-        val expiryTime = calendar.getTime().getTime() / 1000;
-        val urls = for (key <- keys) yield {
-            s3Service.createSignedUrlUsingSignatureVersion(signatureVersion, storageRegion, "GET", bucketName, key, null, null, expiryTime, false, true, false);
-        }
-        (urls, expiryTime)
+        s3Service.createSignedUrlUsingSignatureVersion(signatureVersion, storageRegion, "GET", bucketName, key, null, null, expiryTimeInSecs, false, true, false);
     }
 
     def uploadDirectory(bucketName: String, prefix: String, dir: String) {
@@ -187,6 +181,19 @@ object S3Util {
     def getAllKeys(bucketName: String, prefix: String): Array[String] = {
         val s3Objects = s3Service.listObjects(bucketName, prefix, null);
         s3Objects.map { x => x.getKey }
+    }
+    
+    def searchKeys(bucketName: String, prefix: String, fromDate: Option[String] = None, toDate: Option[String] = None, delta: Option[Int] = None, pattern: String = "yyyy-MM-dd"): Array[String] = {
+        val from = if (delta.nonEmpty) CommonUtil.getStartDate(toDate, delta.get) else fromDate;
+        if (from.nonEmpty) {
+            val dates = CommonUtil.getDatesBetween(from.get, toDate, pattern);
+            val paths = for (date <- dates) yield {
+                S3Util.getAllKeys(bucketName, prefix + date)
+            }
+            paths.flatMap { x => x.map { x => x } };
+        } else {
+            S3Util.getAllKeys(bucketName, prefix)
+        }
     }
 
     def search(bucketName: String, prefix: String, fromDate: Option[String] = None, toDate: Option[String] = None, delta: Option[Int] = None, pattern: String = "yyyy-MM-dd"): Array[String] = {

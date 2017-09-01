@@ -34,6 +34,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import com.amazonaws.HttpMethod
+import java.util.Calendar
 
 /**
  * @author mahesh
@@ -86,21 +87,24 @@ object JobAPIService {
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
 
-            val listObjs = for (date <- dates) yield {
-                S3Util.getAllKeys(bucket, channel + "/" + date);
-            }
-            val objectKeys = listObjs.flatMap { x => x }
+            val listObjs = S3Util.searchKeys(bucket, channel + "/", Option(from), Option(to), None, "yyyy-MM-dd");
 
-            if (objectKeys.length > 0) {
-                val res = S3Util.getPreSignedURL(bucket, objectKeys, expiry)
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res._1, "expiresAt" -> Long.box(res._2))));
+            val calendar = Calendar.getInstance();
+            calendar.add(Calendar.MINUTE, expiry);
+            val expiryTime = calendar.getTime().getTime();
+            val expiryTimeInSeconds = expiryTime/ 1000;
+
+            if (listObjs.length > 0) {
+                val res = for (key <- listObjs) yield {
+                    S3Util.getPreSignedURL(bucket, key, expiryTimeInSeconds)
+                }
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime))));
             } else {
                 JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l))));
             }
         } else {
             CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
         }
-
     }
 
     private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
