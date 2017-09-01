@@ -17,7 +17,7 @@ object JobMonitor {
         val dataMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]];
         val jobdata = dataMap.getOrElse("data", Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]];
         val jobName = jobdata.getOrElse("model", "").asInstanceOf[String];
-        val date = jobdata.getOrElse("config", "").asInstanceOf[String];
+        val date = jobdata.getOrElse("date", "").asInstanceOf[String];
         s"*Job*: `$jobName` | Status: `Started` | Date: `$date`";
     }
     
@@ -26,11 +26,11 @@ object JobMonitor {
         val status = dataMap.getOrElse("status", "FAILED").asInstanceOf[String];
         val jobdata = dataMap.getOrElse("data", Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]];
         val jobName = jobdata.getOrElse("model", "").asInstanceOf[String];
-        val date = jobdata.getOrElse("config", "").asInstanceOf[String];
-        val inputEvents = jobdata.getOrElse("inputEvents", "NA").asInstanceOf[String];
+        val date = jobdata.getOrElse("date", "").asInstanceOf[String];
+        val inputEvents = jobdata.getOrElse("inputEvents", 0).asInstanceOf[Number].toString();
         if("SUCCESS".equals(status)) {
-            val outputEvents = jobdata.getOrElse("outputEvents", "NA").asInstanceOf[String];
-            val timeTaken = jobdata.getOrElse("timeTaken", "NA").asInstanceOf[String];
+            val outputEvents = jobdata.getOrElse("outputEvents", 0).asInstanceOf[Number].toString();
+            val timeTaken = jobdata.getOrElse("timeTaken", 0).asInstanceOf[Number].toString();
             s"*Job*: `$jobName` | Status: `$status` | Date: `$date` | inputEvents: `$inputEvents` | outputEvents: `$outputEvents` | timeTaken: `$timeTaken`";
         } else {
             val statusMsg = jobdata.getOrElse("statusMsg", "NA").asInstanceOf[String];
