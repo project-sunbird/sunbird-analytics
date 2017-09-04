@@ -21,7 +21,7 @@ class BaseMetric(val d_period: Option[Int] = None) extends AnyRef with Serializa
 trait Metrics extends BaseMetric with Serializable
 trait IMetricsModel[T <: Metrics, R <: Metrics] {
 
-    val periodMap = Map[String, (Period, Int)]("LAST_7_DAYS" -> (DAY, 7), "LAST_14_DAYS" -> (DAY, 14), "LAST_5_WEEKS" -> (WEEK, 5), "LAST_12_MONTHS" -> (MONTH, 12), "CUMULATIVE" -> (CUMULATIVE, 0));
+    val periodMap = Map[String, (Period, Int)]("LAST_7_DAYS" -> (DAY, 7), "LAST_14_DAYS" -> (DAY, 14), "LAST_30_DAYS" -> (DAY, 30), "LAST_5_WEEKS" -> (WEEK, 5), "LAST_12_MONTHS" -> (MONTH, 12), "CUMULATIVE" -> (CUMULATIVE, 0));
 
     /**
      * Name of the metric.
