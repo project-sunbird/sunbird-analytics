@@ -9,6 +9,8 @@ import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.Level._
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.DateTime
 
 /**
  * @author mahesh
@@ -21,7 +23,7 @@ trait IGraphExecutionModel extends IGraphExecutionModelTemplate with optional.Ap
 	
 	def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.init(name)
-        JobLogger.start("Started processing of " + name, Option(Map("config" -> config)));
+        JobLogger.start("Started processing of " + name, Option(Map("config" -> config, "model" -> name, "date" -> DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now()))));
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
         if (null == sc.getOrElse(null)) {
             JobContext.parallelization = 10;
@@ -31,7 +33,7 @@ trait IGraphExecutionModel extends IGraphExecutionModelTemplate with optional.Ap
             } catch {
                 case ex: Exception =>
                     JobLogger.log(ex.getMessage, None, ERROR);
-                    JobLogger.end(name + " processing failed", "FAILED",  Option(Map( "timeTaken" -> Double.box(0))));
+                    JobLogger.end(name + " processing failed", "FAILED",  Option(Map("model" -> name, "date" -> DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now()), "timeTaken" -> Double.box(0), "statusMsg" -> ex.getMessage)));
                     ex.printStackTrace();
             } finally {
                 CommonUtil.closeSparkContext();
@@ -48,6 +50,6 @@ trait IGraphExecutionModel extends IGraphExecutionModelTemplate with optional.Ap
         	execute(input, jobConfig.modelParams);
         	JobContext.cleanUpRDDs();
         })
-        JobLogger.end(name + " processing complete", "SUCCESS", Option(Map( "timeTaken" -> time._1)));
+        JobLogger.end(name + " processing complete", "SUCCESS", Option(Map("model" -> name, "date" -> DateTimeFormat.forPattern("yyyy-MM-dd").print(DateTime.now()), "timeTaken" -> time._1)));
 	}
 }
