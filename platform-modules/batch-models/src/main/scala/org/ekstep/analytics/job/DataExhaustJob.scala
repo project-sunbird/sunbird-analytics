@@ -30,7 +30,7 @@ object DataExhaustJob extends optional.Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
         JobLogger.init("DataExhaustJob")
-        JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config)))
+        JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config, "model" -> name)))
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
         if (null == sc.getOrElse(null)) {
@@ -53,7 +53,7 @@ object DataExhaustJob extends optional.Application with IJob {
         if (null != requests) {
             _executeRequests(requests.collect(), config);
         } else {
-            JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0)));
+            JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("model" -> name, "date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0)));
         }
     }
 

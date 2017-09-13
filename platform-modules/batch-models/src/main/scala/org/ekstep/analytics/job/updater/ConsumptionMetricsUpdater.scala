@@ -33,6 +33,7 @@ case class GenieStats(period: Int, content_usage_by_content_visits: Double, cont
 case class MetricsComputation(period: Int, contentUsage: Double, contentVisits: Double, genieVisits: Double, devices: Double)
 object ConsumptionMetricsUpdater extends Application with IInfluxDBUpdater with IJob {
     implicit val className = "org.ekstep.analytics.job.ConsumptionMetricsUpdater"
+    def name: String = "ConsumptionMetricsUpdater"
     val GENIE_METRICS = "genie_metrics";
     val CONTENT_METRICS = "content_metrics";
     val GENIE_STATS = "genie_stats"
@@ -40,7 +41,7 @@ object ConsumptionMetricsUpdater extends Application with IInfluxDBUpdater with 
 
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         JobLogger.init("ConsumptionMetricsUpdater")
-        JobLogger.start("ConsumptionMetricsUpdater Job Started executing", Option(Map("config" -> config)))
+        JobLogger.start("ConsumptionMetricsUpdater Job Started executing", Option(Map("config" -> config, "model" -> name)))
         val jobConfig = JSONUtils.deserialize[JobConfig](config);
 
         if (null == sc.getOrElse(null)) {
@@ -69,7 +70,7 @@ object ConsumptionMetricsUpdater extends Application with IInfluxDBUpdater with 
             }
             metrics
         })
-        JobLogger.end("ConsumptionMetricsUpdater Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> metrics._2, "outputEvents" -> metrics._2, "timeTaken" -> metrics._1)));
+        JobLogger.end("ConsumptionMetricsUpdater Job Completed.", "SUCCESS", Option(Map("model" -> name, "date" -> "", "inputEvents" -> metrics._2, "outputEvents" -> metrics._2, "timeTaken" -> metrics._1)));
     }
 
     private def getMetrics(periodType: String, periodUpTo: Int)(implicit sc: SparkContext): Long = {
