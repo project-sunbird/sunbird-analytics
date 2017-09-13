@@ -84,10 +84,11 @@ object JobAPIService {
         val isValid = _validateChannelDataReqDtRange(datasetId, from, to)
         if ("true".equals(isValid.get("status").get)) {
             val bucket = config.getString("channel.data_exhaust.bucket")
+            val basePrefix = config.getString("channel.data_exhaust.basePrefix")
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
 
-            val listObjs = S3Util.searchKeys(bucket, channel + "/", Option(from), Option(to), None, "yyyy-MM-dd");
+            val listObjs = S3Util.searchKeys(bucket, basePrefix + channel + "/", Option(from), Option(to), None, "yyyy-MM-dd");
 
             val calendar = Calendar.getInstance();
             calendar.add(Calendar.MINUTE, expiry);

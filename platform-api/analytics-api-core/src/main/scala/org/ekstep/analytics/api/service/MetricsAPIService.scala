@@ -31,7 +31,7 @@ import org.ekstep.analytics.api.metrics.UsageMetricsModel
 
 object MetricsAPIService {
 
-    val reqPeriods = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
+    val reqPeriods = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_30_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
 
     case class ContentUsage(body: MetricsRequestBody, sc: SparkContext, config: Config);
     case class ContentPopularity(body: MetricsRequestBody, fields: Array[String], sc: SparkContext, config: Config);
