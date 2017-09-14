@@ -8,7 +8,7 @@ end
 cassandra_host = ARGV[0]
 snapshot_dir = ARGV[1]
 
-Dir.glob("*/**/*").select {|i| File.directory?(i)}.each do |d|
+Dir.glob("#{snapshot_dir}/**/*").select {|i| File.directory?(i)}.each do |d|
 	full_path = File.expand_path(d)
 	puts "restore: sstableloader -v -d #{cassandra_host} #{full_path}"
 	system("sstableloader", "-v", "-d", cassandra_host, full_path)
