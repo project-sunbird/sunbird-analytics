@@ -48,7 +48,7 @@ class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 	}
 	
 	it should "return textbook snapshot metrics for textbook having bookunits and subunits(contents)" in {
-		val stories = List(AppObjectCache("Content", "do_212198568993210368181", "genie", "in.ekstep", "Story", None, None, None, "Test Story 1", "Draft", Option(""), None), AppObjectCache("Content", "do_21219907978217062412", "genie", "in.ekstep", "Story", None, None, None, "Test Story 2", "Draft", Option(""), None));
+		val stories = List(AppObjectCache("Content", "do_212198568993210368181", "genie", "in.ekstep", Option("Story"), None, None, None, "Test Story 1", "Draft", Option(""), None), AppObjectCache("Content", "do_21219907978217062412", "genie", "in.ekstep", Option("Story"), None, None, None, "Test Story 2", "Draft", Option(""), None));
 		sc.parallelize(stories, JobContext.parallelization).saveToCassandra(Constants.CREATION_KEY_SPACE_NAME, Constants.APP_OBJECT_CACHE_TABLE)
 		deleteTextbookData;
 		createTextbooks;
