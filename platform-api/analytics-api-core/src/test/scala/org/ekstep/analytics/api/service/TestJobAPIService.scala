@@ -73,7 +73,7 @@ class TestJobAPIService extends SparkSpec {
         val requestId = response.result.getOrElse(Map()).getOrElse("request_id", "").asInstanceOf[String];
         StringUtils.isNotEmpty(requestId) should be(true);
         CassandraConnector(sc.getConf).withSessionDo { session =>
-        	val query = "UPDATE platform_db.job_request SET status='FAILED' WHERE client_key='dev-portal' AND request_id='"+requestId+"'"
+        	val query = "UPDATE local_platform_db.job_request SET status='FAILED' WHERE client_key='dev-portal' AND request_id='"+requestId+"'"
             session.execute(query);
         }
         val getResult = JobAPIService.getDataRequest("dev-portal", requestId);
@@ -98,7 +98,7 @@ class TestJobAPIService extends SparkSpec {
     it should "return the list of jobs in descending order" in {
         
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM platform_db.job_request WHERE client_key='partner1'");
+            session.execute("DELETE FROM local_platform_db.job_request WHERE client_key='partner1'");
         }
         
         val request_data1 = """{"filter":{"start_date":"2016-11-19","end_date":"2016-11-20","tags":["becb887fe82f24c644482eb30041da6d88bd8150"]}}"""
