@@ -8,23 +8,23 @@ import scala.collection.mutable.Buffer
  * @author Santhosh
  */
 object JobContext {
-  
-    var parallelization:Int = 10;
-    
+
+    var parallelization: Int = 10;
+
     var deviceMapping: Map[String, String] = Map();
-    
+
     var jobName: String = "default";
-    
-    val rddList:Buffer[AnyRef] = ListBuffer();
-    
+
+    val rddList: Buffer[AnyRef] = ListBuffer();
+
     def recordRDD[T](rdd: RDD[T]) {
         rddList += rdd;
     }
-    
+
     def cleanUpRDDs() = {
-        rddList.foreach { x =>  
+        rddList.foreach { x =>
             val rdd = x.asInstanceOf[RDD[AnyRef]];
-            if(rdd.getStorageLevel.useMemory) {
+            if (rdd != null && rdd.getStorageLevel.useMemory) {
                 rdd.unpersist(true);
             }
         }
