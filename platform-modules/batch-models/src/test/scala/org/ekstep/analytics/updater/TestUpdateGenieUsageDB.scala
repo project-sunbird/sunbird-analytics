@@ -14,7 +14,7 @@ class TestUpdateGenieUsageDB extends SparkSpec(null) {
     "UpdateGenieUsageDB" should "update the genie usage db and check the fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.genie_launch_summary_fact");
+            session.execute("TRUNCATE local_content_db.genie_launch_summary_fact");
         }
         
         val rdd = loadFile[DerivedEvent]("src/test/resources/genie-usage-updater/gus_1.log");

@@ -12,7 +12,7 @@ class TestContentSideloadingSummaryModel extends SparkSpec(null) {
     "ContentSideloadingSummaryModel" should "generate content sideloading summary events" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("truncate content_db.content_sideloading_summary");
+            session.execute("truncate local_content_db.content_sideloading_summary");
         }
 
         val rdd = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_1.log");
@@ -37,7 +37,7 @@ class TestContentSideloadingSummaryModel extends SparkSpec(null) {
     it should "generate 1 content sideloading summary event and pass all positive test cases" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("truncate content_db.content_sideloading_summary");
+            session.execute("truncate local_content_db.content_sideloading_summary");
         }
 
         val rdd1 = loadFile[Event]("src/test/resources/content-sideloading-summary/test_data_2.log");

@@ -28,11 +28,11 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         
         // Populate ce usage summary fact table
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d02eae69702d0905cf0800', 'genie', 'in.ekstep', 0, 0, 0.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_5391b1d669702d107e030000', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
-            session.execute("INSERT INTO creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'test_content', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("TRUNCATE local_creation_metrics_db.ce_usage_summary_fact");
+            session.execute("INSERT INTO local_creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d058e969702d5fe1ae0f00', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO local_creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_52d02eae69702d0905cf0800', 'genie', 'in.ekstep', 0, 0, 0.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO local_creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'org.ekstep.ra_ms_5391b1d669702d107e030000', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
+            session.execute("INSERT INTO local_creation_metrics_db.ce_usage_summary_fact(d_period, d_content_id, d_app_id, d_channel, unique_users_count, total_sessions, total_ts, avg_ts_session, updated_date) VALUES (0, 'test_content', 'genie', 'in.ekstep', 0, 0, 20.0, 20.0, 1475731808000);");
         }
 
         val rdd = ContentSnapshotSummaryModel.execute(sc.makeRDD(List()), None);
@@ -145,7 +145,7 @@ class TestContentSnapshotSummaryModel extends SparkGraphSpec(null) {
         AuthorRelationsModel.main("{}")(Option(sc));
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.ce_usage_summary_fact");
         }
 
         val createdOn = new DateTime().toString()

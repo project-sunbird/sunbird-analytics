@@ -16,7 +16,7 @@ class TestContentUsageMetricCreationModel extends SparkSpec(null) {
     "ContentUsageMetricCreationModel" should "execute ContentUsageMetricCreationModel successfully" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.content_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.content_usage_summary_fact");
         }
         
         val start_date = DateTime.now().toString(CommonUtil.dateFormat)

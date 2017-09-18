@@ -16,7 +16,7 @@ class TestUpdateContentEditorUsageDB extends SparkSpec(null) {
     "UpdateContentEditorUsageDB" should "update the content editor usage db and check the fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.ce_usage_summary_fact");
         }
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/content-editor-usage-updater/ceus.log");

@@ -23,7 +23,7 @@ class TestUpdatePluginSnapshotDB extends SparkGraphSpec(null) {
 	override def beforeAll() {
         super.beforeAll();
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE creation_metrics_db.plugin_snapshot_metrics");
+            session.execute("TRUNCATE local_creation_metrics_db.plugin_snapshot_metrics");
         }
     }
 	

@@ -16,7 +16,7 @@ class TestCEUsageMetricCreationModel extends SparkSpec(null) {
     "CEUsageMetricCreationModel" should "execute CEUsageMetricCreationModel successfully" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.ce_usage_summary_fact");
         }
         
         val start_date = DateTime.now().toString(CommonUtil.dateFormat)

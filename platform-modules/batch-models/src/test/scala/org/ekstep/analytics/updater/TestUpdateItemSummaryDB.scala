@@ -17,7 +17,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
     "UpdateItemSummaryDB" should "update the item usage summary db and check the all fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.item_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.item_usage_summary_fact");
         }
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-updater/ius_2.log");
@@ -67,7 +67,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
     it should "test correct and incorrect result aggregation" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.item_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.item_usage_summary_fact");
         }
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-updater/us20.log");
@@ -95,7 +95,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
     it should "update the item usage summary db and check newly added fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.item_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.item_usage_summary_fact");
         }
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-updater/ius_2.log");
@@ -109,7 +109,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
     it should "validate top5_misconception per day results from cassandra DB " in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.item_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.item_usage_summary_fact");
         }
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-updater/us20.log");
@@ -123,7 +123,7 @@ class TestUpdateItemSummaryDB extends SparkSpec(null) {
     it should "validate top5_misconception per week results from cassandra DB " in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.item_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.item_usage_summary_fact");
         }
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/item-summary-updater/us20.log");

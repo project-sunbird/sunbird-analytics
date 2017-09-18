@@ -16,7 +16,7 @@ class TestGenieUsageMetricCreationModel extends SparkSpec(null) {
     "GenieUsageMetricCreationModel" should "execute GenieUsageMetricCreationModel successfully" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.genie_launch_summary_fact");
+            session.execute("TRUNCATE local_content_db.genie_launch_summary_fact");
         }
         
         val start_date = DateTime.now().toString(CommonUtil.dateFormat)

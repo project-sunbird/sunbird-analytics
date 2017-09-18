@@ -20,7 +20,7 @@ class TestUpdateContentSnapshotDB extends SparkSpec(null) {
     it should "update the content snapshot updater db and check the updated fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.content_snapshot_summary");
+            session.execute("TRUNCATE local_content_db.content_snapshot_summary");
         }
         implicit val awaitAtMost = 10.seconds
 

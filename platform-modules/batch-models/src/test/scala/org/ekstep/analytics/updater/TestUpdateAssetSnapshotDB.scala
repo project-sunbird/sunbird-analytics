@@ -24,7 +24,7 @@ class TestUpdateAssetSnapshotDB extends SparkSpec(null) {
     override def beforeAll() {
         super.beforeAll();
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.asset_snapshot_summary");
+            session.execute("TRUNCATE local_content_db.asset_snapshot_summary");
         }
     }
 

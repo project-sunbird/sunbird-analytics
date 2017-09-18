@@ -17,7 +17,7 @@ class TestUpdateAppUsageDB extends SparkSpec(null) {
     "UpdateAppUsageDB" should "update the app usage db and check the fields" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE creation_metrics_db.app_usage_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.app_usage_summary_fact");
         }
         
         val rdd = loadFile[DerivedEvent]("src/test/resources/portal-usage-updater/test_data_1.log");

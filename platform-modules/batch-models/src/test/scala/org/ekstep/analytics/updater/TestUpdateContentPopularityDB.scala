@@ -16,14 +16,14 @@ class TestUpdateContentPopularityDB extends SparkSpec(null) {
         val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
         sc.makeRDD(Seq(tag1)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
+            session.execute("TRUNCATE local_content_db.content_popularity_summary_fact");
         }
     }
   
   override def afterAll() {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1096b98030cb7d9bacb'");
-            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
+            session.execute("DELETE FROM local_content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1096b98030cb7d9bacb'");
+            session.execute("TRUNCATE local_content_db.content_popularity_summary_fact");
         }
         super.afterAll();
     }

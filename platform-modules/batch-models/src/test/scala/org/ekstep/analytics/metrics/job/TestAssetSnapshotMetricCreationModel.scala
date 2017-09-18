@@ -16,7 +16,7 @@ class TestAssetSnapshotMetricCreationModel extends SparkSpec(null) {
     "AssetSnapshotMetricCreationModel" should "execute AssetSnapshotMetricCreationModel successfully" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.asset_snapshot_summary");
+            session.execute("TRUNCATE local_content_db.asset_snapshot_summary");
         }
         
         val start_date = DateTime.now().toString(CommonUtil.dateFormat)

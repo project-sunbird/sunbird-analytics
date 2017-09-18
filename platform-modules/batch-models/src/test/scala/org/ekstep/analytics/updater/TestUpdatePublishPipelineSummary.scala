@@ -20,7 +20,7 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
   "UpdatePublishPipelineSummary" should "update the content_publish_fact table for DAY, WEEK, MONTH, YEAR" in {
 
     CassandraConnector(sc.getConf).withSessionDo { session =>
-      session.execute("TRUNCATE creation_metrics_db.publish_pipeline_summary_fact");
+      session.execute("TRUNCATE local_creation_metrics_db.publish_pipeline_summary_fact");
     }
 
     val rdd = loadFile[DerivedEvent]("src/test/resources/pipeline-summary-updater/test_data1.log");

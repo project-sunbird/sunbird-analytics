@@ -30,12 +30,12 @@ class TestUpdateUsageDB extends SparkSpec(null) {
         sc.makeRDD(Seq(tag1)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
         val connector = CassandraConnector(sc.getConf)
         val session = connector.openSession()
-        session.execute("TRUNCATE content_db.usage_summary_fact")
+        session.execute("TRUNCATE local_content_db.usage_summary_fact")
     }
 
     override def afterAll() {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1872b98030cb7d9bacb'");
+            session.execute("DELETE FROM local_content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1872b98030cb7d9bacb'");
         }
         super.afterAll();
     }

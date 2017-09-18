@@ -16,7 +16,7 @@ class TestTextbookSnapshotMetricCreationModel extends SparkGraphSpec(null) {
     "TextbookSnapshotMetricCreationModel" should "execute TextbookSnapshotMetricCreationModel successfully" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE creation_metrics_db.textbook_snapshot_metrics");
+            session.execute("TRUNCATE local_creation_metrics_db.textbook_snapshot_metrics");
         }
         
         val createTextbookQueries = List("""CREATE (n:domain {code:"org.ekstep.textbook.1489083137114", subject:"MATHS", description:"Sample Test bookedition:Edition 1", language:["English"], mimeType:"application/vnd.ekstep.content-collection", medium:"Gujarati", idealScreenSize:"normal", createdOn:"2017-03-09T18:12:09.054+0000", appIcon:"https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/content/banana_268_1472808995_1472809119909.png", gradeLevel:["Grade 2"], publication:"Test Publishers", lastUpdatedOn:"2017-03-09T18:14:07.449+0000", contentType:"Textbook", lastUpdatedBy:"268", visibility:"Default", os:["All"], IL_SYS_NODE_TYPE:"DATA_NODE", author:"Ilimi", mediaType:"content", osId:"org.ekstep.quiz.app", ageGroup:["5-6"], createdBy: "291", versionKey:"1489083247449", idealScreenDensity:"hdpi", compatibilityLevel:"1", IL_FUNC_OBJECT_TYPE:"Content", name:"Sample Test book", IL_UNIQUE_ID:"do_212198568993210368181", board:"CBSE", status: "Draft"}) return n""",

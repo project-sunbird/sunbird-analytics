@@ -23,10 +23,10 @@ class TestRecommendationEngine extends SparkSpec(null) {
 
         val learner_id = "8f111d6c-b618-4cf4-bb4b-bbf06cf4363a";
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM learner_db.learnerconceptrelevance where learner_id = '" + learner_id + "'");
+            session.execute("DELETE FROM local_learner_db.learnerconceptrelevance where learner_id = '" + learner_id + "'");
 
             // deleting from learnercontentactivity table
-            session.execute("DELETE FROM learner_db.learnercontentsummary where learner_id = '" + learner_id + "'");
+            session.execute("DELETE FROM local_learner_db.learnercontentsummary where learner_id = '" + learner_id + "'");
         }
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/reco-engine/reco_test_data_1.log");
@@ -36,7 +36,7 @@ class TestRecommendationEngine extends SparkSpec(null) {
 //        event.mid should be ("D5BB7D44D8EC0C3131EF25A677ED40A2")
         event.syncts should be (1454897876605L)
 
-        val lcr = sc.cassandraTable[LearnerConceptRelevance]("learner_db", "learnerconceptrelevance").where("learner_id = ?", learner_id).first();
+        val lcr = sc.cassandraTable[LearnerConceptRelevance]("local_learner_db", "learnerconceptrelevance").where("learner_id = ?", learner_id).first();
         val r = lcr.relevance;
         r.size should be > 100;
     }

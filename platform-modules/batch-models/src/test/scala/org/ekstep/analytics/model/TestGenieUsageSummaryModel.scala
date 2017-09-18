@@ -13,7 +13,7 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
     it should "test the summary for one month of data having only two pre-registered tags" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("42d3b7edc2e9b59a286b1956e3cdbc492706ac21", System.currentTimeMillis(), true)
@@ -89,7 +89,7 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
 
     it should "test the summary for one month of data having pre-registered tags in last week" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("42d3b7edc2e9b59a286b1956e3cdbc492706acb1", System.currentTimeMillis(), true)
@@ -128,7 +128,7 @@ class TestGenieUsageSummaryModel extends SparkSpec(null) {
     }
     it should "test the summary for one month of data where last week data is missing" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
         
         val rdd = loadFile[DerivedEvent]("src/test/resources/genie-usage-summary-model/gus_3.log");

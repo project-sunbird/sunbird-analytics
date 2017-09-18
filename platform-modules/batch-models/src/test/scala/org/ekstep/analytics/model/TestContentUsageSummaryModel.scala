@@ -15,7 +15,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
     "ContentUsageSummaryModel" should "generate content summary events for (all, per content, per tag, per tag & per content) dimensions" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
@@ -111,7 +111,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
     it should "test the summary for one week ss data as input" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("42d3b7edc2e9b59a286b1956e3cdbc492706ac21", System.currentTimeMillis(), true)
@@ -166,7 +166,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
     it should "test the summarizer where 1 week of data is missing in the input" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)
@@ -187,7 +187,7 @@ class TestContentUsageSummaryModel extends SparkSpec(null) {
     it should "test the summarizer for dims tags" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", System.currentTimeMillis(), true)

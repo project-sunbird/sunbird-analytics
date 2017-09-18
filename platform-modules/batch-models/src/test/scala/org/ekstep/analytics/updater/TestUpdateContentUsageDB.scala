@@ -27,13 +27,13 @@ class TestUpdateContentUsageDB extends SparkSpec(null) {
         sc.makeRDD(Seq(tag1)).saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS)
         val connector = CassandraConnector(sc.getConf);
         val session = connector.openSession();
-        session.execute("TRUNCATE content_db.content_usage_summary_fact");
-        session.execute("INSERT INTO content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, d_app_id, d_channel, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (20160920, 'all' ,'domain_3996', 'Genie', 'Ekstep', 0, 0, 0, bigintAsBlob(3), 1459641600, 1476550249537, 1476550249537, 4, 0, 0, 20);");
+        session.execute("TRUNCATE local_content_db.content_usage_summary_fact");
+        session.execute("INSERT INTO local_content_db.content_usage_summary_fact(d_period, d_tag, d_content_id, d_app_id, d_channel, m_avg_interactions_min, m_avg_sess_device, m_avg_ts_session, m_device_ids, m_last_gen_date, m_last_sync_date, m_publish_date, m_total_devices, m_total_interactions, m_total_sessions, m_total_ts) VALUES (20160920, 'all' ,'domain_3996', 'Genie', 'Ekstep', 0, 0, 0, bigintAsBlob(3), 1459641600, 1476550249537, 1476550249537, 4, 0, 0, 20);");
     }
 
     override def afterAll() {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1872b98030cb7d9bacb'");
+            session.execute("DELETE FROM local_content_db.registered_tags WHERE tag_id='1375b1d70a66a0f2c22dd1872b98030cb7d9bacb'");
         }
         super.afterAll();
     }

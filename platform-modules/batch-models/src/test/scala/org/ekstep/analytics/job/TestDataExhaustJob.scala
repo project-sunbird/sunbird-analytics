@@ -23,7 +23,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
     private def preProcess() {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE platform_db.job_request");
+            session.execute("TRUNCATE local_platform_db.job_request");
         }
     }
 

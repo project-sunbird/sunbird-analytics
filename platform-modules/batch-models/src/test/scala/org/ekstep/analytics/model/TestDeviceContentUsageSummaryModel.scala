@@ -12,8 +12,8 @@ class TestDeviceContentUsageSummaryModel extends SparkSpec(null) {
     it should "generate device content summary events" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE device_db.device_content_summary_fact");
-            session.execute("TRUNCATE device_db.device_usage_summary;");
+            session.execute("TRUNCATE local_device_db.device_content_summary_fact");
+            session.execute("TRUNCATE local_device_db.device_usage_summary;");
         }
 
         val rdd = loadFile[Event]("src/test/resources/device-content-usage-summary/telemetry_test_data.log");

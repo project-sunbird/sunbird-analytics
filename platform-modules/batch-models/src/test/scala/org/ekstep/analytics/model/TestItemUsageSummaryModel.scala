@@ -17,7 +17,7 @@ class TestItemUsageSummaryModel extends SparkSpec(null) {
 
     "ItemSummaryModel" should "generates item summary and test all the fields" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("c6ed6e6849303c77c0182a282ebf318aad28f8d1", System.currentTimeMillis(), true)
@@ -108,7 +108,7 @@ class TestItemUsageSummaryModel extends SparkSpec(null) {
     
     it should "generate item summary from the input data having pre-registered dimensions tag" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.registered_tags");
+            session.execute("TRUNCATE local_content_db.registered_tags");
         }
 
         val tag1 = RegisteredTag("e8d7a0063b665b7a718e8f7e4014e59e28642f8c", System.currentTimeMillis(), true)

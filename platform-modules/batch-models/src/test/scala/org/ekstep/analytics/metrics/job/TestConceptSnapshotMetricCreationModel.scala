@@ -16,7 +16,7 @@ class TestConceptSnapshotMetricCreationModel extends SparkSpec(null) {
     "ConceptSnapshotMetricCreationModel" should "execute ConceptSnapshotMetricCreationModel successfully" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.concept_snapshot_summary");
+            session.execute("TRUNCATE local_content_db.concept_snapshot_summary");
         }
         
         val start_date = DateTime.now().toString(CommonUtil.dateFormat)

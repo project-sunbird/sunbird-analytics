@@ -16,11 +16,11 @@ class TestLearnerProficiencySummaryModel extends SparkSpec(null) {
         // Override user data in learnerproficiency table
         val learnerProf = LearnerProficiency("8b4f3775-6f65-4abf-9afa-b15b8f82a24b", Map("Num:C3:SC1:MC12" -> 0.5), DateTime.now(), DateTime.now(), Map("Num:C3:SC1:MC12" -> JSONUtils.serialize(modelParams)));
         val rdd = sc.parallelize(Array(learnerProf));
-        rdd.saveToCassandra("learner_db", "learnerproficiency");
+        rdd.saveToCassandra("local_learner_db", "learnerproficiency");
 
         val rdd0 = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/proficiency_update_db_test1.log");
         val rdd01 = LearnerProficiencySummaryModel.execute(rdd0, Option(Map("apiVersion" -> "v2")));
-        val proficiency1 = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").where("learner_id = ?", "8b4f3775-6f65-4abf-9afa-b15b8f82a24b").first();
+        val proficiency1 = sc.cassandraTable[LearnerProficiency]("local_learner_db", "learnerproficiency").where("learner_id = ?", "8b4f3775-6f65-4abf-9afa-b15b8f82a24b").first();
 
         // Check Proficiency and Model parameter values - Iteration 1
         proficiency1.model_params.contains("Num:C3:SC1:MC12") should be(true);
@@ -35,7 +35,7 @@ class TestLearnerProficiencySummaryModel extends SparkSpec(null) {
         val rdd11 = LearnerProficiencySummaryModel.execute(rdd1, Option(Map("apiVersion" -> "v2")));
 
         // Check Proficiency and Model parameter values - Iteration 2
-        val proficiency2 = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").where("learner_id = ?", "8b4f3775-6f65-4abf-9afa-b15b8f82a24b").first();
+        val proficiency2 = sc.cassandraTable[LearnerProficiency]("local_learner_db", "learnerproficiency").where("learner_id = ?", "8b4f3775-6f65-4abf-9afa-b15b8f82a24b").first();
 
         proficiency2.model_params.contains("Num:C3:SC1:MC12") should be(true)
         proficiency2.model_params.contains("Num:C3:SC1:MC13") should be(true)
@@ -85,7 +85,7 @@ class TestLearnerProficiencySummaryModel extends SparkSpec(null) {
         val modelParams = Map("alpha" -> 1, "beta" -> 1);
         val learnerProf = LearnerProficiency("53ef3f1f-40e7-4f18-82aa-db2ad920a4c0", Map(), DateTime.now(), DateTime.now(), Map());
         val rdd = sc.parallelize(Array(learnerProf));
-        rdd.saveToCassandra("learner_db", "learnerproficiency");
+        rdd.saveToCassandra("local_learner_db", "learnerproficiency");
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/test_datav2.log");
         val rdd2 = LearnerProficiencySummaryModel.execute(rdd1, Option(Map("apiVersion" -> "v2")));
@@ -116,7 +116,7 @@ class TestLearnerProficiencySummaryModel extends SparkSpec(null) {
         profs.get("Num:C1:SC2:MC16").get should be(0.6);
         profs.get("Num:C3:SC2:MC5").get should be(0.6);
 
-        val lp = sc.cassandraTable[LearnerProficiency]("learner_db", "learnerproficiency").where("learner_id = ?", "53ef3f1f-40e7-4f18-82aa-db2ad920a4c0").first();
+        val lp = sc.cassandraTable[LearnerProficiency]("local_learner_db", "learnerproficiency").where("learner_id = ?", "53ef3f1f-40e7-4f18-82aa-db2ad920a4c0").first();
         lp.proficiency.size should be(22);
         lp.model_params.size should be(22);
         lp.proficiency should be(profs)
@@ -125,7 +125,7 @@ class TestLearnerProficiencySummaryModel extends SparkSpec(null) {
     it should " test the algo where concept is not empty " in {
         val learner_id = "test_learner_id123";
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM learner_db.learnerproficiency where learner_id = '" + learner_id + "'");
+            session.execute("DELETE FROM local_learner_db.learnerproficiency where learner_id = '" + learner_id + "'");
         }
         val rdd = loadFile[DerivedEvent]("src/test/resources/learner-proficiency/test1.log");
         val rdd2 = LearnerProficiencySummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "ProficiencyUpdater")));

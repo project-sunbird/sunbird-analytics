@@ -5,21 +5,22 @@ import java.net.URLEncoder
 
 object Constants {
 
-    val KEY_SPACE_NAME = "learner_db";
+    val env = AppConf.getConfig("application.env");
+    val KEY_SPACE_NAME = env+"_"+"learner_db";
     val LEARNER_SNAPSHOT_TABLE = "learnersnapshot";
     val LEARNER_PROFICIENCY_TABLE = "learnerproficiency";
     val LEARNER_CONTENT_SUMMARY_TABLE = "learnercontentsummary";
     val LEARNER_CONCEPT_RELEVANCE_TABLE = "learnerconceptrelevance";
     val CONCEPT_SIMILARITY_TABLE = "conceptsimilaritymatrix";
     val LEARNER_PROFILE_TABLE = "learnerprofile";
-    val DEVICE_KEY_SPACE_NAME = "device_db";
+    val DEVICE_KEY_SPACE_NAME = env+"_"+"device_db";
     val DEVICE_SPECIFICATION_TABLE = "device_specification";
     val DEVICE_USAGE_SUMMARY_TABLE = "device_usage_summary";
     val DEVICE_CONTENT_SUMMARY_FACT = "device_content_summary_fact";
     val DEVICE_RECOS = "device_recos";
-    val CONTENT_KEY_SPACE_NAME = "content_db";
-    val PLATFORM_KEY_SPACE_NAME = "platform_db";
-    val CONTENT_STORE_KEY_SPACE_NAME = "content_store";
+    val CONTENT_KEY_SPACE_NAME = env+"_"+"content_db";
+    val PLATFORM_KEY_SPACE_NAME = env+"_"+"platform_db";
+    val CONTENT_STORE_KEY_SPACE_NAME = env+"_"+"content_store";
     val CONTENT_DATA_TABLE = "content_data";
     val CONTENT_CUMULATIVE_SUMMARY_TABLE = "content_cumulative_summary";
     val CONTENT_CUMULATIVE_METRICS_TABLE = "content_usage_metrics";
@@ -42,10 +43,10 @@ object Constants {
     val USAGE_SUMMARY_FACT = "usage_summary_fact";
 
     /* Creation tables and keyspaces */
-    val CREATION_KEY_SPACE_NAME = "creation_db";
+    val CREATION_KEY_SPACE_NAME = env+"_"+"creation_db";
     val APP_OBJECT_CACHE_TABLE = "app_object_cache";
     val USER_PROFILE_TABLE = "user_profile";
-    val CREATION_METRICS_KEY_SPACE_NAME = "creation_metrics_db"
+    val CREATION_METRICS_KEY_SPACE_NAME = env+"_"+"creation_metrics_db";
     val CONTENT_CREATION_TABLE = "content_creation_metrics_fact";
     val CE_USAGE_SUMMARY = "ce_usage_summary_fact";
     val APP_USAGE_SUMMARY_FACT = "app_usage_summary_fact";
@@ -59,7 +60,7 @@ object Constants {
 
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
-
+    
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
     }

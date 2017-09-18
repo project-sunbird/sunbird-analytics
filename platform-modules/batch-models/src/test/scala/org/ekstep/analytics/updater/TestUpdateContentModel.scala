@@ -24,10 +24,10 @@ class TestUpdateContentModel extends SparkSpec(null) {
     "UpdateContentModel" should "populate content usage and popularity metrics in content model" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.content_usage_summary_fact");
-            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
-            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
-            session.execute("TRUNCATE creation_metrics_db.content_creation_metrics_fact");
+            session.execute("TRUNCATE local_content_db.content_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.content_popularity_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.content_creation_metrics_fact");
         }
         val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null),
             ContentUsageSummaryFact(0, "numeracy_374", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null, Option(DateTime.now().minusDays(2))));
@@ -79,10 +79,10 @@ class TestUpdateContentModel extends SparkSpec(null) {
     it should "populate content usage metrics when popularity metrics are blank in content model and vice-versa" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.content_usage_summary_fact");
-            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
-            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
-            session.execute("TRUNCATE creation_metrics_db.content_creation_metrics_fact");
+            session.execute("TRUNCATE local_content_db.content_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.content_popularity_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.content_creation_metrics_fact");
         }
         val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null, Option(DateTime.now().minusDays(2))),
             ContentUsageSummaryFact(0, "numeracy_374", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 15, 3.14, null));
@@ -162,10 +162,10 @@ class TestUpdateContentModel extends SparkSpec(null) {
     it should "return zero output when no records found for given date" in {
 
         CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("TRUNCATE content_db.content_usage_summary_fact");
-            session.execute("TRUNCATE content_db.content_popularity_summary_fact");
-            session.execute("TRUNCATE creation_metrics_db.ce_usage_summary_fact");
-            session.execute("TRUNCATE creation_metrics_db.content_creation_metrics_fact");
+            session.execute("TRUNCATE local_content_db.content_usage_summary_fact");
+            session.execute("TRUNCATE local_content_db.content_popularity_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.ce_usage_summary_fact");
+            session.execute("TRUNCATE local_creation_metrics_db.content_creation_metrics_fact");
             
         }
         val usageSummaries = Array(ContentUsageSummaryFact(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, null, Option(DateTime.now().minusDays(2))),
