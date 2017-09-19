@@ -23,7 +23,8 @@ object JobContext {
 
     def cleanUpRDDs() = {
         rddList.foreach { x =>
-            val rdd = x.asInstanceOf[RDD[AnyRef]];
+            
+            val rdd = if(x.isInstanceOf[RDD[AnyRef]]) x.asInstanceOf[RDD[AnyRef]] else null;
             if (rdd != null && rdd.getStorageLevel.useMemory) {
                 rdd.unpersist(true);
             }
