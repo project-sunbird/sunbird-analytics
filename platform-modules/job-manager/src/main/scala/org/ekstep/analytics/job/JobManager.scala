@@ -65,6 +65,7 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
         while (doneSignal.getCount() !=0 ) {
             val record = jobQueue.take();
             executeJob(record);
+            Thread.sleep(1000*15)
             doneSignal.countDown();
         }
     }
