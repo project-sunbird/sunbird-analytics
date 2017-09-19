@@ -36,7 +36,11 @@ object BatchJobDriver {
                 CommonUtil.closeSparkContext();
             }
         } else {
-            _process(config, models);
+            try {
+                _process(config, models);
+            } finally {
+                CommonUtil.closeSparkContext();
+            }
         }
     }
 
