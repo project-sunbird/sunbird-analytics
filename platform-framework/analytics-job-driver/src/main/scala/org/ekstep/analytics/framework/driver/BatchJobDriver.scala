@@ -34,12 +34,16 @@ object BatchJobDriver {
                 _process(config, models);
             } finally {
                 CommonUtil.closeSparkContext();
+                if (JobContext.rddList.nonEmpty)
+                    JobContext.rddList.clear()
             }
         } else {
             try {
                 _process(config, models);
             } finally {
                 CommonUtil.closeSparkContext();
+                if (JobContext.rddList.nonEmpty)
+                    JobContext.rddList.clear()
             }
         }
     }
@@ -80,11 +84,11 @@ object BatchJobDriver {
 
         CommonUtil.time({
             val output = model.execute(data, config.modelParams).cache();
-            println("output.count() after job run: "+output.count())
+            println("output.count() after job run: " + output.count())
             JobContext.recordRDD(output);
-            println("output.count() after JobContext.recordRDD: "+output.count())
+            println("output.count() after JobContext.recordRDD: " + output.count())
             val count = OutputDispatcher.dispatch(config.output, output);
-            println("output.count() before JobContext.cleanUpRDDs: "+output.count())
+            println("output.count() before JobContext.cleanUpRDDs: " + output.count())
             JobContext.cleanUpRDDs();
             count;
         })
