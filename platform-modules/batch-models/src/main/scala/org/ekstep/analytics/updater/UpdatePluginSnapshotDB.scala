@@ -26,7 +26,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.commons.lang3.StringUtils
 
 case class PluginMetrics(d_plugin_id: String, d_app_id: String, d_channel: String, plugin_name: String, category: String, author: String, content_count: Int)
-case class PluginSnapshotMetrics(d_period: Int, d_plugin_id: String, d_app_id: String, d_channel: String, plugin_name: String, category: String, author: String, content_count: Int, content_count_start: Int, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
+case class PluginSnapshotMetrics(d_period: Int, d_plugin_id: String, d_app_id: String, d_channel: String, plugin_name: String, category: Option[String], author: Option[String], content_count: Int, content_count_start: Int, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class PluginSnapshotIndex(d_period: Int, d_plugin_id: String, d_app_id: String, d_channel: String)
 
 object UpdatePluginSnapshotDB extends IBatchModelTemplate[Empty, Empty, PluginSnapshotMetrics, PluginSnapshotMetrics] with IInfluxDBUpdater with Serializable {
@@ -70,9 +70,9 @@ object UpdatePluginSnapshotDB extends IBatchModelTemplate[Empty, Empty, PluginSn
             val category = x._2._1.category
             val content_count = x._2._1.content_count
             if (prevSumm == null) {
-                PluginSnapshotMetrics(period, pulgin_id, x._1.d_app_id, x._1.d_channel, plugin_name, category, author, content_count, content_count)
+                PluginSnapshotMetrics(period, pulgin_id, x._1.d_app_id, x._1.d_channel, plugin_name, Option(category), Option(author), content_count, content_count)
             } else {
-                PluginSnapshotMetrics(period, pulgin_id, x._1.d_app_id, x._1.d_channel, plugin_name, category, author, content_count, prevSumm.content_count_start)
+                PluginSnapshotMetrics(period, pulgin_id, x._1.d_app_id, x._1.d_channel, plugin_name, Option(category), Option(author), content_count, prevSumm.content_count_start)
             }
         }
     }
@@ -86,9 +86,9 @@ object UpdatePluginSnapshotDB extends IBatchModelTemplate[Empty, Empty, PluginSn
     private def saveToInfluxDB(data: RDD[PluginSnapshotMetrics])(implicit sc: SparkContext) {
         val metrics = data.map { x =>
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "plugin_id" -> x.d_plugin_id, "app_id" -> x.d_app_id, "channel" -> x.d_channel), Map("author_id" -> x.author, "category" -> x.category, "plugin_name" -> x.plugin_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef]), time._1);
+            InfluxRecord(Map("period" -> time._2, "plugin_id" -> x.d_plugin_id, "app_id" -> x.d_app_id, "channel" -> x.d_channel), Map("author_id" -> x.author.getOrElse(""), "category" -> x.category.getOrElse(""), "plugin_name" -> x.plugin_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef]), time._1);
         }
-        val authors = getDenormalizedData("User", data.map { x => x.author })
+        val authors = getDenormalizedData("User", data.map { x => x.author.getOrElse("") })
         metrics.denormalize("author_id", "author_name", authors).saveToInflux(PLUGIN_SNAPSHOT_METRICS);
 
     }

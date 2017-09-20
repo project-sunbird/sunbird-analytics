@@ -24,7 +24,7 @@ import com.datastax.spark.connector.toRDDFunctions
 import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.commons.lang3.StringUtils
 
-case class TemplateSnapshotMetrics(d_period: Int, d_template_id: String, d_app_id: String, d_channel: String, template_name: String, category: String, author_id: String, content_count: Long, content_count_start: Long, question_count: Long, question_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
+case class TemplateSnapshotMetrics(d_period: Int, d_template_id: String, d_app_id: String, d_channel: String, template_name: String, category: Option[String], author_id: String, content_count: Long, content_count_start: Long, question_count: Long, question_count_start: Long, updated_date: Option[DateTime] = Option(DateTime.now())) extends AlgoOutput with Output
 case class TemplateMetrics(d_template_id: String, d_app_id: String, d_channel: String, template_name: String, category: String, author_id: String, content_count: Long, question_count: Long)
 case class TemplateSnapshotIndex(d_period: Int, d_template_id: String, d_app_id: String, d_channel: String)
 object UpdateTemplateSnapshotDB extends IBatchModelTemplate[Empty, Empty, TemplateSnapshotMetrics, TemplateSnapshotMetrics] with IInfluxDBUpdater with Serializable {
@@ -73,9 +73,9 @@ object UpdateTemplateSnapshotDB extends IBatchModelTemplate[Empty, Empty, Templa
             val content_count = x._2._1.content_count
             val question_count = x._2._1.question_count
             if (prevSumm == null) {
-                TemplateSnapshotMetrics(period, template_id, x._1.d_app_id, x._1.d_channel, template_name, category, author_id, content_count, content_count, question_count, question_count)
+                TemplateSnapshotMetrics(period, template_id, x._1.d_app_id, x._1.d_channel, template_name, Option(category), author_id, content_count, content_count, question_count, question_count)
             } else {
-                TemplateSnapshotMetrics(period, template_id, x._1.d_app_id, x._1.d_channel, template_name, category, author_id, content_count, prevSumm.content_count_start, question_count, prevSumm.question_count_start)
+                TemplateSnapshotMetrics(period, template_id, x._1.d_app_id, x._1.d_channel, template_name, Option(category), author_id, content_count, prevSumm.content_count_start, question_count, prevSumm.question_count_start)
             }
         }
     }
@@ -89,7 +89,7 @@ object UpdateTemplateSnapshotDB extends IBatchModelTemplate[Empty, Empty, Templa
     private def saveToInfluxDB(data: RDD[TemplateSnapshotMetrics])(implicit sc: SparkContext) {
         val metrics = data.map { x =>
             val time = getDateTime(x.d_period);
-            InfluxRecord(Map("period" -> time._2, "template_id" -> x.d_template_id, "app_id" -> x.d_app_id, "channel" -> x.d_channel), Map("author_id" -> x.author_id, "category" -> x.category, "template_name" -> x.template_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef], "question_count_start" -> x.question_count_start.asInstanceOf[AnyRef], "question_count" -> x.question_count.asInstanceOf[AnyRef]), time._1);
+            InfluxRecord(Map("period" -> time._2, "template_id" -> x.d_template_id, "app_id" -> x.d_app_id, "channel" -> x.d_channel), Map("author_id" -> x.author_id, "category" -> x.category.getOrElse(""), "template_name" -> x.template_name, "content_count" -> x.content_count.asInstanceOf[AnyRef], "content_count_start" -> x.content_count_start.asInstanceOf[AnyRef], "question_count_start" -> x.question_count_start.asInstanceOf[AnyRef], "question_count" -> x.question_count.asInstanceOf[AnyRef]), time._1);
         }
         val authors = getDenormalizedData("User", data.map { x => x.author_id })
         metrics.denormalize("author_id", "author_name", authors).saveToInflux(TEMPLATE_SNAPSHOT_METRICS);

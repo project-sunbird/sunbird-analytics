@@ -42,7 +42,7 @@ class TestUpdateTemplateSnapshotDB extends SparkGraphSpec(null) {
         test_IdData.d_template_id should be("test-template1")
         test_IdData.template_name should be("test-temp")
         test_IdData.author_id should be("test-author1")
-        test_IdData.category should be("domain")
+        test_IdData.category.get should be("domain")
         test_IdData.content_count should be(3)
         test_IdData.question_count should be(1)
     }

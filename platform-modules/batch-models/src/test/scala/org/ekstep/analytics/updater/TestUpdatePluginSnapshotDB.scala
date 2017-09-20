@@ -40,7 +40,7 @@ class TestUpdatePluginSnapshotDB extends SparkGraphSpec(null) {
         val test_IdData = data.filter { x => "test-plugin-1".equals(x.d_plugin_id) }.last
         test_IdData.d_plugin_id should be("test-plugin-1")
         test_IdData.plugin_name should be("Untitled lesson")
-        test_IdData.author should be("177")
+        test_IdData.author.get should be("177")
         test_IdData.content_count should be(1)
 
     }
