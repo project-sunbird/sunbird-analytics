@@ -34,17 +34,14 @@ object BatchJobDriver {
                 _process(config, models);
             } finally {
                 CommonUtil.closeSparkContext();
+                /*
+                 * Clearing previous job persisting rdd, in case of the job got failed
+                 * */
                 if (JobContext.rddList.nonEmpty)
                     JobContext.rddList.clear()
             }
         } else {
-            try {
-                _process(config, models);
-            } finally {
-                CommonUtil.closeSparkContext();
-                if (JobContext.rddList.nonEmpty)
-                    JobContext.rddList.clear()
-            }
+            _process(config, models);
         }
     }
 
