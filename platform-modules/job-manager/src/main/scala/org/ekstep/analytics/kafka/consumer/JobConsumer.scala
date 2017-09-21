@@ -13,7 +13,10 @@ class JobConsumer(topic: String, consumerProps: Properties, queue: BlockingQueue
     override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
         val messages = records.map(f => f.value());
         if(messages.size > 0) {
-            messages.foreach { x => queue.put(x) };
+            messages.foreach { x => 
+              JobLogger.log("Jobmanager: Queuing job: " + x, None, INFO);
+              queue.put(x) 
+              };
         }
     }
 }

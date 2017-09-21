@@ -38,6 +38,7 @@ object JobManager extends optional.Application {
         val consumer = initializeConsumer(config, jobQueue);
         JobLogger.log("Initialized the job consumer", None, INFO);
         val executor = Executors.newFixedThreadPool(1);
+        JobLogger.log("Total job count: " + config.jobsCount, None, INFO);
         val doneSignal = new CountDownLatch(config.jobsCount);
         JobMonitor.init(config);
         JobLogger.log("Initialized the job event listener. Starting the job executor", None, INFO);
@@ -46,7 +47,9 @@ object JobManager extends optional.Application {
         doneSignal.await();
         JobLogger.log("Job manager execution completed. Shutting down the executor and consumer", None, INFO);
         executor.shutdown();
+        JobLogger.log("Job manager executor shutdown completed", None, INFO);
         consumer.shutdown();
+        JobLogger.log("Job manager consumer shutdown completed", None, INFO);
     }
 
     private def initializeConsumer(config: JobManagerConfig, jobQueue: BlockingQueue[String]): JobConsumer = {
@@ -73,7 +76,9 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
         try {
+            JobLogger.log("Executing " + modelName, None, INFO);
             JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
+            JobLogger.log("Finished executing " + modelName, None, INFO);
         } catch {
             case ex: Exception =>
                 ex.printStackTrace()
