@@ -6,10 +6,14 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import java.util.Properties
 import java.util.concurrent.BlockingQueue
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 class JobConsumer(topic: String, consumerProps: Properties, queue: BlockingQueue[String], pollTimeout: Duration = 100 milliseconds, restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay) 
         extends SimpleKafkaConsumer(topic, consumerProps, pollTimeout = pollTimeout, restartOnExceptionDelay = restartOnExceptionDelay) {
 
+    implicit val className = "org.ekstep.analytics.kafka.consumer.JobConsumer"
+    
     override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
         val messages = records.map(f => f.value());
         if(messages.size > 0) {
