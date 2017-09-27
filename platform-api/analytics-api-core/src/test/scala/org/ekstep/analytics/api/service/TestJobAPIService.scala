@@ -12,6 +12,7 @@ import org.ekstep.analytics.api.util.JSONUtils
 import org.ekstep.analytics.api.Response 
 import org.ekstep.analytics.api.JobResponse
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.api.util.DBUtil
 
 class TestJobAPIService extends SparkSpec {
 
@@ -72,10 +73,8 @@ class TestJobAPIService extends SparkSpec {
         val response = JSONUtils.deserialize[Response](result)
         val requestId = response.result.getOrElse(Map()).getOrElse("request_id", "").asInstanceOf[String];
         StringUtils.isNotEmpty(requestId) should be(true);
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-        	val query = "UPDATE local_platform_db.job_request SET status='FAILED' WHERE client_key='dev-portal' AND request_id='"+requestId+"'"
-            session.execute(query);
-        }
+       
+        DBUtil.cluster.connect("local_platform_db").execute("UPDATE local_platform_db.job_request SET status='FAILED' WHERE client_key='dev-portal' AND request_id='"+requestId+"'")
         val getResult = JobAPIService.getDataRequest("dev-portal", requestId);
         val getResponse = JSONUtils.deserialize[Response](getResult);
         val failStatus = getResponse.result.getOrElse(Map()).getOrElse("status", "").asInstanceOf[String];
@@ -97,10 +96,7 @@ class TestJobAPIService extends SparkSpec {
 
     it should "return the list of jobs in descending order" in {
         
-        CassandraConnector(sc.getConf).withSessionDo { session =>
-            session.execute("DELETE FROM local_platform_db.job_request WHERE client_key='partner1'");
-        }
-        
+        DBUtil.cluster.connect("local_platform_db").execute("DELETE FROM local_platform_db.job_request WHERE client_key='partner1'")
         val request_data1 = """{"filter":{"start_date":"2016-11-19","end_date":"2016-11-20","tags":["becb887fe82f24c644482eb30041da6d88bd8150"]}}"""
         val request_data2 = """{"filter":{"start_date":"2016-11-19","end_date":"2016-11-20","tags":["test-tag"],"events":["OE_ASSESS"]}}"""
 
@@ -109,7 +105,9 @@ class TestJobAPIService extends SparkSpec {
                 Option(1), Option(DateTime.now()), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),
             JobRequest(Option("partner1"), Option("273645"), Option("test-job-id"), Option("COMPLETED"), Option(request_data2),
                 Option(1), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), Option("https://test-location"), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), None, None, None, None, None, Option(123234), Option(532), Option(12343453L), None, None, None, None, None));
-        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORML_DB, Constants.JOB_REQUEST)
+        //sc.makeRDD(requests).saveToCassandra(Constants.PLATFORML_DB, Constants.JOB_REQUEST)
+        
+        DBUtil.saveJobRequest(requests)
         
         val jobs = JobAPIService.getDataRequestList("partner1", 10)
         val res = JSONUtils.deserialize[Response](jobs)

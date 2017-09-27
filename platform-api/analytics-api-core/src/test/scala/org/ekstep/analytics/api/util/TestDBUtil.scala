@@ -25,7 +25,7 @@ class TestDBUtil extends SparkSpec {
                 Option(1), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), Option("https://test-location"), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), None, None, None, None, None, Option(123234), Option(532), Option(12343453L), None, None, None, None, None));
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORML_DB, Constants.JOB_REQUEST)
         
-        val jobs = DBUtil.getJobRequestList("partner1").collect
+        val jobs = DBUtil.getJobRequestList("partner1")
         
         jobs.last.status.get should be ("COMPLETED")
         jobs.head.status.get should be ("SUBMITTED")

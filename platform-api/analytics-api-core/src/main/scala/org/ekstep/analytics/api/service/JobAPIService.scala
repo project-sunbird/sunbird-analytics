@@ -43,13 +43,13 @@ import java.util.Calendar
 // TODO: Need to refactor the entire Service.
 object JobAPIService {
 
-    case class DataRequest(request: String, sc: SparkContext, config: Config);
-    case class GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config);
-    case class DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config);
+    case class DataRequest(request: String, config: Config);
+    case class GetDataRequest(clientKey: String, requestId: String, config: Config);
+    case class DataRequestList(clientKey: String, limit: Int, config: Config);
 
-    case class ChannelData(datasetId: String, channel: String, from: String, to: String, sc: SparkContext, config: Config);
+    case class ChannelData(datasetId: String, channel: String, from: String, to: String, config: Config);
 
-    def dataRequest(request: String)(implicit sc: SparkContext, config: Config): String = {
+    def dataRequest(request: String)(implicit config: Config): String = {
         val body = JSONUtils.deserialize[RequestBody](request);
         val isValid = _validateReq(body)
         if ("true".equals(isValid.get("status").get)) {
@@ -61,7 +61,7 @@ object JobAPIService {
         }
     }
 
-    def getDataRequest(clientKey: String, requestId: String)(implicit sc: SparkContext, config: Config): String = {
+    def getDataRequest(clientKey: String, requestId: String)(implicit config: Config): String = {
         val job = DBUtil.getJobRequest(requestId, clientKey);
         if (null == job) {
             CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
@@ -71,15 +71,15 @@ object JobAPIService {
         }
     }
 
-    def getDataRequestList(clientKey: String, limit: Int)(implicit sc: SparkContext, config: Config): String = {
+    def getDataRequestList(clientKey: String, limit: Int)(implicit config: Config): String = {
         val currDate = DateTime.now();
-        val rdd = DBUtil.getJobRequestList(clientKey);
-        val jobs = rdd.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
+        val jobRequests = DBUtil.getJobRequestList(clientKey);
+        val jobs = jobRequests.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
         val result = jobs.take(limit).map { x => _createJobResponse(x) }
-        JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.count()), "jobs" -> result)));
+        JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.size), "jobs" -> result)));
     }
 
-    def getChannelData(datasetId: String, channel: String, from: String, to: String)(implicit sc: SparkContext, config: Config): String = {
+    def getChannelData(datasetId: String, channel: String, from: String, to: String)(implicit config: Config): String = {
 
         val isValid = _validateChannelDataReqDtRange(datasetId, from, to)
         if ("true".equals(isValid.get("status").get)) {
@@ -108,13 +108,14 @@ object JobAPIService {
         }
     }
 
-    private def upsertRequest(body: RequestBody)(implicit sc: SparkContext, config: Config): JobRequest = {
+    private def upsertRequest(body: RequestBody)(implicit config: Config): JobRequest = {
         val outputFormat = body.request.output_format.getOrElse(config.getString("data_exhaust.output_format"))
         val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default"));
         val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId, body.params.get.client_key.get);
         val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
         val usrReq = body.request;
         val request = Request(usrReq.filter, usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId));
+        
         if (null == job) {
             _saveJobRequest(requestId, body.params.get.client_key.get, request);
         } else {
@@ -186,11 +187,11 @@ object JobAPIService {
         JobResponse(job.request_id.get, job.status.get, lastupdated, request, job.iteration.getOrElse(0), output, stats);
     }
 
-    private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0)(implicit sc: SparkContext): JobRequest = {
+    private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0): JobRequest = {
         val status = JobStatus.SUBMITTED.toString()
         val jobSubmitted = DateTime.now()
         val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-        DBUtil.saveJobRequest(jobRequest);
+        DBUtil.saveJobRequest(Array(jobRequest));
         jobRequest;
     }
 
@@ -222,9 +223,9 @@ class JobAPIService extends Actor {
     import JobAPIService._;
 
     def receive = {
-        case DataRequest(request: String, sc: SparkContext, config: Config) => sender() ! dataRequest(request)(sc, config);
-        case GetDataRequest(clientKey: String, requestId: String, sc: SparkContext, config: Config) => sender() ! getDataRequest(clientKey, requestId)(sc, config);
-        case DataRequestList(clientKey: String, limit: Int, sc: SparkContext, config: Config) => sender() ! getDataRequestList(clientKey, limit)(sc, config);
-        case ChannelData(datasetId: String, channel: String, from: String, to: String, sc: SparkContext, config: Config) => sender() ! getChannelData(datasetId, channel, from, to)(sc, config);
+        case DataRequest(request: String, config: Config) => sender() ! dataRequest(request)(config);
+        case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config);
+        case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config);
+        case ChannelData(datasetId: String, channel: String, from: String, to: String, config: Config) => sender() ! getChannelData(datasetId, channel, from, to)(config);
     }
 }
