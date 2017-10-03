@@ -28,14 +28,14 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 
     def dataRequest() = Action.async { implicit request =>
         val body: String = Json.stringify(request.body.asJson.get);
-        val result = ask(jobAPIActor, DataRequest(body, Context.sc, config)).mapTo[String];
+        val result = ask(jobAPIActor, DataRequest(body, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }
     }
 
     def getJob(clientKey: String, requestId: String) = Action.async { implicit request =>
-        val result = ask(jobAPIActor, GetDataRequest(clientKey, requestId, Context.sc, config)).mapTo[String];
+        val result = ask(jobAPIActor, GetDataRequest(clientKey, requestId, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }
@@ -43,7 +43,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 
     def getJobList(clientKey: String) = Action.async { implicit request =>
         val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.list.limit")))
-        val result = ask(jobAPIActor, DataRequestList(clientKey, limit, Context.sc, config)).mapTo[String];
+        val result = ask(jobAPIActor, DataRequestList(clientKey, limit, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }
@@ -53,7 +53,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 
         val from = request.getQueryString("from").getOrElse("")
         val to = request.getQueryString("to").getOrElse(org.ekstep.analytics.api.util.CommonUtil.getToday())
-        val result = ask(jobAPIActor, ChannelData(datasetId, channel, from, to, Context.sc, config)).mapTo[String];
+        val result = ask(jobAPIActor, ChannelData(datasetId, channel, from, to, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }
