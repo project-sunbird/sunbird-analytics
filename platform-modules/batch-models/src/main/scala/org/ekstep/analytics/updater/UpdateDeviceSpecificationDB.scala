@@ -9,6 +9,8 @@ import scala.reflect.runtime.universe
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 case class DeviceSpec(device_id: String, app_id: String, channel: String, device_name: String, device_local_name: String, os: String, make: String,
                       memory: Double, internal_disk: Double, external_disk: Double, screen_size: Double,
@@ -16,7 +18,7 @@ case class DeviceSpec(device_id: String, app_id: String, channel: String, device
 
 object UpdateDeviceSpecificationDB extends IBatchModelTemplate[ProfileEvent, ProfileEvent, DeviceSpec, UpdaterOutput] with Serializable {
 
-    val className = "org.ekstep.analytics.model.UpdateDeviceSpecificationDB"
+    implicit val className = "org.ekstep.analytics.model.UpdateDeviceSpecificationDB"
     override def name: String = "UpdateDeviceSpecificationDB"
 
     override def preProcess(data: RDD[ProfileEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ProfileEvent] = {
@@ -49,6 +51,8 @@ object UpdateDeviceSpecificationDB extends IBatchModelTemplate[ProfileEvent, Pro
     }
 
     override def postProcess(data: RDD[DeviceSpec], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[UpdaterOutput] = {
+        JobLogger.log("cassandra keyspace prefix", Option(Map("keyspace prefix" -> AppConf.getConfig("cassandra.keyspace_prefix"))), INFO)
+        JobLogger.log("device keyspce name", Option(Map("keyspace" -> Constants.DEVICE_KEY_SPACE_NAME)), INFO)
         data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_SPECIFICATION_TABLE);
         sc.parallelize(Seq(UpdaterOutput("Device specification database updated - " + data.count())));
     }
