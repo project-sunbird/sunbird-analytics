@@ -65,10 +65,10 @@ object ResponseCode extends Enumeration {
 }
 
 object Constants {
-  val env = AppConf.getConfig("application.env");
-	val CONTENT_DB = env+"_"+"content_db";
-	val DEVICE_DB = env+"_"+"device_db";
-	val PLATFORML_DB = env+"_"+"platform_db";
+  val env = AppConf.getConfig("cassandra.keyspace_prefix");
+	val CONTENT_DB = env+"content_db";
+	val DEVICE_DB = env+"device_db";
+	val PLATFORML_DB = env+"platform_db";
 	val JOB_REQUEST = "job_request";
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
 	val DEVICE_RECOS_TABLE = "device_recos";
