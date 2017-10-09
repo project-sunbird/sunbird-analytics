@@ -1,10 +1,12 @@
 package org.ekstep.analytics.api
 
 import com.typesafe.config.Config
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.api.util.ContentCacheUtil
 import scala.util.control.Breaks
+import java.util.ArrayList
+//import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+
 
 trait IRecommendations {
 
@@ -14,17 +16,19 @@ trait IRecommendations {
 	
 	def applyLimit(contents: List[Map[String, Any]], total: Int, limit: Int)(implicit config: Config) : List[Map[String, Any]]
 	
-	def fetch(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String;
+	
+	def fetch(requestBody: RequestBody)(implicit config: Config): String;
 
 	def getLimit(requestBody: RequestBody)(implicit config: Config): Int = {
 		val default = config.getInt("recommendation.limit");
 		if (config.getBoolean("recommendation.enable")) requestBody.request.limit.getOrElse(default); else default;
 	}
 	
-	def getRecommendedContent(records: RDD[List[(String, Double)]], filters: Array[(String, List[String], String)]): List[Map[String, Any]] = {
-		if (records.count() > 0) {
-			records.first.map(f => ContentCacheUtil.getREList.getOrElse(f._1, Map()) ++ Map("reco_score" -> f._2))
-				.filter(p => p.get("identifier").isDefined)
+	def getRecommendedContent(records: Iterable[Iterable[(String, Double)]], filters: Array[(String, List[String], String)]): List[Map[String, Any]] = {
+		if (records.size > 0) {
+			val d = records.head
+			val c = d.map(f => ContentCacheUtil.getREList.getOrElse(f._1.toString(), Map()) ++ Map("reco_score" -> f._2))
+				c.toList.filter(p => p.get("identifier").isDefined)
 				.filter(p => {
 					var valid = true;
 					Breaks.breakable {
