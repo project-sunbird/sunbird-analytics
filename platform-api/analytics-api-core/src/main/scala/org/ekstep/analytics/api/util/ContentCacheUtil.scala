@@ -21,7 +21,7 @@ object ContentCacheUtil {
 	private var languageMap: Map[String, String] = Map();
 	private var cacheTimestamp: Long = 0L;
 
-	def initCache()(implicit sc: SparkContext, config: Config) {
+	def initCache()(implicit config: Config) {
 		try {
 			prepareContentCache();
 			prepareLanguageCache();
@@ -35,7 +35,7 @@ object ContentCacheUtil {
 		}
 	}
 
-	def validateCache()(implicit sc: SparkContext, config: Config) {
+	def validateCache()(implicit config: Config) {
 
 		val timeAtStartOfDay = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay().getMillis;
 		if (cacheTimestamp < timeAtStartOfDay) {
@@ -63,7 +63,7 @@ object ContentCacheUtil {
 		}
 	}
 	
-	private def prepareContentCache()(implicit sc: SparkContext, config: Config) {
+	private def prepareContentCache()(implicit config: Config) {
 		val contentList = getPublishedContent().toList;
 		val contentMap = contentList.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap;
 		contentListMap = contentMap;
@@ -71,14 +71,14 @@ object ContentCacheUtil {
 		prepareREMap(contentList)
 	}
 	
-	private def prepareLanguageCache()(implicit sc: SparkContext, config: Config) {
+	private def prepareLanguageCache()(implicit config: Config) {
 		val langsList = getLanguages().toList
 		val langsMap = langsList.filter(f => f.get("isoCode").isDefined).map(f => (f.get("isoCode").get.asInstanceOf[String], f.get("name").get.asInstanceOf[String])).toMap;
 		languageMap = langsMap;
 		println("Cached Langauge List count:", languageMap.size);
 	}
 	
-	private def prepareREMap(contentList:  List[Map[String, AnyRef]])(implicit sc: SparkContext, config: Config) = {
+	private def prepareREMap(contentList:  List[Map[String, AnyRef]])(implicit config: Config) = {
 		val contentMap = contentList.filterNot(f => StringUtils.equals(f.getOrElse("visibility", "").asInstanceOf[String], "Parent"))
 			.map(f => (f.get("identifier").get.asInstanceOf[String], f)).toMap
 		recommendListMap = contentMap;
