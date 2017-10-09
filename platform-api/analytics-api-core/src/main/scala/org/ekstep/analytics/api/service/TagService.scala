@@ -1,40 +1,38 @@
 package org.ekstep.analytics.api.service
 
-import org.apache.spark.SparkContext
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import com.datastax.spark.connector._
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.util.CommonUtil
+import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.util.JSONUtils
-import com.datastax.spark.connector.cql.CassandraConnector
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+
 import akka.actor.Actor
 
 case class RegisteredTag(tag_id: String, last_updated: DateTime, active: Boolean);
 
 object TagService {
-    case class RegisterTag(tag: String, sc: SparkContext)
-    case class DeleteTag(tag: String, sc: SparkContext)
-    
-    def registerTag(tagId: String)(implicit sc: SparkContext) : String = {
-        val rdd = sc.makeRDD(Seq(RegisteredTag(tagId, DateTime.now(DateTimeZone.UTC), true)));
-        rdd.saveToCassandra(Constants.CONTENT_DB, Constants.REGISTERED_TAGS);
+    case class RegisterTag(tag: String)
+    case class DeleteTag(tag: String)
+
+    def registerTag(tagId: String): String = {
+        val query = "INSERT INTO " + Constants.CONTENT_DB +"."+ Constants.REGISTERED_TAGS + " (tag_id, last_updated, active) VALUES('" + tagId +"',"+ DateTime.now(DateTimeZone.UTC).getMillis + "," + true + ")"
+        val data = DBUtil.session.execute(query)
         JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.tag-register", Map("message" -> "Tag registered successfully")));
     }
-    
-    def deleteTag(tagId: String)(implicit sc: SparkContext) : String = {
-        
-        val rdd = sc.makeRDD(Seq(RegisteredTag(tagId, DateTime.now(DateTimeZone.UTC), false)));
-        rdd.saveToCassandra(Constants.CONTENT_DB, Constants.REGISTERED_TAGS);
+
+    def deleteTag(tagId: String): String = {
+        val query = "INSERT INTO " + Constants.CONTENT_DB +"."+ Constants.REGISTERED_TAGS + " (tag_id, last_updated, active) VALUES('" + tagId +"',"+ DateTime.now(DateTimeZone.UTC).getMillis + "," + false + ")"
+        val data = DBUtil.session.execute(query)
         JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.tag-delete", Map("message" -> "Tag deleted successfully")));
     }
 }
 
 class TagService extends Actor {
-  import TagService._
-  
-  def receive = {
-    case RegisterTag(tag: String, sc: SparkContext) => sender() ! registerTag(tag)(sc)
-    case DeleteTag(tag: String, sc: SparkContext) => sender() ! deleteTag(tag)(sc)
-  }
+    import TagService._
+
+    def receive = {
+        case RegisterTag(tag: String) => sender() ! registerTag(tag)
+        case DeleteTag(tag: String)   => sender() ! deleteTag(tag)
+    }
 }

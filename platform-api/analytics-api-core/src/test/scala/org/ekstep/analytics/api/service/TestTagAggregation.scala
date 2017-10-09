@@ -1,15 +1,12 @@
 package org.ekstep.analytics.api.service
 
+import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.MetricsRequestBody
 import org.ekstep.analytics.api.MetricsResponse
-import org.ekstep.analytics.api.Result
-import org.ekstep.analytics.api.SparkSpec
-import org.ekstep.analytics.api.util.ContentCacheUtil
 import org.ekstep.analytics.api.util.JSONUtils
 import org.joda.time.DateTimeUtils
-import com.typesafe.config.ConfigFactory
 
-class TestTagAggregation extends SparkSpec {
+class TestTagAggregation extends BaseSpec {
 
     override def beforeAll() {
         super.beforeAll()
