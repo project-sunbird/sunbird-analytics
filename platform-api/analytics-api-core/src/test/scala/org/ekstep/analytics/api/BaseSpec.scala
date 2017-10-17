@@ -35,19 +35,6 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll{
 			EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
 		}
 	}
-	
-//	private def getSparkConf(): SparkConf = {
-//		val conf = new SparkConf().setAppName("TestAnalyticsCore");
-//		conf.setMaster("local[*]");
-//		if (!conf.contains("spark.cassandra.connection.host"))
-//			conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
-//		if (embeddedCassandraMode)
-//			conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
-//		if (!conf.contains("reactiveinflux.url")) {
-//			conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
-//		}
-//		conf;
-//	}
 
 	private def embeddedCassandraMode(): Boolean = {
 		val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable");
