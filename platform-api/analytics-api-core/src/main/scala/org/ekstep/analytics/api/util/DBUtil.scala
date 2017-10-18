@@ -82,12 +82,7 @@ object DBUtil {
 
     def checkCassandraConnection(): Boolean = {
         try {
-            val cluster = new Cluster.Builder().
-                addContactPoints(host).
-                withPort(port).build()
-            val session: Session = cluster.connect
-            session.close();
-            true;
+            if(null != session) true else false
         } catch {
             // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
             // TODO: Need to get confirmation from amit.
