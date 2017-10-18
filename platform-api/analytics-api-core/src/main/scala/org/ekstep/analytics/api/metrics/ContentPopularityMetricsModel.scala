@@ -5,13 +5,12 @@ import org.ekstep.analytics.api.ContentPopularityMetrics
 import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.api.ContentPopularityViews
 import org.ekstep.analytics.api.Rating
 
-object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityViews, ContentPopularityMetrics]  with Serializable {
+object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics, ContentPopularityMetrics]  with Serializable {
 	override def metric : String = "cps";
 	
-	override def getMetrics(records: Array[ContentPopularityViews], period: String, fields: Array[String] = Array())(implicit config: Config): Array[ContentPopularityMetrics] = {
+	override def getMetrics(records: Array[ContentPopularityMetrics], period: String, fields: Array[String] = Array())(implicit config: Config): Array[ContentPopularityMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val addComments = returnComments(fields);
@@ -25,12 +24,12 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityView
 		periodsArray.map { tup1 =>
             val tmp = recordsArray.filter(tup2 => tup1._1 == tup2._1)
             if (tmp.isEmpty) (tup1._1, (tup1._2, None)) else (tup1._1, (tup1._2, tmp.apply(0)._2))
-        }.sortBy(-_._1).map { f => if (None != f._2._2) _merge(f._2._2.asInstanceOf[ContentPopularityViews], f._2._1, addComments) else f._2._1 }
+        }.sortBy(-_._1).map { f => if (None != f._2._2) _merge(f._2._2.asInstanceOf[ContentPopularityMetrics], f._2._1, addComments) else f._2._1 }
 	}
 
-	private def _merge(obj: ContentPopularityViews, dummy: ContentPopularityMetrics, addComments: Boolean): ContentPopularityMetrics = {
+	private def _merge(obj: ContentPopularityMetrics, dummy: ContentPopularityMetrics, addComments: Boolean): ContentPopularityMetrics = {
         
-	    val m_ratings = obj.m_ratings.getOrElse(List()).map{x=> Rating(x._1, x._2)}
+	    val m_ratings = obj.m_ratings.getOrElse(List()).map{x=> Rating(x.rating, x.timestamp)}
 	    if (addComments)
         	ContentPopularityMetrics(dummy.d_period, dummy.label, obj.m_comments, obj.m_downloads, obj.m_side_loads, Option(m_ratings), obj.m_avg_rating)
         else
