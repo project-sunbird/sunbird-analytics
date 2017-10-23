@@ -15,6 +15,10 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 	override def getMetrics(records: RDD[ContentPopularityMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ContentPopularityMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
+		println("fields: ")
+		for(field<-fields){
+		    println(field)
+		}
 		val addComments = returnComments(fields);
 		val recordsRDD = records.map { x => (x.d_period.get, x) };
 		val periodsRDD = sc.parallelize(periods.map { period => 

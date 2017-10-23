@@ -129,6 +129,12 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
                 s"$basePath$metric-$tag-$contentId-$channel-$period.json";
             }
         }
+        
+        println("Printing File Path: ")
+        for(f<-filePaths){
+            println(f)
+        }
+        
         val queriesS3 = filePaths.map { filePath => Query(Option(config.getString("metrics.search.params.bucket")), Option(filePath)) }
         val queriesLocal = filePaths.map { filePath => Query(None, None, None, None, None, None, None, None, None, Option(filePath)) }
 
