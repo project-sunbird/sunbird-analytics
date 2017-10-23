@@ -41,11 +41,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      */
     def fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array(), channel: String, userId: String = "all")(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         preProcess();
-        println("Printing fields in `fetch` method: ")
-        for(f<-fields){
-            println(f)
-        }
-        
         val tags = tag.split(",").distinct
         val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
             _fetch(contentId, tags, period, fields, channel, userId);
@@ -72,12 +67,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
             val aggregated = if ("ius".equals(metric())) dataFetch._2 else
                 dataFetch._2.groupBy { x => x.d_period.get }.mapValues { x => x }.map(f => f._2).asInstanceOf[RDD[Iterable[Metrics]]]
                     .map { x => x.reduce((a, b) => reduce(a.asInstanceOf[R], b.asInstanceOf[R], fields)) }.asInstanceOf[RDD[T]]
-
-            val data = aggregated.collect
-            println("Printing Aggregated Data: ")
-            for (d <- data) {
-                println(JSONUtils.serialize(d))
-            }
             getResult(aggregated, period, fields);
         } catch {
             case ex: S3ServiceException =>
@@ -156,6 +145,9 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
             case "s3"    => Fetcher("s3", None, Option(queriesS3));
             case _       => throw new DataFetcherException("Unknown fetcher type found");
         }
+        println("Printing Fetcher: ")
+        println(JSONUtils.serialize(search))
+        
         DataFetcher.fetchBatchData[T](search);
     }
 
