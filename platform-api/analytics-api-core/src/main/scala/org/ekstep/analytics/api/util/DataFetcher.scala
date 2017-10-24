@@ -35,14 +35,11 @@ object DataFetcher {
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
                 try {
-                    val data = JSONUtils.deserialize[T](line);
-                    println("Deserializing Done!!!");
-                    println("data: "+ data)
-                    data;
+                    JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
                         JobLogger.log(ex.getMessage, Option(Map("date" -> date)));
-                        println("Deserializing Not Done!!! ---- "+ JSONUtils.serialize(keys));
+                        ex.printStackTrace();
                         null.asInstanceOf[T]
                 }
             }
