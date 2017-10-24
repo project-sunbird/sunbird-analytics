@@ -1,13 +1,12 @@
 package org.ekstep.analytics.api.metrics
 
 import org.ekstep.analytics.api.IMetricsModel
-import org.ekstep.analytics.api.ContentPopularityMetrics
 import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.api.util.CommonUtil
-//import org.ekstep.analytics.api.ContentPopularityViews
 import org.ekstep.analytics.api.Rating
+import org.ekstep.analytics.api.ContentPopularityMetrics
 
 object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics, ContentPopularityMetrics]  with Serializable {
 	override def metric : String = "cps";
@@ -30,7 +29,7 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 
 	private def _merge(obj: ContentPopularityMetrics, dummy: ContentPopularityMetrics, addComments: Boolean): ContentPopularityMetrics = {
         
-	    val m_ratings = obj.m_ratings.getOrElse(List()).map{x=> Rating(x.rating, x.timestamp)}
+	    val m_ratings = obj.m_ratings.getOrElse(List()).map{x=> (x._1, x._2)}
 	    if (addComments)
         	ContentPopularityMetrics(dummy.d_period, dummy.label, obj.m_comments, obj.m_downloads, obj.m_side_loads, Option(m_ratings), obj.m_avg_rating)
         else
@@ -46,7 +45,7 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 		val m_side_loads = fact2.m_side_loads.getOrElse(0l).asInstanceOf[Number].longValue() + fact1.m_side_loads.getOrElse(0l).asInstanceOf[Number].longValue();
 		val m_ratings = (fact2.m_ratings.getOrElse(List()) ++ fact1.m_ratings.getOrElse(List())).distinct;
 		val m_avg_rating = if (m_ratings.length > 0) {
-			val total_rating = m_ratings.map(_.rating).sum;
+			val total_rating = m_ratings.map(_._1).sum;
 			if (total_rating > 0) CommonUtil.roundDouble(total_rating/m_ratings.length, 2) else 0.0;
 		} else 0.0;
 		if(returnComments(fields)) {
