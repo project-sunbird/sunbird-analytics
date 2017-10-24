@@ -131,12 +131,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
                 s"$basePath$metric-$tag-$contentId-$channel-$period.json";
             }
         }
-
-        println("Printing File Path: ")
-        for (f <- filePaths) {
-            println(f)
-        }
-
         val queriesS3 = filePaths.map { filePath => Query(Option(config.getString("metrics.search.params.bucket")), Option(filePath)) }
         val queriesLocal = filePaths.map { filePath => Query(None, None, None, None, None, None, None, None, None, Option(filePath)) }
 
@@ -145,9 +139,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
             case "s3"    => Fetcher("s3", None, Option(queriesS3));
             case _       => throw new DataFetcherException("Unknown fetcher type found");
         }
-        println("Printing Fetcher: ")
-        println(JSONUtils.serialize(search))
-        
         DataFetcher.fetchBatchData[T](search);
     }
 
