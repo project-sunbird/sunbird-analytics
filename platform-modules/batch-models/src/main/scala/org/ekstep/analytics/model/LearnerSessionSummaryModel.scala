@@ -46,7 +46,7 @@ class SessionSummary(val id: String, val ver: String, val levels: Option[Array[M
 /**
  * Generic Screener Summary Model
  */
-object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, SessionSummaryInput, SessionSummaryOutput, MeasuredEvent] with Serializable {
+object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent] with IBatchModelTemplate[V3Event, SessionSummaryInput, SessionSummaryOutput, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.LearnerSessionSummaryModel"
 
@@ -206,10 +206,10 @@ object LearnerSessionSummaryModel extends SessionBatchModel[Event, MeasuredEvent
         stageMap.map { x => ScreenSummary(x._1, x._2._1, x._2._2) };
     }
 
-    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
+    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
         JobLogger.log("Filtering Events of OE_ASSESS,OE_START, OE_END, OE_LEVEL_SET, OE_INTERACT, OE_INTERRUPT")
-        val filteredData = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("OE_ASSESS", "OE_START", "OE_END", "OE_LEVEL_SET", "OE_INTERACT", "OE_INTERRUPT", "OE_NAVIGATE", "OE_ITEM_RESPONSE")))));
-        val gameSessions = getGameSessions(filteredData);
+        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "LEVEL_SET", "INTERACT", "INTERRUPT", "NAVIGATE", "RESPONSE")))));
+        val gameSessions = getGameSessionsV3(filteredData);
         gameSessions.map { x => SessionSummaryInput(x._1._1,x._1._2, x._2) }
     }
 

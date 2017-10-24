@@ -10,11 +10,54 @@ import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.creation.model.CreationEvent
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.V3Event
 
 /**
  * @author Santhosh
  */
 trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
+
+    def getGameSessionsV3(data: RDD[V3Event]): RDD[((String, String), Buffer[V3Event])] = {
+        data.filter { x => x.actor.id != null && x.`object`.nonEmpty && x.`object`.get.id != null }
+            .map { event =>
+                val channelId = CommonUtil.getChannelId(event)
+                ((channelId, event.actor.id), Buffer(event))
+            }.partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).mapValues { events =>
+                events.sortBy { x => x.ets }.groupBy { e =>
+                    (e.context.sid.get, e.ver)
+                }.mapValues { x =>
+                    var sessions = Buffer[Buffer[V3Event]]();
+                    var tmpArr = Buffer[V3Event]();
+                    var lastContentId: String = x(0).`object`.get.id;
+                    x.foreach { y =>
+                        y.eid match {
+                            case "START" =>
+                                if (tmpArr.length > 0) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[V3Event]();
+                                }
+                                tmpArr += y;
+                                lastContentId = y.actor.id;
+                            case "END" =>
+                                tmpArr += y;
+                                sessions += tmpArr;
+                                tmpArr = Buffer[V3Event]();
+                            case _ =>
+                                if (!lastContentId.equals(y.actor.id)) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[V3Event]();
+                                }
+                                tmpArr += y;
+                                lastContentId = y.actor.id;
+                        }
+                    }
+                    sessions += tmpArr;
+                    sessions;
+                }.map(f => f._2).reduce((a, b) => a ++ b);
+                //}.flatMap(f => f._2.map { x => ((f._1._2, f._1._1), x) }).filter(f => f._2.nonEmpty);
+            }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
+    }
 
     def getGameSessions(data: RDD[Event]): RDD[((String, String), Buffer[Event])] = {
         data.filter { x => x.uid != null && x.gdata.id != null }
