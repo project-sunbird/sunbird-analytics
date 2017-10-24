@@ -12,6 +12,7 @@ object DataFetcher {
   	@throws(classOf[DataFetcherException])
     def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext): RDD[T] = {
 
+	    println("Fetcher Started")
         JobLogger.log("Fetching data", Option(Map("query" -> search)))
         if (search.queries.isEmpty) {
             throw new DataFetcherException("Data fetch configuration not found")
@@ -19,6 +20,7 @@ object DataFetcher {
         val date = search.queries.get.last.endDate
         val keys: Array[String] = search.`type`.toLowerCase() match {
             case "s3" =>
+                println("S3 Fetcher Started")
                 JobLogger.log("Fetching the batch data from S3")
                 S3DataFetcher.getObjectKeys(search.queries.get).toArray;
             case "local" =>
@@ -27,6 +29,7 @@ object DataFetcher {
             case _ =>
                 throw new DataFetcherException("Unknown fetcher type found");
         }
+        println("keys: "+ JSONUtils.serialize(keys))
         if (null == keys || keys.length == 0) {
             return sc.parallelize(Seq[T](), JobContext.parallelization);
         }
