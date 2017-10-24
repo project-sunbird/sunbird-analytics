@@ -60,7 +60,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
         try {
             val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
                 val records = getData[T](contentId, tags, period.replace("LAST_", "").replace("_", ""), channel, userId).cache();
-                println("records.count: "+records.count)
                 records;
             });
 
