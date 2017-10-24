@@ -1,6 +1,6 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework.Event;
+import org.ekstep.analytics.framework.V3Event;
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.creation.model.CreationEvent
@@ -8,7 +8,7 @@ import org.ekstep.analytics.creation.model.CreationEvent
 class TestPublishPipelineSummaryModel extends SparkSpec(null) {
 
   "PipelineSummaryModel" should "generate pipeline summary" in {
-    val rdd = loadFile[CreationEvent]("src/test/resources/pipeline-summary/test_data1.log");
+    val rdd = loadFile[V3Event]("src/test/resources/pipeline-summary/v3/test_data1.log");
     val result = PublishPipelineSummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.0", "modelId" -> "PublishPipelineSummarizer")));
     val me = result.collect();
     me.length should be(3)
