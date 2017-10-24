@@ -12,6 +12,7 @@ import scala.reflect.ClassTag
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.JSONUtils
 
 /**
  * @author mahesh

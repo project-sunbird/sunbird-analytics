@@ -13,6 +13,10 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 	override def getMetrics(records: Array[ContentPopularityMetrics], period: String, fields: Array[String] = Array())(implicit config: Config): Array[ContentPopularityMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
+		println("fields: ")
+		for(field<-fields){
+		    println(field)
+		}
 		val addComments = returnComments(fields);
 		val recordsArray = records.map { x => (x.d_period.get, x) };
 		val periodsArray = periods.map { period => 
