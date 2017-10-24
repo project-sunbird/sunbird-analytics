@@ -13,6 +13,7 @@ import org.ekstep.analytics.api.util.JSONUtils
 
 import com.typesafe.config.Config
 import com.datastax.driver.core.TupleValue
+import com.datastax.driver.core.querybuilder.QueryBuilder
 
 object ContentRecommendations extends IRecommendations {
   
@@ -30,8 +31,10 @@ object ContentRecommendations extends IRecommendations {
 		} else {
 			val did = context.getOrElse("did", "").asInstanceOf[String];
 			val filters: Array[(String, List[String], String)] = Array(("language", languages, "LIST"));
-		
-			val contentRecosFact = DBUtil.session.execute("select scores from " + Constants.CONTENT_DB + "." + Constants.CONTENT_RECOS_TABLE + " where content_id = '" + contentId + "'")
+			
+			val query = QueryBuilder.select().all().from(Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).where(QueryBuilder.eq("content_id", QueryBuilder.bindMarker())).toString();
+			val ps = DBUtil.session.prepare(query)
+			val contentRecosFact = DBUtil.session.execute(ps.bind(contentId))
 			val contentRecos = contentRecosFact.asScala.seq.map( row => row.getList("scores", classOf[TupleValue]).asScala.seq.map { f => (f.get(0, classOf[String]), f.get(1, classOf[Double]))  })
 			val recoContents = getRecommendedContent(contentRecos, filters);
 			val result = applyLimit(recoContents, recoContents.size, getLimit(requestBody));

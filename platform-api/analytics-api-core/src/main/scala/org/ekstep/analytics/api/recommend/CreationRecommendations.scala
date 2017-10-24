@@ -16,6 +16,7 @@ import org.ekstep.analytics.api.util.JSONUtils
 
 import com.typesafe.config.Config
 import java.util.ArrayList
+import com.datastax.driver.core.querybuilder.QueryBuilder
 
 object CreationRecommendations extends IRecommendations {
 
@@ -34,7 +35,9 @@ object CreationRecommendations extends IRecommendations {
             val context = requestBody.request.context.getOrElse(Map());
             val authorId = context.getOrElse("uid", "").asInstanceOf[String];
            	
-           	val requestsFromCassandra = DBUtil.cluster.connect(Constants.PLATFORML_DB).execute("select requests from " + Constants.REQUEST_RECOS_TABLE + " where uid = '" + authorId + "';").asScala
+            val query = QueryBuilder.select().all().from(Constants.PLATFORML_DB, Constants.REQUEST_RECOS_TABLE).where(QueryBuilder.eq("uid", QueryBuilder.bindMarker())).toString()
+			val ps = DBUtil.session.prepare(query)
+			val requestsFromCassandra = DBUtil.session.execute(ps.bind(authorId)).asScala
            	val getrequests = requestsFromCassandra.map(row => row.getObject("requests").asInstanceOf[ArrayList[Map[String,AnyRef]]]).map(f => f.asScala).flatMap(f => f).toList
             val result = applyLimit(getrequests, getrequests.size, getLimit(requestBody));
             JSONUtils.serialize(CommonUtil.OK(APIIds.CREATION_RECOMMENDATIONS, Map[String, AnyRef]("requests" -> result)));

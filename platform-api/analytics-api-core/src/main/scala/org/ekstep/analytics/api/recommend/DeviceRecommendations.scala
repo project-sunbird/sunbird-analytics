@@ -17,6 +17,8 @@ import com.typesafe.config.Config
 import java.util.Arrays.ArrayList
 import java.util.ArrayList
 import com.datastax.driver.core.TupleValue
+import com.datastax.driver.core.querybuilder.QueryBuilder
+import com.datastax.driver.core.querybuilder.BindMarker
 
 object DeviceRecommendations extends IRecommendations {
 	
@@ -39,8 +41,9 @@ object DeviceRecommendations extends IRecommendations {
 			val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
 			val langName = ContentCacheUtil.getLanguageByCode(dlang);
 			val filters: Array[(String, List[String], String)] = Array(("language", List(langName), "LIST"));
-
-			val deviceRecosFact = DBUtil.session.execute("select scores from " + Constants.DEVICE_DB + "." + Constants.DEVICE_RECOS_TABLE + " where device_id = '" + did + "'")
+			val query = QueryBuilder.select().all().from(Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).where(QueryBuilder.eq("device_id", QueryBuilder.bindMarker())).toString();
+			val ps = DBUtil.session.prepare(query)
+			val deviceRecosFact = DBUtil.session.execute(ps.bind(did))
 			val deviceRecos = deviceRecosFact.asScala.seq.map( row => row.getList("scores", classOf[TupleValue]).asScala.seq.map { f => (f.get(0, classOf[String]), f.get(1, classOf[Double]))  })
 			val recoContents = getRecommendedContent(deviceRecos, filters);
 			val result = applyLimit(recoContents, recoContents.size, getLimit(requestBody))
