@@ -212,6 +212,14 @@ object CommonUtil {
     def getGameVersion(event: Event): String = {
         if (event.gdata != null) event.gdata.ver else null;
     }
+    
+    def getGameId(event: V3Event): String = {
+        if (event.`object`.isEmpty ) null else event.`object`.get.id ;
+    }
+
+    def getGameVersion(event: V3Event): String = {
+        if (event.`object`.isEmpty ) null else event.`object`.get.ver.getOrElse(null) ;
+    }
 
     def getParallelization(config: Option[Map[String, String]]): Int = {
         getParallelization(config.getOrElse(Map[String, String]()));
@@ -557,8 +565,6 @@ object CommonUtil {
         val defaultAppId = PData(AppConf.getConfig("default.consumption.app.id"), "1.0")
         if (event.isInstanceOf[Event]) {
             if (event.asInstanceOf[Event].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].pdata.get.id)) event.asInstanceOf[Event].pdata.get else defaultAppId
-        } else if (event.isInstanceOf[DerivedEvent]) {
-            if (event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
         } else if (event.isInstanceOf[ProfileEvent]) {
             if (event.asInstanceOf[ProfileEvent].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].pdata.get.id)) event.asInstanceOf[ProfileEvent].pdata.get else defaultAppId
         } else defaultAppId;
@@ -568,6 +574,8 @@ object CommonUtil {
         val defaultChannelId = AppConf.getConfig("default.channel.id")
         if (event.isInstanceOf[Event]) {
             if (event.asInstanceOf[Event].channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].channel.get)) event.asInstanceOf[Event].channel.get else defaultChannelId
+        } else if (event.isInstanceOf[V3Event]) {
+            if (event.asInstanceOf[V3Event].context.channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[V3Event].context.channel)) event.asInstanceOf[V3Event].context.channel else defaultChannelId
         } else if (event.isInstanceOf[DerivedEvent]) {
             if (StringUtils.isBlank(event.asInstanceOf[DerivedEvent].channel)) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
         } else if (event.isInstanceOf[ProfileEvent]) {
