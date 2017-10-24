@@ -33,14 +33,14 @@ object MetricsAPIService {
 
     val reqPeriods = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_30_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
 
-    case class ContentUsage(body: MetricsRequestBody, sc: SparkContext, config: Config);
-    case class ContentPopularity(body: MetricsRequestBody, fields: Array[String], sc: SparkContext, config: Config);
-    case class ContentList(body: MetricsRequestBody, sc: SparkContext, config: Config);
-    case class GenieLaunch(body: MetricsRequestBody, sc: SparkContext, config: Config);
-    case class ItemUsage(body: MetricsRequestBody, sc: SparkContext, config: Config);
-    case class Metrics(dataset: String, summary: String, body: MetricsRequestBody, sc: SparkContext, config: Config);
+    case class ContentUsage(body: MetricsRequestBody, config: Config);
+    case class ContentPopularity(body: MetricsRequestBody, fields: Array[String], config: Config);
+    case class ContentList(body: MetricsRequestBody, config: Config);
+    case class GenieLaunch(body: MetricsRequestBody, config: Config);
+    case class ItemUsage(body: MetricsRequestBody, config: Config);
+    case class Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config);
 
-    def metrics(dataset: String, summary: String, body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+    def metrics(dataset: String, summary: String, body: MetricsRequestBody)(implicit config: Config): String = {
 
         dataset match {
             case "creation" =>
@@ -62,7 +62,7 @@ object MetricsAPIService {
         }
     }
 
-    private def consumptionMetrics(summary: String, body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+    private def consumptionMetrics(summary: String, body: MetricsRequestBody)(implicit config: Config): String = {
 
         summary match {
             case "content-usage" =>
@@ -72,7 +72,7 @@ object MetricsAPIService {
         }
     }
 
-    private def contentUsageMetrics(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+    private def contentUsageMetrics(body: MetricsRequestBody)(implicit config: Config): String = {
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
@@ -119,7 +119,7 @@ object MetricsAPIService {
         println(metrics("creation", "content-snapshot", body));
     }
 
-    def contentUsage(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+    def contentUsage(body: MetricsRequestBody)(implicit config: Config): String = {
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
@@ -129,7 +129,8 @@ object MetricsAPIService {
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
                 val tag = getTag(filter);
                 val result = CotentUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result));
+                val res = JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result));
+                res
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -137,7 +138,7 @@ object MetricsAPIService {
         }
     }
 
-    def contentPopularity(body: MetricsRequestBody, fields: Array[String])(implicit sc: SparkContext, config: Config): String = {
+    def contentPopularity(body: MetricsRequestBody, fields: Array[String])(implicit config: Config): String = {
         val filter = body.request.filter.getOrElse(Filter());
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_POPULARITY, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
@@ -157,7 +158,7 @@ object MetricsAPIService {
         }
     }
 
-    def contentList(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+    def contentList(body: MetricsRequestBody)(implicit config: Config): String = {
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_LIST, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
@@ -175,7 +176,7 @@ object MetricsAPIService {
         }
     }
 
-    def genieLaunch(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+    def genieLaunch(body: MetricsRequestBody)(implicit config: Config): String = {
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.GENIE_LUNCH, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
@@ -194,7 +195,7 @@ object MetricsAPIService {
         }
     }
 
-    def itemUsage(body: MetricsRequestBody)(implicit sc: SparkContext, config: Config): String = {
+    def itemUsage(body: MetricsRequestBody)(implicit config: Config): String = {
         val filter = body.request.filter.getOrElse(Filter());
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.ITEM_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
@@ -229,11 +230,11 @@ class MetricsAPIService extends Actor {
     import MetricsAPIService._;
 
     def receive = {
-        case ContentUsage(body: MetricsRequestBody, sc: SparkContext, config: Config)                              => sender() ! contentUsage(body)(sc, config);
-        case ContentPopularity(body: MetricsRequestBody, fields: Array[String], sc: SparkContext, config: Config)  => sender() ! contentPopularity(body, fields)(sc, config);
-        case ContentList(body: MetricsRequestBody, sc: SparkContext, config: Config)                               => sender() ! contentList(body)(sc, config);
-        case GenieLaunch(body: MetricsRequestBody, sc: SparkContext, config: Config)                               => sender() ! genieLaunch(body)(sc, config);
-        case ItemUsage(body: MetricsRequestBody, sc: SparkContext, config: Config)                                 => sender() ! itemUsage(body)(sc, config);
-        case Metrics(dataset: String, summary: String, body: MetricsRequestBody, sc: SparkContext, config: Config) => sender() ! metrics(dataset, summary, body)(sc, config);
+        case ContentUsage(body: MetricsRequestBody, config: Config)                              => sender() ! contentUsage(body)(config);
+        case ContentPopularity(body: MetricsRequestBody, fields: Array[String], config: Config)  => sender() ! contentPopularity(body, fields)(config);
+        case ContentList(body: MetricsRequestBody, config: Config)                               => sender() ! contentList(body)(config);
+        case GenieLaunch(body: MetricsRequestBody, config: Config)                               => sender() ! genieLaunch(body)(config);
+        case ItemUsage(body: MetricsRequestBody, config: Config)                                 => sender() ! itemUsage(body)(config);
+        case Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config) => sender() ! metrics(dataset, summary, body)(config);
     }
 }

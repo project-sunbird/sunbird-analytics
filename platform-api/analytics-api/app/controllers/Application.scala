@@ -9,7 +9,6 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import context.Context
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -47,7 +46,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor");
 
 	def checkAPIhealth() = Action.async { implicit request =>
-    val result = ask(healthCheckAPIActor, GetHealthStatus(Context.sc)).mapTo[String];
+    val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String];
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
     }
@@ -55,7 +54,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 
 	def recommendations() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
-		val futureRes = ask(recommendAPIActor, Consumption(body, Context.sc, config)).mapTo[String];
+		val futureRes = ask(recommendAPIActor, Consumption(body, config)).mapTo[String];
 		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
 		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
 		val response: Future[String] = firstCompleted.recoverWith {
@@ -72,7 +71,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	
 	def creationRecommendations() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
-		val futureRes = ask(recommendAPIActor, Creation(body, Context.sc, config)).mapTo[String];
+		val futureRes = ask(recommendAPIActor, Creation(body, config)).mapTo[String];
 		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
 		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
 		val response: Future[String] = firstCompleted.recoverWith {
@@ -85,14 +84,14 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	}
 	
 	def registerTag(tagId: String) = Action.async { implicit request =>
-		val result = ask(tagServiceAPIActor, RegisterTag(tagId, Context.sc)).mapTo[String];
+		val result = ask(tagServiceAPIActor, RegisterTag(tagId)).mapTo[String];
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
     }
 	}
 
 	def deleteTag(tagId: String) = Action.async { implicit request =>
-		val result = ask(tagServiceAPIActor, DeleteTag(tagId, Context.sc)).mapTo[String];
+		val result = ask(tagServiceAPIActor, DeleteTag(tagId)).mapTo[String];
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
     }

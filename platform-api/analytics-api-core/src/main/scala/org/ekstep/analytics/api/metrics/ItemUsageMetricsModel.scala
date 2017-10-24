@@ -2,7 +2,6 @@ package org.ekstep.analytics.api.metrics
 
 import org.ekstep.analytics.api.IMetricsModel
 import org.ekstep.analytics.api.ItemUsageMetrics
-import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CommonUtil
@@ -14,10 +13,10 @@ import org.ekstep.analytics.api.InCorrectRes
 object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsageMetrics]  with Serializable {
   	override def metric : String = "ius";
   	
-  	override def getMetrics(records: RDD[ItemUsageSummaryView], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ItemUsageMetrics] = {
+  	override def getMetrics(records: Array[ItemUsageSummaryView], period: String, fields: Array[String] = Array())(implicit config: Config): Array[ItemUsageMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
-		val recordsRDD = records.groupBy { x => x.d_period + "-" + x.d_content_id }.map{ f => 
+		val recordsArray = records.groupBy { x => x.d_period + "-" + x.d_content_id }.map{ f => 
 			val items = f._2.map { x => 
 				val top5_incorrect_res = if (null == x.m_top5_incorrect_res || x.m_top5_incorrect_res.isEmpty) List() else  x.m_top5_incorrect_res.map(f => InCorrectRes(f._1, f._2, f._3));
 				val top5_mmc = if (null == x.m_top5_mmc || x.m_top5_mmc.isEmpty) List() else  x.m_top5_mmc.map(f => Misconception(f._1, f._2));
@@ -25,11 +24,12 @@ object ItemUsageMetricsModel extends IMetricsModel[ItemUsageSummaryView, ItemUsa
 			}.toList;
 			val first = f._2.head;
 			ItemUsageMetrics(Option(first.d_period.get), None, Option(items));
-		}.map { x => (x.d_period.get, x) };
-		val periodsRDD = sc.parallelize(periods.map { period => (period, ItemUsageMetrics(Option(period),  Option(CommonUtil.getPeriodLabel(periodEnum, period)))) });
-		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
-			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1) else f._2._1 
-		};
+		}.map { x => (x.d_period.get, x) }.toArray;
+		val periodsArray = periods.map { period => (period, ItemUsageMetrics(Option(period),  Option(CommonUtil.getPeriodLabel(periodEnum, period)))) };
+		periodsArray.map { tup1 =>
+            val tmp = recordsArray.filter(tup2 => tup1._1 == tup2._1)
+            if (tmp.isEmpty) (tup1._1, (tup1._2, None)) else (tup1._1, (tup1._2, tmp.apply(0)._2))
+        }.sortBy(-_._1).map { f => if (None != f._2._2) _merge(f._2._2.asInstanceOf[ItemUsageMetrics], f._2._1) else f._2._1 }
 	}
   	
   	private def _merge(obj: ItemUsageMetrics, dummy: ItemUsageMetrics): ItemUsageMetrics = {

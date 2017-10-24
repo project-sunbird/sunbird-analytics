@@ -1,21 +1,20 @@
 package org.ekstep.analytics.api.service
 
-import org.apache.spark.SparkContext
-import com.datastax.spark.connector._
-import org.ekstep.analytics.api._
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.api.util.CommonUtil
 import org.apache.commons.lang3.StringUtils
-import org.apache.spark.rdd.RDD
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import scala.util.control.Breaks
-import org.ekstep.analytics.api.exception.ClientException
-import com.typesafe.config.Config
+import org.ekstep.analytics.api.APIIds
+import org.ekstep.analytics.api.RequestBody
+import org.ekstep.analytics.api.ResponseCode
+import org.ekstep.analytics.api.recommend.ContentRecommendations
+import org.ekstep.analytics.api.recommend.CreationRecommendations
+import org.ekstep.analytics.api.recommend.DeviceRecommendations
+import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.util.ContentCacheUtil
-import akka.actor.Props
+import org.ekstep.analytics.framework.util.JSONUtils
+
+import com.typesafe.config.Config
+
 import akka.actor.Actor
-import org.ekstep.analytics.api.recommend._
+import akka.actor.Props
 
 /**
  * @author mahesh
@@ -27,11 +26,11 @@ object RecommendationAPIService {
 	val CONTENT_RECO = "Content";
 	
 	def props = Props[RecommendationAPIService];
-	case class Consumption(requestBody: String, sc: SparkContext, config: Config);
-	case class Creation(requestBody: String, sc: SparkContext, config: Config);
+	case class Consumption(requestBody: String, config: Config);
+	case class Creation(requestBody: String, config: Config);
 	
-	def consumptionRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
-		ContentCacheUtil.validateCache()(sc, config);
+	def consumptionRecommendations(requestBody: RequestBody)(implicit config: Config): String = {
+		ContentCacheUtil.validateCache()(config);
 		if (hasRequired(requestBody, "CONSUMPTION")) {
 			val recoType = 	recommendType(requestBody);
 			if (StringUtils.equals(DEVICE_RECO, recoType)) 
@@ -43,7 +42,7 @@ object RecommendationAPIService {
 		}
 	}
 	
-	def creationRecommendations(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
+	def creationRecommendations(requestBody: RequestBody)(implicit config: Config): String = {
 		if (hasRequired(requestBody, "CREATION")) {
 			CreationRecommendations.fetch(requestBody);
 		} else {
@@ -73,10 +72,10 @@ class RecommendationAPIService extends Actor {
 	import RecommendationAPIService._;
 
 	def receive = {
-		case Consumption(requestBody: String, sc: SparkContext, config: Config) =>
-			sender() ! consumptionRecommendations(JSONUtils.deserialize[RequestBody](requestBody))(sc, config);
+		case Consumption(requestBody: String, config: Config) =>
+			sender() ! consumptionRecommendations(JSONUtils.deserialize[RequestBody](requestBody))(config);
 			
-		case Creation(requestBody: String, sc: SparkContext, config: Config) =>
-			sender() ! creationRecommendations(JSONUtils.deserialize[RequestBody](requestBody))(sc, config);
+		case Creation(requestBody: String, config: Config) =>
+			sender() ! creationRecommendations(JSONUtils.deserialize[RequestBody](requestBody))(config);
 	}
 }

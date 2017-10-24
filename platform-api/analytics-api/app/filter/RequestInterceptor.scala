@@ -5,7 +5,6 @@ import java.util.UUID
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import context.Context
 import play.api.mvc._
 import util.APILogger
 
@@ -16,7 +15,6 @@ object RequestInterceptor extends Filter {
     def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
 
         val startTime = System.currentTimeMillis()
-        Context.checkSparkContext();
         val msgid = UUID.randomUUID().toString();
         request.headers.add(("msgid", msgid));
         val msg = s"${msgid} | Method: ${request.method} | Path: ${request.uri} | Remote Address: ${request.remoteAddress} " +

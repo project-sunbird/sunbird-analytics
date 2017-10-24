@@ -1,21 +1,33 @@
 package org.ekstep.analytics.api.util
 
-import org.ekstep.analytics.api.JobRequest
-import org.ekstep.analytics.api.Constants
-import akka.actor.Actor
-import org.ekstep.analytics.framework.conf.AppConf
-import com.datastax.driver.core.querybuilder.{ QueryBuilder => QB }
-import com.datastax.driver.core._
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import scala.reflect.runtime.universe.MethodSymbol
+import scala.reflect.runtime.universe.TypeTag
+import scala.reflect.runtime.universe.typeOf
+import scala.reflect.runtime.{ currentMirror => m, universe => ru }
+
+import org.ekstep.analytics.api.Constants
+import org.ekstep.analytics.api.JobRequest
+import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
+
+import com.datastax.driver.core.Cluster
+import com.datastax.driver.core.Row
+import com.datastax.driver.core.Session
+import com.datastax.driver.core.querybuilder.{ QueryBuilder => QB }
+
 import org.ekstep.analytics.framework.util.JobLogger
+import akka.actor.Actor
+import com.fasterxml.jackson.core.`type`.TypeReference
 
 object DBUtil {
 
     case class GetJobRequest(requestId: String, clientId: String);
     case class SaveJobRequest(jobRequest: Array[JobRequest]);
-    
+
     implicit val className = "DBUtil"
     val embeddedCassandra = AppConf.getConfig("cassandra.service.embedded.enable").toBoolean
     val host = AppConf.getConfig("spark.cassandra.connection.host")
@@ -27,7 +39,7 @@ object DBUtil {
             .build()
     }
     val session = cluster.connect()
-    
+
     def getJobRequest(requestId: String, clientKey: String): JobRequest = {
         val query = QB.select().from(Constants.PLATFORML_DB, Constants.JOB_REQUEST).allowFiltering().where(QB.eq("request_id", requestId)).and(QB.eq("client_key", clientKey))
         val resultSet = session.execute(query)
@@ -62,12 +74,23 @@ object DBUtil {
             getDateColumn(row, "dt_first_event"), getDateColumn(row, "dt_last_event"), getDateColumn(row, "dt_expiration"), getDateColumn(row, "dt_job_processing"), getDateColumn(row, "dt_job_completed"), Option(row.getInt("input_events")), Option(row.getInt("output_events")), Option(row.getLong("file_size")),
             Option(row.getInt("latency")), Option(row.getLong("execution_time")), Option(row.getString("err_message")), Option(row.getString("stage")), Option(row.getString("stage_status")))
     }
-    
+
     sys.ShutdownHookThread {
-      session.close()
-      JobLogger.log("Closing the cassandra session")
+        session.close()
+        JobLogger.log("Closing the cassandra session")
     }
 
+    def checkCassandraConnection(): Boolean = {
+        try {
+            if(null != session) true else false
+        } catch {
+            // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
+            // TODO: Need to get confirmation from amit.
+            case ex: Exception =>
+                false
+            // $COVERAGE-ON$    
+        }
+    }
 }
 
 class DBUtil extends Actor {
@@ -75,6 +98,6 @@ class DBUtil extends Actor {
 
     def receive = {
         case GetJobRequest(requestId: String, clientId: String) => getJobRequest(requestId, clientId);
-        case SaveJobRequest(jobRequest: Array[JobRequest])             => saveJobRequest(jobRequest);
+        case SaveJobRequest(jobRequest: Array[JobRequest])      => saveJobRequest(jobRequest);
     }
 }

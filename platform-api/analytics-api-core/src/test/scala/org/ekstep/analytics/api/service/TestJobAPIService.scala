@@ -1,21 +1,16 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.SparkSpec
-import com.typesafe.config.ConfigFactory
-import org.ekstep.analytics.api.JobRequest
-import org.joda.time.DateTime
-import org.ekstep.analytics.api.util.CommonUtil
-import com.datastax.spark.connector._
-import org.ekstep.analytics.api.Constants
-import com.datastax.spark.connector.cql.CassandraConnector
-import org.ekstep.analytics.api.util.JSONUtils
-import org.ekstep.analytics.api.Response 
-import org.ekstep.analytics.api.JobResponse
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.api.BaseSpec
+import org.ekstep.analytics.api.JobRequest
+import org.ekstep.analytics.api.Response
+import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.util.DBUtil
+import org.ekstep.analytics.api.util.JSONUtils
 import org.ekstep.analytics.framework.conf.AppConf
+import org.joda.time.DateTime
 
-class TestJobAPIService extends SparkSpec {
+class TestJobAPIService extends BaseSpec {
 
     "JobAPIService" should "return response for data request" in {
         val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";

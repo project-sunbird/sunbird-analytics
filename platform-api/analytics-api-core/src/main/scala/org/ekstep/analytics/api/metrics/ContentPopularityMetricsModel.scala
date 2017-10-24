@@ -3,7 +3,6 @@ package org.ekstep.analytics.api.metrics
 import org.ekstep.analytics.api.IMetricsModel
 import org.apache.spark.SparkContext
 import com.typesafe.config.Config
-import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.Rating
 import org.ekstep.analytics.api.ContentPopularityMetrics
@@ -11,20 +10,21 @@ import org.ekstep.analytics.api.ContentPopularityMetrics
 object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics, ContentPopularityMetrics]  with Serializable {
 	override def metric : String = "cps";
 	
-	override def getMetrics(records: RDD[ContentPopularityMetrics], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[ContentPopularityMetrics] = {
+	override def getMetrics(records: Array[ContentPopularityMetrics], period: String, fields: Array[String] = Array())(implicit config: Config): Array[ContentPopularityMetrics] = {
 	    val periodEnum = periodMap.get(period).get._1;
 		val periods = _getPeriods(period);
 		val addComments = returnComments(fields);
-		val recordsRDD = records.map { x => (x.d_period.get, x) };
-		val periodsRDD = sc.parallelize(periods.map { period => 
+		val recordsArray = records.map { x => (x.d_period.get, x) };
+		val periodsArray = periods.map { period => 
 			if(addComments) 
 				(period, ContentPopularityMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)), Option(List())))
 			else
 				(period, ContentPopularityMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period))))
-			});
-		periodsRDD.leftOuterJoin(recordsRDD).sortBy(-_._1).map { f =>
-			if(f._2._2.isDefined) _merge(f._2._2.get, f._2._1, addComments) else f._2._1 
-		};
+			};
+		periodsArray.map { tup1 =>
+            val tmp = recordsArray.filter(tup2 => tup1._1 == tup2._1)
+            if (tmp.isEmpty) (tup1._1, (tup1._2, None)) else (tup1._1, (tup1._2, tmp.apply(0)._2))
+        }.sortBy(-_._1).map { f => if (None != f._2._2) _merge(f._2._2.asInstanceOf[ContentPopularityMetrics], f._2._1, addComments) else f._2._1 }
 	}
 
 	private def _merge(obj: ContentPopularityMetrics, dummy: ContentPopularityMetrics, addComments: Boolean): ContentPopularityMetrics = {

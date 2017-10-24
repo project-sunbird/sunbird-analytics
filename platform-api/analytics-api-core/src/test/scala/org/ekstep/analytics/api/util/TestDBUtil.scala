@@ -2,17 +2,13 @@ package org.ekstep.analytics.api.util
 
 import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.JobRequest
-import org.joda.time.DateTime
-import com.datastax.spark.connector._
-import org.ekstep.analytics.api.Constants
-import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.conf.AppConf
+import org.joda.time.DateTime
 
 class TestDBUtil extends BaseSpec {
     
     it should "fetch list of jobs in a descending order" in {
-        
-        
+                
         DBUtil.session.execute("DELETE FROM " + AppConf.getConfig("application.env") +"_platform_db.job_request WHERE client_key='partner1'");
         
         val request_data1 = """{"filter":{"start_date":"2016-11-19","end_date":"2016-11-20","tags":["becb887fe82f24c644482eb30041da6d88bd8150"]}}"""

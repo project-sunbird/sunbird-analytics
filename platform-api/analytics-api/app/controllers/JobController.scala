@@ -10,7 +10,6 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.pattern.ask
 import akka.routing.FromConfig
-import context.Context
 import javax.inject.Inject
 import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

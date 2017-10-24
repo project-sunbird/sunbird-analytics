@@ -1,15 +1,19 @@
 package org.ekstep.analytics.api.recommend
 
-import org.ekstep.analytics.api.IRecommendations
-import org.ekstep.analytics.api.RequestBody
-import com.typesafe.config.Config
-import org.apache.spark.SparkContext
-import com.datastax.spark.connector._
-import org.ekstep.analytics.api.util.ContentCacheUtil
-import org.ekstep.analytics.api.util.JSONUtils
-import org.ekstep.analytics.api.util.CommonUtil
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+
 import org.ekstep.analytics.api.APIIds
 import org.ekstep.analytics.api.Constants
+import org.ekstep.analytics.api.IRecommendations
+import org.ekstep.analytics.api.RequestBody
+import org.ekstep.analytics.api.util.CommonUtil
+import org.ekstep.analytics.api.util.ContentCacheUtil
+import org.ekstep.analytics.api.util.DBUtil
+import org.ekstep.analytics.api.util.JSONUtils
+
+import com.typesafe.config.Config
+import com.datastax.driver.core.TupleValue
+import com.datastax.driver.core.querybuilder.QueryBuilder
 
 object ContentRecommendations extends IRecommendations {
   
@@ -17,7 +21,7 @@ object ContentRecommendations extends IRecommendations {
 		Validation(true);
 	}
 	
-	def fetch(requestBody: RequestBody)(implicit sc: SparkContext, config: Config): String = {
+	def fetch(requestBody: RequestBody)(implicit config: Config): String = {
 		val context = requestBody.request.context.getOrElse(Map());
 		val contentId = context.getOrElse("contentid", "").asInstanceOf[String];
 		val content: Map[String, AnyRef] = ContentCacheUtil.getREList.getOrElse(contentId, Map());
@@ -27,7 +31,11 @@ object ContentRecommendations extends IRecommendations {
 		} else {
 			val did = context.getOrElse("did", "").asInstanceOf[String];
 			val filters: Array[(String, List[String], String)] = Array(("language", languages, "LIST"));
-			val contentRecos = sc.cassandraTable[(List[(String, Double)])](Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).select("scores").where("content_id = ?", contentId);
+			
+			val query = QueryBuilder.select().all().from(Constants.CONTENT_DB, Constants.CONTENT_RECOS_TABLE).where(QueryBuilder.eq("content_id", QueryBuilder.bindMarker())).toString();
+			val ps = DBUtil.session.prepare(query)
+			val contentRecosFact = DBUtil.session.execute(ps.bind(contentId))
+			val contentRecos = contentRecosFact.asScala.seq.map( row => row.getList("scores", classOf[TupleValue]).asScala.seq.map { f => (f.get(0, classOf[String]), f.get(1, classOf[Double]))  })
 			val recoContents = getRecommendedContent(contentRecos, filters);
 			val result = applyLimit(recoContents, recoContents.size, getLimit(requestBody));
 			JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> result, "count" -> Int.box(recoContents.size))));
