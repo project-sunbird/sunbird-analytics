@@ -6,7 +6,6 @@ import org.ekstep.analytics.framework.fetcher.S3DataFetcher
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.Level._
 
 object DataFetcher {
 	implicit val className = "org.ekstep.analytics.api.util.DataFetcher"
@@ -32,7 +31,7 @@ object DataFetcher {
             return sc.parallelize(Seq[T](), JobContext.parallelization);
         }
 
-        JobLogger.log("Deserializing Input Data", None, INFO);
+        JobLogger.log("Deserializing Input Data");
         sc.textFile(keys.mkString(","), JobContext.parallelization).map { line =>
             {
                 try {
@@ -42,7 +41,8 @@ object DataFetcher {
                     data;
                 } catch {
                     case ex: Exception =>
-                        JobLogger.log(ex.getMessage, Option(Map("date" -> date)), INFO);
+                        JobLogger.log(ex.getMessage, Option(Map("date" -> date)));
+                        println("Deserializing Not Done!!! ---- "+ JSONUtils.serialize(keys));
                         null.asInstanceOf[T]
                 }
             }
