@@ -178,6 +178,11 @@ object CommonUtil {
         val timeInString = event.`@timestamp`;
         getEventSyncTS(timeInString);
     }
+    
+    def getEventSyncTS(event: V3Event): Long = {
+        val timeInString = event.`@timestamp`;
+        getEventSyncTS(timeInString);
+    }
 
     def getEventSyncTS(timeInStr: String): Long = {
         var ts = getTimestamp(timeInStr, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
@@ -565,6 +570,12 @@ object CommonUtil {
         val defaultAppId = PData(AppConf.getConfig("default.consumption.app.id"), "1.0")
         if (event.isInstanceOf[Event]) {
             if (event.asInstanceOf[Event].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].pdata.get.id)) event.asInstanceOf[Event].pdata.get else defaultAppId
+        } else if (event.isInstanceOf[V3Event]) {
+            if (event.asInstanceOf[V3Event].context.pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[V3Event].context.pdata.get.id)) {
+              val v3pdata = event.asInstanceOf[V3Event].context.pdata.get
+              PData(v3pdata.id, v3pdata.ver.getOrElse(""))
+            }
+            else defaultAppId
         } else if (event.isInstanceOf[ProfileEvent]) {
             if (event.asInstanceOf[ProfileEvent].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].pdata.get.id)) event.asInstanceOf[ProfileEvent].pdata.get else defaultAppId
         } else defaultAppId;
