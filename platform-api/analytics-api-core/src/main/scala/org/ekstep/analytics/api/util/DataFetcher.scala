@@ -39,6 +39,7 @@ object DataFetcher {
             case _ =>
                 throw new DataFetcherException("Unknown fetcher type found");
         }
+
         JobLogger.log("Deserializing Input Data"); 
         data.map(f => JSONUtils.deserialize[T](f))
     }
