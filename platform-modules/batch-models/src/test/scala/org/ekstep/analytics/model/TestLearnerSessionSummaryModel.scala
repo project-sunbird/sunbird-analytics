@@ -15,6 +15,7 @@ import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.DataFetcher
 import org.ekstep.analytics.framework.Fetcher
+import org.ekstep.analytics.framework.V3Event
 
 /**
  * @author Santhosh
@@ -23,7 +24,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     "LearnerSessionSummaryModel" should "generate session summary and pass all positive test cases" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data1.log");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
         me.length should be(1);
@@ -69,7 +70,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate 4 session summarries and pass all negative test cases" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data2.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data2.log");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be(3);
@@ -180,7 +181,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate 3 session summaries and validate the screen summaries" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data3.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data3.log");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, None);
         val me = rdd2.collect();
         me.length should be(2);
@@ -229,19 +230,19 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate a session even though OE_START and OE_END are present" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data5.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data5.log");
         val rdd1 = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
     }
 
     it should "generate a session where the content is not a valid one" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data6.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data6.log");
         val rdd1 = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
     }
 
     it should "check group_user and partner id will be empty" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data_groupInfo.log");
         val rdd1 = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rdd2 = rdd1.collect();
 
@@ -252,8 +253,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate non-empty res array in itemResponse" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
-        val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data.log");
+        val oe_assessResValue = rdd.filter { x => x.eid.equals("ASSESS") }.collect()(0).edata.resvalues.last
         oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be(10)
 
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
@@ -263,7 +264,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         itemRes.resValues.get.asInstanceOf[Array[AnyRef]].last.asInstanceOf[Map[String, AnyRef]].get("ans1").get.asInstanceOf[Int] should be(10)
     }
     it should "generate None for qtitle and qdesc when raw telemetry not having qtitle and qdesc" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle should be(None)
@@ -271,7 +272,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate title for qtitle and description for qdesc when raw telemetry having qtitle as tile and qdesc as description" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data7.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle.get should be("title")
@@ -279,7 +280,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     it should "generate session summary for v2 telemetry" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/v2_telemetry.json");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/v2_telemetry.json");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelId" -> "LearnerSessionSummary", "apiVersion" -> "v2")));
         val me = rdd2.collect();
         me.length should be(1);
@@ -377,7 +378,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should "generate array if  mmc is present in raw telemetry" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data8.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data8.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         val mmc = itemRes.mmc.get.asInstanceOf[List[String]]
@@ -386,7 +387,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate none if no mmc field present in raw telemetry " in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data7.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc should be(None)
@@ -394,7 +395,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should "generate Empty List if mmc have no values present in raw telemetry " in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data9.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data9.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc.get should be(List())
@@ -402,7 +403,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should  "filter edata.eks.type = scroll  along with TOUCH DRAG, DROP, PINCH, ZOOM, SHAKE, ROTATE, SPEAK, LISTEN, WRITE, DRAW, START, END, CHOOSE, ACTIVATEfrom events for calculating  No.Of InteractEvents " in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test-data10.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test-data10.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect().head
         val map= event.edata.eks.asInstanceOf[Map[String,AnyRef]]
         map.get("noOfInteractEvents").get should be(1)
