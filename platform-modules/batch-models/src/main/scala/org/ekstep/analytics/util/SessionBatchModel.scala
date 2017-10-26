@@ -101,6 +101,59 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 
+    def getV3GenieLaunchSessions(data: RDD[V3Event], idleTime: Int): RDD[((String, String), Buffer[V3Event])] = {
+        data.filter { x => x.context.did.isDefined }.map { event =>
+            val channelId = CommonUtil.getChannelId(event)
+            ((channelId, event.context.did.get), Buffer(event))
+        }.partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).mapValues { events =>
+                val sortedEvents = events.sortBy { x => x.ets }
+                var sessions = Buffer[Buffer[V3Event]]();
+                var tmpArr = Buffer[V3Event]();
+                sortedEvents.foreach { y =>
+                    if (Constants.GENIE_ENV.equals(y.context.env) && List("START", "END").contains(y.eid)) {
+                        y.eid match {
+                            case "START" =>
+                                if (tmpArr.length > 0) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[V3Event]();
+                                }
+                                tmpArr += y;
+
+                            case "END" =>
+                                if (!tmpArr.isEmpty) {
+                                    val event = tmpArr.last
+                                    val timeSpent = CommonUtil.getTimeDiff(event.ets, y.ets).get
+                                    if (timeSpent > (idleTime * 60)) {
+                                        sessions += tmpArr;
+                                        tmpArr = Buffer[V3Event]();
+                                    }
+                                }
+                                tmpArr += y;
+                                sessions += tmpArr;
+                                tmpArr = Buffer[V3Event]();
+                        }
+                    } else {
+                        if (!tmpArr.isEmpty) {
+                            val event = tmpArr.last
+                            val timeSpent = CommonUtil.getTimeDiff(event.ets, y.ets).get
+                            if (timeSpent < (idleTime * 60)) {
+                                tmpArr += y;
+                            } else {
+                                sessions += tmpArr;
+                                tmpArr = Buffer[V3Event]();
+                                tmpArr += y;
+                            }
+                        } else {
+                            tmpArr += y;
+                        }
+                    }
+                }
+                sessions += tmpArr;
+                sessions;
+            }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
+    }
+
     def getGenieLaunchSessions(data: RDD[Event], idleTime: Int): RDD[((String, String), Buffer[Event])] = {
         data.filter { x => x.did != null }.map { event =>
             val channelId = CommonUtil.getChannelId(event)

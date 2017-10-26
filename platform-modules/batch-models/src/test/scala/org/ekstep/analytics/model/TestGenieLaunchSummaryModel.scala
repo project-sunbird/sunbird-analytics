@@ -7,11 +7,12 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Dispatcher
+import org.ekstep.analytics.framework.V3Event
 
 class TestGenieLaunchSummaryModel extends SparkSpec(null) {
 
     "GenieLaunchSummaryModel" should "generate genie summary events" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data1.log");
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data1.log");
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(73)
@@ -35,7 +36,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate the genie summary of the input data where some of the events generated after idle time" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data2.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data2.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(7)
@@ -46,7 +47,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
 
     // test cases 
     it should "generate the genie summary from the input events with time difference less than idle time (30 mins)" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data3.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data3.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(1)
@@ -57,7 +58,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate the genie summary from the input events with time difference more than the idle time (30 mins)" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data4.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data4.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
 
         val events = rdd2.collect
@@ -73,7 +74,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate the genie summary from the input of ten events where the time diff between 9th and 10th event is more than idle time (30 mins)" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data5.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data5.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
 
         val events = rdd2.collect
@@ -101,7 +102,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate the genie summary from the input of N events where the time diff between (x)th and (x+1)th event is more than idle time (30 mins), (where N-1 > x)" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data6.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data6.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
 
         val events = rdd2.collect
@@ -118,7 +119,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
 
     it should "generate the genie summary from the input of N events of multiple genie session where the time diff between each event is less than idle time (30 mins)" in {
 
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data7.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data7.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
 
         val events = rdd2.collect
@@ -132,7 +133,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate the genie summary from the input of (N + M) events of two session where the time diff between (x)th and (x + 1)th event is more than idle time (30 min), (where N-1 > x)" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/test-data8.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data8.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
 
         val events = rdd2.collect
@@ -145,7 +146,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
     }
     
     it should "generate the genie summary with stage summary having ideal time between events, all stages visited once and only one interact per stage " in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/stage/test-data1.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/stage/test-data1.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(2)
@@ -182,7 +183,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
     }
     
     it should "generate the genie summary with stage summary having multiple visits" in {
-        val rdd = loadFile[Event]("src/test/resources/genie-usage-summary/stage/test-data2.log")
+        val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/stage/test-data2.log")
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
         events.size should be(1)
