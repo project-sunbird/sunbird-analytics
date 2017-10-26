@@ -40,15 +40,10 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("org.ekstep.aser.lite");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.noOfLevelTransitions.get should be(1);
-        summary1.levels should not be (None);
-        summary1.levels.get.length should be(2);
+        
         summary1.noOfAttempts should be(2);
         summary1.timeSpent should be(875);
         summary1.interactEventsPerMin should be(2.74);
-        summary1.currentLevel should not be (None);
-        summary1.currentLevel.get.get("numeracy").get should be("Can do subtraction");
-        summary1.currentLevel.get.get("literacy").get should be("Can read story");
         summary1.noOfInteractEvents should be(40);
         summary1.itemResponses.get.length should be(5);
         event1.syncts should be(summary1.syncDate);
@@ -86,14 +81,9 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("org.ekstep.aser.lite");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.noOfLevelTransitions.get should be(-1);
-        summary1.levels should not be (None);
-        summary1.levels.get.length should be(0);
         summary1.noOfAttempts should be(1);
         summary1.timeSpent should be(47);
         summary1.interactEventsPerMin should be(6.38);
-        summary1.currentLevel should not be (None);
-        summary1.currentLevel.get.size should be(0);
         summary1.noOfInteractEvents should be(5);
         summary1.itemResponses.get.length should be(0);
         summary1.activitySummary.get.size should be(1);
@@ -119,15 +109,9 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
         val event2 = me.filter { x => x.uid.equals("2ac2ebf4-89bb-4d5d-badd-ba402ee70182") }.last
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
-        summary2.noOfLevelTransitions.get should be(0);
-        summary2.levels should not be (None);
-        summary2.levels.get.length should be(1);
         summary2.noOfAttempts should be(1);
         summary2.timeSpent should be(875);
         summary2.interactEventsPerMin should be(1.71);
-        summary2.currentLevel should not be (None);
-        summary2.currentLevel.get.size should be(1);
-        summary2.currentLevel.get.get("literacy").get should be("Can read story");
         summary2.noOfInteractEvents should be(25);
         summary2.itemResponses.get.length should be(2);
         summary2.activitySummary.get.size should be(1);
@@ -155,14 +139,9 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val event3 = me.filter { x => x.uid.equals("d47c4108-d348-4805-b3e8-5a34cc4fc2c2") }.last;
 
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
-        summary3.noOfLevelTransitions.get should be(-1);
-        summary3.levels should not be (None);
-        summary3.levels.get.length should be(0);
         summary3.noOfAttempts should be(1);
         summary3.timeSpent should be(11.0);
         summary3.interactEventsPerMin should be(16.36);
-        summary3.currentLevel should not be (None);
-        summary3.currentLevel.get.size should be(0);
         summary3.noOfInteractEvents should be(3);
         summary3.itemResponses.get.length should be(0);
         summary3.activitySummary.get.size should be(1);
@@ -295,15 +274,10 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("numeracy_377");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.noOfLevelTransitions.get should be(-1);
-        summary1.levels should not be (None);
-        summary1.levels.get.length should be(0);
         summary1.noOfAttempts should be(2);
         summary1.timeSpent should be(553.01);
         summary1.timeDiff should be(553.01);
         summary1.interactEventsPerMin should be(14.21);
-        summary1.currentLevel should not be (None);
-        summary1.currentLevel.get.size should be(0);
         summary1.noOfInteractEvents should be(131);
         summary1.itemResponses.get.length should be(34);
         summary1.interruptTime should be(8.28);
