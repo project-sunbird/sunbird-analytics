@@ -337,7 +337,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
             (LearnerProfileIndex(x.userId, pdata.id, channel), new SessionSummary(gameId, gameVersion, Option(levels), noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp,
                 Option(domainMap.toMap), Option(levelTransitions), None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp,
                     endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, Option(firstEvent.tags), telemetryVer, pdata));
+                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, Option(CommonUtil.getETags(firstEvent)), telemetryVer, pdata));
 
         }.filter(f => (f._2.timeSpent >= 1)).cache(); // Skipping the events, if timeSpent is -ve
 

@@ -186,6 +186,8 @@ case class Actor(id: String, `type`: String);
 @scala.beans.BeanInfo
 case class V3PData(id: String, ver: Option[String] = None, pid: Option[String] = None, model: Option[String] = None);
 @scala.beans.BeanInfo
+case class Question(id: String, maxscore: Int, exlength: Int, params: Array[Map[String, AnyRef]])
+@scala.beans.BeanInfo
 case class V3CData(id: String, `type`: String);
 @scala.beans.BeanInfo
 case class RollUp(l1: String, l2: String, l3: String, l4: String)
@@ -207,7 +209,7 @@ class V3EData(val dspec: Map[String, AnyRef], val loc: String, val pass: String,
               val stage: String, val containerid: String, val containerplugin: String, val target: String, val action: String, val err: AnyRef, val data: AnyRef,
               val severity: String, val duration: Long, val uaspec: Map[String, String], val env: String, val pageid: String, val name: String, val url: String,
               val targetid: String, val parentid: Option[String], val parenttype: Option[String], val code: Option[String], val prevstate: String,
-              val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]]) extends Serializable {}
+              val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]], val item: Question) extends Serializable {}
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
