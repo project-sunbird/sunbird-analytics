@@ -141,43 +141,43 @@ case class CsvConfig(auto_extract_column_names: Boolean, columnMappings: Map[Str
 case class SaveConfig(params: Map[String, String])
 
 object Period extends Enumeration {
-    type Period = Value
-    val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
+  type Period = Value
+  val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
 }
 
 object Level extends Enumeration {
-    type Level = Value
-    val INFO, DEBUG, WARN, ERROR = Value
+  type Level = Value
+  val INFO, DEBUG, WARN, ERROR = Value
 }
 
 object JobStatus extends Enumeration {
-    type Status = Value;
-    val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
+  type Status = Value;
+  val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
 }
 
 trait Stage extends Enumeration {
-    type Stage = Value
-    val contentPlayed = Value
+  type Stage = Value
+  val contentPlayed = Value
 }
 
 trait DataExStage extends Enumeration {
-    type DataExStage = Value;
-    val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, SAVE_DATA_TO_LOCAL, DOWNLOAD_AND_ZIP_OUTPUT_FILE, UPLOAD_ZIP, UPDATE_RESPONSE_TO_DB = Value
+  type DataExStage = Value;
+  val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, SAVE_DATA_TO_LOCAL, DOWNLOAD_AND_ZIP_OUTPUT_FILE, UPLOAD_ZIP, UPDATE_RESPONSE_TO_DB = Value
 }
 
 trait JobStageStatus extends Enumeration {
-    type JobStageStatus = Value;
-    val COMPLETED, FAILED = Value
+  type JobStageStatus = Value;
+  val COMPLETED, FAILED = Value
 }
 
 object OnboardStage extends Stage {
-    override type Stage = Value
-    val welcomeContent, addChild, firstLesson, gotoLibrary, searchLesson, loadOnboardPage = Value
+  override type Stage = Value
+  val welcomeContent, addChild, firstLesson, gotoLibrary, searchLesson, loadOnboardPage = Value
 }
 
 object OtherStage extends Stage {
-    override type Stage = Value
-    val listContent, selectContent, downloadInitiated, downloadComplete = Value
+  override type Stage = Value
+  val listContent, selectContent, downloadInitiated, downloadComplete = Value
 }
 
 // telemetry v3 case classes
@@ -194,8 +194,20 @@ case class V3Context(channel: String, pdata: Option[V3PData], env: String, sid: 
 @scala.beans.BeanInfo
 case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp])
 @scala.beans.BeanInfo
-case class Question(id: String, maxscore: Int, exlength: Int, params: Array[Map[String, AnyRef]])
+class V3EData(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val qid: String, val score: Int,
+              val res: Array[String], val length: AnyRef, val atmpts: Int, val failedatmpts: Int, val category: String,
+              val current: String, val max: String, val `type`: String, val extype: String, val id: String, val gid: String,
+              val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
+              val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String,
+              val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val tid: String, val direction: String,
+              val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String,
+              val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef],
+              val method: String, val request: AnyRef, val defaultPlugins: List[String], val loadtimes: Map[String, Number], val client: Map[String, String], val path: String,
+              val response: String, val responseTime: Long, val status: String, val uip: String, val pluginid: String, val pluginver: String, val objectid: String,
+              val stage: String, val containerid: String, val containerplugin: String, val target: String, val action: String, val err: AnyRef, val data: AnyRef,
+              val severity: String, val duration: Long, val uaspec: Map[String, String], val env: String, val pageid: String, val name: String, val url: String,
+              val targetid: String, val parentid: Option[String], val parenttype: Option[String], val code: Option[String], val prevstate: String,
+              val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]]) extends Serializable {}
+
 @scala.beans.BeanInfo
-class V3EData(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val qid: String, val score: Int, val res: Array[String], val length: AnyRef, val atmpts: Int, val failedatmpts: Int, val category: String, val current: String, val max: String, val `type`: String, val extype: String, val id: String, val gid: String, val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]], val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String, val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val tid: String, val direction: String, val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String, val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef], val method: String, val request: AnyRef, val item: Question) extends Serializable {}
-@scala.beans.BeanInfo
-class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[String] = null) extends AlgoInput with Input {}
+class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
