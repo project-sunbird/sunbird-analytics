@@ -10,12 +10,13 @@ import org.ekstep.analytics.util.SessionBatchModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.V3Event
 
 class TestAppSessionSummaryModel extends SparkSpec(null) {
 
     "AppSessionSummaryModel" should "generate 1 app session summary events having CE_START & CE_END" in {
 
-        val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_1.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_1.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
@@ -67,7 +68,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate 1 portal session summary events where time diff > idle time" in {
 
-        val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_2.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_2.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
@@ -142,7 +143,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate 2 portal session summary events with no CE events and 1 with non-registered user" in {
 
-        val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_3.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_3.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
@@ -203,7 +204,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should "check for pdata and channel" in {
-        val rdd1 = loadFile[CreationEvent]("src/test/resources/portal-session-summary/test_data_4.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_4.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
