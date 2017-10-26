@@ -1,8 +1,6 @@
-package org.ekstep.analytics.model
+package org.ekstep.analytics.v3converter
 
 import org.ekstep.analytics.framework._
-import scala.util.parsing.json.JSON
-import org.json4s.JsonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 
 case class DerivedEventTest(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, channel: Option[String], content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, tags: Option[AnyRef] = None) extends Input with AlgoInput;
@@ -19,7 +17,7 @@ class EDataV3(val dspec: Map[String, AnyRef], val loc: String, val pass: String,
 
 case class EventV3(val eid: String, val ets: Long, val ver: String, val mid: String, val actor: Actor, val context: Context, val `object`: Option[Object], val edata: EDataV3, val tags: AnyRef = null)
 
-class TestDataConvertor extends SparkSpec(null) {
+class DataConvertor extends SparkSpec(null) {
     "Convertor" should " convert data to telemetry v3 successfully" in {
         val fileName = "test_data1.log"
         val inputPath = "src/test/resources/pipeline-summary/" + fileName

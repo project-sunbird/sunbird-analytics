@@ -4,19 +4,19 @@ import scala.BigDecimal
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
+
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
-import org.ekstep.analytics.framework._
 import org.ekstep.analytics.adapter._
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util._
-import java.security.MessageDigest
-import org.apache.log4j.Logger
-import com.datastax.spark.connector._
+import org.ekstep.analytics.updater.LearnerProfile
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.SessionBatchModel
-import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.updater.LearnerProfile
+
+import com.datastax.spark.connector._
 
 /**
  * Case class to hold the item responses
@@ -208,7 +208,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
         JobLogger.log("Filtering Events of ASSESS,START, END, LEVEL_SET, INTERACT, INTERRUPT")
-        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "LEVEL_SET", "INTERACT", "INTERRUPT", "NAVIGATE", "RESPONSE")))));
+        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "LEVEL_SET", "INTERACT", "INTERRUPT", "NAVIGATE", "RESPONSE"))), Filter("context.env", "EQ", Option("player"))));
         val gameSessions = getGameSessionsV3(filteredData);
         gameSessions.map { x => SessionSummaryInput(x._1._1,x._1._2, x._2) }
     }
