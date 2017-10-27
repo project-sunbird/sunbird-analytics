@@ -194,6 +194,8 @@ case class RollUp(l1: String, l2: String, l3: String, l4: String)
 @scala.beans.BeanInfo
 case class V3Context(channel: String, pdata: Option[V3PData], env: String, sid: Option[String], did: Option[String], cdata: Option[List[V3CData]], rollup: Option[RollUp])
 @scala.beans.BeanInfo
+case class Visit(objid: String, objtype: String, objver: Option[String], section: Option[String], index: Option[Int])
+@scala.beans.BeanInfo
 case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp])
 @scala.beans.BeanInfo
 class V3EData(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val qid: String, val score: Int,
@@ -209,7 +211,7 @@ class V3EData(val dspec: Map[String, AnyRef], val loc: String, val pass: String,
               val stage: String, val containerid: String, val containerplugin: String, val target: String, val action: String, val err: AnyRef, val data: AnyRef,
               val severity: String, val duration: Long, val uaspec: Map[String, String], val env: String, val pageid: String, val name: String, val url: String,
               val targetid: String, val parentid: Option[String], val parenttype: Option[String], val code: Option[String], val prevstate: String,
-              val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]], val item: Question) extends Serializable {}
+              val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]], val item: Question, val visits: Visit) extends Serializable {}
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
