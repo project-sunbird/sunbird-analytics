@@ -11,13 +11,14 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.neo4j.driver.v1.exceptions.ClientException
+import org.ekstep.analytics.framework.Level._
 
 /**
  * @author mahesh
  */
 
 trait IGraphExecutionModelTemplate extends IBatchModel[String, String] {
-
+    
     val graphDBConfig = Map("url" -> AppConf.getConfig("neo4j.bolt.url"),
         "user" -> AppConf.getConfig("neo4j.bolt.user"),
         "password" -> AppConf.getConfig("neo4j.bolt.password"));
@@ -83,9 +84,15 @@ trait IGraphExecutionModelTemplate extends IBatchModel[String, String] {
                     t.printStackTrace();
 
         } finally {
-            //if (null != tx && tx.isOpen()) tx.close();
-            if (null != session) session.close();
-            if (null != driver) driver.close();
+            try {
+                if (null != tx && tx.isOpen()) tx.close();
+                if (null != session) session.close();
+                if (null != driver) driver.close();
+            } catch {
+                case t: Throwable =>
+                    // TODO: Need to be fixed
+                    println(t.getMessage)
+            }
         }
     }
 
