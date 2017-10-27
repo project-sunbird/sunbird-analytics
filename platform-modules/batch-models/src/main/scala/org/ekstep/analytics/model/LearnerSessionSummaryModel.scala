@@ -118,9 +118,12 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
                 prevEvent = x;
             }
 
-            val lastStage = prevEvent.edata.stageto;
-            val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, lastEvent.ets).get;
-            stages += Tuple2(lastStage, timeDiff);
+            // Last page screen summary, if lastEvent having pageid
+            if (null != lastEvent.edata.pageid) {
+                val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, lastEvent.ets).get;
+                stages += Tuple2(lastEvent.edata.pageid, timeDiff);
+            }
+
             stages.groupBy(f => f._1).mapValues(f => (f.map(x => x._2).sum, f.length)).map(f => {
                 ScreenSummary(f._1, CommonUtil.roundDouble((f._2._1 - interruptSummary.getOrElse(f._1, 0d)), 2), f._2._2);
             });
@@ -129,7 +132,6 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
         }
 
     }
-
     def computeInterruptSummary(interruptEvents: Buffer[V3Event]): Map[String, Double] = {
 
         if (interruptEvents.length > 0) {
