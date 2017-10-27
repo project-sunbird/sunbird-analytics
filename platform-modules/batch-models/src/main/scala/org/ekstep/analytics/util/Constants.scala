@@ -61,8 +61,8 @@ object Constants {
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
     
-    val GENIE_ENV = "Genie"
-    val PLAYER_ENV = "Player"
+    val GENIE_ENV = "genie"
+    val PLAYER_ENV = "player"
     
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";

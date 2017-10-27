@@ -111,7 +111,7 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                 var sessions = Buffer[Buffer[V3Event]]();
                 var tmpArr = Buffer[V3Event]();
                 sortedEvents.foreach { y =>
-                    if (Constants.GENIE_ENV.equals(y.context.env) && List("START", "END").contains(y.eid)) {
+                    if (Constants.GENIE_ENV.equals(y.context.env) && List("START", "END").contains(y.eid) && "app".equals(y.edata.`type`)) {
                         y.eid match {
                             case "START" =>
                                 if (tmpArr.length > 0) {

@@ -39,11 +39,11 @@ object GenieLaunchSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent]
 
     def computeGenieScreenSummary(events: Buffer[V3Event]): Iterable[GenieStageSummary] = {
         val genieEvents = DataFilter.filter(events, Filter("context.env", "IN", Option(List(Constants.GENIE_ENV))))
-        val screenInteractEvents = DataFilter.filter(genieEvents, Filter("eid", "IN", Option(List("START", "INTERACT", "END"))))
+        val screenInteractEvents = DataFilter.filter(genieEvents, Filter("eid", "IN", Option(List("START", "IMPRESSION", "END"))))
 
         var stageMap = HashMap[String, StageDetails]();
         var screenSummaryList = Buffer[HashMap[String, Double]]();
-        val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("INTERACT"))).length;
+        val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("IMPRESSION"))).length;
         if (screenInteractCount > 0) {
             var stageList = ListBuffer[(String, Double, Buffer[V3Event], String)]();
             var prevEvent = events(0);
@@ -51,7 +51,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent]
                 x.eid match {
                     case "START" =>
                         stageList += Tuple4("splash", CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer[V3Event](), x.context.sid.get);
-                    case "INTERACT" =>
+                    case "IMPRESSION" =>
                         stageList += Tuple4(x.edata.stageid, CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer(x), x.context.sid.get);
                     case "END" =>
                         stageList += Tuple4("endStage", CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer[V3Event](), x.context.sid.get);
