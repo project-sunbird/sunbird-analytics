@@ -63,6 +63,8 @@ object Constants {
     
     val GENIE_ENV = "genie"
     val PLAYER_ENV = "player"
+    val PORTAL_ENV = "portal"
+    val EDITOR_ENV = "attool"
     
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
