@@ -15,22 +15,23 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         val rdd = loadFile[V3Event]("src/test/resources/genie-usage-summary/test-data1.log");
         val rdd2 = GenieLaunchSummaryModel.execute(rdd, None);
         val events = rdd2.collect
-        events.size should be(72)
+        events.size should be(73)
         
         // check the number of events where timeSpent==0 
         val zeroTimeSpentGE = events.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("timeSpent").get.asInstanceOf[Double] }.filter { x => 0 == x }
-        zeroTimeSpentGE.size should be(13)
-            
-        val event1 = events.head
+        zeroTimeSpentGE.size should be(10)
+
+        val event1 = events.last
         val tags = event1.etags.get
         //tags.size should be (0)
 
         val event0 = events(0)
 
         val tags0 = event0.etags.get
+
         val eksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        eksMap1.get("timeSpent").get.asInstanceOf[Double] should be(98.0)
-        eksMap1.get("time_stamp").get.asInstanceOf[Number].longValue() should be(1457695757000l)
+        eksMap1.get("timeSpent").get.asInstanceOf[Double] should be(493.0)
+        eksMap1.get("time_stamp").get.asInstanceOf[Number].longValue() should be(1461567474000l)
         eksMap1.get("contentCount").get.asInstanceOf[Int] should not be (0)
     }
 
@@ -166,13 +167,13 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         summary2.stageId should be("endStage");
         summary2.visitCount should be(1);
         summary2.interactEventsCount should be(0);
-        summary2.timeSpent should be(5.656);
+        summary2.timeSpent should be(5.66);
         
         val summary3 = summaryList2(1)
         summary3.stageId should be("Genie-Home-ChildContent-List");
         summary3.visitCount should be(1);
         summary3.interactEventsCount should be(3);
-        summary3.timeSpent should be(1.532);
+        summary3.timeSpent should be(2.24);
         
         val summary4 = summaryList2(2)
         summary4.stageId should be("splash");
@@ -197,19 +198,19 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         summary1.stageId should be("endStage");
         summary1.visitCount should be(1);
         summary1.interactEventsCount should be(0);
-        summary1.timeSpent should be(4.615);
+        summary1.timeSpent should be(3.66);
         
         val summary2 = summaryList(1)
         summary2.stageId should be("Genie-Home-ChildContent-List");
         summary2.visitCount should be(1);
         summary2.interactEventsCount should be(1);
-        summary2.timeSpent should be(1.041);
+        summary2.timeSpent should be(2.0);
         
         val summary3 = summaryList(2)
         summary3.stageId should be("Genie-Home-ChildContent-Search");
         summary3.visitCount should be(1);
         summary3.interactEventsCount should be(1);
-        summary3.timeSpent should be(1.532);
+        summary3.timeSpent should be(2.24);
         
         val summary4 = summaryList(3)
         summary4.stageId should be("splash");
