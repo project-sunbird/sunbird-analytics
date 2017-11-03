@@ -531,6 +531,8 @@ object CommonUtil {
             event.asInstanceOf[DerivedEvent].etags.get.app
         } else if (event.isInstanceOf[Event]) {
             getETags(event.asInstanceOf[Event]).app
+        }else if (event.isInstanceOf[V3Event]) {
+            getETags(event.asInstanceOf[V3Event]).app
         } else {
             None
         }
@@ -538,6 +540,8 @@ object CommonUtil {
             event.asInstanceOf[DerivedEvent].etags.get.dims
         } else if (event.isInstanceOf[Event]) {
             getETags(event.asInstanceOf[Event]).dims
+        } else if (event.isInstanceOf[V3Event]) {
+            getETags(event.asInstanceOf[V3Event]).dims
         } else {
             None
         }
@@ -613,8 +617,10 @@ object CommonUtil {
     
     def getETags(event: V3Event): ETags = {
         if (event.tags != null) {
-            if(event.tags.isInstanceOf[List[String]]) 
+            val first = event.tags.apply(0)
+            if(first.isInstanceOf[String]){
                 ETags(Option(event.tags.asInstanceOf[List[String]]))
+            }
             else {
                 val tags = event.tags.asInstanceOf[List[Map[String, List[String]]]]
                 val genieTags = tags.filter(f => f.contains("genie")).map { x => x.get("genie").get }.flatMap { x => x }

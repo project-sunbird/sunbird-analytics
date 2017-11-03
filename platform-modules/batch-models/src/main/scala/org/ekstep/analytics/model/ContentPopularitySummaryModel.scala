@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 case class ContentPopularitySummary(ck: ContentKey, m_comments: List[Map[String, AnyRef]], m_ratings: List[Map[String, AnyRef]], m_avg_rating: Double, m_downloads: Int, m_side_loads: Int, dt_range: DtRange, syncts: Long, pdata: PData, gdata: Option[GData] = None) extends AlgoOutput;
 case class InputEventsContentPopularity(ck: ContentKey, events: Buffer[ContentPopularitySummary]) extends Input with AlgoInput
 
-object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEventsContentPopularity, ContentPopularitySummary, MeasuredEvent] with Serializable {
+object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputEventsContentPopularity, ContentPopularitySummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentPopularitySummaryModel"
     override def name: String = "ContentPopularitySummaryModel"
@@ -45,22 +45,22 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
         ContentPopularitySummary(ck, comments, ratings, avg_rating, downloads, side_loads, dt_range, lastEvent.syncts, firstEvent.pdata, gdata);
     }
 
-    private def getContentPopularitySummary(event: Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
-        val dt_range = DtRange(CommonUtil.getEventTS(event), CommonUtil.getEventTS(event));
-        if ("GE_FEEDBACK".equals(event.eid)) {
+    private def getContentPopularitySummary(event: V3Event, period: Int, contentId: String, tagId: String): Array[ContentPopularitySummary] = {
+        val dt_range = DtRange(event.ets, event.ets);
+        if ("FEEDBACK".equals(event.eid)) {
             val cId = getFeedbackContentId(event, contentId);
 
             val pdata = CommonUtil.getAppDetails(event)
             val channel = CommonUtil.getChannelId(event)
 
             val ck = ContentKey(period, pdata.id, channel, cId, tagId);
-            val gdata = event.gdata;
-            val comments = List(Map("comment" -> event.edata.eks.comments, "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
-            val ratings = List(Map("rating" -> event.edata.eks.rating.asInstanceOf[AnyRef], "time" -> CommonUtil.getEventTS(event).asInstanceOf[AnyRef]));
-            val avg_rating = event.edata.eks.rating;
-            Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), pdata, Option(gdata)));
-        } else if ("GE_TRANSFER".equals(event.eid)) {
-            val contents = event.edata.eks.contents;
+            val gdata = Option(new GData(event.`object`.get.id, event.`object`.get.ver.get))
+            val comments = List(Map("comment" -> event.edata.comments, "time" -> event.ets.asInstanceOf[AnyRef]));
+            val ratings = List(Map("rating" -> event.edata.rating.asInstanceOf[AnyRef], "time" -> event.ets.asInstanceOf[AnyRef]));
+            val avg_rating = event.edata.rating;
+            Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), pdata, gdata));
+        } else if ("SHARE".equals(event.eid)) {
+            val contents = event.edata.contents;
 
             val pdata = CommonUtil.getAppDetails(event)
             val channel = CommonUtil.getChannelId(event)
@@ -80,34 +80,34 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[Event, InputEve
         }
     }
 
-    private def getFeedbackContentId(event: Event, default: String): String = {
+    private def getFeedbackContentId(event: V3Event, default: String): String = {
         if ("all".equals(default)) default
         else {
-            if (null == event.edata.eks.context) {
+            if (null == event.edata.context) {
                 default
             } else {
-                event.edata.eks.context.getOrElse("id", default).asInstanceOf[String]
+                event.edata.context.getOrElse("id", default).asInstanceOf[String]
             }
         }
     }
 
-    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentPopularity] = {
+    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[InputEventsContentPopularity] = {
         val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter { x => true == x.active }.map { x => x.tag_id }.collect
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
-        val transferEvents = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("GE_TRANSFER"))));
-        val importEvents = DataFilter.filter(DataFilter.filter(transferEvents, Filter("edata.eks.direction", "EQ", Option("IMPORT"))), Filter("edata.eks.datatype", "EQ", Option("CONTENT")));
-        val feedbackEvents = DataFilter.filter(data, Array(Filter("uid", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("GE_FEEDBACK"))));
+        val transferEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("SHARE"))));
+        val importEvents = DataFilter.filter(DataFilter.filter(transferEvents, Filter("edata.direction", "EQ", Option("IMPORT"))), Filter("edata.datatype", "EQ", Option("CONTENT")));
+        val feedbackEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("FEEDBACK"))));
         val normalizeEvents = importEvents.union(feedbackEvents).map { event =>
             var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
-            val period = CommonUtil.getPeriod(CommonUtil.getEventTS(event), Period.DAY);
+            val period = CommonUtil.getPeriod(event.ets, Period.DAY);
 
             list ++= getContentPopularitySummary(event, period, "all", "all");
-            list ++= getContentPopularitySummary(event, period, event.gdata.id, "all");
+            list ++= getContentPopularitySummary(event, period, event.`object`.get.id, "all");
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
                 list ++= getContentPopularitySummary(event, period, "all", tag); // for tag
-                list ++= getContentPopularitySummary(event, period, event.gdata.id, tag); // for tag and content
+                list ++= getContentPopularitySummary(event, period, event.`object`.get.id, tag); // for tag and content
             }
             list.toArray
         }.flatMap { x => x };
