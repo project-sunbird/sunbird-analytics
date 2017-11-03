@@ -186,7 +186,7 @@ case class Actor(id: String, `type`: String);
 @scala.beans.BeanInfo
 case class V3PData(id: String, ver: Option[String] = None, pid: Option[String] = None, model: Option[String] = None);
 @scala.beans.BeanInfo
-case class Question(id: String, maxscore: Int, exlength: Int, params: Array[Map[String, AnyRef]])
+case class Question(id: String, maxscore: Int, exlength: Int, params: Array[Map[String, AnyRef]], uri: String, desc: String, title: String, mmc: Array[String], mc: Array[String])
 @scala.beans.BeanInfo
 case class V3CData(id: String, `type`: String);
 @scala.beans.BeanInfo
@@ -197,13 +197,14 @@ case class V3Context(channel: String, pdata: Option[V3PData], env: String, sid: 
 case class Visit(objid: String, objtype: String, objver: Option[String], section: Option[String], index: Option[Int])
 @scala.beans.BeanInfo
 case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp])
+
 @scala.beans.BeanInfo
-class V3EData(val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,
+class V3EData(val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Double, val pageid: String,
               val summary: Map[String, AnyRef], val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
               val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
               val values: Array[AnyRef], val rating: Double, val comments: String, val dir: String, val items: List[Map[String, AnyRef]], val props : List[String], 
               val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
-              val level: String, val message: String, val params: Array[Map[String, AnyRef]]) extends Serializable {}
+              val level: String, val message: String, val params: Array[Map[String, AnyRef]], val index: Int) extends Serializable {}
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
