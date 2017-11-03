@@ -198,20 +198,12 @@ case class Visit(objid: String, objtype: String, objver: Option[String], section
 @scala.beans.BeanInfo
 case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp])
 @scala.beans.BeanInfo
-class V3EData(val dspec: Map[String, AnyRef], val loc: String, val pass: String, val qid: String, val score: Int,
-              val res: Array[String], val length: AnyRef, val atmpts: Int, val failedatmpts: Int, val category: String,
-              val current: String, val max: String, val `type`: String, val extype: String, val id: String, val gid: String,
-              val itype: String, val stageid: String, val stageto: String, val resvalues: Array[Map[String, AnyRef]],
-              val params: Array[Map[String, AnyRef]], val uri: String, val state: String, val subtype: String,
-              val pos: Array[Map[String, AnyRef]], val values: Array[AnyRef], val tid: String, val direction: String,
-              val datatype: String, val count: AnyRef, val contents: Array[Map[String, AnyRef]], val comments: String,
-              val rating: Double, val qtitle: String, val qdesc: String, val mmc: Array[String], val context: Map[String, AnyRef],
-              val method: String, val request: AnyRef, val defaultPlugins: List[String], val loadtimes: Map[String, Number], val client: Map[String, String], val path: String,
-              val response: String, val responseTime: Long, val status: String, val uip: String, val pluginid: String, val pluginver: String, val objectid: String,
-              val stage: String, val containerid: String, val containerplugin: String, val target: String, val action: String, val err: AnyRef, val data: AnyRef,
-              val severity: String, val duration: Long, val uaspec: Map[String, String], val env: String, val pageid: String, val name: String, val url: String,
-              val targetid: String, val parentid: Option[String], val parenttype: Option[String], val code: Option[String], val prevstate: String,
-              val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]], val item: Question, val visits: List[Visit]) extends Serializable {}
+class V3EData(val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,
+              val summary: Map[String, AnyRef], val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
+              val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
+              val values: Array[AnyRef], val rating: Double, val comments: String, val dir: String, val items: List[Map[String, AnyRef]], val props : List[String], 
+              val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
+              val level: String, val message: String, val params: Array[Map[String, AnyRef]]) extends Serializable {}
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
