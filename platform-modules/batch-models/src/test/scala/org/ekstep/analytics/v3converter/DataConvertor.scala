@@ -23,7 +23,7 @@ case class EDataV3(val dspec: Map[String, AnyRef], val loc: String, val pass: St
                    val targetid: String, val parentid: Option[String], val parenttype: Option[String], val code: Option[String], val prevstate: String,
                    val email: Option[String], val access: Option[List[Map[String, String]]], val partners: Option[List[Map[String, String]]], val profile: Option[List[Map[String, String]]], val item: Question, val visits: List[Visit]) extends Serializable {}
 
-case class EventV3(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: EDataV3, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
+case class EventV3(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
 
 class DataConvertor extends SparkSpec(null) {
 
@@ -90,10 +90,10 @@ class DataConvertor extends SparkSpec(null) {
 
                 val eks = JSONUtils.deserialize[V3EData](JSONUtils.serialize(x.edata.eks))
                 val `type` = x.edata.eks.`type`
-                val eData = EDataV3(eks.dspec, eks.loc, eks.pass, eks.qid, eks.score, eks.res, eks.length, eks.atmpts, eks.failedatmpts, eks.category, eks.current, eks.max, `type`, eks.extype, eks.id, eks.gid, eks.itype, eks.stageid, eks.stageto, eks.resvalues, eks.params, eks.uri, eks.state, eks.subtype, eks.pos, eks.values, eks.tid, eks.direction, eks.datatype, eks.count, eks.contents, eks.comments, eks.rating, eks.qtitle, eks.qdesc, eks.mmc, eks.context, eks.method, eks.request, eks.defaultPlugins, eks.loadtimes, eks.client, eks.path, eks.response, eks.responseTime, eks.status, eks.uip, eks.pluginid, eks.pluginver, eks.objectid, eks.stage, eks.containerid, eks.containerplugin, eks.target, eks.action, eks.err, eks.data, eks.severity, eks.duration, eks.uaspec, eks.env, eks.stageid, eks.name, eks.url, eks.targetid, eks.parentid, eks.parenttype, eks.code, eks.prevstate, eks.email, eks.access, eks.partners, eks.profile, eks.item, eks.visits)
+//                val eData = EDataV3(eks.dspec, eks.loc, eks.pass, eks.qid, eks.score, eks.res, eks.length, eks.atmpts, eks.failedatmpts, eks.category, eks.current, eks.max, `type`, eks.extype, eks.id, eks.gid, eks.itype, eks.stageid, eks.stageto, eks.resvalues, eks.params, eks.uri, eks.state, eks.subtype, eks.pos, eks.values, eks.tid, eks.direction, eks.datatype, eks.count, eks.contents, eks.comments, eks.rating, eks.qtitle, eks.qdesc, eks.mmc, eks.context, eks.method, eks.request, eks.defaultPlugins, eks.loadtimes, eks.client, eks.path, eks.response, eks.responseTime, eks.status, eks.uip, eks.pluginid, eks.pluginver, eks.objectid, eks.stage, eks.containerid, eks.containerplugin, eks.target, eks.action, eks.err, eks.data, eks.severity, eks.duration, eks.uaspec, eks.env, eks.stageid, eks.name, eks.url, eks.targetid, eks.parentid, eks.parenttype, eks.code, eks.prevstate, eks.email, eks.access, eks.partners, eks.profile, eks.item, eks.visits)
                 val eid = getEid(x.eid, "portal")
                 val ets = if (null != x.ets && x.ets != 0) x.ets //else CommonUtil.getTimestamp(x.ts)
-                EventV3(eid, ets.asInstanceOf[Long], x.`@timestamp`, x.ver, "", Actor(x.uid, "User"), context, Option(`object`), eData, x.tags.asInstanceOf[List[Map[String, String]]])
+                EventV3(eid, ets.asInstanceOf[Long], x.`@timestamp`, x.ver, "", Actor(x.uid, "User"), context, Option(`object`), eks, x.tags.asInstanceOf[List[Map[String, String]]])
             }
             val events = data.map(f => JSONUtils.serialize(f))
             saveToFile(events, outputPath + fileName)
