@@ -613,11 +613,15 @@ object CommonUtil {
     
     def getETags(event: V3Event): ETags = {
         if (event.tags != null) {
-            val tags = event.tags.asInstanceOf[List[Map[String, List[String]]]]
-            val genieTags = tags.filter(f => f.contains("genie")).map { x => x.get("genie").get }.flatMap { x => x }
-            val partnerTags = tags.filter(f => f.contains("partner")).map { x => x.get("partner").get }.flatMap { x => x }
-            val dims = tags.filter(f => f.contains("dims")).map { x => x.get("dims").get }.flatMap { x => x }
-            ETags(Option(genieTags), Option(partnerTags), Option(dims))
+            if(event.tags.isInstanceOf[List[String]]) 
+                ETags(Option(event.tags.asInstanceOf[List[String]]))
+            else {
+                val tags = event.tags.asInstanceOf[List[Map[String, List[String]]]]
+                val genieTags = tags.filter(f => f.contains("genie")).map { x => x.get("genie").get }.flatMap { x => x }
+                val partnerTags = tags.filter(f => f.contains("partner")).map { x => x.get("partner").get }.flatMap { x => x }
+                val dims = tags.filter(f => f.contains("dims")).map { x => x.get("dims").get }.flatMap { x => x }
+                ETags(Option(genieTags), Option(partnerTags), Option(dims))
+            }
         } else {
             ETags()
         }

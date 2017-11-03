@@ -16,7 +16,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
 
     "AppSessionSummaryModel" should "generate 1 app session summary events having CE_START & CE_END" in {
 
-        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_1.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/v3/test_data_1.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
@@ -47,7 +47,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         
         summary1.page_summary.get.size should be(11);
         summary1.env_summary.get.size should be(3);
-        summary1.events_summary.get.size should be(5);
+        summary1.events_summary.get.size should be(4);
         
         val pageSummary1 = summary1.page_summary.get.head
         pageSummary1.env should be("community")
@@ -62,13 +62,13 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         envSummary1.count should be(4)
         
         val eventSummary1 = summary1.events_summary.get.head
-        eventSummary1.id should be("CE_START")
-        eventSummary1.count should be(1)
+        eventSummary1.id should be("START")
+        eventSummary1.count should be(2)
     }
     
     it should "generate 1 portal session summary events where time diff > idle time" in {
 
-        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_2.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/v3/test_data_2.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
@@ -113,7 +113,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         envSummary1.count should be(14)
         
         val eventSummary1 = summary1.events_summary.get.head
-        eventSummary1.id should be("CP_SESSION_START")
+        eventSummary1.id should be("START")
         eventSummary1.count should be(1)
         
         // Check for interact_events_per_min computation where ts < 60
@@ -143,12 +143,13 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate 2 portal session summary events with no CE events and 1 with non-registered user" in {
 
-        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_3.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/v3/test_data_3.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
 
         // check for first visit = true
         me.length should be(2);
+
         val event1 = me(1);
         event1.eid should be("ME_APP_SESSION_SUMMARY");
 //        event1.mid should be("DD8E388477FB69183F3510F2BBFDC2F6");
@@ -204,7 +205,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should "check for pdata and channel" in {
-        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/test_data_4.log");
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/v3/test_data_4.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
@@ -213,7 +214,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val event1 = me(0);
 
         event1.dimensions.pdata.get.id should be("portal")
-        event1.dimensions.pdata.get.ver should be("1.0")
+        event1.dimensions.pdata.get.ver should be("2.0")
         event1.etags.isDefined should be(true)
     }
     

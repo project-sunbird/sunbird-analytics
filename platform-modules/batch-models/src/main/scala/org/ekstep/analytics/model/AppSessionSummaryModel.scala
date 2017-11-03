@@ -55,7 +55,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
-        val filteredData = DataFilter.filter(data, Array(Filter("context", "ISNOTEMPTY", None), Filter("context.env", "IN", Option(List("portal", "attool"))), Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END")))));
+        val filteredData = DataFilter.filter(data, Array(Filter("context", "ISNOTEMPTY", None), Filter("context.env", "IN", Option(List(Constants.PORTAL_ENV, Constants.EDITOR_ENV))), Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END")))));
         filteredData.map { event =>
             val channel = CommonUtil.getChannelId(event)
             ((channel, event.context.sid.get), Buffer(event))
@@ -116,17 +116,17 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
                 }
             }
             val timeSpent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
-            val impressionEvents = events.filter { x => ("IMPRESSION".equals(x.eid) && "portal".equals(x.context.env)) }
+            val impressionEvents = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.PORTAL_ENV.equals(x.context.env)) }
             val pageViewsCount = impressionEvents.size.toLong
-            val ceVisits = events.filter { x => ("START".equals(x.eid) && "attool".equals(x.context.env)) }.size.toLong
-            val interactEventsCount = events.filter { x => ("INTERACT".equals(x.eid) && "portal".equals(x.context.env)) }.size.toLong
+            val ceVisits = events.filter { x => ("START".equals(x.eid) && Constants.EDITOR_ENV.equals(x.context.env)) }.size.toLong
+            val interactEventsCount = events.filter { x => ("INTERACT".equals(x.eid) && Constants.PORTAL_ENV.equals(x.context.env)) }.size.toLong
             val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) interactEventsCount.toDouble
             else BigDecimal(interactEventsCount / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
             val eventSummaries = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
-            val impressionCEEvents = eventsBuffer.filter { x => (("IMPRESSION".equals(x._1.eid) && "portal".equals(x._1.context.env)) || ("START".equals(x._1.eid) && "attool".equals(x._1.context.env))) }.map { f =>
+            val impressionCEEvents = eventsBuffer.filter { x => (("IMPRESSION".equals(x._1.eid) && Constants.PORTAL_ENV.equals(x._1.context.env)) || ("START".equals(x._1.eid) && Constants.EDITOR_ENV.equals(x._1.context.env))) }.map { f =>
                 if ("START".equals(f._1.eid)) {
                     val edataString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "pageid" -> "ce"))
                     val edata = JSONUtils.deserialize[V3EData](edataString)
