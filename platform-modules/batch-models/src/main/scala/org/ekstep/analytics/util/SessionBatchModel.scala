@@ -27,6 +27,7 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                 events.sortBy { x => x.ets }.groupBy { e =>
                     (e.context.sid.get, e.ver)
                 }.mapValues { x =>
+                    println("session",x.length)
                     var sessions = Buffer[Buffer[V3Event]]();
                     var tmpArr = Buffer[V3Event]();
                     var lastContentId: String = x(0).`object`.get.id;
@@ -38,18 +39,18 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                                     tmpArr = Buffer[V3Event]();
                                 }
                                 tmpArr += y;
-                                lastContentId = y.actor.id;
+                                lastContentId = y.`object`.get.id;
                             case "END" =>
                                 tmpArr += y;
                                 sessions += tmpArr;
                                 tmpArr = Buffer[V3Event]();
                             case _ =>
-                                if (!lastContentId.equals(y.actor.id)) {
+                                if (!lastContentId.equals(y.`object`.get.id)) {
                                     sessions += tmpArr;
                                     tmpArr = Buffer[V3Event]();
                                 }
                                 tmpArr += y;
-                                lastContentId = y.actor.id;
+                                lastContentId = y.`object`.get.id;
                         }
                     }
                     sessions += tmpArr;
