@@ -199,7 +199,8 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
                 val metadata = itemObj.metadata;
                 val resValues = if (null == x.edata.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(x.edata.resvalues.map(f => f.asInstanceOf[AnyRef]))
                 val res = if (null == x.edata.resvalues) Option(Array[String]()); else Option(x.edata.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) });
-                ItemResponse(x.edata.item.id, metadata.get("type"), metadata.get("qlevel"), CommonUtil.getTimeSpent(x.edata.length), metadata.get("ex_time_spent"), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(x.edata.mmc), x.edata.score, x.ets, metadata.get("max_score"), metadata.get("domain"), x.edata.pass, Option(x.edata.qtitle), Option(x.edata.qdesc));
+                val item = x.edata.item
+                ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.duration) , Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), x.edata.score, x.ets, metadata.get("max_score"), metadata.get("domain"), x.edata.pass, Option(item.title), Option(item.desc));
             }
             val qids = assessEvents.map { x => x.edata.item.id }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
