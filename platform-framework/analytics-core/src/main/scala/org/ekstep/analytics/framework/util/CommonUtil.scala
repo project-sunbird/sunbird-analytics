@@ -616,7 +616,7 @@ object CommonUtil {
     }
     
     def getETags(event: V3Event): ETags = {
-        if (event.tags != null) {
+        if (event.tags != null && !event.tags.isEmpty) {
             val first = event.tags.apply(0)
             if(first.isInstanceOf[String]){
                 ETags(Option(event.tags.asInstanceOf[List[String]]))

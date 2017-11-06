@@ -52,7 +52,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent]
                     case "START" =>
                         stageList += Tuple4("splash", CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer[V3Event](), x.context.sid.get);
                     case "IMPRESSION" | "INTERACT" =>
-                        stageList += Tuple4(x.edata.stageid, CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer(x), x.context.sid.get);
+                        stageList += Tuple4(x.edata.pageid, CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer(x), x.context.sid.get);
                     case "END" =>
                         stageList += Tuple4("endStage", CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer[V3Event](), x.context.sid.get);
                 }
