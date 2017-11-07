@@ -17,6 +17,7 @@ import org.ekstep.analytics.api.util.JSONUtils
 import com.typesafe.config.Config
 import java.util.ArrayList
 import com.datastax.driver.core.querybuilder.QueryBuilder
+import com.datastax.driver.core.UDTValue
 
 object CreationRecommendations extends IRecommendations {
 
@@ -34,12 +35,12 @@ object CreationRecommendations extends IRecommendations {
         if (validation.value) {
             val context = requestBody.request.context.getOrElse(Map());
             val authorId = context.getOrElse("uid", "").asInstanceOf[String];
-           	
             val query = QueryBuilder.select().all().from(Constants.PLATFORML_DB, Constants.REQUEST_RECOS_TABLE).where(QueryBuilder.eq("uid", QueryBuilder.bindMarker())).toString()
 			val ps = DBUtil.session.prepare(query)
 			val requestsFromCassandra = DBUtil.session.execute(ps.bind(authorId)).asScala
-           	val getrequests = requestsFromCassandra.map(row => row.getObject("requests").asInstanceOf[ArrayList[Map[String,AnyRef]]]).map(f => f.asScala).flatMap(f => f).toList
-            val result = applyLimit(getrequests, getrequests.size, getLimit(requestBody));
+			val getrequests = requestsFromCassandra.map(row => row.getList("requests", classOf[UDTValue]).asInstanceOf[ArrayList[UDTValue]]).map(f => f.asScala).flatMap(f => f).toList
+           	val convertedData = getrequests.map(f => changeToMap(f))   
+            val result = applyLimit(convertedData, getrequests.size, getLimit(requestBody));
             JSONUtils.serialize(CommonUtil.OK(APIIds.CREATION_RECOMMENDATIONS, Map[String, AnyRef]("requests" -> result)));
         } else {
             CommonUtil.errorResponseSerialized(APIIds.CREATION_RECOMMENDATIONS, "context required data is missing.", ResponseCode.CLIENT_ERROR.toString());
@@ -49,16 +50,12 @@ object CreationRecommendations extends IRecommendations {
     def applyLimit(contents: List[Map[String, Any]], total: Int, limit: Int)(implicit config: Config): List[Map[String, Any]] = {
         contents.take(limit);
     }
-
-    private def getRequestList(list: List[CreationRequest]): List[Map[String, AnyRef]] = {
-        val requests = for (creation <- list) yield {
-            Map("type" -> creation.`type`,
-                "language" -> creation.language,
-                "concepts" -> creation.concepts,
-                "contentType" -> creation.content_type,
-                "gradeLevel" -> creation.grade_level)
-        }
-        requests.toList
-    }
     
+    private def changeToMap(row : UDTValue) : Map[String, AnyRef] = {
+        Map("type" -> row.getString("type"),
+            "contentType" -> row.getString("content_type"),
+            "gradeLevel" -> row.getList("grade_level", classOf[String]),
+            "concepts" -> row.getList("concepts", classOf[String]),
+            "language" -> row.getMap("language", classOf[String], classOf[String]))
+    }
 }
