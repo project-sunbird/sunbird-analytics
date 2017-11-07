@@ -1,4 +1,3 @@
-
 package org.ekstep.analytics.framework
 
 import java.io.Serializable
@@ -199,7 +198,7 @@ case class Visit(objid: String, objtype: String, objver: Option[String], section
 case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp])
 
 @scala.beans.BeanInfo
-class V3EData(val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Double, val pageid: String,
+class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,
               val summary: Map[String, AnyRef], val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
               val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
               val values: Array[AnyRef], val rating: Double, val comments: String, val dir: String, val items: List[Map[String, AnyRef]], val props : List[String], 

@@ -60,7 +60,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
             val avg_rating = event.edata.rating;
             Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), pdata, gdata));
         } else if ("SHARE".equals(event.eid)) {
-            val contents = event.edata.contents;
+            val contents = event.edata.items.toArray;
 
             val pdata = CommonUtil.getAppDetails(event)
             val channel = CommonUtil.getChannelId(event)
@@ -83,10 +83,11 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
     private def getFeedbackContentId(event: V3Event, default: String): String = {
         if ("all".equals(default)) default
         else {
-            if (null == event.edata.context) {
+            if (null == event.`object`) {
                 default
             } else {
-                event.edata.context.getOrElse("id", default).asInstanceOf[String]
+                val id = event.`object`.get.id //.asInstanceOf[String]
+                if(id.isEmpty()) default else id
             }
         }
     }
@@ -96,7 +97,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
         val transferEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("SHARE"))));
-        val importEvents = DataFilter.filter(DataFilter.filter(transferEvents, Filter("edata.direction", "EQ", Option("IMPORT"))), Filter("edata.datatype", "EQ", Option("CONTENT")));
+        val importEvents = DataFilter.filter(DataFilter.filter(transferEvents, Filter("edata.dir", "EQ", Option("IMPORT"))), Filter("edata.datatype", "EQ", Option("CONTENT")));
         val feedbackEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("FEEDBACK"))));
         val normalizeEvents = importEvents.union(feedbackEvents).map { event =>
             var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
