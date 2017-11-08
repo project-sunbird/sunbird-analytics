@@ -56,7 +56,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         pageSummary1.time_spent should be(3.0)
         pageSummary1.visit_count should be(1)
         
-        val envSummary1 = summary1.env_summary.get.head
+        val envSummary1 = summary1.env_summary.get.filter(x => "content".equals(x.env)).head
         envSummary1.env should be("content")
         envSummary1.time_spent should be(276.0)
         envSummary1.count should be(4)
