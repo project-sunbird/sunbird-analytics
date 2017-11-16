@@ -31,7 +31,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[V3Event, EventsBy
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsByPeriod] = {
         JobLogger.log("Filtering Events of AUDIT")
-        val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT")))));
+        val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("object", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("AUDIT")))));
         objectLifecycleEvents.sortBy { x => x.ets }.map { x =>
             val period = CommonUtil.getPeriod(x.ets, Period.DAY)
             val channel = CommonUtil.getChannelId(x)
@@ -45,7 +45,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[V3Event, EventsBy
 
         val data = input.cache()
         val summaries = data.map { d =>
-            val groups = d.events.groupBy(e => (e.edata.`type`, e.edata.state, e.edata.subtype))
+            val groups = d.events.groupBy(e => (e.`object`.get.`type`, e.edata.state, e.`object`.get.subtype.getOrElse("")))
             val summaryOutput = groups.map { e =>
                 val _type = e._1._1
                 val state = e._1._2
