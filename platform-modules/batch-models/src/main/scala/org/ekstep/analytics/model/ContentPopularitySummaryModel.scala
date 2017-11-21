@@ -60,21 +60,21 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
             val avg_rating = event.edata.rating;
             Array(ContentPopularitySummary(ck, comments, ratings, avg_rating, 0, 0, dt_range, CommonUtil.getEventSyncTS(event), pdata, gdata));
         } else if ("SHARE".equals(event.eid)) {
-            val contents = event.edata.items.toArray;
+            val contents = event.edata.items;
 
             val pdata = CommonUtil.getAppDetails(event)
             val channel = CommonUtil.getChannelId(event)
 
             contents.map { content =>
-                val tsContentId = if ("all".equals(contentId)) contentId else content.get("identifier").get.asInstanceOf[String];
+                val tsContentId = if ("all".equals(contentId)) contentId else content.obj.id
 
                 val ck = ContentKey(period, pdata.id, channel, tsContentId, tagId);
-                val gdata = if ("all".equals(contentId)) None else Option(new GData(tsContentId, content.get("pkgVersion").getOrElse("").toString));
-                val transferCount = content.get("transferCount").get.asInstanceOf[Double];
+                val gdata = if ("all".equals(contentId)) None else Option(new GData(tsContentId, content.obj.ver.getOrElse("")));
+                val transferCount = content.params.asInstanceOf[List[Map[String, AnyRef]]].head.get("transfers").get.asInstanceOf[Number].doubleValue();
                 val downloads = if (transferCount == 0.0) 1 else 0;
                 val side_loads = if (transferCount >= 1.0) 1 else 0;
                 ContentPopularitySummary(ck, List(), List(), 0.0, downloads, side_loads, dt_range, CommonUtil.getEventSyncTS(event), pdata, gdata);
-            }
+            }.toArray
         } else {
             Array();
         }
@@ -97,7 +97,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
         val transferEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("SHARE"))));
-        val importEvents = DataFilter.filter(DataFilter.filter(transferEvents, Filter("edata.dir", "EQ", Option("IMPORT"))), Filter("edata.datatype", "EQ", Option("CONTENT")));
+        val importEvents = DataFilter.filter(transferEvents, Filter("edata.dir", "EQ", Option("in"))).filter { x => x.edata.items.map(f => f.obj.`type`).contains("Content") };
         val feedbackEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("FEEDBACK"))));
         val normalizeEvents = importEvents.union(feedbackEvents).map { event =>
             var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();

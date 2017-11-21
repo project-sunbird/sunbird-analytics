@@ -196,12 +196,16 @@ case class V3Context(channel: String, pdata: Option[V3PData], env: String, sid: 
 case class Visit(objid: String, objtype: String, objver: Option[String], section: Option[String], index: Option[Int])
 @scala.beans.BeanInfo
 case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp], subtype: Option[String] = None, parentid: Option[String] = None, parenttype: Option[String] = None)
+@scala.beans.BeanInfo
+case class CommonObject(id: String, `type`: String, ver: Option[String] = None)
+@scala.beans.BeanInfo
+case class ShareItems(obj: CommonObject, params: List[Map[String, AnyRef]], origin: CommonObject, to: CommonObject)
 
 @scala.beans.BeanInfo
 class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,
               val summary: Map[String, AnyRef], val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
               val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
-              val values: Array[AnyRef], val rating: Double, val comments: String, val dir: String, val items: List[Map[String, AnyRef]], val props : List[String], 
+              val values: Array[AnyRef], val rating: Double, val comments: String, val dir: String, val items: List[ShareItems], val props : List[String], 
               val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
               val level: String, val message: String, val params: Array[Map[String, AnyRef]], val index: Int) extends Serializable {}
 

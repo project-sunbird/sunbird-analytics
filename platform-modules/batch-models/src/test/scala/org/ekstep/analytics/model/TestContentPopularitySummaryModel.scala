@@ -75,7 +75,7 @@ class TestContentPopularitySummaryModel extends SparkSpec(null) with BeforeAndAf
 	}
 	
 	// TC-3:
-	it should "generate summaries for all tags when, one week of data where all five tags are pre-registered on portal" in {
+	ignore should "generate summaries for all tags when, one week of data where all five tags are pre-registered on portal" in {
 		registerTags(tagList);
 		val rdd = loadFile[V3Event]("src/test/resources/content-popularity-summary/v3/test_data2.log");
 		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
