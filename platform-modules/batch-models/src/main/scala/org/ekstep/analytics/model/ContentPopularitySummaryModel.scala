@@ -97,7 +97,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
         val transferEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("SHARE"))));
-        val importEvents = DataFilter.filter(transferEvents, Filter("edata.dir", "EQ", Option("in"))).filter { x => x.edata.items.map(f => f.obj.`type`).contains("Content") };
+        val importEvents = DataFilter.filter(transferEvents, Filter("edata.dir", "IN", Option(List("in", "In")))).filter { x => (x.edata.items.map(f => f.obj.`type`).contains("Content") | x.edata.items.map(f => f.obj.`type`).contains("CONTENT")) };
         val feedbackEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("FEEDBACK"))));
         val normalizeEvents = importEvents.union(feedbackEvents).map { event =>
             var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
