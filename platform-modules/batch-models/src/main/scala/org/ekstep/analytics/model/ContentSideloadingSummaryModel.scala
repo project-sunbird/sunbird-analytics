@@ -21,21 +21,22 @@ case class ContentSideloadingInput(index: ContentSideloadingIndex, currentDetail
 case class ContentSideloadingOutput(summary: ContentSideloading, dtRange: DtRange, synts: Long, pdata: PData) extends AlgoOutput
 case class ContentSideloadingIndex(contentId: String, appId: String, channel: String)
 
-object ContentSideloadingSummaryModel extends IBatchModelTemplate[Event, ContentSideloadingInput, ContentSideloadingOutput, MeasuredEvent] with Serializable {
+object ContentSideloadingSummaryModel extends IBatchModelTemplate[V3Event, ContentSideloadingInput, ContentSideloadingOutput, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.ContentSideloadingSummaryModel"
     override def name: String = "ContentSideloadingSummaryModel"
-    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSideloadingInput] = {
+    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSideloadingInput] = {
         val configMapping = sc.broadcast(config);
-        val events = DataFilter.filter(data, Filter("eid", "EQ", Option("GE_TRANSFER")));
-        val filteredEvents = DataFilter.filter(DataFilter.filter(events, Filter("edata.eks.direction", "EQ", Option("IMPORT"))), Filter("edata.eks.datatype", "EQ", Option("CONTENT")));
+        val events = DataFilter.filter(data, Filter("eid", "EQ", Option("SHARE")));
+        val filteredEvents = DataFilter.filter(events, Filter("edata.dir", "IN", Option(List("in", "In")))).filter { x => (x.edata.items.map(f => f.obj.`type`).contains("Content") | x.edata.items.map(f => f.obj.`type`).contains("CONTENT")) };
 
         val reducedData = filteredEvents.map { event =>
-            val contents = event.edata.eks.contents
+            val items = event.edata.items
             val pdata = CommonUtil.getAppDetails(event)
             val channelId = CommonUtil.getChannelId(event)
-            contents.map { f =>
-                ReducedContentDetails(f.get("identifier").get.asInstanceOf[String], pdata, channelId, f.get("transferCount").get.asInstanceOf[Double], event.did, f.get("origin").get.asInstanceOf[String], CommonUtil.getEventTS(event), CommonUtil.getEventSyncTS(event))
+            items.map { f =>
+                val transferCount = f.params.filter(x => x.isDefinedAt("transfers")).head.get("transfers").get.asInstanceOf[Double]
+                ReducedContentDetails(f.obj.id, pdata, channelId, transferCount, event.context.did.getOrElse(""), f.origin.id, event.ets, CommonUtil.getEventSyncTS(event))
             }
         }.flatMap(f => f)
         val contentMap = reducedData.groupBy { x => ContentSideloadingIndex(x.content_id, x.pdata.id, x.channel) }.partitionBy(new HashPartitioner(JobContext.parallelization))
