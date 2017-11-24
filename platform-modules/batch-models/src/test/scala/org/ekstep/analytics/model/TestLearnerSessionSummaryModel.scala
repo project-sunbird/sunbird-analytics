@@ -354,7 +354,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "test-output.log")), rdd3);
     }
     
-    ignore should "generate array if  mmc is present in raw telemetry" in {
+    it should "generate array if  mmc is present in raw telemetry" in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data8.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
@@ -363,7 +363,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     }
 
-    ignore should "generate none if no mmc field present in raw telemetry " in {
+    it should "generate none if no mmc field present in raw telemetry " in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data7.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
@@ -371,7 +371,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     }
     
-    ignore should "generate Empty List if mmc have no values present in raw telemetry " in {
+    it should "generate Empty List if mmc have no values present in raw telemetry " in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data9.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
@@ -379,7 +379,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     }
     
-    ignore should  "filter edata.eks.type = scroll  along with TOUCH DRAG, DROP, PINCH, ZOOM, SHAKE, ROTATE, SPEAK, LISTEN, WRITE, DRAW, START, END, CHOOSE, ACTIVATEfrom events for calculating  No.Of InteractEvents " in {
+    it should  "filter edata.eks.type = scroll  along with TOUCH DRAG, DROP, PINCH, ZOOM, SHAKE, ROTATE, SPEAK, LISTEN, WRITE, DRAW, START, END, CHOOSE, ACTIVATEfrom events for calculating  No.Of InteractEvents " in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test-data10.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect().head
         val map= event.edata.eks.asInstanceOf[Map[String,AnyRef]]
