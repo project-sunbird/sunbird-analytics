@@ -62,6 +62,14 @@ class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.beans.BeanInfo
 class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val pdata: Option[PData] = None, val channel: Option[String] = None, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
 
+
+// V3 User profile event models
+@scala.beans.BeanInfo
+//class V3ProfileState(val ueksid: String, val utype: String, val loc: String, val err: String, val attrs: Array[AnyRef], val uid: String, val age: Option[Int], val day: Int, val month: Int, val gender: String, val language: String, val standard: Option[Int], val is_group_user: Option[Boolean], val dspec: Map[String, AnyRef]) extends Serializable {}
+class V3AuditEata(val props: String, val state: AnyRef, val prevstate: String) extends Serializable {}
+@scala.beans.BeanInfo
+class V3ProfileEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3AuditEata, val tags: List[AnyRef] = null) extends Input with AlgoInput with Serializable {}
+
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
 case class UserProfile(uid: String, gender: String, age: Int);
