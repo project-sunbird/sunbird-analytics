@@ -12,14 +12,14 @@ import org.ekstep.analytics.framework.DerivedEvent
 @deprecated
 class TestRecommendationEngine extends SparkSpec(null) {
 
-    "RecommendationEngine" should "run the recommendation for a push data to learner db" in {
+    ignore should "run the recommendation for a push data to learner db" in {
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/reco-engine/reco_engine_test.log");
         val rdd2 = RecommendationEngine.execute(rdd, None);
         val result = rdd2.collect();
     }
 
-    it should "compute the recommendation for a learner" in {
+    ignore should "compute the recommendation for a learner" in {
 
         val learner_id = "8f111d6c-b618-4cf4-bb4b-bbf06cf4363a";
         CassandraConnector(sc.getConf).withSessionDo { session =>

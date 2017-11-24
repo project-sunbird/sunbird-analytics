@@ -61,7 +61,7 @@ object Constants {
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
     
-    val GENIE_ENV = "genie"
+    val GENIE_ENV = "Genie"
     val PLAYER_ENV = "ContentPlayer"
     val PORTAL_ENV = "portal"
     val EDITOR_ENV = "attool"

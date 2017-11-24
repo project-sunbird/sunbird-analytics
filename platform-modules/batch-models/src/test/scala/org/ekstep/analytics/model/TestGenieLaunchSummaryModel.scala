@@ -26,7 +26,7 @@ class TestGenieLaunchSummaryModel extends SparkSpec(null) {
         //tags.size should be (0)
 
         val event0 = events(0)
-
+        println(JSONUtils.serialize(event1))
         val tags0 = event0.etags.get
         val eksMap1 = event1.edata.eks.asInstanceOf[Map[String, AnyRef]]
         eksMap1.get("timeSpent").get.asInstanceOf[Double] should be(98.0)
