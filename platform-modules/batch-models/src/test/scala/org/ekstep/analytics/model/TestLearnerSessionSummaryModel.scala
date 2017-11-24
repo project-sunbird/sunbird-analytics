@@ -260,7 +260,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         itemRes.qtitle.get should be("title")
         itemRes.qdesc.get should be("description")
     }
-    ignore should "generate session summary for v2 telemetry" in {
+    it should "generate session summary for v2 telemetry" in {
 
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/v2_telemetry.json");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelId" -> "LearnerSessionSummary", "apiVersion" -> "v2")));
@@ -280,8 +280,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         summary1.noOfAttempts should be(2);
         summary1.timeSpent should be(553.01);
         summary1.timeDiff should be(553.01);
-        summary1.interactEventsPerMin should be(14.21);
-        summary1.noOfInteractEvents should be(131);
+        summary1.interactEventsPerMin should be(11.39);
+        summary1.noOfInteractEvents should be(105);
         summary1.itemResponses.get.length should be(34);
         summary1.interruptTime should be(8.28);
 
@@ -309,17 +309,17 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         esMap.get("START").get should be(1);
         esMap.get("END").get should be(1);
         esMap.get("INTERACT").get should be(105);
-        esMap.get("NAVIGATE").get should be(6);
+        esMap.get("IMPRESSION").get should be(6);
         esMap.get("INTERRUPT").get should be(3);
 
         val ssList = summary1.screenSummary.get
         val ssMap = ssList.map { x => (x.id, (x.timeSpent, x.visitCount)) }.toMap
         ssList.size should be(5);
-        ssMap.get("questions_g4").get should be(62.22, 2);
-        ssMap.get("endScreen_g5").get should be(421.34, 1);
-        ssMap.get("questions_g5").get should be(44.32, 1);
-        ssMap.get("endScreen_g4").get should be(1.71, 1);
-        ssMap.get("splash").get should be(15.16, 2);
+        ssMap.get("questions_g4").get should be(14.46, 2);
+        ssMap.get("endScreen_g5").get should be(44.32, 1);
+        ssMap.get("questions_g5").get should be(2.4, 1);
+        ssMap.get("endScreen_g4").get should be(67.54, 1);
+        ssMap.get("splash").get should be(2.96, 1);
 
         summary1.syncDate should be(1459558762917L)
         event1.syncts should be(summary1.syncDate);
