@@ -30,7 +30,7 @@ import org.apache.commons.math3.analysis.function.Asin
  *
  * Functionality
  * 1. Monitor all data products. This would be used to keep track of all data products.
- * Events used - BE_JOB_*
+ * Events used - JOB_*
  */
 case class SlackMessage(channel: String, username: String, text: String, icon_emoji: String = ":ghost:")
 case class JobMonitor(jobs_started: Long, jobs_completed: Long, jobs_failed: Long, total_events_generated: Long, total_ts: Double, syncTs: Long, job_summary: Array[Map[String, Any]], dtange: DtRange) extends AlgoOutput
@@ -42,13 +42,13 @@ object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEven
     override def name: String = "MonitorSummaryModel"
 
     override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
-        val filteredData = data.filter { x => (x.eid.equals("BE_JOB_START") || (x.eid.equals("BE_JOB_END"))) }.filter { x => !x.context.pdata.model.get.equals("MonitorSummaryModel") }
+        val filteredData = data.filter { x => (x.eid.equals("JOB_START") || (x.eid.equals("JOB_END"))) }.filter { x => !x.context.pdata.model.get.equals("MonitorSummaryModel") }
         filteredData.sortBy(_.ets)
     }
 
     override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobMonitor] = {
-        val jobsStarted = data.filter { x => (x.eid.equals("BE_JOB_START")) }.count()
-        val filteresData = data.filter { x => (x.eid.equals("BE_JOB_END")) }
+        val jobsStarted = data.filter { x => (x.eid.equals("JOB_START")) }.count()
+        val filteresData = data.filter { x => (x.eid.equals("JOB_END")) }
         val eksMap = filteresData.map { x => (x.edata.eks.asInstanceOf[Map[String, String]]) }
         val jobsCompleted = eksMap.filter { x => (x.get("status").getOrElse("").equals("SUCCESS")) }.count()
         val jobsFailed = eksMap.filter { x => (x.get("status").getOrElse("").equals("FAILED")) }.count()
