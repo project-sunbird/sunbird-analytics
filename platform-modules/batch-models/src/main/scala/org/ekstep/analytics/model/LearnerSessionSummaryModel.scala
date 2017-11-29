@@ -36,7 +36,7 @@ class SessionSummary(val id: String, val ver: String, val noOfAttempts: Int, val
                      val interruptTime: Double, val timeDiff: Double, val start_time: Long, val end_time: Long, val comments: Option[String], val fluency: Option[Int], val loc: Option[String],
                      val itemResponses: Option[Buffer[ItemResponse]], val dtRange: DtRange, val interactEventsPerMin: Double, val activitySummary: Option[Iterable[ActivitySummary]],
                      val completionStatus: Option[Boolean], val screenSummary: Option[Iterable[ScreenSummary]], val noOfInteractEvents: Int, val eventsSummary: Iterable[EventSummary],
-                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val etags: Option[ETags], val telemetryVer: String, val pdata: PData) extends Serializable {};
+                     val syncDate: Long, val contentType: Option[AnyRef], val mimeType: Option[AnyRef], val did: String, val mode: String, val etags: Option[ETags], val telemetryVer: String, val pdata: PData) extends Serializable {};
 
 /**
  * @author Santhosh
@@ -50,6 +50,8 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
     implicit val className = "org.ekstep.analytics.model.LearnerSessionSummaryModel"
 
     override def name(): String = "LearnerSessionSummaryModel";
+    
+    val DEFAULT_MODE = "play";
 
     /**
      * Get item from broadcast item mapping variable
@@ -240,14 +242,15 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
 
             val pdata = CommonUtil.getAppDetails(firstEvent)
             val channel = x.channel
+            
+            val mode = if(null == firstEvent.edata.mode || firstEvent.edata.mode.isEmpty()) DEFAULT_MODE else firstEvent.edata.mode
 
             val did = firstEvent.context.did.get
             (LearnerProfileIndex(x.userId, pdata.id, channel), new SessionSummary(gameId, gameVersion, noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp, None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp,
                 endTimestamp), interactEventsPerMin, Option(activitySummary), None, Option(screenSummary), noOfInteractEvents,
-                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, Option(CommonUtil.getETags(firstEvent)), telemetryVer, pdata));
+                eventSummary, CommonUtil.getEventSyncTS(lastEvent), contentType, mimeType, did, mode, Option(CommonUtil.getETags(firstEvent)), telemetryVer, pdata));
 
         }.filter(f => (f._2.timeSpent >= 1)).cache(); // Skipping the events, if timeSpent is -ve
-
         JobLogger.log("'screenerSummary' joining with LearnerProfile table to get group_user value for each learner")
         //Joining with LearnerProfile table to add group info
         val groupInfoSummary = screenerSummary.map(f => LearnerProfileIndex(f._1.learner_id, f._1.app_id, f._1.channel)).distinct().joinWithCassandraTable[LearnerProfile](Constants.KEY_SPACE_NAME, Constants.LEARNER_PROFILE_TABLE).map { x => (LearnerProfileIndex(x._1.learner_id, x._1.app_id, x._1.channel), (x._2.group_user, x._2.anonymous_user)); }
@@ -270,6 +273,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
                 "timeSpent" -> game.timeSpent,
                 "interruptTime" -> game.interruptTime,
                 "comments" -> game.comments,
+                "mode" -> game.mode,
                 "fluency" -> game.fluency,
                 "noOfAttempts" -> game.noOfAttempts,
                 "noOfInteractEvents" -> game.noOfInteractEvents,

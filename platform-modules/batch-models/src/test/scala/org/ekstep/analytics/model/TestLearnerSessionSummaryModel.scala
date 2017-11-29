@@ -386,5 +386,18 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         map.get("noOfInteractEvents").get should be(1)
   
     }
-
+    
+    it should  "check mode for the Event" in {
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test-data11.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()
+        event.length should be (2)
+        val firstEvent = event.filter{x=> "c28e9be0-6a11-4add-b36d-1136a0717355".equals(x.uid)}.head
+        val secEvent = event.filter{x=> "b753472b-ebb9-446b-a9aa-74d927a599bf".equals(x.uid)}.head
+        
+        val map1= firstEvent.edata.eks.asInstanceOf[Map[String,AnyRef]]
+        map1.get("mode").get should be("play")
+        val map2= secEvent.edata.eks.asInstanceOf[Map[String,AnyRef]]
+        map2.get("mode").get should be("preview")
+        
+    }
 }
