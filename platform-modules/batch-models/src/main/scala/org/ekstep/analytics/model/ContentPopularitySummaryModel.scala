@@ -66,10 +66,10 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
             val channel = CommonUtil.getChannelId(event)
 
             contents.map { content =>
-                val tsContentId = if ("all".equals(contentId)) contentId else content.obj.id
+                val tsContentId = if ("all".equals(contentId)) contentId else content.id
 
                 val ck = ContentKey(period, pdata.id, channel, tsContentId, tagId);
-                val gdata = if ("all".equals(contentId)) None else Option(new GData(tsContentId, content.obj.ver.getOrElse("")));
+                val gdata = if ("all".equals(contentId)) None else Option(new GData(tsContentId, content.ver));
                 val transferCount = content.params.asInstanceOf[List[Map[String, AnyRef]]].head.get("transfers").get.asInstanceOf[Number].doubleValue();
                 val downloads = if (transferCount == 0.0) 1 else 0;
                 val side_loads = if (transferCount >= 1.0) 1 else 0;
@@ -96,9 +96,9 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
         val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter { x => true == x.active }.map { x => x.tag_id }.collect
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
-        val transferEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("SHARE"))));
-        val importEvents = DataFilter.filter(transferEvents, Filter("edata.dir", "IN", Option(List("in", "In")))).filter { x => (x.edata.items.map(f => f.obj.`type`).contains("Content") | x.edata.items.map(f => f.obj.`type`).contains("CONTENT")) };
-        val feedbackEvents = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eid", "EQ", Option("FEEDBACK"))));
+        val transferEvents = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("SHARE"))));
+        val importEvents = DataFilter.filter(transferEvents, Filter("edata.dir", "IN", Option(List("in", "In")))).filter { x => (x.edata.items.map(f => f.`type`).contains("Content") | x.edata.items.map(f => f.`type`).contains("CONTENT")) };
+        val feedbackEvents = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("FEEDBACK"))));
         val normalizeEvents = importEvents.union(feedbackEvents).map { event =>
             var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
             val period = CommonUtil.getPeriod(event.ets, Period.DAY);

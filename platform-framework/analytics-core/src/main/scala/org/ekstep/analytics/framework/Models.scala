@@ -207,7 +207,7 @@ case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Opt
 @scala.beans.BeanInfo
 case class CommonObject(id: String, `type`: String, ver: Option[String] = None)
 @scala.beans.BeanInfo
-case class ShareItems(obj: CommonObject, params: List[Map[String, AnyRef]], origin: CommonObject, to: CommonObject)
+case class ShareItems(id: String, `type`: String, ver: String, params: List[Map[String, AnyRef]], origin: CommonObject, to: CommonObject)
 
 @scala.beans.BeanInfo
 class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,

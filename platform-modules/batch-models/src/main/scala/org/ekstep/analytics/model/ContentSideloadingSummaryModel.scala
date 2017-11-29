@@ -28,7 +28,7 @@ object ContentSideloadingSummaryModel extends IBatchModelTemplate[V3Event, Conte
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSideloadingInput] = {
         val configMapping = sc.broadcast(config);
         val events = DataFilter.filter(data, Filter("eid", "EQ", Option("SHARE")));
-        val filteredEvents = DataFilter.filter(events, Filter("edata.dir", "IN", Option(List("in", "In")))).filter { x => (x.edata.items.map(f => f.obj.`type`).contains("Content") | x.edata.items.map(f => f.obj.`type`).contains("CONTENT")) };
+        val filteredEvents = DataFilter.filter(events, Filter("edata.dir", "IN", Option(List("in", "In")))).filter { x => (x.edata.items.map(f => f.`type`).contains("Content") | x.edata.items.map(f => f.`type`).contains("CONTENT")) };
 
         val reducedData = filteredEvents.map { event =>
             val items = event.edata.items
@@ -36,7 +36,7 @@ object ContentSideloadingSummaryModel extends IBatchModelTemplate[V3Event, Conte
             val channelId = CommonUtil.getChannelId(event)
             items.map { f =>
                 val transferCount = f.params.filter(x => x.isDefinedAt("transfers")).head.get("transfers").get.asInstanceOf[Double]
-                ReducedContentDetails(f.obj.id, pdata, channelId, transferCount, event.context.did.getOrElse(""), f.origin.id, event.ets, CommonUtil.getEventSyncTS(event))
+                ReducedContentDetails(f.id, pdata, channelId, transferCount, event.context.did.getOrElse(""), f.origin.id, event.ets, CommonUtil.getEventSyncTS(event))
             }
         }.flatMap(f => f)
         val contentMap = reducedData.groupBy { x => ContentSideloadingIndex(x.content_id, x.pdata.id, x.channel) }.partitionBy(new HashPartitioner(JobContext.parallelization))
