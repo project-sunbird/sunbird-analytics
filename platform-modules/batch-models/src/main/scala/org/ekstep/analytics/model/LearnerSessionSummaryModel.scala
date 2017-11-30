@@ -50,7 +50,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
     implicit val className = "org.ekstep.analytics.model.LearnerSessionSummaryModel"
 
     override def name(): String = "LearnerSessionSummaryModel";
-    
+
     val DEFAULT_MODE = "play";
 
     /**
@@ -108,32 +108,45 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
     /**
      * Compute screen summaries on the telemetry data produced by content app
      */
-    def computeScreenSummary(firstEvent: V3Event, lastEvent: V3Event, impressionEvents: Buffer[V3Event], interruptSummary: Map[String, Double]): Iterable[ScreenSummary] = {
 
-        if (impressionEvents.length > 0) {
-            var prevEvent = firstEvent;
-            var stages = ListBuffer[(String, Double)]();
-            impressionEvents.foreach { x =>
-                val currStage = x.edata.pageid;
-                val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get;
-                stages += Tuple2(currStage, timeDiff);
-                prevEvent = x;
+    def computeScreenSummary(eventsWithTs: Buffer[(V3Event, Double)]): Iterable[ScreenSummary] = {
+        
+        var lastEventTs: Long = eventsWithTs.last._1.ets;
+        var tempEvents = Buffer[(V3Event, Double)]();
+        var eventsBuffer: Buffer[(V3Event, Double)] = Buffer();
+        eventsWithTs.foreach { f =>
+            f._1.eid match {
+                case "IMPRESSION" =>
+                    if (tempEvents.isEmpty) {
+                        tempEvents += f
+                    } else {
+                        val ts = tempEvents.map { x => x._2 }.sum
+                        val tuple = (tempEvents.head._1, ts)
+                        eventsBuffer += tuple
+                        tempEvents = Buffer[(V3Event, Double)]();
+                        tempEvents += f
+                    }
+                case _ =>
+                    if (lastEventTs == f._1.ets && !tempEvents.isEmpty) {
+                        val ts = tempEvents.map { x => x._2 }.sum
+                        val tuple = (tempEvents.head._1, ts)
+                        eventsBuffer += tuple
+                    }
+                    tempEvents += f
             }
 
-            // Last page screen summary, if lastEvent having pageid
-            if (null != lastEvent.edata.pageid) {
-                val timeDiff = CommonUtil.getTimeDiff(prevEvent.ets, lastEvent.ets).get;
-                stages += Tuple2(lastEvent.edata.pageid, timeDiff);
-            }
-
-            stages.groupBy(f => f._1).mapValues(f => (f.map(x => x._2).sum, f.length)).map(f => {
-                ScreenSummary(f._1, CommonUtil.roundDouble((f._2._1 - interruptSummary.getOrElse(f._1, 0d)), 2), f._2._2);
-            });
-        } else {
-            Iterable[ScreenSummary]();
         }
-
+        val impressionEvents = eventsBuffer.filter { x => "IMPRESSION".equals(x._1.eid) }.map(x => (x._1.edata.pageid, x));
+        if (impressionEvents.length > 0) {
+            impressionEvents.groupBy(f => f._1).map { f =>
+                val id = f._1
+                val timeSpent = CommonUtil.roundDouble(f._2.map(x => x._2._2).sum, 2)
+                val visitCount = f._2.length.toLong
+                ScreenSummary(id, timeSpent, visitCount)
+            }
+        } else Iterable[ScreenSummary]();
     }
+
     def computeInterruptSummary(interruptEvents: Buffer[V3Event]): Map[String, Double] = {
 
         if (interruptEvents.length > 0) {
@@ -159,7 +172,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
         JobLogger.log("Filtering Events of ASSESS,START, END, LEVEL_SET, INTERACT, INTERRUPT")
-        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "INTERACT", "INTERRUPT", "IMPRESSION", "RESPONSE"))), Filter("context.env", "EQ", Option(Constants.PLAYER_ENV))));
+        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("context.env", "EQ", Option(Constants.PLAYER_ENV)), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "INTERACT", "INTERRUPT", "IMPRESSION", "RESPONSE")))));
         val gameSessions = getGameSessionsV3(filteredData);
         gameSessions.map { x => SessionSummaryInput(x._1._1, x._1._2, x._2) }
     }
@@ -202,7 +215,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
                 val resValues = if (null == x.edata.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(x.edata.resvalues.map(f => f.asInstanceOf[AnyRef]))
                 val res = if (null == x.edata.resvalues) Option(Array[String]()); else Option(x.edata.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) });
                 val item = x.edata.item
-                ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.duration) , Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), x.edata.score, x.ets, metadata.get("max_score"), metadata.get("domain"), x.edata.pass, Option(item.title), Option(item.desc));
+                ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.duration), Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), x.edata.score, x.ets, metadata.get("max_score"), metadata.get("domain"), x.edata.pass, Option(item.title), Option(item.desc));
             }
             val qids = assessEvents.map { x => x.edata.item.id }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
@@ -234,16 +247,14 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
             val eventSummary = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
             val interruptSummary = computeInterruptSummary(DataFilter.filter(events, Filter("eid", "EQ", Option("INTERRUPT"))));
-
-            val impressionEvents = DataFilter.filter(events, Filter("eid", "EQ", Option("IMPRESSION")));
-            val screenSummary = computeScreenSummary(firstEvent, lastEvent, impressionEvents, interruptSummary);
-
             val interruptTime = CommonUtil.roundDouble((timeDiff - timeSpent) + (if (interruptSummary.size > 0) interruptSummary.map(f => f._2).sum else 0d), 2);
+
+            val screenSummary = computeScreenSummary(eventsWithTs);
 
             val pdata = CommonUtil.getAppDetails(firstEvent)
             val channel = x.channel
-            
-            val mode = if(null == firstEvent.edata.mode || firstEvent.edata.mode.isEmpty()) DEFAULT_MODE else firstEvent.edata.mode
+
+            val mode = if (null == firstEvent.edata.mode || firstEvent.edata.mode.isEmpty()) DEFAULT_MODE else firstEvent.edata.mode
 
             val did = firstEvent.context.did.get
             (LearnerProfileIndex(x.userId, pdata.id, channel), new SessionSummary(gameId, gameVersion, noOfAttempts, timeSpent, interruptTime, timeDiff, startTimestamp, endTimestamp, None, None, Option(loc), Option(itemResponses), DtRange(startTimestamp,

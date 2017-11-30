@@ -315,11 +315,11 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val ssList = summary1.screenSummary.get
         val ssMap = ssList.map { x => (x.id, (x.timeSpent, x.visitCount)) }.toMap
         ssList.size should be(5);
-        ssMap.get("questions_g4").get should be(14.46, 2);
-        ssMap.get("endScreen_g5").get should be(44.32, 1);
-        ssMap.get("questions_g5").get should be(2.4, 1);
-        ssMap.get("endScreen_g4").get should be(67.54, 1);
-        ssMap.get("splash").get should be(2.96, 1);
+        ssMap.get("questions_g4").get should be(71.48,2);
+        ssMap.get("endScreen_g5").get should be(421.58, 1);
+        ssMap.get("questions_g5").get should be(44.61, 1);
+        ssMap.get("endScreen_g4").get should be(1.35, 1);
+        ssMap.get("splash").get should be(1.92, 1);
 
         summary1.syncDate should be(1459558762917L)
         event1.syncts should be(summary1.syncDate);

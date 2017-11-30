@@ -26,7 +26,7 @@ object UpdateLearnerProfileDB extends IBatchModelTemplate[V3ProfileEvent, V3Prof
     override def name: String = "UpdateLearnerProfileDB"
 
     override def preProcess(data: RDD[V3ProfileEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3ProfileEvent] = {
-        DataFilter.filter(data, Filter("eid", "EQ", Option("AUDIT"))).cache();
+        DataFilter.filter(data, Array(Filter("eid", "EQ", Option("AUDIT")), Filter("actor.id", "ISNOTEMPTY", None))).cache();
     }
 
     override def algorithm(data: RDD[V3ProfileEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LearnerProfile] = {
