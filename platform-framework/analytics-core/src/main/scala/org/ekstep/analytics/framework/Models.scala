@@ -203,7 +203,7 @@ case class V3Context(channel: String, pdata: Option[V3PData], env: String, sid: 
 @scala.beans.BeanInfo
 case class Visit(objid: String, objtype: String, objver: Option[String], section: Option[String], index: Option[Int])
 @scala.beans.BeanInfo
-case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp], subtype: Option[String] = None, parentid: Option[String] = None, parenttype: Option[String] = None)
+case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp], subtype: Option[String] = None, parent: Option[CommonObject] = None)
 @scala.beans.BeanInfo
 case class CommonObject(id: String, `type`: String, ver: Option[String] = None)
 @scala.beans.BeanInfo

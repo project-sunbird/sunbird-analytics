@@ -63,7 +63,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("START")
-        eventSummary1.count should be(2)
+        eventSummary1.count should be(1)
     }
     
     it should "generate 1 portal session summary events where time diff > idle time" in {

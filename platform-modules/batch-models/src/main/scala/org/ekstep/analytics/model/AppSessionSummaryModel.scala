@@ -55,7 +55,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
-        val filteredData = DataFilter.filter(data, Array(Filter("context", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))))).filter { x => ((x.context.pdata.get.id.equals(Constants.PORTAL_ENV)) || (x.context.env.equals(Constants.EDITOR_ENV))) };
+        val filteredData = DataFilter.filter(data, Array(Filter("context.pdata", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))))).filter { x => ((x.context.pdata.get.id.contains(Constants.PORTAL_ENV)) || ((x.context.env.equals(Constants.EDITOR_ENV)) && ("IMPRESSION".equals(x.eid) || "END".equals(x.eid)))) };
         filteredData.map { event =>
             val channel = CommonUtil.getChannelId(event)
             ((channel, event.context.sid.get), Buffer(event))
@@ -96,7 +96,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
             var eventsBuffer: Buffer[(V3Event, Double)] = Buffer();
             eventsWithTs.foreach { f =>
                 f._1.eid match {
-                    case "IMPRESSION" | "START" =>
+                    case "IMPRESSION" =>
                         if (tempEvents.isEmpty) {
                             tempEvents += f
                         } else {
@@ -116,27 +116,28 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
                 }
             }
             val timeSpent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
-            val impressionEvents = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.PORTAL_ENV.equals(x.context.pdata.get.id)) }
+            val impressionEvents = events.filter { x => "IMPRESSION".equals(x.eid) }
             val pageViewsCount = impressionEvents.size.toLong
-            val ceVisits = events.filter { x => ("START".equals(x.eid) && Constants.EDITOR_ENV.equals(x.context.env)) }.size.toLong
-            val interactEventsCount = events.filter { x => ("INTERACT".equals(x.eid) && Constants.PORTAL_ENV.equals(x.context.pdata.get.id)) }.size.toLong
+            val ceVisits = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.EDITOR_ENV.equals(x.context.env)) }.size.toLong
+            val interactEventsCount = events.filter { x => ("INTERACT".equals(x.eid) && x.context.pdata.get.id.contains(Constants.PORTAL_ENV)) }.size.toLong
             val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) interactEventsCount.toDouble
             else BigDecimal(interactEventsCount / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
             val eventSummaries = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
-            val impressionCEEvents = eventsBuffer.filter { x => (("IMPRESSION".equals(x._1.eid) && Constants.PORTAL_ENV.equals(x._1.context.pdata.get.id)) || ("START".equals(x._1.eid) && Constants.EDITOR_ENV.equals(x._1.context.env))) }.map { f =>
-                if ("START".equals(f._1.eid)) {
-                    val edataString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "pageid" -> "ce"))
-                    val edata = JSONUtils.deserialize[V3EData](edataString)
-                    (new V3Event("IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.actor, f._1.context, f._1.`object`, edata), f._2)
-//                    (CreationEvent("CP_IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.channel, f._1.pdata, f._1.cdata, f._1.uid, f._1.context, f._1.rid, new CreationEData(eks), f._1.tags), f._2)
-                } else f;
-            }.map(x => (x._1.edata.pageid, x))
+//            val impressionCEEvents = eventsBuffer.filter { x => (("IMPRESSION".equals(x._1.eid) && Constants.PORTAL_ENV.equals(x._1.context.pdata.get.id)) || ("START".equals(x._1.eid) && Constants.EDITOR_ENV.equals(x._1.context.env))) }.map { f =>
+//                if ("START".equals(f._1.eid)) {
+//                    val edataString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "pageid" -> "ce"))
+//                    val edata = JSONUtils.deserialize[V3EData](edataString)
+//                    (new V3Event("IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.actor, f._1.context, f._1.`object`, edata), f._2)
+////                    (CreationEvent("CP_IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.channel, f._1.pdata, f._1.cdata, f._1.uid, f._1.context, f._1.rid, new CreationEData(eks), f._1.tags), f._2)
+//                } else f;
+//            }.map(x => (x._1.edata.pageid, x))
 
-            val pageSummaries = if (impressionCEEvents.length > 0) {
-                impressionCEEvents.groupBy(f => f._1).map { f =>
+            val impressionEventsWithTs = eventsBuffer.filter { x => "IMPRESSION".equals(x._1.eid)}.map(x => (x._1.edata.pageid, x))
+            val pageSummaries = if (impressionEventsWithTs.length > 0) {
+                impressionEventsWithTs.groupBy(f => f._1).map { f =>
                     val id = f._1
                     val firstEvent = f._2(0)._2._1
                     val `type` = firstEvent.edata.`type`
