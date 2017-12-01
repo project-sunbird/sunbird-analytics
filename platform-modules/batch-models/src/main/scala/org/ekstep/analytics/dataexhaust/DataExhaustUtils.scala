@@ -48,6 +48,8 @@ object DataExhaustUtils {
 
     implicit val className = "org.ekstep.analytics.dataexhaust.DataExhaustUtils"
 
+    val CONSUMPTION_ENV = List("Genie", "ContentPlayer")
+
     def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING", err_message: String = "")(implicit sc: SparkContext) {
         sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status, err_message))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message"))
     }
@@ -216,7 +218,7 @@ object DataExhaustUtils {
                         case t: Throwable =>
                             null
                     }
-                }.filter { x => null != x }
+                }.filter { x => null != x && CONSUMPTION_ENV.contains(x.context.env) }
                 println("Input count: ", rawRDD.count())
                 val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
                 println("After channel filter count: ", channelFltrRDD.count())
@@ -248,7 +250,7 @@ object DataExhaustUtils {
                         case t: Throwable =>
                             null
                     }
-                }.filter { x => null != x }
+                }.filter { x => null != x && !CONSUMPTION_ENV.contains(x.context.env) }
                 println("Input count: ", rawRDD.count())
                 val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
                 println("After channel filter count: ", channelFltrRDD.count())
