@@ -206,7 +206,7 @@ object DataExhaustUtils {
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
                         appId.equals(app.getOrElse(V3PData("")).id);
                     } else {
-                        app.isEmpty || defaultAppId.equals(app.getOrElse(V3PData("")).id)
+                        app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
                     }
                 };
                 val rawRDD = data.map { event =>
@@ -286,7 +286,6 @@ object DataExhaustUtils {
                 }
             }
         }.filter(x => x.value.isDefined).toArray
-
         val finalRDD = filteredRDD.map { line =>
             try {
                 val event = stringToObject(line, dataSetId);
