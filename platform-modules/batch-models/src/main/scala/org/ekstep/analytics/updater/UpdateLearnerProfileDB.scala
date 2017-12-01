@@ -37,7 +37,7 @@ object UpdateLearnerProfileDB extends IBatchModelTemplate[V3ProfileEvent, V3Prof
             
             val state = event.edata.state.asInstanceOf[Map[String, AnyRef]]
             
-            val groupUserData = state.get("is_group_user") 
+            val groupUserData = state.get("is_group_user")
             val groupUser = if(groupUserData.nonEmpty) groupUserData.get.asInstanceOf[Boolean] else false
             
             val anonymousUser = if (groupUserData.nonEmpty) false else true
