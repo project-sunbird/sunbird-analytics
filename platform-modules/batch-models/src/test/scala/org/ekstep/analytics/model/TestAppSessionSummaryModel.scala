@@ -213,7 +213,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         
         val event1 = me(0);
 
-        event1.dimensions.pdata.get.id should be("portal")
+        event1.dimensions.pdata.get.id should be("in.ekstep.dev")
         event1.dimensions.pdata.get.ver should be("2.0")
         event1.etags.isDefined should be(true)
     }

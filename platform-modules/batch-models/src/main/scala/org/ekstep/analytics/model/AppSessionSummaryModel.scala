@@ -55,7 +55,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
-        val filteredData = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))), Filter("context.pdata", "ISNOTEMPTY", None))).filter { x => ((x.context.pdata.get.id.contains(Constants.PORTAL_ENV)) || ((x.context.env.equals(Constants.EDITOR_ENV)) && ("IMPRESSION".equals(x.eid) || "END".equals(x.eid)))) };
+        val filteredData = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))), Filter("context.pdata", "ISNOTEMPTY", None))).filter { x => ((Constants.PORTAL_PDATAIDS.contains(x.context.pdata.get.id)) || ((x.context.env.equals(Constants.EDITOR_ENV)) && ("IMPRESSION".equals(x.eid) || "END".equals(x.eid)))) };
         filteredData.map { event =>
             val channel = CommonUtil.getChannelId(event)
             ((channel, event.context.sid.get), Buffer(event))
@@ -119,7 +119,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
             val impressionEvents = events.filter { x => "IMPRESSION".equals(x.eid) }
             val pageViewsCount = impressionEvents.size.toLong
             val ceVisits = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.EDITOR_ENV.equals(x.context.env)) }.size.toLong
-            val interactEventsCount = events.filter { x => ("INTERACT".equals(x.eid) && x.context.pdata.get.id.contains(Constants.PORTAL_ENV)) }.size.toLong
+            val interactEventsCount = events.filter { x => ("INTERACT".equals(x.eid) && Constants.PORTAL_PDATAIDS.contains(x.context.pdata.get.id)) }.size.toLong
             val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) interactEventsCount.toDouble
             else BigDecimal(interactEventsCount / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
