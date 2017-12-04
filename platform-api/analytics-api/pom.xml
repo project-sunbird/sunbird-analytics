@@ -63,11 +63,6 @@
 		    <version>3.1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.datastax.spark</groupId>
-			<artifactId>spark-cassandra-connector_${scala.maj.version}</artifactId>
-			<version>2.0.0-M2</version>
-		</dependency>
-		<dependency>
             <groupId>com.typesafe.play</groupId>
             <artifactId>play-netty-server_${scala.maj.version}</artifactId>
             <version>${play2.version}</version>

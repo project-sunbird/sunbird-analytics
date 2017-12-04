@@ -42,11 +42,35 @@ object S3Util {
     private val storageRegion = AppConf.getConfig("s3service.region");
 
     def upload(bucketName: String, filePath: String, key: String) {
-        JobLogger.log("Uploading file to S3. Bucket", Option(Map("bucketName" -> bucketName, "FilePath" -> filePath)))
-        val s3Object = new S3Object(new File(filePath));
-        s3Object.setKey(key)
-        val fileObj = s3Service.putObject(bucketName, s3Object);
-        JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag)))
+        uploadWithRetries(bucketName, filePath, key)
+    }
+
+    def uploadWithRetries(bucketName: String, filePath: String, key: String, attempt: Integer = 1, maxAttempts: Integer = 20): Unit = {
+        if (attempt == maxAttempts) {
+            val message = s"Failed to upload. filePath: $filePath, key: $key, attempt: $attempt, maxAttempts: $maxAttempts. Exceeded maximum number of retries"
+            throw new S3ServiceException(message)
+        }
+
+        JobLogger.log("Uploading file to S3. Bucket",
+            Option(Map("bucketName" -> bucketName, "FilePath" -> filePath, "attempt" -> attempt,
+                "maxAttempts" -> maxAttempts)))
+
+        try {
+            val s3Object = new S3Object(new File(filePath));
+            s3Object.setKey(key)
+            val fileObj = s3Service.putObject(bucketName, s3Object);
+            JobLogger.log("File upload successful", Option(Map("etag" -> fileObj.getETag, "attempt" -> attempt)))
+        }
+        catch {
+            case e: Exception => {
+                JobLogger.log("Error uploading. Will retry after sometime. ",
+                    Option(Map("bucketName" -> bucketName,
+                        "FilePath" -> filePath, "exception" -> e.getMessage,
+                        "attempt" -> attempt, "maxAttempts" -> maxAttempts)), INFO)
+                Thread.sleep(attempt*2000)
+                uploadWithRetries(bucketName, filePath, key, attempt + 1, maxAttempts)
+            }
+        }
     }
 
     def getPreSignedURL(bucketName: String, key: String, expiryTimeInSecs: Long): String = {

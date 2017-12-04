@@ -7,11 +7,8 @@ import play.api.http._
 import play.api.test._
 import play.api.test.Helpers._
 import org.ekstep.analytics.api.util.JSONUtils
-import com.datastax.spark.connector.cql.CassandraConnector
-import context.Context
 import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.JobRequest
-import com.datastax.spark.connector._
 import org.joda.time.DateTime
 import org.ekstep.analytics.api.JobResponse
 import scala.concurrent.Await
@@ -37,9 +34,8 @@ class JobsAPISpec extends BaseSpec with Serializable {
 	
 	def beforeAll() {
 		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-    val sc = Context.sc
-    val connector = CassandraConnector(sc.getConf);
-    val session = connector.openSession();
+    
+    val session = DBUtil.cluster.connect();
     val dataLoader = new CQLDataLoader(session);
     dataLoader.load(new FileCQLDataSet(config.getString("cassandra.cql_path"), true, true));
     session.execute("TRUNCATE platform_db.job_request");
@@ -76,11 +72,11 @@ class JobsAPISpec extends BaseSpec with Serializable {
         "return status as processed when submitted job is processed" in {
             val request = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal1" },"request": {"filter": {"start_date": "2016-11-04","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef7"]  }}}"""
             val response = post(url, request);
-            val rowRDD = Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
+            val rowRDD = DBUtil.getJobRequestList("dev-portal1")//Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal1") }
             val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("PROCESSING"), x.request_data, x.iteration, x.dt_job_submitted, x.location, x.dt_file_created, x.dt_first_event, x.dt_last_event, x.dt_expiration, x.dt_job_processing, x.dt_job_completed, x.input_events, x.output_events, x.file_size, x.latency, x.execution_time, x.err_message, x.stage, x.stage_status) }
             Await.result(response, 300 second)
-            rddJobRequest.saveToCassandra("platform_db", "job_request")
+            DBUtil.SaveJobRequest(rddJobRequest)
 
             val request1 = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal1" },"request": {"filter": {"start_date": "2016-11-04","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef7"]  }}}"""
             val response1 = post(url, request1);
@@ -92,11 +88,11 @@ class JobsAPISpec extends BaseSpec with Serializable {
             val request = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal2" },"request": {"filter": {"start_date": "2016-11-05","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef8"]  }}}"""
             val response = post(url, request);
             Await.result(response, 300.seconds);
-            val rowRDD = Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
+            val rowRDD = DBUtil.getJobRequestList("dev-portal2")
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal2") }
             val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("COMPLETED"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now().plusDays(2))), Some(new org.joda.time.DateTime(DateTime.now())), Some(new org.joda.time.DateTime(DateTime.now())), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
 
-            rddJobRequest.saveToCassandra("platform_db", "job_request")
+            DBUtil.SaveJobRequest(rddJobRequest)
 
             val request1 = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal2" },"request": {"filter": {"start_date": "2016-11-05","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef8"]  }}}"""
             val response1 = post(url, request1);
@@ -110,11 +106,11 @@ class JobsAPISpec extends BaseSpec with Serializable {
             val response = post(url, request);
             Await.result(response, 300.seconds);
 
-            val rowRDD = Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
+            val rowRDD = DBUtil.getJobRequestList("dev-portal4")
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal4") }
             val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("FAILED"), x.request_data, x.iteration, x.dt_job_submitted, Some("http://"), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(new org.joda.time.DateTime("2016-12-28")), Some(1000), Some(2000), Some(12333), Some(22345), Some(12345l), x.err_message, x.stage, x.stage_status) }
 
-            rddJobRequest.saveToCassandra("platform_db", "job_request")
+            DBUtil.SaveJobRequest(rddJobRequest)
 
             val request1 = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal4" },"request": {"filter": {"start_date": "2016-11-05","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef10"]  }}}"""
             val response1 = post(url, request1);

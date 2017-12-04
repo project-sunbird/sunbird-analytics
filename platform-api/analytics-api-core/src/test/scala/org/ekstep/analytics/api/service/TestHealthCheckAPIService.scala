@@ -1,15 +1,10 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.SparkSpec
-import org.ekstep.analytics.api.util.JSONUtils
+import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.Response
-import org.joda.time.DateTimeUtils
-import org.ekstep.analytics.api.ContentUsageSummaryFact
-import com.datastax.spark.connector._
-import org.ekstep.analytics.api.Constants
-import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.api.util.JSONUtils
 
-class TestHealthCheckAPIService extends SparkSpec {
+class TestHealthCheckAPIService extends BaseSpec {
     
     override def beforeAll() {
         super.beforeAll();

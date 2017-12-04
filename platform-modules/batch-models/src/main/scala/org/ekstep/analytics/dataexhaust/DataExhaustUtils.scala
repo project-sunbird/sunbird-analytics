@@ -1,48 +1,43 @@
 package org.ekstep.analytics.dataexhaust
 
+import scala.annotation.migration
 import scala.reflect.runtime.universe
+
 import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.CsvColumnMapping
 import org.ekstep.analytics.framework.DataFetcher
 import org.ekstep.analytics.framework.DataFilter
+import org.ekstep.analytics.framework.DataSet
+import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.EventId
 import org.ekstep.analytics.framework.Fetcher
 import org.ekstep.analytics.framework.Filter
-import org.ekstep.analytics.framework.JobConfig
+import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework.Query
+import org.ekstep.analytics.framework.V3Event
+import org.ekstep.analytics.framework.V3PData
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.S3Util
-import org.ekstep.analytics.util._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.util.JobRequest
+import org.ekstep.analytics.util.JobStage
+import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
+
 import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.toNamedColumnRef
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.OutputDispatcher
-import org.ekstep.analytics.framework.Dispatcher
-import org.ekstep.analytics.framework.conf.AppConf
-import scala.collection.JavaConversions._
-import com.typesafe.config.Config
-import org.ekstep.analytics.framework.DataSet
-import org.ekstep.analytics.framework.Input
-import org.ekstep.analytics.framework.AlgoInput
-import org.ekstep.analytics.framework.EventId
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.Level._
-import org.ekstep.analytics.framework.DerivedEvent
-import org.ekstep.analytics.framework.CsvConfig
-import org.ekstep.analytics.framework.CsvColumnMapping
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.creation.model.CreationPData
-import org.ekstep.analytics.framework.V3Event
-import org.ekstep.analytics.framework.V3PData
 
 object DataExhaustUtils {
 

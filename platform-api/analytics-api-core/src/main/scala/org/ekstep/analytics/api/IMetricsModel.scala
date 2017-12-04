@@ -12,6 +12,7 @@ import scala.reflect.ClassTag
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.JSONUtils
 
 /**
  * @author mahesh
@@ -32,13 +33,13 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      * Pre-process before fetching metrics and summary.
      * 1. Validate and refresh Content List cache.
      */
-    def preProcess()(implicit sc: SparkContext, config: Config) = {}
+    def preProcess()(implicit config: Config) = {}
 
     /**
      * Wrapper for the actual fetch implementation.
      * Here we are computing actual time taken to fetch data.
      */
-    def fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array(), channel: String, userId: String = "all")(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
+    def fetch(contentId: String, tag: String, period: String, fields: Array[String] = Array(), channel: String, userId: String = "all")(implicit config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         preProcess();
         val tags = tag.split(",").distinct
         val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
@@ -55,26 +56,27 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      * 4. Compute summary by taking period metrics as input.
      * 5. Return Map as a result.
      */
-    private def _fetch(contentId: String, tags: Array[String], period: String, fields: Array[String] = Array(), channel: String, userId: String = "all")(implicit sc: SparkContext, config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
+    private def _fetch(contentId: String, tags: Array[String], period: String, fields: Array[String] = Array(), channel: String, userId: String = "all")(implicit config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         try {
             val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
-                val records = getData[T](contentId, tags, period.replace("LAST_", "").replace("_", ""), channel, userId).cache();
-                records;
+                getData[T](contentId, tags, period.replace("LAST_", "").replace("_", ""), channel, userId)
             });
-
             val aggregated = if ("ius".equals(metric())) dataFetch._2 else
-                dataFetch._2.groupBy { x => x.d_period.get }.mapValues { x => x }.map(f => f._2).asInstanceOf[RDD[Iterable[Metrics]]]
-                    .map { x => x.reduce((a, b) => reduce(a.asInstanceOf[R], b.asInstanceOf[R], fields)) }.asInstanceOf[RDD[T]]
-            getResult(aggregated, period, fields);
+                dataFetch._2.groupBy { x => x.d_period.get }.mapValues { x => x }.map(f => f._2.map(f => f.asInstanceOf[Metrics]))
+                .map { x => x.reduce((a, b) => reduce(a.asInstanceOf[R], b.asInstanceOf[R], fields)) }.toArray.asInstanceOf[Array[T]]
+              
+            getResult(aggregated.toArray, period, fields);
+
         } catch {
             case ex: S3ServiceException =>
                 ex.printStackTrace();
                 println("Data fetch Error(S3ServiceException):", ex.getMessage);
-                getResult(sc.emptyRDD[T], period, fields);
-            case ex: org.apache.hadoop.mapred.InvalidInputException =>
+                getResult(Array(), period, fields);
+            case ex: java.io.FileNotFoundException =>
                 println("Data fetch Error(InvalidInputException):", ex.getMessage);
-                getResult(sc.emptyRDD[T], period, fields);
+                getResult(Array(), period, fields);
             case ex: Exception =>
+                println("Data fetch Error:", ex.getMessage);
                 throw ex;
         }
     }
@@ -83,7 +85,7 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      * Compute metrics by period and add empty records for the periods not available from S3 fetch.
      * Each metric model will override this method.
      */
-    def getMetrics(records: RDD[T], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): RDD[R]
+    def getMetrics(records: Array[T], period: String, fields: Array[String] = Array())(implicit config: Config): Array[R]
 
     /**
      * Get the final summary object.
@@ -94,7 +96,7 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
     /**
      * Compute summary by taking period metrics(i.e, getMetrics() output) as input.
      */
-    def computeSummary(metrics: RDD[R], fields: Array[String] = Array()): R = {
+    def computeSummary(metrics: Array[R], fields: Array[String] = Array()): R = {
         val summary = metrics.reduce((a, b) => reduce(a, b, fields));
         getSummary(summary);
     }
@@ -106,11 +108,11 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      */
     def reduce(fact1: R, fact2: R, fields: Array[String] = Array()): R
 
-    private def getResult(records: RDD[T], period: String, fields: Array[String] = Array())(implicit sc: SparkContext, config: Config): Map[String, AnyRef] = {
+    private def getResult(records: Array[T], period: String, fields: Array[String] = Array())(implicit config: Config): Map[String, AnyRef] = {        
         val metrics = getMetrics(records, period, fields);
         val summary = computeSummary(metrics, fields);
         Map[String, AnyRef](
-            "metrics" -> metrics.collect(),
+            "metrics" -> metrics,
             "summary" -> summary);
     }
 
@@ -118,7 +120,7 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      * Generic method to fetch data from S3 for the metrics.
      * It is based on request (type, tags, content_id, period)
      */
-    private def getData[T](contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all")(implicit mf: Manifest[T], sc: SparkContext, config: Config): RDD[T] = {
+    private def getData[T](contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all")(implicit mf: Manifest[T], config: Config): Array[T] = {
         val basePath = config.getString("metrics.search.params.path");
         val filePaths = tags.map { tag =>
             if ("gls".equals(metric)) {
