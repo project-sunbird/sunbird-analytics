@@ -23,36 +23,38 @@ import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.V3Event
+import org.ekstep.analytics.util.Constants
 
 case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long,
                         etags: Option[ETags] = Option(ETags(None, None, None)), dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
-case class LaunchSessions(channel: String, did: String, events: Buffer[Event]) extends AlgoInput
+case class LaunchSessions(channel: String, did: String, events: Buffer[V3Event]) extends AlgoInput
 case class GenieStageSummary(stageId: String, sid: String, timeSpent: Double, visitCount: Int, interactEventsCount: Int, interactEvents: List[Map[String, String]])
-case class StageDetails(timeSpent: Double, interactEvents: Buffer[Event], visitCount: Int, sid: String)
+case class StageDetails(timeSpent: Double, interactEvents: Buffer[V3Event], visitCount: Int, sid: String)
 
-object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] with IBatchModelTemplate[Event, LaunchSessions, GenieSummary, MeasuredEvent] with Serializable {
+object GenieLaunchSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent] with IBatchModelTemplate[V3Event, LaunchSessions, GenieSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.GenieLaunchSummaryModel"
     override def name: String = "GenieLaunchSummaryModel"
 
-    def computeGenieScreenSummary(events: Buffer[Event]): Iterable[GenieStageSummary] = {
-
-        val screenInteractEvents = DataFilter.filter(events, Filter("eid", "IN", Option(List("GE_GENIE_START", "GE_START", "GE_INTERACT", "GE_GENIE_END", "GE_END"))))
+    def computeGenieScreenSummary(events: Buffer[V3Event]): Iterable[GenieStageSummary] = {
+        val genieEvents = DataFilter.filter(events, Filter("context.env", "IN", Option(List(Constants.GENIE_ENV))))
+        val screenInteractEvents = DataFilter.filter(genieEvents, Filter("eid", "IN", Option(List("START", "IMPRESSION", "END"))))
 
         var stageMap = HashMap[String, StageDetails]();
         var screenSummaryList = Buffer[HashMap[String, Double]]();
-        val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("GE_INTERACT"))).length;
+        val screenInteractCount = DataFilter.filter(screenInteractEvents, Filter("eid", "EQ", Option("IMPRESSION"))).length;
         if (screenInteractCount > 0) {
-            var stageList = ListBuffer[(String, Double, Buffer[Event], String)]();
+            var stageList = ListBuffer[(String, Double, Buffer[V3Event], String)]();
             var prevEvent = events(0);
             screenInteractEvents.foreach { x =>
                 x.eid match {
-                    case "GE_GENIE_START" | "GE_START" =>
-                        stageList += Tuple4("splash", CommonUtil.getTimeDiff(prevEvent, x).get, Buffer[Event](), x.sid);
-                    case "GE_INTERACT" =>
-                        stageList += Tuple4(x.edata.eks.stageid, CommonUtil.getTimeDiff(prevEvent, x).get, Buffer(x), x.sid);
-                    case "GE_GENIE_END" | "GE_END" =>
-                        stageList += Tuple4("endStage", CommonUtil.getTimeDiff(prevEvent, x).get, Buffer[Event](), x.sid);
+                    case "START" =>
+                        stageList += Tuple4("splash", CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer[V3Event](), x.context.sid.get);
+                    case "IMPRESSION" | "INTERACT" =>
+                        stageList += Tuple4(x.edata.pageid, CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer(x), x.context.sid.get);
+                    case "END" =>
+                        stageList += Tuple4("endStage", CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get, Buffer[V3Event](), x.context.sid.get);
                 }
                 prevEvent = x;
             }
@@ -79,21 +81,21 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
         stageMap.map { x =>
 
             val interactEventsDetails = x._2.interactEvents.toList.map { f =>
-                Map("ID" -> f.edata.eks.id, "type" -> f.edata.eks.`type`, "subtype" -> f.edata.eks.subtype)
+                Map("ID" -> f.edata.id, "type" -> f.edata.`type`, "subtype" -> f.edata.subtype)
             }
             GenieStageSummary(x._1, x._2.sid, x._2.timeSpent, x._2.visitCount, x._2.interactEvents.length, interactEventsDetails)
         }
     }
 
-    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LaunchSessions] = {
-        val eventList = List("GE_GENIE_START","GE_START","GE_GENIE_END","GE_END","GE_SESSION_START","GE_SESSION_END","GE_LAUNCH_GAME","GE_GAME_END","GE_PROFILE_SET","GE_VIEW_PROGRESS","GE_GENIE_UPDATE","GE_UPDATE","GE_GAME_UPDATE","GE_API_CALL","GE_GENIE_RESUME","GE_RESUME","GE_INTERACT","GE_INTERRUPT","GE_ERROR","GE_TRANSFER","GE_SERVICE_API_CALL","GE_CREATE_USER","GE_CREATE_PROFILE","GE_FEEDBACK","GE_DELETE_PROFILE","GE_IMPORT","GE_MISC","OE_START","OE_END","OE_NAVIGATE","OE_LEARN","OE_ASSESS","OE_ITEM_RESPONSE","OE_EARN","OE_LEVEL_SET","OE_INTERACT","OE_INTERRUPT","OE_FEEDBACK","OE_ERROR","OE_SUMMARY","OE_MISC")
-        val eids = sc.broadcast(eventList);
+    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[LaunchSessions] = {
+        val envList = List(Constants.GENIE_ENV, Constants.PLAYER_ENV)
+        val env = sc.broadcast(envList);
         
-        val events = DataFilter.filter(data, Filter("eid", "IN", Option(eids.value)))
+        val events = DataFilter.filter(data, Filter("context.env", "IN", Option(env)))
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
-        val filteredData = data.filter { x => !"AutoSync-Initiated".equals(x.edata.eks.subtype) }
-        val genieLaunchSessions = getGenieLaunchSessions(filteredData, idleTime);
+        val filteredData = data.filter { x => !"AutoSync-Initiated".equals(x.edata.subtype) } // Change to edata.subtype
+        val genieLaunchSessions = getV3GenieLaunchSessions(filteredData, idleTime);
         genieLaunchSessions.map { x => LaunchSessions(x._1._1, x._1._2, x._2) }
     }
 
@@ -107,11 +109,11 @@ object GenieLaunchSummaryModel extends SessionBatchModel[Event, MeasuredEvent] w
             val channel = x.channel
 
             val syncts = CommonUtil.getEventSyncTS(geEnd)
-            val startTimestamp = CommonUtil.getEventTS(geStart)
-            val endTimestamp = CommonUtil.getEventTS(geEnd)
+            val startTimestamp = geStart.ets
+            val endTimestamp = geEnd.ets
             val dtRange = DtRange(startTimestamp, endTimestamp);
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
-            val content = x.events.filter { x => "OE_START".equals(x.eid) }.map { x => x.gdata.id }.filter { x => x != null }.distinct
+            val content = x.events.filter { x => "START".equals(x.eid) && Constants.PLAYER_ENV.equals(x.context.env) }.map { x => x.`object`.get.id }.filter { x => x != null }.distinct
             val stageSummary = computeGenieScreenSummary(x.events)
             GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(CommonUtil.getETags(geEnd)), dtRange, stageSummary, pdata, channel);
         }.filter { x => (x.timeSpent >= 0) }

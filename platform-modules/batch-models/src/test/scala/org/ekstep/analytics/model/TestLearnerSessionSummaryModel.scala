@@ -15,6 +15,7 @@ import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.DataFetcher
 import org.ekstep.analytics.framework.Fetcher
+import org.ekstep.analytics.framework.V3Event
 
 /**
  * @author Santhosh
@@ -23,7 +24,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     "LearnerSessionSummaryModel" should "generate session summary and pass all positive test cases" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data1.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data1.log");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.4", "modelId" -> "GenericSessionSummaryV2")));
         val me = rdd2.collect();
         me.length should be(1);
@@ -39,15 +40,10 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("org.ekstep.aser.lite");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.noOfLevelTransitions.get should be(1);
-        summary1.levels should not be (None);
-        summary1.levels.get.length should be(2);
+        
         summary1.noOfAttempts should be(2);
         summary1.timeSpent should be(875);
         summary1.interactEventsPerMin should be(2.74);
-        summary1.currentLevel should not be (None);
-        summary1.currentLevel.get.get("numeracy").get should be("Can do subtraction");
-        summary1.currentLevel.get.get("literacy").get should be("Can read story");
         summary1.noOfInteractEvents should be(40);
         summary1.itemResponses.get.length should be(5);
         event1.syncts should be(summary1.syncDate);
@@ -67,9 +63,9 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         summary1.contentType.get should be("Game");
     }
 
-    it should "generate 4 session summarries and pass all negative test cases" in {
+    it should "generate 3 session summarries and pass all negative test cases" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data2.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data2.log");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelVersion" -> "1.2", "modelId" -> "GenericContentSummary")));
         val me = rdd2.collect();
         me.length should be(3);
@@ -85,14 +81,9 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("org.ekstep.aser.lite");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.noOfLevelTransitions.get should be(-1);
-        summary1.levels should not be (None);
-        summary1.levels.get.length should be(0);
         summary1.noOfAttempts should be(1);
         summary1.timeSpent should be(47);
         summary1.interactEventsPerMin should be(6.38);
-        summary1.currentLevel should not be (None);
-        summary1.currentLevel.get.size should be(0);
         summary1.noOfInteractEvents should be(5);
         summary1.itemResponses.get.length should be(0);
         summary1.activitySummary.get.size should be(1);
@@ -110,23 +101,17 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
         val esMap = esList.map { x => (x.id, x.count) }.toMap
 
-        esMap.get("OE_INTERACT").get should be(5);
-        esMap.get("OE_START").get should be(1);
+        esMap.get("INTERACT").get should be(5);
+        esMap.get("START").get should be(1);
         summary1.syncDate should be(1451694073672L)
         summary1.mimeType.get should be("application/vnd.android.package-archive");
         summary1.contentType.get should be("Game");
 
         val event2 = me.filter { x => x.uid.equals("2ac2ebf4-89bb-4d5d-badd-ba402ee70182") }.last
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
-        summary2.noOfLevelTransitions.get should be(0);
-        summary2.levels should not be (None);
-        summary2.levels.get.length should be(1);
         summary2.noOfAttempts should be(1);
-        summary2.timeSpent should be(875);
-        summary2.interactEventsPerMin should be(1.71);
-        summary2.currentLevel should not be (None);
-        summary2.currentLevel.get.size should be(1);
-        summary2.currentLevel.get.get("literacy").get should be("Can read story");
+        summary2.timeSpent should be(741);
+        summary2.interactEventsPerMin should be(2.02);
         summary2.noOfInteractEvents should be(25);
         summary2.itemResponses.get.length should be(2);
         summary2.activitySummary.get.size should be(1);
@@ -140,28 +125,23 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         asActTimeSpentMap2.get("TOUCH").get should be(739);
 
         val esList2 = summary2.eventsSummary
-        esList2.size should be(4);
+        esList2.size should be(3);
         val esMap2 = esList2.map { x => (x.id, x.count) }.toMap
 
-        esMap2.get("OE_INTERACT").get should be(25);
-        esMap2.get("OE_START").get should be(1);
-        esMap2.get("OE_LEVEL_SET").get should be(1);
-        esMap2.get("OE_ASSESS").get should be(2);
-        summary2.syncDate should be(1451696364325L)
+        esMap2.get("INTERACT").get should be(25);
+        esMap2.get("START").get should be(1);
+//        esMap2.get("OE_LEVEL_SET").get should be(1); // removed from v2
+        esMap2.get("ASSESS").get should be(2);
+        summary2.syncDate should be(1451696362938L)
         summary2.mimeType.get should be("application/vnd.android.package-archive");
         summary2.contentType.get should be("Game");
 
         val event3 = me.filter { x => x.uid.equals("d47c4108-d348-4805-b3e8-5a34cc4fc2c2") }.last;
 
         val summary3 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event3.edata.eks));
-        summary3.noOfLevelTransitions.get should be(-1);
-        summary3.levels should not be (None);
-        summary3.levels.get.length should be(0);
         summary3.noOfAttempts should be(1);
         summary3.timeSpent should be(11.0);
         summary3.interactEventsPerMin should be(16.36);
-        summary3.currentLevel should not be (None);
-        summary3.currentLevel.get.size should be(0);
         summary3.noOfInteractEvents should be(3);
         summary3.itemResponses.get.length should be(0);
         summary3.activitySummary.get.size should be(1);
@@ -170,7 +150,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val esMap3 = esList3.map { x => (x.id, x.count) }.toMap
 
         esList3.size should be(2);
-        esMap3.get("OE_START").get should be(1);
+        esMap3.get("START").get should be(1);
 
         summary3.syncDate should be(1451715800197L)
         summary3.mimeType.get should be("application/vnd.android.package-archive");
@@ -178,9 +158,10 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event3.syncts should be(summary3.syncDate);
     }
 
-    it should "generate 3 session summaries and validate the screen summaries" in {
+    // No navigate events in test data so ignoring test case
+    ignore should "generate 2 session summaries and validate the screen summaries" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data3.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data3.log");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, None);
         val me = rdd2.collect();
         me.length should be(2);
@@ -195,7 +176,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("org.ekstep.story.hi.nature");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        
+        println(JSONUtils.serialize(event1))
         val ssList = summary1.screenSummary.get
         ssList.size should be(18);
         val summaryMap = ssList.map { x => (x.id, (x.timeSpent, x.visitCount)) }.toMap
@@ -229,19 +210,21 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate a session even though OE_START and OE_END are present" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data5.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data5.log");
         val rdd1 = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
+        rs.size should be(1)
     }
 
     it should "generate a session where the content is not a valid one" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data6.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data6.log");
         val rdd1 = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rs = rdd1.collect();
+        rs.size should be(1)
     }
 
     it should "check group_user and partner id will be empty" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data_groupInfo.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data_groupInfo.log");
         val rdd1 = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")));
         val rdd2 = rdd1.collect();
 
@@ -252,8 +235,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate non-empty res array in itemResponse" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
-        val oe_assessResValue = rdd.filter { x => x.eid.equals("OE_ASSESS") }.collect()(0).edata.eks.resvalues.last
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data.log");
+        val oe_assessResValue = rdd.filter { x => x.eid.equals("ASSESS") }.collect()(0).edata.resvalues.last
         oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be(10)
 
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
@@ -263,7 +246,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         itemRes.resValues.get.asInstanceOf[Array[AnyRef]].last.asInstanceOf[Map[String, AnyRef]].get("ans1").get.asInstanceOf[Int] should be(10)
     }
     it should "generate None for qtitle and qdesc when raw telemetry not having qtitle and qdesc" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle should be(None)
@@ -271,7 +254,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate title for qtitle and description for qdesc when raw telemetry having qtitle as tile and qdesc as description" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data7.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle.get should be("title")
@@ -279,7 +262,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     it should "generate session summary for v2 telemetry" in {
 
-        val rdd = loadFile[Event]("src/test/resources/session-summary/v2_telemetry.json");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/v2_telemetry.json");
         val rdd2 = LearnerSessionSummaryModel.execute(rdd, Option(Map("modelId" -> "LearnerSessionSummary", "apiVersion" -> "v2")));
         val me = rdd2.collect();
         me.length should be(1);
@@ -294,16 +277,11 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.gdata.get.id should be("numeracy_377");
 
         val summary1 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event1.edata.eks));
-        summary1.noOfLevelTransitions.get should be(-1);
-        summary1.levels should not be (None);
-        summary1.levels.get.length should be(0);
         summary1.noOfAttempts should be(2);
         summary1.timeSpent should be(553.01);
         summary1.timeDiff should be(553.01);
-        summary1.interactEventsPerMin should be(14.21);
-        summary1.currentLevel should not be (None);
-        summary1.currentLevel.get.size should be(0);
-        summary1.noOfInteractEvents should be(131);
+        summary1.interactEventsPerMin should be(11.39);
+        summary1.noOfInteractEvents should be(105);
         summary1.itemResponses.get.length should be(34);
         summary1.interruptTime should be(8.28);
 
@@ -326,22 +304,22 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val esList = summary1.eventsSummary
         val esMap = esList.map { x => (x.id, x.count) }.toMap
         esList.size should be(7);
-        esMap.get("OE_ITEM_RESPONSE").get should be(65);
-        esMap.get("OE_ASSESS").get should be(34);
-        esMap.get("OE_START").get should be(1);
-        esMap.get("OE_END").get should be(1);
-        esMap.get("OE_INTERACT").get should be(105);
-        esMap.get("OE_NAVIGATE").get should be(6);
-        esMap.get("OE_INTERRUPT").get should be(3);
+        esMap.get("RESPONSE").get should be(65);
+        esMap.get("ASSESS").get should be(34);
+        esMap.get("START").get should be(1);
+        esMap.get("END").get should be(1);
+        esMap.get("INTERACT").get should be(105);
+        esMap.get("IMPRESSION").get should be(6);
+        esMap.get("INTERRUPT").get should be(3);
 
         val ssList = summary1.screenSummary.get
         val ssMap = ssList.map { x => (x.id, (x.timeSpent, x.visitCount)) }.toMap
         ssList.size should be(5);
-        ssMap.get("questions_g4").get should be(62.22, 2);
-        ssMap.get("endScreen_g5").get should be(421.34, 1);
-        ssMap.get("questions_g5").get should be(44.32, 1);
-        ssMap.get("endScreen_g4").get should be(1.71, 1);
-        ssMap.get("splash").get should be(15.16, 2);
+        ssMap.get("questions_g4").get should be(71.48,2);
+        ssMap.get("endScreen_g5").get should be(421.58, 1);
+        ssMap.get("questions_g5").get should be(44.61, 1);
+        ssMap.get("endScreen_g4").get should be(1.35, 1);
+        ssMap.get("splash").get should be(1.92, 1);
 
         summary1.syncDate should be(1459558762917L)
         event1.syncts should be(summary1.syncDate);
@@ -377,7 +355,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should "generate array if  mmc is present in raw telemetry" in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data8.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data8.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         val mmc = itemRes.mmc.get.asInstanceOf[List[String]]
@@ -386,7 +364,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
 
     it should "generate none if no mmc field present in raw telemetry " in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data7.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data7.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc should be(None)
@@ -394,7 +372,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should "generate Empty List if mmc have no values present in raw telemetry " in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test_data9.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data9.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc.get should be(List())
@@ -402,11 +380,24 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     
     it should  "filter edata.eks.type = scroll  along with TOUCH DRAG, DROP, PINCH, ZOOM, SHAKE, ROTATE, SPEAK, LISTEN, WRITE, DRAW, START, END, CHOOSE, ACTIVATEfrom events for calculating  No.Of InteractEvents " in {
-        val rdd = loadFile[Event]("src/test/resources/session-summary/test-data10.log");
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test-data10.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect().head
         val map= event.edata.eks.asInstanceOf[Map[String,AnyRef]]
         map.get("noOfInteractEvents").get should be(1)
   
     }
-
+    
+    it should  "check mode for the Event" in {
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test-data11.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()
+        event.length should be (2)
+        val firstEvent = event.filter{x=> "c28e9be0-6a11-4add-b36d-1136a0717355".equals(x.uid)}.head
+        val secEvent = event.filter{x=> "b753472b-ebb9-446b-a9aa-74d927a599bf".equals(x.uid)}.head
+        
+        val map1= firstEvent.edata.eks.asInstanceOf[Map[String,AnyRef]]
+        map1.get("mode").get should be("play")
+        val map2= secEvent.edata.eks.asInstanceOf[Map[String,AnyRef]]
+        map2.get("mode").get should be("preview")
+        
+    }
 }

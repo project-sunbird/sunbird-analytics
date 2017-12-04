@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.V3Event
 
 class TestDeviceContentUsageSummaryModel extends SparkSpec(null) {
 
@@ -16,7 +17,7 @@ class TestDeviceContentUsageSummaryModel extends SparkSpec(null) {
             session.execute("TRUNCATE local_device_db.device_usage_summary;");
         }
 
-        val rdd = loadFile[Event]("src/test/resources/device-content-usage-summary/telemetry_test_data.log");
+        val rdd = loadFile[V3Event]("src/test/resources/device-content-usage-summary/v3/telemetry_test_data.log");
         val me = ContentSideloadingSummaryModel.execute(rdd, None);
 
         val table1 = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first
@@ -46,7 +47,7 @@ class TestDeviceContentUsageSummaryModel extends SparkSpec(null) {
         table2.total_interactions should be(None)
         table2.total_timespent should be(None)
 
-        val rdd0 = loadFile[Event]("src/test/resources/device-content-usage-summary/telemetry_test_data2.log");
+        val rdd0 = loadFile[V3Event]("src/test/resources/device-content-usage-summary/v3/telemetry_test_data2.log");
         val me1 = ContentSideloadingSummaryModel.execute(rdd0, None);
 
         val table = sc.cassandraTable[DeviceUsageSummary](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_USAGE_SUMMARY_TABLE).where("device_id=?", "0b303d4d66d13ad0944416780e52cc3db1feba87").first

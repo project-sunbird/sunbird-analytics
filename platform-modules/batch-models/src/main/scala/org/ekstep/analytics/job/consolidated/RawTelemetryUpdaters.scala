@@ -14,6 +14,6 @@ object RawTelemetryUpdaters extends optional.Application with IJob {
     def main(config: String)(implicit sc: Option[SparkContext] = None) {
         val models = List(UpdateLearnerProfileDB, UpdateDeviceSpecificationDB);
         implicit val sparkContext: SparkContext = sc.getOrElse(null);
-        JobDriver.run("batch", config, models, className);
+        //JobDriver.run("batch", config, models, className);
     }
 }

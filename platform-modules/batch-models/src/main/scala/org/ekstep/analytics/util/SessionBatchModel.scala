@@ -10,11 +10,54 @@ import org.ekstep.analytics.framework.IBatchModel
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.creation.model.CreationEvent
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.V3Event
 
 /**
  * @author Santhosh
  */
 trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
+
+    def getGameSessionsV3(data: RDD[V3Event]): RDD[((String, String), Buffer[V3Event])] = {
+        data.filter { x => x.actor.id != null && x.`object`.nonEmpty && x.`object`.get.id != null }
+            .map { event =>
+                val channelId = CommonUtil.getChannelId(event)
+                ((channelId, event.actor.id), Buffer(event))
+            }.partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).mapValues { events =>
+                events.sortBy { x => x.ets }.groupBy { e =>
+                    (e.context.sid.get, e.ver)
+                }.mapValues { x =>
+                    var sessions = Buffer[Buffer[V3Event]]();
+                    var tmpArr = Buffer[V3Event]();
+                    var lastContentId: String = x(0).`object`.get.id;
+                    x.foreach { y =>
+                        y.eid match {
+                            case "START" =>
+                                if (tmpArr.length > 0) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[V3Event]();
+                                }
+                                tmpArr += y;
+                                lastContentId = y.`object`.get.id;
+                            case "END" =>
+                                tmpArr += y;
+                                sessions += tmpArr;
+                                tmpArr = Buffer[V3Event]();
+                            case _ =>
+                                if (!lastContentId.equals(y.`object`.get.id)) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[V3Event]();
+                                }
+                                tmpArr += y;
+                                lastContentId = y.`object`.get.id;
+                        }
+                    }
+                    sessions += tmpArr;
+                    sessions;
+                }.map(f => f._2).reduce((a, b) => a ++ b);
+                //}.flatMap(f => f._2.map { x => ((f._1._2, f._1._1), x) }).filter(f => f._2.nonEmpty);
+            }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
+    }
 
     def getGameSessions(data: RDD[Event]): RDD[((String, String), Buffer[Event])] = {
         data.filter { x => x.uid != null && x.gdata.id != null }
@@ -55,6 +98,59 @@ trait SessionBatchModel[T, R] extends IBatchModel[T, R] {
                     sessions;
                 }.map(f => f._2).reduce((a, b) => a ++ b);
                 //}.flatMap(f => f._2.map { x => ((f._1._2, f._1._1), x) }).filter(f => f._2.nonEmpty);
+            }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
+    }
+
+    def getV3GenieLaunchSessions(data: RDD[V3Event], idleTime: Int): RDD[((String, String), Buffer[V3Event])] = {
+        data.filter { x => x.context.did.isDefined }.map { event =>
+            val channelId = CommonUtil.getChannelId(event)
+            ((channelId, event.context.did.get), Buffer(event))
+        }.partitionBy(new HashPartitioner(JobContext.parallelization))
+            .reduceByKey((a, b) => a ++ b).mapValues { events =>
+                val sortedEvents = events.sortBy { x => x.ets }
+                var sessions = Buffer[Buffer[V3Event]]();
+                var tmpArr = Buffer[V3Event]();
+                sortedEvents.foreach { y =>
+                    if (Constants.GENIE_ENV.equals(y.context.env) && List("START", "END").contains(y.eid) && "app".equals(y.edata.`type`)) {
+                        y.eid match {
+                            case "START" =>
+                                if (tmpArr.length > 0) {
+                                    sessions += tmpArr;
+                                    tmpArr = Buffer[V3Event]();
+                                }
+                                tmpArr += y;
+
+                            case "END" =>
+                                if (!tmpArr.isEmpty) {
+                                    val event = tmpArr.last
+                                    val timeSpent = CommonUtil.getTimeDiff(event.ets, y.ets).get
+                                    if (timeSpent > (idleTime * 60)) {
+                                        sessions += tmpArr;
+                                        tmpArr = Buffer[V3Event]();
+                                    }
+                                }
+                                tmpArr += y;
+                                sessions += tmpArr;
+                                tmpArr = Buffer[V3Event]();
+                        }
+                    } else {
+                        if (!tmpArr.isEmpty) {
+                            val event = tmpArr.last
+                            val timeSpent = CommonUtil.getTimeDiff(event.ets, y.ets).get
+                            if (timeSpent < (idleTime * 60)) {
+                                tmpArr += y;
+                            } else {
+                                sessions += tmpArr;
+                                tmpArr = Buffer[V3Event]();
+                                tmpArr += y;
+                            }
+                        } else {
+                            tmpArr += y;
+                        }
+                    }
+                }
+                sessions += tmpArr;
+                sessions;
             }.flatMap(f => f._2.map { x => (f._1, x) }).filter(f => f._2.nonEmpty);
     }
 

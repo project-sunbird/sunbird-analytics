@@ -1,4 +1,3 @@
-
 package org.ekstep.analytics.framework
 
 import java.io.Serializable
@@ -62,6 +61,14 @@ class ProfileEks(val ueksid: String, val utype: String, val loc: String, val err
 class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.beans.BeanInfo
 class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val pdata: Option[PData] = None, val channel: Option[String] = None, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
+
+
+// V3 User profile event models
+@scala.beans.BeanInfo
+//class V3ProfileState(val ueksid: String, val utype: String, val loc: String, val err: String, val attrs: Array[AnyRef], val uid: String, val age: Option[Int], val day: Int, val month: Int, val gender: String, val language: String, val standard: Option[Int], val is_group_user: Option[Boolean], val dspec: Map[String, AnyRef]) extends Serializable {}
+class V3AuditEata(val props: String, val state: AnyRef, val prevstate: String) extends Serializable {}
+@scala.beans.BeanInfo
+class V3ProfileEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3AuditEata, val tags: List[AnyRef] = null) extends Input with AlgoInput with Serializable {}
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
@@ -141,43 +148,74 @@ case class CsvConfig(auto_extract_column_names: Boolean, columnMappings: Map[Str
 case class SaveConfig(params: Map[String, String])
 
 object Period extends Enumeration {
-    type Period = Value
-    val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
+  type Period = Value
+  val DAY, WEEK, MONTH, CUMULATIVE, LAST7, LAST30, LAST90 = Value
 }
 
 object Level extends Enumeration {
-    type Level = Value
-    val INFO, DEBUG, WARN, ERROR = Value
+  type Level = Value
+  val INFO, DEBUG, WARN, ERROR = Value
 }
 
 object JobStatus extends Enumeration {
-    type Status = Value;
-    val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
+  type Status = Value;
+  val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
 }
 
 trait Stage extends Enumeration {
-    type Stage = Value
-    val contentPlayed = Value
+  type Stage = Value
+  val contentPlayed = Value
 }
 
 trait DataExStage extends Enumeration {
-    type DataExStage = Value;
-    val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, SAVE_DATA_TO_LOCAL, DOWNLOAD_AND_ZIP_OUTPUT_FILE, UPLOAD_ZIP, UPDATE_RESPONSE_TO_DB = Value
+  type DataExStage = Value;
+  val FETCHING_ALL_REQUEST, FETCHING_DATA, FETCHING_THE_REQUEST, FILTERING_DATA, SAVE_DATA_TO_S3, SAVE_DATA_TO_LOCAL, DOWNLOAD_AND_ZIP_OUTPUT_FILE, UPLOAD_ZIP, UPDATE_RESPONSE_TO_DB = Value
 }
 
 trait JobStageStatus extends Enumeration {
-    type JobStageStatus = Value;
-    val COMPLETED, FAILED = Value
+  type JobStageStatus = Value;
+  val COMPLETED, FAILED = Value
 }
 
 object OnboardStage extends Stage {
-    override type Stage = Value
-    val welcomeContent, addChild, firstLesson, gotoLibrary, searchLesson, loadOnboardPage = Value
+  override type Stage = Value
+  val welcomeContent, addChild, firstLesson, gotoLibrary, searchLesson, loadOnboardPage = Value
 }
 
 object OtherStage extends Stage {
-    override type Stage = Value
-    val listContent, selectContent, downloadInitiated, downloadComplete = Value
+  override type Stage = Value
+  val listContent, selectContent, downloadInitiated, downloadComplete = Value
 }
 
+// telemetry v3 case classes
+@scala.beans.BeanInfo
+case class Actor(id: String, `type`: String);
+@scala.beans.BeanInfo
+case class V3PData(id: String, ver: Option[String] = None, pid: Option[String] = None, model: Option[String] = None);
+@scala.beans.BeanInfo
+case class Question(id: String, maxscore: Int, exlength: Int, params: Array[Map[String, AnyRef]], uri: String, desc: String, title: String, mmc: Array[String], mc: Array[String])
+@scala.beans.BeanInfo
+case class V3CData(id: String, `type`: String);
+@scala.beans.BeanInfo
+case class RollUp(l1: String, l2: String, l3: String, l4: String)
+@scala.beans.BeanInfo
+case class V3Context(channel: String, pdata: Option[V3PData], env: String, sid: Option[String], did: Option[String], cdata: Option[List[V3CData]], rollup: Option[RollUp])
+@scala.beans.BeanInfo
+case class Visit(objid: String, objtype: String, objver: Option[String], section: Option[String], index: Option[Int])
+@scala.beans.BeanInfo
+case class V3Object(id: String, `type`: String, ver: Option[String], rollup: Option[RollUp], subtype: Option[String] = None, parent: Option[CommonObject] = None)
+@scala.beans.BeanInfo
+case class CommonObject(id: String, `type`: String, ver: Option[String] = None)
+@scala.beans.BeanInfo
+case class ShareItems(id: String, `type`: String, ver: String, params: List[Map[String, AnyRef]], origin: CommonObject, to: CommonObject)
 
+@scala.beans.BeanInfo
+class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,
+              val summary: Map[String, AnyRef], val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
+              val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
+              val values: AnyRef, val rating: Double, val comments: String, val dir: String, val items: List[ShareItems], val props : List[String], 
+              val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
+              val level: String, val message: String, val params: Map[String, AnyRef], val index: Int) extends Serializable {}
+
+@scala.beans.BeanInfo
+class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}

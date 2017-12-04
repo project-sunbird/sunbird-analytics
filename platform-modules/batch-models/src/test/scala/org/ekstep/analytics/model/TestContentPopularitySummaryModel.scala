@@ -10,6 +10,7 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.RegisteredTag
+import org.ekstep.analytics.framework.V3Event
 
 class TestContentPopularitySummaryModel extends SparkSpec(null) with BeforeAndAfterEach {
 	
@@ -50,7 +51,7 @@ class TestContentPopularitySummaryModel extends SparkSpec(null) with BeforeAndAf
 	// TC-1:
 	"ContentPopularitySummaryModel" should "generate summaries only for two registered tags when, one week of data where out of five tags two tags are pre-registered on portal" in {
 		registerTags(Array("dff9175fa217e728d86bc1f4d8f818f6d2959303", "f202014e4a59d9f31e26311575a7c1b5b9eac698"));
-		val rdd = loadFile[Event]("src/test/resources/content-popularity-summary/test_data1.log");
+		val rdd = loadFile[V3Event]("src/test/resources/content-popularity-summary/v3/test_data1.log");
 		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
 		val measuredEvents = resultRDD.collect();
 		tagEventsLength(measuredEvents, tagList(0)) should be(103);
@@ -63,7 +64,7 @@ class TestContentPopularitySummaryModel extends SparkSpec(null) with BeforeAndAf
 	
 	// TC-2:
 	it should "not generate summaries for tags when, one week of data where out of five tags none of them are pre-registered on portal" in {
-		val rdd = loadFile[Event]("src/test/resources/content-popularity-summary/test_data2.log");
+		val rdd = loadFile[V3Event]("src/test/resources/content-popularity-summary/v3/test_data2.log");
 		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
 		val measuredEvents = resultRDD.collect();
 		tagEventsLength(measuredEvents, tagList(0)) should be(0);
@@ -76,7 +77,7 @@ class TestContentPopularitySummaryModel extends SparkSpec(null) with BeforeAndAf
 	// TC-3:
 	it should "generate summaries for all tags when, one week of data where all five tags are pre-registered on portal" in {
 		registerTags(tagList);
-		val rdd = loadFile[Event]("src/test/resources/content-popularity-summary/test_data2.log");
+		val rdd = loadFile[V3Event]("src/test/resources/content-popularity-summary/v3/test_data2.log");
 		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
 		val measuredEvents = resultRDD.collect();
 		tagEventsLength(measuredEvents, tagList(0)) should be(116);
@@ -89,7 +90,7 @@ class TestContentPopularitySummaryModel extends SparkSpec(null) with BeforeAndAf
 	// TC-4:
 	it should "not generate summaries for tags which are not exist in data but, pre-registered on portal" in  {
 		registerTags(Array(tagList(5), tagList(6)));
-		val rdd = loadFile[Event]("src/test/resources/content-popularity-summary/test_data1.log");
+		val rdd = loadFile[V3Event]("src/test/resources/content-popularity-summary/v3/test_data1.log");
 		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
 		val measuredEvents = resultRDD.collect();
 		tagEventsLength(measuredEvents, tagList(5)) should be(0);

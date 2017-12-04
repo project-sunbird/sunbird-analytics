@@ -61,6 +61,12 @@ object Constants {
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
     
+    val GENIE_ENV = "Genie"
+    val PLAYER_ENV = "ContentPlayer"
+    val PORTAL_ENV = "portal"
+    val EDITOR_ENV = "ContentEditor"
+    val PORTAL_PDATAIDS = List("in.ekstep.community", "org.ekstep.content.platform", "sunbird_portal", "in.ekstep.dev", "in.ekstep.qa")
+    
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
     }

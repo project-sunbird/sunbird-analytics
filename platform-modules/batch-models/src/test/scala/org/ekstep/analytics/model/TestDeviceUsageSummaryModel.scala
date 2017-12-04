@@ -5,6 +5,7 @@ import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.V3Event
 
 class TestDeviceUsageSummaryModel extends SparkSpec(null) {
 
@@ -14,7 +15,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
             session.execute("TRUNCATE local_device_db.device_usage_summary;");
         }
 
-        val rdd0 = loadFile[Event]("src/test/resources/device-usage-summary/telemetry_test_data2.log");
+        val rdd0 = loadFile[V3Event]("src/test/resources/device-usage-summary/v3/telemetry_test_data2.log");
         val me0 = ContentSideloadingSummaryModel.execute(rdd0, None);
         
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_4.log");
@@ -82,7 +83,7 @@ class TestDeviceUsageSummaryModel extends SparkSpec(null) {
             session.execute("TRUNCATE local_device_db.device_usage_summary;");
         }
 
-        val rdd0 = loadFile[Event]("src/test/resources/device-usage-summary/telemetry_test_data1.log");
+        val rdd0 = loadFile[V3Event]("src/test/resources/device-usage-summary/v3/telemetry_test_data1.log");
         val me0 = ContentSideloadingSummaryModel.execute(rdd0, None);
         
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-usage-summary/test_data_5.log");

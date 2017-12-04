@@ -20,21 +20,21 @@ import org.ekstep.analytics.util.CreationEventUtil
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.creation.model.CreationPData
 
-case class EventsByPeriod(period: Long, channel: String, events: Buffer[CreationEvent]) extends AlgoInput
+case class EventsByPeriod(period: Long, channel: String, events: Buffer[V3Event]) extends AlgoInput
 case class PublishPipelineSummary(`type`: String, state: String, subtype: String, count: Int)
-case class PipelineSummaryOutput(summary: Iterable[PublishPipelineSummary], date_range: DtRange, period: Long, channel: String, pdata: CreationPData, syncts: Long) extends AlgoOutput
+case class PipelineSummaryOutput(summary: Iterable[PublishPipelineSummary], date_range: DtRange, period: Long, channel: String, pdata: PData, syncts: Long) extends AlgoOutput
 
-object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, EventsByPeriod, PipelineSummaryOutput, MeasuredEvent] with Serializable {
+object PublishPipelineSummaryModel extends IBatchModelTemplate[V3Event, EventsByPeriod, PipelineSummaryOutput, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.PublishPipelineSummaryModel"
     override def name: String = "PublishPipelineSummaryModel"
 
-    override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsByPeriod] = {
-        JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE")
-        val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE")))));
+    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[EventsByPeriod] = {
+        JobLogger.log("Filtering Events of AUDIT")
+        val objectLifecycleEvents = DataFilter.filter(data, Array(Filter("object", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("AUDIT")))));
         objectLifecycleEvents.sortBy { x => x.ets }.map { x =>
             val period = CommonUtil.getPeriod(x.ets, Period.DAY)
-            val channel = CreationEventUtil.getChannelId(x)
+            val channel = CommonUtil.getChannelId(x)
             ((period, channel), Buffer(x))
         }.partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b)
@@ -45,7 +45,7 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
 
         val data = input.cache()
         val summaries = data.map { d =>
-            val groups = d.events.groupBy(e => (e.edata.eks.`type`, e.edata.eks.state, e.edata.eks.subtype))
+            val groups = d.events.groupBy(e => (e.`object`.get.`type`, e.edata.state, e.`object`.get.subtype.getOrElse("")))
             val summaryOutput = groups.map { e =>
                 val _type = e._1._1
                 val state = e._1._2
@@ -55,8 +55,8 @@ object PublishPipelineSummaryModel extends IBatchModelTemplate[CreationEvent, Ev
             }
 
             val dateRange = DtRange(d.events.head.ets, d.events.last.ets)
-            val pdata = CreationEventUtil.getAppDetails(d.events.head)
-            PipelineSummaryOutput(summaryOutput, dateRange, d.period, d.channel, pdata, CreationEventUtil.getEventSyncTS(d.events.last))
+            val pdata = CommonUtil.getAppDetails(d.events.head)
+            PipelineSummaryOutput(summaryOutput, dateRange, d.period, d.channel, pdata, CommonUtil.getEventSyncTS(d.events.last))
         }
 
         data.unpersist(true)

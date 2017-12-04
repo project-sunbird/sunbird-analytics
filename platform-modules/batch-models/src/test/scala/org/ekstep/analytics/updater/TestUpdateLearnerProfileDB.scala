@@ -1,7 +1,7 @@
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.framework.ProfileEvent
+import org.ekstep.analytics.framework.V3ProfileEvent
 import com.datastax.spark.connector._
 
 /**
@@ -11,7 +11,7 @@ class TestUpdateLearnerProfileDB extends SparkSpec(null) {
     
     "UpdateLearnerProfileDB" should "update learner profile in learner db" in {
 
-        val rdd = loadFile[ProfileEvent]("src/test/resources/learner-profile/2016-04-04-1459753547783.json");
+        val rdd = loadFile[V3ProfileEvent]("src/test/resources/learner-profile/2016-04-04-1459753547783.json");
         UpdateLearnerProfileDB.execute(rdd, None);
         
         val profile1 = sc.cassandraTable[LearnerProfile]("local_learner_db", "learnerprofile").where("learner_id = ?", "18e2152f-b1a4-45b4-94f1-091ca1d6de9e").first();

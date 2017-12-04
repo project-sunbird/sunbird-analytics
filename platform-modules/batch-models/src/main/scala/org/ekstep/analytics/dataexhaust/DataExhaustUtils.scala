@@ -1,52 +1,49 @@
 package org.ekstep.analytics.dataexhaust
 
+import scala.annotation.migration
 import scala.reflect.runtime.universe
+
 import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.CsvColumnMapping
 import org.ekstep.analytics.framework.DataFetcher
 import org.ekstep.analytics.framework.DataFilter
-import org.ekstep.analytics.framework.Event
+import org.ekstep.analytics.framework.DataSet
+import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.EventId
 import org.ekstep.analytics.framework.Fetcher
 import org.ekstep.analytics.framework.Filter
-import org.ekstep.analytics.framework.JobConfig
+import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework.Query
+import org.ekstep.analytics.framework.V3Event
+import org.ekstep.analytics.framework.V3PData
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.util.S3Util
-import org.ekstep.analytics.util._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.util.JobRequest
+import org.ekstep.analytics.util.JobStage
+import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
+
 import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.toNamedColumnRef
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
-import org.ekstep.analytics.creation.model.CreationEvent
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.OutputDispatcher
-import org.ekstep.analytics.framework.Dispatcher
-import org.ekstep.analytics.framework.conf.AppConf
-import scala.collection.JavaConversions._
-import com.typesafe.config.Config
-import org.ekstep.analytics.framework.DataSet
-import org.ekstep.analytics.framework.Input
-import org.ekstep.analytics.framework.AlgoInput
-import org.ekstep.analytics.framework.EventId
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.Level._
-import org.ekstep.analytics.framework.DerivedEvent
-import org.ekstep.analytics.framework.CsvConfig
-import org.ekstep.analytics.framework.CsvColumnMapping
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.creation.model.CreationPData
 
 object DataExhaustUtils {
 
     implicit val className = "org.ekstep.analytics.dataexhaust.DataExhaustUtils"
+
+    val CONSUMPTION_ENV = List("Genie", "ContentPlayer")
 
     def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING", err_message: String = "")(implicit sc: SparkContext) {
         sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status, err_message))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message"))
@@ -193,49 +190,49 @@ object DataExhaustUtils {
     private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
         if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
             val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
-                val channelFilter = (event: Event, channel: String) => {
+                val channelFilter = (event: V3Event, channel: String) => {
                     if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
-                        channel.equals(event.channel.get);
+                        channel.equals(event.context.channel);
                     } else {
-                        event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+                        event.context.channel.isEmpty || event.context.channel.equals(AppConf.getConfig("default.channel.id"));
                     }
                 };
-                val appIdFilter = (event: Event, appId: String) => {
+                val appIdFilter = (event: V3Event, appId: String) => {
                     val defaultAppId = AppConf.getConfig("default.consumption.app.id");
-                    val app = event.pdata;
+                    val app = event.context.pdata;
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
-                        appId.equals(app.getOrElse(PData("", "")).id);
+                        appId.equals(app.getOrElse(V3PData("")).id);
                     } else {
-                        app.isEmpty || defaultAppId.equals(app.getOrElse(PData("", "")).id)
+                        app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
                     }
                 };
                 val rawRDD = data.map { event =>
                     try {
-                        JSONUtils.deserialize[Event](event)
+                        JSONUtils.deserialize[V3Event](event)
                     } catch {
                         case t: Throwable =>
                             null
                     }
-                }.filter { x => null != x }
+                }.filter { x => null != x && CONSUMPTION_ENV.contains(x.context.env) }
                 println("Input count: ", rawRDD.count())
-                val channelFltrRDD = DataFilter.filter[Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
                 println("After channel filter count: ", channelFltrRDD.count())
-                val appFltrRDD = DataFilter.filter[Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
                 println("After app_id filter count: ", appFltrRDD.count())
                 appFltrRDD;
             } else {
-                val channelFilter = (event: CreationEvent, channel: String) => {
+                val channelFilter = (event: V3Event, channel: String) => {
                     if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
-                        channel.equals(event.channel.get);
+                        channel.equals(event.context.channel);
                     } else {
-                        event.channel.isEmpty || event.channel.getOrElse("").equals(AppConf.getConfig("default.channel.id"));
+                        event.context.channel.equals(AppConf.getConfig("default.channel.id"));
                     }
                 }
-                val appIdFilter = (event: CreationEvent, appId: String) => {
+                val appIdFilter = (event: V3Event, appId: String) => {
                     val defaultAppId = AppConf.getConfig("default.creation.app.id");
-                    val app = event.pdata;
+                    val app = event.context.pdata;
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
-                        appId.equals(app.getOrElse(new CreationPData("", "")).id);
+                        appId.equals(app.getOrElse(V3PData("")).id);
                     } else {
                         true;
                     }
@@ -243,16 +240,16 @@ object DataExhaustUtils {
 
                 val rawRDD = data.map { event =>
                     try {
-                        JSONUtils.deserialize[CreationEvent](event)
+                        JSONUtils.deserialize[V3Event](event)
                     } catch {
                         case t: Throwable =>
                             null
                     }
-                }.filter { x => null != x }
+                }.filter { x => null != x && !CONSUMPTION_ENV.contains(x.context.env) }
                 println("Input count: ", rawRDD.count())
-                val channelFltrRDD = DataFilter.filter[CreationEvent, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
                 println("After channel filter count: ", channelFltrRDD.count())
-                val appFltrRDD = DataFilter.filter[CreationEvent, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
                 println("After app_id filter count: ", appFltrRDD.count())
                 appFltrRDD;
             }
@@ -286,7 +283,6 @@ object DataExhaustUtils {
                 }
             }
         }.filter(x => x.value.isDefined).toArray
-
         val finalRDD = filteredRDD.map { line =>
             try {
                 val event = stringToObject(line, dataSetId);
@@ -304,12 +300,9 @@ object DataExhaustUtils {
     def stringToObject(event: String, dataSetId: String) = {
         try {
             dataSetId match {
-                case "eks-consumption-raw" =>
-                    val e = JSONUtils.deserialize[Event](event);
+                case "eks-consumption-raw" | "eks-creation-raw" =>
+                    val e = JSONUtils.deserialize[V3Event](event);
                     (CommonUtil.getEventSyncTS(e), e);
-                case "eks-creation-raw" =>
-                    val e = JSONUtils.deserialize[CreationEvent](event);
-                    (CreationEventUtil.getEventSyncTS(e), e);
                 case "eks-consumption-summary" | "eks-creation-summary" | "eks-consumption-metrics" | "eks-creation-metrics" =>
                     val e = JSONUtils.deserialize[DerivedEvent](event);
                     (e.syncts, e);

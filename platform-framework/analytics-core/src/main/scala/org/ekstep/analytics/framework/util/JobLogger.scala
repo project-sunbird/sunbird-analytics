@@ -43,29 +43,29 @@ object JobLogger {
     }
 
     private def info(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).info(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "INFO", msg, data)));
+        logger(name).info(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "INFO", msg, data)));
     }
 
     private def debug(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "DEBUG", msg, data)))
+        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "DEBUG", msg, data)))
     }
 
     private def error(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).error(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "ERROR", msg, data)));
+        logger(name).error(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "ERROR", msg, data)));
     }
 
     private def warn(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("BE_JOB_LOG", "WARN", msg, data)))
+        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "WARN", msg, data)))
     }
 
     def start(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        val event = JSONUtils.serialize(getMeasuredEvent("BE_JOB_START", "INFO", msg, data));
+        val event = JSONUtils.serialize(getMeasuredEvent("JOB_START", "INFO", msg, data));
         EventBusUtil.dipatchEvent(event);
         logger(name).info(event);
     }
 
     def end(msg: String, status: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        val event = JSONUtils.serialize(getMeasuredEvent("BE_JOB_END", "INFO", msg, data, Option(status)));
+        val event = JSONUtils.serialize(getMeasuredEvent("JOB_END", "INFO", msg, data, Option(status)));
         EventBusUtil.dipatchEvent(event);
         logger(name).info(event);
     }

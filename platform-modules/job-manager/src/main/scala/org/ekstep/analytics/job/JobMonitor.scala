@@ -47,9 +47,9 @@ class JobEventListener(channel: String, userName: String) {
     @Subscribe def onMessage(event: String) {
         val meEvent = JSONUtils.deserialize[MeasuredEvent](event);
         meEvent.eid match {
-            case "BE_JOB_START" =>
+            case "JOB_START" =>
                 OutputDispatcher.dispatch(dispatcher, Array(JobMonitor.jobStartMsg(meEvent)))
-            case "BE_JOB_END" =>
+            case "JOB_END" =>
                 OutputDispatcher.dispatch(dispatcher, Array(JobMonitor.jobEndMsg(meEvent)))
         }
     }

@@ -178,6 +178,11 @@ object CommonUtil {
         val timeInString = event.`@timestamp`;
         getEventSyncTS(timeInString);
     }
+    
+    def getEventSyncTS(event: V3Event): Long = {
+        val timeInString = event.`@timestamp`;
+        getEventSyncTS(timeInString);
+    }
 
     def getEventSyncTS(timeInStr: String): Long = {
         var ts = getTimestamp(timeInStr, df5, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
@@ -211,6 +216,14 @@ object CommonUtil {
 
     def getGameVersion(event: Event): String = {
         if (event.gdata != null) event.gdata.ver else null;
+    }
+    
+    def getGameId(event: V3Event): String = {
+        if (event.`object`.isEmpty ) null else event.`object`.get.id ;
+    }
+
+    def getGameVersion(event: V3Event): String = {
+        if (event.`object`.isEmpty ) null else event.`object`.get.ver.getOrElse(null) ;
     }
 
     def getParallelization(config: Option[Map[String, String]]): Int = {
@@ -518,6 +531,8 @@ object CommonUtil {
             event.asInstanceOf[DerivedEvent].etags.get.app
         } else if (event.isInstanceOf[Event]) {
             getETags(event.asInstanceOf[Event]).app
+        }else if (event.isInstanceOf[V3Event]) {
+            getETags(event.asInstanceOf[V3Event]).app
         } else {
             None
         }
@@ -525,6 +540,8 @@ object CommonUtil {
             event.asInstanceOf[DerivedEvent].etags.get.dims
         } else if (event.isInstanceOf[Event]) {
             getETags(event.asInstanceOf[Event]).dims
+        } else if (event.isInstanceOf[V3Event]) {
+            getETags(event.asInstanceOf[V3Event]).dims
         } else {
             None
         }
@@ -557,8 +574,12 @@ object CommonUtil {
         val defaultAppId = PData(AppConf.getConfig("default.consumption.app.id"), "1.0")
         if (event.isInstanceOf[Event]) {
             if (event.asInstanceOf[Event].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].pdata.get.id)) event.asInstanceOf[Event].pdata.get else defaultAppId
-        } else if (event.isInstanceOf[DerivedEvent]) {
-            if (event.asInstanceOf[DerivedEvent].dimensions.pdata.isEmpty) defaultAppId else event.asInstanceOf[DerivedEvent].dimensions.pdata.get
+        } else if (event.isInstanceOf[V3Event]) {
+            if (event.asInstanceOf[V3Event].context.pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[V3Event].context.pdata.get.id)) {
+              val v3pdata = event.asInstanceOf[V3Event].context.pdata.get
+              PData(v3pdata.id, v3pdata.ver.getOrElse(""))
+            }
+            else defaultAppId
         } else if (event.isInstanceOf[ProfileEvent]) {
             if (event.asInstanceOf[ProfileEvent].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].pdata.get.id)) event.asInstanceOf[ProfileEvent].pdata.get else defaultAppId
         } else defaultAppId;
@@ -568,6 +589,8 @@ object CommonUtil {
         val defaultChannelId = AppConf.getConfig("default.channel.id")
         if (event.isInstanceOf[Event]) {
             if (event.asInstanceOf[Event].channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[Event].channel.get)) event.asInstanceOf[Event].channel.get else defaultChannelId
+        } else if (event.isInstanceOf[V3Event]) {
+            if (event.asInstanceOf[V3Event].context.channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[V3Event].context.channel)) event.asInstanceOf[V3Event].context.channel else defaultChannelId
         } else if (event.isInstanceOf[DerivedEvent]) {
             if (StringUtils.isBlank(event.asInstanceOf[DerivedEvent].channel)) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
         } else if (event.isInstanceOf[ProfileEvent]) {
@@ -589,6 +612,24 @@ object CommonUtil {
                 ETags()
             }
 
+        }
+    }
+    
+    def getETags(event: V3Event): ETags = {
+        if (event.tags != null && !event.tags.isEmpty) {
+            val first = event.tags.apply(0)
+            if(first.isInstanceOf[String]){
+                ETags(Option(event.tags.asInstanceOf[List[String]]))
+            }
+            else {
+                val tags = event.tags.asInstanceOf[List[Map[String, List[String]]]]
+                val genieTags = tags.filter(f => f.contains("genie")).map { x => x.get("genie").get }.flatMap { x => x }
+                val partnerTags = tags.filter(f => f.contains("partner")).map { x => x.get("partner").get }.flatMap { x => x }
+                val dims = tags.filter(f => f.contains("dims")).map { x => x.get("dims").get }.flatMap { x => x }
+                ETags(Option(genieTags), Option(partnerTags), Option(dims))
+            }
+        } else {
+            ETags()
         }
     }
 
