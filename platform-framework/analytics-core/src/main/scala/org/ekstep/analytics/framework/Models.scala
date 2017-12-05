@@ -219,3 +219,6 @@ class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, A
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
+
+@scala.beans.BeanInfo
+case class V3DerivedEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: AnyRef, val tags: List[AnyRef] = null)

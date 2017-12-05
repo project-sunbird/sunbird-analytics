@@ -19,7 +19,7 @@ import org.apache.logging.log4j.core.config.AppenderRef
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.V3Context
 import org.ekstep.analytics.framework.V3PData
-import org.ekstep.analytics.framework.V3Event
+import org.ekstep.analytics.framework.V3DerivedEvent
 import org.ekstep.analytics.framework.V3EData
 import org.ekstep.analytics.framework.Actor
 
@@ -103,17 +103,16 @@ object JobLogger {
             MEEdata(measures));
     }
     
-    private def getV3JobEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): V3Event = {
+    private def getV3JobEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): V3DerivedEvent = {
         val measures = Map(
             "class" -> className,
             "level" -> level,
             "message" -> msg,
             "status" -> status,
             "data" -> data);
-        val edata = JSONUtils.deserialize[V3EData](JSONUtils.serialize(measures))
         val ts = new DateTime().getMillis
         val mid = CommonUtil.getMessageId(eid, level, ts, None, None);
         val context = V3Context("in.ekstep", Option(V3PData("AnalyticsDataPipeline", Option("1.0"), Option(JobContext.jobName))), "analytics", None, None, None, None)
-        new V3Event(eid, System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, edata)
+        V3DerivedEvent(eid, System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, measures)
     }
 }
