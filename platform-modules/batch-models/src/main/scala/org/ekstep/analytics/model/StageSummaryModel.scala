@@ -21,7 +21,7 @@ import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.GData
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
-import org.ekstep.analytics.updater.LearnerProfile
+import org.ekstep.analytics.framework.LearnerProfile
 import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.util.DerivedEvent
 import org.ekstep.analytics.framework.conf.AppConf

@@ -14,7 +14,7 @@ import org.ekstep.analytics.framework.Context
 import org.ekstep.analytics.framework.Dimensions
 import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.util.Constants
-import org.ekstep.analytics.updater.LearnerProfile
+import org.ekstep.analytics.framework.LearnerProfile
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.DataFilter

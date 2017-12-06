@@ -7,10 +7,11 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.Dispatcher
-import org.ekstep.analytics.updater.LearnerProfile
+import org.ekstep.analytics.framework.LearnerProfile
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
+import org.ekstep.analytics.framework.LearnerProfile
 
 class TestGenieSessionSummaryModel extends SparkSpec(null) {
 

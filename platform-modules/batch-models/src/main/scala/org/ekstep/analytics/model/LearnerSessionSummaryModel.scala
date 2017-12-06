@@ -16,7 +16,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.updater.LearnerProfile
+import org.ekstep.analytics.framework.LearnerProfile
 
 /**
  * Case class to hold the item responses
