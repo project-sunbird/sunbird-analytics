@@ -218,7 +218,10 @@ class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, A
               val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
               val values: AnyRef, val rating: Double, val comments: String, val dir: String, val items: List[ShareItems], val props : List[String], 
               val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
-              val level: String, val message: String, val params: Map[String, AnyRef], val index: Int) extends Serializable {}
+              val level: String, val message: String, val params: Map[String, AnyRef], val index: Int, val `class`: String, val status: String, val data: Option[AnyRef]) extends Serializable {}
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
+
+@scala.beans.BeanInfo
+case class V3DerivedEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: AnyRef, val tags: List[AnyRef] = null)
