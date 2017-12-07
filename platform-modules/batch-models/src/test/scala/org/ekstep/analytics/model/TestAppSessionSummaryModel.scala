@@ -104,13 +104,13 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         pageSummary1.env should be("")
         pageSummary1.id should be("")
         pageSummary1.`type` should be("")
-        pageSummary1.time_spent should be(227.0)
-        pageSummary1.visit_count should be(14)
+        pageSummary1.time_spent should be(231.0)
+        pageSummary1.visit_count should be(15)
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("")
-        envSummary1.time_spent should be(227.0)
-        envSummary1.count should be(14)
+        envSummary1.time_spent should be(231.0)
+        envSummary1.count should be(15)
         
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("START")
@@ -208,7 +208,6 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/v3/test_data_4.log");
         val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
-        
         me.length should be(1);
         
         val event1 = me(0);
@@ -216,6 +215,59 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         event1.dimensions.pdata.get.id should be("in.ekstep.dev")
         event1.dimensions.pdata.get.ver should be("2.0")
         event1.etags.isDefined should be(true)
+    }
+    
+    it should "check for session summary with IMPRESSION as last event" in {
+        val rdd1 = loadFile[V3Event]("src/test/resources/portal-session-summary/v3/test_data_5.log");
+        val rdd2 = AppSessionSummaryModel.execute(rdd1, None);
+        val me = rdd2.collect();
+        me.length should be(1);
+        
+        val event1 = me(0);
+        
+        event1.eid should be("ME_APP_SESSION_SUMMARY");
+        event1.mid should be("157E56A389C119E665309B3054EE4992");
+        event1.uid should be("636");
+        event1.context.pdata.model.get should be("AppSessionSummarizer");
+        event1.context.pdata.ver should be("1.0");
+        event1.context.granularity should be("SESSION");
+        event1.context.date_range should not be null;
+        event1.dimensions.sid.get should be("17pkc8np0ofcs1325i27gk1t75");
+        event1.dimensions.pdata.get.id should be("in.ekstep.dev");
+        event1.dimensions.anonymous_user.get should be(false);
+        event1.etags.isDefined should be(true)
+
+        val summary1 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event1.edata.eks));
+        summary1.interact_events_per_min should be(0.0);
+        summary1.start_time should be(1512455214388L);
+        summary1.page_views_count should be(3);
+        summary1.end_time should be(1512455941000L);
+        summary1.ce_visits should be(0);
+        summary1.interact_events_count should be(0);
+        summary1.time_diff should be(726.61);
+        summary1.first_visit should be(false);
+        summary1.time_spent should be(13.61);
+        
+        summary1.page_summary.get.size should be(1);
+        summary1.env_summary.get.size should be(1);
+        summary1.events_summary.get.size should be(2);
+        
+        val pageSummary1 = summary1.page_summary.get.head
+        pageSummary1.env should be("content")
+        pageSummary1.id should be("com_ekcontent.content")
+        pageSummary1.`type` should be("view")
+        pageSummary1.time_spent should be(23.61)
+        pageSummary1.visit_count should be(3)
+        
+        val envSummary1 = summary1.env_summary.get.filter(x => "content".equals(x.env)).head
+        envSummary1.env should be("content")
+        envSummary1.time_spent should be(23.61)
+        envSummary1.count should be(3)
+        
+        val eventSummary1 = summary1.events_summary.get.head
+        eventSummary1.id should be("START")
+        eventSummary1.count should be(1)
+        
     }
     
 }
