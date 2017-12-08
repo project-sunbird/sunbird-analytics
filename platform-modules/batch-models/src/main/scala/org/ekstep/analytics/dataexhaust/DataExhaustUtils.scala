@@ -2,7 +2,6 @@ package org.ekstep.analytics.dataexhaust
 
 import scala.annotation.migration
 import scala.reflect.runtime.universe
-
 import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
@@ -31,13 +30,13 @@ import org.ekstep.analytics.util.JobStage
 import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
-
 import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.toNamedColumnRef
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
+import org.ekstep.ep.samza.converter.converters.TelemetryV3Converter
 
 object DataExhaustUtils {
 
@@ -313,4 +312,15 @@ object DataExhaustUtils {
         }
     }
 
+    def convertData(data: RDD[String]): RDD[String] = {
+        data.map { x =>
+            val eventMap = JSONUtils.deserialize[java.util.Map[String, Object]](x);
+            val version = eventMap.get("ver").asInstanceOf[String]
+            if (StringUtils.equals("3.0", version)) {
+                Array(x);
+            } else {
+                new TelemetryV3Converter(eventMap).convert().map { x => x.toJson() };
+            }
+        }.flatMap { x => x }
+    }
 }
