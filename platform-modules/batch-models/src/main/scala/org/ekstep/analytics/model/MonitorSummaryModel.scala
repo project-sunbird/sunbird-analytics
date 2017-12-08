@@ -36,32 +36,33 @@ case class SlackMessage(channel: String, username: String, text: String, icon_em
 case class JobMonitor(jobs_started: Long, jobs_completed: Long, jobs_failed: Long, total_events_generated: Long, total_ts: Double, syncTs: Long, job_summary: Array[Map[String, Any]], dtange: DtRange) extends AlgoOutput
 case class JobSummary(model: String, input_count: Long, output_count: Long, time_taken: Double, status: String, day: Int) extends AlgoOutput
 case class ModelMapping(model: String, category: String, input_dependency: String)
-object MonitorSummaryModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, JobMonitor, MeasuredEvent] with Serializable {
+object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMonitor, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.MonitorSummaryModel"
     override def name: String = "MonitorSummaryModel"
 
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
-        val filteredData = data.filter { x => (x.eid.equals("JOB_START") || (x.eid.equals("JOB_END"))) }.filter { x => !x.context.pdata.model.get.equals("MonitorSummaryModel") }
+    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3Event] = {
+        val filteredData = data.filter { x => (x.eid.equals("JOB_START") || (x.eid.equals("JOB_END"))) }.filter { x => !x.context.pdata.get.pid.get.equals("MonitorSummaryModel") }
         filteredData.sortBy(_.ets)
     }
 
-    override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobMonitor] = {
+    override def algorithm(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobMonitor] = {
         val jobsStarted = data.filter { x => (x.eid.equals("JOB_START")) }.count()
         val filteresData = data.filter { x => (x.eid.equals("JOB_END")) }
-        val eksMap = filteresData.map { x => (x.edata.eks.asInstanceOf[Map[String, String]]) }
-        val jobsCompleted = eksMap.filter { x => (x.get("status").getOrElse("").equals("SUCCESS")) }.count()
-        val jobsFailed = eksMap.filter { x => (x.get("status").getOrElse("").equals("FAILED")) }.count()
-        val syncTs = data.first().syncts
-        val totalEventsGenerated = filteresData.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue() }.sum().longValue()
-        val totalTs = filteresData.map { x => x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].doubleValue() }.sum()
+        val edataMap = filteresData.map { x => (x.edata) }
+        val jobsCompleted = edataMap.filter { x => (x.status.equals("SUCCESS")) }.count()
+        val jobsFailed = edataMap.filter { x => (x.status.equals("FAILED")) }.count()
+        val syncTs = data.first().ets
+        val totalEventsGenerated = filteresData.map { x => x.edata.data.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue() }.sum().longValue()
+        val totalTs = filteresData.map { x => x.edata.data.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].doubleValue() }.sum()
         val jobSummary = filteresData.map { x =>
-            val model = x.context.pdata.model.get
-            val inputCount = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("inputEvents", 0L).asInstanceOf[Number].longValue()
-            val outputCount = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue()
-            val timeTaken = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("data", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].floatValue()
-            val status = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("status", "").toString()
-            val errMessage = x.edata.eks.asInstanceOf[Map[String, AnyRef]].getOrElse("message", "").toString()
+            val model = x.context.pdata.get.pid.get
+            val data = x.edata.data.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]]
+            val inputCount = data.getOrElse("inputEvents", 0L).asInstanceOf[Number].longValue()
+            val outputCount = data.getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue()
+            val timeTaken = data.getOrElse("timeTaken", 0.0).asInstanceOf[Number].floatValue()
+            val status = x.edata.status
+            val errMessage = if(null == x.edata.message) "" else x.edata.status
             val day = CommonUtil.getPeriod(x.ets, DAY)
             Map("model" -> model, "input_count" -> inputCount, "output_count" -> outputCount, "time_taken" -> timeTaken, "status" -> status, "day" -> day)
         }.collect()
