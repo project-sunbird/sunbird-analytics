@@ -21,7 +21,7 @@
 		<repository>
 			<id>telemetry-converter</id>
 			<name>Telemetry Converter</name>
-			<url>file://${project.basedir}/lib</url>
+			<url>file://${project.basedir}/batch-models/lib</url>
 		</repository>
 	</repositories>
 
