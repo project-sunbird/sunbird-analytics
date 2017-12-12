@@ -17,13 +17,13 @@
 	</properties>
 
 
-<!-- 	<repositories> -->
-<!-- 		<repository> -->
-<!-- 			<id>telemetry-converter</id> -->
-<!-- 			<name>Telemetry Converter</name> -->
-<!-- 			<url>file://${project.basedir}/lib</url> -->
-<!-- 		</repository> -->
-<!-- 	</repositories> -->
+	<repositories>
+		<repository>
+			<id>in-project</id>
+			<name>In Project Repo</name>
+			<url>file://${project.basedir}/lib</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
