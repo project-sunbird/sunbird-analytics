@@ -37,6 +37,10 @@ import com.datastax.spark.connector.toSparkContextFunctions
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
 import org.ekstep.ep.samza.converter.converters.TelemetryV3Converter
+import scala.collection.JavaConverters._
+import com.google.gson.reflect.TypeToken
+import com.google.gson.Gson
+import java.lang.reflect.Type;
 
 object DataExhaustUtils {
 
@@ -313,9 +317,11 @@ object DataExhaustUtils {
     }
 
     def convertData(data: RDD[String]): RDD[String] = {
+        val mapType:java.lang.reflect.Type = new TypeToken[java.util.Map[String, Object]](){}.getType();
         data.map { x =>
-            val eventMap = JSONUtils.deserialize[java.util.Map[String, Object]](x);
+            val eventMap:java.util.Map[String, Object] = new Gson().fromJson(x, mapType);
             val version = eventMap.get("ver").asInstanceOf[String]
+            
             if (StringUtils.equals("3.0", version)) {
                 Array(x);
             } else {
@@ -323,4 +329,5 @@ object DataExhaustUtils {
             }
         }.flatMap { x => x }
     }
+
 }
