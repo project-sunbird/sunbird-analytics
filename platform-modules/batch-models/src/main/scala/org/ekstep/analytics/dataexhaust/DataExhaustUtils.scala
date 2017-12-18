@@ -329,7 +329,7 @@ object DataExhaustUtils {
                     new TelemetryV3Converter(eventMap).convert().map { x => x.toJson() };
                 } catch {
                     case t: Throwable =>
-                        t.printStackTrace() // TODO: handle error
+                        println(t.getMessage()) // TODO: handle error
                         Array("");
                 }
             }
