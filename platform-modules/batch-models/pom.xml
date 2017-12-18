@@ -29,17 +29,24 @@
 
 		<dependency>
 			<groupId>org.ekstep.ecosystem</groupId>
+			<artifactId>ep-logger</artifactId>
+			<version>0.0.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/ep-logger-0.0.1.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.ekstep.ecosystem</groupId>
 			<artifactId>ep-telemetry-reader</artifactId>
 			<version>0.0.3</version>
 			<scope>system</scope>
-   			<systemPath>${project.basedir}/lib/ep-telemetry-reader-0.0.3.jar</systemPath>
+			<systemPath>${project.basedir}/lib/ep-telemetry-reader-0.0.3.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.ekstep.ecosystem</groupId>
 			<artifactId>ep-telemetry-converter</artifactId>
 			<version>0.0.1</version>
 			<scope>system</scope>
-   			<systemPath>${project.basedir}/lib/ep-telemetry-converter-0.0.1.jar</systemPath>
+			<systemPath>${project.basedir}/lib/ep-telemetry-converter-0.0.1.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.ekstep</groupId>
