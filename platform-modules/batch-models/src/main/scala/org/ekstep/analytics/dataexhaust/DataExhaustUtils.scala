@@ -317,17 +317,23 @@ object DataExhaustUtils {
     }
 
     def convertData(data: RDD[String]): RDD[String] = {
-        val mapType:java.lang.reflect.Type = new TypeToken[java.util.Map[String, Object]](){}.getType();
+        val mapType: java.lang.reflect.Type = new TypeToken[java.util.Map[String, Object]]() {}.getType();
         data.map { x =>
-            val eventMap:java.util.Map[String, Object] = new Gson().fromJson(x, mapType);
+            val eventMap: java.util.Map[String, Object] = new Gson().fromJson(x, mapType);
             val version = eventMap.get("ver").asInstanceOf[String]
-            
+
             if (StringUtils.equals("3.0", version)) {
                 Array(x);
             } else {
-                new TelemetryV3Converter(eventMap).convert().map { x => x.toJson() };
+                try {
+                    new TelemetryV3Converter(eventMap).convert().map { x => x.toJson() };
+                } catch {
+                    case t: Throwable =>
+                        t.printStackTrace() // TODO: handle error
+                        Array("");
+                }
             }
-        }.flatMap { x => x }
+        }.flatMap { x => x }.filter { x => (x!=null && x.nonEmpty)}
     }
 
 }
