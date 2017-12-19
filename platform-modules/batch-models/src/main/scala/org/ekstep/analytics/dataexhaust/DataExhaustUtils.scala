@@ -207,7 +207,9 @@ object DataExhaustUtils {
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
                         appId.equals(app.getOrElse(V3PData("")).id);
                     } else {
-                        app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
+                        //app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
+                        // filter all events if the `app_id` is not mentioned
+                        true;
                     }
                 };
                 val rawRDD = convertedData.map { event =>
