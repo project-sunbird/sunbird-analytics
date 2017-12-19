@@ -192,6 +192,7 @@ object DataExhaustUtils {
 
     private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
         if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
+            val convertedData = DataExhaustUtils.convertData(data)
             val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
                 val channelFilter = (event: V3Event, channel: String) => {
                     if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
@@ -209,7 +210,7 @@ object DataExhaustUtils {
                         app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
                     }
                 };
-                val rawRDD = data.map { event =>
+                val rawRDD = convertedData.map { event =>
                     try {
                         JSONUtils.deserialize[V3Event](event)
                     } catch {
@@ -241,7 +242,7 @@ object DataExhaustUtils {
                     }
                 }
 
-                val rawRDD = data.map { event =>
+                val rawRDD = convertedData.map { event =>
                     try {
                         JSONUtils.deserialize[V3Event](event)
                     } catch {
