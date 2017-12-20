@@ -14,7 +14,7 @@ object JobMonitor {
     }
     
     def jobStartMsg(event: MeasuredEvent) : String = {
-        val dataMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]];
+        val dataMap = event.edata.asInstanceOf[Map[String, AnyRef]];
         val jobdata = dataMap.getOrElse("data", Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]];
         val jobName = jobdata.getOrElse("model", "").asInstanceOf[String];
         val date = jobdata.getOrElse("date", "").asInstanceOf[String];
@@ -22,7 +22,7 @@ object JobMonitor {
     }
     
     def jobEndMsg(event: MeasuredEvent) : String =  {
-        val dataMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]];
+        val dataMap = event.edata.asInstanceOf[Map[String, AnyRef]];
         val status = dataMap.getOrElse("status", "FAILED").asInstanceOf[String];
         val jobdata = dataMap.getOrElse("data", Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]];
         val jobName = jobdata.getOrElse("model", "").asInstanceOf[String];
