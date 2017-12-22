@@ -5,6 +5,7 @@ import java.util.Date
 import scala.beans.BeanProperty
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.conf.AppConf
+import org.joda.time.DateTime
 
 class Models extends Serializable {}
 
@@ -69,6 +70,8 @@ class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, va
 class V3AuditEata(val props: String, val state: AnyRef, val prevstate: String) extends Serializable {}
 @scala.beans.BeanInfo
 class V3ProfileEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3AuditEata, val tags: List[AnyRef] = null) extends Input with AlgoInput with Serializable {}
+// Learner Profile
+case class LearnerProfile(learner_id: String, app_id: String, channel: String, did: String, gender: Option[String], language: Option[String], loc: Option[String], standard: Int, age: Int, year_of_birth: Int, group_user: Boolean, anonymous_user: Boolean, created_date: Option[DateTime], updated_date: Option[DateTime]) extends Output with AlgoOutput;
 
 // User Model
 case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int);
@@ -215,7 +218,10 @@ class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, A
               val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
               val values: AnyRef, val rating: Double, val comments: String, val dir: String, val items: List[ShareItems], val props : List[String], 
               val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
-              val level: String, val message: String, val params: Map[String, AnyRef], val index: Int) extends Serializable {}
+              val level: String, val message: String, val params: Map[String, AnyRef], val index: Int, val `class`: String, val status: String, val data: Option[AnyRef]) extends Serializable {}
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
+
+@scala.beans.BeanInfo
+case class V3DerivedEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: AnyRef, val tags: List[AnyRef] = null)

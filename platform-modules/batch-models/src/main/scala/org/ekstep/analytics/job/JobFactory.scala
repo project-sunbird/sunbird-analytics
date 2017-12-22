@@ -48,6 +48,8 @@ object JobFactory {
                 ContentSideloadingSummarizer
             case "lpu" =>
                 LearnerProfileUpdater
+            case "lpc" =>
+                LearnerProfileCreater
             case "cmu" =>
                 ContentModelUpdater
             case "dsu" =>

@@ -17,6 +17,11 @@ import org.apache.logging.log4j.core.layout.PatternLayout
 import java.nio.charset.Charset
 import org.apache.logging.log4j.core.config.AppenderRef
 import org.joda.time.DateTime
+import org.ekstep.analytics.framework.V3Context
+import org.ekstep.analytics.framework.V3PData
+import org.ekstep.analytics.framework.V3DerivedEvent
+import org.ekstep.analytics.framework.V3EData
+import org.ekstep.analytics.framework.Actor
 
 object JobLogger {
 
@@ -43,29 +48,29 @@ object JobLogger {
     }
 
     private def info(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).info(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "INFO", msg, data)));
+        logger(name).info(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "INFO", msg, data)));
     }
 
     private def debug(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "DEBUG", msg, data)))
+        logger(name).debug(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "DEBUG", msg, data)))
     }
 
     private def error(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).error(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "ERROR", msg, data)));
+        logger(name).error(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "ERROR", msg, data)));
     }
 
     private def warn(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).debug(JSONUtils.serialize(getMeasuredEvent("JOB_LOG", "WARN", msg, data)))
+        logger(name).debug(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "WARN", msg, data)))
     }
 
     def start(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        val event = JSONUtils.serialize(getMeasuredEvent("JOB_START", "INFO", msg, data));
+        val event = JSONUtils.serialize(getV3JobEvent("JOB_START", "INFO", msg, data));
         EventBusUtil.dipatchEvent(event);
         logger(name).info(event);
     }
 
     def end(msg: String, status: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        val event = JSONUtils.serialize(getMeasuredEvent("JOB_END", "INFO", msg, data, Option(status)));
+        val event = JSONUtils.serialize(getV3JobEvent("JOB_END", "INFO", msg, data, Option(status)));
         EventBusUtil.dipatchEvent(event);
         logger(name).info(event);
     }
@@ -96,5 +101,18 @@ object JobLogger {
             Context(PData("AnalyticsDataPipeline", "1.0", Option(JobContext.jobName)), None, "EVENT", null),
             null,
             MEEdata(measures));
+    }
+    
+    private def getV3JobEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): V3DerivedEvent = {
+        val measures = Map(
+            "class" -> className,
+            "level" -> level,
+            "message" -> msg,
+            "status" -> status,
+            "data" -> data);
+        val ts = new DateTime().getMillis
+        val mid = CommonUtil.getMessageId(eid, level, ts, None, None);
+        val context = V3Context("in.ekstep", Option(V3PData("AnalyticsDataPipeline", Option("1.0"), Option(JobContext.jobName))), "analytics", None, None, None, None)
+        V3DerivedEvent(eid, System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, measures)
     }
 }

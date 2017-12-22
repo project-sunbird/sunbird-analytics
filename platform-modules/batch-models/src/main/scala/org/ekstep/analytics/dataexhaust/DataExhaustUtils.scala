@@ -2,7 +2,6 @@ package org.ekstep.analytics.dataexhaust
 
 import scala.annotation.migration
 import scala.reflect.runtime.universe
-
 import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
@@ -31,13 +30,17 @@ import org.ekstep.analytics.util.JobStage
 import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
-
 import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.toNamedColumnRef
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
+import org.ekstep.ep.samza.converter.converters.TelemetryV3Converter
+import scala.collection.JavaConverters._
+import com.google.gson.reflect.TypeToken
+import com.google.gson.Gson
+import java.lang.reflect.Type;
 
 object DataExhaustUtils {
 
@@ -189,6 +192,7 @@ object DataExhaustUtils {
 
     private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
         if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
+            val convertedData = DataExhaustUtils.convertData(data)
             val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
                 val channelFilter = (event: V3Event, channel: String) => {
                     if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
@@ -203,10 +207,12 @@ object DataExhaustUtils {
                     if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
                         appId.equals(app.getOrElse(V3PData("")).id);
                     } else {
-                        app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
+                        //app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
+                        // filter all events if the `app_id` is not mentioned
+                        true;
                     }
                 };
-                val rawRDD = data.map { event =>
+                val rawRDD = convertedData.map { event =>
                     try {
                         JSONUtils.deserialize[V3Event](event)
                     } catch {
@@ -238,7 +244,7 @@ object DataExhaustUtils {
                     }
                 }
 
-                val rawRDD = data.map { event =>
+                val rawRDD = convertedData.map { event =>
                     try {
                         JSONUtils.deserialize[V3Event](event)
                     } catch {
@@ -311,6 +317,26 @@ object DataExhaustUtils {
             case t: Throwable =>
                 null
         }
+    }
+
+    def convertData(data: RDD[String]): RDD[String] = {
+        val mapType: java.lang.reflect.Type = new TypeToken[java.util.Map[String, Object]]() {}.getType();
+        data.map { x =>
+            val eventMap: java.util.Map[String, Object] = new Gson().fromJson(x, mapType);
+            val version = eventMap.get("ver").asInstanceOf[String]
+
+            if (StringUtils.equals("3.0", version)) {
+                Array(x);
+            } else {
+                try {
+                    new TelemetryV3Converter(eventMap).convert().map { x => x.toJson() };
+                } catch {
+                    case t: Throwable =>
+                        println(t.getMessage()) // TODO: handle error
+                        Array("");
+                }
+            }
+        }.flatMap { x => x }.filter { x => (x!=null && x.nonEmpty)}
     }
 
 }

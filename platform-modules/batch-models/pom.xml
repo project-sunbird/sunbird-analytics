@@ -12,13 +12,42 @@
 		<artifactId>platform-modules</artifactId>
 		<version>1.0</version>
 	</parent>
-	
 	<properties>
 		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
 
+
+	<repositories>
+		<repository>
+			<id>in-project</id>
+			<name>In Project Repo</name>
+			<url>file://${project.basedir}/lib</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 
+		<dependency>
+			<groupId>org.ekstep.ecosystem</groupId>
+			<artifactId>ep-logger</artifactId>
+			<version>0.0.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/ep-logger-0.0.1.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.ekstep.ecosystem</groupId>
+			<artifactId>ep-telemetry-reader</artifactId>
+			<version>0.0.3</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/ep-telemetry-reader-0.0.3.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.ekstep.ecosystem</groupId>
+			<artifactId>ep-telemetry-converter</artifactId>
+			<version>0.0.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/ep-telemetry-converter-0.0.1.jar</systemPath>
+		</dependency>
 		<dependency>
 			<groupId>org.ekstep</groupId>
 			<artifactId>analytics-job-driver</artifactId>
@@ -169,14 +198,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cassandraunit</groupId>
-		    <artifactId>cassandra-unit</artifactId>
-		    <version>3.1.1.0</version>
-		    <scope>test</scope>
+			<artifactId>cassandra-unit</artifactId>
+			<version>3.1.1.0</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-		   <groupId>commons-validator</groupId>
-		   <artifactId>commons-validator</artifactId>
-		   <version>1.4.0</version>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+			<version>1.4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -193,6 +222,7 @@
 			<artifactId>scala-slack_2.11</artifactId>
 			<version>0.1.0</version>
 		</dependency>
+
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
