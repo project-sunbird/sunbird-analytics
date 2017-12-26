@@ -96,7 +96,8 @@ object UpdateAppUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, 
         // Update the database (cassandra and influx)
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.APP_USAGE_SUMMARY_FACT)
         // Save to influx by filtering cumulative record
-        saveToInfluxDB(data);
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data.map { x => PortalUsageSummaryIndex(x.d_period, x.d_author_id, x.d_app_id, x.d_channel) };
     }
 

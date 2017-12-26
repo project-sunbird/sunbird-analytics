@@ -53,7 +53,8 @@ object UpdateAuthorSummaryDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
     override def postProcess(data: RDD[AuthorMetricsFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuthorMetricsFact] = {
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.AUTHOR_USAGE_METRICS_FACT);
-        saveToInfluxDB(data);
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data;
     }
 

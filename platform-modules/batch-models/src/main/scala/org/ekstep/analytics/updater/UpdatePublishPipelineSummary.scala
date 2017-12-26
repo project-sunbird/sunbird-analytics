@@ -85,7 +85,8 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
   override def postProcess(data: RDD[PublishPipelineSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentPublishFactIndex] = {
     val d = data.collect()
     data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PUBLISH_PIPELINE_SUMMARY_FACT)
-    saveToInfluxDB(data);
+    val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+    if(saveInfluxFlag) saveToInfluxDB(data);
     data.map { d => ContentPublishFactIndex(d.d_period, d.d_app_id, d.d_channel, d.`type`, d.state, d.subtype) }
   }
 

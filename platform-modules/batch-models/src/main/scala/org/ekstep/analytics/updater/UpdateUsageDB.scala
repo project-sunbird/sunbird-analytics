@@ -67,7 +67,8 @@ object UpdateUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, MEU
     override def postProcess(data: RDD[MEUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MESummaryIndex] = {
         // Update the database
         data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT)
-        saveToInfluxDB(data)
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data.map { x => MESummaryIndex(x.d_period, x.d_user_id, x.d_content_id, x.d_tag, x.d_app_id, x.d_channel) };
     }
 

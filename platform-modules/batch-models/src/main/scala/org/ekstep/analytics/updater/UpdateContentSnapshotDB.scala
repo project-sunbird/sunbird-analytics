@@ -86,7 +86,8 @@ object UpdateContentSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derived
 
     override def postProcess(data: RDD[ContentSnapshotSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentSnapshotSummary] = {
         data.saveToCassandra(Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_SNAPSHOT_SUMMARY)
-        saveToInfluxDB(data);
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data;
     }
 

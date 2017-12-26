@@ -75,7 +75,8 @@ object UpdateTextbookUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
     }
     override def postProcess(data: RDD[TextbookSessionMetricsFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSessionMetricsFact] = {
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.TEXTBOOK_SESSION_METRICS_FACT);
-        saveToInfluxDB(data);
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data;
     }
 

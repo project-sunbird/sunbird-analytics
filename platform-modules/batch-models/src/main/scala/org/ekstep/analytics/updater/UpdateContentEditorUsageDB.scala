@@ -67,7 +67,8 @@ object UpdateContentEditorUsageDB extends IBatchModelTemplate[DerivedEvent, Deri
     override def postProcess(data: RDD[CEUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CEUsageSummaryIndex] = {
         // Update the database
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY)
-        saveToInfluxDB(data)
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data.map { x => CEUsageSummaryIndex(x.d_period, x.d_content_id, x.d_app_id, x.d_channel) };
     }
 

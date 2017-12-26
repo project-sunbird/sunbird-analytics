@@ -82,7 +82,8 @@ object UpdateTemplateSnapshotDB extends IBatchModelTemplate[Empty, Empty, Templa
 
     override def postProcess(data: RDD[TemplateSnapshotMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TemplateSnapshotMetrics] = {
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.TEMPLATE_SNAPSHOT_METRICS_TABLE);
-        saveToInfluxDB(data);
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data;
     }
 

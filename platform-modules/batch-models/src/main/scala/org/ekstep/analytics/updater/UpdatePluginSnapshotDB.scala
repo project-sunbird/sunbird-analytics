@@ -79,7 +79,8 @@ object UpdatePluginSnapshotDB extends IBatchModelTemplate[Empty, Empty, PluginSn
 
     override def postProcess(data: RDD[PluginSnapshotMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PluginSnapshotMetrics] = {
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.PLUGIN_SNAPSHOT_METRICS_TABLE);
-        saveToInfluxDB(data);
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data;
     }
 

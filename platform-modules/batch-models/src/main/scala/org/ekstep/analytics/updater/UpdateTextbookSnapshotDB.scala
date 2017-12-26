@@ -106,7 +106,8 @@ object UpdateTextbookSnapshotDB extends IBatchModelTemplate[DerivedEvent, Derive
 
     override def postProcess(data: RDD[TextbookSnapshotSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[TextbookSnapshotSummary] = {
         data.saveToCassandra(Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.TEXTBOOK_SNAPSHOT_METRICS_TABLE);
-        saveToInfluxDB(data);
+        val saveInfluxFlag = config.getOrElse("saveToInflux", false).asInstanceOf[Boolean];
+        if(saveInfluxFlag) saveToInfluxDB(data);
         data;
     }
 
