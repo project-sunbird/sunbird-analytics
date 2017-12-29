@@ -102,13 +102,14 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
         val normalizeEvents = importEvents.union(feedbackEvents).map { event =>
             var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
             val period = CommonUtil.getPeriod(event.ets, Period.DAY);
+            val objectId = event.`object`.getOrElse(V3Object("", "", None, None, None, None)).id
 
             list ++= getContentPopularitySummary(event, period, "all", "all");
-            list ++= getContentPopularitySummary(event, period, event.`object`.get.id, "all");
+            list ++= getContentPopularitySummary(event, period, objectId, "all");
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
                 list ++= getContentPopularitySummary(event, period, "all", tag); // for tag
-                list ++= getContentPopularitySummary(event, period, event.`object`.get.id, tag); // for tag and content
+                list ++= getContentPopularitySummary(event, period, objectId, tag); // for tag and content
             }
             list.toArray
         }.flatMap { x => x };
