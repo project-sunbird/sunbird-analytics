@@ -21,7 +21,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
     val strConfig = JSONUtils.serialize(config);
     CreationMetricsUpdater.main(strConfig)(Option(sc));
     
-    "CreationMetricsUpdater" should "push data into influxDB" in {
+    ignore should "push data into influxDB" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
@@ -29,7 +29,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "check count of coulmns in influxdb table" in {
+    ignore should "check count of coulmns in influxdb table" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
@@ -37,7 +37,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "generate first coulmn as time " in {
+    ignore should "generate first coulmn as time " in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM template_metrics")
@@ -45,7 +45,7 @@ class TestCreationMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "validate contents for template_id " in {
+    ignore should "validate contents for template_id " in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT contents FROM template_metrics where template_id = 'id6' ")

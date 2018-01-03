@@ -45,7 +45,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         ConsumptionMetricsUpdater.main(strConfig)(Option(sc));
     }
 
-    "ConsumptionMetricsUpdater" should "push data into influxDB" in {
+   ignore should "push data into influxDB" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
@@ -53,7 +53,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "check count of coulmns in fluxdb table" in {
+    ignore should "check count of coulmns in fluxdb table" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics where time=1483833600000000000")
@@ -61,7 +61,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "validate table name" in {
+    ignore should "validate table name" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
@@ -69,7 +69,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "generate first coulmn as time " in {
+    ignore should "generate first coulmn as time " in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM content_metrics")
@@ -85,7 +85,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "compute content usage / content visits and store in influx" in {
+    ignore should "compute content usage / content visits and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM genie_stats where period = 'week' AND time = 1483833600000000000")
@@ -93,7 +93,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "compute content visits / genie visits and store in influx" in {
+    ignore should "compute content visits / genie visits and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM genie_stats where period = 'week' AND time = 1483833600000000000")
@@ -101,7 +101,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "compute genie visits / devices and store in influx" in {
+    ignore should "compute genie visits / devices and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'AND time = 1483833600000000000")
@@ -109,7 +109,7 @@ class TestConsumptionMetricsUpdater extends SparkSpec(null) {
         }
     }
 
-    it should "compute content usage / device and store in influx" in {
+    ignore should "compute content usage / device and store in influx" in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT * FROM genie_stats where period = 'week'AND time = 1483833600000000000")
