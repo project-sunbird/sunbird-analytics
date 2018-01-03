@@ -12,7 +12,7 @@ import org.joda.time.DateTimeUtils
 
 class TestUpdateCreationMetricsDB extends SparkSpec(null) {
     
-    "UpdateCreationMetricsDB" should "push data into influxDB" in {
+    ignore should "push data into influxDB" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/concepts.json");
         UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
@@ -22,7 +22,7 @@ class TestUpdateCreationMetricsDB extends SparkSpec(null) {
         }
     }
 
-    it should "check count of coulmns in influxdb table" in {
+    ignore should "check count of coulmns in influxdb table" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
         UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
@@ -32,7 +32,7 @@ class TestUpdateCreationMetricsDB extends SparkSpec(null) {
         }
     }
 
-    it should "validate table name" in {
+    ignore should "validate table name" in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
         UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
@@ -42,7 +42,7 @@ class TestUpdateCreationMetricsDB extends SparkSpec(null) {
         }
     }
 
-    it should "generate first coulmn as time " in {
+    ignore should "generate first coulmn as time " in {
         val rdd = loadFile[CreationMetrics]("src/test/resources/influxDB-updater/template.json");
         UpdateCreationMetricsDB.execute(rdd, None);
         implicit val awaitAtMost = 10.seconds
@@ -52,7 +52,7 @@ class TestUpdateCreationMetricsDB extends SparkSpec(null) {
         }
     }
     
-    it should "validate items for concept_id " in {
+    ignore should "validate items for concept_id " in {
         implicit val awaitAtMost = 10.seconds
         syncInfluxDb(new URI(AppConf.getConfig("reactiveinflux.url")), AppConf.getConfig("reactiveinflux.database")) { db =>
             val queryResult = db.query("SELECT items FROM concept_metrics where concept_id = 'id7'")
