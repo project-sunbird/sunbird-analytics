@@ -94,7 +94,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent]
         val events = DataFilter.filter(data, Filter("context.env", "IN", Option(env)))
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
-        val filteredData = data.filter { x => !"AutoSync-Initiated".equals(x.edata.subtype) } // Change to edata.subtype
+        val filteredData = data.filter { x => !("AutoSync-Initiated".equals(x.edata.subtype) || "AutoSync-Success".equals(x.edata.subtype)) } // Change to edata.subtype
         val genieLaunchSessions = getV3GenieLaunchSessions(filteredData, idleTime);
         genieLaunchSessions.map { x => LaunchSessions(x._1._1, x._1._2, x._2) }
     }
