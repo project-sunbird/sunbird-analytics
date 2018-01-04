@@ -36,4 +36,18 @@ class TestJobFactory extends BaseSpec {
         jobs(71) should be(PublishPipelineUpdater)
         jobs(71).isInstanceOf[IJob] should be(true)
     }
+    
+    it should "return a Model class for a v1 model code" in {
+
+        val jobIds = List("gls-v1", "app-ss-v1")
+
+        val jobs = jobIds.map { f => JobFactory.getJob(f) }
+
+        jobs(0) should be(GenieLaunchV1Summarizer)
+        jobs(0).isInstanceOf[IJob] should be(true)
+
+        jobs(1) should be(AppSessionV1Summarizer)
+        jobs(1).isInstanceOf[IJob] should be(true)
+        
+    }
 }
