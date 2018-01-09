@@ -29,14 +29,14 @@ import org.ekstep.analytics.creation.model.CreationPData
 /**
  * Case Classes for the data product
  */
-case class PortalSessionInput(channel: String, sid: String, filteredEvents: Buffer[V3Event]) extends AlgoInput
-case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
-case class EnvSummary(env: String, time_spent: Double, count: Long)
-case class PortalSessionOutput(sid: String, uid: String, pdata: PData, channel: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
+case class PortalSessionInputV1(channel: String, sid: String, filteredEvents: Buffer[CreationEvent]) extends AlgoInput
+case class PageSummaryV1(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
+case class EnvSummaryV1(env: String, time_spent: Double, count: Long)
+case class PortalSessionOutputV1(sid: String, uid: String, pdata: CreationPData, channel: String, syncTs: Long, anonymousUser: Boolean, dtRange: DtRange,
                                start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, page_views_count: Long,
                                first_visit: Boolean, ce_visits: Long, interact_events_count: Long, interact_events_per_min: Double,
-                               env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
-                               page_summary: Option[Iterable[PageSummary]], etags: Option[ETags]) extends AlgoOutput
+                               env_summary: Option[Iterable[EnvSummaryV1]], events_summary: Option[Iterable[EventSummary]],
+                               page_summary: Option[Iterable[PageSummaryV1]], etags: Option[ETags]) extends AlgoOutput
 
 /**
  * @dataproduct
@@ -48,24 +48,24 @@ case class PortalSessionOutput(sid: String, uid: String, pdata: PData, channel: 
  * 1. Generate app specific session summary events. This would be used to compute app usage metrics.
  * Events used - BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT & CP_IMPRESSION
  */
-object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSessionInput, PortalSessionOutput, MeasuredEvent] with Serializable {
+object AppSessionSummaryV1Model extends IBatchModelTemplate[CreationEvent, PortalSessionInputV1, PortalSessionOutputV1, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.AppSessionSummaryModel"
     override def name: String = "AppSessionSummaryModel"
 
-    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
+    override def preProcess(data: RDD[CreationEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInputV1] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
-        val filteredData = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))), Filter("context.pdata", "ISNOTEMPTY", None))).filter { x => ((Constants.PORTAL_PDATAIDS.contains(x.context.pdata.get.id)) || ((Constants.EDITOR_ENV.equals(x.context.env)) && ("IMPRESSION".equals(x.eid) || "END".equals(x.eid)))) };
+        val filteredData = DataFilter.filter(data, Array(Filter("context", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("BE_OBJECT_LIFECYCLE", "CP_SESSION_START", "CP_INTERACT", "CP_IMPRESSION", "CE_START", "CE_END")))));
         filteredData.map { event =>
-            val channel = CommonUtil.getChannelId(event)
-            ((channel, event.context.sid.get), Buffer(event))
+            val channel = CreationEventUtil.getChannelId(event)
+            ((channel, event.context.get.sid), Buffer(event))
         }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).mapValues { events => events.sortBy { x => x.ets } }
-            .map { x => PortalSessionInput(x._1._1, x._1._2, x._2) }
+            .map { x => PortalSessionInputV1(x._1._1, x._1._2, x._2) }
     }
 
-    override def algorithm(data: RDD[PortalSessionInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionOutput] = {
+    override def algorithm(data: RDD[PortalSessionInputV1], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionOutputV1] = {
 
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
@@ -76,15 +76,15 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
             val telemetryVer = firstEvent.ver;
             val startTimestamp = firstEvent.ets;
             val endTimestamp = lastEvent.ets;
-            val pdata = CommonUtil.getAppDetails(firstEvent)
+            val pdata = CreationEventUtil.getAppDetails(firstEvent)
             val channelId = x.channel
-            val uid = if (lastEvent.actor.id.isEmpty()) "" else lastEvent.actor.id
+            val uid = if (lastEvent.uid.isEmpty()) "" else lastEvent.uid
             val isAnonymous = if (uid.isEmpty()) true else false
-            val lifeCycleEvent = events.filter { x => "AUDIT".equals(x.eid) && "User".equals(x.actor.`type`) && "Create".equals(x.edata.state) }
+            val lifeCycleEvent = events.filter { x => "BE_OBJECT_LIFECYCLE".equals(x.eid) && "User".equals(x.edata.eks.`type`) && "Create".equals(x.edata.eks.state) }
             val firstVisit = if (lifeCycleEvent.size > 0) true else false
             val timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(startTimestamp, endTimestamp).get, 2);
 
-            var tmpLastEvent: V3Event = null;
+            var tmpLastEvent: CreationEvent = null;
             val eventsWithTs = events.map { x =>
                 if (tmpLastEvent == null) tmpLastEvent = x;
                 val ts = CommonUtil.getTimeDiff(tmpLastEvent.ets, x.ets).get;
@@ -92,27 +92,18 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
                 (x, if (ts > idleTime) 0 else ts)
             }
             var lastEventTs: Long = eventsWithTs.last._1.ets;
-            var tempEvents = Buffer[(V3Event, Double)]();
-            var eventsBuffer: Buffer[(V3Event, Double)] = Buffer();
+            var tempEvents = Buffer[(CreationEvent, Double)]();
+            var eventsBuffer: Buffer[(CreationEvent, Double)] = Buffer();
             eventsWithTs.foreach { f =>
                 f._1.eid match {
-                    case "IMPRESSION" =>
+                    case "CP_IMPRESSION" | "CE_START" =>
                         if (tempEvents.isEmpty) {
                             tempEvents += f
-                        } else if (lastEventTs == f._1.ets) {
-                            val ts = tempEvents.map { x => x._2 }.sum
-                            val tuple = (tempEvents.head._1, ts)
-                            eventsBuffer += tuple
-                            tempEvents = Buffer[(V3Event, Double)]();
-                            tempEvents += f
-                            val lastTs = tempEvents.map { x => x._2 }.sum
-                            val lastTuple = (tempEvents.head._1, ts)
-                            eventsBuffer += lastTuple
                         } else {
                             val ts = tempEvents.map { x => x._2 }.sum
                             val tuple = (tempEvents.head._1, ts)
                             eventsBuffer += tuple
-                            tempEvents = Buffer[(V3Event, Double)]();
+                            tempEvents = Buffer[(CreationEvent, Double)]();
                             tempEvents += f
                         }
                     case _ =>
@@ -125,42 +116,49 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
                 }
             }
             val timeSpent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
-            val impressionEvents = events.filter { x => "IMPRESSION".equals(x.eid) }
+            val impressionEvents = events.filter { x => "CP_IMPRESSION".equals(x.eid) }
             val pageViewsCount = impressionEvents.size.toLong
-            val ceVisits = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.EDITOR_ENV.equals(x.context.env)) }.size.toLong
-            val interactEventsCount = events.filter { x => ("INTERACT".equals(x.eid) && Constants.PORTAL_PDATAIDS.contains(x.context.pdata.get.id)) }.size.toLong
+            val ceVisits = events.filter { x => "CE_START".equals(x.eid) }.size.toLong
+            val interactEventsCount = events.filter { x => "CP_INTERACT".equals(x.eid) }.size.toLong
             val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) interactEventsCount.toDouble
             else BigDecimal(interactEventsCount / (timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
 
             val eventSummaries = events.groupBy { x => x.eid }.map(f => EventSummary(f._1, f._2.length));
 
-            val impressionEventsWithTs = eventsBuffer.filter { x => "IMPRESSION".equals(x._1.eid)}.map(x => (x._1.edata.pageid, x))
-            val pageSummaries = if (impressionEventsWithTs.length > 0) {
-                impressionEventsWithTs.groupBy(f => f._1).map { f =>
+            val impressionCEEvents = eventsBuffer.filter { x => ("CP_IMPRESSION".equals(x._1.eid) || "CE_START".equals(x._1.eid)) }.map { f =>
+                if ("CE_START".equals(f._1.eid)) {
+                    val eksString = JSONUtils.serialize(Map("env" -> "content-editor", "type" -> "", "pageid" -> "ce"))
+                    val eks = JSONUtils.deserialize[CreationEks](eksString)
+                    (CreationEvent("CP_IMPRESSION", f._1.ets, f._1.`@timestamp`, f._1.ver, f._1.mid, f._1.channel, f._1.pdata, f._1.cdata, f._1.uid, f._1.context, f._1.rid, new CreationEData(eks), f._1.tags), f._2)
+                } else f;
+            }.map(x => (x._1.edata.eks.pageid, x))
+
+            val pageSummaries = if (impressionCEEvents.length > 0) {
+                impressionCEEvents.groupBy(f => f._1).map { f =>
                     val id = f._1
                     val firstEvent = f._2(0)._2._1
-                    val `type` = firstEvent.edata.`type`
-                    val env = firstEvent.context.env
+                    val `type` = firstEvent.edata.eks.`type`
+                    val env = firstEvent.edata.eks.env
                     val timeSpent = CommonUtil.roundDouble(f._2.map(x => x._2._2).sum, 2)
                     val visitCount = f._2.length.toLong
-                    PageSummary(id, `type`, env, timeSpent, visitCount)
+                    PageSummaryV1(id, `type`, env, timeSpent, visitCount)
                 }
-            } else Iterable[PageSummary]();
+            } else Iterable[PageSummaryV1]();
 
             val envSummaries = if (pageSummaries.size > 0) {
                 pageSummaries.groupBy { x => x.env }.map { f =>
                     val timeSpent = CommonUtil.roundDouble(f._2.map(x => x.time_spent).sum, 2)
                     val count = f._2.map(x => x.visit_count).max;
-                    EnvSummary(f._1, timeSpent, count)
+                    EnvSummaryV1(f._1, timeSpent, count)
                 }
-            } else Iterable[EnvSummary]();
+            } else Iterable[EnvSummaryV1]();
 
-            PortalSessionOutput(x.sid, uid, pdata, channelId, CommonUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries), Option(CommonUtil.getETags(firstEvent)))
+            PortalSessionOutputV1(x.sid, uid, pdata, channelId, CreationEventUtil.getEventSyncTS(lastEvent), isAnonymous, DtRange(startTimestamp, endTimestamp), startTimestamp, endTimestamp, timeSpent, timeDiff, pageViewsCount, firstVisit, ceVisits, interactEventsCount, interactEventsPerMin, Option(envSummaries), Option(eventSummaries), Option(pageSummaries), Option(CreationEventUtil.getETags(firstEvent)))
         }.filter(f => (f.time_spent >= 1))
     }
 
-    override def postProcess(data: RDD[PortalSessionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[PortalSessionOutputV1], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { session =>
             val mid = CommonUtil.getMessageId("ME_APP_SESSION_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.pdata.id), Option(session.channel));

@@ -14,7 +14,7 @@ class TestAppSessionSummarizer extends SparkSpec(null) {
   
     "AppSessionSummarizer" should "execute AppSessionSummarizer job and won't throw any Exception" in {
 
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/portal-session-summary/test_data_1.log"))))), null, null, "org.ekstep.analytics.model.AppSessionSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestAppSessionSummarizer"), Option(true))
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/portal-session-summary/v3/test_data_1.log"))))), null, null, "org.ekstep.analytics.model.AppSessionSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestAppSessionSummarizer"), Option(true))
         AppSessionSummarizer.main(JSONUtils.serialize(config))(Option(sc));
     }
 }
