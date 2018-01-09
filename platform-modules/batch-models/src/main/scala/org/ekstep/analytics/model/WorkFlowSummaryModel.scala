@@ -19,12 +19,13 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, DeviceEvent, Me
     implicit val className = "org.ekstep.analytics.model.WorkFlowSummaryModel"
     override def name: String = "WorkFlowSummaryModel"
 
-    private def arrangeWorkflowData(events: Buffer[V3Event]): Map[String, Buffer[V3Event]] = {
+    def arrangeWorkflowData(events: Buffer[V3Event]): Map[String, Buffer[V3Event]] = {
 
         val sortedEvents = events.sortBy { x => x.ets }
 
         var workFlowData = Map[String, Buffer[V3Event]]();
         var tmpArr = Buffer[V3Event]();
+        val lastEventMid = events.last.mid
 
         var appKey = ""
         var sessionKey = ""
@@ -83,10 +84,15 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, DeviceEvent, Me
 
                 case _ =>
                     tmpArr += x
+                    if(lastEventMid.equals(x.mid)) {
+                      workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                      tmpArr = Buffer[V3Event]();
+                    }
             }
         }
 
-        null
+        println("array size: " + tmpArr.size)
+        workFlowData
     }
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceEvent] = {
