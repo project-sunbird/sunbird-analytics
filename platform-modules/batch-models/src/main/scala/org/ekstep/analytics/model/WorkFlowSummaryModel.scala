@@ -130,10 +130,10 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                     
                 case ("START", "session") =>
                     if (sessionKey.isEmpty()) {
-                     sessionKey = "session" + x.ets
-                     workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                     tmpArr = Buffer[V3Event]();
-                     tmpArr += x;
+                        sessionKey = "session" + x.ets
+                        if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                        tmpArr = Buffer[V3Event]();
+                        tmpArr += x;
                     } else {
                         // closing previous session workflow
                         workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
@@ -156,7 +156,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                     // closing session workflow
                     workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                     if(lastEventMid.equals(x.mid)) {
-                      workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                      if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                       tmpArr = Buffer[V3Event]();
                     }
                     tmpArr = Buffer[V3Event]();
@@ -164,16 +164,16 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                 case ("START", "player") =>
                     if (playerKey.isEmpty()) {
                        playerKey = "player" + x.ets
-                       workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                       workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                       if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                       if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                        tmpArr = Buffer[V3Event]();
                        tmpArr += x;
                     } else {
                         // closing previous player workflow
                         workFlowData += (playerKey -> (workFlowData.get(playerKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                         // Add player events to session & app
-                        workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                        workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                        if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                        if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                         //adding new player-workflow
                         playerKey = "player" + x.ets
                         tmpArr = Buffer[V3Event]();
@@ -184,23 +184,23 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                     // closing player workflow
                     workFlowData += (playerKey -> (workFlowData.get(playerKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                     // Add player events to session & app
-                    workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                    workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                    if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                    if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                     tmpArr = Buffer[V3Event]();
 
                 case ("START", "editor") =>
                     if (editorKey.isEmpty()) {
                        editorKey = "editor" + x.ets
-                       workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                       workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                       if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                       if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                        tmpArr = Buffer[V3Event]();
                        tmpArr += x;
                     } else {
                         // closing previous editor workflow
                         workFlowData += (editorKey -> (workFlowData.get(editorKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                         // Add editor events to session & app
-                        workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                        workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                        if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                        if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                         //adding new editor-workflow
                         editorKey = "editor" + x.ets
                         tmpArr = Buffer[V3Event]();
@@ -211,15 +211,15 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                     // closing editor workflow
                     workFlowData += (editorKey -> (workFlowData.get(editorKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                     // Add editor events to session & app
-                    workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                    workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                    if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                    if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                     tmpArr = Buffer[V3Event]();
                   
                 case _ =>
                     tmpArr += x
                     if(lastEventMid.equals(x.mid)) {
-                      workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
-                      workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                      if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+                      if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                       // closing player workflow if any
                       if (playerKey.nonEmpty)
                           workFlowData += (playerKey -> (workFlowData.get(playerKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
@@ -244,7 +244,6 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
     }
     override def algorithm(data: RDD[WorkflowInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowOutput] = {
         
-        println("workflowInput count: ", data.count)
         val events = data.map { x => x.events }.flatMap { x => x }.filter(f => f.`object`.isDefined)
         val gameList = events.map { x => x.`object`.get.id }.distinct().collect();
         JobLogger.log("Fetching the Content and Item data from Learning Platform")
@@ -359,7 +358,6 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
         
     }
     override def postProcess(data: RDD[WorkflowOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        println("workflowOutput count: ", data.count)
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { session =>
             val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.pdata.id), Option(session.channel));
