@@ -23,7 +23,7 @@ object UpdateLearnerProfileCreateDB extends IBatchModelTemplate[V3ProfileEvent, 
     override def preProcess(data: RDD[V3ProfileEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3ProfileEvent] = {
         DataFilter.filter(data, Array(Filter("eid", "EQ", Option("AUDIT")), Filter("actor.id", "ISNOTEMPTY", None))).filter { x =>
             val objType = x.`object`.get.`type`
-            "User".equals(objType) || objType.isEmpty()
+            null != objType || objType.isEmpty() || "User".equals(objType)
         }.cache();
     }
 

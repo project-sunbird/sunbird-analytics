@@ -65,7 +65,7 @@ object UpdatePublishPipelineSummary extends IBatchModelTemplate[DerivedEvent, De
     val channel = CommonUtil.getChannelId(d)
 
     val facts = pps.map { s =>
-      val `type` = s("type").toString()
+      val `type` = s.getOrElse("type", "").toString()
       val state = s("state").toString()
       val subtype = s("subtype").toString()
       val count = s("count").asInstanceOf[Int]
