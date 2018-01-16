@@ -102,4 +102,15 @@ class TestUpdatePublishPipelineSummary extends SparkSpec(null) {
     cumulativeSummary.find(s => s.`type` == "Textbook" && s.state == "Draft").get.count should be(14)
     cumulativeSummary.find(s => s.`type` == "Textbook" && s.state == "Live").get.count should be(24)
   }
+  
+  it should "update the content_publish_fact table with empty type" in {
+
+    CassandraConnector(sc.getConf).withSessionDo { session =>
+      session.execute("TRUNCATE local_creation_metrics_db.publish_pipeline_summary_fact");
+    }
+
+    val rdd = loadFile[DerivedEvent]("src/test/resources/pipeline-summary-updater/test_data3.log");
+    val rdd2 = UpdatePublishPipelineSummary.execute(rdd, None);
+    rdd2.count() should be(4)
+  }
 }
