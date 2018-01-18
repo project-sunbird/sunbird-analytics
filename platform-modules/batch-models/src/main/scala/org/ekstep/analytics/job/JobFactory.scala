@@ -180,6 +180,8 @@ object JobFactory {
                 UsageSummarizer
             case "usage-updater" =>
                 UsageUpdater
+            case "wfs" =>
+                WorkFlowSummarizer;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

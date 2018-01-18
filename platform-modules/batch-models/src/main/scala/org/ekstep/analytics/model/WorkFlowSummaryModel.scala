@@ -16,8 +16,8 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework._
 
 case class WorkflowInput(sessionKey: String, events: Buffer[V3Event]) extends AlgoInput
-case class WorkflowOutput(did: Option[String], sid: String, uid: String, pdata: PData, channel: String, contentId: Option[String], sessionType: String, syncTs: Long, dtRange: DtRange, mode: Option[String], itemResponses: Option[Buffer[ItemResponse]],
-                               start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, interact_events_count: Long, interact_events_per_min: Double, telemetryVer: String,
+case class WorkflowOutput(did: Option[String], sid: String, uid: String, pdata: PData, channel: String, content_id: Option[String], session_type: String, syncts: Long, dt_range: DtRange, mode: Option[String], item_responses: Option[Buffer[ItemResponse]],
+                               start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, interact_events_count: Long, interact_events_per_min: Double, telemetry_version: String,
                                env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
                                page_summary: Option[Iterable[PageSummary]], etags: Option[ETags]) extends AlgoOutput
 
@@ -99,7 +99,31 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             workFlowData += (sessionKey -> (workFlowData.get(sessionKey).get ++ tmpArr))
                         else if (sessionKey.nonEmpty && !workFlowData.contains(sessionKey))
                             workFlowData += (sessionKey -> tmpArr)
+                        
+                        // closing player workflow if any
+                        if (playerKey.nonEmpty && !workFlowData.contains(playerKey))
+                            workFlowData += (playerKey -> tmpArr)
+                            
+                        // closing editor workflow if any
+                        if (editorKey.nonEmpty && !workFlowData.contains(editorKey))
+                            workFlowData += (editorKey -> tmpArr)
+                        
+                        //adding new app-workflow
+                        appKey = "app" + x.ets
+                        tmpArr = Buffer[V3Event]();
+                        tmpArr += x;
+                        sessionKey = ""
+                        playerKey = ""
+                        editorKey = ""
 
+                    } else {
+                        // closing app workflow
+                        workFlowData += (appKey -> tmpArr)
+                        
+                         // closing session workflow if any
+                        if (sessionKey.nonEmpty && !workFlowData.contains(sessionKey)) 
+                            workFlowData += (sessionKey -> tmpArr)
+                        
                         // closing player workflow if any
                         if (playerKey.nonEmpty && !workFlowData.contains(playerKey))
                             workFlowData += (playerKey -> tmpArr)
@@ -108,18 +132,12 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         if (editorKey.nonEmpty && !workFlowData.contains(editorKey))
                             workFlowData += (editorKey -> tmpArr)
 
-                        //adding new app-workflow
                         appKey = "app" + x.ets
                         tmpArr = Buffer[V3Event]();
                         tmpArr += x;
-
-                    } else {
-                        // closing app workflow
-                        workFlowData += (appKey -> tmpArr)
-
-                        appKey = "app" + x.ets
-                        tmpArr = Buffer[V3Event]();
-                        tmpArr += x;
+                        sessionKey = ""
+                        playerKey = ""
+                        editorKey = ""
                     }
 
                 case ("END", "app")       =>
@@ -360,23 +378,23 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
     override def postProcess(data: RDD[WorkflowOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { session =>
-            val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", session.dtRange, "NA", Option(session.pdata.id), Option(session.channel));
+            val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", session.dt_range, "NA", Option(session.pdata.id), Option(session.channel));
             val measures = Map(
                 "start_time" -> session.start_time,
                 "end_time" -> session.end_time,
                 "time_diff" -> session.time_diff,
                 "time_spent" -> session.time_spent,
-                "telemetryVersion" -> session.telemetryVer,
+                "telemetry_version" -> session.telemetry_version,
                 "mode" -> session.mode,
-                "itemResponses" -> session.itemResponses,
+                "item_responses" -> session.item_responses,
                 "interact_events_count" -> session.interact_events_count,
                 "interact_events_per_min" -> session.interact_events_per_min,
                 "env_summary" -> session.env_summary,
                 "events_summary" -> session.events_summary,
                 "page_summary" -> session.page_summary);
-            MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), session.syncTs, meEventVersion, mid, session.uid, null, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", session.dtRange),
-                Dimensions(None, session.did, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, None, None, None, session.contentId, None, None, Option(session.sid), None, None, None, None, None, None, None, None, None, None, Option(session.channel), Option(session.sessionType)),
+            MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), session.syncts, meEventVersion, mid, session.uid, null, None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", session.dt_range),
+                Dimensions(None, session.did, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, None, None, None, session.content_id, None, None, Option(session.sid), None, None, None, None, None, None, None, None, None, None, Option(session.channel), Option(session.session_type)),
                 MEEdata(measures), session.etags);
         }
     }
