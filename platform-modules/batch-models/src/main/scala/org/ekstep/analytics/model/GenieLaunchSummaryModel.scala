@@ -3,7 +3,6 @@ package org.ekstep.analytics.model
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
-
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.AlgoInput
@@ -25,6 +24,8 @@ import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.V3Event
 import org.ekstep.analytics.util.Constants
+import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.V3PData
 
 case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long,
                         etags: Option[ETags] = Option(ETags(None, None, None)), dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
@@ -91,10 +92,15 @@ object GenieLaunchSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent]
         val envList = List(Constants.GENIE_ENV, Constants.PLAYER_ENV)
         val env = sc.broadcast(envList);
         
-        val events = DataFilter.filter(data, Filter("context.env", "IN", Option(env)))
+
+        //val events = DataFilter.filter(data, Filter("context.env", "IN", Option(env))) // deprecated 
+        /** Filter criteria **/
+        // pdata.pid=genieservice.android or context.env=Genie or context.env=ContentPlayer 
+        val events = data.filter { x => env.value.contains(x.context.env) || StringUtils.equals("genieservice.android", x.context.pdata.getOrElse(V3PData("")).pid.getOrElse(""))}
+        
         val idleTime = config.getOrElse("idleTime", 30).asInstanceOf[Int]
         val jobConfig = sc.broadcast(config);
-        val filteredData = data.filter { x => !"AutoSync-Initiated".equals(x.edata.subtype) } // Change to edata.subtype
+        val filteredData = data.filter { x => !("AutoSync-Initiated".equals(x.edata.subtype) || "AutoSync-Success".equals(x.edata.subtype)) } // Change to edata.subtype
         val genieLaunchSessions = getV3GenieLaunchSessions(filteredData, idleTime);
         genieLaunchSessions.map { x => LaunchSessions(x._1._1, x._1._2, x._2) }
     }

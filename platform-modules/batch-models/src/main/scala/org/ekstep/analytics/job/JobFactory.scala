@@ -42,6 +42,8 @@ object JobFactory {
                 GenieUsageSessionSummarizer
             case "gls" =>
                 GenieLaunchSummarizer
+            case "gls-v1" =>
+                GenieLaunchV1Summarizer
             case "dus" =>
                 DeviceUsageSummarizer
             case "css" =>
@@ -138,6 +140,8 @@ object JobFactory {
                 TextbookSnapshotUpdater;
             case "app-ss" =>
                 AppSessionSummarizer;
+            case "app-ss-v1" =>
+                AppSessionV1Summarizer;
             case "obj-cache-updater" =>
                 AppObjectCacheUpdater
             case "textbook-ss" =>
