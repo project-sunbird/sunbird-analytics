@@ -54,7 +54,7 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
             val channel = CommonUtil.getChannelId(event)
 
             val ck = ContentKey(period, pdata.id, channel, cId, tagId);
-            val gdata = Option(new GData(event.`object`.get.id, event.`object`.get.ver.get))
+            val gdata = Option(new GData(event.`object`.get.id, event.`object`.get.ver.getOrElse("")))
             val comments = List(Map("comment" -> event.edata.comments, "time" -> event.ets.asInstanceOf[AnyRef]));
             val ratings = List(Map("rating" -> event.edata.rating.asInstanceOf[AnyRef], "time" -> event.ets.asInstanceOf[AnyRef]));
             val avg_rating = event.edata.rating;
