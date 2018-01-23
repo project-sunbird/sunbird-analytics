@@ -237,7 +237,7 @@ object CommonUtil {
         }
         parallelization.toInt;
     }
-
+    
     def gzip(path: String): String = {
         val buf = new Array[Byte](1024);
         val src = new File(path);
@@ -249,12 +249,13 @@ object CommonUtil {
                 val out = new GZIPOutputStream(new FileOutputStream(dst))
                 try {
                     var n = in.read(buf)
-                    while (n >= 0) {
+                    while (n > 0) {
                         out.write(buf, 0, n)
                         n = in.read(buf)
                     }
                 } finally {
-                    out.flush
+                    out.finish();
+                    out.close();
                 }
             } finally {
                 in.close();

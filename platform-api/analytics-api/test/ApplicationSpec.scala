@@ -45,13 +45,13 @@ class ApplicationSpec extends BaseSpec {
        
        "register tag" in {
     	   	val request = """ {} """
-			val response = post("/metrics/tag/register/4f04da601e244d31aa7b1daf91c46341",request);
+			val response = post("/tag/register/4f04da601e244d31aa7b1daf91c46341",request);
 			isOK(response);
 			status(response) must equalTo(OK)
        }
        
        "un-register tag" in {
-    	   	val response = route(FakeRequest(DELETE, "/metrics/tag/delete/4f04da601e244d31aa7b1daf91c46341")).get;
+    	   	val response = route(FakeRequest(DELETE, "/tag/delete/4f04da601e244d31aa7b1daf91c46341")).get;
 			isOK(response);
 			status(response) must equalTo(OK)
        }

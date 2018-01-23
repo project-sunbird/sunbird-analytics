@@ -96,5 +96,13 @@ class TestContentPopularitySummaryModel extends SparkSpec(null) with BeforeAndAf
 		tagEventsLength(measuredEvents, tagList(5)) should be(0);
 		tagEventsLength(measuredEvents, tagList(6)) should be(0);
 	} 
+	
+	// TC-5:
+	it should "test for empty object.ver" in  {
+		val rdd = loadFile[V3Event]("src/test/resources/content-popularity-summary/v3/test_data3.log");
+		val resultRDD = ContentPopularitySummaryModel.execute(rdd, None);
+		val measuredEvents = resultRDD.collect();
+		measuredEvents.length should be(3)
+	} 
   
 }
