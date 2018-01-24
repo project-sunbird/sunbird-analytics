@@ -67,7 +67,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("ContentPlayer")
-        envSummary1.time_spent should be(4.42)
+        envSummary1.time_spent should be(4.43)
         envSummary1.count should be(1)
         
         val itemResponses = summary1.item_responses.get

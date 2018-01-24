@@ -315,6 +315,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         }
                     case _ =>
                         if (lastEventTs == f._1.ets && !tempEvents.isEmpty) {
+                            tempEvents += f
                             val ts = tempEvents.map { x => x._2 }.sum
                             val tuple = (tempEvents.head._1, ts)
                             eventsBuffer += tuple
