@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils
 /**
  * Case Classes for the data product
  */
-case class WorkflowUsageMetricsSummary(wk: WorkflowKey, total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double, total_pageviews_count: Long, avg_pageviews: Double, dt_range: DtRange, syncts: Long, device_ids: Array[String], unique_users: Array[String], contents: Array[String], pdata: PData) extends AlgoOutput;
+case class WorkflowUsageMetricsSummary(wk: WorkflowKey, time_spent: Double, total_sessions: Long, avg_ts_session: Double, interact_events_count: Long, interact_events_per_min: Double, total_pageviews_count: Long, avg_pageviews: Double, dt_range: DtRange, syncts: Long, device_ids: Array[String], unique_users: Array[String], contents: Array[String], pdata: PData) extends AlgoOutput;
 case class WorkflowUsageInput(index: WorkflowKey, sessionEvents: Buffer[WorkflowUsageMetricsSummary]) extends Input with AlgoInput
 case class WorkflowKey(period: Int, app_id: String, channel: String, `type`: String, content_id: String, tag: String, user_id: String, did: String)
 
@@ -40,13 +40,13 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         val wk = WorkflowKey(period, pdata.id, channel, `type`, contentId, tagId, user_id, did);
         val gdata = event.dimensions.gdata;
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
-        val total_ts = eksMap.getOrElse("total_ts", 0.0).asInstanceOf[Double];
+        val total_ts = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Number].doubleValue();
         val total_sessions = 1;
         val avg_ts_session = total_ts;
-        val total_interactions = eksMap.getOrElse("total_interactions", 0).asInstanceOf[Number].longValue();
+        val total_interactions = eksMap.getOrElse("interact_events_count", 0).asInstanceOf[Number].longValue();
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
         val impression_summary = eksMap.getOrElse("events_summary", List()).asInstanceOf[List[Map[String, AnyRef]]].filter(p => p.contains("IMPRESSION"))
-        val total_pageviews_count = if (impression_summary.size > 0) impression_summary.head.getOrElse("IMPRESSION", 0).asInstanceOf[Number].longValue() else 0;
+        val total_pageviews_count = if (impression_summary.size > 0) impression_summary.head.getOrElse("count", 0).asInstanceOf[Number].longValue() else 0;
         val avg_pageviews = total_pageviews_count;
         WorkflowUsageMetricsSummary(wk, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, event.context.date_range, event.syncts, Array(event.dimensions.did.getOrElse("")), Array(event.uid), Array(event.dimensions.content_id.getOrElse("")), pdata);
     }
@@ -57,10 +57,10 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         val lastEvent = events.sortBy { x => x.dt_range.to }.last;
         val date_range = DtRange(firstEvent.dt_range.from, lastEvent.dt_range.to);
         
-        val total_ts = CommonUtil.roundDouble(events.map { x => x.total_ts }.sum, 2);
+        val total_ts = CommonUtil.roundDouble(events.map { x => x.time_spent }.sum, 2);
         val total_sessions = events.size
         val avg_ts_session = CommonUtil.roundDouble((total_ts / total_sessions), 2)
-        val total_interactions = events.map { x => x.total_interactions }.sum;
+        val total_interactions = events.map { x => x.interact_events_count }.sum;
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
         val total_pageviews_count = events.map { x => x.total_pageviews_count }.sum;
         val avg_pageviews = if (total_pageviews_count == 0) 0 else CommonUtil.roundDouble((total_pageviews_count / total_sessions), 2)
@@ -128,11 +128,11 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_WORKFLOW_USAGE_SUMMARY", usageSumm.wk.user_id, "DAY", usageSumm.dt_range, usageSumm.wk.content_id, Option(usageSumm.pdata.id), Option(usageSumm.wk.channel));
             val measures = Map(
-                "total_ts" -> usageSumm.total_ts,
+                "total_ts" -> usageSumm.time_spent,
                 "total_sessions" -> usageSumm.total_sessions,
                 "avg_ts_session" -> usageSumm.avg_ts_session,
-                "total_interactions" -> usageSumm.total_interactions,
-                "avg_interactions_min" -> usageSumm.avg_interactions_min,
+                "total_interactions" -> usageSumm.interact_events_count,
+                "avg_interactions_min" -> usageSumm.interact_events_per_min,
                 "total_pageviews_count" -> usageSumm.total_pageviews_count,
                 "avg_pageviews" -> usageSumm.avg_pageviews,
                 "total_users_count" -> usageSumm.unique_users.length,

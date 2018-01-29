@@ -14,6 +14,6 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         val rdd2 = WorkFlowUsageSummaryModel.execute(rdd1, None);
         val me = rdd2.collect();
         
-        //me.foreach(f => println(JSONUtils.serialize(f)))
+//        me.foreach(f => println(JSONUtils.serialize(f)))
     }
 }
