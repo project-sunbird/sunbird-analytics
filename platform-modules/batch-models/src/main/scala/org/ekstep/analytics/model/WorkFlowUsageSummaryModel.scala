@@ -45,7 +45,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         val avg_ts_session = total_ts;
         val total_interactions = eksMap.getOrElse("interact_events_count", 0).asInstanceOf[Number].longValue();
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
-        val impression_summary = eksMap.getOrElse("events_summary", List()).asInstanceOf[List[Map[String, AnyRef]]].filter(p => p.contains("IMPRESSION"))
+        val impression_summary = eksMap.getOrElse("events_summary", List()).asInstanceOf[List[Map[String, AnyRef]]].filter(p => "IMPRESSION".equals(p.get("id").get))
         val total_pageviews_count = if (impression_summary.size > 0) impression_summary.head.getOrElse("count", 0).asInstanceOf[Number].longValue() else 0;
         val avg_pageviews = total_pageviews_count;
         WorkflowUsageMetricsSummary(wk, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, event.context.date_range, event.syncts, Array(event.dimensions.did.getOrElse("")), Array(event.uid), Array(event.dimensions.content_id.getOrElse("")), pdata);
@@ -118,7 +118,9 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
 
     override def algorithm(data: RDD[WorkflowUsageInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowUsageMetricsSummary] = {
 
-        data.map { x =>
+        // Filter out records with empty did/contentId
+        val filteredData = data.filter(f => (f.index.did.nonEmpty && f.index.content_id.nonEmpty))
+        filteredData.map { x =>
             _computeMetrics(x.sessionEvents, x.index);
         }
     }
@@ -126,7 +128,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
     override def postProcess(data: RDD[WorkflowUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { usageSumm =>
-            val mid = CommonUtil.getMessageId("ME_WORKFLOW_USAGE_SUMMARY", usageSumm.wk.user_id, "DAY", usageSumm.dt_range, usageSumm.wk.content_id, Option(usageSumm.pdata.id), Option(usageSumm.wk.channel));
+            val mid = CommonUtil.getMessageId("ME_WORKFLOW_USAGE_SUMMARY", usageSumm.wk.user_id + usageSumm.wk.tag + usageSumm.wk.period, "DAY", usageSumm.dt_range, usageSumm.wk.content_id, Option(usageSumm.pdata.id), Option(usageSumm.wk.channel), usageSumm.wk.did);
             val measures = Map(
                 "total_ts" -> usageSumm.time_spent,
                 "total_sessions" -> usageSumm.total_sessions,
@@ -143,7 +145,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
                 "contents" -> usageSumm.contents);
             MeasuredEvent("ME_WORKFLOW_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, meEventVersion, mid, "", "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkFlowUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dt_range),
-                Dimensions(Option(usageSumm.wk.user_id), Option(usageSumm.wk.did), None, None, None, None, Option(usageSumm.pdata), None, None, None, Option(usageSumm.wk.tag), Option(usageSumm.wk.period), Option(usageSumm.wk.content_id), None, None, None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.wk.channel)),
+                Dimensions(Option(usageSumm.wk.user_id), Option(usageSumm.wk.did), None, None, None, None, Option(usageSumm.pdata), None, None, None, Option(usageSumm.wk.tag), Option(usageSumm.wk.period), Option(usageSumm.wk.content_id), None, None, None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.wk.channel), Option(usageSumm.wk.`type`)),
                 MEEdata(measures), None);
         }
     }

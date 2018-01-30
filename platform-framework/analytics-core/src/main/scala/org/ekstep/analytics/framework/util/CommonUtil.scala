@@ -434,6 +434,11 @@ object CommonUtil {
         val key = Array(eventId, userId, dateRange.from, dateRange.to, granularity, contentId, if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
+    
+    def getMessageId(eventId: String, userId: String, granularity: String, dateRange: DtRange, contentId: String, appId: Option[String], channelId: Option[String], did: String): String = {
+        val key = Array(eventId, userId, contentId, did, if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get, did).mkString("|");
+        MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
+    }
 
     def getMessageId(eventId: String, userId: String, granularity: String, syncDate: Long, appId: Option[String], channelId: Option[String]): String = {
         val key = Array(eventId, userId, dateFormat.print(syncDate), granularity, if (appId.isEmpty) getDefaultAppChannelIds._1 else appId.get, if (channelId.isEmpty) getDefaultAppChannelIds._2 else channelId.get).mkString("|");
@@ -593,7 +598,7 @@ object CommonUtil {
         } else if (event.isInstanceOf[V3Event]) {
             if (event.asInstanceOf[V3Event].context.channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[V3Event].context.channel)) event.asInstanceOf[V3Event].context.channel else defaultChannelId
         } else if (event.isInstanceOf[DerivedEvent]) {
-            if (StringUtils.isBlank(event.asInstanceOf[DerivedEvent].channel)) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
+            if (event.asInstanceOf[DerivedEvent].dimensions.channel.nonEmpty) event.asInstanceOf[DerivedEvent].dimensions.channel.get else if (StringUtils.isBlank(event.asInstanceOf[DerivedEvent].channel)) defaultChannelId else event.asInstanceOf[DerivedEvent].channel
         } else if (event.isInstanceOf[ProfileEvent]) {
             if (event.asInstanceOf[ProfileEvent].channel.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].channel.get)) event.asInstanceOf[ProfileEvent].channel.get else defaultChannelId
         } else defaultChannelId;
