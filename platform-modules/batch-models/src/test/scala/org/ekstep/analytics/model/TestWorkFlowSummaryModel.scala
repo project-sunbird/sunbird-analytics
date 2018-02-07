@@ -4,6 +4,7 @@ import org.ekstep.analytics.framework.V3Event
 import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.V3PData
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.OutputDispatcher
 
 class TestWorkFlowSummaryModel extends SparkSpec {
   
@@ -13,18 +14,19 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         out.count() should be(9)
         
         val me = out.collect();
+
         val appSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("app") }
         val sessionSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("session") }
         val playerSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("player") }
         val editorSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("editor") }
-        
+
         appSummaryEvent1.size should be(1)
         sessionSummaryEvent1.size should be(1)
         playerSummaryEvent1.size should be(7)
         editorSummaryEvent1.size should be(0)
-        
-        val event1 = playerSummaryEvent1.filter(f => f.mid.equals("C61540B8D74BEA21087A2DD3BDC960A3")).last
-        
+
+        val event1 = playerSummaryEvent1.filter(f => f.mid.equals("DF33B926AA009273866786369A59C6FF")).last
+
         // Validate for item response, env summary & page summary
         event1.eid should be("ME_WORKFLOW_SUMMARY");
         event1.context.pdata.model.get should be("WorkflowSummarizer");
@@ -37,26 +39,27 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event1.dimensions.sid.get should be("830811c2-3c02-4c45-8755-3f15064a88a2");
 
         val summary1 = JSONUtils.deserialize[WorkflowOutput](JSONUtils.serialize(event1.edata.eks));
-        summary1.interact_events_per_min should be(19.0);
+        summary1.interact_events_per_min should be(7.68);
         summary1.start_time should be(1515404389226L);
-        summary1.interact_events_count should be(19);
-        summary1.end_time should be(1515404399264L);
-        summary1.time_diff should be(10.04);
-        summary1.time_spent should be(10.04);
+        summary1.interact_events_count should be(24);
+        summary1.end_time should be(1515404576676L);
+        summary1.time_diff should be(187.45);
+        summary1.time_spent should be(187.45);
         summary1.mode.get should be("play");
         summary1.page_summary.get.size should be(5);
         summary1.env_summary.get.size should be(1);
-        summary1.events_summary.get.size should be(5);
+        summary1.events_summary.get.size should be(6);
         summary1.telemetry_version should be("3.0");
         
         val esList1 = summary1.events_summary.get
-        esList1.size should be(5);
+        esList1.size should be(6);
         val esMap1 = esList1.map { x => (x.id, x.count) }.toMap
-        esMap1.get("INTERACT").get should be(19);
+        esMap1.get("INTERACT").get should be(24);
         esMap1.get("START").get should be(1);
         esMap1.get("IMPRESSION").get should be(5);
         esMap1.get("END").get should be(1);
         esMap1.get("ASSESS").get should be(4);
+        esMap1.get("INTERRUPT").get should be(5);
         
         val pageSummary1 = summary1.page_summary.get.head
         pageSummary1.env should be("ContentPlayer")
@@ -67,7 +70,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         
         val envSummary1 = summary1.env_summary.get.head
         envSummary1.env should be("ContentPlayer")
-        envSummary1.time_spent should be(4.43)
+        envSummary1.time_spent should be(181.84)
         envSummary1.count should be(1)
         
         val itemResponses = summary1.item_responses.get

@@ -20,6 +20,7 @@ case class WorkflowOutput(did: Option[String], sid: String, uid: String, pdata: 
         start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, interact_events_count: Long, interact_events_per_min: Double, telemetry_version: String,
         env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
         page_summary: Option[Iterable[PageSummary]], etags: Option[ETags]) extends AlgoOutput
+case class WorkflowIndex(did: String, channel: String, pdataId: String)
 
 object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, WorkflowOutput, MeasuredEvent] with Serializable {
 
@@ -108,6 +109,12 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
     private def updateAppWorkflow() = {
         if (appKey.nonEmpty) workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
     }
+    
+    private def createDefaultAppWorkflow() = {
+        appKey = "app" + tmpArr.head.ets
+        workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
+        appKey = ""
+    }
 
     private def updateSessionWorkflow() = {
         if (sessionKey.nonEmpty) workFlowData += (sessionKey -> (workFlowData.get(sessionKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
@@ -117,6 +124,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
 
         val sortedEvents = events.sortBy { x => x.ets }
         val lastEventMid = events.last.mid
+        val firstEventMid = events.head.mid
 
         sortedEvents.foreach { x =>
 
@@ -124,6 +132,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
             (x.eid, eventType) match {
                 case ("START", "app") =>
                     if (appKey.isEmpty()) {
+                        if (tmpArr.nonEmpty) createDefaultAppWorkflow();
                         appKey = "app" + x.ets
                         tmpArr = Buffer[V3Event]();
                         tmpArr += x;
@@ -137,6 +146,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
 
                 case ("START", "session") =>
                     if (sessionKey.isEmpty()) {
+                        if (tmpArr.nonEmpty) { if (appKey.isEmpty & firstEventMid.equals(tmpArr.head.mid)) createDefaultAppWorkflow(); }
                         sessionKey = "session" + x.ets
                         updateAppWorkflow()
                         tmpArr = Buffer[V3Event]();
@@ -243,7 +253,8 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowInput] = {
 
-        val deviceEvents = data.map { x => (x.context.did.getOrElse(""), Buffer(x)) }
+        val defaultPDataId = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
+        val deviceEvents = data.map { x => (WorkflowIndex(x.context.did.getOrElse(""), x.context.channel, x.context.pdata.getOrElse(defaultPDataId).id), Buffer(x)) }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x => (x._1, x._2) }
 
