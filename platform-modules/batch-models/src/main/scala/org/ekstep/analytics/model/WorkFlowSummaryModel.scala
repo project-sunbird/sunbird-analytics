@@ -280,7 +280,8 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
         data.map { x =>
-            val `type` = x.sessionKey.replaceAll("[^A-Za-z]+", "")
+            val typeKey = x.sessionKey.replaceAll("[^A-Za-z]+", "")
+            val `type` = if (typeKey.isEmpty() & "END".equals(x.events.last.eid)) x.events.last.edata.`type` else typeKey
             val events = x.events
             val firstEvent = events.head;
             val lastEvent = events.last;
