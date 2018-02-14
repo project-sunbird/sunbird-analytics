@@ -141,7 +141,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                 case ("END", "app") =>
                     tmpArr += x
                     // closing app workflow
-                    workFlowData += (appKey -> (workFlowData.get(appKey).get ++ tmpArr))
+                    workFlowData += (appKey -> (workFlowData.get(appKey).getOrElse(Buffer[V3Event]()) ++ tmpArr))
                     tmpArr = Buffer[V3Event]();
 
                 case ("START", "session") =>
