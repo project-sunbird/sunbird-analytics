@@ -83,6 +83,14 @@ class Metrics @Inject() (system: ActorSystem) extends BaseController {
         }
     }
 
+    def workflowUsage() = Action.async { implicit request =>
+        val body = _getMetricsRequest(request);
+        val result = ask(metricsAPIActor, WorkflowUsage(body, config)).mapTo[String];
+        result.map { x =>
+            Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+        }
+    }
+
     private def _getMetricsRequest(request: Request[AnyContent]) = {
         val body: String = Json.stringify(request.body.asJson.get);
         JSONUtils.deserialize[MetricsRequestBody](body);
