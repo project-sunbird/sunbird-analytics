@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.DateTime
 import org.ekstep.analytics.util.WorkFlowSummaryIndex
 
-case class WorkFlowUsageSummaryFact_T(d_period: Int, d_channel: String, d_app_id: String, d_tag: String, d_type: String, d_device_id: String, d_content_id: String, d_user_id: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_total_pageviews_count: Long, m_avg_pageviews: Double, m_total_users_count: Long, m_total_content_count: Long, m_total_devices_count: Long, m_unique_users: List[String], m_device_ids: List[String], m_contents: List[String])
+case class WorkFlowUsageSummaryFact_T(d_period: Int, d_channel: String, d_app_id: String, d_tag: String, d_type: String, d_device_id: String, d_content_id: String, d_user_id: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_total_pageviews_count: Long, m_avg_pageviews: Double, m_unique_users: List[String], m_device_ids: List[String], m_contents: List[String])
 
 object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, WorkFlowUsageSummaryFact, WorkFlowSummaryIndex] with Serializable {
 
@@ -43,13 +43,10 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val avgIntrMin = eksMap.get("avg_interactions_min").get.asInstanceOf[Double]
             val totalPageviewsCount = eksMap.get("total_pageviews_count").get.asInstanceOf[Number].longValue()
             val avgPageviews = eksMap.get("avg_pageviews").get.asInstanceOf[Double]
-            val totalUsersCount = eksMap.get("total_users_count").get.asInstanceOf[Number].longValue()
-            val totalContentCount = eksMap.get("total_content_count").get.asInstanceOf[Number].longValue()
-            val totalDevicesCount = eksMap.get("total_devices_count").get.asInstanceOf[Number].longValue()
             val uniqueUsers = eksMap.get("unique_users").get.asInstanceOf[List[String]]
             val contents = eksMap.get("contents").get.asInstanceOf[List[String]]
             val deviceIds = eksMap.get("device_ids").getOrElse(List("")).asInstanceOf[List[String]];
-            WorkFlowUsageSummaryFact_T(period, channel, appId, tag, summType, did, contentId, uid, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), totalTS, totalSess, avgTSsess, totalIntr, avgIntrMin, totalPageviewsCount, avgPageviews, totalUsersCount, totalContentCount, totalDevicesCount, uniqueUsers, deviceIds, contents);
+            WorkFlowUsageSummaryFact_T(period, channel, appId, tag, summType, did, contentId, uid, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), totalTS, totalSess, avgTSsess, totalIntr, avgIntrMin, totalPageviewsCount, avgPageviews, uniqueUsers, deviceIds, contents);
         }.cache();
 
         // Roll up summaries
@@ -69,7 +66,7 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.m_last_gen_date.getMillis, period);
-            (WorkFlowSummaryIndex(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_device_id, x.d_content_id, x.d_user_id), WorkFlowUsageSummaryFact_T(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_device_id, x.d_content_id, x.d_user_id, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_total_pageviews_count, x.m_avg_pageviews, x.m_total_users_count, x.m_total_content_count, x.m_total_devices_count, x.m_unique_users, x.m_device_ids, x.m_contents));
+            (WorkFlowSummaryIndex(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_device_id, x.d_content_id, x.d_user_id), WorkFlowUsageSummaryFact_T(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_device_id, x.d_content_id, x.d_user_id, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_total_pageviews_count, x.m_avg_pageviews, x.m_unique_users, x.m_device_ids, x.m_contents));
         }.reduceByKey(reduceWUS);
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_channel", "d_app_id", "d_tag", "d_type", "d_device_id", "d_content_id", "d_user_id"));
         val joinedData = currentData.leftOuterJoin(prvData)
@@ -102,15 +99,16 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val didCount = BloomFilterUtil.countMissingValues(device_bf, fact2.m_device_ids);
         val device_ids = BloomFilterUtil.serialize(device_bf);
 
-        val contentCount = BloomFilterUtil.countMissingValues(content_bf, fact2.m_device_ids);
+        val contentCount = BloomFilterUtil.countMissingValues(content_bf, fact2.m_contents);
         val content_ids = BloomFilterUtil.serialize(content_bf);
 
-        val usersCount = BloomFilterUtil.countMissingValues(user_bf, fact2.m_device_ids);
+        val usersCount = BloomFilterUtil.countMissingValues(user_bf, fact2.m_unique_users);
         val user_ids = BloomFilterUtil.serialize(user_bf);
 
         val total_devices_count = didCount + fact1.m_total_devices_count
-        val total_users_count = fact2.m_total_users_count + fact1.m_total_users_count
-        val total_content_count = fact2.m_total_content_count + fact1.m_total_content_count
+        val total_users_count = usersCount + fact1.m_total_users_count
+        val total_content_count = contentCount + fact1.m_total_content_count
+        
         val total_pageviews_count = fact2.m_total_pageviews_count + fact1.m_total_pageviews_count
 
         val avg_pageviews = CommonUtil.roundDouble((total_pageviews_count / total_sessions), 2)
@@ -133,13 +131,15 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val avg_interactions_min = if (total_interactions == 0 || total_ts == 0) 0d else CommonUtil.roundDouble(BigDecimal(total_interactions / (total_ts / 60)).toDouble, 2);
         val total_pageviews_count = fact2.m_total_pageviews_count + fact1.m_total_pageviews_count
         val avg_pageviews = CommonUtil.roundDouble((total_pageviews_count / total_sessions), 2)
-        val total_users_count = fact2.m_total_users_count + fact1.m_total_users_count
-        val total_content_count = fact2.m_total_content_count + fact1.m_total_content_count
+        
         val unique_users = (fact2.m_unique_users ++ fact1.m_unique_users).distinct
         val contents = (fact2.m_contents ++ fact1.m_contents).distinct
         val device_ids = (fact2.m_device_ids ++ fact1.m_device_ids).distinct
+        
         val total_devices_count = device_ids.length
-
-        WorkFlowUsageSummaryFact_T(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, total_users_count, total_content_count, total_devices_count, unique_users, device_ids, contents);
+        val total_users_count = unique_users.length
+        val total_content_count = contents.length
+        
+        WorkFlowUsageSummaryFact_T(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, unique_users, device_ids, contents);
     }
 }
