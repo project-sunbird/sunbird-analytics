@@ -220,7 +220,7 @@ object MetricsAPIService {
                 val tag = getTag(filter);
                 val deviceId = filter.device_id.getOrElse("all");
                 val metrics_type = filter.metrics_type.getOrElse("app")
-                val result = WorkflowUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId, userId);
+                val result = WorkflowUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId, userId, deviceId, metrics_type);
                 JSONUtils.serialize(CommonUtil.OK(APIIds.WORKFLOW_USAGE, result));
             } catch {
                 case ex: Exception =>

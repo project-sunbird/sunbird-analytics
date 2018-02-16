@@ -43,7 +43,7 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
         preProcess();
         val tags = tag.split(",").distinct
         val timeTaken = org.ekstep.analytics.framework.util.CommonUtil.time({
-            _fetch(contentId, tags, period, fields, channel, userId, contentId, metricsType);
+            _fetch(contentId, tags, period, fields, channel, userId, deviceId, metricsType);
         });
         timeTaken._2;
     }
@@ -59,7 +59,7 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
     private def _fetch(contentId: String, tags: Array[String], period: String, fields: Array[String] = Array(), channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app")(implicit config: Config, mf: Manifest[T]): Map[String, AnyRef] = {
         try {
             val dataFetch = org.ekstep.analytics.framework.util.CommonUtil.time({
-                getData[T](contentId, tags, period.replace("LAST_", "").replace("_", ""), channel, userId, contentId, metricsType)
+                getData[T](contentId, tags, period.replace("LAST_", "").replace("_", ""), channel, userId, deviceId, metricsType)
             });
             val aggregated = if ("ius".equals(metric())) dataFetch._2 else
                 dataFetch._2.groupBy { x => x.d_period.get }.mapValues { x => x }.map(f => f._2.map(f => f.asInstanceOf[Metrics]))
