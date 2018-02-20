@@ -9,11 +9,8 @@ import org.apache.commons.lang3.StringUtils
 
 class Summary(val summaryKey: String, val event: V3Event) {
 
-    val did: Option[String] = None
     val sid: String = ""
     val uid: String = ""
-    val pdata: PData = PData("", "")
-    val channel: String = "in.ekstep"
     val content_id: Option[String] = None
     val session_type: String = ""
     val syncts: Long = 0l
@@ -61,16 +58,31 @@ class Summary(val summaryKey: String, val event: V3Event) {
     }
 
     def rollUpSummary(currentSumm: Summary) {
+        if (null == currentSumm.CHILD) {
+            computeMetrics(currentSumm)
+        } else {
+            computeMetrics(currentSumm)
+            for (child <- currentSumm.CHILD) {
+                if (child.isClosed) {
+                    reduce(currentSumm, child)
+                } else {
+                    rollUpSummary(child)
+                }
+            }
+        }
+    }
+
+    private def reduce(current: Summary, child: Summary) {
 
     }
 
     def close() {
+        rollUpSummary(this)
         for (child <- CHILD) {
             if (child.isClosed == false) {
                 child.isClosed = true
             }
         }
-        rollUpSummary(this)
         this.isClosed = true
     }
 }
