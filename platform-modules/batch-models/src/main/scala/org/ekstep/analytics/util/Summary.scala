@@ -5,8 +5,9 @@ import scala.collection.mutable.Buffer
 import org.ekstep.analytics.model.ItemResponse
 import org.ekstep.analytics.model.EnvSummary
 import org.ekstep.analytics.model.EventSummary
+import org.apache.commons.lang3.StringUtils
 
-class Summary {
+class Summary(val summaryKey: String, val event: V3Event) {
 
     val did: Option[String] = None
     val sid: String = ""
@@ -29,17 +30,19 @@ class Summary {
     val env_summary: Option[Iterable[EnvSummary]] = None
     val events_summary: Option[Iterable[EventSummary]] = None
     
-    val events: Buffer[V3Event] = Buffer()
-    
-    val CHILD: Summary = null
+    val CHILD: Buffer[Summary] = null
     val PARENT: Summary = null
     
+    val events: Buffer[V3Event] = Buffer(event)
+    var isClosed: Boolean = false
+    
+    
     def add(event: V3Event) {
-        
+        events.append(event)
     }
     
-    def check() {
-        
+    def check(eventKey: String) {
+         StringUtils.equals(this.summaryKey, eventKey)   
     }
     
     def computeMetrics(){
@@ -47,6 +50,6 @@ class Summary {
     }
     
     def close(){
-        
+        this.isClosed = true
     }
 }
