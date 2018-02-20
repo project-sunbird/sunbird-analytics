@@ -5,6 +5,12 @@ import scala.collection.mutable.Buffer
 import org.ekstep.analytics.framework.V3PData
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.OutputDispatcher
+import org.ekstep.analytics.framework._
+
+case class WorkflowDataRead(did: Option[String], sid: String, uid: String, pdata: PData, channel: String, content_id: Option[String], session_type: String, syncts: Long, dt_range: DtRange, mode: Option[String], item_responses: Option[Buffer[ItemResponse]],
+                          start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, interact_events_count: Long, interact_events_per_min: Double, telemetry_version: String,
+                          env_summary: Option[Iterable[EnvSummary]], events_summary: Option[Iterable[EventSummary]],
+                          page_summary: Option[Iterable[PageSummary]], etags: Option[ETags])
 
 class TestWorkFlowSummaryModel extends SparkSpec {
   
@@ -38,7 +44,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event1.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event1.dimensions.sid.get should be("830811c2-3c02-4c45-8755-3f15064a88a2");
 
-        val summary1 = JSONUtils.deserialize[WorkflowOutput](JSONUtils.serialize(event1.edata.eks));
+        val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
         summary1.interact_events_per_min should be(7.68);
         summary1.start_time should be(1515404389226L);
         summary1.interact_events_count should be(24);
@@ -134,7 +140,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event1.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event1.dimensions.sid.get should be("830811c2-3c02-4c45-8755-3f15064a88a2");
 
-        val summary1 = JSONUtils.deserialize[WorkflowOutput](JSONUtils.serialize(event1.edata.eks));
+        val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
         summary1.interact_events_per_min should be(1.0);
         summary1.start_time should be(1515402354310L);
         summary1.interact_events_count should be(1);
@@ -165,7 +171,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event2.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event2.dimensions.sid.get should be("830811c2-3c02-4c45-8755-3f15064a88a2");
 
-        val summary2 = JSONUtils.deserialize[WorkflowOutput](JSONUtils.serialize(event2.edata.eks));
+        val summary2 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event2.edata.eks));
         summary2.interact_events_per_min should be(1.0);
         summary2.start_time should be(1515402354782L);
         summary2.interact_events_count should be(1);

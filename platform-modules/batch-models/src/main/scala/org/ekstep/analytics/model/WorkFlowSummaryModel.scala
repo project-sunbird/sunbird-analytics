@@ -99,7 +99,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
                         }
                         else if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                            prevSummary.close();
+                            prevSummary.close(idleTime, itemMapping.value);
                             summary += prevSummary
                             prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
                         }
@@ -122,26 +122,26 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         }
                     case ("END") =>
                         if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                            prevSummary.close();
+                            prevSummary.close(idleTime, itemMapping.value);
                             summary += prevSummary
                         }
                         else {
                             unclosedSummaries.foreach { f =>
                                 if(f.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                                    f.close();
+                                    f.close(idleTime, itemMapping.value);
                                     summary += f;
                                 }
                             }
                         }
                     case _ =>
                         if(StringUtils.equals(firstEvent.mid, x.mid))
-                            summary += new org.ekstep.analytics.util.Summary("app_" + x.edata.mode, x);
+                            prevSummary = new org.ekstep.analytics.util.Summary("app_" + x.edata.mode, x);
                         else if(StringUtils.equals(lastEvent.mid, x.mid)) {
-                            summary.last.add(x);
-                            summary.last.close();
+                            prevSummary.add(x);
+                            prevSummary.close(idleTime, itemMapping.value);
                         }
                         else
-                            summary.last.add(x)
+                            prevSummary.add(x)
                 }
             }
           summary;
@@ -150,24 +150,27 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
     }
     override def postProcess(data: RDD[WorkflowOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         val meEventVersion = AppConf.getConfig("telemetry.version");
-        data.map { session =>
-            val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", session.dt_range, "NA", Option(session.pdata.id), Option(session.channel));
-            val measures = Map("start_time" -> session.start_time,
-                "end_time" -> session.end_time,
-                "time_diff" -> session.time_diff,
-                "time_spent" -> session.time_spent,
-                "telemetry_version" -> session.telemetry_version,
-                "mode" -> session.mode,
-                "item_responses" -> session.item_responses,
-                "interact_events_count" -> session.interact_events_count,
-                "interact_events_per_min" -> session.interact_events_per_min,
-                "env_summary" -> session.env_summary,
-                "events_summary" -> session.events_summary,
-                "page_summary" -> session.page_summary);
-            MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), session.syncts, meEventVersion, mid, session.uid, null, None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", session.dt_range),
-                Dimensions(None, session.did, None, None, None, None, Option(PData(session.pdata.id, session.pdata.ver)), None, None, None, None, None, session.content_id, None, None, Option(session.sid), None, None, None, None, None, None, None, None, None, None, Option(session.channel), Option(session.session_type)),
-                MEEdata(measures), session.etags);
-        }
+        data.map { f =>
+            val index = f.index
+            f.summaries.map { session =>
+                val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", session.dt_range, "NA", Option(index.pdataId), Option(index.channel));
+                val measures = Map("start_time" -> session.start_time,
+                    "end_time" -> session.end_time,
+                    "time_diff" -> session.time_diff,
+                    "time_spent" -> session.time_spent,
+                    "telemetry_version" -> session.telemetry_version,
+                    "mode" -> session.mode,
+                    "item_responses" -> session.item_responses,
+                    "interact_events_count" -> session.interact_events_count,
+                    "interact_events_per_min" -> session.interact_events_per_min,
+                    "env_summary" -> session.env_summary,
+                    "events_summary" -> session.events_summary,
+                    "page_summary" -> session.page_summary);
+                MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), session.syncts, meEventVersion, mid, session.uid, null, None, None,
+                    Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", session.dt_range),
+                    Dimensions(None, Option(index.did), None, None, None, None, Option(PData(index.pdataId, "1.0")), None, None, None, None, None, session.content_id, None, None, Option(session.sid), None, None, None, None, None, None, None, None, None, None, Option(index.channel), Option(session.session_type)),
+                    MEEdata(measures), session.etags);
+            }
+        }.flatMap(x => x)
     }
 }
