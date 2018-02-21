@@ -72,14 +72,14 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
 
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
-        val summaryOut = data.map { x => (x.sessionKey, x.events)}.mapValues { x =>
-            val firstEvent = x.head
-            val lastEvent = x.last
+        val summaryOut = data.map { x => (x.sessionKey, x.events)}.mapValues { f =>
+            val firstEvent = f.head
+            val lastEvent = f.last
             var prevSummary: org.ekstep.analytics.util.Summary = null
-            val summary: Buffer[org.ekstep.analytics.util.Summary] = Buffer();
-            val unclosedSummaries: Buffer[org.ekstep.analytics.util.Summary] = Buffer();
+            var summary: Buffer[org.ekstep.analytics.util.Summary] = Buffer();
+            var unclosedSummaries: Buffer[org.ekstep.analytics.util.Summary] = Buffer();
 
-            x.map { x =>
+            f.foreach{ x =>
                 (x.eid) match {
 
                     case ("START") =>
@@ -110,12 +110,14 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         }
                     case ("END") =>
                         if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
+                            prevSummary.add(x, idleTime, itemMapping.value);
                             prevSummary.close();
                             summary += prevSummary
                         }
                         else {
                             unclosedSummaries.foreach { f =>
                                 if(f.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
+                                    f.add(x, idleTime, itemMapping.value);
                                     f.close();
                                     summary += f;
                                 }
@@ -132,8 +134,15 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             prevSummary.add(x, idleTime, itemMapping.value)
                 }
             }
-          summary;
+            if(unclosedSummaries.size > 0) {
+                unclosedSummaries.foreach { f =>
+                        f.close();
+                        summary += f;
+                    }
+            }
+            summary;
         }
+        summaryOut.foreach(f => println(f._1, f._2.size))
         summaryOut.map(x => WorkflowOutput(x._1, x._2))
     }
     override def postProcess(data: RDD[WorkflowOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
