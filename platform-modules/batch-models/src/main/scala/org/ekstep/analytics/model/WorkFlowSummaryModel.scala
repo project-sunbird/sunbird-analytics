@@ -23,18 +23,6 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
 
     implicit val className = "org.ekstep.analytics.model.WorkFlowSummaryModel"
     override def name: String = "WorkFlowSummaryModel"
-    val DEFAULT_MODE = "play";
-
-    /**
-     * Get item from broadcast item mapping variable
-     */
-    private def getItem(itemMapping: Map[String, Item], event: V3Event): Item = {
-        val item = itemMapping.getOrElse(event.edata.item.id, null);
-        if (null != item) {
-            return item;
-        }
-        return Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]()));
-    }
 
     /**
      *
@@ -99,7 +87,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
                         }
                         else if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                            prevSummary.close(idleTime, itemMapping.value);
+                            prevSummary.close(idleTime);
                             summary += prevSummary
                             prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
                         }
@@ -122,13 +110,13 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         }
                     case ("END") =>
                         if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                            prevSummary.close(idleTime, itemMapping.value);
+                            prevSummary.close(idleTime);
                             summary += prevSummary
                         }
                         else {
                             unclosedSummaries.foreach { f =>
                                 if(f.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                                    f.close(idleTime, itemMapping.value);
+                                    f.close(idleTime);
                                     summary += f;
                                 }
                             }
@@ -137,11 +125,11 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         if(StringUtils.equals(firstEvent.mid, x.mid))
                             prevSummary = new org.ekstep.analytics.util.Summary("app_" + x.edata.mode, x);
                         else if(StringUtils.equals(lastEvent.mid, x.mid)) {
-                            prevSummary.add(x);
-                            prevSummary.close(idleTime, itemMapping.value);
+                            prevSummary.add(x, idleTime, itemMapping.value);
+                            prevSummary.close(idleTime);
                         }
                         else
-                            prevSummary.add(x)
+                            prevSummary.add(x, idleTime, itemMapping.value)
                 }
             }
           summary;
@@ -153,7 +141,12 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
         data.map { f =>
             val index = f.index
             f.summaries.map { session =>
-                val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", session.dt_range, "NA", Option(index.pdataId), Option(index.channel));
+                val dt_range = DtRange(session.start_time, session.end_time)
+                val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", dt_range, "NA", Option(index.pdataId), Option(index.channel));
+                val interactEventsPerMin: Double = if (session.interact_events_count == 0 || session.time_spent == 0) 0d
+                    else if (session.time_spent < 60.0) session.interact_events_count.toDouble
+                    else BigDecimal(session.interact_events_count / (session.time_spent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+                val syncts = CommonUtil.getEventSyncTS(session.last_event)
                 val measures = Map("start_time" -> session.start_time,
                     "end_time" -> session.end_time,
                     "time_diff" -> session.time_diff,
@@ -162,12 +155,12 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                     "mode" -> session.mode,
                     "item_responses" -> session.item_responses,
                     "interact_events_count" -> session.interact_events_count,
-                    "interact_events_per_min" -> session.interact_events_per_min,
+                    "interact_events_per_min" -> interactEventsPerMin,
                     "env_summary" -> session.env_summary,
                     "events_summary" -> session.events_summary,
                     "page_summary" -> session.page_summary);
-                MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), session.syncts, meEventVersion, mid, session.uid, null, None, None,
-                    Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", session.dt_range),
+                MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, session.uid, null, None, None,
+                    Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dt_range),
                     Dimensions(None, Option(index.did), None, None, None, None, Option(PData(index.pdataId, "1.0")), None, None, None, None, None, session.content_id, None, None, Option(session.sid), None, None, None, None, None, None, None, None, None, None, Option(index.channel), Option(session.session_type)),
                     MEEdata(measures), session.etags);
             }
