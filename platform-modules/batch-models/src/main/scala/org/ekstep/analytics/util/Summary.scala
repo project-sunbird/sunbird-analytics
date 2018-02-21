@@ -3,7 +3,7 @@ package org.ekstep.analytics.util
 import org.ekstep.analytics.framework._
 
 import scala.collection.mutable.Buffer
-import org.ekstep.analytics.model.{EnvSummary, EventSummary, ItemResponse, PageSummary}
+import org.ekstep.analytics.model.{ EnvSummary, EventSummary, ItemResponse, PageSummary }
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.util.CommonUtil
 
@@ -13,8 +13,8 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = firstEvent.actor.id
     val content_id: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
-    val session_type: String = if(firstEvent.edata.`type`.isEmpty) "" else firstEvent.edata.`type`
-    val mode: Option[String] = if(firstEvent.edata.mode.isEmpty) Option(DEFAULT_MODE) else Option(firstEvent.edata.mode)
+    val session_type: String = if (firstEvent.edata.`type`.isEmpty) "" else firstEvent.edata.`type`
+    val mode: Option[String] = if (firstEvent.edata.mode.isEmpty) Option(DEFAULT_MODE) else Option(firstEvent.edata.mode)
     val telemetry_version: String = firstEvent.ver
     val start_time: Long = firstEvent.ets
 
@@ -40,19 +40,18 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     def add(event: V3Event, idleTime: Int, itemMapping: Map[String, Item]) {
         val ts = CommonUtil.roundDouble(CommonUtil.getTimeDiff(tmpLastEventEts, event.ets).get, 2)
         this.time_spent += (if (ts > idleTime) 0 else ts)
-        if(StringUtils.equals(event.eid, "INTERACT")) this.interact_events_count += 1
-        val prevCount = events_summary.get(event.eid).getOrElse(0)
-        events_summary += (event.eid -> (prevCount+1) )
-        if(lastImpression != null){
+        if (StringUtils.equals(event.eid, "INTERACT")) this.interact_events_count += 1
+        val prevCount = events_summary.get(event.eid).getOrElse(0l)
+        events_summary += (event.eid -> (prevCount + 1))
+        if (lastImpression != null) {
             val prevTs = impressionMap.get(lastImpression).getOrElse(0.0)
             impressionMap += (lastImpression -> (prevTs + this.time_spent))
         }
-        if(StringUtils.equals(event.eid, "IMPRESSION")) {
-            if(lastImpression == null){
+        if (StringUtils.equals(event.eid, "IMPRESSION")) {
+            if (lastImpression == null) {
                 lastImpression = event
                 impressionMap += (lastImpression -> 0.0)
-            }
-            else {
+            } else {
                 val prevTs = impressionMap.get(lastImpression).getOrElse(0.0)
                 impressionMap += (lastImpression -> (prevTs + this.time_spent))
                 lastImpression = event
@@ -62,7 +61,7 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
         this.last_event = event
         this.end_time = this.last_event.ets
         this.time_diff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.start_time, this.end_time).get, 2)
-        this.page_summary = if(impressionMap.size > 0) {
+        this.page_summary = if (impressionMap.size > 0) {
             impressionMap.map(f => (f._1.edata.pageid, f)).groupBy(x => x._1).map { f =>
                 val id = f._1
                 val firstEvent = f._2.head._2._1
@@ -81,7 +80,7 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
             }
         } else Iterable[EnvSummary]();
 
-        if(StringUtils.equals(event.eid, "ASSESS")) {
+        if (StringUtils.equals(event.eid, "ASSESS")) {
             val itemObj = getItem(itemMapping, event);
             val metadata = itemObj.metadata;
             val resValues = if (null == event.edata.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(event.edata.resvalues.map(f => f.asInstanceOf[AnyRef]))
@@ -108,8 +107,8 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     }
 
     /**
-      * Get item from item mapping variable
-      */
+     * Get item from item mapping variable
+     */
     private def getItem(itemMapping: Map[String, Item], event: V3Event): Item = {
         val item = itemMapping.getOrElse(event.edata.item.id, null);
         if (null != item) {
@@ -118,39 +117,17 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
         return Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]()));
     }
 
-    def computeMetrics(currentSumm: Summary) {
-
-    }
-
-    def rollUpSummary(currentSumm: Summary) {
-        if (null == currentSumm.CHILD) {
-            computeMetrics(currentSumm)
-        } else {
-            computeMetrics(currentSumm)
-            for (child <- currentSumm.CHILD) {
-                if (child.isClosed) {
-                    reduce(currentSumm, child)
-                } else {
-                    rollUpSummary(child)
-                }
-            }
-        }
-    }
-
     private def reduce(current: Summary, child: Summary) {
-
+        // TODO add reduce code here
     }
 
-    def close(idleTime: Int) {
-        rollUpSummary(this)
-        if(null!=CHILD){
+    def close() {
+        if (this.CHILD != null) {
             for (child <- CHILD) {
-                if (child.isClosed == false) {
-                    child.isClosed = true
-                }
+                reduce(this, child)
+                child.close();
             }
         }
-
         this.isClosed = true
     }
 }
