@@ -87,7 +87,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
                         }
                         else if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                            prevSummary.close(idleTime);
+                            prevSummary.close();
                             summary += prevSummary
                             prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
                         }
@@ -110,13 +110,13 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         }
                     case ("END") =>
                         if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                            prevSummary.close(idleTime);
+                            prevSummary.close();
                             summary += prevSummary
                         }
                         else {
                             unclosedSummaries.foreach { f =>
                                 if(f.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                                    f.close(idleTime);
+                                    f.close();
                                     summary += f;
                                 }
                             }
@@ -126,7 +126,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             prevSummary = new org.ekstep.analytics.util.Summary("app_" + x.edata.mode, x);
                         else if(StringUtils.equals(lastEvent.mid, x.mid)) {
                             prevSummary.add(x, idleTime, itemMapping.value);
-                            prevSummary.close(idleTime);
+                            prevSummary.close();
                         }
                         else
                             prevSummary.add(x, idleTime, itemMapping.value)
