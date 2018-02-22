@@ -24,9 +24,6 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
     implicit val className = "org.ekstep.analytics.model.WorkFlowSummaryModel"
     override def name: String = "WorkFlowSummaryModel"
 
-    /**
-     *
-     */
     private def getItemData(contents: Array[Content], games: Array[String], apiVersion: String): Map[String, Item] = {
 
         val gameIds = contents.map { x => x.id };
@@ -72,41 +69,47 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
 
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
-        val summaryOut = data.map { x => (x.sessionKey, x.events)}.mapValues { f =>
-            val firstEvent = f.head
-            val lastEvent = f.last
+        val summaryOut = data.map { f =>
+            val sortedEvents = f.events.sortBy { x => x.ets }
+            val firstEvent = sortedEvents.head
+            val lastEvent = sortedEvents.last
             var prevSummary: org.ekstep.analytics.util.Summary = null
             var summary: Buffer[org.ekstep.analytics.util.Summary] = Buffer();
             var unclosedSummaries: Buffer[org.ekstep.analytics.util.Summary] = Buffer();
 
-            f.foreach{ x =>
+            sortedEvents.foreach{ x =>
                 (x.eid) match {
 
                     case ("START") =>
                         if(summary.size == 0) {
-                            prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
-                        }
-                        else if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
-                            prevSummary.close();
-                            summary += prevSummary
-                            prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
-                        }
-                        else {
-                            if(!prevSummary.isClosed){
+                            if(prevSummary == null)
+                                prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
+                            else {
                                 val newSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
                                 prevSummary.addChild(newSummary)
                                 newSummary.setParent(prevSummary)
                                 unclosedSummaries += prevSummary
                                 prevSummary = newSummary
                             }
+                        }
+                        else if (!prevSummary.isClosed) {
+                            if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
+                                prevSummary.close();
+                                summary += prevSummary
+                                prevSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
+                            }
                             else {
                                 val newSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
-                                newSummary.setParent(prevSummary.getParent())
-                                // check:
-//                                prevSummary.getParent().addChild(newSummary)
-//                                summary += prevSummary
+                                prevSummary.addChild(newSummary)
+                                newSummary.setParent(prevSummary)
+                                unclosedSummaries += prevSummary
                                 prevSummary = newSummary
                             }
+                        }
+                        else {
+                            val newSummary = new org.ekstep.analytics.util.Summary(x.edata.`type` + "_" + x.edata.mode, x);
+                            newSummary.setParent(prevSummary.getParent())
+                            prevSummary = newSummary
                         }
                     case ("END") =>
                         if(prevSummary.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
@@ -119,6 +122,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                                 if(f.checkSimilarity(x.edata.`type` + "_" + x.edata.mode)) {
                                     f.add(x, idleTime, itemMapping.value);
                                     f.close();
+                                    unclosedSummaries -= f
                                     summary += f;
                                 }
                             }
@@ -137,12 +141,12 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
             if(unclosedSummaries.size > 0) {
                 unclosedSummaries.foreach { f =>
                         f.close();
+                        unclosedSummaries -= f
                         summary += f;
                     }
             }
-            summary;
+            (f.sessionKey, summary);
         }
-        summaryOut.foreach(f => println(f._1, f._2.size))
         summaryOut.map(x => WorkflowOutput(x._1, x._2))
     }
     override def postProcess(data: RDD[WorkflowOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
@@ -156,17 +160,18 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                     else if (session.time_spent < 60.0) session.interact_events_count.toDouble
                     else BigDecimal(session.interact_events_count / (session.time_spent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
                 val syncts = CommonUtil.getEventSyncTS(session.last_event)
+                val events_summary = session.events_summary.map(f => EventSummary(f._1, f._2.toInt))
                 val measures = Map("start_time" -> session.start_time,
                     "end_time" -> session.end_time,
                     "time_diff" -> session.time_diff,
-                    "time_spent" -> session.time_spent,
+                    "time_spent" -> CommonUtil.roundDouble(session.time_spent, 2),
                     "telemetry_version" -> session.telemetry_version,
                     "mode" -> session.mode,
                     "item_responses" -> session.item_responses,
                     "interact_events_count" -> session.interact_events_count,
                     "interact_events_per_min" -> interactEventsPerMin,
                     "env_summary" -> session.env_summary,
-                    "events_summary" -> session.events_summary,
+                    "events_summary" -> events_summary,
                     "page_summary" -> session.page_summary);
                 MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, session.uid, null, None, None,
                     Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dt_range),

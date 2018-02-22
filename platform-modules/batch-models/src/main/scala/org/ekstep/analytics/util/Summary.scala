@@ -13,7 +13,7 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = firstEvent.actor.id
     val content_id: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
-    val session_type: String = if (firstEvent.edata.`type`.isEmpty) "" else firstEvent.edata.`type`
+    val session_type: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
     val mode: Option[String] = if (firstEvent.edata.mode == null) Option(DEFAULT_MODE) else Option(firstEvent.edata.mode)
     val telemetry_version: String = firstEvent.ver
     val start_time: Long = firstEvent.ets
@@ -26,26 +26,27 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     var time_diff: Double = 0.0
     var interact_events_count: Long = 0l
     var env_summary: Iterable[EnvSummary] = Iterable[EnvSummary]()
-    var events_summary: Map[String, Long] = Map()
+    var events_summary: Map[String, Long] = Map(firstEvent.eid -> 1)
     var page_summary: Iterable[PageSummary] = Iterable[PageSummary]()
-    var tmpLastEventEts: Long = start_time
+    var prevEventEts: Long = start_time
     var lastImpression: V3Event = null
     var impressionMap: Map[V3Event, Double] = Map()
 
-    var CHILD: Buffer[Summary] = null
+    var CHILD: Buffer[Summary] = Buffer()
     var PARENT: Summary = null
 
     var isClosed: Boolean = false
 
     def add(event: V3Event, idleTime: Int, itemMapping: Map[String, Item]) {
-        val ts = CommonUtil.roundDouble(CommonUtil.getTimeDiff(tmpLastEventEts, event.ets).get, 2)
-        this.time_spent += (if (ts > idleTime) 0 else ts)
+        val ts = CommonUtil.getTimeDiff(prevEventEts, event.ets).get
+        prevEventEts = event.ets
+        this.time_spent += CommonUtil.roundDouble((if (ts > idleTime) 0 else ts), 2)
         if (StringUtils.equals(event.eid, "INTERACT")) this.interact_events_count += 1
         val prevCount = events_summary.get(event.eid).getOrElse(0l)
         events_summary += (event.eid -> (prevCount + 1))
         if (lastImpression != null) {
             val prevTs = impressionMap.get(lastImpression).getOrElse(0.0)
-            impressionMap += (lastImpression -> (prevTs + this.time_spent))
+            impressionMap += (lastImpression -> (prevTs + ts))
         }
         if (StringUtils.equals(event.eid, "IMPRESSION")) {
             if (lastImpression == null) {
@@ -53,7 +54,7 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
                 impressionMap += (lastImpression -> 0.0)
             } else {
                 val prevTs = impressionMap.get(lastImpression).getOrElse(0.0)
-                impressionMap += (lastImpression -> (prevTs + this.time_spent))
+                impressionMap += (lastImpression -> (prevTs + ts))
                 lastImpression = event
                 impressionMap += (lastImpression -> 0.0)
             }
@@ -75,7 +76,7 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     }
 
     def addChild(child: Summary) {
-        CHILD.append(child);
+        this.CHILD.append(child);
     }
 
     def setParent(parent: Summary) {
