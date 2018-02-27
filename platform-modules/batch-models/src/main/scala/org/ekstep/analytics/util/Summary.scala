@@ -12,23 +12,23 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     val DEFAULT_MODE = "play";
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = firstEvent.actor.id
-    val content_id: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
-    val session_type: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
+    val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
+    val sessionType: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
     val mode: Option[String] = if (firstEvent.edata.mode == null) Option(DEFAULT_MODE) else Option(firstEvent.edata.mode)
-    val telemetry_version: String = firstEvent.ver
-    val start_time: Long = firstEvent.ets
+    val telemetryVersion: String = firstEvent.ver
+    val startTime: Long = firstEvent.ets
     val etags: Option[ETags] = Option(CommonUtil.getETags(firstEvent))
 
-    var last_event: V3Event = null
-    var item_responses: Buffer[ItemResponse] = Buffer[ItemResponse]()
-    var end_time: Long = 0l
-    var time_spent: Double = 0.0
-    var time_diff: Double = 0.0
-    var interact_events_count: Long = 0l
-    var env_summary: Iterable[EnvSummary] = Iterable[EnvSummary]()
-    var events_summary: Map[String, Long] = Map(firstEvent.eid -> 1)
-    var page_summary: Iterable[PageSummary] = Iterable[PageSummary]()
-    var prevEventEts: Long = start_time
+    var lastEvent: V3Event = null
+    var itemResponses: Buffer[ItemResponse] = Buffer[ItemResponse]()
+    var endTime: Long = 0l
+    var timeSpent: Double = 0.0
+    var timeDiff: Double = 0.0
+    var interactEventsCount: Long = 0l
+    var envSummary: Iterable[EnvSummary] = Iterable[EnvSummary]()
+    var eventsSummary: Map[String, Long] = Map(firstEvent.eid -> 1)
+    var pageSummary: Iterable[PageSummary] = Iterable[PageSummary]()
+    var prevEventEts: Long = startTime
     var lastImpression: V3Event = null
     var impressionMap: Map[V3Event, Double] = Map()
 
@@ -40,10 +40,10 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     def add(event: V3Event, idleTime: Int, itemMapping: Map[String, Item]) {
         val ts = CommonUtil.getTimeDiff(prevEventEts, event.ets).get
         prevEventEts = event.ets
-        this.time_spent += CommonUtil.roundDouble((if (ts > idleTime) 0 else ts), 2)
-        if (StringUtils.equals(event.eid, "INTERACT")) this.interact_events_count += 1
-        val prevCount = events_summary.get(event.eid).getOrElse(0l)
-        events_summary += (event.eid -> (prevCount + 1))
+        this.timeSpent += CommonUtil.roundDouble((if (ts > idleTime) 0 else ts), 2)
+        if (StringUtils.equals(event.eid, "INTERACT")) this.interactEventsCount += 1
+        val prevCount = eventsSummary.get(event.eid).getOrElse(0l)
+        eventsSummary += (event.eid -> (prevCount + 1))
         if (lastImpression != null) {
             val prevTs = impressionMap.get(lastImpression).getOrElse(0.0)
             impressionMap += (lastImpression -> (prevTs + ts))
@@ -59,11 +59,11 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
                 impressionMap += (lastImpression -> 0.0)
             }
         }
-        this.last_event = event
-        this.end_time = this.last_event.ets
-        this.time_diff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.start_time, this.end_time).get, 2)
-        this.page_summary = getPageSummaries();
-        this.env_summary = getEnvSummaries();
+        this.lastEvent = event
+        this.endTime = this.lastEvent.ets
+        this.timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.startTime, this.endTime).get, 2)
+        this.pageSummary = getPageSummaries();
+        this.envSummary = getEnvSummaries();
 
         if (StringUtils.equals(event.eid, "ASSESS")) {
             val itemObj = getItem(itemMapping, event);
@@ -71,7 +71,7 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
             val resValues = if (null == event.edata.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(event.edata.resvalues.map(f => f.asInstanceOf[AnyRef]))
             val res = if (null == event.edata.resvalues) Option(Array[String]()); else Option(event.edata.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) });
             val item = event.edata.item
-            this.item_responses += ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(event.edata.duration), Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), event.edata.score, event.ets, metadata.get("max_score"), metadata.get("domain"), event.edata.pass, Option(item.title), Option(item.desc));
+            this.itemResponses += ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(event.edata.duration), Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), event.edata.score, event.ets, metadata.get("max_score"), metadata.get("domain"), event.edata.pass, Option(item.title), Option(item.desc));
         }
     }
 
@@ -117,8 +117,8 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     }
 
     def getEnvSummaries(): Iterable[EnvSummary] = {
-        if (this.page_summary.size > 0) {
-            this.page_summary.groupBy { x => x.env }.map { f =>
+        if (this.pageSummary.size > 0) {
+            this.pageSummary.groupBy { x => x.env }.map { f =>
                 val timeSpent = CommonUtil.roundDouble(f._2.map(x => x.time_spent).sum, 2)
                 val count = f._2.map(x => x.visit_count).max;
                 EnvSummary(f._1, timeSpent, count)
@@ -128,16 +128,16 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
 
     private def reduce(child: Summary) {
         // TODO add reduce code here
-        this.time_spent += child.time_spent
-        this.interact_events_count += child.interact_events_count
-        this.end_time = child.end_time
-        this.last_event = child.last_event
-        this.time_diff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.start_time, this.end_time).get, 2)
-        val eventsList = this.events_summary.toList ++ child.events_summary.toList
-        this.events_summary = eventsList.groupBy (_._1) .map { case (k,v) => k -> v.map(_._2).sum }
+        this.timeSpent += child.timeSpent
+        this.interactEventsCount += child.interactEventsCount
+        this.endTime = child.endTime
+        this.lastEvent = child.lastEvent
+        this.timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.startTime, this.endTime).get, 2)
+        val eventsList = this.eventsSummary.toList ++ child.eventsSummary.toList
+        this.eventsSummary = eventsList.groupBy (_._1) .map { case (k,v) => k -> v.map(_._2).sum }
         this.impressionMap = this.impressionMap ++ child.impressionMap
-        this.page_summary = getPageSummaries();
-        this.env_summary = getEnvSummaries();
+        this.pageSummary = getPageSummaries();
+        this.envSummary = getEnvSummaries();
     }
 
     def close() {

@@ -141,9 +141,8 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
             if(unclosedSummaries.size > 0) {
                 unclosedSummaries.foreach { f =>
                         f.close();
-                        unclosedSummaries -= f
                         summary += f;
-                    }
+                }
             }
             (f.sessionKey, summary);
         }
@@ -154,28 +153,28 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
         data.map { f =>
             val index = f.index
             f.summaries.map { session =>
-                val dt_range = DtRange(session.start_time, session.end_time)
-                val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", dt_range, "NA", Option(index.pdataId), Option(index.channel));
-                val interactEventsPerMin: Double = if (session.interact_events_count == 0 || session.time_spent == 0) 0d
-                    else if (session.time_spent < 60.0) session.interact_events_count.toDouble
-                    else BigDecimal(session.interact_events_count / (session.time_spent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
-                val syncts = CommonUtil.getEventSyncTS(session.last_event)
-                val events_summary = session.events_summary.map(f => EventSummary(f._1, f._2.toInt))
-                val measures = Map("start_time" -> session.start_time,
-                    "end_time" -> session.end_time,
-                    "time_diff" -> session.time_diff,
-                    "time_spent" -> CommonUtil.roundDouble(session.time_spent, 2),
-                    "telemetry_version" -> session.telemetry_version,
+                val dtRange = DtRange(session.startTime, session.endTime)
+                val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", session.uid, "SESSION", dtRange, "NA", Option(index.pdataId), Option(index.channel));
+                val interactEventsPerMin: Double = if (session.interactEventsCount == 0 || session.timeSpent == 0) 0d
+                    else if (session.timeSpent < 60.0) session.interactEventsCount.toDouble
+                    else BigDecimal(session.interactEventsCount / (session.timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+                val syncts = CommonUtil.getEventSyncTS(session.lastEvent)
+                val eventsSummary = session.eventsSummary.map(f => EventSummary(f._1, f._2.toInt))
+                val measures = Map("start_time" -> session.startTime,
+                    "end_time" -> session.endTime,
+                    "time_diff" -> session.timeDiff,
+                    "time_spent" -> CommonUtil.roundDouble(session.timeSpent, 2),
+                    "telemetry_version" -> session.telemetryVersion,
                     "mode" -> session.mode,
-                    "item_responses" -> session.item_responses,
-                    "interact_events_count" -> session.interact_events_count,
+                    "item_responses" -> session.itemResponses,
+                    "interact_events_count" -> session.interactEventsCount,
                     "interact_events_per_min" -> interactEventsPerMin,
-                    "env_summary" -> session.env_summary,
-                    "events_summary" -> events_summary,
-                    "page_summary" -> session.page_summary);
+                    "env_summary" -> session.envSummary,
+                    "events_summary" -> eventsSummary,
+                    "page_summary" -> session.pageSummary);
                 MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, session.uid, null, None, None,
-                    Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dt_range),
-                    Dimensions(None, Option(index.did), None, None, None, None, Option(PData(index.pdataId, "1.0")), None, None, None, None, None, session.content_id, None, None, Option(session.sid), None, None, None, None, None, None, None, None, None, None, Option(index.channel), Option(session.session_type)),
+                    Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dtRange),
+                    Dimensions(None, Option(index.did), None, None, None, None, Option(PData(index.pdataId, "1.0")), None, None, None, None, None, session.contentId, None, None, Option(session.sid), None, None, None, None, None, None, None, None, None, None, Option(index.channel), Option(session.sessionType)),
                     MEEdata(measures), session.etags);
             }
         }.flatMap(x => x)
