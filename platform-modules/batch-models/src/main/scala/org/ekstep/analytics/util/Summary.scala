@@ -1,23 +1,27 @@
 package org.ekstep.analytics.util
 
 import org.ekstep.analytics.framework._
-
 import scala.collection.mutable.Buffer
-import org.ekstep.analytics.model.{ EnvSummary, EventSummary, ItemResponse, PageSummary }
+import org.ekstep.analytics.model.{EnvSummary, EventSummary, ItemResponse, PageSummary}
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 
-class Summary(val summaryKey: String, val firstEvent: V3Event) {
+class Summary(val firstEvent: V3Event) {
 
     val DEFAULT_MODE = "play";
+    val defaultPData = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = firstEvent.actor.id
     val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
-    val sessionType: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
+    val `type`: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
     val mode: Option[String] = if (firstEvent.edata.mode == null) Option(DEFAULT_MODE) else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
     val startTime: Long = firstEvent.ets
     val etags: Option[ETags] = Option(CommonUtil.getETags(firstEvent))
+    val channel: String = firstEvent.context.channel
+    val did: String = firstEvent.context.did.getOrElse("")
+    val pdata: V3PData = firstEvent.context.pdata.getOrElse(defaultPData)
 
     var lastEvent: V3Event = null
     var itemResponses: Buffer[ItemResponse] = Buffer[ItemResponse]()
@@ -31,8 +35,9 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
     var prevEventEts: Long = startTime
     var lastImpression: V3Event = null
     var impressionMap: Map[V3Event, Double] = Map()
+    var summaryEvents: Buffer[MeasuredEvent] = Buffer()
 
-    var CHILD: Buffer[Summary] = Buffer()
+    var CHILDREN: Buffer[Summary] = Buffer()
     var PARENT: Summary = null
 
     var isClosed: Boolean = false
@@ -73,13 +78,15 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
             val item = event.edata.item
             this.itemResponses += ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(event.edata.duration), Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), event.edata.score, event.ets, metadata.get("max_score"), metadata.get("domain"), event.edata.pass, Option(item.title), Option(item.desc));
         }
+
+        if(this.PARENT != null) this.PARENT.add(event, idleTime, itemMapping)
     }
 
     def addChild(child: Summary) {
-        this.CHILD.append(child);
+        this.CHILDREN.append(child);
     }
 
-    def setParent(parent: Summary) {
+    def addParent(parent: Summary) {
         this.PARENT = parent;
     }
 
@@ -87,8 +94,70 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
         return this.PARENT;
     }
 
-    def checkSimilarity(eventKey: String): Boolean = {
-        StringUtils.equals(this.summaryKey, eventKey)
+    def checkStart(`type`: String, mode: String, summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
+        if(this.`type` == `type` && this.mode.get == mode) {
+            this.close(summEvents, config);
+            return PARENT;
+        }
+        if(this.PARENT == null) {
+            return null;
+        }
+        return PARENT.checkStart(`type`, mode, summEvents, config);
+    }
+
+    def checkEnd(event: V3Event, idleTime: Int, itemMapping: Map[String, Item], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
+        if(this.`type` == event.edata.`type` && this.mode.get == event.edata.mode) {
+            this.add(event, idleTime, itemMapping)
+            this.close(summEvents, config);
+            if(this.PARENT == null) return this else return PARENT;
+        }
+        if(this.PARENT == null) {
+            return this;
+        }
+        val summ = PARENT.checkEnd(event, idleTime, itemMapping, summEvents, config)
+        if (summ == null) {
+            return this;
+        }
+        return summ;
+    }
+
+    def close(summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]) {
+        this.CHILDREN.foreach{summ =>
+            summ.close(summEvents, config);
+        }
+        if(this.timeSpent > 0) this.summaryEvents = summEvents += this.getSummaryEvent(config);
+        this.isClosed = true;
+    }
+
+    def getSummaryEvent(config: Map[String, AnyRef]): MeasuredEvent = {
+        val meEventVersion = AppConf.getConfig("telemetry.version");
+        val dtRange = DtRange(this.startTime, this.endTime)
+        val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", this.uid, "SESSION", dtRange, "NA", Option(this.pdata.id), Option(this.channel));
+        val interactEventsPerMin: Double = if (this.interactEventsCount == 0 || this.timeSpent == 0) 0d
+        else if (this.timeSpent < 60.0) this.interactEventsCount.toDouble
+        else BigDecimal(this.interactEventsCount / (this.timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
+        val syncts = CommonUtil.getEventSyncTS(if(this.lastEvent == null) this.firstEvent else this.lastEvent)
+        val eventsSummary = this.eventsSummary.map(f => EventSummary(f._1, f._2.toInt))
+        val measures = Map("start_time" -> this.startTime,
+            "end_time" -> this.endTime,
+            "time_diff" -> this.timeDiff,
+            "time_spent" -> CommonUtil.roundDouble(this.timeSpent, 2),
+            "telemetry_version" -> this.telemetryVersion,
+            "mode" -> this.mode,
+            "item_responses" -> this.itemResponses,
+            "interact_events_count" -> this.interactEventsCount,
+            "interact_events_per_min" -> interactEventsPerMin,
+            "env_summary" -> this.envSummary,
+            "events_summary" -> eventsSummary,
+            "page_summary" -> this.pageSummary);
+        MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, this.uid, null, None, None,
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dtRange),
+            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"))), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`)),
+            MEEdata(measures), this.etags);
+    }
+
+    def checkSimilarity(summ: Summary): Boolean = {
+        StringUtils.equals(this.`type`, summ.`type`) && StringUtils.equals(this.mode.get, summ.mode.get) && (this.startTime == summ.startTime)
     }
 
     /**
@@ -126,27 +195,27 @@ class Summary(val summaryKey: String, val firstEvent: V3Event) {
         } else Iterable[EnvSummary]()
     }
 
-    private def reduce(child: Summary) {
-        // TODO add reduce code here
-        this.timeSpent += child.timeSpent
-        this.interactEventsCount += child.interactEventsCount
-        this.endTime = child.endTime
-        this.lastEvent = child.lastEvent
-        this.timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.startTime, this.endTime).get, 2)
-        val eventsList = this.eventsSummary.toList ++ child.eventsSummary.toList
-        this.eventsSummary = eventsList.groupBy (_._1) .map { case (k,v) => k -> v.map(_._2).sum }
-        this.impressionMap = this.impressionMap ++ child.impressionMap
-        this.pageSummary = getPageSummaries();
-        this.envSummary = getEnvSummaries();
-    }
+//    private def reduce(child: Summary) {
+//        // TODO add reduce code here
+//        this.timeSpent += child.timeSpent
+//        this.interactEventsCount += child.interactEventsCount
+//        this.endTime = child.endTime
+//        this.lastEvent = child.lastEvent
+//        this.timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.startTime, this.endTime).get, 2)
+//        val eventsList = this.eventsSummary.toList ++ child.eventsSummary.toList
+//        this.eventsSummary = eventsList.groupBy (_._1) .map { case (k,v) => k -> v.map(_._2).sum }
+//        this.impressionMap = this.impressionMap ++ child.impressionMap
+//        this.pageSummary = getPageSummaries();
+//        this.envSummary = getEnvSummaries();
+//    }
 
-    def close() {
-        if (this.CHILD != null) {
-            for (child <- CHILD) {
-                this.reduce(child)
-                child.close();
-            }
-        }
-        this.isClosed = true
-    }
+//    def close() {
+//        if (this.CHILDREN != null) {
+//            for (child <- CHILDREN) {
+//                this.reduce(child)
+//                child.close();
+//            }
+//        }
+//        this.isClosed = true
+//    }
 }

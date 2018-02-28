@@ -19,13 +19,3 @@ platform-modules/batch-models/logs
 **/tmp/*
 platform-framework/analytics-core/files
 .DS_Store
-analytics-platform.iml
-platform-modules/platform-modules.iml
-platform-modules/batch-models/batch-models.iml
-platform-framework/platform-framework.iml
-platform-framework/analytics-core/analytics-core.iml
-platform-framework/analytics-job-driver/analytics-job-driver.iml
-.idea/*
-platform-api/analytics-api/analytics-api.iml
-platform-api/analytics-api-core/analytics-api-core.iml
-platform-modules/job-manager/job-manager.iml
