@@ -15,7 +15,7 @@ class Summary(val firstEvent: V3Event) {
     val uid: String = firstEvent.actor.id
     val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
     val `type`: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
-    val mode: Option[String] = if (firstEvent.edata.mode == null) Option(DEFAULT_MODE) else Option(firstEvent.edata.mode)
+    val mode: Option[String] = if (firstEvent.edata.mode == null) Option(null) else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
     val startTime: Long = firstEvent.ets
     val etags: Option[ETags] = Option(CommonUtil.getETags(firstEvent))
@@ -94,21 +94,23 @@ class Summary(val firstEvent: V3Event) {
         return this.PARENT;
     }
 
-    def checkStart(`type`: String, mode: String, summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
-        if(this.`type` == `type` && this.mode.get == mode) {
+    def checkStart(`type`: String, mode: Option[String], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
+        if(this.`type` == `type` && this.mode == mode) {
             this.close(summEvents, config);
-            return PARENT;
+            if(this.PARENT != null) return PARENT else return this;
         }
-        if(this.PARENT == null) {
+        else if(this.PARENT == null) {
             return null;
         }
-        return PARENT.checkStart(`type`, mode, summEvents, config);
+        else {
+            return  PARENT.checkStart(`type`, mode, summEvents, config);
+        }
     }
 
     def checkEnd(event: V3Event, idleTime: Int, itemMapping: Map[String, Item], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
         if(this.`type` == event.edata.`type` && this.mode.get == event.edata.mode) {
-            this.add(event, idleTime, itemMapping)
-            this.close(summEvents, config);
+//            this.add(event, idleTime, itemMapping)
+//            this.close(summEvents, config);
             if(this.PARENT == null) return this else return PARENT;
         }
         if(this.PARENT == null) {
@@ -125,7 +127,10 @@ class Summary(val firstEvent: V3Event) {
         this.CHILDREN.foreach{summ =>
             summ.close(summEvents, config);
         }
-        if(this.timeSpent > 0) this.summaryEvents = summEvents += this.getSummaryEvent(config);
+        if(this.timeSpent > 0) {
+            this.summaryEvents ++= summEvents
+            this.summaryEvents += this.getSummaryEvent(config)
+        };
         this.isClosed = true;
     }
 
@@ -195,27 +200,4 @@ class Summary(val firstEvent: V3Event) {
         } else Iterable[EnvSummary]()
     }
 
-//    private def reduce(child: Summary) {
-//        // TODO add reduce code here
-//        this.timeSpent += child.timeSpent
-//        this.interactEventsCount += child.interactEventsCount
-//        this.endTime = child.endTime
-//        this.lastEvent = child.lastEvent
-//        this.timeDiff = CommonUtil.roundDouble(CommonUtil.getTimeDiff(this.startTime, this.endTime).get, 2)
-//        val eventsList = this.eventsSummary.toList ++ child.eventsSummary.toList
-//        this.eventsSummary = eventsList.groupBy (_._1) .map { case (k,v) => k -> v.map(_._2).sum }
-//        this.impressionMap = this.impressionMap ++ child.impressionMap
-//        this.pageSummary = getPageSummaries();
-//        this.envSummary = getEnvSummaries();
-//    }
-
-//    def close() {
-//        if (this.CHILDREN != null) {
-//            for (child <- CHILDREN) {
-//                this.reduce(child)
-//                child.close();
-//            }
-//        }
-//        this.isClosed = true
-//    }
 }

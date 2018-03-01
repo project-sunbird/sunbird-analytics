@@ -66,47 +66,71 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
         val contents = ContentAdapter.getAllContent();
         val itemData = getItemData(contents, gameList, "v2");
         val itemMapping = sc.broadcast(itemData);
+        var summEvents: Buffer[MeasuredEvent] = Buffer();
+        var summEventsB = sc.broadcast(summEvents);
 
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
-        val summaryOut = data.map { f =>
+
+        data.foreach{ f =>
             val sortedEvents = f.events.sortBy { x => x.ets }
             var rootSummary: org.ekstep.analytics.util.Summary = null
             var currSummary: org.ekstep.analytics.util.Summary = null
 
-            sortedEvents.foreach { x =>
+            sortedEvents.foreach{ x =>
                 (x.eid) match {
 
                     case ("START") =>
                         if (rootSummary == null || rootSummary.isClosed) {
+                            if(currSummary != null && !currSummary.isClosed){
+                                currSummary.close(summEvents, config);
+                                summEventsB.value ++= currSummary.summaryEvents;
+                            }
                             rootSummary = new org.ekstep.analytics.util.Summary(x)
                             currSummary = rootSummary
                         }
-                        if (currSummary == null || currSummary.isClosed) {
+                        else if (currSummary == null || currSummary.isClosed) {
+                            summEventsB.value ++= currSummary.summaryEvents
                             currSummary = new org.ekstep.analytics.util.Summary(x)
                             if (!currSummary.checkSimilarity(rootSummary)) rootSummary.addChild(currSummary)
                         }
-                        val tempSummary = currSummary.checkStart(x.edata.`type`, x.edata.mode, Buffer(), config)
-                        if (tempSummary == null) {
-                            val newSumm = new org.ekstep.analytics.util.Summary(x)
-                            if (!currSummary.isClosed) {
-                                currSummary.addChild(newSumm)
-                                newSumm.addParent(currSummary)
+                        else {
+                            val tempSummary = currSummary.checkStart(x.edata.`type`, Option(x.edata.mode), currSummary.summaryEvents, config)
+                            if (tempSummary == null) {
+                                val newSumm = new org.ekstep.analytics.util.Summary(x)
+                                if (!currSummary.isClosed) {
+                                    currSummary.addChild(newSumm)
+                                    newSumm.addParent(currSummary)
+                                }
+                                currSummary = newSumm
                             }
-                            currSummary = newSumm
+                            else {
+                                if(currSummary.PARENT != null) {
+                                    summEventsB.value ++= currSummary.PARENT.summaryEvents
+                                }
+                                else summEventsB.value ++= currSummary.summaryEvents
+                                currSummary = new org.ekstep.analytics.util.Summary(x)
+                            }
                         }
                     case ("END") =>
-                        currSummary = currSummary.checkEnd(x, idleTime, itemMapping.value, currSummary.summaryEvents, config)
+                        val parentSummary = currSummary.checkEnd(x, idleTime, itemMapping.value, currSummary.summaryEvents, config)
+                        if(!currSummary.isClosed) {
+                            currSummary.add(x, idleTime, itemMapping.value)
+                            currSummary.close(summEvents, config);
+                        }
+                        summEventsB.value ++= currSummary.summaryEvents
+                        currSummary = parentSummary
                     case _ =>
                         if (currSummary != null) {
                             currSummary.add(x, idleTime, itemMapping.value)
                         }
                 }
-
             }
-            if (currSummary != null && !currSummary.isClosed) currSummary.close(currSummary.summaryEvents, config)
-            if (currSummary != null) currSummary.summaryEvents else Buffer[MeasuredEvent]();
+            if(currSummary != null && !currSummary.isClosed){
+                currSummary.close(currSummary.summaryEvents, config)
+                summEventsB.value ++= currSummary.summaryEvents
+            }
         }
-        summaryOut.flatMap(x => x)
+        sc.parallelize(summEventsB.value);
     }
     override def postProcess(data: RDD[MeasuredEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data
