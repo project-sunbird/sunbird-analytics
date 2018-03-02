@@ -203,7 +203,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
             val lastEvent = events.last;
             val telemetryVer = firstEvent.ver;
             val gameId = firstEvent.`object`.get.id;
-            val gameVersion = firstEvent.`object`.get.ver.get;
+            val gameVersion = firstEvent.`object`.get.ver.getOrElse("1.0");
 
             val content = contentTypeMapping.value.getOrElse(gameId, (Option("Game"), Option("application/vnd.android.package-archive")));
             val contentType = content._1;
