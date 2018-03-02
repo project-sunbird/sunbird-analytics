@@ -5,27 +5,13 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.AlgoInput
-import org.ekstep.analytics.framework.AlgoOutput
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.DataFilter
-import org.ekstep.analytics.framework.Dimensions
-import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.ETags
-import org.ekstep.analytics.framework.Event
-import org.ekstep.analytics.framework.Filter
-import org.ekstep.analytics.framework.IBatchModelTemplate
-import org.ekstep.analytics.framework.MEEdata
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.V3Event
 import org.ekstep.analytics.util.Constants
 import org.apache.commons.lang3.StringUtils
-import org.ekstep.analytics.framework.V3PData
 
 case class GenieSummary(did: String, timeSpent: Double, time_stamp: Long, content: Buffer[String], contentCount: Int, syncts: Long,
                         etags: Option[ETags] = Option(ETags(None, None, None)), dateRange: DtRange, stageSummary: Iterable[GenieStageSummary], pdata: PData, channel: String) extends AlgoOutput
@@ -119,7 +105,7 @@ object GenieLaunchSummaryModel extends SessionBatchModel[V3Event, MeasuredEvent]
             val endTimestamp = geEnd.ets
             val dtRange = DtRange(startTimestamp, endTimestamp);
             val timeSpent = CommonUtil.getTimeDiff(startTimestamp, endTimestamp)
-            val content = x.events.filter { x => "START".equals(x.eid) && Constants.PLAYER_ENV.equals(x.context.env) }.map { x => x.`object`.get.id }.filter { x => x != null }.distinct
+            val content = x.events.filter { x => "START".equals(x.eid) && Constants.PLAYER_ENV.equals(x.context.env) }.map { x => x.`object`.getOrElse(V3Object(null, null, None, None)).id }.filter { x => x != null }.distinct
             val stageSummary = computeGenieScreenSummary(x.events)
             GenieSummary(x.did, timeSpent.getOrElse(0d), endTimestamp, content, content.size, syncts, Option(CommonUtil.getETags(geEnd)), dtRange, stageSummary, pdata, channel);
         }.filter { x => (x.timeSpent >= 0) }
