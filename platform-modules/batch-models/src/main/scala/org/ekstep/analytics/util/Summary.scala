@@ -86,8 +86,10 @@ class Summary(val firstEvent: V3Event) {
         this.CHILDREN.append(child);
     }
 
-    def addParent(parent: Summary) {
+    def addParent(parent: Summary, idleTime: Int, itemMapping: Map[String, Item]) {
         this.PARENT = parent;
+        // Add first event of child to parent
+        this.PARENT.add(this.firstEvent, idleTime, itemMapping)
     }
 
     def getParent(): Summary = {

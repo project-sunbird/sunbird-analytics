@@ -99,7 +99,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                                 val newSumm = new org.ekstep.analytics.util.Summary(x)
                                 if (!currSummary.isClosed) {
                                     currSummary.addChild(newSumm)
-                                    newSumm.addParent(currSummary)
+                                    newSumm.addParent(currSummary, idleTime, itemMapping.value)
                                 }
                                 currSummary = newSumm
                             }

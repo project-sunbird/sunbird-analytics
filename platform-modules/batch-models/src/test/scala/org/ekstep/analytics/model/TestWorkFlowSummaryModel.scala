@@ -155,8 +155,8 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         esList1.size should be(2);
         val esMap1 = esList1.map { x => (x.id, x.count) }.toMap
         esMap1.get("INTERACT").get should be(1);
-        esMap1.get("START").get should be(1); // Note: check this
-        
+        esMap1.get("START").get should be(2);
+
         val event2 = sessionSummaryEvent1.head
         
         // Validate for event envelope
