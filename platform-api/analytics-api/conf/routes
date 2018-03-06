@@ -15,6 +15,7 @@ POST /metrics/genie-launch @controllers.Metrics.genieLaunch
 POST /metrics/list/content @controllers.Metrics.contentList
 POST /tag/register/:tagId @controllers.Application.registerTag(tagId: String)
 DELETE /tag/delete/:tagId @controllers.Application.deleteTag(tagId: String)
+POST /metrics/workflow-usage @controllers.Metrics.workflowUsage
 
 POST /metrics/:datasetId/:summary @controllers.Metrics.get(datasetId: String, summary: String)
 

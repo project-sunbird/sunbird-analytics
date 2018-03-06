@@ -1,7 +1,6 @@
 package org.ekstep.analytics.api.service
 
 import scala.collection.JavaConverters.mapAsJavaMapConverter
-
 import org.apache.commons.lang.StringUtils
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.api.APIIds
@@ -9,21 +8,14 @@ import org.ekstep.analytics.api.Filter
 import org.ekstep.analytics.api.MetricsRequest
 import org.ekstep.analytics.api.MetricsRequestBody
 import org.ekstep.analytics.api.ResponseCode
-import org.ekstep.analytics.api.metrics.ContentPopularityMetricsModel
-import org.ekstep.analytics.api.metrics.ContentUsageListMetricsModel
-import org.ekstep.analytics.api.metrics.CotentUsageMetricsModel
-import org.ekstep.analytics.api.metrics.GenieLaunchMetricsModel
-import org.ekstep.analytics.api.metrics.ItemUsageMetricsModel
+import org.ekstep.analytics.api.metrics._
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.RestUtil
-
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-
 import akka.actor.Actor
 import akka.actor.actorRef2Scala
-import org.ekstep.analytics.api.metrics.UsageMetricsModel
 
 /**
  * @author mahesh
@@ -38,6 +30,7 @@ object MetricsAPIService {
     case class ContentList(body: MetricsRequestBody, config: Config);
     case class GenieLaunch(body: MetricsRequestBody, config: Config);
     case class ItemUsage(body: MetricsRequestBody, config: Config);
+    case class WorkflowUsage(body: MetricsRequestBody, config: Config);
     case class Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config);
 
     def metrics(dataset: String, summary: String, body: MetricsRequestBody)(implicit config: Config): String = {
@@ -215,6 +208,27 @@ object MetricsAPIService {
         }
     }
 
+    private def workflowUsage(body: MetricsRequestBody)(implicit config: Config): String = {
+        if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
+            CommonUtil.errorResponseSerialized(APIIds.WORKFLOW_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
+        } else {
+            try {
+                val filter = body.request.filter.getOrElse(Filter());
+                val userId = filter.user_id.getOrElse("all");
+                val contentId = filter.content_id.getOrElse("all");
+                val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
+                val tag = getTag(filter);
+                val deviceId = filter.device_id.getOrElse("all");
+                val metrics_type = filter.metrics_type.getOrElse("app")
+                val result = WorkflowUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId, userId, deviceId, metrics_type);
+                JSONUtils.serialize(CommonUtil.OK(APIIds.WORKFLOW_USAGE, result));
+            } catch {
+                case ex: Exception =>
+                    CommonUtil.errorResponseSerialized(APIIds.WORKFLOW_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+            }
+        }
+    }
+
     private def getTag(filter: Filter): String = {
         val tags = filter.tags.getOrElse(Array());
         if (tags.length == 0) {
@@ -235,6 +249,7 @@ class MetricsAPIService extends Actor {
         case ContentList(body: MetricsRequestBody, config: Config)                               => sender() ! contentList(body)(config);
         case GenieLaunch(body: MetricsRequestBody, config: Config)                               => sender() ! genieLaunch(body)(config);
         case ItemUsage(body: MetricsRequestBody, config: Config)                                 => sender() ! itemUsage(body)(config);
+        case WorkflowUsage(body: MetricsRequestBody, config: Config)                             => sender() ! workflowUsage(body)(config);
         case Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config) => sender() ! metrics(dataset, summary, body)(config);
     }
 }

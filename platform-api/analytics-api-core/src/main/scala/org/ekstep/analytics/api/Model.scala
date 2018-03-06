@@ -14,7 +14,7 @@ object Model {
 
 }
 
-case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None, tags: Option[Array[String]] = None, start_date: Option[String] = None, end_date: Option[String] = None, events: Option[Array[String]] = None, app_id: Option[String] = Option(""), channel: Option[String] = Option(""), user_id: Option[String] = None);
+case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None, tags: Option[Array[String]] = None, start_date: Option[String] = None, end_date: Option[String] = None, events: Option[Array[String]] = None, app_id: Option[String] = Option(""), channel: Option[String] = Option(""), user_id: Option[String] = None, device_id: Option[String] = None, metrics_type: Option[String] = None);
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
 case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int], output_format: Option[String], dataset_id: Option[String]);
 case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
@@ -37,6 +37,7 @@ case class ContentId(d_content_id: String);
 case class ContentUsageSummaryFact(d_period: Int, d_content_id: String, d_tag: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime,
 	m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double)
 
+case class WorkflowUsageMetrics(override val d_period: Option[Int] = None, label: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_sessions: Option[Long] = Option(0), m_avg_ts_session: Option[Double] = Option(0.0), m_total_interactions: Option[Long] = Option(0), m_avg_interactions_min: Option[Double] = Option(0.0), m_total_pageviews_count: Option[Long] = Option(0), m_avg_pageviews: Option[Double] = Option(0), m_total_users_count: Option[Long] = Option(0), m_total_content_count: Option[Long] = Option(0), m_total_devices_count: Option[Long] = Option(0)) extends Metrics;
 case class UsageMetrics(override val d_period: Option[Int] = None, label: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_sessions: Option[Long] = Option(0), m_avg_ts_session: Option[Double] = Option(0.0), m_total_interactions: Option[Long] = Option(0), m_avg_interactions_min: Option[Double] = Option(0.0), m_total_users_count: Option[Long] = Option(0), m_total_content_count: Option[Long] = Option(0), m_total_devices_count: Option[Long] = Option(0)) extends Metrics;
 case class ContentUsageMetrics(override val d_period: Option[Int] = None, label: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_sessions: Option[Long] = Option(0), m_avg_ts_session: Option[Double] = Option(0.0), m_total_interactions: Option[Long] = Option(0), m_avg_interactions_min: Option[Double] = Option(0.0), m_total_devices: Option[Long] = Option(0), m_avg_sess_device: Option[Double] = Option(0.0)) extends Metrics;
 case class ContentUsageListMetrics(override val d_period: Option[Int] = None, label: Option[String] = None, m_contents: Option[List[AnyRef]] = Option(List()), content: Option[List[AnyRef]] = Option(List())) extends Metrics;
@@ -95,6 +96,7 @@ object APIIds {
 	val CREATION_RECOMMENDATIONS = "ekstep.analytics.creation.recommendations"
 	val METRICS_API = "org.ekstep.analytics.metrics"
 	val CHANNEL_TELEMETRY_EXHAUST = "org.ekstep.analytics.telemetry"
+	val WORKFLOW_USAGE = "ekstep.analytics.metrics.workflow-usage"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);

@@ -30,7 +30,8 @@ object PrecomputedViews extends IBatchModel[String,String] with Serializable {
         precomputeContentPopularityMetrics();
         precomputeGenieLaunchMetrics();
         precomputeItemUsageMetrics();
-        precomputeUsageMetrics()
+        precomputeUsageMetrics();
+        precomputeWorkflowUsageMetrics();
         events
     }
     
@@ -92,6 +93,18 @@ object PrecomputedViews extends IBatchModel[String,String] with Serializable {
         precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 12, "MONTH", AppConf.getConfig("pc_files_prefix") +"us", "12MONTHS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
         precomputeMetrics[UsageSummaryView](View(Constants.CONTENT_KEY_SPACE_NAME, Constants.USAGE_SUMMARY_FACT, 1, "CUMULATIVE", AppConf.getConfig("pc_files_prefix") + "us", "CUMULATIVE.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
         
+    }
+
+    def precomputeWorkflowUsageMetrics()(implicit sc: SparkContext) {
+        val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("pc_dispatch_params"));
+        val groupFn = (x: WorkflowUsageSummaryView) => { (x.d_tag + "-" + x.d_user_id + "-" + x.d_content_id + "-" + x.d_device_id + "-" + x.d_type + "-" + x.d_channel) };
+        precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 7, "DAY", AppConf.getConfig("pc_files_prefix") + "wfus", "7DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 14, "DAY", AppConf.getConfig("pc_files_prefix") + "wfus", "14DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 30, "DAY", AppConf.getConfig("pc_files_prefix") + "wfus", "30DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 5, "WEEK", AppConf.getConfig("pc_files_prefix") +"wfus", "5WEEKS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 12, "MONTH", AppConf.getConfig("pc_files_prefix") +"wfus", "12MONTHS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+        precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 1, "CUMULATIVE", AppConf.getConfig("pc_files_prefix") + "wfus", "CUMULATIVE.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
+
     }
 
     def precomputeMetrics[T <: CassandraTable](view: View, groupFn: (T) => String)(implicit mf: Manifest[T], sc: SparkContext){
