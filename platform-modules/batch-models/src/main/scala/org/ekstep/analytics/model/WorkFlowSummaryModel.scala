@@ -112,13 +112,16 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             }
                         }
                     case ("END") =>
-                        val parentSummary = currSummary.checkEnd(x, idleTime, itemMapping.value, currSummary.summaryEvents, config)
-                        if(!currSummary.isClosed) {
-                            currSummary.add(x, idleTime, itemMapping.value)
-                            currSummary.close(summEvents, config);
+                        // Check if first event is END event, currSummary = null
+                        if(currSummary != null) {
+                            val parentSummary = currSummary.checkEnd(x, idleTime, itemMapping.value, currSummary.summaryEvents, config)
+                            if (!currSummary.isClosed) {
+                                currSummary.add(x, idleTime, itemMapping.value)
+                                currSummary.close(summEvents, config);
+                            }
+                            summEventsB.value ++= currSummary.summaryEvents
+                            currSummary = parentSummary
                         }
-                        summEventsB.value ++= currSummary.summaryEvents
-                        currSummary = parentSummary
                     case _ =>
                         if (currSummary != null) {
                             currSummary.add(x, idleTime, itemMapping.value)
