@@ -150,7 +150,6 @@ class Summary(val firstEvent: V3Event) {
             "time_diff" -> this.timeDiff,
             "time_spent" -> CommonUtil.roundDouble(this.timeSpent, 2),
             "telemetry_version" -> this.telemetryVersion,
-            "mode" -> this.mode,
             "item_responses" -> this.itemResponses,
             "interact_events_count" -> this.interactEventsCount,
             "interact_events_per_min" -> interactEventsPerMin,
@@ -159,7 +158,7 @@ class Summary(val firstEvent: V3Event) {
             "page_summary" -> this.pageSummary);
         MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, this.uid, null, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dtRange),
-            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"))), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`)),
+            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"))), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`), this.mode),
             MEEdata(measures), this.etags);
     }
 

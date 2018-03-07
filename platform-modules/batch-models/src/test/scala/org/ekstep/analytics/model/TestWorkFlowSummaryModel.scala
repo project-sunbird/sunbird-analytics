@@ -42,6 +42,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event1.dimensions.content_id.get should be("do_20093384");
         event1.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event1.dimensions.sid.get should be("830811c2-3c02-4c45-8755-3f15064a88a2");
+        event1.dimensions.mode.get should be("play")
 
         val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
         summary1.interact_events_per_min should be(19);
@@ -50,7 +51,6 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         summary1.end_time should be(1515404399264L);
         summary1.time_diff should be(10.04);
         summary1.time_spent should be(10.05);
-        summary1.mode.get should be("play");
         summary1.page_summary.get.size should be(5);
         summary1.env_summary.get.size should be(1);
         summary1.events_summary.get.size should be(5);
@@ -137,6 +137,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event1.dimensions.`type`.get should be("app");
         event1.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event1.dimensions.sid.get should be("830811c2-3c02-4c45-8755-3f15064a88a2");
+        event1.dimensions.mode.getOrElse("") should be("")
 
         val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
         summary1.interact_events_per_min should be(1.0);
@@ -168,6 +169,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event2.dimensions.`type`.get should be("session");
         event2.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event2.dimensions.sid.get should be("830811c2-3c02-4c45-8755-3f15064a88a2");
+        event1.dimensions.mode.getOrElse("") should be("")
 
         val summary2 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event2.edata.eks));
         summary2.interact_events_per_min should be(1.0);

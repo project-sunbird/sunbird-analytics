@@ -35,6 +35,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event1.dimensions.uid.get should be("all");
         event1.dimensions.period.get should be(20180123);
         event1.dimensions.channel.get should be("in.ekstep");
+        event1.dimensions.mode.get should be("")
 
         val summary1 = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(event1.edata.eks));
 
@@ -69,6 +70,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event2.dimensions.uid.get should be("427");
         event2.dimensions.period.get should be(20180123);
         event2.dimensions.channel.get should be("in.ekstep");
+        event2.dimensions.mode.get should be("")
 
         val summary2 = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(event2.edata.eks));
 
@@ -111,6 +113,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event1.dimensions.uid.get should be("all");
         event1.dimensions.period.get should be(20180108);
         event1.dimensions.channel.get should be("in.ekstep");
+        event1.dimensions.mode.get should be("play")
 
         val summary1 = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(event1.edata.eks));
 
@@ -149,6 +152,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event2.dimensions.uid.get should be("all");
         event2.dimensions.period.get should be(20180108);
         event2.dimensions.channel.get should be("in.ekstep");
+        event2.dimensions.mode.get should be("play")
 
         val summary2 = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(event2.edata.eks));
 
@@ -185,6 +189,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event3.dimensions.uid.get should be("all");
         event3.dimensions.period.get should be(20180108);
         event3.dimensions.channel.get should be("in.ekstep");
+        event3.dimensions.mode.get should be("play")
 
         val summary3 = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(event3.edata.eks));
 
@@ -236,6 +241,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event1.dimensions.uid.get should be("all");
         event1.dimensions.period.get should be(20180108);
         event1.dimensions.channel.get should be("in.tnpilot");
+        event1.dimensions.mode.get should be("play")
 
         val summary1 = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(event1.edata.eks));
 

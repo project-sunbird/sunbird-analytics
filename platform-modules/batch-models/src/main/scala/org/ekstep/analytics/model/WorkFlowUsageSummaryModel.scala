@@ -28,16 +28,16 @@ import org.apache.commons.lang3.StringUtils
  */
 case class WorkflowUsageMetricsSummary(wk: WorkflowKey, time_spent: Double, total_sessions: Long, avg_ts_session: Double, interact_events_count: Long, interact_events_per_min: Double, total_pageviews_count: Long, avg_pageviews: Double, dt_range: DtRange, syncts: Long, device_ids: Array[String], unique_users: Array[String], contents: Array[String], pdata: PData) extends AlgoOutput;
 case class WorkflowUsageInput(index: WorkflowKey, sessionEvents: Buffer[WorkflowUsageMetricsSummary]) extends Input with AlgoInput
-case class WorkflowKey(period: Int, app_id: String, channel: String, `type`: String, content_id: String, tag: String, user_id: String, did: String)
+case class WorkflowKey(period: Int, app_id: String, channel: String, `type`: String, mode: String, content_id: String, tag: String, user_id: String, did: String)
 
 object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, WorkflowUsageInput, WorkflowUsageMetricsSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.WorkFlowUsageSummaryModel"
     override def name: String = "WorkFlowUsageSummaryModel"
 
-    private def getWorkflowUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, `type`: String, contentId: String, tagId: String, did: String, user_id: String): WorkflowUsageMetricsSummary = {
+    private def getWorkflowUsageSummary(event: DerivedEvent, period: Int, pdata: PData, channel: String, `type`: String, mode: String, contentId: String, tagId: String, did: String, user_id: String): WorkflowUsageMetricsSummary = {
 
-        val wk = WorkflowKey(period, pdata.id, channel, `type`, contentId, tagId, user_id, did);
+        val wk = WorkflowKey(period, pdata.id, channel, `type`, mode, contentId, tagId, user_id, did);
         val gdata = event.dimensions.gdata;
         val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
         val total_ts = eksMap.getOrElse("time_spent", 0.0).asInstanceOf[Number].doubleValue();
@@ -84,28 +84,31 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
             val pdata = CommonUtil.getAppDetails(event)
             val channel = CommonUtil.getChannelId(event)
             val `type` = event.dimensions.`type`.get
+            val mode = event.dimensions.mode.getOrElse("")
 
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", "all", "all", "all");
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", "all", "all", event.uid);
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", "all", event.dimensions.did.getOrElse(""), "all");
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), "all", "all", "all");
+            val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", "all", event.dimensions.did.getOrElse(""), event.uid);
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), "all", "all", event.uid);
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), "all");
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), event.uid);
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", "all", "all");
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", "all", event.uid);
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", event.dimensions.did.getOrElse(""), "all");
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", "all", "all");
+
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", event.dimensions.did.getOrElse(""), event.uid);
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", "all", event.uid);
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), "all");
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), event.uid);
 
             val tags = CommonUtil.getValidTags(event, registeredTags);
             for (tag <- tags) {
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", tag, "all", "all");
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", tag, event.dimensions.did.getOrElse(""), "all");
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", tag, "all", event.uid);
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), tag, "all", "all");
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, "all", "all");
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, event.dimensions.did.getOrElse(""), "all");
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, "all", event.uid);
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, "all", "all");
 
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, "all", tag, event.dimensions.did.getOrElse(""), event.uid);
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), tag, event.dimensions.did.getOrElse(""), "all");
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), tag, "all", event.uid);
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, event.dimensions.content_id.getOrElse(""), tag, event.dimensions.did.getOrElse(""), event.uid);
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, event.dimensions.did.getOrElse(""), event.uid);
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, event.dimensions.did.getOrElse(""), "all");
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, "all", event.uid);
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, event.dimensions.did.getOrElse(""), event.uid);
 
             }
             list.toArray;
@@ -145,7 +148,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
                 "contents" -> usageSumm.contents);
             MeasuredEvent("ME_WORKFLOW_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, meEventVersion, mid, "", "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkFlowUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dt_range),
-                Dimensions(Option(usageSumm.wk.user_id), Option(usageSumm.wk.did), None, None, None, None, Option(usageSumm.pdata), None, None, None, Option(usageSumm.wk.tag), Option(usageSumm.wk.period), Option(usageSumm.wk.content_id), None, None, None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.wk.channel), Option(usageSumm.wk.`type`)),
+                Dimensions(Option(usageSumm.wk.user_id), Option(usageSumm.wk.did), None, None, None, None, Option(usageSumm.pdata), None, None, None, Option(usageSumm.wk.tag), Option(usageSumm.wk.period), Option(usageSumm.wk.content_id), None, None, None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.wk.channel), Option(usageSumm.wk.`type`), Option(usageSumm.wk.mode)),
                 MEEdata(measures), None);
         }
     }
