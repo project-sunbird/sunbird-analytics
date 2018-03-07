@@ -97,7 +97,7 @@ object PrecomputedViews extends IBatchModel[String,String] with Serializable {
 
     def precomputeWorkflowUsageMetrics()(implicit sc: SparkContext) {
         val dispatchParams = JSONUtils.deserialize[Map[String, AnyRef]](AppConf.getConfig("pc_dispatch_params"));
-        val groupFn = (x: WorkflowUsageSummaryView) => { (x.d_tag + "-" + x.d_user_id + "-" + x.d_content_id + "-" + x.d_device_id + "-" + x.d_type + "-" + x.d_channel) };
+        val groupFn = (x: WorkflowUsageSummaryView) => { (x.d_tag + "-" + x.d_user_id + "-" + x.d_content_id + "-" + x.d_device_id + "-" + x.d_type + "-" + x.d_mode + "-" + x.d_channel) };
         precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 7, "DAY", AppConf.getConfig("pc_files_prefix") + "wfus", "7DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
         precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 14, "DAY", AppConf.getConfig("pc_files_prefix") + "wfus", "14DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
         precomputeMetrics[WorkflowUsageSummaryView](View(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT, 30, "DAY", AppConf.getConfig("pc_files_prefix") + "wfus", "30DAYS.json", AppConf.getConfig("pc_files_cache"), dispatchParams), groupFn);
