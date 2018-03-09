@@ -65,7 +65,7 @@ object S3Util {
             case e: Exception => {
                 JobLogger.log("Error uploading. Will retry after sometime. ",
                     Option(Map("bucketName" -> bucketName,
-                        "FilePath" -> filePath, "exception" -> e.getMessage,
+                        "FilePath" -> filePath, "exception" -> e.getMessage, "errMsg" -> e.toString(),
                         "attempt" -> attempt, "maxAttempts" -> maxAttempts)), INFO)
                 Thread.sleep(attempt*2000)
                 uploadWithRetries(bucketName, filePath, key, attempt + 1, maxAttempts)

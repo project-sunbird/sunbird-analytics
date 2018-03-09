@@ -112,7 +112,12 @@ object PrecomputedViews extends IBatchModel[String,String] with Serializable {
 
         val count = results.map { x =>
             val fileKey = view.filePrefix + "-" + x._1 + "-" + view.fileSuffix;
-            OutputDispatcher.dispatch(Dispatcher(view.dispatchTo, view.dispatchParams ++ Map("key" -> fileKey, "file" -> fileKey)), x._2)
+            if(fileKey.size < 1024) {
+                OutputDispatcher.dispatch(Dispatcher(view.dispatchTo, view.dispatchParams ++ Map("key" -> fileKey, "file" -> fileKey)), x._2)
+            }
+            else{
+                JobLogger.log("Key is too long. Skipping upload", Option(Map("size" -> fileKey.size, "MaxSizeAllowed" -> 1024)), ERROR);
+            }
         }.count();
         val data = CommonUtil.caseClassToMap(view);
         JobLogger.log("Precomputed metrics pushed.", Option(data ++ Map("count" -> count)), INFO);
