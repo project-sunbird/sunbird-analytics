@@ -66,7 +66,7 @@ object Constants {
     val GENIE_ENV = "Genie"
     val PLAYER_ENV = "ContentPlayer"
     val PORTAL_ENV = "portal"
-    val EDITOR_ENV = "ContentEditor"
+    val EDITOR_ENV = "contenteditor"
     val PORTAL_PDATAIDS = List("in.ekstep.community", "org.ekstep.content.platform", "sunbird_portal", "in.ekstep.dev", "in.ekstep.qa")
     
     def getContentList(): String = {
