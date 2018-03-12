@@ -15,7 +15,7 @@ class Summary(val firstEvent: V3Event) {
     val uid: String = firstEvent.actor.id
     val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
     val `type`: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
-    val mode: Option[String] = if (firstEvent.edata.mode == null) Option(null) else Option(firstEvent.edata.mode)
+    val mode: Option[String] = if (firstEvent.edata.mode == null) Option("") else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
     val startTime: Long = firstEvent.ets
     val etags: Option[ETags] = Option(CommonUtil.getETags(firstEvent))
@@ -97,7 +97,7 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def checkStart(`type`: String, mode: Option[String], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
-        if(this.`type` == `type` && this.mode == mode) {
+        if(this.`type`.equals(`type`) && this.mode.get.equals(mode.getOrElse(""))) {
             this.close(summEvents, config);
             if(this.PARENT != null) return PARENT else return this;
         }
@@ -110,7 +110,8 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def checkEnd(event: V3Event, idleTime: Int, itemMapping: Map[String, Item], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
-        if(this.`type` == event.edata.`type` && this.mode.get == event.edata.mode) {
+        val mode = if(event.edata.mode == null) "" else event.edata.mode
+        if(this.`type`.equals(event.edata.`type`) && this.mode.get.equals(mode)) {
 //            this.add(event, idleTime, itemMapping)
 //            this.close(summEvents, config);
             if(this.PARENT == null) return this else return PARENT;
