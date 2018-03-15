@@ -214,7 +214,7 @@ case class ShareItems(id: String, `type`: String, ver: String, params: List[Map[
 
 @scala.beans.BeanInfo
 class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,
-              val summary: List[Map[String, AnyRef]], val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
+              val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
               val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
               val values: AnyRef, val rating: Double, val comments: String, val dir: String, val items: List[ShareItems], val props : List[String], 
               val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
