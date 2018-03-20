@@ -17,10 +17,12 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.RestUtil
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+
 import collection.JavaConversions._
 import com.flyberrycapital.slack.SlackClient
 import net.liftweb.json.Serialization.write
 import org.apache.commons.math3.analysis.function.Asin
+import org.ekstep.analytics.framework.dispatcher.KafkaDispatcher
 
 /**
  * @dataproduct
@@ -36,6 +38,8 @@ case class SlackMessage(channel: String, username: String, text: String, icon_em
 case class JobMonitor(jobs_started: Long, jobs_completed: Long, jobs_failed: Long, total_events_generated: Long, total_ts: Double, syncTs: Long, job_summary: Array[Map[String, Any]], dtange: DtRange) extends AlgoOutput
 case class JobSummary(model: String, input_count: Long, output_count: Long, time_taken: Double, status: String, day: Int) extends AlgoOutput
 case class ModelMapping(model: String, category: String, input_dependency: String)
+case class MonitorMessage(job_name: String, success: Int, number_of_input: Long, number_of_output: Long, time_spent: Double)
+
 object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMonitor, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.MonitorSummaryModel"
@@ -70,6 +74,20 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
     }
 
     override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+
+        if(config.getOrElse("pushMetrics", false).asInstanceOf[Boolean]) {
+            val jobSumm = data.map(f => f.job_summary).flatMap(f => f)
+            val analyticsMetrics = jobSumm.map{f =>
+                val jobName = f.get("model").get.asInstanceOf[String]
+                val success = if("SUCCESS".equals(f.get("status").get.asInstanceOf[String])) 1 else 0
+                val inputCount = f.getOrElse("input_count", 0).asInstanceOf[Long]
+                val outputCount = f.getOrElse("output_count", 0).asInstanceOf[Long]
+                val timeSpent = f.getOrElse("time_taken", 0.0).asInstanceOf[Float]
+                MonitorMessage(jobName, success, inputCount, outputCount, timeSpent)
+            }.map(f => JSONUtils.serialize(f))
+
+            KafkaDispatcher.dispatch(config, analyticsMetrics)
+        }
 
         val messages = messageFormatToSlack(data.first(), config)
 
