@@ -126,6 +126,10 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         if (currSummary != null) {
                             currSummary.add(x, idleTime, itemMapping.value)
                         }
+                        else{
+                            currSummary = new org.ekstep.analytics.util.Summary(x)
+                            currSummary.updateType("app")
+                        }
                 }
             }
             if(currSummary != null && !currSummary.isClosed){

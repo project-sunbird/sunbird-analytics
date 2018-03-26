@@ -14,7 +14,6 @@ class Summary(val firstEvent: V3Event) {
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = firstEvent.actor.id
     val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
-    val `type`: String = if (firstEvent.edata.`type`.isEmpty) "" else StringUtils.lowerCase(firstEvent.edata.`type`)
     val mode: Option[String] = if (firstEvent.edata.mode == null) Option("") else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
     val startTime: Long = firstEvent.ets
@@ -23,6 +22,7 @@ class Summary(val firstEvent: V3Event) {
     val did: String = firstEvent.context.did.getOrElse("")
     val pdata: V3PData = firstEvent.context.pdata.getOrElse(defaultPData)
 
+    var `type`: String = if (firstEvent.edata.`type`.isEmpty) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
     var lastEvent: V3Event = null
     var itemResponses: Buffer[ItemResponse] = Buffer[ItemResponse]()
     var endTime: Long = 0l
@@ -41,6 +41,10 @@ class Summary(val firstEvent: V3Event) {
     var PARENT: Summary = null
 
     var isClosed: Boolean = false
+
+    def updateType(`type`: String) {
+        this.`type` = `type`;
+    }
 
     def add(event: V3Event, idleTime: Int, itemMapping: Map[String, Item]) {
         val ts = CommonUtil.getTimeDiff(prevEventEts, event.ets).get
