@@ -93,18 +93,18 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         itemRes1.qdesc.get should be("")
     }
     
-    it should "generate 5 workflow summary" in {
+    it should "generate 6 workflow summary with 1 default app summary" in {
         val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data2.log")
         val out = WorkFlowSummaryModel.execute(data, None)
-        out.count() should be(5)
+        out.count() should be(6)
         
         val me = out.collect();
         val appSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("app") }
         val sessionSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("session") }
         val playerSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("player") }
         val editorSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("editor") }
-        
-        appSummaryEvent1.size should be(0)
+
+        appSummaryEvent1.size should be(1)
         sessionSummaryEvent1.size should be(1)
         playerSummaryEvent1.size should be(1)
         editorSummaryEvent1.size should be(3)

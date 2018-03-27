@@ -22,7 +22,7 @@ class Summary(val firstEvent: V3Event) {
     val did: String = firstEvent.context.did.getOrElse("")
     val pdata: V3PData = firstEvent.context.pdata.getOrElse(defaultPData)
 
-    var `type`: String = if (firstEvent.edata.`type`.isEmpty) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
+    var `type`: String = if (null == firstEvent.edata.`type`) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
     var lastEvent: V3Event = null
     var itemResponses: Buffer[ItemResponse] = Buffer[ItemResponse]()
     var endTime: Long = 0l
