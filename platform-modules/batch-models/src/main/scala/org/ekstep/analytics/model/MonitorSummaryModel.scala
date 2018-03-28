@@ -59,6 +59,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
         val syncTs = data.first().ets
         val totalEventsGenerated = filteresData.map { x => x.edata.data.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue() }.sum().longValue()
         val totalTs = filteresData.map { x => x.edata.data.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("timeTaken", 0.0).asInstanceOf[Number].doubleValue() }.sum()
+
         val jobSummary = filteresData.map { x =>
             val model = x.context.pdata.get.pid.get
             val data = x.edata.data.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]]
@@ -127,7 +128,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
         val jobsCompleted = jobMonitorToSclack.jobs_completed
         val jobsFailed = jobMonitorToSclack.jobs_failed
         val totalEventsGenerated = jobMonitorToSclack.total_events_generated
-        val totalTs = milliSecondsToTimeFormat(jobMonitorToSclack.total_ts)
+        val totalTs = secondsToTimeFormat(jobMonitorToSclack.total_ts)
         val jobSummaryCaseClass = jobMonitorToSclack.job_summary.map(f => JobSummary(f.get("model").get.asInstanceOf[String], f.get("input_count").get.asInstanceOf[Number].longValue(), f.get("output_count").get.asInstanceOf[Number].longValue(), f.get("time_taken").get.asInstanceOf[Number].doubleValue(), f.get("status").get.asInstanceOf[String], f.get("day").get.asInstanceOf[Number].intValue()))
 
         val modelMapping = config.get("model").get.asInstanceOf[List[AnyRef]].map { x => JSONUtils.deserialize[ModelMapping](JSONUtils.serialize(x)) }.toSet
@@ -159,16 +160,15 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
         warnings
     }
 
-    private def milliSecondsToTimeFormat(milliSeconds: Double): String = {
-        val seconds = milliSeconds / 1000
-        val s = (seconds % 60).longValue();
-        val m = ((seconds / 60) % 60).longValue();
-        val h = ((seconds / (60 * 60)) % 24).longValue();
+    private def secondsToTimeFormat(seconds: Double): String = {
+        val s = (seconds).longValue();
+        val m = ((seconds/60) % 60).longValue();
+        val h = ((seconds/60/60) % 24).longValue();
         h + ":" + m + ":" + s
     }
 
     private def jobSummaryMessage(modelName: String, jobsFailed: Int, jobsCompleted: Int, warnings: String, models: String): String = {
-        val header = "Model, " + "Input Events, " + "Output Events, " + "Total time(min), " + "Status, " + "Day"
+        val header = "Model, " + "Input Events, " + "Output Events, " + "Total time(secs), " + "Status, " + "Day"
         if (jobsFailed > 0 && warnings.equals("")) {
             s"""*Number of $modelName Jobs Completed : * `$jobsCompleted` \n*Number of $modelName Jobs Failed: * `$jobsFailed`\n*Detailed Report: *\n$modelName Models:```$header\n$models```\nError: ```Job Failed``` """
         } else if (jobsFailed == 0 && warnings.equals("")) {
@@ -188,7 +188,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
         val modelsCompleted = filterModelsFromJobSummary.filter { x => x.status.equals("SUCCESS") }.size
         val modelsFailed = filterModelsFromJobSummary.filter { x => x.status.equals("FAILED") }.size
         val modelsWarnings = warningMessages(modelMappingWithInputDependency, filterModelsFromJobSummary)
-        val modelsString = filterModelsFromJobSummary.map { x => x.model.trim() + ", " + x.input_count + ", " + x.output_count + ", " + CommonUtil.roundDouble((x.time_taken / 1000) / 60, 2) + ", " + x.status + ", " + x.day + "\n" }.mkString("")
+        val modelsString = filterModelsFromJobSummary.map { x => x.model.trim() + ", " + x.input_count + ", " + x.output_count + ", " + CommonUtil.roundDouble((x.time_taken), 2) + ", " + x.status + ", " + x.day + "\n" }.mkString("")
         jobSummaryMessage(s"$category", modelsFailed, modelsCompleted, modelsWarnings, modelsString)
     }
 }
