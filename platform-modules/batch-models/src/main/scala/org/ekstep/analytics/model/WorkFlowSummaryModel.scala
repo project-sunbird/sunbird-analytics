@@ -89,7 +89,6 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             currSummary = rootSummary
                         }
                         else if (currSummary == null || currSummary.isClosed) {
-                            summEventsB.value ++= currSummary.summaryEvents
                             currSummary = new org.ekstep.analytics.util.Summary(x)
                             if (!currSummary.checkSimilarity(rootSummary)) rootSummary.addChild(currSummary)
                         }
