@@ -108,7 +108,7 @@ object DataExhaustJob extends optional.Application with IJob {
             }
             requests.length
         })
-        JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> time._1, "jobCount" -> time._2)));
+        JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> Double.box(time._1 / 1000), "jobCount" -> time._2)));
     }
     private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): DataExhaustOutput = {
         val dataSetID = request.dataset_id.get
