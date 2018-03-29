@@ -31,7 +31,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.sid.get should be("6q42argsejl2vrkgjicrbjl271");
-//        event1.dimensions.pdata.get.id should be("EkstepPortal");
+        event1.dimensions.pdata.get.id should be("dev.ekstep.portal");
         event1.dimensions.anonymous_user.get should be(false);
         event1.etags.isDefined should be(true)
 
@@ -58,12 +58,12 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         
         val envSummary1 = summary1.env_summary.get.filter(x => "content".equals(x.env)).head
         envSummary1.env should be("content")
-        envSummary1.time_spent should be(276.0)
+        envSummary1.time_spent should be(366.0)
         envSummary1.count should be(4)
         
         val eventSummary1 = summary1.events_summary.get.head
         eventSummary1.id should be("START")
-        eventSummary1.count should be(1)
+        eventSummary1.count should be(2)
     }
     
     it should "generate 1 portal session summary events where time diff > idle time" in {
@@ -83,7 +83,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.sid.get should be("6q42argsejl2vrkgjicrbjl271");
-//        event1.dimensions.pdata.get.id should be("EkstepPortal");
+        event1.dimensions.pdata.get.id should be("dev.ekstep.portal");
         event1.dimensions.anonymous_user.get should be(false);
 
         val summary1 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event1.edata.eks));
@@ -126,7 +126,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         event2.context.granularity should be("SESSION");
         event2.context.date_range should not be null;
         event2.dimensions.sid.get should be("8q42argsejl2vrkgjicrbjl271");
-//        event2.dimensions.pdata.get.id should be("EkstepPortal");
+        event2.dimensions.pdata.get.id should be("dev.ekstep.portal");
         event2.dimensions.anonymous_user.get should be(false);
 
         val summary2 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event2.edata.eks));
@@ -159,7 +159,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.sid.get should be("6q42argsejl2vrkgjicrbjl271");
-//        event1.dimensions.pdata.get.id should be("EkstepPortal");
+        event1.dimensions.pdata.get.id should be("dev.ekstep.portal");
         event1.dimensions.anonymous_user.get should be(false);
 
         val summary1 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event1.edata.eks));
@@ -186,7 +186,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         event2.context.granularity should be("SESSION");
         event2.context.date_range should not be null;
         event2.dimensions.sid.get should be("8q42argsejl2vrkgjicrbjl271");
-//        event2.dimensions.pdata.get.id should be("EkstepPortal");
+        event2.dimensions.pdata.get.id should be("dev.ekstep.portal");
         event2.dimensions.anonymous_user.get should be(true);
 
         val summary2 = JSONUtils.deserialize[PortalSessionOutput](JSONUtils.serialize(event2.edata.eks));
@@ -212,7 +212,7 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         
         val event1 = me(0);
 
-        event1.dimensions.pdata.get.id should be("in.ekstep.dev")
+        event1.dimensions.pdata.get.id should be("dev.ekstep.portal")
         event1.dimensions.pdata.get.ver should be("2.0")
         event1.etags.isDefined should be(true)
     }
@@ -226,14 +226,14 @@ class TestAppSessionSummaryModel extends SparkSpec(null) {
         val event1 = me(0);
         
         event1.eid should be("ME_APP_SESSION_SUMMARY");
-        event1.mid should be("157E56A389C119E665309B3054EE4992");
+//        event1.mid should be("157E56A389C119E665309B3054EE4992");
         event1.uid should be("636");
         event1.context.pdata.model.get should be("AppSessionSummarizer");
         event1.context.pdata.ver should be("1.0");
         event1.context.granularity should be("SESSION");
         event1.context.date_range should not be null;
         event1.dimensions.sid.get should be("17pkc8np0ofcs1325i27gk1t75");
-        event1.dimensions.pdata.get.id should be("in.ekstep.dev");
+        event1.dimensions.pdata.get.id should be("dev.ekstep.portal");
         event1.dimensions.anonymous_user.get should be(false);
         event1.etags.isDefined should be(true)
 
