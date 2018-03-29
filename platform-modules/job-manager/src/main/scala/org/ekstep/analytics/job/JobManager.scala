@@ -16,6 +16,7 @@ import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.S3Util
+import org.apache.commons.lang3.StringUtils
 
 case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String, runMode: String = "shutdown");
 
@@ -76,6 +77,9 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
         try {
+            if(StringUtils.equals("data-exhaust",modelName)){
+                Thread.sleep(1000*60*30) // Sleep for 30 mins
+            }
             JobLogger.log("Executing " + modelName, None, INFO);
             JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
             JobLogger.log("Finished executing " + modelName, None, INFO);
