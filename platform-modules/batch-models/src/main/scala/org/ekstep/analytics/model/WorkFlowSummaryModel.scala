@@ -70,13 +70,27 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
         var summEventsB = sc.broadcast(summEvents);
 
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
+        val sessionBreakTime = config.getOrElse("sessionBreakTime", 30).asInstanceOf[Int];
 
         data.foreach{ f =>
             val sortedEvents = f.events.sortBy { x => x.ets }
             var rootSummary: org.ekstep.analytics.util.Summary = null
             var currSummary: org.ekstep.analytics.util.Summary = null
+            var prevEvent: V3Event = sortedEvents.head
 
             sortedEvents.foreach{ x =>
+
+                val diff = CommonUtil.getTimeDiff(prevEvent.ets, x.ets).get
+                if(diff > (sessionBreakTime * 60)) {
+                    if(currSummary != null && !currSummary.isClosed){
+                        val clonedRootSummary = currSummary.deepClone()
+                        clonedRootSummary.close(clonedRootSummary.summaryEvents, config)
+                        summEventsB.value ++= clonedRootSummary.summaryEvents
+                        rootSummary = clonedRootSummary
+                        currSummary = if(clonedRootSummary.CHILDREN.size > 0) clonedRootSummary.getLeafSummary else clonedRootSummary
+                    }
+                }
+                prevEvent = x
                 (x.eid) match {
 
                     case ("START") =>
@@ -122,7 +136,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                             currSummary = parentSummary
                         }
                     case _ =>
-                        if (currSummary != null) {
+                        if (currSummary != null && !currSummary.isClosed) {
                             currSummary.add(x, idleTime, itemMapping.value)
                         }
                         else{

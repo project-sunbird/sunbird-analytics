@@ -9,7 +9,6 @@ import org.ekstep.analytics.framework.util.CommonUtil
 
 class Summary(val firstEvent: V3Event) {
 
-    val DEFAULT_MODE = "play";
     val defaultPData = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = if (firstEvent.actor.id == null) "" else firstEvent.actor.id
@@ -24,13 +23,13 @@ class Summary(val firstEvent: V3Event) {
     val context_rollup: Option[RollUp] = firstEvent.context.rollup
     val object_rollup: Option[RollUp] = if(firstEvent.`object`.nonEmpty) firstEvent.`object`.get.rollup else None
 
+    var interactEventsCount: Long = if(StringUtils.equals("INTERACT", firstEvent.eid)) 1l else 0l
     var `type`: String = if (null == firstEvent.edata.`type`) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
     var lastEvent: V3Event = null
     var itemResponses: Buffer[ItemResponse] = Buffer[ItemResponse]()
     var endTime: Long = 0l
     var timeSpent: Double = 0.0
     var timeDiff: Double = 0.0
-    var interactEventsCount: Long = 0l
     var envSummary: Iterable[EnvSummary] = Iterable[EnvSummary]()
     var eventsSummary: Map[String, Long] = Map(firstEvent.eid -> 1)
     var pageSummary: Iterable[PageSummary] = Iterable[PageSummary]()
@@ -46,6 +45,21 @@ class Summary(val firstEvent: V3Event) {
 
     def updateType(`type`: String) {
         this.`type` = `type`;
+    }
+
+    def getLeafSummary(): Summary = {
+        this.CHILDREN.map{summ =>
+            summ.getLeafSummary()
+        }.last
+    }
+
+    def deepClone(): Summary = {
+        if(this.PARENT == null) {
+            return this;
+        }
+        else {
+            return this.PARENT.deepClone();
+        }
     }
 
     def add(event: V3Event, idleTime: Int, itemMapping: Map[String, Item]) {
