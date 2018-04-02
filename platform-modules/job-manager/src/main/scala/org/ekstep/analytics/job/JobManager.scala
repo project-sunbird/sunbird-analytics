@@ -17,6 +17,7 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.S3Util
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.JobConfig
 
 case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String, runMode: String = "shutdown");
 
@@ -76,12 +77,12 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     private def executeJob(record: String) {
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
-        val configMap = jobConfig.get("config").get.asInstanceOf[Map[String, AnyRef]]
+        val config = JSONUtils.deserialize[JobConfig](JSONUtils.serialize(jobConfig.get("config").get))
         try {
             if (StringUtils.equals("data-exhaust", modelName)) {
-                val modelParams = configMap.get("modelParams").get.asInstanceOf[Map[String, AnyRef]]
+                val modelParams = config.modelParams.get
                 val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
-                val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Long]
+                val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Number].longValue()
                 println("delayFlag: "+ delayFlag)
                 println("delayTime: "+ delayTime)
                 if(delayFlag){
