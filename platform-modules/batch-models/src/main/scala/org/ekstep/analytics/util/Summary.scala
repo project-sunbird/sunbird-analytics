@@ -21,6 +21,8 @@ class Summary(val firstEvent: V3Event) {
     val channel: String = firstEvent.context.channel
     val did: String = firstEvent.context.did.getOrElse("")
     val pdata: V3PData = firstEvent.context.pdata.getOrElse(defaultPData)
+    val context_rollup: Option[RollUp] = firstEvent.context.rollup
+    val object_rollup: Option[RollUp] = if(firstEvent.`object`.nonEmpty) firstEvent.`object`.get.rollup else None
 
     var `type`: String = if (null == firstEvent.edata.`type`) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
     var lastEvent: V3Event = null
@@ -163,7 +165,7 @@ class Summary(val firstEvent: V3Event) {
             "page_summary" -> this.pageSummary);
         MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, this.uid, null, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dtRange),
-            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"))), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`), this.mode),
+            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"))), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`), this.mode, this.context_rollup, this.object_rollup),
             MEEdata(measures), this.etags);
     }
 
