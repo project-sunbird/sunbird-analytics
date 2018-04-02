@@ -78,7 +78,10 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
         val modelName = jobConfig.get("model").get.toString()
         try {
             if(StringUtils.equals("data-exhaust",modelName)){
-                Thread.sleep(1000*60*30) // Sleep for 30 mins
+                val modelParams = jobConfig.get("modelParams").get.asInstanceOf[Map[String, AnyRef]]
+                val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
+                val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Long]
+                Thread.sleep(delayTime)
             }
             JobLogger.log("Executing " + modelName, None, INFO);
             JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
