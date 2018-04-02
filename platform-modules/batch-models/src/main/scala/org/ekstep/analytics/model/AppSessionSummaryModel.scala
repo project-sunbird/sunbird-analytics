@@ -54,7 +54,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
-        val filteredData = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))), Filter("context.pdata", "ISNOTEMPTY", None))).filter { x => (x.context.pdata.get.id.contains("portal")) };
+        val filteredData = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))), Filter("context.pdata", "ISNOTEMPTY", None), Filter("context.sid", "ISNOTEMPTY", None))).filter { x => (x.context.pdata.get.id.contains("portal")) };
         filteredData.map { event =>
             val channel = CommonUtil.getChannelId(event)
             ((channel, event.context.sid.get), Buffer(event))
