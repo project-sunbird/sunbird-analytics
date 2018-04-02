@@ -82,7 +82,11 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
                 val modelParams = configMap.get("modelParams").get.asInstanceOf[Map[String, AnyRef]]
                 val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
                 val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Long]
-                Thread.sleep(delayTime)
+                println("delayFlag: "+ delayFlag)
+                println("delayTime: "+ delayTime)
+                if(delayFlag){
+                    Thread.sleep(delayTime)
+                }
             }
             JobLogger.log("Executing " + modelName, None, INFO);
             JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
