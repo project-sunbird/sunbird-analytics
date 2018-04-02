@@ -65,7 +65,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         val total_pageviews_count = events.map { x => x.total_pageviews_count }.sum;
         val avg_pageviews = if (total_pageviews_count == 0) 0 else CommonUtil.roundDouble((total_pageviews_count / total_sessions), 2)
         val device_ids = if (StringUtils.equals(wk.did, "all")) events.map { x => x.device_ids }.reduce((a, b) => a ++ b).distinct.filterNot(p => p.isEmpty()) else Array("").filterNot(p => p.isEmpty());
-        val unique_users = if (StringUtils.equals(wk.user_id, "all")) events.map { x => x.unique_users }.reduce((a, b) => a ++ b).distinct.filterNot(p => p.isEmpty()) else Array("").filterNot(p => p.isEmpty());
+        val unique_users = if (StringUtils.equals(wk.user_id, "all")) events.map { x => x.unique_users }.reduce((a, b) => a ++ b).distinct.filterNot(p => ((null == p) || (p.isEmpty))) else Array("").filterNot(p => p.isEmpty());
         val contents = if (StringUtils.equals(wk.content_id, "all")) events.map { x => x.contents }.reduce((a, b) => a ++ b).distinct.filterNot(p => p.isEmpty()) else Array("").filterNot(p => p.isEmpty());
         WorkflowUsageMetricsSummary(wk, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, date_range, lastEvent.syncts, device_ids, unique_users, contents, firstEvent.pdata);
     }

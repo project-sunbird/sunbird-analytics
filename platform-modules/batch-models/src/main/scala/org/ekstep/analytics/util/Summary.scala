@@ -12,7 +12,7 @@ class Summary(val firstEvent: V3Event) {
     val DEFAULT_MODE = "play";
     val defaultPData = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
     val sid: String = firstEvent.context.sid.getOrElse("")
-    val uid: String = firstEvent.actor.id
+    val uid: String = if (firstEvent.actor.id == null) "" else firstEvent.actor.id
     val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
     val mode: Option[String] = if (firstEvent.edata.mode == null) Option("") else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
