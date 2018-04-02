@@ -23,7 +23,7 @@ case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: Stri
 object JobManager extends optional.Application {
 
     implicit val className = "org.ekstep.analytics.job.JobManager";
-    
+
     var jobsCompletedCount = 0;
 
     def main(config: String) {
@@ -66,7 +66,7 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     implicit val className: String = "JobRunner";
 
     override def run {
-        while (doneSignal.getCount() !=0 ) {
+        while (doneSignal.getCount() != 0) {
             val record = jobQueue.take();
             executeJob(record);
             doneSignal.countDown();
@@ -76,9 +76,10 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     private def executeJob(record: String) {
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
+        val configMap = jobConfig.get("config").get.asInstanceOf[Map[String, AnyRef]]
         try {
-            if(StringUtils.equals("data-exhaust",modelName)){
-                val modelParams = jobConfig.get("modelParams").get.asInstanceOf[Map[String, AnyRef]]
+            if (StringUtils.equals("data-exhaust", modelName)) {
+                val modelParams = configMap.get("modelParams").get.asInstanceOf[Map[String, AnyRef]]
                 val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
                 val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Long]
                 Thread.sleep(delayTime)
