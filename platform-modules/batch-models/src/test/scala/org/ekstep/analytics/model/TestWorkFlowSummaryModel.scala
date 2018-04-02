@@ -195,7 +195,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
     it should "generate workflow summary with breaking session logic" in {
         val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data4.log")
         val out = WorkFlowSummaryModel.execute(data, None)
-        out.count() should be(7)
+        out.count() should be(4)
 
         val me = out.collect();
         val appSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("app") }
@@ -206,6 +206,6 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         appSummaryEvent1.size should be(2)
         sessionSummaryEvent1.size should be(1)
         playerSummaryEvent1.size should be(1)
-        editorSummaryEvent1.size should be(3)
+        editorSummaryEvent1.size should be(0)
     }
 }

@@ -48,9 +48,12 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def getLeafSummary(): Summary = {
-        this.CHILDREN.map{summ =>
-            summ.getLeafSummary()
-        }.last
+        if(this.CHILDREN.size > 0) {
+            this.CHILDREN.map { summ =>
+                summ.getLeafSummary()
+            }.last
+        }
+        else this
     }
 
     def deepClone(): Summary = {
@@ -149,9 +152,10 @@ class Summary(val firstEvent: V3Event) {
     def close(summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]) {
         this.CHILDREN.foreach{summ =>
             summ.close(summEvents, config);
+            this.summaryEvents ++= summ.summaryEvents
         }
         if(this.timeSpent > 0) {
-            this.summaryEvents ++= summEvents
+//            this.summaryEvents ++= summEvents
             this.summaryEvents += this.getSummaryEvent(config)
         };
         this.isClosed = true;
