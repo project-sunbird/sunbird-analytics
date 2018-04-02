@@ -17,13 +17,14 @@ import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.S3Util
 import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.framework.JobConfig
 
 case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String, runMode: String = "shutdown");
 
 object JobManager extends optional.Application {
 
     implicit val className = "org.ekstep.analytics.job.JobManager";
-    
+
     var jobsCompletedCount = 0;
 
     def main(config: String) {
@@ -66,7 +67,7 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     implicit val className: String = "JobRunner";
 
     override def run {
-        while (doneSignal.getCount() !=0 ) {
+        while (doneSignal.getCount() != 0) {
             val record = jobQueue.take();
             executeJob(record);
             doneSignal.countDown();
@@ -76,12 +77,17 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     private def executeJob(record: String) {
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
+        val config = JSONUtils.deserialize[JobConfig](JSONUtils.serialize(jobConfig.get("config").get))
         try {
-            if(StringUtils.equals("data-exhaust",modelName)){
-                val modelParams = jobConfig.get("modelParams").get.asInstanceOf[Map[String, AnyRef]]
+            if (StringUtils.equals("data-exhaust", modelName)) {
+                val modelParams = config.modelParams.get
                 val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
-                val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Long]
-                Thread.sleep(delayTime)
+                val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Number].longValue()
+                println("delayFlag: "+ delayFlag)
+                println("delayTime: "+ delayTime)
+                if(delayFlag){
+                    Thread.sleep(delayTime)
+                }
             }
             JobLogger.log("Executing " + modelName, None, INFO);
             JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
