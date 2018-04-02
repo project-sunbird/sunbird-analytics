@@ -77,20 +77,19 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     private def executeJob(record: String) {
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
-        val config = JSONUtils.deserialize[JobConfig](JSONUtils.serialize(jobConfig.get("config").get))
+        val configStr = JSONUtils.serialize(jobConfig.get("config").get)
+        val config = JSONUtils.deserialize[JobConfig](configStr)
         try {
             if (StringUtils.equals("data-exhaust", modelName)) {
                 val modelParams = config.modelParams.get
                 val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
                 val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Number].longValue()
-                println("delayFlag: "+ delayFlag)
-                println("delayTime: "+ delayTime)
                 if(delayFlag){
                     Thread.sleep(delayTime)
                 }
             }
             JobLogger.log("Executing " + modelName, None, INFO);
-            JobExecutor.main(modelName, JSONUtils.serialize(jobConfig.get("config").get))
+            JobExecutor.main(modelName, configStr)
             JobLogger.log("Finished executing " + modelName, None, INFO);
         } catch {
             case ex: Exception =>
