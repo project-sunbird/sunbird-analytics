@@ -84,8 +84,6 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
                 val modelParams = config.modelParams.get
                 val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
                 val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Number].longValue()
-                println("delayFlag: "+ delayFlag)
-                println("delayTime: "+ delayTime)
                 if(delayFlag){
                     Thread.sleep(delayTime)
                 }
