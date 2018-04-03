@@ -189,7 +189,7 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def getSummaryEvent(config: Map[String, AnyRef]): MeasuredEvent = {
-        val meEventVersion = AppConf.getConfig("telemetry.version");
+        val meEventVersion = "1.0"
         val dtRange = DtRange(this.startTime, this.endTime)
         val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", this.uid, "SESSION", dtRange, this.contentId.getOrElse("NA"), Option(this.pdata.id), Option(this.channel));
         val interactEventsPerMin: Double = if (this.interactEventsCount == 0 || this.timeSpent == 0) 0d
