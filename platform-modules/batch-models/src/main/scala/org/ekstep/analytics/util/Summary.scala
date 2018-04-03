@@ -10,6 +10,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 class Summary(val firstEvent: V3Event) {
 
     val defaultPData = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
+    val interactTypes = List("touch", "drag", "drop", "pinch", "zoom", "shake", "rotate", "speak", "listen", "write", "draw", "start", "end", "choose", "activate", "scroll", "click", "edit", "submit", "search", "dnd", "added", "removed", "selected")
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = if (firstEvent.actor.id == null) "" else firstEvent.actor.id
     val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
@@ -23,7 +24,7 @@ class Summary(val firstEvent: V3Event) {
     val object_rollup: Option[RollUp] = if(firstEvent.`object`.nonEmpty) firstEvent.`object`.get.rollup else None
 
     var startTime: Long = firstEvent.ets
-    var interactEventsCount: Long = if(StringUtils.equals("INTERACT", firstEvent.eid)) 1l else 0l
+    var interactEventsCount: Long = if(StringUtils.equals("INTERACT", firstEvent.eid) && interactTypes.contains(firstEvent.edata.`type`.toLowerCase)) 1l else 0l
     var `type`: String = if (null == firstEvent.edata.`type`) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
     var lastEvent: V3Event = null
     var itemResponses: Buffer[ItemResponse] = Buffer[ItemResponse]()
@@ -94,7 +95,7 @@ class Summary(val firstEvent: V3Event) {
         val ts = CommonUtil.getTimeDiff(prevEventEts, event.ets).get
         prevEventEts = event.ets
         this.timeSpent += CommonUtil.roundDouble((if (ts > idleTime) 0 else ts), 2)
-        if (StringUtils.equals(event.eid, "INTERACT")) this.interactEventsCount += 1
+        if (StringUtils.equals(event.eid, "INTERACT") && interactTypes.contains(event.edata.`type`.toLowerCase)) this.interactEventsCount += 1
         val prevCount = eventsSummary.get(event.eid).getOrElse(0l)
         eventsSummary += (event.eid -> (prevCount + 1))
         if (lastImpression != null) {

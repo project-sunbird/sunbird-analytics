@@ -126,7 +126,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
             val timeSpent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
             val impressionEvents = events.filter { x => "IMPRESSION".equals(x.eid) }
             val pageViewsCount = impressionEvents.size.toLong
-            val ceVisits = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.EDITOR_ENV.equals(StringUtils.lowerCase(x.context.env))) }.size.toLong
+            val ceVisits = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.EDITOR_ENV.equalsIgnoreCase(x.context.env)) }.size.toLong
             val interactEventsCount = events.filter { x => "INTERACT".equals(x.eid) }.size.toLong
             val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) interactEventsCount.toDouble
