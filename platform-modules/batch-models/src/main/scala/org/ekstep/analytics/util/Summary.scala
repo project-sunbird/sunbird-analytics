@@ -157,17 +157,15 @@ class Summary(val firstEvent: V3Event) {
         }
     }
 
-    def checkEnd(event: V3Event, idleTime: Int, itemMapping: Map[String, Item], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
+    def checkEnd(event: V3Event, idleTime: Int, itemMapping: Map[String, Item], config: Map[String, AnyRef]): Summary = {
         val mode = if(event.edata.mode == null) "" else event.edata.mode
         if(this.`type`.equals(event.edata.`type`) && this.mode.get.equals(mode)) {
-//            this.add(event, idleTime, itemMapping)
-//            this.close(summEvents, config);
             if(this.PARENT == null) return this else return PARENT;
         }
         if(this.PARENT == null) {
             return this;
         }
-        val summ = PARENT.checkEnd(event, idleTime, itemMapping, summEvents, config)
+        val summ = PARENT.checkEnd(event, idleTime, itemMapping, config)
         if (summ == null) {
             return this;
         }
@@ -176,12 +174,15 @@ class Summary(val firstEvent: V3Event) {
 
     def close(summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]) {
 
+        val tempChildEvents = Buffer[MeasuredEvent]()
         this.CHILDREN.foreach{summ =>
-            summ.close(summEvents, config);
-//            this.summaryEvents ++= summ.summaryEvents
+            if(!summ.isClosed) {
+                summ.close(summEvents, config);
+                tempChildEvents ++= summ.summaryEvents
+            }
         }
         if(this.timeSpent > 0) {
-            this.summaryEvents ++= summEvents
+            this.summaryEvents ++= tempChildEvents
             this.summaryEvents += this.getSummaryEvent(config)
         };
         this.isClosed = true;

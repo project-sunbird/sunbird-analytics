@@ -195,7 +195,6 @@ class TestWorkFlowSummaryModel extends SparkSpec {
     it should "generate workflow summary with breaking session logic" in {
         val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data4.log")
         val out = WorkFlowSummaryModel.execute(data, None)
-        out.foreach(f => println(JSONUtils.serialize(f)))
         out.count() should be(5)
 
         val me = out.collect();

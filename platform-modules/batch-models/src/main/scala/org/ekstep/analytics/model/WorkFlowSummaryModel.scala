@@ -84,7 +84,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                 if(diff > (sessionBreakTime * 60)) {
                     if(currSummary != null && !currSummary.isClosed){
                         val clonedRootSummary = currSummary.deepClone()
-                        clonedRootSummary.close(clonedRootSummary.summaryEvents, config)
+                        clonedRootSummary.close(summEvents, config)
                         summEventsB.value ++= clonedRootSummary.summaryEvents
                         clonedRootSummary.clearAll()
                         rootSummary = clonedRootSummary
@@ -128,7 +128,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                     case ("END") =>
                         // Check if first event is END event, currSummary = null
                         if(currSummary != null) {
-                            val parentSummary = currSummary.checkEnd(x, idleTime, itemMapping.value, currSummary.summaryEvents, config)
+                            val parentSummary = currSummary.checkEnd(x, idleTime, itemMapping.value, config)
                             if (!currSummary.isClosed) {
                                 currSummary.add(x, idleTime, itemMapping.value)
                                 currSummary.close(summEvents, config);
