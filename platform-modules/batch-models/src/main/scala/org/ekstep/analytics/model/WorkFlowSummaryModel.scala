@@ -86,6 +86,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         val clonedRootSummary = currSummary.deepClone()
                         clonedRootSummary.close(clonedRootSummary.summaryEvents, config)
                         summEventsB.value ++= clonedRootSummary.summaryEvents
+                        clonedRootSummary.clearAll()
                         rootSummary = clonedRootSummary
                         currSummary = if(clonedRootSummary.CHILDREN.size > 0) clonedRootSummary.getLeafSummary else clonedRootSummary
                     }
