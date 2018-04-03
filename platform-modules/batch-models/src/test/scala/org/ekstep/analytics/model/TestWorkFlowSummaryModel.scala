@@ -207,5 +207,37 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         sessionSummaryEvent1.size should be(2)
         playerSummaryEvent1.size should be(2)
         editorSummaryEvent1.size should be(0)
+
+        val event1 = playerSummaryEvent1.filter(f => f.mid.equals("64052A05D8E028DF9792B9B213220046")).last
+
+        event1.eid should be("ME_WORKFLOW_SUMMARY");
+        event1.context.pdata.model.get should be("WorkflowSummarizer");
+        event1.context.pdata.ver should be("1.0");
+        event1.context.granularity should be("SESSION");
+        event1.context.date_range should not be null;
+        event1.dimensions.`type`.get should be("player");
+        event1.dimensions.did.get should be("b027147870670bc57de790535311fbe5");
+        event1.dimensions.content_id.get should be("do_1122852550749306881159")
+        event1.dimensions.sid.get should be("7op5o46hpi2abkmp8ckihjeq72");
+        event1.dimensions.mode.getOrElse("") should be("preview")
+
+        val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
+        summary1.interact_events_per_min should be(0.3);
+        summary1.start_time should be(1515496370223L);
+        summary1.interact_events_count should be(1);
+        summary1.end_time should be(1515496570223L);
+        summary1.time_diff should be(200.0);
+        summary1.time_spent should be(200.0);
+        summary1.item_responses.get.size should be(0);
+        summary1.page_summary.get.size should be(0);
+        summary1.env_summary.get.size should be(0);
+        summary1.events_summary.get.size should be(2);
+        summary1.telemetry_version should be("3.0");
+
+        val esList1 = summary1.events_summary.get
+        esList1.size should be(2);
+        val esMap1 = esList1.map { x => (x.id, x.count) }.toMap
+        esMap1.get("INTERACT").get should be(2);
+        esMap1.get("END").get should be(1);
     }
 }
