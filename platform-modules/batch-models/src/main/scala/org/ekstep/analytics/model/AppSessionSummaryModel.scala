@@ -54,7 +54,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalSessionInput] = {
         JobLogger.log("Filtering Events of BE_OBJECT_LIFECYCLE, CP_SESSION_START, CE_START, CE_END, CP_INTERACT, CP_IMPRESSION")
-        val filteredData = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))), Filter("context.pdata", "ISNOTEMPTY", None))).filter { x => (x.context.pdata.get.id.contains("portal")) };
+        val filteredData = DataFilter.filter(data, Array(Filter("eventId", "IN", Option(List("AUDIT", "START", "INTERACT", "IMPRESSION", "END"))), Filter("context.pdata", "ISNOTEMPTY", None), Filter("context.sid", "ISNOTEMPTY", None))).filter { x => (x.context.pdata.get.id.contains("portal")) };
         filteredData.map { event =>
             val channel = CommonUtil.getChannelId(event)
             ((channel, event.context.sid.get), Buffer(event))
@@ -126,7 +126,7 @@ object AppSessionSummaryModel extends IBatchModelTemplate[V3Event, PortalSession
             val timeSpent = CommonUtil.roundDouble(eventsWithTs.map(f => f._2).sum, 2);
             val impressionEvents = events.filter { x => "IMPRESSION".equals(x.eid) }
             val pageViewsCount = impressionEvents.size.toLong
-            val ceVisits = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.EDITOR_ENV.equals(StringUtils.lowerCase(x.context.env))) }.size.toLong
+            val ceVisits = events.filter { x => ("IMPRESSION".equals(x.eid) && Constants.EDITOR_ENV.equalsIgnoreCase(x.context.env)) }.size.toLong
             val interactEventsCount = events.filter { x => "INTERACT".equals(x.eid) }.size.toLong
             val interactEventsPerMin: Double = if (interactEventsCount == 0 || timeSpent == 0) 0d
             else if (timeSpent < 60.0) interactEventsCount.toDouble
