@@ -156,15 +156,9 @@ object DataExhaustUtils {
                 case "s3" =>
                     val bucket = eventConfig.fetchConfig.params.get("bucket").get
                     val prefix = eventConfig.fetchConfig.params.get("prefix").get
-                    if (StringUtils.equals("eks-consumption-raw", request.dataset_id.get)) {
-                        val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy/MM/dd").withZoneUTC();
-                        val startDate = CommonUtil.dateFormat.parseDateTime(request.filter.start_date).withTimeAtStartOfDay().getMillis
-                        val endDate = CommonUtil.dateFormat.parseDateTime(request.filter.end_date).withTimeAtStartOfDay().getMillis
-                        Fetcher(searchType, None, Option(Array(Query(Option(bucket), Option(prefix), Option(dateFormat.print(startDate)), Option(dateFormat.print(endDate)), None, None, None, None, None, None, Option("aggregated-"), Option("yyyy/MM/dd")))));
-                    } else {
-                        val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
-                        Fetcher(searchType, None, Option(queries))
-                    }
+                    val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
+                    Fetcher(searchType, None, Option(queries))
+
                 case "local" =>
                     val filePath = eventConfig.fetchConfig.params.get("file").get
                     val queries = Array(Query(None, None, None, None, None, None, None, None, None, Option(filePath)))
@@ -336,7 +330,7 @@ object DataExhaustUtils {
                         Array("");
                 }
             }
-        }.flatMap { x => x }.filter { x => (x!=null && x.nonEmpty)}
+        }.flatMap { x => x }.filter { x => (x != null && x.nonEmpty) }
     }
 
 }
