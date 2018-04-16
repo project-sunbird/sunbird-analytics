@@ -17,6 +17,7 @@ import java.util.Date
 import org.joda.time.DateTimeZone
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.Level.INFO
 
 case class DataExhaustOutput(input_events: Long, output_events: Long, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None);
 case class DataExhaustExeResult(request_id: String, client_key: String, status: Option[String] = Option("PROCESSING"), iteration: Option[Int] = None, err_message: Option[String] = None, input_events: Option[Long] = None, output_events: Option[Long] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, execution_time: Option[Double] = None, dt_job_completed: Option[Long] = None);
@@ -124,7 +125,10 @@ object DataExhaustJob extends optional.Application with IJob {
             val exhaustRDD = if (eventId.endsWith("-raw") && request.filter.events.isDefined && request.filter.events.get.size > 0) {
                 val rdds = for (event <- request.filter.events.get) yield {
                     val filterKey = Filter("eventId", "EQ", Option(event))
+                    println("filterKey: "+ JSONUtils.serialize(filterKey))
+                    println("Data Count before filtering by event: "+ filteredData.count)
                     val data = DataFilter.filter(filteredData.map(f => f._2), filterKey).map { x => JSONUtils.serialize(x) }
+                    println("Data Count after filtering by event: "+ data.count)
                     DataExhaustUtils.saveData(data, eventConfig, requestID, event, outputFormat, requestID, clientKey);
                     data;
                 }
