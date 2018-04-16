@@ -125,15 +125,9 @@ object DataExhaustJob extends optional.Application with IJob {
 
             val exhaustRDD = if (eventId.endsWith("-raw") && request.filter.events.isDefined && request.filter.events.get.size > 0) {
                 val rdds = for (event <- request.filter.events.get) yield {
-                    //val filterKey = Filter("eventId", "EQ", Option(event))
-                    //println("filterKey: "+ JSONUtils.serialize(filterKey))
-                    println("Data Count before filtering by event: "+ filteredData.count)
-                    //val data = DataFilter.filter(filteredData.map(f => f._2), filterKey).map { x => JSONUtils.serialize(x) }
-                    val data = filteredData.map(f => f._2).filter{x => 
-                        val v3event = JSONUtils.deserialize[V3Event](JSONUtils.serialize(x));
-                        StringUtils.equals("event.eid",event)
-                    }.map { x => JSONUtils.serialize(x) }
-                    println("Data Count after filtering by event: "+ data.count)
+                    val filterKey = Filter("eventId", "EQ", Option(event))
+                    println("filterKey: "+ JSONUtils.serialize(filterKey))
+                    val data = DataFilter.filter(filteredData.map(f => f._2), filterKey).map { x => JSONUtils.serialize(x) }
                     DataExhaustUtils.saveData(data, eventConfig, requestID, event, outputFormat, requestID, clientKey);
                     data;
                 }
