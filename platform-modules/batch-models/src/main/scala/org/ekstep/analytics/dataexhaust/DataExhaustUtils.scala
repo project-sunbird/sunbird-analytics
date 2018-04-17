@@ -178,7 +178,10 @@ object DataExhaustUtils {
         println("deleteS3File----")
         for (request_id <- request_ids) {
             println("deleteing for request id: "+request_id)
+            println("prefix: "+prefix + "/" + request_id)
             val keys1 = S3Util.getPath(bucket, prefix + "/" + request_id)
+            
+            println("keys1: "+ keys1.length)
             for (key <- keys1) {
                 S3Util.deleteObject(bucket, key.replace(s"s3n://$bucket/", ""))
                 println("deleted: "+ key)
