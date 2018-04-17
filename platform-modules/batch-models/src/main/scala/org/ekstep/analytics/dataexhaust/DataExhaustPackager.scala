@@ -113,7 +113,11 @@ object DataExhaustPackager extends optional.Application {
                 val s3FilePrefix = prefix + requestId + ".zip"
                 DataExhaustUtils.uploadZip(bucket, s3FilePrefix, zipfilePath, requestId, clientKey)
                 val stats = S3Util.getObjectDetails(bucket, s3FilePrefix);
-                if ("true".equals(deleteSource)) DataExhaustUtils.deleteS3File(bucket, prefix, Array(requestId))
+                if ("true".equals(deleteSource)) 
+                {
+                    println(s"Deleting $requestId Folder")
+                    DataExhaustUtils.deleteS3File(bucket, prefix, Array(requestId))
+                }
                 (publicS3URL + "/" + bucket + "/" + s3FilePrefix, stats)
             case "local" =>
                 val file = new File(zipfilePath)
