@@ -114,12 +114,15 @@ object DataExhaustUtils {
         }
     }
 
-    def uploadZip(bucket: String, filePrefix: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
+    def uploadZip(bucket: String, prefix: String, compressExtn: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
         try {
+            val filePrefix = prefix + request_id + compressExtn
             S3Util.uploadPublic(bucket, zipFileAbsolutePath, filePrefix);
             updateStage(request_id, client_key, "UPLOAD_ZIP", "COMPLETED")
+            
         } catch {
             case t: Throwable =>
+                deleteS3File(bucket, prefix, Array(request_id))
                 updateStage(request_id, client_key, "UPLOAD_ZIP", "FAILED", "FAILED")
                 throw t
         }
@@ -174,18 +177,11 @@ object DataExhaustUtils {
     }
 
     def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
-
-        
         for (request_id <- request_ids) {
             val s3prefix = prefix + request_id
             val keys1 = S3Util.getAllKeys(bucket, s3prefix + "/")
-            println("keys1: "+ keys1.length)
-            for (key <- keys1) {
-                S3Util.deleteObject(bucket, key)
-                println("deleted: "+ key)
-            }
+            for (key <- keys1) S3Util.deleteObject(bucket, key)
             S3Util.deleteObject(bucket, s3prefix + "_$folder$");
-            println("deleted: "+ s3prefix + "_$folder$")
         }
     }
 

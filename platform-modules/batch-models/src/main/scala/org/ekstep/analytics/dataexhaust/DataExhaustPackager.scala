@@ -110,8 +110,9 @@ object DataExhaustPackager extends optional.Application {
             case "s3" =>
                 val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
                 val publicS3URL = AppConf.getConfig("data_exhaust.save_config.public_s3_url")
-                val s3FilePrefix = prefix + requestId + ".zip"
-                DataExhaustUtils.uploadZip(bucket, s3FilePrefix, zipfilePath, requestId, clientKey)
+                val compressExtn = ".zip"
+                DataExhaustUtils.uploadZip(bucket, prefix, compressExtn, zipfilePath, requestId, clientKey)  
+                val s3FilePrefix = prefix + requestId + compressExtn
                 val stats = S3Util.getObjectDetails(bucket, s3FilePrefix);
                 if ("true".equals(deleteSource)) DataExhaustUtils.deleteS3File(bucket, prefix, Array(requestId))
                 (publicS3URL + "/" + bucket + "/" + s3FilePrefix, stats)
