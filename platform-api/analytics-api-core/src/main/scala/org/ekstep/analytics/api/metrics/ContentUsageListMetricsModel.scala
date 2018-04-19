@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import com.weather.scalacass.syntax._
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
-case class ContentUsageListTable(d_period: Int, m_contents: Option[List[AnyRef]] = Option(List()), content: Option[List[AnyRef]] = Option(List()))
+case class ContentUsageListTable(d_period: Int, m_contents: Option[List[String]] = Option(List()))
 
 object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetrics, ContentUsageListMetrics]  with Serializable {
 	
@@ -53,7 +53,6 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 
 	override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[ContentUsageListMetrics], config: Config): Array[ContentUsageListMetrics] = {
 
-		println("inside getdata")
 		val periods = _getPeriods(period);
 
 		val queries = tags.map { tag =>
@@ -62,17 +61,13 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 			}
 		}.flatMap(x => x)
 
-//		val out = queries.map { q =>
-//			val res = DBUtil.session.execute(q)
-//			val rows = res.all().asScala.map(x => x.as[ContentUsageListTable])
-//			println("rows size: ", rows.size)
-//			rows
-//		}.flatMap(x => x).map(f => getSummaryFromCass(f))
-
-		Array[ContentUsageListMetrics]();
+		queries.map { q =>
+			val res = DBUtil.session.execute(q)
+			res.all().asScala.map(x => x.as[ContentUsageListTable])
+		}.flatMap(x => x).map(f => getSummaryFromCass(f))
 	}
 
 	private def getSummaryFromCass(summary: ContentUsageListTable): ContentUsageListMetrics = {
-		ContentUsageListMetrics(Option(summary.d_period), None, summary.m_contents, summary.content)
+		ContentUsageListMetrics(Option(summary.d_period), None, summary.m_contents.asInstanceOf[Option[List[AnyRef]]], None)
 	}
 }
