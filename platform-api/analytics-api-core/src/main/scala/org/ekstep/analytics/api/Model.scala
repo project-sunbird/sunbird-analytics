@@ -72,6 +72,11 @@ object Constants {
 	val PLATFORML_DB = env+"platform_db";
 	val JOB_REQUEST = "job_request";
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
+	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact";
+	val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact";
+	val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact";
+	val USAGE_SUMMARY_FACT = "usage_summary_fact";
+	val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact";
 	val DEVICE_RECOS_TABLE = "device_recos";
 	val CONTENT_RECOS_TABLE = "content_recos"
 	val CONTENT_TO_VEC = "content_to_vector";

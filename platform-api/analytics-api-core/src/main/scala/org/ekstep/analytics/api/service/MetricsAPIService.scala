@@ -208,7 +208,7 @@ object MetricsAPIService {
         }
     }
 
-    private def workflowUsage(body: MetricsRequestBody)(implicit config: Config): String = {
+    def workflowUsage(body: MetricsRequestBody)(implicit config: Config): String = {
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.WORKFLOW_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {

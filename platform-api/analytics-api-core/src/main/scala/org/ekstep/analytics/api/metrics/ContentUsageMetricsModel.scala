@@ -1,12 +1,14 @@
 package org.ekstep.analytics.api.metrics
 
-import org.ekstep.analytics.api.IMetricsModel
-import org.ekstep.analytics.api.ContentUsageMetrics
-import org.apache.spark.SparkContext
+import com.datastax.driver.core.querybuilder.QueryBuilder
+import org.ekstep.analytics.api.{Constants, ContentUsageMetrics, IMetricsModel}
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.api.IMetricsModel
+import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
 import org.ekstep.analytics.framework.util.JSONUtils
+import com.weather.scalacass.syntax._
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+
+case class ContentUsageTable(d_period: Int, d_content_id: String, d_tag: String, m_total_ts: Option[Double] = Option(0.0), m_total_sessions: Option[Long] = Option(0), m_avg_ts_session: Option[Double] = Option(0.0), m_total_interactions: Option[Long] = Option(0), m_avg_interactions_min: Option[Double] = Option(0.0), m_total_devices: Option[Long] = Option(0), m_avg_sess_device: Option[Double] = Option(0.0))
 
 object CotentUsageMetricsModel extends IMetricsModel[ContentUsageMetrics, ContentUsageMetrics] with Serializable {
 
@@ -43,5 +45,24 @@ object CotentUsageMetricsModel extends IMetricsModel[ContentUsageMetrics, Conten
 
     override def getSummary(summary: ContentUsageMetrics): ContentUsageMetrics = {
         ContentUsageMetrics(None, None, summary.m_total_ts, summary.m_total_sessions, summary.m_avg_ts_session, summary.m_total_interactions, summary.m_avg_interactions_min, summary.m_total_devices, summary.m_avg_sess_device);
+    }
+
+    override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[ContentUsageMetrics], config: Config): Array[ContentUsageMetrics] = {
+        val periods = _getPeriods(period);
+
+        val queries = tags.map { tag =>
+            periods.map { p =>
+                QueryBuilder.select().all().from(Constants.CONTENT_DB, Constants.CONTENT_SUMMARY_FACT_TABLE).allowFiltering().where(QueryBuilder.eq("d_period", p)).and(QueryBuilder.eq("d_tag", tag)).and(QueryBuilder.eq("d_content_id", contentId)).and(QueryBuilder.eq("d_channel", channel)).toString();
+            }
+        }.flatMap(x => x)
+
+        queries.map { q =>
+            val res = DBUtil.session.execute(q)
+            res.all().asScala.map(x => x.as[ContentUsageTable])
+        }.flatMap(x => x).map(f => getSummaryFromCass(f))
+    }
+
+    private def getSummaryFromCass(summary: ContentUsageTable): ContentUsageMetrics = {
+        ContentUsageMetrics(Option(summary.d_period), None, summary.m_total_ts, summary.m_total_sessions, summary.m_avg_ts_session, summary.m_total_interactions, summary.m_avg_interactions_min, summary.m_total_devices, summary.m_avg_sess_device);
     }
 }

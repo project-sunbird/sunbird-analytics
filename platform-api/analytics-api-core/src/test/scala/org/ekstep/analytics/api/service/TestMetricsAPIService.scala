@@ -43,6 +43,11 @@ class TestMetricsAPIService extends BaseSpec {
         JSONUtils.deserialize[MetricsResponse](result);
     }
 
+    private def getWorkflowUsageMetrics(request: String): MetricsResponse = {
+        val result = MetricsAPIService.workflowUsage(JSONUtils.deserialize[MetricsRequestBody](request));
+        JSONUtils.deserialize[MetricsResponse](result);
+    }
+
     private def checkCUMetricsEmpty(metric: Map[String, AnyRef]) {
         metric.get("m_total_ts") should be(Some(0.0));
         metric.get("m_total_sessions") should be(Some(0.0));
@@ -376,6 +381,13 @@ class TestMetricsAPIService extends BaseSpec {
         val request = """{"id":"ekstep.analytics.content-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_14_DAYS","filter":{"tag":"c6ed6e6849303c77c0182a282ebf318aad28f8d1", "user_id": "c30db6bd-f403-4cc8-aa30-82ec150fe6ba", "content_id": "all"}}}""";
         val response = getUsageMetrics("consumption", "content-usage", request);
         response.result.metrics.length should be(14);
+        response.result.summary should not be empty;
+    }
+
+    "WorkflowUsageMetricsAPIService" should "check workflow metrics api" in {
+        val request = """{"id":"ekstep.analytics.metrics.workflow-usage","ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},"request":{"period":"LAST_7_DAYS","filter":{"tag": "1375b1d70a66a0f2c22dd1096b98030cb7d9bacb", "content_id":"do_30013486"}}}""";
+        val response = getWorkflowUsageMetrics(request);
+        response.result.metrics.length should be(7);
         response.result.summary should not be empty;
     }
 

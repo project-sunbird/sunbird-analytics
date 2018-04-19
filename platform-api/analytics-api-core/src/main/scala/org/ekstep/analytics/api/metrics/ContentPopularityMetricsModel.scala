@@ -5,7 +5,13 @@ import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.Rating
-import org.ekstep.analytics.api.ContentPopularityMetrics
+import org.ekstep.analytics.api.{ContentPopularityMetrics, Constants}
+import com.datastax.driver.core.querybuilder.QueryBuilder
+import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import com.weather.scalacass.syntax._
+
+case class ContentPopularityTable(d_period: Int, m_comments: Option[List[(String, Long)]] = None, m_downloads: Option[Long] = Option(0), m_side_loads: Option[Long] = Option(0), m_ratings: Option[List[(Double, Long)]] = Option(List()), m_avg_rating: Option[Double] = Option(0.0))
 
 object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics, ContentPopularityMetrics]  with Serializable {
 	override def metric : String = "cps";
@@ -58,5 +64,25 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 	
 	override def getSummary(summary: ContentPopularityMetrics) : ContentPopularityMetrics = {
 		ContentPopularityMetrics(None, None, summary.m_comments, summary.m_downloads, summary.m_side_loads, summary.m_ratings, summary.m_avg_rating);
+	}
+
+	override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[ContentPopularityMetrics], config: Config): Array[ContentPopularityMetrics] = {
+
+			val periods = _getPeriods(period);
+
+			val queries = tags.map { tag =>
+					periods.map { p =>
+							QueryBuilder.select().all().from(Constants.CONTENT_DB, Constants.CONTENT_POPULARITY_SUMMARY_FACT).allowFiltering().where(QueryBuilder.eq("d_period", p)).and(QueryBuilder.eq("d_tag", tag)).and(QueryBuilder.eq("d_content_id", contentId)).and(QueryBuilder.eq("d_channel", channel)).toString();
+					}
+			}.flatMap(x => x)
+
+			queries.map { q =>
+					val res = DBUtil.session.execute(q)
+					res.all().asScala.map(x => x.as[ContentPopularityTable])
+			}.flatMap(x => x).map(f => getSummaryFromCass(f))
+	}
+
+	private def getSummaryFromCass(summary: ContentPopularityTable): ContentPopularityMetrics = {
+			ContentPopularityMetrics(Option(summary.d_period), None, summary.m_comments, summary.m_downloads, summary.m_side_loads, summary.m_ratings, summary.m_avg_rating);
 	}
 }
