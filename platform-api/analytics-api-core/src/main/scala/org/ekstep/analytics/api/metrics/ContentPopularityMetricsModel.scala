@@ -86,8 +86,8 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 	}
 
 	private def getSummaryFromCass(summary: ContentPopularityTable): ContentPopularityMetrics = {
-			val comments = if(summary.m_comments.get.size > 0) summary.m_comments.get.map(f => (f._1, new DateTime(f._2).getMillis)) else summary.m_comments.get.asInstanceOf[List[(String, Long)]]
-			val ratings = if(summary.m_ratings.get.size > 0) summary.m_ratings.get.map(f => (f._1, new DateTime(f._2).getMillis)) else summary.m_ratings.get.asInstanceOf[List[(Double, Long)]]
-			ContentPopularityMetrics(Option(summary.d_period), None, Option(comments), summary.m_downloads, summary.m_side_loads, Option(ratings), summary.m_avg_rating);
+			val comments = if(summary.m_comments.nonEmpty && summary.m_comments.get.size > 0) Option(summary.m_comments.get.map(f => (f._1, new DateTime(f._2).getMillis))) else summary.m_comments.asInstanceOf[Option[List[(String, Long)]]]
+			val ratings = if(summary.m_ratings.nonEmpty && summary.m_ratings.get.size > 0) Option(summary.m_ratings.get.map(f => (f._1, new DateTime(f._2).getMillis))) else summary.m_ratings.asInstanceOf[Option[List[(Double, Long)]]]
+			ContentPopularityMetrics(Option(summary.d_period), None, comments, summary.m_downloads, summary.m_side_loads, ratings, summary.m_avg_rating);
 	}
 }
