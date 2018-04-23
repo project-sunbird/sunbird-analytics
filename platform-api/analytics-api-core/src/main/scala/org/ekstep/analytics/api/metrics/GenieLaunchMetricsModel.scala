@@ -8,7 +8,7 @@ import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
 import com.weather.scalacass.syntax._
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
-case class GenieLaunchTable(d_period: Int, m_total_sessions: Option[Long] = Option(0), m_total_ts: Option[Double] = Option(0.0), m_total_devices: Option[Long] = Option(0), m_avg_sess_device: Option[Double] = Option(0.0), m_avg_ts_session: Option[Double] = Option(0))
+case class GenieLaunchTable(d_period: Int, m_total_sessions: Option[Long] = Option(0), m_total_ts: Option[Double] = Option(0.0), m_total_devices: Option[Long] = Option(0), m_avg_sess_device: Option[Long] = Option(0), m_avg_ts_session: Option[Double] = Option(0))
 
 object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLaunchMetrics]  with Serializable {
   	override def metric : String = "gls";
@@ -59,6 +59,6 @@ object GenieLaunchMetricsModel extends IMetricsModel[GenieLaunchMetrics, GenieLa
 	}
 
 	private def getSummaryFromCass(summary: GenieLaunchTable): GenieLaunchMetrics = {
-		GenieLaunchMetrics(Option(summary.d_period), None, summary.m_total_sessions, summary.m_total_ts, summary.m_total_devices, summary.m_avg_sess_device, summary.m_avg_ts_session);
+		GenieLaunchMetrics(Option(summary.d_period), None, summary.m_total_sessions, summary.m_total_ts, summary.m_total_devices, Option(summary.m_avg_sess_device.get.toDouble), summary.m_avg_ts_session);
 	}
 }

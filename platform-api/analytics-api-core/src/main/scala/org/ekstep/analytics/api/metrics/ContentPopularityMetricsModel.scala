@@ -5,13 +5,16 @@ import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.Rating
-import org.ekstep.analytics.api.{ContentPopularityMetrics, Constants}
+import org.ekstep.analytics.api.{Constants, ContentPopularityMetrics}
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
+
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import com.weather.scalacass.syntax._
+import java.util.Date
+import org.joda.time.DateTime
 
-case class ContentPopularityTable(d_period: Int, m_comments: Option[List[(String, Long)]] = None, m_downloads: Option[Long] = Option(0), m_side_loads: Option[Long] = Option(0), m_ratings: Option[List[(Double, Long)]] = Option(List()), m_avg_rating: Option[Double] = Option(0.0))
+case class ContentPopularityTable(d_period: Int, m_comments: Option[List[(String, Date)]] = None, m_downloads: Option[Long] = Option(0), m_side_loads: Option[Long] = Option(0), m_ratings: Option[List[(Double, Date)]] = Option(List()), m_avg_rating: Option[Double] = Option(0.0))
 
 object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetrics, ContentPopularityMetrics]  with Serializable {
 	override def metric : String = "cps";
@@ -83,6 +86,8 @@ object ContentPopularityMetricsModel extends IMetricsModel[ContentPopularityMetr
 	}
 
 	private def getSummaryFromCass(summary: ContentPopularityTable): ContentPopularityMetrics = {
-			ContentPopularityMetrics(Option(summary.d_period), None, summary.m_comments, summary.m_downloads, summary.m_side_loads, summary.m_ratings, summary.m_avg_rating);
+			val comments = if(summary.m_comments.get.size > 0) summary.m_comments.get.map(f => (f._1, new DateTime(f._2).getMillis)) else summary.m_comments.get.asInstanceOf[List[(String, Long)]]
+			val ratings = if(summary.m_ratings.get.size > 0) summary.m_ratings.get.map(f => (f._1, new DateTime(f._2).getMillis)) else summary.m_ratings.get.asInstanceOf[List[(Double, Long)]]
+			ContentPopularityMetrics(Option(summary.d_period), None, Option(comments), summary.m_downloads, summary.m_side_loads, Option(ratings), summary.m_avg_rating);
 	}
 }
