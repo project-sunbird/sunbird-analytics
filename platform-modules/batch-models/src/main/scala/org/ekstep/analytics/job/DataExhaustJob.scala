@@ -19,6 +19,7 @@ import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.Level.INFO
 import org.apache.commons.lang3.StringUtils
+import org.joda.time.LocalDate
 
 case class DataExhaustOutput(input_events: Long, output_events: Long, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None);
 case class DataExhaustExeResult(request_id: String, client_key: String, status: Option[String] = Option("PROCESSING"), iteration: Option[Int] = None, err_message: Option[String] = None, input_events: Option[Long] = None, output_events: Option[Long] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, execution_time: Option[Double] = None, dt_job_completed: Option[Long] = None);
@@ -110,7 +111,8 @@ object DataExhaustJob extends optional.Application with IJob {
             }
             requests.length
         })
-        JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> Double.box(time._1 / 1000), "jobCount" -> time._2)));
+        val requestDetails = DataExhaustUtils.getRequestDetails(new LocalDate().toString)
+        JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> Double.box(time._1 / 1000), "jobCount" -> time._2, "requestDetails" -> requestDetails)));
     }
     private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): DataExhaustOutput = {
         val dataSetID = request.dataset_id.get

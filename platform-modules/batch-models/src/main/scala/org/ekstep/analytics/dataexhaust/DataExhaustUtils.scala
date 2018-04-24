@@ -30,17 +30,16 @@ import org.ekstep.analytics.util.JobStage
 import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
-import com.datastax.spark.connector.SomeColumns
-import com.datastax.spark.connector.toNamedColumnRef
-import com.datastax.spark.connector.toRDDFunctions
-import com.datastax.spark.connector.toSparkContextFunctions
+import com.datastax.spark.connector._
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
 import org.ekstep.ep.samza.converter.converters.TelemetryV3Converter
 import scala.collection.JavaConverters._
 import com.google.gson.reflect.TypeToken
 import com.google.gson.Gson
-import java.lang.reflect.Type;
+import java.lang.reflect.Type
+import org.joda.time.DateTimeZone
+import org.ekstep.analytics.util.RequestDetails
 
 object DataExhaustUtils {
 
@@ -119,7 +118,7 @@ object DataExhaustUtils {
             val filePrefix = prefix + request_id + compressExtn
             S3Util.uploadPublic(bucket, zipFileAbsolutePath, filePrefix);
             updateStage(request_id, client_key, "UPLOAD_ZIP", "COMPLETED")
-            
+
         } catch {
             case t: Throwable =>
                 deleteS3File(bucket, prefix, Array(request_id))
@@ -334,4 +333,14 @@ object DataExhaustUtils {
         }.flatMap { x => x }.filter { x => (x != null && x.nonEmpty) }
     }
 
+    def getRequestDetails(date: String)(implicit sc: SparkContext): Array[RequestDetails] = {
+        val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
+        val startDate = dateFormat.parseDateTime(date).getMillis;
+        val endDate = CommonUtil.getEndTimestampOfDay(date)
+        sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
+            .where("updated_date>=?", startDate)
+            .where("updated_date<=?", endDate)
+            .map { x => RequestDetails(x.client_key, x.request_id, x.status, x.dt_job_submitted.getMillis, x.input_events, x.output_events, x.execution_time) }
+            .collect;
+    }
 }
