@@ -40,6 +40,7 @@ import com.google.gson.Gson
 import java.lang.reflect.Type
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.util.RequestDetails
+import org.joda.time.DateTime
 
 object DataExhaustUtils {
 
@@ -103,7 +104,7 @@ object DataExhaustUtils {
         try {
             val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") }.cache;
             if (!jobReq.isEmpty()) {
-                jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status"))
+                jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message", "dt_job_processing"))
                 jobReq;
             } else {
                 null;
@@ -338,8 +339,8 @@ object DataExhaustUtils {
         val startDate = dateFormat.parseDateTime(date).getMillis;
         val endDate = CommonUtil.getEndTimestampOfDay(date)
         sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
-            .where("updated_date>=?", startDate)
-            .where("updated_date<=?", endDate)
+            .where("dt_job_processing>=?", startDate)
+            .where("dt_job_processing<=?", endDate)
             .map { x => RequestDetails(x.client_key, x.request_id, x.status, x.dt_job_submitted.getMillis, x.input_events, x.output_events, x.execution_time) }
             .collect;
     }

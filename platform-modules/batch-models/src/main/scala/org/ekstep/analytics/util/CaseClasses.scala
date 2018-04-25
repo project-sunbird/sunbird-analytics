@@ -76,7 +76,7 @@ case class RequestConfig(filter: RequestFilter, dataset_id: Option[String] = Opt
 case class RequestOutput(request_id: String, output_events: Int)
 case class DataExhaustJobInput(eventDate: Long, event: String, eid: String) extends AlgoInput;
 case class JobResponse(client_key: String, request_id: String, job_id: String, output_events: Long, bucket: String, prefix: String, first_event_date: Long, last_event_date: Long);
-case class JobStage(request_id: String, client_key: String, stage: String, stage_status: String, status: String, err_message: String = "")
+case class JobStage(request_id: String, client_key: String, stage: String, stage_status: String, status: String, err_message: String = "", dt_job_processing: Option[DateTime] = Option(new DateTime()))
 case class RequestDetails(client_key: String, request_id: String, status: String, dt_job_submitted: Long, input_events: Option[Long], output_events: Option[Long], execution_time: Option[Long])
 
 // Backend Event
