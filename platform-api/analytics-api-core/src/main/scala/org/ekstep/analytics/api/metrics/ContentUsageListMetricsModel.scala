@@ -1,13 +1,16 @@
 package org.ekstep.analytics.api.metrics
 
-import org.ekstep.analytics.api.IMetricsModel
+import com.datastax.driver.core.querybuilder.QueryBuilder
+import org.ekstep.analytics.api.{Constants, ContentUsageListMetrics, IMetricsModel}
 import org.apache.spark.SparkContext
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.ContentUsageListMetrics
-import org.ekstep.analytics.api.util.CommonUtil
+import org.ekstep.analytics.api.util.{CommonUtil, ContentCacheUtil, DBUtil}
 import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.api.util.ContentCacheUtil
+import com.weather.scalacass.syntax._
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+
+case class ContentUsageListTable(d_period: Int, m_contents: Option[List[String]] = Option(List()))
 
 object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetrics, ContentUsageListMetrics]  with Serializable {
 	
@@ -46,5 +49,25 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 	
 	override def getSummary(summary: ContentUsageListMetrics) : ContentUsageListMetrics = {
 		ContentUsageListMetrics(None, None, summary.m_contents, summary.content)
+	}
+
+	override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[ContentUsageListMetrics], config: Config): Array[ContentUsageListMetrics] = {
+
+		val periods = _getPeriods(period);
+
+		val queries = tags.map { tag =>
+			periods.map { p =>
+				QueryBuilder.select().all().from(Constants.CONTENT_DB, Constants.GENIE_LAUNCH_SUMMARY_FACT).allowFiltering().where(QueryBuilder.eq("d_period", p)).and(QueryBuilder.eq("d_tag", tag)).and(QueryBuilder.eq("d_channel", channel)).toString();
+			}
+		}.flatMap(x => x)
+
+		queries.map { q =>
+			val res = DBUtil.session.execute(q)
+			res.all().asScala.map(x => x.as[ContentUsageListTable])
+		}.flatMap(x => x).map(f => getSummaryFromCass(f))
+	}
+
+	private def getSummaryFromCass(summary: ContentUsageListTable): ContentUsageListMetrics = {
+		ContentUsageListMetrics(Option(summary.d_period), None, summary.m_contents.asInstanceOf[Option[List[AnyRef]]], None)
 	}
 }
