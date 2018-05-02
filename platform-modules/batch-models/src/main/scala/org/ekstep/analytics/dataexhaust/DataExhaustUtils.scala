@@ -341,7 +341,7 @@ object DataExhaustUtils {
         sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
             .where("dt_job_processing>=?", startDate)
             .where("dt_job_processing<=?", endDate)
-            .map { x => RequestDetails(x.client_key, x.request_id, x.status, x.dt_job_submitted.getMillis, x.input_events, x.output_events, x.execution_time) }
+            .map { x => RequestDetails(x.client_key, x.request_id, x.status, x.dt_job_submitted.toString(), x.input_events, x.output_events, x.execution_time) }
             .collect;
     }
 }
