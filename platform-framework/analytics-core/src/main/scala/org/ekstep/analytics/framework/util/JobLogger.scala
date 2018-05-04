@@ -47,30 +47,30 @@ object JobLogger {
         LogManager.getLogger(name+".logger");
     }
 
-    private def info(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).info(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "INFO", msg, data)));
+    private def info(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics", pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String) {
+        logger(name).info(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "INFO", msg, data, None, pdata_id, pdata_pid)));
     }
 
-    private def debug(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).debug(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "DEBUG", msg, data)))
+    private def debug(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics", pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String) {
+        logger(name).debug(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "DEBUG", msg, data, None, pdata_id, pdata_pid)))
     }
 
-    private def error(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).error(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "ERROR", msg, data)));
+    private def error(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics", pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String) {
+        logger(name).error(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "ERROR", msg, data, None, pdata_id, pdata_pid)));
     }
 
-    private def warn(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) {
-        logger(name).debug(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "WARN", msg, data)))
+    private def warn(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics", pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String) {
+        logger(name).debug(JSONUtils.serialize(getV3JobEvent("JOB_LOG", "WARN", msg, data, None, pdata_id, pdata_pid)))
     }
 
-    def start(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        val event = JSONUtils.serialize(getV3JobEvent("JOB_START", "INFO", msg, data));
+    def start(msg: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics", pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String) = {
+        val event = JSONUtils.serialize(getV3JobEvent("JOB_START", "INFO", msg, data, None, pdata_id, pdata_pid));
         EventBusUtil.dipatchEvent(event);
         logger(name).info(event);
     }
 
-    def end(msg: String, status: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics")(implicit className: String) = {
-        val event = JSONUtils.serialize(getV3JobEvent("JOB_END", "INFO", msg, data, Option(status)));
+    def end(msg: String, status: String, data: Option[AnyRef] = None, name: String = "org.ekstep.analytics", pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String) = {
+        val event = JSONUtils.serialize(getV3JobEvent("JOB_END", "INFO", msg, data, Option(status), pdata_id, pdata_pid));
         EventBusUtil.dipatchEvent(event);
         logger(name).info(event);
     }
@@ -103,7 +103,7 @@ object JobLogger {
             MEEdata(measures));
     }
     
-    private def getV3JobEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): V3DerivedEvent = {
+    private def getV3JobEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None, pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String): V3DerivedEvent = {
         val measures = Map(
             "class" -> className,
             "level" -> level,
@@ -112,7 +112,7 @@ object JobLogger {
             "data" -> data);
         val ts = new DateTime().getMillis
         val mid = CommonUtil.getMessageId(eid, level, ts, None, None);
-        val context = V3Context("in.ekstep", Option(V3PData("AnalyticsDataPipeline", Option("1.0"), Option(JobContext.jobName))), "analytics", None, None, None, None)
+        val context = V3Context("in.ekstep", Option(V3PData(pdata_id, Option("1.0"), Option(pdata_pid))), "analytics", None, None, None, None)
         V3DerivedEvent(eid, System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, measures)
     }
 }

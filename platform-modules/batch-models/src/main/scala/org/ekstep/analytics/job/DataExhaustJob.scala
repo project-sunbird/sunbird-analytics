@@ -69,6 +69,8 @@ object DataExhaustJob extends optional.Application with IJob {
                 val iteration = request.iteration.getOrElse(0) + 1;
                 val requestId = request.request_id;
                 val clientKey = request.client_key;
+                // JOB_START event
+                JobLogger.start("DataExhaust Job Started executing for " + requestId, Option(Map("config" -> config, "model" -> name)), "org.ekstep.analytics", "DataExhaustJob", requestId)
                 println("Processing data-exhaust for request:", requestId);
                 try {
                     val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
@@ -98,6 +100,8 @@ object DataExhaustJob extends optional.Application with IJob {
                         firstEventDate, lastEventDate, Option(exeMetrics._1), completedDate);
 
                     sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "status", "iteration", "err_message", "input_events", "output_events", "dt_first_event", "dt_last_event", "execution_time", "dt_job_completed"));
+                    if(status.equals("COMPLETED"))
+                        JobLogger.end("DataExhaust Job Completed for "+requestId, "SUCCESS", Option(Map("client_key" -> clientKey, "inputEvents" -> inputEventsCount, "outputEvents" -> outputEventsCount, "timeTaken" -> exeMetrics._1, "type" -> "User")), "org.ekstep.analytics", "DataExhaustJob", requestId);
 
                 } catch {
                     case ex: Exception =>
@@ -116,7 +120,7 @@ object DataExhaustJob extends optional.Application with IJob {
         if(dispatcher!=null){
             OutputDispatcher.dispatch(dispatcher.head, requestDetails.map { x => JSONUtils.serialize(x) });    
         }
-        JobLogger.end("DataExhaust Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> Double.box(time._1 / 1000), "jobCount" -> time._2, "requestDetails" -> requestDetails)));
+        JobLogger.end("DataExhaust Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> Double.box(time._1 / 1000), "jobCount" -> time._2, "requestDetails" -> requestDetails)));
     }
     private def _executeEventExhaust(eventId: String, request: RequestConfig, requestID: String, clientKey: String)(implicit sc: SparkContext, exhaustConfig: Map[String, DataSet]): DataExhaustOutput = {
         val dataSetID = request.dataset_id.get

@@ -10,22 +10,18 @@ import java.util.Date
 import java.util.UUID
 
 import scala.reflect.runtime.universe
-
 import org.apache.commons.io.FileUtils
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.util.S3Util
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger, S3Util}
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
 import org.ekstep.analytics.util.RequestConfig
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
-
 import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
@@ -50,7 +46,7 @@ case class EventData(eventName: String, data: RDD[String]);
  */
 object DataExhaustPackager extends optional.Application {
 
-    val className = "org.ekstep.analytics.model.DataExhaustPackager"
+    implicit val className = "org.ekstep.analytics.model.DataExhaustPackager"
     def name: String = "DataExhaustPackager"
 
     def execute()(implicit sc: SparkContext) = {
@@ -148,6 +144,8 @@ object DataExhaustPackager extends optional.Application {
 
         val requestId = jobRequest.request_id;
         val clientKey = jobRequest.client_key;
+        val inputEventsCount = jobRequest.input_events.getOrElse(0L)
+        val outputEventsCount = jobRequest.output_events.getOrElse(0L)
         println("Processing package for request:", requestId);
 
         val jobId = UUID.randomUUID().toString();
@@ -177,11 +175,15 @@ object DataExhaustPackager extends optional.Application {
             val completedDate = DateTime.now(DateTimeZone.UTC);
             val result = DataExhaustPackage(requestId, clientKey, jobId, exhaustExeTime + packageExeTime, "COMPLETED", 0L, Option(completedDate), Option(filePath), Option(fileSize), Option(fieCreatedDate), Option(fileExpiryDate));
             sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "execution_time", "status", "latency", "dt_job_completed", "location", "file_size", "dt_file_created", "dt_expiration"));
+            // JOB_END event with success
+            JobLogger.end("DataExhaust Job Completed for "+requestId, "SUCCESS", Option(Map("client_key" -> clientKey, "inputEvents" -> inputEventsCount, "outputEvents" -> outputEventsCount, "timeTaken" -> (exhaustExeTime + packageExeTime), "SubmittedDate" -> jobRequest.dt_job_submitted.toString(), "type" -> "User")), "org.ekstep.analytics", "DataExhaustJob", requestId);
         } catch {
             case t: Throwable =>
                 t.printStackTrace();
                 val result = DataExhaustPackage(requestId, clientKey, jobId, exhaustExeTime, "FAILED");
                 sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "execution_time", "status", "latency"));
+                // JOB_END event with failure
+                JobLogger.end("DataExhaust Job Failed for "+requestId, "FAILED", Option(Map("client_key" -> clientKey, "inputEvents" -> inputEventsCount, "outputEvents" -> 0, "timeTaken" -> exhaustExeTime, "SubmittedDate" -> jobRequest.dt_job_submitted.toString(), "type" -> "User")), "org.ekstep.analytics", "DataExhaustJob", requestId);
         }
     }
 
