@@ -70,7 +70,7 @@ object DataExhaustJob extends optional.Application with IJob {
                 val requestId = request.request_id;
                 val clientKey = request.client_key;
                 // JOB_START event
-                JobLogger.start("DataExhaust Job Started executing for " + requestId, Option(Map("config" -> config, "model" -> name)), "org.ekstep.analytics", "DataExhaustJob", requestId)
+                JobLogger.start("DataExhaust Job Started executing for " + requestId, Option(Map("config" -> config, "model" -> name)), "org.ekstep.analytics", requestId)
                 println("Processing data-exhaust for request:", requestId);
                 try {
                     val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);
@@ -101,7 +101,7 @@ object DataExhaustJob extends optional.Application with IJob {
 
                     sc.makeRDD(Seq(result)).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "status", "iteration", "err_message", "input_events", "output_events", "dt_first_event", "dt_last_event", "execution_time", "dt_job_completed"));
                     if(status.equals("COMPLETED"))
-                        JobLogger.end("DataExhaust Job Completed for "+requestId, "SUCCESS", Option(Map("client_key" -> clientKey, "inputEvents" -> inputEventsCount, "outputEvents" -> outputEventsCount, "timeTaken" -> exeMetrics._1, "type" -> "User")), "org.ekstep.analytics", "DataExhaustJob", requestId);
+                        JobLogger.end("DataExhaust Job Completed for "+requestId, "SUCCESS", Option(Map("client_key" -> clientKey, "inputEvents" -> inputEventsCount, "outputEvents" -> outputEventsCount, "timeTaken" -> exeMetrics._1, "type" -> "User")), "org.ekstep.analytics", requestId);
 
                 } catch {
                     case ex: Exception =>
