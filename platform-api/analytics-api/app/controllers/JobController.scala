@@ -48,11 +48,12 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         }
     }
 
-    def getTelemetry(datasetId: String, channel: String) = Action.async { implicit request =>
-        println("getTelemetry: "+ request.headers.toString)
+    def getTelemetry(eventType: String) = Action.async { implicit request =>
+        val consumerId = request.getHeader("X-Consumer-ID");
+        val channel = request.getHeader("X-Channel-ID");
         val from = request.getQueryString("from").getOrElse("")
         val to = request.getQueryString("to").getOrElse(org.ekstep.analytics.api.util.CommonUtil.getToday())
-        val result = ask(jobAPIActor, ChannelData(datasetId, channel, from, to, config)).mapTo[String];
+        val result = ask(jobAPIActor, ChannelData(consumerId, channel, eventType, from, to, config)).mapTo[String];
         result.map { x =>
             Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
         }

@@ -35,6 +35,14 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import com.amazonaws.HttpMethod
 import java.util.Calendar
+import java.sql.Connection
+import java.sql.Statement
+import java.sql.ResultSet
+import java.sql.DriverManager
+import java.sql.SQLException
+import scala.collection.mutable.Buffer
+import org.joda.time.LocalDate
+import org.ekstep.analytics.api.util.PostgresDBUtil
 
 /**
  * @author mahesh
@@ -47,7 +55,9 @@ object JobAPIService {
     case class GetDataRequest(clientKey: String, requestId: String, config: Config);
     case class DataRequestList(clientKey: String, limit: Int, config: Config);
 
-    case class ChannelData(datasetId: String, channel: String, from: String, to: String, config: Config);
+    case class ChannelData(consumer_id: String, channel: String, event_type: String, from: String, to: String, config: Config);
+
+    val EVENT_TYPES = Buffer("raw", "summary", "metrics");
 
     def dataRequest(request: String)(implicit config: Config): String = {
         val body = JSONUtils.deserialize[RequestBody](request);
@@ -78,23 +88,21 @@ object JobAPIService {
         val result = jobs.take(limit).map { x => _createJobResponse(x) }
         JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.size), "jobs" -> result)));
     }
+    
+    def getChannelData(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): String = {
 
-    def getChannelData(datasetId: String, channel: String, from: String, to: String)(implicit config: Config): String = {
-
-        val isValid = _validateChannelDataReqDtRange(datasetId, from, to)
+        val toDate = if (to.nonEmpty) to else (new LocalDate()).toString(CommonUtil.dateFormat)    
+        val isValid = _validateRequest(consumerId, channel, eventType, from, toDate)
         if ("true".equals(isValid.get("status").get)) {
             val bucket = config.getString("channel.data_exhaust.bucket")
             val basePrefix = config.getString("channel.data_exhaust.basePrefix")
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
-
-            val listObjs = S3Util.searchKeys(bucket, basePrefix + channel + "/", Option(from), Option(to), None, "yyyy-MM-dd");
-
+            val listObjs = S3Util.searchKeys(bucket, basePrefix + eventType + "/" + channel + "/", Option(from), Option(to), None, "yyyy-MM-dd");
             val calendar = Calendar.getInstance();
             calendar.add(Calendar.MINUTE, expiry);
             val expiryTime = calendar.getTime().getTime();
-            val expiryTimeInSeconds = expiryTime/ 1000;
-
+            val expiryTimeInSeconds = expiryTime / 1000;
             if (listObjs.length > 0) {
                 val res = for (key <- listObjs) yield {
                     S3Util.getPreSignedURL(bucket, key, expiryTimeInSeconds)
@@ -115,7 +123,7 @@ object JobAPIService {
         val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get);
         val usrReq = body.request;
         val request = Request(usrReq.filter, usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId));
-        
+
         if (null == job) {
             _saveJobRequest(requestId, body.params.get.client_key.get, request);
         } else {
@@ -201,21 +209,61 @@ object JobAPIService {
         val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId, clientKey).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
-    private def _validateChannelDataReqDtRange(datasetId: String, from: String, to: String): Map[String, String] = {
+    private def _validateRequest(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): Map[String, String] = {
 
+        if (StringUtils.equals(config.getString("channel.data_exhaust.postgres.validation"), "true")) {
+            val flag = isValidConsumer(consumerId, channel)
+            if (!flag) {
+                return Map("status" -> "false", "message" -> s"$consumerId & $channel Are not Registered...");
+            }
+        }        
+        if (!EVENT_TYPES.contains(eventType)) {
+            return Map("status" -> "false", "message" -> "Please provide 'eventType' value should be one of these -> ('raw' or 'summary' or 'metrics') in your request URL");
+        }
         if (StringUtils.isBlank(from)) {
             return Map("status" -> "false", "message" -> "Please provide 'from' in query string");
         }
         val days = CommonUtil.getDaysBetween(from, to)
-        if (!StringUtils.equals("eks-consumption-raw", datasetId)) {
-            return Map("status" -> "false", "message" -> "Please provide 'datasetId' as 'eks-consumption-raw' in your request URL");
-        } else if (CommonUtil.getPeriod(to) > CommonUtil.getPeriod(CommonUtil.getToday))
+        if (CommonUtil.getPeriod(to) > CommonUtil.getPeriod(CommonUtil.getToday))
             return Map("status" -> "false", "message" -> "'to' should be LESSER OR EQUAL TO today's date..");
         else if (0 > days)
             return Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your 'from' & 'to'");
         else if (10 < days)
             return Map("status" -> "false", "message" -> "Date range should be < 10 days");
         else return Map("status" -> "true");
+    }
+
+    private def isValidConsumer(consumerId: String, channel: String)(implicit config: Config): Boolean = {
+
+        var conn: Connection = null;
+        var stmt: Statement = null;
+        var rs: ResultSet = null;
+        var flag = false;
+        try {
+            conn = PostgresDBUtil.getPostgresConn()
+            if (conn != null) {
+                stmt = conn.createStatement()
+                rs = stmt.executeQuery(config.getString("postgres.query"))
+                if (rs.next()) {
+                    if (StringUtils.equals(consumerId, rs.getString(1)) && StringUtils.equals(channel, rs.getString(2))) flag = true; else flag = false;
+                } else flag = false;
+            } else flag = false;
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch {
+                case e: Exception => e.printStackTrace();
+            }
+        }
+        return flag;
     }
 }
 
@@ -226,6 +274,7 @@ class JobAPIService extends Actor {
         case DataRequest(request: String, config: Config) => sender() ! dataRequest(request)(config);
         case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config);
         case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config);
-        case ChannelData(datasetId: String, channel: String, from: String, to: String, config: Config) => sender() ! getChannelData(datasetId, channel, from, to)(config);
+        case ChannelData(consumerId: String, channel: String, eventType: String, from: String, to: String, config: Config) => sender() ! getChannelData(consumerId, channel, eventType, from, to)(config);
     }
+
 }
