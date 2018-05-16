@@ -38,7 +38,7 @@ case class SlackMessage(channel: String, username: String, text: String, icon_em
 case class JobMonitor(jobs_started: Long, jobs_completed: Long, jobs_failed: Long, total_events_generated: Long, total_ts: Double, syncTs: Long, job_summary: Array[Map[String, Any]], dtange: DtRange) extends AlgoOutput
 case class JobSummary(model: String, input_count: Long, output_count: Long, time_taken: Double, status: String, day: Int) extends AlgoOutput
 case class ModelMapping(model: String, category: String, input_dependency: String)
-case class MonitorMessage(job_name: String, job_id: String, success: Int, number_of_input: Long, number_of_output: Long, time_spent: Double, channel: Option[String] = None, tag: Option[String] = None)
+case class MonitorMessage(job_name: String, job_id: String, success: Int, number_of_input: Long, number_of_output: Long, time_spent: Double, channel: String, tag: String)
 
 object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMonitor, MeasuredEvent] with Serializable {
 
@@ -67,10 +67,11 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
             val inputCount = data.getOrElse("inputEvents", 0L).asInstanceOf[Number].longValue()
             val outputCount = data.getOrElse("outputEvents", 0L).asInstanceOf[Number].longValue()
             val timeTaken = data.getOrElse("timeTaken", 0.0).asInstanceOf[Number].floatValue()
+            val tag = data.getOrElse("tag", "").asInstanceOf[String]
             val status = x.edata.status
             val errMessage = if(null == x.edata.message) "" else x.edata.status
             val day = CommonUtil.getPeriod(x.ets, DAY)
-            Map("model" -> model, "model_id" -> modelId, "input_count" -> inputCount, "output_count" -> outputCount, "time_taken" -> timeTaken, "status" -> status, "day" -> day)
+            Map("model" -> model, "model_id" -> modelId, "input_count" -> inputCount, "output_count" -> outputCount, "time_taken" -> timeTaken, "status" -> status, "day" -> day, "tag" -> tag)
         }.collect()
         sc.parallelize(List(JobMonitor(jobsStarted, jobsCompleted, jobsFailed, totalEventsGenerated, totalTs, syncTs, jobSummary, DtRange(data.first().ets, data.collect().last.ets))))
     }
@@ -86,7 +87,8 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
                 val inputCount = f.getOrElse("input_count", 0).asInstanceOf[Long]
                 val outputCount = f.getOrElse("output_count", 0).asInstanceOf[Long]
                 val timeSpent = f.getOrElse("time_taken", 0.0).asInstanceOf[Float]
-                MonitorMessage(jobName, jobId, success, inputCount, outputCount, timeSpent)
+                val tag = f.get("tag").get.asInstanceOf[String]
+                MonitorMessage(jobName, jobId, success, inputCount, outputCount, timeSpent, "", tag)
             }.map(f => JSONUtils.serialize(f))
 
             KafkaDispatcher.dispatch(config, analyticsMetrics)

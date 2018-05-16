@@ -18,7 +18,7 @@ class TestMonitorSummaryModel extends SparkSpec(null) {
         eks_map.get("jobs_completed_count").get.asInstanceOf[Number].longValue() should be(72)
         eks_map.get("total_events_generated").get.asInstanceOf[Number].longValue() should be(36742)
         eks_map.get("jobs_failed_count").get.asInstanceOf[Number].longValue() should be(1)
-        eks_map.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(233369.0)
+        eks_map.get("total_ts").get.asInstanceOf[Number].doubleValue() should be(222965.0)
         eks_map.get("jobs_start_count").get.asInstanceOf[Number].longValue() should be(73)
     }
 }
