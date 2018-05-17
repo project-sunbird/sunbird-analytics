@@ -91,8 +91,7 @@ object JobAPIService {
     
     def getChannelData(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): String = {
 
-        val toDate = if (to.nonEmpty) to else (new LocalDate()).toString(CommonUtil.dateFormat)    
-        val isValid = _validateRequest(consumerId, channel, eventType, from, toDate)
+        val isValid = _validateRequest(consumerId, channel, eventType, from, to)
         if ("true".equals(isValid.get("status").get)) {
             val bucket = config.getString("channel.data_exhaust.bucket")
             val basePrefix = config.getString("channel.data_exhaust.basePrefix")
@@ -214,7 +213,7 @@ object JobAPIService {
         if (StringUtils.equals(config.getString("channel.data_exhaust.postgres.validation"), "true")) {
             val flag = isValidConsumer(consumerId, channel)
             if (!flag) {
-                return Map("status" -> "false", "message" -> s"$consumerId & $channel Are not Registered...");
+                return Map("status" -> "false", "message" -> s"consumerId='$consumerId' & channel='$channel' Are not Registered...");
             }
         }        
         if (!EVENT_TYPES.contains(eventType)) {
@@ -234,7 +233,7 @@ object JobAPIService {
     }
 
     private def isValidConsumer(consumerId: String, channel: String)(implicit config: Config): Boolean = {
-
+        
         var conn: Connection = null;
         var stmt: Statement = null;
         var rs: ResultSet = null;
