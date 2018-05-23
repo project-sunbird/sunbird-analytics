@@ -89,8 +89,14 @@ object JobAPIService {
         JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.size), "jobs" -> result)));
     }
     
-    def getChannelData(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): String = {
+    def getChannelData(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): (String, String) = {
 
+        if (StringUtils.equals(config.getString("channel.data_exhaust.postgres.validation"), "true")) {
+            val flag = isValidConsumer(consumerId, channel)
+            if (!flag) {
+                return (ResponseCode.FORBIDDEN.toString(), CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, s"consumerId='$consumerId' & channel='$channel' Are not Registered...", ResponseCode.FORBIDDEN.toString()));
+            }
+        }   
         val isValid = _validateRequest(consumerId, channel, eventType, from, to)
         if ("true".equals(isValid.get("status").get)) {
             val bucket = config.getString("channel.data_exhaust.bucket")
@@ -106,12 +112,12 @@ object JobAPIService {
                 val res = for (key <- listObjs) yield {
                     S3Util.getPreSignedURL(bucket, key, expiryTimeInSeconds)
                 }
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime))));
+                return (ResponseCode.OK.toString(), JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime)))));
             } else {
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l))));
+                return (ResponseCode.OK.toString(), JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l)))));
             }
         } else {
-            CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
+            return (ResponseCode.OK.toString(), CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString()));
         }
     }
 
@@ -210,12 +216,6 @@ object JobAPIService {
     }
     private def _validateRequest(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): Map[String, String] = {
 
-        if (StringUtils.equals(config.getString("channel.data_exhaust.postgres.validation"), "true")) {
-            val flag = isValidConsumer(consumerId, channel)
-            if (!flag) {
-                return Map("status" -> "false", "message" -> s"consumerId='$consumerId' & channel='$channel' Are not Registered...");
-            }
-        }        
         if (!EVENT_TYPES.contains(eventType)) {
             return Map("status" -> "false", "message" -> "Please provide 'eventType' value should be one of these -> ('raw' or 'summary' or 'metrics') in your request URL");
         }

@@ -140,6 +140,7 @@ class TestJobAPIService extends BaseSpec {
 
     it should "test channel based raw telemetry exhaust data" in {
         val res = JobAPIService.getChannelData("amit10","in.ekstep", "raw", "2018-05-14", "2018-05-15")
+        val resObj = JSONUtils.deserialize[Response](res._2);
         println(res)
     }
 }
