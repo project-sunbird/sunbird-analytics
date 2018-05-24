@@ -138,9 +138,19 @@ class TestJobAPIService extends BaseSpec {
 
     }
 
-    it should "test channel based raw telemetry exhaust data" in {
+    it should "test channel based raw telemetry exhaust data with proper consumer Id and channel" in {
         val res = JobAPIService.getChannelData("amit10","in.ekstep", "raw", "2018-05-14", "2018-05-15")
         val resObj = JSONUtils.deserialize[Response](res._2);
-        println(res)
+        resObj.responseCode should be ("OK")
+//        val urls = resObj.result.get.asInstanceOf[Map[String, AnyRef]].get("telemetryURLs").get.asInstanceOf[List[String]]
+//        urls.length should be > (0)  
+        println(res._2)
+    }
+    
+    it should "test channel based raw telemetry exhaust data with invalid consumer Id and channel" in {
+         val res = JobAPIService.getChannelData("amit","in.ekstep", "raw", "2018-05-14", "2018-05-15")
+        val resObj = JSONUtils.deserialize[Response](res._2);
+        resObj.responseCode should be ("FORBIDDEN")
+        println(res._2)   
     }
 }

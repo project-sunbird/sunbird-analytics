@@ -103,7 +103,9 @@ object JobAPIService {
             val basePrefix = config.getString("channel.data_exhaust.basePrefix")
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
-            val listObjs = S3Util.searchKeys(bucket, basePrefix + eventType + "/" + channel + "/", Option(from), Option(to), None, "yyyy-MM-dd");
+            //val prefix = basePrefix + channel + "/";
+            val prefix = basePrefix + eventType + "/" + channel + "/";
+            val listObjs = S3Util.searchKeys(bucket, prefix, Option(from), Option(to), None, "yyyy-MM-dd");
             val calendar = Calendar.getInstance();
             calendar.add(Calendar.MINUTE, expiry);
             val expiryTime = calendar.getTime().getTime();
