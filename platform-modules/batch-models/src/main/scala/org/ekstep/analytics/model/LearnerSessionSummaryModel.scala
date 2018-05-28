@@ -11,8 +11,10 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.adapter._
 import org.ekstep.analytics.framework.util._
 import java.security.MessageDigest
+
 import org.apache.log4j.Logger
 import com.datastax.spark.connector._
+import org.apache.commons.lang.StringUtils
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.conf.AppConf
@@ -172,7 +174,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
         JobLogger.log("Filtering Events of ASSESS,START, END, LEVEL_SET, INTERACT, INTERRUPT")
-        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("context.env", "EQ", Option(Constants.PLAYER_ENV)), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "INTERACT", "INTERRUPT", "IMPRESSION", "RESPONSE")))));
+        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("context.pdata", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "INTERACT", "INTERRUPT", "IMPRESSION", "RESPONSE"))))).filter(f => StringUtils.containsIgnoreCase(f.context.pdata.get.pid.getOrElse(""), "contentplayer"));
         val gameSessions = getGameSessionsV3(filteredData);
         gameSessions.map { x => SessionSummaryInput(x._1._1, x._1._2, x._2) }
     }

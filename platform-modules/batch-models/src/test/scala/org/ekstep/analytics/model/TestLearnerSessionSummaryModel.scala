@@ -29,7 +29,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
         me.length should be(1);
         val event1 = me(0);
-        event1.dimensions.pdata.get.id should be ("genie")
+        event1.dimensions.pdata.get.id should be ("test.ekstep.portal")
         event1.channel should be ("in.ekstep")
         
         event1.eid should be("ME_SESSION_SUMMARY");
@@ -239,7 +239,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val oe_assessResValue = rdd.filter { x => x.eid.equals("ASSESS") }.collect()(0).edata.resvalues.last
         oe_assessResValue.get("ans1").get.asInstanceOf[Int] should be(10)
 
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
+        val events = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")))
+        val event =  events.filter(f => "9408DBFA457306309F3CC7689E709970".equals(f.mid)).first()
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
 
         itemRes.res.get.asInstanceOf[Array[String]].last should be("ans1:10")
@@ -247,7 +248,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     }
     it should "generate None for qtitle and qdesc when raw telemetry not having qtitle and qdesc" in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
+        val events = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")))
+        val event =  events.filter(f => "9408DBFA457306309F3CC7689E709970".equals(f.mid)).first()
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle should be(None)
         itemRes.qdesc should be(None)
@@ -255,7 +257,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate title for qtitle and description for qdesc when raw telemetry having qtitle as tile and qdesc as description" in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data7.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
+        val events = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")))
+        val event =  events.filter(f => "9408DBFA457306309F3CC7689E709970".equals(f.mid)).first()
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.qtitle.get should be("title")
         itemRes.qdesc.get should be("description")
@@ -356,7 +359,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate array if  mmc is present in raw telemetry" in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data8.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
+        val events = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")))
+        val event =  events.filter(f => "9408DBFA457306309F3CC7689E709970".equals(f.mid)).first()
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         val mmc = itemRes.mmc.get.asInstanceOf[List[String]]
         mmc(0) should be("m4")
@@ -365,7 +369,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 
     it should "generate none if no mmc field present in raw telemetry " in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data7.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
+        val events = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")))
+        val event =  events.filter(f => "9408DBFA457306309F3CC7689E709970".equals(f.mid)).first()
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc should be(None)
 
@@ -373,7 +378,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
     
     it should "generate Empty List if mmc have no values present in raw telemetry " in {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test_data9.log");
-        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect()(10)
+        val events = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2")))
+        val event =  events.filter(f => "9408DBFA457306309F3CC7689E709970".equals(f.mid)).first()
         val itemRes = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks)).itemResponses.get(0)
         itemRes.mmc.get should be(List())
 
@@ -399,5 +405,15 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val map2= secEvent.edata.eks.asInstanceOf[Map[String,AnyRef]]
         map2.get("mode").get should be("preview")
         
+    }
+
+    it should  "skip events without context.pdata.pid or context.pdata.pid doesnot have contentplayer " in {
+        val rdd = loadFile[V3Event]("src/test/resources/session-summary/test-data10.log");
+        val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect().head
+        val summary = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks));
+        val esList = summary.eventsSummary
+        val eventsCount = esList.map(x => x.count).sum
+        rdd.count() should be(4)
+        eventsCount should be(2)
     }
 }
