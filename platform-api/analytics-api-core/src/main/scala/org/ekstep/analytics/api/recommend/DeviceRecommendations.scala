@@ -9,7 +9,7 @@ import org.ekstep.analytics.api.IRecommendations
 import org.ekstep.analytics.api.RequestBody
 import org.ekstep.analytics.api.ResponseCode
 import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.api.util.ContentCacheUtil
+import org.ekstep.analytics.api.util.CacheUtil
 import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.util.JSONUtils
 
@@ -25,7 +25,7 @@ object DeviceRecommendations extends IRecommendations {
 	def isValidRequest(requestBody: RequestBody) : Validation = {
 		val context = requestBody.request.context.getOrElse(Map());
 		val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
-		val langName = ContentCacheUtil.getLanguageByCode(dlang);
+		val langName = CacheUtil.getLanguageByCode(dlang);
 		if (StringUtils.isEmpty(langName)) 
 			Validation(false, Option("dlang should be a language code."));
 		else
@@ -39,7 +39,7 @@ object DeviceRecommendations extends IRecommendations {
 			val did = context.getOrElse("did", "").asInstanceOf[String];
 			val uid = context.getOrElse("uid", "").asInstanceOf[String];
 			val dlang = context.getOrElse("dlang", "").asInstanceOf[String];
-			val langName = ContentCacheUtil.getLanguageByCode(dlang);
+			val langName = CacheUtil.getLanguageByCode(dlang);
 			val filters: Array[(String, List[String], String)] = Array(("language", List(langName), "LIST"));
 			val query = QueryBuilder.select().all().from(Constants.DEVICE_DB, Constants.DEVICE_RECOS_TABLE).where(QueryBuilder.eq("device_id", QueryBuilder.bindMarker())).toString();
 			val ps = DBUtil.session.prepare(query)

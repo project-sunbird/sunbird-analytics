@@ -8,7 +8,7 @@ import org.ekstep.analytics.api.recommend.ContentRecommendations
 import org.ekstep.analytics.api.recommend.CreationRecommendations
 import org.ekstep.analytics.api.recommend.DeviceRecommendations
 import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.api.util.ContentCacheUtil
+import org.ekstep.analytics.api.util.CacheUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 
 import com.typesafe.config.Config
@@ -30,7 +30,7 @@ object RecommendationAPIService {
 	case class Creation(requestBody: String, config: Config);
 	
 	def consumptionRecommendations(requestBody: RequestBody)(implicit config: Config): String = {
-		ContentCacheUtil.validateCache()(config);
+		CacheUtil.validateCache()(config);
 		if (hasRequired(requestBody, "CONSUMPTION")) {
 			val recoType = 	recommendType(requestBody);
 			if (StringUtils.equals(DEVICE_RECO, recoType)) 

@@ -1,28 +1,13 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util.CommonUtil
-import org.apache.spark.SparkContext
-import org.ekstep.analytics.api.JobResponse
-import org.ekstep.analytics.api.JobOutput
-import java.util.UUID
+import org.ekstep.analytics.api.util.{ CommonUtil, DBUtil }
 import org.ekstep.analytics.framework.util.JSONUtils
-import scala.util.Random
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.format.DateTimeFormat
 import akka.actor.Actor
 import com.typesafe.config.Config
-import akka.actor.Props
-import org.ekstep.analytics.api.RequestBody
-import org.ekstep.analytics.api.Filter
-import org.ekstep.analytics.api.ResponseCode
-import org.ekstep.analytics.api.util.DBUtil
-import org.ekstep.analytics.api.Request
-import org.ekstep.analytics.api.JobRequest
+import org.ekstep.analytics.api._
 import java.security.MessageDigest
+
 import scala.util.Sorting
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.JobStatus
 import org.ekstep.analytics.api.JobStats
 import org.ekstep.analytics.api.APIIds
@@ -30,19 +15,9 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.api.OutputFormat
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.util.S3Util
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
-import com.amazonaws.HttpMethod
 import java.util.Calendar
-import java.sql.Connection
-import java.sql.Statement
-import java.sql.ResultSet
-import java.sql.DriverManager
-import java.sql.SQLException
+
 import scala.collection.mutable.Buffer
-import org.joda.time.LocalDate
-import org.ekstep.analytics.api.util.PostgresDBUtil
 
 /**
  * @author mahesh
@@ -55,56 +30,49 @@ object JobAPIService {
     case class GetDataRequest(clientKey: String, requestId: String, config: Config);
     case class DataRequestList(clientKey: String, limit: Int, config: Config);
 
-    case class ChannelData(consumer_id: String, channel: String, event_type: String, from: String, to: String, config: Config);
+    case class ChannelData(channel: String, event_type: String, from: String, to: String, config: Config);
 
-    val EVENT_TYPES = Buffer("raw", "summary", "metrics");
+    val EVENT_TYPES = Buffer("raw", "summary", "metrics", "failed");
 
-    def dataRequest(request: String)(implicit config: Config): String = {
+    def dataRequest(request: String)(implicit config: Config): Response = {
         val body = JSONUtils.deserialize[RequestBody](request);
         val isValid = _validateReq(body)
         if ("true".equals(isValid.get("status").get)) {
             val job = upsertRequest(body);
             val response = CommonUtil.caseClassToMap(_createJobResponse(job))
-            JSONUtils.serialize(CommonUtil.OK(APIIds.DATA_REQUEST, response));
+            CommonUtil.OK(APIIds.DATA_REQUEST, response)
         } else {
-            CommonUtil.errorResponseSerialized(APIIds.DATA_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString())
+            CommonUtil.errorResponse(APIIds.DATA_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString)
         }
     }
 
-    def getDataRequest(clientKey: String, requestId: String)(implicit config: Config): String = {
+    def getDataRequest(clientKey: String, requestId: String)(implicit config: Config): Response = {
         val job = DBUtil.getJobRequest(requestId, clientKey);
         if (null == job) {
-            CommonUtil.errorResponseSerialized(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString())
+            CommonUtil.errorResponse(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString)
         } else {
             val jobStatusRes = _createJobResponse(job);
-            JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.caseClassToMap(jobStatusRes)));
+            CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.caseClassToMap(jobStatusRes));
         }
     }
 
-    def getDataRequestList(clientKey: String, limit: Int)(implicit config: Config): String = {
+    def getDataRequestList(clientKey: String, limit: Int)(implicit config: Config): Response = {
         val currDate = DateTime.now();
         val jobRequests = DBUtil.getJobRequestList(clientKey);
         val jobs = jobRequests.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
         val result = jobs.take(limit).map { x => _createJobResponse(x) }
-        JSONUtils.serialize(CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Long.box(jobs.size), "jobs" -> result)));
+        CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Int.box(jobs.size), "jobs" -> JSONUtils.serialize(result)))
     }
-    
-    def getChannelData(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): (String, String) = {
 
-        if (StringUtils.equals(config.getString("channel.data_exhaust.postgres.validation"), "true")) {
-            val flag = isValidConsumer(consumerId, channel)
-            if (!flag) {
-                return (ResponseCode.FORBIDDEN.toString(), CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, s"consumerId='$consumerId' & channel='$channel' Are not Registered...", ResponseCode.FORBIDDEN.toString()));
-            }
-        }   
-        val isValid = _validateRequest(consumerId, channel, eventType, from, to)
+    def getChannelData(channel: String, eventType: String, from: String, to: String)(implicit config: Config): Response = {
+
+        val isValid = _validateRequest(channel, eventType, from, to)
         if ("true".equals(isValid.get("status").get)) {
             val bucket = config.getString("channel.data_exhaust.bucket")
             val basePrefix = config.getString("channel.data_exhaust.basePrefix")
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
-            //val prefix = basePrefix + channel + "/";
-            val prefix = basePrefix + eventType + "/" + channel + "/";
+            val prefix = basePrefix + channel + "/" + eventType + "/";
             val listObjs = S3Util.searchKeys(bucket, prefix, Option(from), Option(to), None, "yyyy-MM-dd");
             val calendar = Calendar.getInstance();
             calendar.add(Calendar.MINUTE, expiry);
@@ -114,12 +82,12 @@ object JobAPIService {
                 val res = for (key <- listObjs) yield {
                     S3Util.getPreSignedURL(bucket, key, expiryTimeInSeconds)
                 }
-                return (ResponseCode.OK.toString(), JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime)))));
+                return CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime)))
             } else {
-                return (ResponseCode.OK.toString(), JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l)))));
+                return CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l)))
             }
         } else {
-            return (ResponseCode.OK.toString(), CommonUtil.errorResponseSerialized(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString()));
+            return CommonUtil.errorResponse(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString)
         }
     }
 
@@ -216,10 +184,10 @@ object JobAPIService {
         val key = Array(filter.start_date.get, filter.end_date.get, filter.tags.getOrElse(Array()).mkString, filter.events.getOrElse(Array()).mkString, filter.app_id.getOrElse(""), filter.channel.getOrElse(""), outputFormat, datasetId, clientKey).mkString("|");
         MessageDigest.getInstance("MD5").digest(key.getBytes).map("%02X".format(_)).mkString;
     }
-    private def _validateRequest(consumerId: String, channel: String, eventType: String, from: String, to: String)(implicit config: Config): Map[String, String] = {
+    private def _validateRequest(channel: String, eventType: String, from: String, to: String)(implicit config: Config): Map[String, String] = {
 
         if (!EVENT_TYPES.contains(eventType)) {
-            return Map("status" -> "false", "message" -> "Please provide 'eventType' value should be one of these -> ('raw' or 'summary' or 'metrics') in your request URL");
+            return Map("status" -> "false", "message" -> "Please provide 'eventType' value should be one of these -> ('raw' or 'summary' or 'metrics', or 'failed') in your request URL");
         }
         if (StringUtils.isBlank(from)) {
             return Map("status" -> "false", "message" -> "Please provide 'from' in query string");
@@ -233,39 +201,6 @@ object JobAPIService {
             return Map("status" -> "false", "message" -> "Date range should be < 10 days");
         else return Map("status" -> "true");
     }
-
-    private def isValidConsumer(consumerId: String, channel: String)(implicit config: Config): Boolean = {
-        
-        var conn: Connection = null;
-        var stmt: Statement = null;
-        var rs: ResultSet = null;
-        var flag = false;
-        try {
-            conn = PostgresDBUtil.getPostgresConn()
-            if (conn != null) {
-                stmt = conn.createStatement()
-                rs = stmt.executeQuery(config.getString("postgres.query"))
-                if (rs.next()) {
-                    if (StringUtils.equals(consumerId, rs.getString(1)) && StringUtils.equals(channel, rs.getString(2))) flag = true; else flag = false;
-                } else flag = false;
-            } else flag = false;
-        } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (rs != null) {
-                    rs.close();
-                }
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch {
-                case e: Exception => e.printStackTrace();
-            }
-        }
-        return flag;
-    }
 }
 
 class JobAPIService extends Actor {
@@ -275,7 +210,7 @@ class JobAPIService extends Actor {
         case DataRequest(request: String, config: Config) => sender() ! dataRequest(request)(config);
         case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config);
         case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config);
-        case ChannelData(consumerId: String, channel: String, eventType: String, from: String, to: String, config: Config) => sender() ! getChannelData(consumerId, channel, eventType, from, to)(config);
+        case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config) => sender() ! getChannelData(channel, eventType, from, to)(config);
     }
 
 }

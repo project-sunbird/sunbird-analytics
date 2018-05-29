@@ -5,7 +5,7 @@ import scala.concurrent.Future
 import filter.RequestInterceptor
 import org.ekstep.analytics.framework.util.RestUtil
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.ContentCacheUtil
+import org.ekstep.analytics.api.util.CacheUtil
 import util.APILogger
 
 object Global extends WithFilters(RequestInterceptor) {
@@ -14,7 +14,7 @@ object Global extends WithFilters(RequestInterceptor) {
         APILogger.init("org.ekstep.analytics-api")
         Logger.info("Caching content")
         val config: Config = play.Play.application.configuration.underlying();
-        ContentCacheUtil.initCache()(config);
+        CacheUtil.initCache()(config);
         Logger.info("Application has started...")
     }
 

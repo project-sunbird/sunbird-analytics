@@ -4,20 +4,51 @@ import java.sql._
 import com.typesafe.config.Config
 
 object PostgresDBUtil {
-  def getPostgresConn()(implicit config: Config): Connection = {
-        val url = config.getString("postgres.url");
-        val user = config.getString("postgres.user");
-        val pass = config.getString("postgres.pass");
-        var conn: Connection = null;
+
+    var conn: Connection = null
+    var stmt: Statement = null
+    var rs: ResultSet = null
+
+    def getConn(url: String, user: String, pass: String)(implicit config: Config): Connection = {
+
         try {
             conn = DriverManager.getConnection(url, user, pass);
-            return conn;
         } catch {
             case e1: SQLException =>
                 e1.printStackTrace()
             case e2: ClassNotFoundException =>
-                e2.printStackTrace();
+                e2.printStackTrace()
         }
-        return conn;
+        return conn
+    }
+
+    def closeConn(conn: Connection) {
+        try {
+            if (conn != null)
+                conn.close
+        } catch {
+            case t: Throwable => t.printStackTrace()
+        }
+    }
+
+    def closeStmt() {
+        try {
+            if(rs!=null) rs.close()
+            if(stmt!=null) stmt.close()
+        }catch {
+            case e: Throwable => e.printStackTrace()
+        }
+    }
+
+    def execute(conn: Connection, sql: String): ResultSet = {
+        try {
+            if (conn != null) {
+                stmt = conn.createStatement()
+                rs = stmt.executeQuery(sql)
+            }
+        } catch {
+            case t: Throwable => t.printStackTrace()
+        }
+        return rs
     }
 }

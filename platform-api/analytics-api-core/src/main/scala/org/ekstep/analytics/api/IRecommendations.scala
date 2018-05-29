@@ -1,7 +1,7 @@
 package org.ekstep.analytics.api
 
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.ContentCacheUtil
+import org.ekstep.analytics.api.util.CacheUtil
 import scala.util.control.Breaks
 import java.util.ArrayList
 //import scala.collection.JavaConversions._
@@ -27,7 +27,7 @@ trait IRecommendations {
 	def getRecommendedContent(records: Iterable[Iterable[(String, Double)]], filters: Array[(String, List[String], String)]): List[Map[String, Any]] = {
 		if (records.size > 0) {
 			val d = records.head
-			val c = d.map(f => ContentCacheUtil.getREList.getOrElse(f._1.toString(), Map()) ++ Map("reco_score" -> f._2))
+			val c = d.map(f => CacheUtil.getREList.getOrElse(f._1.toString(), Map()) ++ Map("reco_score" -> f._2))
 				c.toList.filter(p => p.get("identifier").isDefined)
 				.filter(p => {
 					var valid = true;
