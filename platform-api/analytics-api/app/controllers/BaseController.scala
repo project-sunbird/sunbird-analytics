@@ -51,4 +51,13 @@ abstract class BaseController extends Controller {
         val status = Option(CacheUtil.getConsumerChannlTable().get(consumerId, channelId))
         if (status.getOrElse(0) == 1) true else false
     }
+
+  def authorizeDataExhaustRequest(request: Request[AnyContent] ): Boolean = {
+    val authorizationCheck = config.getBoolean("dataexhaust.authorization_check")
+    if(!authorizationCheck) return true
+
+    val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
+    val channelId = request.headers.get("X-Channel-ID").getOrElse("")
+    authorizeDataExhaustRequest(consumerId, channelId)
+  }
 }
