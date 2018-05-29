@@ -109,6 +109,13 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         sessionSummaryEvent1.size should be(1)
         playerSummaryEvent1.size should be(1)
         editorSummaryEvent1.size should be(3)
+
+        val event1 = playerSummaryEvent1.last
+        event1.`object`.get should not be null
+        event1.`object`.get.id should be("do_1122852550749306881159")
+        event1.`object`.get.ver.get should be("1.0")
+        event1.`object`.get.`type` should be("Content")
+        event1.`object`.get.rollup.get.l1 should be("do_3124020553502310402803")
     }
 
     it should "generate 3 workflow summary" in {
