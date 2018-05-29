@@ -389,7 +389,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val rdd = loadFile[V3Event]("src/test/resources/session-summary/test-data10.log");
         val event = LearnerSessionSummaryModel.execute(rdd, Option(Map("apiVersion" -> "v2"))).collect().head
         val map= event.edata.eks.asInstanceOf[Map[String,AnyRef]]
-        map.get("noOfInteractEvents").get should be(1)
+        map.get("noOfInteractEvents").get should be(2)
   
     }
     
@@ -413,7 +413,7 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         val summary = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event.edata.eks));
         val esList = summary.eventsSummary
         val eventsCount = esList.map(x => x.count).sum
-        rdd.count() should be(4)
-        eventsCount should be(2)
+        rdd.count() should be(5)
+        eventsCount should be(3)
     }
 }

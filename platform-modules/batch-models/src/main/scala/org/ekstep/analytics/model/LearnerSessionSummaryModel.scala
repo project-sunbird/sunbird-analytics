@@ -174,7 +174,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryInput] = {
         JobLogger.log("Filtering Events of ASSESS,START, END, LEVEL_SET, INTERACT, INTERRUPT")
-        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("context.pdata", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "INTERACT", "INTERRUPT", "IMPRESSION", "RESPONSE"))))).filter(f => StringUtils.containsIgnoreCase(f.context.pdata.get.pid.getOrElse(""), "contentplayer"));
+        val filteredData = DataFilter.filter(data, Array(Filter("actor.id", "ISNOTEMPTY", None), Filter("context.pdata", "ISNOTEMPTY", None), Filter("eventId", "IN", Option(List("ASSESS", "START", "END", "INTERACT", "INTERRUPT", "IMPRESSION", "RESPONSE"))))).filter(f => (StringUtils.containsIgnoreCase(f.context.pdata.get.pid.getOrElse(""), Constants.PLAYER_ENV) || StringUtils.equalsIgnoreCase(Constants.PLAYER_ENV, f.context.env)));
         val gameSessions = getGameSessionsV3(filteredData);
         gameSessions.map { x => SessionSummaryInput(x._1._1, x._1._2, x._2) }
     }
