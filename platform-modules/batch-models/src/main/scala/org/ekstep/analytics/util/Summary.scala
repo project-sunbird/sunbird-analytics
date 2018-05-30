@@ -17,10 +17,11 @@ class Summary(val firstEvent: V3Event) {
     val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
     val mode: Option[String] = if (firstEvent.edata.mode == null) Option("") else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
-    val etags: Option[ETags] = Option(CommonUtil.getETags(firstEvent))
+    val tags: Option[List[AnyRef]] = Option(firstEvent.tags)
     val channel: String = firstEvent.context.channel
     val did: String = firstEvent.context.did.getOrElse("")
     val pdata: V3PData = firstEvent.context.pdata.getOrElse(defaultPData)
+    val cdata: Option[List[V3CData]] = firstEvent.context.cdata
     val context_rollup: Option[RollUp] = firstEvent.context.rollup
 //    val object_rollup: Option[RollUp] = if(firstEvent.`object`.nonEmpty) firstEvent.`object`.get.rollup else None
 
@@ -211,9 +212,9 @@ class Summary(val firstEvent: V3Event) {
             "events_summary" -> eventsSummary,
             "page_summary" -> this.pageSummary);
         MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, this.uid, null, None, None,
-            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dtRange),
-            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"), None, this.pdata.pid)), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`), this.mode, this.context_rollup),
-            MEEdata(measures), this.etags, this.`object`);
+            Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dtRange, None, None, None, this.context_rollup, this.cdata),
+            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"), None, this.pdata.pid)), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`), this.mode),
+            MEEdata(measures), None, this.tags, this.`object`);
     }
 
     def checkSimilarity(summ: Summary): Boolean = {
