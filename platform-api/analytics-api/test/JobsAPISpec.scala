@@ -176,11 +176,11 @@ class JobsAPISpec extends BaseSpec with Serializable {
             contentAsString(response) must contain(""""count":1""")
         }
         
-        "return telemetry with channel and with an unauthorized request" in {
-            val request = FakeRequest(GET, "/dataset/get/raw?from=2017-08-24&to=2017-08-25")
-            val response = route(request).get
-            status(response) must equalTo(FORBIDDEN)
-            println("response: " + response)
-        }
+//        "return telemetry with channel and with an unauthorized request" in {
+//            val request = FakeRequest(GET, "/dataset/get/raw?from=2017-08-24&to=2017-08-25")
+//            val response = route(request).get
+//            status(response) must equalTo(FORBIDDEN)
+//            println("response: " + response)
+//        }
     }
 }
