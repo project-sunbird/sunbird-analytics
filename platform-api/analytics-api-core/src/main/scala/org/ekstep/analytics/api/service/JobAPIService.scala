@@ -49,7 +49,7 @@ object JobAPIService {
     def getDataRequest(clientKey: String, requestId: String)(implicit config: Config): Response = {
         val job = DBUtil.getJobRequest(requestId, clientKey);
         if (null == job) {
-            CommonUtil.errorResponse(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.CLIENT_ERROR.toString)
+            CommonUtil.errorResponse(APIIds.GET_DATA_REQUEST, "no job available with the given request_id and client_key", ResponseCode.OK.toString)
         } else {
             val jobStatusRes = _createJobResponse(job);
             CommonUtil.OK(APIIds.GET_DATA_REQUEST, CommonUtil.caseClassToMap(jobStatusRes));

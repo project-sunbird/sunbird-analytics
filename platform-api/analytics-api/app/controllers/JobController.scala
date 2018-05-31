@@ -94,7 +94,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 
     def refreshCache(cacheType: String) = Action { implicit request =>
         cacheType match {
-            case "ConsumerChannl" =>
+            case "ConsumerChannel" =>
                 CacheUtil.initConsumerChannelCache()
             case _ =>
                 CacheUtil.initCache()
