@@ -29,23 +29,23 @@ import org.scalatest.BeforeAndAfterAll
 
 @RunWith(classOf[JUnitRunner])
 class JobsAPISpec extends BaseSpec with Serializable {
-	
-	val url = "/dataset/request/submit";
-	
-	def beforeAll() {
-		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-    
-    val session = DBUtil.cluster.connect();
-    val dataLoader = new CQLDataLoader(session);
-    dataLoader.load(new FileCQLDataSet(config.getString("cassandra.cql_path"), true, true));
-    session.execute("TRUNCATE platform_db.job_request");
-	}
 
-	def afterAll() {
-		EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-		EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
-	}
-	
+    val url = "/dataset/request/submit";
+
+    def beforeAll() {
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+
+        val session = DBUtil.cluster.connect();
+        val dataLoader = new CQLDataLoader(session);
+        dataLoader.load(new FileCQLDataSet(config.getString("cassandra.cql_path"), true, true));
+        session.execute("TRUNCATE platform_db.job_request");
+    }
+
+    def afterAll() {
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+        EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+    }
+
     "Job Request API" should new WithApplication {
 
         "return error response on invalid request - error response" in {
@@ -72,7 +72,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
         "return status as processed when submitted job is processed" in {
             val request = """ {"id": "ekstep.analytics.data.out","ver": "1.0", "ts": "2016-12-07T12:40:40+05:30","params": { "msgid": "4f04da60-1e24-4d31-aa7b-1daf91c46341", "client_key": "dev-portal1" },"request": {"filter": {"start_date": "2016-11-04","end_date": "2016-11-10","tags": ["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef7"]  }}}"""
             val response = post(url, request);
-            val rowRDD = DBUtil.getJobRequestList("dev-portal1")//Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
+            val rowRDD = DBUtil.getJobRequestList("dev-portal1") //Context.sc.cassandraTable[JobRequest]("platform_db", "job_request");
             val filterRDD = rowRDD.filter { x => (x.client_key.get == "dev-portal1") }
             val rddJobRequest = filterRDD.map { x => JobRequest(x.client_key, x.request_id, x.job_id, Some("PROCESSING"), x.request_data, x.iteration, x.dt_job_submitted, x.location, x.dt_file_created, x.dt_first_event, x.dt_last_event, x.dt_expiration, x.dt_job_processing, x.dt_job_completed, x.input_events, x.output_events, x.file_size, x.latency, x.execution_time, x.err_message, x.stage, x.stage_status) }
             Await.result(response, 300 second)
@@ -167,13 +167,20 @@ class JobsAPISpec extends BaseSpec with Serializable {
             status(response) must equalTo(OK)
             contentAsString(response) must contain(""""count":1""")
         }
-        
-        "return telemetry with channel" in {
-            val response = route(FakeRequest(GET, "/dataset/request/eks-consumption-raw/ss?from=2017-08-24&to=2017-08-25")).get
+
+        "return telemetry with channel and with an authorized request" in {
+            val request = FakeRequest(GET, "/dataset/get/raw?from=2017-08-24&to=2017-08-25").withHeaders("X-Consumer-ID" -> "test_id_01", "X-Channel-ID"-> "in.ekstep")
+            val response = route(request).get
             status(response) must equalTo(OK)
-            println(response)
+            println("response: " + response)
             contentAsString(response) must contain(""""count":1""")
         }
-
+        
+        "return telemetry with channel and with an unauthorized request" in {
+            val request = FakeRequest(GET, "/dataset/get/raw?from=2017-08-24&to=2017-08-25")
+            val response = route(request).get
+            status(response) must equalTo(FORBIDDEN)
+            println("response: " + response)
+        }
     }
 }
