@@ -38,7 +38,7 @@ class Event(val eid: String, val ts: String, val ets: Long, val `@timestamp`: St
 @scala.beans.BeanInfo
 case class CData(id: String, `type`: Option[String]);
 @scala.beans.BeanInfo
-case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, channel: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, etags: Option[ETags] = Option(ETags(None, None, None)), tags: Option[List[AnyRef]] = None) extends Input with AlgoInput;
+case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, channel: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, etags: Option[ETags] = Option(ETags(None, None, None)), tags: Option[List[AnyRef]] = None, `object`: Option[V3Object] = None) extends Input with AlgoInput;
 @scala.beans.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, channel: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, etags: Option[ETags] = None, tags: Option[List[AnyRef]] = None, `object`: Option[V3Object] = None) extends Output  with AlgoOutput;
 @scala.beans.BeanInfo

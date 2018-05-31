@@ -48,7 +48,8 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         val impression_summary = eksMap.getOrElse("events_summary", List()).asInstanceOf[List[Map[String, AnyRef]]].filter(p => "IMPRESSION".equals(p.get("id").get))
         val total_pageviews_count = if (impression_summary.size > 0) impression_summary.head.getOrElse("count", 0).asInstanceOf[Number].longValue() else 0;
         val avg_pageviews = total_pageviews_count;
-        WorkflowUsageMetricsSummary(wk, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, event.context.date_range, event.syncts, Array(event.dimensions.did.getOrElse("")), Array(event.uid), Array(event.dimensions.content_id.getOrElse("")), pdata);
+        val content = if(event.`object`.nonEmpty) event.`object`.get.id else ""
+        WorkflowUsageMetricsSummary(wk, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, event.context.date_range, event.syncts, Array(event.dimensions.did.getOrElse("")), Array(event.uid), Array(content), pdata);
     }
     
     private def _computeMetrics(events: Buffer[WorkflowUsageMetricsSummary], wk: WorkflowKey): WorkflowUsageMetricsSummary = {
@@ -85,30 +86,31 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
             val channel = CommonUtil.getChannelId(event)
             val `type` = event.dimensions.`type`.get
             val mode = event.dimensions.mode.getOrElse("")
+            val contentId = if(event.`object`.nonEmpty) event.`object`.get.id else ""
 
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
             list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", "all", "all");
             list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", "all", event.uid);
             list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", event.dimensions.did.getOrElse(""), "all");
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", "all", "all");
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, "all", "all", "all");
 
             list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", "all", event.dimensions.did.getOrElse(""), event.uid);
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", "all", event.uid);
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), "all");
-            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), event.uid);
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, "all", "all", event.uid);
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, "all", event.dimensions.did.getOrElse(""), "all");
+            list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, "all", event.dimensions.did.getOrElse(""), event.uid);
 
             val tags = CommonUtil.getValidTagsForWorkflow(event, registeredTags);
             for (tag <- tags) {
                 list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, "all", "all");
                 list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, event.dimensions.did.getOrElse(""), "all");
                 list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, "all", event.uid);
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, "all", "all");
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, tag, "all", "all");
 
                 list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, event.dimensions.did.getOrElse(""), event.uid);
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, event.dimensions.did.getOrElse(""), "all");
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, "all", event.uid);
-                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), tag, event.dimensions.did.getOrElse(""), event.uid);
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, tag, event.dimensions.did.getOrElse(""), "all");
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, tag, "all", event.uid);
+                list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, contentId, tag, event.dimensions.did.getOrElse(""), event.uid);
 
             }
             list.toArray;
