@@ -557,7 +557,12 @@ object CommonUtil {
         tagFilter.filter { x => registeredTags.contains(x) }.toArray;
     }
 
-    def caseClassToMap(ccObj: Any) =
+    def getValidTagsForWorkflow(event: DerivedEvent, registeredTags: Array[String]): Array[String] = {
+        val tagFilter = if (event.tags != null && !event.tags.isEmpty) { event.tags.get.asInstanceOf[List[String]] } else List()
+        tagFilter.filter { x => registeredTags.contains(x) }.toArray;
+    }
+
+        def caseClassToMap(ccObj: Any) =
         (Map[String, AnyRef]() /: ccObj.getClass.getDeclaredFields) {
             (map, field) =>
                 field.setAccessible(true)

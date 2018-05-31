@@ -98,7 +98,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
             list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), "all");
             list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, event.dimensions.content_id.getOrElse(""), "all", event.dimensions.did.getOrElse(""), event.uid);
 
-            val tags = CommonUtil.getValidTags(event, registeredTags);
+            val tags = CommonUtil.getValidTagsForWorkflow(event, registeredTags);
             for (tag <- tags) {
                 list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, "all", "all");
                 list += getWorkflowUsageSummary(event, period, pdata, channel, `type`, mode, "all", tag, event.dimensions.did.getOrElse(""), "all");
