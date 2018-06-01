@@ -19,7 +19,7 @@ import play.api.test.Helpers.status
 class BaseSpec extends Specification {
 
     implicit val config = ConfigFactory.load();
-    def post(apiURL: String, request: String, h: FakeHeaders): Future[Result] = {
+    def post(apiURL: String, request: String, h: FakeHeaders = FakeHeaders(Seq())): Future[Result] = {
         val headers = h.add(("content-type", "application/json"))
         route(FakeRequest(POST, apiURL, headers, Json.toJson(Json.parse(request)))).get
     }
