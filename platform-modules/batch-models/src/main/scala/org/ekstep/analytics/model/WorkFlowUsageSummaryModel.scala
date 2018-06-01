@@ -48,7 +48,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         val impression_summary = eksMap.getOrElse("events_summary", List()).asInstanceOf[List[Map[String, AnyRef]]].filter(p => "IMPRESSION".equals(p.get("id").get))
         val total_pageviews_count = if (impression_summary.size > 0) impression_summary.head.getOrElse("count", 0).asInstanceOf[Number].longValue() else 0;
         val avg_pageviews = total_pageviews_count;
-        val content = if(event.`object`.nonEmpty) event.`object`.get.id else ""
+        val content = if(event.`object`.nonEmpty && event.`object`.get.id != null) event.`object`.get.id else ""
         WorkflowUsageMetricsSummary(wk, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, event.context.date_range, event.syncts, Array(event.dimensions.did.getOrElse("")), Array(event.uid), Array(content), pdata);
     }
     
@@ -86,7 +86,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
             val channel = CommonUtil.getChannelId(event)
             val `type` = event.dimensions.`type`.get
             val mode = event.dimensions.mode.getOrElse("")
-            val contentId = if(event.`object`.nonEmpty) event.`object`.get.id else ""
+            val contentId = if(event.`object`.nonEmpty && event.`object`.get.id != null) event.`object`.get.id else ""
 
             val eksMap = event.edata.eks.asInstanceOf[Map[String, AnyRef]]
 
