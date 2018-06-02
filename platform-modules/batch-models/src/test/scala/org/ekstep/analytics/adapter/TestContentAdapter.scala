@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.exception.DataAdapterException
  */
 class TestContentAdapter extends BaseSpec {
   
-    "ContentAdapter" should "return content list using v2 api" in {
+    ignore should "return content list using v2 api" in {
         
         val contents = ContentAdapter.getAllContent();
         contents should not be (null);
@@ -28,7 +28,7 @@ class TestContentAdapter extends BaseSpec {
         cm.get("mimeType").get should be ("application/vnd.android.package-archive");
     }
     
-    it should "return content items using v2 api" in {
+    ignore should "return content items using v2 api" in {
         
         val contentItems = ContentAdapter.getContentItems("org.akshara.worksheet1");
         contentItems should not be (null);

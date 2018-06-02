@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.Dispatcher
 
 class TestEndOfContentRecommendationJob extends SparkSpec(null) {
   
-    "EndOfContentRecommendationJob" should "execute the job and shouldn't throw any exception" in {
+    ignore should "execute the job and shouldn't throw any exception" in {
         
         CassandraConnector(sc.getConf).withSessionDo { session =>
             

@@ -6,7 +6,7 @@ import org.ekstep.analytics.util.Constants
 
 class TestEndOfContentRecommendationModel extends SparkSpec(null) {
   
-    "EndOfContentRecommendationModel" should "save scores to cassandra with filtering blacklisted contents" in {
+    ignore should "save scores to cassandra with filtering blacklisted contents" in {
         
         populateDatabase();
         val me = EndOfContentRecommendationModel.execute(null, Option(Map("method" -> "cosine", "norm" -> "none", "weight" -> Double.box(0.1), "filterBlacklistedContents" -> true.asInstanceOf[AnyRef])))
@@ -15,7 +15,7 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         table1.scores.map(x => x._1).contains(table1.content_id) should be(false)
     }
     
-    it should "save scores to cassandra without filtering blacklisted contents" in {
+    ignore should "save scores to cassandra without filtering blacklisted contents" in {
         
         populateDatabase();
         val me = EndOfContentRecommendationModel.execute(null, Option(Map("method" -> "cosine", "norm" -> "none", "weight" -> Double.box(0.1))))
@@ -24,7 +24,7 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         table1.scores.map(x => x._1).contains(table1.content_id) should be(false)
     }
     
-    it should "shouldn't throw any exception if blacklisted contents list is empty and filterBlacklistedContents is true " in {
+    ignore should "shouldn't throw any exception if blacklisted contents list is empty and filterBlacklistedContents is true " in {
         
         CassandraConnector(sc.getConf).withSessionDo { session =>
             
@@ -44,7 +44,7 @@ class TestEndOfContentRecommendationModel extends SparkSpec(null) {
         table1.scores.map(x => x._1).contains(table1.content_id) should be(false)
     }
     
-    it should "check sorting implementation" in {
+    ignore should "check sorting implementation" in {
         
         val scores = List(("content1", 0.99), ("content2", 0.80), ("content3", 0.69), ("content4", 0.49), ("content5", 0.09), ("content6", 1.09))
         val features = Map("content1" -> ContentFeatures_t("content1", 0.0, 0.1, 0.4), "content2" -> ContentFeatures_t("content2", 0.4, 0.1, 0.9), "content3" -> ContentFeatures_t("content3", 0.4, 0.1, 0.4), "content4" -> ContentFeatures_t("content4", 0.8, 0.1, 0.4), "content5" -> ContentFeatures_t("content5", 0.8, 0.3, 0.1), "content6" -> ContentFeatures_t("content6", 0.8, 0.3, 0.1))
