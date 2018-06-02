@@ -10,7 +10,7 @@ import org.joda.time.DateTime
 
 class TestDeviceRecommendationTrainingModel extends SparkSpec(null) {
 
-    "DeviceRecommendationTrainingModel" should "apply num_contents>5 filter, generate libsvm files, save all files in dataTime folder structure except feature file and save model to s3" in {
+    ignore should "apply num_contents>5 filter, generate libsvm files, save all files in dataTime folder structure except feature file and save model to s3" in {
 
         populateDB();
         val dateTime = new DateTime()
@@ -25,7 +25,7 @@ class TestDeviceRecommendationTrainingModel extends SparkSpec(null) {
         CommonUtil.deleteDirectory("src/test/resources/device-recos-training/RE-data");
     }
     
-    it should "generate libsvm files for device aggregation, save all files in the given localPath and do not save model to s3" in {
+    ignore should "generate libsvm files for device aggregation, save all files in the given localPath and do not save model to s3" in {
 
         populateDB();
         val dateTime = new DateTime()
