@@ -61,7 +61,7 @@ object JobAPIService {
         val jobRequests = DBUtil.getJobRequestList(clientKey);
         val jobs = jobRequests.filter { f => f.dt_expiration.getOrElse(currDate).getMillis >= currDate.getMillis }
         val result = jobs.take(limit).map { x => _createJobResponse(x) }
-        CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Int.box(jobs.size), "jobs" -> JSONUtils.serialize(result)))
+        CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Int.box(jobs.size), "jobs" -> result))
     }
 
     def getChannelData(channel: String, eventType: String, from: String, to: String)(implicit config: Config): Response = {
