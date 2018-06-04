@@ -31,13 +31,16 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 
     def dataRequest() = Action.async { implicit request =>
         val body: String = Json.stringify(request.body.asJson.get);
-        if (authorizeDataExhaustRequest(request)) {
+        val channelId = request.headers.get("X-Channel-ID").getOrElse("")
+        val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
+        val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
+        if (checkFlag) {
             val res = ask(jobAPIActor, DataRequest(body, config)).mapTo[Response];
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }
         } else {
-            val msg = "Given X-Consumer-ID and X-Channel-ID are not authorized"
+            val msg = s"Given X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId' are not authorized"
             unauthorized(msg)
         }
     }
@@ -56,14 +59,18 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
     }
 
     def getJobList(clientKey: String) = Action.async { implicit request =>
-        if (authorizeDataExhaustRequest(request)) {
+
+        val channelId = request.headers.get("X-Channel-ID").getOrElse("")
+        val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
+        val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
+        if (checkFlag) {
             val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.list.limit")))
             val res = ask(jobAPIActor, DataRequestList(clientKey, limit, config)).mapTo[Response];
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }
         } else {
-            val msg = "Given X-Consumer-ID and X-Channel-ID are not authorized"
+            val msg = s"Given X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId' are not authorized"
             unauthorized(msg)
         }
     }
