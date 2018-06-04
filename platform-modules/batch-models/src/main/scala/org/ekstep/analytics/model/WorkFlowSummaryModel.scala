@@ -24,33 +24,6 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
     implicit val className = "org.ekstep.analytics.model.WorkFlowSummaryModel"
     override def name: String = "WorkFlowSummaryModel"
 
-    private def getItemData(contents: Array[Content], games: Array[String], apiVersion: String): Map[String, Item] = {
-
-        val gameIds = contents.map { x => x.id };
-        val codeIdMap: Map[String, String] = contents.map { x => (x.metadata.get("code").get.asInstanceOf[String], x.id) }.toMap;
-        val contentItems = games.map { gameId =>
-            {
-                if (gameIds.contains(gameId)) {
-                    (gameId, ContentAdapter.getContentItems(gameId, apiVersion))
-                } else if (codeIdMap.contains(gameId)) {
-                    (gameId, ContentAdapter.getContentItems(codeIdMap.get(gameId).get, apiVersion))
-                } else {
-                    null;
-                }
-            }
-        }.filter(x => x != null).filter(_._2 != null).toMap;
-
-        if (contentItems.size > 0) {
-            contentItems.map(f => {
-                f._2.map { item =>
-                    (item.id, item)
-                }
-            }).reduce((a, b) => a ++ b).toMap;
-        } else {
-            Map[String, Item]();
-        }
-    }
-
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowInput] = {
 
         val defaultPDataId = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
@@ -64,7 +37,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
         val gameList = events.map { x => x.`object`.get.id }.distinct().collect();
         JobLogger.log("Fetching the Content and Item data from Learning Platform")
         val contents = ContentAdapter.getAllContent();
-        val itemData = getItemData(contents, gameList, "v2");
+        val itemData = Map[String, Item]() //getItemData(contents, gameList, "v2");
         val itemMapping = sc.broadcast(itemData);
         var summEvents: Buffer[MeasuredEvent] = Buffer();
         var summEventsB = sc.broadcast(summEvents);
