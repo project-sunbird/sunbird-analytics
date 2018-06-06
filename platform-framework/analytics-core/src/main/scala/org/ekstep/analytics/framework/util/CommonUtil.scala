@@ -656,5 +656,10 @@ object CommonUtil {
         val periodDateTime = dayPeriodFormat.parseDateTime(period.toString()).withTimeAtStartOfDay()
         periodDateTime.getMillis
     }
+    
+    def avg(xs: List[Int]): Float = {
+        val (sum, length) = xs.foldLeft((0, 0))({ case ((s, l), x) => (x + s, 1 + l) })
+        sum / length
+    }
 
 }

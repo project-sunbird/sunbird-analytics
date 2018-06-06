@@ -39,11 +39,11 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
         if (file == null) {
             return null;
         }
+        val isString = mf.runtimeClass.getName.equals("java.lang.String");
         sc.textFile(file, 1).filter { x => !x.isEmpty() }.map { line =>  
             {
                 try {
-            
-                   JSONUtils.deserialize[T](line);
+                   if(isString) line.asInstanceOf[T] else JSONUtils.deserialize[T](line);
                 } catch {
                     case ex: Exception =>
                         Console.err.println("Unable to parse line", line)
