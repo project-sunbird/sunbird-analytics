@@ -28,11 +28,11 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowInput] = {
 
         val defaultPDataId = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
+        val parallelization = config.getOrElse("parallelization", 20).asInstanceOf[Int];
         val partitionedData = data.filter(f => !serverEvents.contains(f.eid)).map { x => (WorkflowIndex(x.context.did.getOrElse(""), x.context.channel, x.context.pdata.getOrElse(defaultPDataId).id), Buffer(x)) }
-            .partitionBy(new HashPartitioner(20))
+            .partitionBy(new HashPartitioner(parallelization))
             .reduceByKey((a, b) => a ++ b);
         
-        Console.println("# of partitions:", partitionedData.getNumPartitions);
         partitionedData.map { x => WorkflowInput(x._1, x._2) }
             
     }
@@ -45,7 +45,6 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
 
         data.map({ f =>
             var summEvents: Buffer[MeasuredEvent] = Buffer();
-            Console.println("Events Count:", f.events.size);
             val sortedEvents = f.events.sortBy { x => x.ets }
             var rootSummary: org.ekstep.analytics.util.Summary = null
             var currSummary: org.ekstep.analytics.util.Summary = null
