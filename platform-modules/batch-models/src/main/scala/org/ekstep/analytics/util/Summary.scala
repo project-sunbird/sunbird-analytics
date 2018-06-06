@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 
+case class Item(itemId: String, timeSpent: Option[Double], res: Option[Array[String]], resValues: Option[Array[AnyRef]], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Long, maxScore: Option[AnyRef], pass: String, qtitle: Option[String], qdesc: Option[String]);
+
 class Summary(val firstEvent: V3Event) {
 
     val defaultPData = V3PData(AppConf.getConfig("default.consumption.app.id"), Option("1.0"))
@@ -29,7 +31,7 @@ class Summary(val firstEvent: V3Event) {
     var interactEventsCount: Long = if(StringUtils.equals("INTERACT", firstEvent.eid) && interactTypes.contains(firstEvent.edata.`type`.toLowerCase)) 1l else 0l
     var `type`: String = if (null == firstEvent.edata.`type`) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
     var lastEvent: V3Event = null
-    var itemResponses: Buffer[ItemResponse] = Buffer[ItemResponse]()
+    var itemResponses: Buffer[Item] = Buffer[Item]()
     var endTime: Long = 0l
     var timeSpent: Double = 0.0
     var timeDiff: Double = 0.0
@@ -79,7 +81,7 @@ class Summary(val firstEvent: V3Event) {
         this.startTime = 0l
         this.interactEventsCount = 0l
         this.lastEvent = null
-        this.itemResponses = Buffer[ItemResponse]()
+        this.itemResponses = Buffer[Item]()
         this.endTime = 0l
         this.timeSpent = 0.0
         this.timeDiff = 0.0
@@ -92,7 +94,7 @@ class Summary(val firstEvent: V3Event) {
         this.isClosed = false
     }
 
-    def add(event: V3Event, idleTime: Int, itemMapping: Map[String, Item]) {
+    def add(event: V3Event, idleTime: Int) {
         if(this.startTime == 0l) this.startTime = event.ets
         val ts = CommonUtil.getTimeDiff(prevEventEts, event.ets).get
         prevEventEts = event.ets
@@ -122,25 +124,23 @@ class Summary(val firstEvent: V3Event) {
         this.envSummary = getEnvSummaries();
 
         if (StringUtils.equals(event.eid, "ASSESS")) {
-            val itemObj = getItem(itemMapping, event);
-            val metadata = itemObj.metadata;
             val resValues = if (null == event.edata.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(event.edata.resvalues.map(f => f.asInstanceOf[AnyRef]))
             val res = if (null == event.edata.resvalues) Option(Array[String]()); else Option(event.edata.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) });
             val item = event.edata.item
-            this.itemResponses += ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(event.edata.duration), Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), event.edata.score, event.ets, Option(item.maxscore.asInstanceOf[AnyRef]), metadata.get("domain"), event.edata.pass, Option(item.title), Option(item.desc));
+            this.itemResponses += Item(item.id, Option(event.edata.duration), res, resValues, Option(item.mc), Option(item.mmc), event.edata.score, event.ets, Option(item.maxscore.asInstanceOf[AnyRef]), event.edata.pass, Option(item.title), Option(item.desc));
         }
 
-        if(this.PARENT != null) this.PARENT.add(event, idleTime, itemMapping)
+        if(this.PARENT != null) this.PARENT.add(event, idleTime)
     }
 
     def addChild(child: Summary) {
         this.CHILDREN.append(child);
     }
 
-    def addParent(parent: Summary, idleTime: Int, itemMapping: Map[String, Item]) {
+    def addParent(parent: Summary, idleTime: Int) {
         this.PARENT = parent;
         // Add first event of child to parent
-        this.PARENT.add(this.firstEvent, idleTime, itemMapping)
+        this.PARENT.add(this.firstEvent, idleTime)
     }
 
     def getParent(): Summary = {
@@ -160,7 +160,7 @@ class Summary(val firstEvent: V3Event) {
         }
     }
 
-    def checkEnd(event: V3Event, idleTime: Int, itemMapping: Map[String, Item], config: Map[String, AnyRef]): Summary = {
+    def checkEnd(event: V3Event, idleTime: Int, config: Map[String, AnyRef]): Summary = {
         val mode = if(event.edata.mode == null) "" else event.edata.mode
         if(this.`type`.equals(event.edata.`type`) && this.mode.get.equals(mode)) {
             if(this.PARENT == null) return this else return PARENT;
@@ -168,7 +168,7 @@ class Summary(val firstEvent: V3Event) {
         if(this.PARENT == null) {
             return this;
         }
-        val summ = PARENT.checkEnd(event, idleTime, itemMapping, config)
+        val summ = PARENT.checkEnd(event, idleTime, config)
         if (summ == null) {
             return this;
         }
@@ -219,17 +219,6 @@ class Summary(val firstEvent: V3Event) {
 
     def checkSimilarity(summ: Summary): Boolean = {
         StringUtils.equals(this.`type`, summ.`type`) && StringUtils.equals(this.mode.get, summ.mode.get) && (this.startTime == summ.startTime)
-    }
-
-    /**
-     * Get item from item mapping variable
-     */
-    private def getItem(itemMapping: Map[String, Item], event: V3Event): Item = {
-        val item = itemMapping.getOrElse(event.edata.item.id, null);
-        if (null != item) {
-            return item;
-        }
-        return Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]()));
     }
 
     def getPageSummaries(): Iterable[PageSummary] = {
