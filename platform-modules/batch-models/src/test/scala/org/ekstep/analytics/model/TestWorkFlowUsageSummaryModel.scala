@@ -42,17 +42,12 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary1.get("total_users_count").get should be(1);
         summary1.get("total_devices_count").get should be(0);
         summary1.get("total_content_count").get should be(0);
-        summary1.get("device_ids").get.asInstanceOf[List[String]].size should be(0);
         summary1.get("avg_ts_session").get should be(1249.0);
         summary1.get("total_sessions").get should be(2);
         summary1.get("avg_interactions_min").get should be(1.01);
-        summary1.get("contents").get.asInstanceOf[List[String]].size should be(0);
         summary1.get("total_interactions").get should be(42);
         summary1.get("avg_pageviews").get should be(1.0);
         summary1.get("total_ts").get should be(2498.0);
-        val userList = summary1.get("unique_users").get.asInstanceOf[List[String]];
-        userList.size should be(1);
-        userList.head should be("427")
         summary1.get("total_pageviews_count").get should be(2);
 
         // check for per user summary
@@ -77,15 +72,12 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary2.get("total_users_count").get should be(0);
         summary2.get("total_devices_count").get should be(0);
         summary2.get("total_content_count").get should be(0);
-        summary2.get("device_ids").get.asInstanceOf[List[String]].size should be(0);
         summary2.get("avg_ts_session").get should be(1249.0);
         summary2.get("total_sessions").get should be(2);
         summary2.get("avg_interactions_min").get should be(1.01);
-        summary2.get("contents").get.asInstanceOf[List[String]].size should be(0);
         summary2.get("total_interactions").get should be(42);
         summary2.get("avg_pageviews").get should be(1.0);
         summary2.get("total_ts").get should be(2498.0);
-        summary2.get("unique_users").get.asInstanceOf[List[String]].size should be(0);
         summary2.get("total_pageviews_count").get should be(2);
 
     }
@@ -120,21 +112,12 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary1.get("total_users_count").get should be(1);
         summary1.get("total_devices_count").get should be(1);
         summary1.get("total_content_count").get should be(1);
-        val didList = summary1.get("device_ids").get.asInstanceOf[List[String]];
-        didList.size should be(1);
-        didList.head should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         summary1.get("avg_ts_session").get should be(123.46);
         summary1.get("total_sessions").get should be(2);
         summary1.get("avg_interactions_min").get should be(5.83);
-        val contentList = summary1.get("contents").get.asInstanceOf[List[String]];
-        contentList.size should be(1);
-        contentList.head should be("do_30094761");
         summary1.get("total_interactions").get should be(24);
         summary1.get("avg_pageviews").get should be(2.0);
         summary1.get("total_ts").get should be(246.91);
-        val userList = summary1.get("unique_users").get.asInstanceOf[List[String]];
-        userList.size should be(1);
-        userList.head should be("c680942f-e48d-434b-9683-fee236b61607")
         summary1.get("total_pageviews_count").get should be(5);
         
         // check for per device usage player summary
@@ -159,19 +142,12 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary2.get("total_users_count").get should be(1);
         summary2.get("total_devices_count").get should be(0);
         summary2.get("total_content_count").get should be(1);
-        summary2.get("device_ids").get.asInstanceOf[List[String]].size should be(0);
         summary2.get("avg_ts_session").get should be(123.46);
         summary2.get("total_sessions").get should be(2);
         summary2.get("avg_interactions_min").get should be(5.83);
-        val contentList2 = summary2.get("contents").get.asInstanceOf[List[String]];
-        contentList2.size should be(1);
-        contentList2.head should be("do_30094761");
         summary2.get("total_interactions").get should be(24);
         summary2.get("avg_pageviews").get should be(2.0);
         summary2.get("total_ts").get should be(246.91);
-        val userList2 = summary2.get("unique_users").get.asInstanceOf[List[String]];
-        userList2.size should be(1);
-        userList2.head should be("c680942f-e48d-434b-9683-fee236b61607")
         summary2.get("total_pageviews_count").get should be(5);
         
         // check for per device per content usage player summary
@@ -196,17 +172,12 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary3.get("total_users_count").get should be(1);
         summary3.get("total_devices_count").get should be(0);
         summary3.get("total_content_count").get should be(0);
-        summary3.get("device_ids").get.asInstanceOf[List[String]].size should be(0);
         summary3.get("avg_ts_session").get should be(123.46);
         summary3.get("total_sessions").get should be(2);
         summary3.get("avg_interactions_min").get should be(5.83);
-        summary3.get("contents").get.asInstanceOf[List[String]].size should be(0);
         summary3.get("total_interactions").get should be(24);
         summary3.get("avg_pageviews").get should be(2.0);
         summary3.get("total_ts").get should be(246.91);
-        val userList3 = summary3.get("unique_users").get.asInstanceOf[List[String]];
-        userList3.size should be(1);
-        userList3.head should be("c680942f-e48d-434b-9683-fee236b61607")
         summary3.get("total_pageviews_count").get should be(5);
         
     }
@@ -248,21 +219,12 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary1.get("total_users_count").get should be(1);
         summary1.get("total_devices_count").get should be(1);
         summary1.get("total_content_count").get should be(1);
-        val didList = summary1.get("device_ids").get.asInstanceOf[List[String]];
-        didList.size should be(1);
-        didList.head should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         summary1.get("avg_ts_session").get should be(225.63);
         summary1.get("total_sessions").get should be(1);
         summary1.get("avg_interactions_min").get should be(3.19);
-        val contentList = summary1.get("contents").get.asInstanceOf[List[String]];
-        contentList.size should be(1);
-        contentList.head should be("do_30094764");
         summary1.get("total_interactions").get should be(12);
         summary1.get("avg_pageviews").get should be(0);
         summary1.get("total_ts").get should be(225.63);
-        val userList = summary1.get("unique_users").get.asInstanceOf[List[String]];
-        userList.size should be(1);
-        userList.head should be("c680942f-e48d-434b-9683-fee236b61607")
         summary1.get("total_pageviews_count").get should be(0);
         
     }
