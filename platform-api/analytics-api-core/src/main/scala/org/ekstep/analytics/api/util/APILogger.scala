@@ -43,6 +43,6 @@ object APILogger {
 		val channel = apiConf.getString("default.channel.id")
 		MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "",channel, None, None,
 			Context(PData("AnalyticsAPI", "1.0", Option("org.ekstep.analytics.api")), None, "EVENT", null),
-			null,MEEdata(data));
+			null,MEEdata(Option(Map("message" -> msg, "data"-> data.getOrElse(null)))));
 	}
 }

@@ -16,10 +16,10 @@ object PostgresDBUtil {
     implicit val session = AutoSession
 
     def read(sqlString: String): List[ConsumerChannel] = {
-        sql"""$sqlString""".map(rs => ConsumerChannel(rs)).list().apply()
+        SQL(sqlString).map(rs => ConsumerChannel(rs)).list().apply()
     }
 
     def executeQuery(sqlString: String) = {
-        sql"""$sqlString"""
+        SQL(sqlString)
     }
 }

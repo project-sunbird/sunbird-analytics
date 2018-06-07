@@ -25,7 +25,6 @@ import scala.concurrent.Future
 
 @Singleton
 class JobController @Inject() (system: ActorSystem) extends BaseController {
-    implicit override val className = "controllers.JobController"
 
     val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor")
 
