@@ -7,10 +7,6 @@ import scalikejdbc._
 
 object PostgresDBUtil {
 
-    var conn: Connection = null
-    var stmt: Statement = null
-    var rs: ResultSet = null
-
     implicit val config: Config = ConfigFactory.load()
     private lazy val url = config.getString("postgres.url")
     private lazy val user = config.getString("postgres.user")
@@ -48,8 +44,12 @@ object PostgresDBUtil {
     }
     */
 
-    def read[T](sqlString: String): List[T] = {
-        sql"$sqlString".map(rs => new T(rs)).list().apply()
+    def read(sqlString: String): List[ConsumerChannel] = {
+        sql"""$sqlString""".map(rs => ConsumerChannel(rs)).list().apply()
+    }
+
+    def executeQuery(sqlString: String) = {
+        sql"""$sqlString"""
     }
 
     /*

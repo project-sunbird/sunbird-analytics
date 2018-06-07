@@ -223,11 +223,13 @@ class JobsAPISpec extends BaseSpec with Serializable {
 
             val time = new DateTime()
             val query = s"INSERT INTO consumer_channel_mapping (consumer_id, channel, status, created_by, created_on, updated_on) VALUES ('$consumer', '$channel', 1, 'dev-team', '$time', '$time')"
-            val url = config.getString("postgres.url")
-            val user = config.getString("postgres.user")
-            val pass = config.getString("postgres.pass")
-            val conn = PostgresDBUtil.getConn(url, user, pass)
-            PostgresDBUtil.execute(conn, query)
+            // val url = config.getString("postgres.url")
+            // val user = config.getString("postgres.user")
+            // val pass = config.getString("postgres.pass")
+            // val conn = PostgresDBUtil.getConn(url, user, pass)
+            // PostgresDBUtil.execute(conn, query)
+            // PostgresDBUtil.read(query);
+            PostgresDBUtil.executeQuery(query)
 
 
             val request = FakeRequest(GET, "/refresh-cache/ConsumerChannel")
@@ -236,10 +238,13 @@ class JobsAPISpec extends BaseSpec with Serializable {
             val statUpdated = CacheUtil.getConsumerChannlTable().get(consumer, channel)
             statUpdated should be (Int.box(1))
 
+            /*
           val stmt = conn.createStatement()
             stmt.execute(s"delete from consumer_channel_mapping where consumer_id='$consumer' AND channel='$channel'")
             stmt.close
             PostgresDBUtil.closeConn(conn)
+            */
+            PostgresDBUtil.executeQuery(s"delete from consumer_channel_mapping where consumer_id='$consumer' AND channel='$channel'")
         }
         step("stop application")
     }

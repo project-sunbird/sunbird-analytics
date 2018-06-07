@@ -11,7 +11,7 @@ import org.ekstep.analytics.api._
 import scala.annotation.tailrec
 import org.apache.commons.lang3.StringUtils
 import com.google.common.collect._
-import scalikejdbc.WrappedResultSet
+import scalikejdbc._
 
 import scala.util.Try
 
@@ -64,7 +64,7 @@ object CacheUtil {
             PostgresDBUtil.closeStmt
         }
         */
-        PostgresDBUtil.read[ConsumerChannel](sql).map {
+        PostgresDBUtil.read(sql).map {
             consumerChannel =>
                 consumerChannelTable.put(consumerChannel.consumerId, consumerChannel.channel, consumerChannel.status)
         }
@@ -163,7 +163,7 @@ object CacheUtil {
 
 case class ConsumerChannel(consumerId: String, channel: String, status: Int, createdBy: String, createdOn: Timestamp, updatedOn: Timestamp)
 
-object ConsumerChannel {
+object ConsumerChannel extends SQLSyntaxSupport[ConsumerChannel] {
     def apply(rs: WrappedResultSet) = new ConsumerChannel(
         rs.string("consumer_id"), rs.string("channel"), rs.int("status"),
         rs.string("created_by"), rs.timestamp("created_on"), rs.timestamp("updated_on")
