@@ -1,4 +1,4 @@
-package util
+package org.ekstep.analytics.api.util
 
 import java.nio.charset.Charset
 

@@ -1,12 +1,9 @@
 import play.api._
 import play.api.mvc._
-import play.api.mvc.Results._
-import scala.concurrent.Future
 import filter.RequestInterceptor
-import org.ekstep.analytics.framework.util.RestUtil
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.CacheUtil
-import util.APILogger
+import org.ekstep.analytics.api.util.APILogger
 
 object Global extends WithFilters(RequestInterceptor) {
 
