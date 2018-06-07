@@ -1,7 +1,6 @@
 package filter
 
 import java.util.UUID
-import java.util.UUID
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

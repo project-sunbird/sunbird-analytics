@@ -1,7 +1,9 @@
 package org.ekstep.analytics.api.util
 
 import java.sql._
-import com.typesafe.config.Config
+
+import com.typesafe.config.{Config, ConfigFactory}
+import scalikejdbc._
 
 object PostgresDBUtil {
 
@@ -9,17 +11,22 @@ object PostgresDBUtil {
     var stmt: Statement = null
     var rs: ResultSet = null
 
-    def getConn(url: String, user: String, pass: String)(implicit config: Config): Connection = {
+    implicit val config: Config = ConfigFactory.load()
+    private lazy val url = config.getString("postgres.url")
+    private lazy val user = config.getString("postgres.user")
+    private lazy val pass = config.getString("postgres.pass")
 
-        try {
-            conn = DriverManager.getConnection(url, user, pass);
-        } catch {
-            case e1: SQLException =>
-                e1.printStackTrace()
-            case e2: ClassNotFoundException =>
-                e2.printStackTrace()
-        }
-        return conn
+    Class.forName("org.postgresql.Driver")
+    ConnectionPool.singleton(url, user, pass)
+
+    implicit val session = AutoSession
+
+    /*
+    def getConn()(implicit config: Config): Connection = {
+        val url = config.getString("postgres.url")
+        val user = config.getString("postgres.user")
+        val pass = config.getString("postgres.pass")
+        DriverManager.getConnection(url, user, pass)
     }
 
     def closeConn(conn: Connection) {
@@ -33,22 +40,28 @@ object PostgresDBUtil {
 
     def closeStmt() {
         try {
-            if(rs!=null) rs.close()
-            if(stmt!=null) stmt.close()
-        }catch {
+            if (rs != null) rs.close()
+            if (stmt != null) stmt.close()
+        } catch {
             case e: Throwable => e.printStackTrace()
         }
     }
+    */
 
-    def execute(conn: Connection, sql: String): ResultSet = {
+    def read[T](sqlString: String): List[T] = {
+        sql"$sqlString".map(rs => new T(rs)).list().apply()
+    }
+
+    /*
+    def execute(sql: String): ResultSet = {
         try {
-            if (conn != null) {
-                stmt = conn.createStatement()
-                rs = stmt.executeQuery(sql)
-            }
+            val conn = getConn()
+            stmt = conn.createStatement()
+            rs = stmt.executeQuery(sql)
         } catch {
             case t: Throwable => t.printStackTrace()
         }
-        return rs
+        rs
     }
+    */
 }

@@ -67,27 +67,27 @@ object JobAPIService {
     def getChannelData(channel: String, eventType: String, from: String, to: String)(implicit config: Config): Response = {
 
         val isValid = _validateRequest(channel, eventType, from, to)
-        if ("true".equals(isValid.get("status").get)) {
+        if ("true".equalsIgnoreCase(isValid.getOrElse("status", "false"))) {
             val bucket = config.getString("channel.data_exhaust.bucket")
             val basePrefix = config.getString("channel.data_exhaust.basePrefix")
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
-            val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd");
-            val prefix = basePrefix + channel + "/" + eventType + "/";
-            val listObjs = S3Util.searchKeys(bucket, prefix, Option(from), Option(to), None, "yyyy-MM-dd");
-            val calendar = Calendar.getInstance();
-            calendar.add(Calendar.MINUTE, expiry);
-            val expiryTime = calendar.getTime().getTime();
-            val expiryTimeInSeconds = expiryTime / 1000;
+            val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd")
+            val prefix = basePrefix + channel + "/" + eventType + "/"
+            val listObjs = S3Util.searchKeys(bucket, prefix, Option(from), Option(to), None)
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.MINUTE, expiry)
+            val expiryTime = calendar.getTime.getTime
+            val expiryTimeInSeconds = expiryTime / 1000
             if (listObjs.length > 0) {
                 val res = for (key <- listObjs) yield {
                     S3Util.getPreSignedURL(bucket, key, expiryTimeInSeconds)
                 }
-                return CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime)))
+                CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime)))
             } else {
-                return CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l)))
+                CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l)))
             }
         } else {
-            return CommonUtil.errorResponse(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString)
+            CommonUtil.errorResponse(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.getOrElse("message", ""), ResponseCode.CLIENT_ERROR.toString)
         }
     }
 
@@ -115,33 +115,33 @@ object JobAPIService {
         val filter = body.request.filter;
         val outputFormat = body.request.output_format.getOrElse(OutputFormat.JSON)
         if (filter.isEmpty || params.isEmpty) {
-            val message = if (filter.isEmpty) "filter is empty" else "params is empty";
-            Map("status" -> "false", "message" -> message);
+            val message = if (filter.isEmpty) "filter is empty" else "params is empty"
+            Map("status" -> "false", "message" -> message)
         } else {
-            val datasetList = config.getStringList("data_exhaust.dataset.list");
+            val datasetList = config.getStringList("data_exhaust.dataset.list")
             if (outputFormat != null && !outputFormat.isEmpty && !(outputFormat.equals(OutputFormat.CSV) || outputFormat.equals(OutputFormat.JSON))) {
-                Map("status" -> "false", "message" -> "invalid type. It should be one of [csv, json].");
+                Map("status" -> "false", "message" -> "invalid type. It should be one of [csv, json].")
             } else if (outputFormat != null && outputFormat.equals(OutputFormat.CSV) && (filter.get.events.isEmpty || !filter.get.events.get.length.equals(1))) {
                 Map("status" -> "false", "message" -> "events should contains only one event.");
             } else if (filter.get.start_date.isEmpty || filter.get.end_date.isEmpty || params.get.client_key.isEmpty) {
                 val message = if (params.get.client_key.isEmpty) "client_key is empty" else "start date or end date is empty"
-                Map("status" -> "false", "message" -> message);
+                Map("status" -> "false", "message" -> message)
             } else if (filter.get.tags.nonEmpty && 0 == filter.get.tags.getOrElse(Array()).length) {
-                Map("status" -> "false", "message" -> "tags are empty");
+                Map("status" -> "false", "message" -> "tags are empty")
             } else if (!datasetList.contains(body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default")))) {
-                val message = "invalid dataset_id. It should be one of " + datasetList;
-                Map("status" -> "false", "message" -> message);
+                val message = "invalid dataset_id. It should be one of " + datasetList
+                Map("status" -> "false", "message" -> message)
             } else {
                 val endDate = filter.get.end_date.get
                 val startDate = filter.get.start_date.get
                 val days = CommonUtil.getDaysBetween(startDate, endDate)
                 if (CommonUtil.getPeriod(endDate) >= CommonUtil.getPeriod(CommonUtil.getToday))
-                    Map("status" -> "false", "message" -> "end_date should be lesser than today's date..");
+                    Map("status" -> "false", "message" -> "end_date should be lesser than today's date..")
                 else if (0 > days)
-                    Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your start_date & end_date");
+                    Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your start_date & end_date")
                 else if (30 < days)
-                    Map("status" -> "false", "message" -> "Date range should be < 30 days");
-                else Map("status" -> "true");
+                    Map("status" -> "false", "message" -> "Date range should be < 30 days")
+                else Map("status" -> "true")
             }
         }
     }
@@ -151,8 +151,8 @@ object JobAPIService {
     }
 
     private def _createJobResponse(job: JobRequest): JobResponse = {
-        val processed = List(JobStatus.COMPLETED.toString(), JobStatus.FAILED.toString()).contains(job.status.get);
-        val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString()
+        val processed = List(JobStatus.COMPLETED.toString(), JobStatus.FAILED.toString).contains(job.status.get)
+        val created = if (job.dt_file_created.isEmpty) "" else job.dt_file_created.get.getMillis.toString
         val output = if (processed) {
             val dfe = getDateInMillis(job.dt_first_event.getOrElse(null))
             val dle = getDateInMillis(job.dt_last_event.getOrElse(null))

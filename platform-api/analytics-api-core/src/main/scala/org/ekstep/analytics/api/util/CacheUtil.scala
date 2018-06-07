@@ -1,18 +1,24 @@
 package org.ekstep.analytics.api.util
 
+import java.sql.Timestamp
+
 import com.typesafe.config.Config
 import org.ekstep.analytics.framework.util.RestUtil
 import org.joda.time.DateTimeZone
 import org.joda.time.DateTime
 import org.ekstep.analytics.api._
+
 import scala.annotation.tailrec
 import org.apache.commons.lang3.StringUtils
 import com.google.common.collect._
+import scalikejdbc.WrappedResultSet
 
-case class ContentResult(count: Int, content: Array[Map[String, AnyRef]]);
-case class ContentResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: ContentResult);
-case class LanguageResult(languages: Array[Map[String, AnyRef]]);
-case class LanguageResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: LanguageResult);
+import scala.util.Try
+
+case class ContentResult(count: Int, content: Array[Map[String, AnyRef]])
+case class ContentResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: ContentResult)
+case class LanguageResult(languages: Array[Map[String, AnyRef]])
+case class LanguageResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: LanguageResult)
 
 // TODO: Need to refactor this file. Reduce case classes, combine objects. Proper error handling. 
 object CacheUtil {
@@ -23,31 +29,31 @@ object CacheUtil {
     private var consumerChannelTable: Table[String, String, Integer] = HashBasedTable.create();
 
     def initCache()(implicit config: Config) {
-        try {
-            prepareContentCache();
-            prepareLanguageCache();
-            cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis;
-        } catch {
+        Try {
+            prepareContentCache()
+            prepareLanguageCache()
+            cacheTimestamp = DateTime.now(DateTimeZone.UTC).getMillis
+        }.recover {
             case ex: Throwable =>
-                println("Error at CacheUtil.initCache:" + ex.getMessage);
-                contentListMap = Map();
-                recommendListMap = Map();
-                languageMap = Map();
+                println("Error at CacheUtil.initCache:" + ex.getMessage)
+                contentListMap = Map()
+                recommendListMap = Map()
+                languageMap = Map()
         }
     }
 
     def initConsumerChannelCache()(implicit config: Config) {
 
-        if (consumerChannelTable.size > 0) 
-            consumerChannelTable.clear()
+        consumerChannelTable.clear()
 
-        val url = config.getString("postgres.url")
-        val user = config.getString("postgres.user")
-        val pass = config.getString("postgres.pass")
-        val conn = PostgresDBUtil.getConn(url, user, pass)
+        // val url = config.getString("postgres.url")
+        // val user = config.getString("postgres.user")
+        // val pass = config.getString("postgres.pass")
+        // val conn = PostgresDBUtil.getConn(url, user, pass)
         val sql = "select * from consumer_channel_mapping"
+        /*
         try {
-            val rs = PostgresDBUtil.execute(conn, sql)
+            val rs = PostgresDBUtil.execute(sql)
             if (rs != null)
                 while (rs.next())
                     consumerChannelTable.put(rs.getString("consumer_id"), rs.getString("channel"), rs.getInt("status"))
@@ -56,6 +62,11 @@ object CacheUtil {
         } finally {
             PostgresDBUtil.closeConn(conn)
             PostgresDBUtil.closeStmt
+        }
+        */
+        PostgresDBUtil.read[ConsumerChannel](sql).map {
+            consumerChannel =>
+                consumerChannelTable.put(consumerChannel.consumerId, consumerChannel.channel, consumerChannel.status)
         }
     }
 
@@ -148,4 +159,13 @@ object CacheUtil {
         val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
         resp.result;
     }
+}
+
+case class ConsumerChannel(consumerId: String, channel: String, status: Int, createdBy: String, createdOn: Timestamp, updatedOn: Timestamp)
+
+object ConsumerChannel {
+    def apply(rs: WrappedResultSet) = new ConsumerChannel(
+        rs.string("consumer_id"), rs.string("channel"), rs.int("status"),
+        rs.string("created_by"), rs.timestamp("created_on"), rs.timestamp("updated_on")
+    )
 }
