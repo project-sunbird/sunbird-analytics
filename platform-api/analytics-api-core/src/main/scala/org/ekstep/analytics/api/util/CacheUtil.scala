@@ -22,6 +22,9 @@ case class LanguageResponse(id: String, ver: String, ts: String, params: Params,
 
 // TODO: Need to refactor this file. Reduce case classes, combine objects. Proper error handling. 
 object CacheUtil {
+
+    implicit val className = "org.ekstep.analytics.api.util.CacheUtil"
+
     private var contentListMap: Map[String, Map[String, AnyRef]] = Map();
     private var recommendListMap: Map[String, Map[String, AnyRef]] = Map();
     private var languageMap: Map[String, String] = Map();

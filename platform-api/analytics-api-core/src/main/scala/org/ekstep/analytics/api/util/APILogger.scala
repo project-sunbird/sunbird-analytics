@@ -8,7 +8,6 @@ import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.core.appender.mom.kafka.KafkaAppender
 import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.layout.PatternLayout
-import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.{Context, MEEdata, MeasuredEvent, PData}
 
 object APILogger {

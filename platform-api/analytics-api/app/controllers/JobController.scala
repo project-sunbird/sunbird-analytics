@@ -25,17 +25,17 @@ import scala.concurrent.Future
 
 @Singleton
 class JobController @Inject() (system: ActorSystem) extends BaseController {
-    implicit val className = "controllers.JobController";
+    implicit val className = "controllers.JobController"
 
-    val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor");
+    val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor")
 
     def dataRequest() = Action.async { implicit request =>
-        val body: String = Json.stringify(request.body.asJson.get);
+        val body: String = Json.stringify(request.body.asJson.get)
         val channelId = request.headers.get("X-Channel-ID").getOrElse("")
         val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
         val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
         if (checkFlag) {
-            val res = ask(jobAPIActor, DataRequest(body, config)).mapTo[Response];
+            val res = ask(jobAPIActor, DataRequest(body, config)).mapTo[Response]
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }
@@ -49,7 +49,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
     def getJob(clientKey: String, requestId: String) = Action.async { implicit request =>
 
         if (authorizeDataExhaustRequest(request)) {
-            val res = ask(jobAPIActor, GetDataRequest(clientKey, requestId, config)).mapTo[Response];
+            val res = ask(jobAPIActor, GetDataRequest(clientKey, requestId, config)).mapTo[Response]
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }
@@ -67,7 +67,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
         if (checkFlag) {
             val limit = Integer.parseInt(request.getQueryString("limit").getOrElse(config.getString("data_exhaust.list.limit")))
-            val res = ask(jobAPIActor, DataRequestList(clientKey, limit, config)).mapTo[Response];
+            val res = ask(jobAPIActor, DataRequestList(clientKey, limit, config)).mapTo[Response]
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }
@@ -86,7 +86,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
         if (checkFlag) {
             APILogger.log(s"Authorization Successfull for X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId'")
-            val res = ask(jobAPIActor, ChannelData(channelId, datasetId, from, to, config)).mapTo[Response];
+            val res = ask(jobAPIActor, ChannelData(channelId, datasetId, from, to, config)).mapTo[Response]
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }

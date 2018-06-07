@@ -14,7 +14,10 @@ import play.api.mvc._
  */
 
 abstract class BaseController extends Controller {
-    implicit val timeout: Timeout = 20 seconds;
+
+  implicit val className = "controllers.BaseController"
+
+    implicit val timeout: Timeout = 20 seconds
     implicit val config: Config = play.Play.application.configuration.underlying()
         .withFallback(ConfigFactory.parseMap(Map("content2vec.scripts_path" -> "",
             "python.home" -> "",
@@ -27,7 +30,7 @@ abstract class BaseController extends Controller {
             "content2vec.model_path" -> "model",
             "content2vec.s3_key_prefix" -> "model",
             "content2vec.infer_all" -> "false",
-            "content2vec.corpus_path" -> "").asJava));
+            "content2vec.corpus_path" -> "").asJava))
 
     def result(code: String, res: String): Result = {
         val resultObj = code match {
