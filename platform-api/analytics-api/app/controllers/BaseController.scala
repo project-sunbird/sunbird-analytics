@@ -6,7 +6,7 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-import org.ekstep.analytics.api.util.CacheUtil
+import org.ekstep.analytics.api.util.{APILogger, CacheUtil}
 import play.api.mvc._
 
 /**
@@ -48,6 +48,7 @@ abstract class BaseController extends Controller {
     }
 
     def authorizeDataExhaustRequest(consumerId: String, channelId: String): Boolean = {
+        APILogger.log(s"Authorizing $consumerId and $channelId")
         val status = Option(CacheUtil.getConsumerChannlTable().get(consumerId, channelId))
         if (status.getOrElse(0) == 1) true else false
     }

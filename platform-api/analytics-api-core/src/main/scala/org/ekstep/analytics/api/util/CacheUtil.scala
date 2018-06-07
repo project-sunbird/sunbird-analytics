@@ -44,29 +44,18 @@ object CacheUtil {
 
     def initConsumerChannelCache()(implicit config: Config) {
 
+        APILogger.log("Refreshing ChannelConsumer Cache")
         consumerChannelTable.clear()
-
-        // val url = config.getString("postgres.url")
-        // val user = config.getString("postgres.user")
-        // val pass = config.getString("postgres.pass")
-        // val conn = PostgresDBUtil.getConn(url, user, pass)
         val sql = "select * from consumer_channel_mapping"
-        /*
-        try {
-            val rs = PostgresDBUtil.execute(sql)
-            if (rs != null)
-                while (rs.next())
-                    consumerChannelTable.put(rs.getString("consumer_id"), rs.getString("channel"), rs.getInt("status"))
-        } catch {
-            case t: Throwable => t.printStackTrace()
-        } finally {
-            PostgresDBUtil.closeConn(conn)
-            PostgresDBUtil.closeStmt
-        }
-        */
-        PostgresDBUtil.read(sql).map {
-            consumerChannel =>
-                consumerChannelTable.put(consumerChannel.consumerId, consumerChannel.channel, consumerChannel.status)
+        Try {
+            PostgresDBUtil.read(sql).map {
+                consumerChannel =>
+                    consumerChannelTable.put(consumerChannel.consumerId, consumerChannel.channel, consumerChannel.status)
+            }
+            APILogger.log("ChannelConsumer Cache Refreshed Successfully!!")
+        }.recover {
+            case ex: Throwable =>
+                APILogger.log(s"Failed to refresh ChannelConsumer Cache: ${ex.getMessage}")
         }
     }
 

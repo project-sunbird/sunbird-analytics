@@ -1,6 +1,6 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util.{ CommonUtil, DBUtil }
+import org.ekstep.analytics.api.util.{APILogger, CommonUtil, DBUtil}
 import org.ekstep.analytics.framework.util.JSONUtils
 import akka.actor.Actor
 import com.typesafe.config.Config
@@ -87,6 +87,7 @@ object JobAPIService {
                 CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> Array(), "expiresAt" -> Long.box(0l)))
             }
         } else {
+            APILogger.log("Request Validation FAILED")
             CommonUtil.errorResponse(APIIds.CHANNEL_TELEMETRY_EXHAUST, isValid.getOrElse("message", ""), ResponseCode.CLIENT_ERROR.toString)
         }
     }
@@ -186,6 +187,7 @@ object JobAPIService {
     }
     private def _validateRequest(channel: String, eventType: String, from: String, to: String)(implicit config: Config): Map[String, String] = {
 
+        APILogger.log("Validating Request", Option(Map("channel"-> channel, "eventType" -> eventType, "from"-> from, "to"-> to)))
         if (!EVENT_TYPES.contains(eventType)) {
             return Map("status" -> "false", "message" -> "Please provide 'eventType' value should be one of these -> ('raw' or 'summary' or 'metrics', or 'failed') in your request URL");
         }

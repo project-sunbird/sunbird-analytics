@@ -10,8 +10,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 import org.ekstep.analytics.api._
-import org.ekstep.analytics.api.util.{ CacheUtil, CommonUtil, JSONUtils }
-import org.ekstep.analytics.api.{ APIIds, ResponseCode }
+import org.ekstep.analytics.api.util.{APILogger, CacheUtil, CommonUtil, JSONUtils}
+import org.ekstep.analytics.api.{APIIds, ResponseCode}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -41,6 +41,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
             }
         } else {
             val msg = s"Given X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId' are not authorized"
+            APILogger.log(s"Authorization FAILED for X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId'")
             unauthorized(msg)
         }
     }
@@ -54,6 +55,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
             }
         } else {
             val msg = "Given X-Consumer-ID and X-Channel-ID are not authorized"
+            APILogger.log("Authorization FAILED")
             unauthorized(msg)
         }
     }
@@ -71,6 +73,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
             }
         } else {
             val msg = s"Given X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId' are not authorized"
+            APILogger.log(s"Authorization FAILED for X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId'")
             unauthorized(msg)
         }
     }
@@ -82,12 +85,14 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
         val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
         if (checkFlag) {
+            APILogger.log(s"Authorization Successfull for X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId'")
             val res = ask(jobAPIActor, ChannelData(channelId, datasetId, from, to, config)).mapTo[Response];
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }
         } else {
             val msg = s"Given X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId' are not authorized"
+            APILogger.log(s"Authorization FAILED for X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId'")
             unauthorized(msg)
         }
     }
