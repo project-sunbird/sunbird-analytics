@@ -24,7 +24,8 @@ POST /dataset/request/submit @controllers.JobController.dataRequest
 GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)
 GET /dataset/request/list/:clientKey @controllers.JobController.getJobList(clientKey: String)
 
-GET /dataset/request/:datasetId/:channel @controllers.JobController.getTelemetry(datasetId: String, channel: String)
+GET /dataset/get/:datasetId @controllers.JobController.getTelemetry(datasetId: String)
+GET /refresh-cache/:cacheType @controllers.JobController.refreshCache(cacheType: String)
 
 # API Monitoring
 GET /admin/metrics @com.kenshoo.play.metrics.MetricsController.metrics

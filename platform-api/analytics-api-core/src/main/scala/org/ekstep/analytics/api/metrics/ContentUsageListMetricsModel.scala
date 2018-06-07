@@ -4,7 +4,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder
 import org.ekstep.analytics.api.{Constants, ContentUsageListMetrics, IMetricsModel}
 import org.apache.spark.SparkContext
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.{CommonUtil, ContentCacheUtil, DBUtil}
+import org.ekstep.analytics.api.util.{CommonUtil, CacheUtil, DBUtil}
 import org.ekstep.analytics.api.service.RecommendationAPIService
 import org.ekstep.analytics.framework.util.JSONUtils
 import com.weather.scalacass.syntax._
@@ -17,7 +17,7 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 	override def metric : String = "gls"; // Because content list is part of GLS.
 	
 	override def preProcess()(implicit config: Config) = {
-		ContentCacheUtil.validateCache()(config);
+		CacheUtil.validateCache()(config);
 	}
 	
 	override def getMetrics(records: Array[ContentUsageListMetrics], period: String, fields: Array[String] = Array())(implicit config: Config): Array[ContentUsageListMetrics] = {
@@ -35,7 +35,7 @@ object ContentUsageListMetricsModel  extends IMetricsModel[ContentUsageListMetri
 		    val temp = x.asInstanceOf[ContentUsageListMetrics]
 			val label = Option(CommonUtil.getPeriodLabel(periodEnum, temp.d_period.get));
 			val contents = for(id <- temp.m_contents.getOrElse(List())) yield {
-				ContentCacheUtil.getContentList.getOrElse(id.toString, Map())
+				CacheUtil.getContentList.getOrElse(id.toString, Map())
 			}
 			ContentUsageListMetrics(temp.d_period, label, temp.m_contents, Option(contents.filter(f => !f.isEmpty)));
 		};

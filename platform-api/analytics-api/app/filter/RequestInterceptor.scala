@@ -1,12 +1,11 @@
 package filter
 
 import java.util.UUID
-import java.util.UUID
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.mvc._
-import util.APILogger
+import org.ekstep.analytics.api.util.APILogger
 
 object RequestInterceptor extends Filter {
 
