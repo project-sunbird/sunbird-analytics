@@ -1,23 +1,14 @@
-package util
+package org.ekstep.analytics.api.util
 
 import java.nio.charset.Charset
 
-import scala.collection.JavaConverters.mapAsJavaMapConverter
-
-import org.apache.commons.lang3.StringUtils
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import com.typesafe.config.ConfigFactory
+import org.apache.logging.log4j.{LogManager, Logger}
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.core.appender.mom.kafka.KafkaAppender
 import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.layout.PatternLayout
-import org.ekstep.analytics.api.util.JSONUtils
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.MEEdata
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.PData
-
-import com.typesafe.config.ConfigFactory
+import org.ekstep.analytics.framework.{Context, MEEdata, MeasuredEvent, PData}
 
 object APILogger {
 	def init(jobName: String) = {
@@ -52,6 +43,6 @@ object APILogger {
 		val channel = apiConf.getString("default.channel.id")
 		MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "",channel, None, None,
 			Context(PData("AnalyticsAPI", "1.0", Option("org.ekstep.analytics.api")), None, "EVENT", null),
-			null,MEEdata(data));
+			null,MEEdata(Option(Map("message" -> msg, "data"-> data.getOrElse(null)))));
 	}
 }

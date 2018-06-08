@@ -44,9 +44,9 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val avgIntrMin = eksMap.get("avg_interactions_min").get.asInstanceOf[Double]
             val totalPageviewsCount = eksMap.get("total_pageviews_count").get.asInstanceOf[Number].longValue()
             val avgPageviews = eksMap.get("avg_pageviews").get.asInstanceOf[Double]
-            val uniqueUsers = eksMap.get("unique_users").get.asInstanceOf[List[String]]
-            val contents = eksMap.get("contents").get.asInstanceOf[List[String]]
-            val deviceIds = eksMap.get("device_ids").getOrElse(List("")).asInstanceOf[List[String]];
+            val uniqueUsers = List[String]()
+            val contents = List[String]()
+            val deviceIds = List[String]()
             WorkFlowUsageSummaryFact_T(period, channel, appId, tag, summType, mode, did, contentId, uid, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), totalTS, totalSess, avgTSsess, totalIntr, avgIntrMin, totalPageviewsCount, avgPageviews, uniqueUsers, deviceIds, contents);
         }.cache();
 

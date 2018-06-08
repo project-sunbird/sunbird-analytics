@@ -2,26 +2,26 @@ package org.ekstep.analytics.api.util
 
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
-
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import scala.reflect.runtime.universe.MethodSymbol
 import scala.reflect.runtime.universe.TypeTag
 import scala.reflect.runtime.universe.typeOf
 import scala.reflect.runtime.{ currentMirror => m, universe => ru }
-
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.JobRequest
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
-
 import com.datastax.driver.core.Cluster
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{ QueryBuilder => QB }
-
 import org.ekstep.analytics.framework.util.JobLogger
 import akka.actor.Actor
 import com.fasterxml.jackson.core.`type`.TypeReference
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.SQLException
+import com.typesafe.config.Config
 
 object DBUtil {
 
@@ -82,7 +82,7 @@ object DBUtil {
 
     def checkCassandraConnection(): Boolean = {
         try {
-            if(null != session) true else false
+            if (null != session) true else false
         } catch {
             // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
             // TODO: Need to get confirmation from amit.

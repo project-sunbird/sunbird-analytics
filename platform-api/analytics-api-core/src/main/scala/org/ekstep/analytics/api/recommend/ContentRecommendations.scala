@@ -7,7 +7,7 @@ import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.IRecommendations
 import org.ekstep.analytics.api.RequestBody
 import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.api.util.ContentCacheUtil
+import org.ekstep.analytics.api.util.CacheUtil
 import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.util.JSONUtils
 
@@ -24,7 +24,7 @@ object ContentRecommendations extends IRecommendations {
 	def fetch(requestBody: RequestBody)(implicit config: Config): String = {
 		val context = requestBody.request.context.getOrElse(Map());
 		val contentId = context.getOrElse("contentid", "").asInstanceOf[String];
-		val content: Map[String, AnyRef] = ContentCacheUtil.getREList.getOrElse(contentId, Map());
+		val content: Map[String, AnyRef] = CacheUtil.getREList.getOrElse(contentId, Map());
 		val languages = getValueAsList(content, "language");
 		if (content.isEmpty || languages.isEmpty) {
 			JSONUtils.serialize(CommonUtil.OK(APIIds.RECOMMENDATIONS, Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));

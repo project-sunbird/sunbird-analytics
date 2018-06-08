@@ -40,7 +40,7 @@ import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
 
 @Singleton
 class Application @Inject() (system: ActorSystem) extends BaseController {
-	implicit val className = "controllers.Application";
+	implicit override val className = "controllers.Application";
 	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor");
 	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor");
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor");

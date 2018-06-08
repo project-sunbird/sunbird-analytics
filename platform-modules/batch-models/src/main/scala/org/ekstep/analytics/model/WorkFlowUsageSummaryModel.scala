@@ -144,10 +144,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
                 "avg_pageviews" -> usageSumm.avg_pageviews,
                 "total_users_count" -> usageSumm.unique_users.length,
                 "total_content_count" -> usageSumm.contents.length,
-                "total_devices_count" -> usageSumm.device_ids.length,
-                "unique_users" -> usageSumm.unique_users,
-                "device_ids" -> usageSumm.device_ids,
-                "contents" -> usageSumm.contents);
+                "total_devices_count" -> usageSumm.device_ids.length);
             MeasuredEvent("ME_WORKFLOW_USAGE_SUMMARY", System.currentTimeMillis(), usageSumm.syncts, meEventVersion, mid, "", "", None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkFlowUsageSummarizer").asInstanceOf[String])), None, "DAY", usageSumm.dt_range),
                 Dimensions(Option(usageSumm.wk.user_id), Option(usageSumm.wk.did), None, None, None, None, Option(usageSumm.pdata), None, None, None, Option(usageSumm.wk.tag), Option(usageSumm.wk.period), Option(usageSumm.wk.content_id), None, None, None, None, None, None, None, None, None, None, None, None, None, Option(usageSumm.wk.channel), Option(usageSumm.wk.`type`), Option(usageSumm.wk.mode)),

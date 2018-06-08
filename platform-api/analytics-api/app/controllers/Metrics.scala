@@ -28,7 +28,7 @@ import akka.routing.FromConfig
 
 @Singleton
 class Metrics @Inject() (system: ActorSystem) extends BaseController {
-    implicit val className = "controllers.Metrics";
+    implicit override val className = "controllers.Metrics";
     val metricsAPIActor = system.actorOf(Props[MetricsAPIService].withRouter(FromConfig()), name = "metricsApiActor");
 
     def get(datasetId: String, summary: String) = Action.async { implicit request =>
