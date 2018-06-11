@@ -71,8 +71,10 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def clearAll(): Unit = {
-        this.CHILDREN.foreach{summ =>
-            summ.clearSummary();
+        if(this.CHILDREN.size > 0) {
+            this.CHILDREN.map { summ =>
+                summ.clearAll();
+            }
         }
         this.clearSummary()
     }
