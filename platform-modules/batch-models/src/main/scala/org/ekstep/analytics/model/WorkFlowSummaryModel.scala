@@ -60,7 +60,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         summEvents ++= clonedRootSummary.summaryEvents
                         clonedRootSummary.clearAll()
                         rootSummary = clonedRootSummary
-                        currSummary = if(clonedRootSummary.CHILDREN.size > 0) clonedRootSummary.getLeafSummary else clonedRootSummary
+                        currSummary = clonedRootSummary.getLeafSummary
                     }
                 }
                 prevEvent = x
@@ -121,6 +121,10 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
             if(currSummary != null && !currSummary.isClosed){
                 currSummary.close(currSummary.summaryEvents, config)
                 summEvents ++= currSummary.summaryEvents
+            }
+            if(!currSummary.checkSimilarity(rootSummary) && !rootSummary.isClosed){
+                rootSummary.close(rootSummary.summaryEvents, config)
+                summEvents ++= rootSummary.summaryEvents
             }
             summEvents;
         }).flatMap(f => f.map(f => f));
