@@ -145,7 +145,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         event1.context.date_range should not be null;
         event1.dimensions.`type`.get should be("player");
         event1.dimensions.did.get should be("b027147870670bc57de790535311fbe5");
-        event1.dimensions.content_id.get should be("do_1122852550749306881159")
+        event1.`object`.get.id should be("do_1122852550749306881159")
         event1.dimensions.sid.get should be("7op5o46hpi2abkmp8ckihjeq72");
         event1.dimensions.mode.getOrElse("") should be("preview")
 
