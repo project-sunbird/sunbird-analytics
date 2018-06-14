@@ -61,6 +61,23 @@ class Summary(val firstEvent: V3Event) {
         else this
     }
 
+    def ckeckTypeMode(`type`: String, mode: String): Boolean = {
+        (StringUtils.equalsIgnoreCase(this.`type`, `type`) && StringUtils.equalsIgnoreCase(this.mode.get, mode))
+    }
+
+    def checkForSimilarSTART(`type`: String, mode: String): Boolean = {
+        if(this.ckeckTypeMode(`type`, mode)) {
+            true
+        }
+        else if (this.PARENT == null) {
+            return this.ckeckTypeMode(`type`, mode);
+        }
+        else {
+            return this.PARENT.checkForSimilarSTART(`type`, mode);
+        }
+
+    }
+
     def deepClone(): Summary = {
         if(this.PARENT == null) {
             return this;
@@ -150,9 +167,10 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def checkStart(`type`: String, mode: Option[String], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
-        if(this.`type`.equals(`type`) && this.mode.get.equals(mode.getOrElse(""))) {
+        if(StringUtils.equalsIgnoreCase(this.`type`, `type`) && StringUtils.equals(this.mode.get, mode.getOrElse(""))) {
             this.close(summEvents, config);
-            if(this.PARENT != null) return PARENT else return this;
+//            if(this.PARENT != null) return PARENT else return this;
+            return this;
         }
         else if(this.PARENT == null) {
             return null;
@@ -164,7 +182,7 @@ class Summary(val firstEvent: V3Event) {
 
     def checkEnd(event: V3Event, idleTime: Int, config: Map[String, AnyRef]): Summary = {
         val mode = if(event.edata.mode == null) "" else event.edata.mode
-        if(this.`type`.equals(event.edata.`type`) && this.mode.get.equals(mode)) {
+        if(StringUtils.equalsIgnoreCase(this.`type`, event.edata.`type`) && StringUtils.equals(this.mode.get, mode)) {
             if(this.PARENT == null) return this else return PARENT;
         }
         if(this.PARENT == null) {
@@ -220,7 +238,7 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def checkSimilarity(summ: Summary): Boolean = {
-        StringUtils.equals(this.`type`, summ.`type`) && StringUtils.equals(this.mode.get, summ.mode.get) && (this.startTime == summ.startTime)
+        StringUtils.equalsIgnoreCase(this.`type`, summ.`type`) && StringUtils.equalsIgnoreCase(this.mode.get, summ.mode.get) && (this.startTime == summ.startTime)
     }
 
     def getPageSummaries(): Iterable[PageSummary] = {

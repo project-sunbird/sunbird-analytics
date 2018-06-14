@@ -90,23 +90,53 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                                 currSummary = newSumm
                             }
                             else {
-                                if(currSummary.PARENT != null) {
-                                    summEvents ++= currSummary.PARENT.summaryEvents
+                                if(tempSummary.PARENT != null && tempSummary.isClosed) {
+                                     summEvents ++= tempSummary.summaryEvents
+                                     val newSumm = new org.ekstep.analytics.util.Summary(x)
+                                     if (!currSummary.isClosed) {
+                                        currSummary.addChild(newSumm)
+                                        newSumm.addParent(currSummary, idleTime)
+                                     }
+                                     currSummary = newSumm
+                                     currSummary = new org.ekstep.analytics.util.Summary(x)
+                                     tempSummary.PARENT.addChild(currSummary)
+                                     currSummary.addParent(tempSummary.PARENT, idleTime)
                                 }
-                                else summEvents ++= currSummary.summaryEvents
-                                currSummary = new org.ekstep.analytics.util.Summary(x)
+                                else {
+                                  if (currSummary.PARENT != null) {
+                                    summEvents ++= currSummary.PARENT.summaryEvents
+                                  }
+                                  else summEvents ++= currSummary.summaryEvents
+                                  currSummary = new org.ekstep.analytics.util.Summary(x)
+                              }
                             }
                         }
                     case ("END") =>
                         // Check if first event is END event, currSummary = null
-                        if(currSummary != null) {
+                        if(currSummary != null && (currSummary.checkForSimilarSTART(x.edata.`type`, if(x.edata.mode == null) "" else x.edata.mode))) {
                             val parentSummary = currSummary.checkEnd(x, idleTime, config)
-                            if (!currSummary.isClosed) {
+                            if(currSummary.PARENT != null && parentSummary.checkSimilarity(currSummary.PARENT)) {
+                                if (!currSummary.isClosed) {
+                                    currSummary.add(x, idleTime)
+                                    currSummary.close(summEvents, config);
+                                    summEvents ++= currSummary.summaryEvents
+                                    currSummary = parentSummary
+                                }
+                            }
+                            else if(parentSummary.checkSimilarity(rootSummary)) {
+                                rootSummary.add(x, idleTime)
+                                rootSummary.close(rootSummary.summaryEvents, config)
+                                summEvents ++= rootSummary.summaryEvents
+                                currSummary = rootSummary
+                            }
+                            else {
+                              if (!currSummary.isClosed) {
                                 currSummary.add(x, idleTime)
                                 currSummary.close(summEvents, config);
+                                summEvents ++= currSummary.summaryEvents
+                              }
+                              currSummary = parentSummary
                             }
-                            summEvents ++= currSummary.summaryEvents
-                            currSummary = parentSummary
                         }
                     case _ =>
                         if (currSummary != null && !currSummary.isClosed) {
