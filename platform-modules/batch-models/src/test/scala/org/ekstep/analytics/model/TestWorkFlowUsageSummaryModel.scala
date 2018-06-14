@@ -21,7 +21,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         val me = rdd2.collect();
 
         // check for all usage session summary
-        val event1 = me.filter(f => f.mid.equals("80D9071B622A9B8023760F082CC3C1E8")).last
+        val event1 = me.filter(f => f.mid.equals("D899338AA10C72EC0CF4344A4A1E05A9")).last
 
         event1.eid should be("ME_WORKFLOW_USAGE_SUMMARY");
         event1.context.pdata.model.get should be("WorkFlowUsageSummarizer");
@@ -51,7 +51,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary1.get("total_pageviews_count").get should be(2);
 
         // check for per user summary
-        val event2 = me.filter(f => f.mid.equals("81DD27DFDC9F59F3D6233CF1F4EECEC9")).last
+        val event2 = me.filter(f => f.mid.equals("8FEA0EF5EC6709ACB24C4AE59DA307BE")).last
 
         event2.eid should be("ME_WORKFLOW_USAGE_SUMMARY");
         event2.context.pdata.model.get should be("WorkFlowUsageSummarizer");
@@ -89,9 +89,9 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
 
         rdd2.count() should be(8)
         val me = rdd2.collect();
-        
+
         // check for all usage player summary
-        val event1 = me.filter(f => f.mid.equals("53CBB1DEF700A416BB8050FF4EB4ED53")).last
+        val event1 = me.filter(f => f.mid.equals("C53E7E06EF053C4576E116D13EEF0FE6")).last
 
         event1.eid should be("ME_WORKFLOW_USAGE_SUMMARY");
         event1.context.pdata.model.get should be("WorkFlowUsageSummarizer");
@@ -121,7 +121,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary1.get("total_pageviews_count").get should be(5);
         
         // check for per device usage player summary
-        val event2 = me.filter(f => f.mid.equals("E83170C54FD99FCCC646455E9C982ED1")).last
+        val event2 = me.filter(f => f.mid.equals("B7CDCEB0D1F7E8EF55A49F41B62914DF")).last
 
         event2.eid should be("ME_WORKFLOW_USAGE_SUMMARY");
         event2.context.pdata.model.get should be("WorkFlowUsageSummarizer");
@@ -151,7 +151,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         summary2.get("total_pageviews_count").get should be(5);
         
         // check for per device per content usage player summary
-        val event3 = me.filter(f => f.mid.equals("1B68B271BA069A2F743B1027D9137E47")).last
+        val event3 = me.filter(f => f.mid.equals("FE9567B7603146E19CF4FE8EF66D2D66")).last
 
         event3.eid should be("ME_WORKFLOW_USAGE_SUMMARY");
         event3.context.pdata.model.get should be("WorkFlowUsageSummarizer");
@@ -196,9 +196,9 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         
         rdd2.count() should be(16)
         val me = rdd2.collect();
-        
+
         // check for per tag usage player summary
-        val event1 = me.filter(f => f.mid.equals("E1C36E1D2419B38B818B4A03839F564E")).last
+        val event1 = me.filter(f => f.mid.equals("EA9289094096EE18DB3F93299D772285")).last
 
         event1.eid should be("ME_WORKFLOW_USAGE_SUMMARY");
         event1.context.pdata.model.get should be("WorkFlowUsageSummarizer");
