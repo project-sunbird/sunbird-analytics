@@ -145,6 +145,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         else{
                             currSummary = new org.ekstep.analytics.util.Summary(x)
                             currSummary.updateType("app")
+                            if(rootSummary == null) rootSummary = currSummary
                         }
                 }
             }
