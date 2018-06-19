@@ -16,7 +16,6 @@ class Summary(val firstEvent: V3Event) {
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = if (firstEvent.actor.id == null) "" else firstEvent.actor.id
     val `object`: Option[V3Object] = if (firstEvent.`object`.isDefined) firstEvent.`object` else None;
-    val contentId: Option[String] = if (firstEvent.`object`.isDefined) Option(firstEvent.`object`.get.id) else None;
     val mode: Option[String] = if (firstEvent.edata.mode == null) Option("") else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
     val tags: Option[List[AnyRef]] = Option(firstEvent.tags)
@@ -61,6 +60,23 @@ class Summary(val firstEvent: V3Event) {
         else this
     }
 
+    def ckeckTypeMode(`type`: String, mode: String): Boolean = {
+        (StringUtils.equalsIgnoreCase(this.`type`, `type`) && StringUtils.equalsIgnoreCase(this.mode.get, mode))
+    }
+
+    def checkForSimilarSTART(`type`: String, mode: String): Boolean = {
+        if(this.ckeckTypeMode(`type`, mode)) {
+            true
+        }
+        else if (this.PARENT == null) {
+            return this.ckeckTypeMode(`type`, mode);
+        }
+        else {
+            return this.PARENT.checkForSimilarSTART(`type`, mode);
+        }
+
+    }
+
     def deepClone(): Summary = {
         if(this.PARENT == null) {
             return this;
@@ -71,8 +87,10 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def clearAll(): Unit = {
-        this.CHILDREN.foreach{summ =>
-            summ.clearSummary();
+        if(this.CHILDREN.size > 0) {
+            this.CHILDREN.map { summ =>
+                summ.clearAll();
+            }
         }
         this.clearSummary()
     }
@@ -148,9 +166,10 @@ class Summary(val firstEvent: V3Event) {
     }
 
     def checkStart(`type`: String, mode: Option[String], summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]): Summary = {
-        if(this.`type`.equals(`type`) && this.mode.get.equals(mode.getOrElse(""))) {
+        if(StringUtils.equalsIgnoreCase(this.`type`, `type`) && StringUtils.equals(this.mode.get, mode.getOrElse(""))) {
             this.close(summEvents, config);
-            if(this.PARENT != null) return PARENT else return this;
+//            if(this.PARENT != null) return PARENT else return this;
+            return this;
         }
         else if(this.PARENT == null) {
             return null;
@@ -162,7 +181,7 @@ class Summary(val firstEvent: V3Event) {
 
     def checkEnd(event: V3Event, idleTime: Int, config: Map[String, AnyRef]): Summary = {
         val mode = if(event.edata.mode == null) "" else event.edata.mode
-        if(this.`type`.equals(event.edata.`type`) && this.mode.get.equals(mode)) {
+        if(StringUtils.equalsIgnoreCase(this.`type`, event.edata.`type`) && StringUtils.equals(this.mode.get, mode)) {
             if(this.PARENT == null) return this else return PARENT;
         }
         if(this.PARENT == null) {
@@ -194,7 +213,7 @@ class Summary(val firstEvent: V3Event) {
     def getSummaryEvent(config: Map[String, AnyRef]): MeasuredEvent = {
         val meEventVersion = "1.0"
         val dtRange = DtRange(this.startTime, this.endTime)
-        val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", this.uid, "SESSION", dtRange, this.contentId.getOrElse("NA"), Option(this.pdata.id), Option(this.channel));
+        val mid = CommonUtil.getMessageId("ME_WORKFLOW_SUMMARY", this.uid + this.`type` + this.mode.getOrElse("NA"), "SESSION", dtRange, this.`object`.getOrElse(V3Object("NA", "", None, None)).id, Option(this.pdata.id), Option(this.channel));
         val interactEventsPerMin: Double = if (this.interactEventsCount == 0 || this.timeSpent == 0) 0d
         else if (this.timeSpent < 60.0) this.interactEventsCount.toDouble
         else BigDecimal(this.interactEventsCount / (this.timeSpent / 60)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble;
@@ -213,12 +232,12 @@ class Summary(val firstEvent: V3Event) {
             "page_summary" -> this.pageSummary);
         MeasuredEvent("ME_WORKFLOW_SUMMARY", System.currentTimeMillis(), syncts, meEventVersion, mid, this.uid, null, None, None,
             Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkflowSummarizer").asInstanceOf[String])), None, "SESSION", dtRange, None, None, None, this.context_rollup, this.cdata),
-            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"), None, this.pdata.pid)), None, None, None, None, None, this.contentId, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`), this.mode),
+            org.ekstep.analytics.framework.Dimensions(None, Option(this.did), None, None, None, None, Option(PData(this.pdata.id, this.pdata.ver.getOrElse("1.0"), None, this.pdata.pid)), None, None, None, None, None, None, None, None, Option(this.sid), None, None, None, None, None, None, None, None, None, None, Option(this.channel), Option(this.`type`), this.mode),
             MEEdata(measures), None, this.tags, this.`object`);
     }
 
     def checkSimilarity(summ: Summary): Boolean = {
-        StringUtils.equals(this.`type`, summ.`type`) && StringUtils.equals(this.mode.get, summ.mode.get) && (this.startTime == summ.startTime)
+        StringUtils.equalsIgnoreCase(this.`type`, summ.`type`) && StringUtils.equalsIgnoreCase(this.mode.get, summ.mode.get) && (this.startTime == summ.startTime)
     }
 
     def getPageSummaries(): Iterable[PageSummary] = {

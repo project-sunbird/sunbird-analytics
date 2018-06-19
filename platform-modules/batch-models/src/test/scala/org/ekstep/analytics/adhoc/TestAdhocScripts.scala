@@ -22,7 +22,8 @@ class InvalidEvent(val eid: String, val ets: Long, val mid: String, val context:
 
 class TestAdhocScripts extends SparkSpec(null) {
 
-    "TestAdhocScripts" should "execute the script to compute usage details" in {
+    //"TestAdhocScripts" should "execute the script to compute usage details" in {
+    ignore should "execute the script to compute usage details" in {
         val rdd = loadFile[V3Event]("/Users/santhosh/ekStep/telemetry/raw/2018-06-02/2018-06-02*").cache();
 
         val appEvents = rdd.filter(f => f.context.pdata.get.id.equals("prod.diksha.app")).cache();
@@ -61,7 +62,7 @@ class TestAdhocScripts extends SparkSpec(null) {
         Console.println("Dial Codes Linked:", dialCodeLinked);
     }
 
-    it should "fetch the API stats" in {
+    ignore should "fetch the API stats" in {
 
         val apisToTrack = List("/learning-service/v3/framework/read", "/learning-service/v3/content/hierarchy", "/learning-service/v3/content/read", "/v3/search", "/v2/search", "");
         val rdd = loadFile[V3Event]("/Users/santhosh/ekStep/telemetry/raw/2018-06-02/1970-01-01*").cache();
@@ -98,7 +99,7 @@ class TestAdhocScripts extends SparkSpec(null) {
         
     }
     
-    it should "get failed counts by pdata.id" in {
+    ignore should "get failed counts by pdata.id" in {
         
         val rdd = loadFile[String]("/Users/santhosh/ekStep/telemetry/invalid/prod.diksha.portal.invalid.log");
         val rdd1 = rdd.filter(f => TelemetryValidator.validate(f));

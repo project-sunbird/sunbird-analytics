@@ -588,7 +588,7 @@ object CommonUtil {
         } else if (event.isInstanceOf[V3Event]) {
             if (event.asInstanceOf[V3Event].context.pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[V3Event].context.pdata.get.id)) {
               val v3pdata = event.asInstanceOf[V3Event].context.pdata.get
-              PData(v3pdata.id, v3pdata.ver.getOrElse(""))
+              PData(v3pdata.id, v3pdata.ver.getOrElse(""), None, v3pdata.pid)
             }
             else defaultAppId
         } else if (event.isInstanceOf[ProfileEvent]) {
