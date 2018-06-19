@@ -43,7 +43,15 @@ object KafkaDispatcher extends IDispatcher {
         }
 
         val kafkaSink = sc.broadcast(KafkaSink(_getKafkaProducerConfig(brokerList)));
-        events.foreach { message => kafkaSink.value.send(topic, message) };
+        events.foreach { message =>
+            try {
+                kafkaSink.value.send(topic, message)
+            }
+            catch {
+                case e: Exception =>
+                    JobLogger.log(e.getMessage, None, ERROR)
+            }
+        };
     }
 
     private def _getKafkaProducerConfig(brokerList: String): HashMap[String, Object] = {
