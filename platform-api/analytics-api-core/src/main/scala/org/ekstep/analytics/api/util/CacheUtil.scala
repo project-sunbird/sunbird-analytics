@@ -49,7 +49,9 @@ object CacheUtil {
 
         APILogger.log("Refreshing ChannelConsumer Cache")
         consumerChannelTable.clear()
-        val sql = "select * from consumer_channel_mapping"
+        lazy val tableName = config.getString("postgres.table_name")
+
+        val sql = s"select * from $tableName"
         Try {
             PostgresDBUtil.read(sql).map {
                 consumerChannel =>
