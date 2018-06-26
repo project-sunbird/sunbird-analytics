@@ -12,6 +12,8 @@ import java.lang.Long
 
 import org.apache.kafka.clients.producer.ProducerConfig
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
  * @author Santhosh
  */
