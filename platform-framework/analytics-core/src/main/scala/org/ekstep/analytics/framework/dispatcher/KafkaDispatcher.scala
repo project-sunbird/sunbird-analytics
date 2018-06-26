@@ -11,6 +11,8 @@ import java.util.HashMap
 import java.lang.Long
 
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.Callback
+import org.apache.kafka.clients.producer.RecordMetadata
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -45,13 +47,30 @@ object KafkaDispatcher extends IDispatcher {
             throw new DispatcherException("topic parameter is required to send output to kafka")
         }
 
-        val kafkaSink = sc.broadcast(KafkaSink(_getKafkaProducerConfig(brokerList)))
-        events.foreach { message =>
-            kafkaSink.value.send(topic, message).recover {
-                case ex: Exception =>
-                    JobLogger.log(ex.getMessage, None, ERROR)
-            }
-        }
+        events.foreachPartition((partitions: Iterator[String]) => {
+            val kafkaSink = KafkaSink(_getKafkaProducerConfig(brokerList));
+            partitions.foreach { message =>
+                try {
+                    kafkaSink.send(topic, message, new Callback {
+                        override def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
+                            if (null != exception) {
+                                JobLogger.log(exception.getMessage, None, ERROR);
+                            } else {
+                                
+                            }
+                        }
+                    })
+                }
+                catch {
+                    case e: Exception =>
+                        Console.println("SerializationException inside kafka dispatcher", e.getMessage);
+                        JobLogger.log(e.getMessage, None, ERROR)
+                }
+            };
+            kafkaSink.flush();
+            kafkaSink.close()
+        });
+        
     }
 
     private def _getKafkaProducerConfig(brokerList: String): HashMap[String, Object] = {

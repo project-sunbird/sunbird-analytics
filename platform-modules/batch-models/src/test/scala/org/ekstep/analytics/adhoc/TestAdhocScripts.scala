@@ -107,7 +107,7 @@ class TestAdhocScripts extends SparkSpec(null) {
         //Console.println("rdd1 count", rdd1.count());
     }
     
-    it should "validate the events" in {
+    ignore should "validate the events" in {
         
         //val event = """{"actor":{"id":"96d1f6be-a79e-430f-b136-23c22b818911","type":"User"},"context":{"cdata":[{"id":"b71dc82cfb72b422878ad7ecea6ebc41","type":"ContentSession"}],"channel":"0123221758376673287017","did":"e60b1eef101b8c373cbb2caab688d99b","env":"edit","pdata":{"id":"prod.diksha.portal","pid":"sunbird-portal.contenteditor.contentplayer","ver":"1.0"},"rollup":{},"sid":"TUtLpksYbwA3LamJd8ypBBI6vvixO3hI"},"edata":{"target":{"id":"org.ekstep.questionunit.ftb","type":"plugin","ver":"1.0"},"values":[]},"eid":"RESPONSE","ets":1.527067794119E12,"mid":"RESPONSE:eb661c89bf6b1fa0b8769312202d0556","object":{"id":"do_31248414188251545612869","type":"Content","ver":"1.0"},"tags":[],"ver":"3.0","@version":"1","@timestamp":"2018-05-23T09:31:13.732Z","metadata":{"checksum":"RESPONSE:eb661c89bf6b1fa0b8769312202d0556"},"uuid":"4","key":"4","type":"events","ts":"2018-05-23T09:29:54.119+0000"}""";
         //TelemetryValidator.validate(event);

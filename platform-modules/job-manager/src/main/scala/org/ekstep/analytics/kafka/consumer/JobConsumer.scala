@@ -9,7 +9,7 @@ import java.util.concurrent.BlockingQueue
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 
-class JobConsumer(topic: String, consumerProps: Properties, queue: BlockingQueue[String], pollTimeout: Duration = 100 milliseconds, restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay) 
+class JobConsumer(topic: String, consumerProps: Properties, queue: BlockingQueue[String], pollTimeout: Duration = 10 seconds, restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay) 
         extends SimpleKafkaConsumer(topic, consumerProps, pollTimeout = pollTimeout, restartOnExceptionDelay = restartOnExceptionDelay) {
 
     implicit val className = "org.ekstep.analytics.kafka.consumer.JobConsumer"
@@ -28,7 +28,7 @@ class JobConsumer(topic: String, consumerProps: Properties, queue: BlockingQueue
 object JobConsumerConfig {
 
     // Simple helper to create properties from the above. Note that we don't cache the lookup, as it may always change.
-    def makeProps(bootStrapServer: String = "localhost:9092", consumerGroup: String = "dev.job-consumer", addProps: Option[Properties] = None,  maxPollRecords: Option[Int] = None, sessionTimeout: String = "6000", heartBeatInterval: String = "10000") = {
+    def makeProps(bootStrapServer: String = "localhost:9092", consumerGroup: String = "dev.job-consumer", addProps: Option[Properties] = None,  maxPollRecords: Option[Int] = Option(1), sessionTimeout: String = "6000", heartBeatInterval: String = "10000") = {
         val props = SimpleKafkaConsumer.makeProps(bootStrapServer, consumerGroup, maxPollRecords)
         // Make stuff fail a bit quicker than normal
         props.put("session.timeout.ms", sessionTimeout)
