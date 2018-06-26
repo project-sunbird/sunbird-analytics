@@ -9,6 +9,7 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.streaming.KafkaSink
 import java.util.HashMap
 import java.lang.Long
+
 import org.apache.kafka.clients.producer.ProducerConfig
 
 /**
@@ -28,13 +29,13 @@ object KafkaDispatcher extends IDispatcher {
         if (null == topic) {
             throw new DispatcherException("topic parameter is required to send output to kafka")
         }
-        KafkaEventProducer.sendEvents(events, topic, brokerList);
-        events;
+        KafkaEventProducer.sendEvents(events, topic, brokerList)
+        events
     }
 
     def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
-        val brokerList = config.getOrElse("brokerList", null).asInstanceOf[String];
-        val topic = config.getOrElse("topic", null).asInstanceOf[String];
+        val brokerList = config.getOrElse("brokerList", null).asInstanceOf[String]
+        val topic = config.getOrElse("topic", null).asInstanceOf[String]
         if (null == brokerList) {
             throw new DispatcherException("brokerList parameter is required to send output to kafka")
         }
@@ -42,25 +43,22 @@ object KafkaDispatcher extends IDispatcher {
             throw new DispatcherException("topic parameter is required to send output to kafka")
         }
 
-        val kafkaSink = sc.broadcast(KafkaSink(_getKafkaProducerConfig(brokerList)));
+        val kafkaSink = sc.broadcast(KafkaSink(_getKafkaProducerConfig(brokerList)))
         events.foreach { message =>
-            try {
-                kafkaSink.value.send(topic, message)
+            kafkaSink.value.send(topic, message).recover {
+                case ex: Exception =>
+                    JobLogger.log(ex.getMessage, None, ERROR)
             }
-            catch {
-                case e: Exception =>
-                    JobLogger.log(e.getMessage, None, ERROR)
-            }
-        };
+        }
     }
 
     private def _getKafkaProducerConfig(brokerList: String): HashMap[String, Object] = {
         val props = new HashMap[String, Object]()
-        props.put(ProducerConfig.METADATA_FETCH_TIMEOUT_CONFIG, 3000L.asInstanceOf[Long]);
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        props.put(ProducerConfig.METADATA_FETCH_TIMEOUT_CONFIG, 3000L.asInstanceOf[Long])
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList)
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
-        props;
+        props
     }
 
 }

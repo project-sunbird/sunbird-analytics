@@ -1,17 +1,19 @@
 package org.ekstep.analytics.streaming
 
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata}
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class KafkaSink(createProducer: () => KafkaProducer[String, String]) extends Serializable {
 
     lazy val producer = createProducer()
 
-    def send(topic: String, value: String): Unit = {
-        val f = producer.send(new ProducerRecord(topic, value));
-        f.get;
+    def send(topic: String, value: String): Future[RecordMetadata] = Future {
+        producer.send(new ProducerRecord(topic, value)).get
     }
-    def close(): Unit = producer.close();
+
+    def close(): Unit = producer.close()
 }
 
 object KafkaSink {
