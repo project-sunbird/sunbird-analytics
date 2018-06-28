@@ -7,7 +7,9 @@ import org.ekstep.analytics.framework.GraphQueryParams._
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.model.SparkGraphSpec
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.scalatest.Ignore
 
+@Ignore
 class TestAuthorRelationsModel extends SparkGraphSpec(null) {
 
     it should "create Author nodes and its relation with contents, concepts & languages" in {

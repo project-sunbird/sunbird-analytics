@@ -5,7 +5,9 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import org.ekstep.analytics.model.SparkGraphSpec
 import org.ekstep.analytics.util.DBUtil
 import org.ekstep.analytics.util.Constants
+import org.scalatest.Ignore
 
+@Ignore
 class TestContentAssetRelationModel extends SparkGraphSpec(null) {
 
     override def beforeAll() {

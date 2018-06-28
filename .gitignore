@@ -19,3 +19,4 @@ platform-modules/batch-models/logs
 **/tmp/*
 platform-framework/analytics-core/files
 .DS_Store
+/.idea
