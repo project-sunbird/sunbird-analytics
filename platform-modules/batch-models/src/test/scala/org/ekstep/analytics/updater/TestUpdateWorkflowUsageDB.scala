@@ -24,6 +24,7 @@ class TestUpdateWorkflowUsageDB extends SparkSpec(null) {
     "UpdateWorkflowUsageDB" should "update all usage suammary db and check the updated fields" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/workflow-usage-updater/test-data.log");
         val rdd2 = UpdateWorkFlowUsageDB.execute(rdd, None);
+        rdd2.count() should be(264)
 
         // type= 'editor' & period = 0  
         val cumulativeWorkflowSumm = sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT)
