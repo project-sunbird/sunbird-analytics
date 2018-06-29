@@ -39,7 +39,8 @@ class TestDataExhaustJob extends SparkSpec(null) {
         super.afterAll();
     }
 
-    "DataExhaustJob" should "execute DataExhaustJob job from local data and won't throw any Exception" in {
+     ignore should "execute DataExhaustJob job from local data and won't throw any Exception" in {
+    //"DataExhaustJob" should "execute DataExhaustJob job from local data and won't throw any Exception" in {
 
         preProcess()
         rmLocalDir(AppConf.getConfig("data_exhaust.save_config.prefix"))
