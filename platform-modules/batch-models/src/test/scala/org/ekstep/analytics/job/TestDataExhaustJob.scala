@@ -18,6 +18,7 @@ import org.ekstep.analytics.util.RequestConfig
 import org.ekstep.analytics.util.JobRequest
 import org.apache.commons.io.FileUtils
 import org.ekstep.analytics.framework.conf.AppConf
+import java.util.Arrays
 
 class TestDataExhaustJob extends SparkSpec(null) {
 
@@ -106,7 +107,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         DataExhaustJob.main(configWithIncorrectMapFunc)(Option(sc));
         val lines = scala.io.Source.fromFile("/tmp/data-exhaust/test_raw/DEFAULT/part-00000").getLines().toArray
         val firstRow = lines(1).replace("\"\"\"", "").split(",")
-        firstRow(22) should be("40550853-c88c-4f6b-8d33-88d0f47c32f4")
+        firstRow(2) should be("40550853-c88c-4f6b-8d33-88d0f47c32f4")
     }
 
     it should "test consumption summary data" in {
