@@ -19,6 +19,7 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 		if (embeddedCassandraMode) {
 			System.setProperty("cassandra.unsafesystem", "true");
 			EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+//			EmbeddedCassandraServerHelper.getCluster.getConfiguration.getSocketOptions.setReadTimeoutMillis(20000)
 			val connector = CassandraConnector(getSparkConf());
 			val session = connector.openSession();
 			val dataLoader = new CQLDataLoader(session);

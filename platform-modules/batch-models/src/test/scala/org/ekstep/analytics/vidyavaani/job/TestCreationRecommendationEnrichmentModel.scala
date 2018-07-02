@@ -4,7 +4,9 @@ import org.ekstep.analytics.model.SparkGraphSpec
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.job.consolidated.VidyavaaniModelJobs
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.scalatest.Ignore
 
+@Ignore
 class TestCreationRecommendationEnrichmentModel extends SparkGraphSpec(null) {
 
     it should "set confidence & lift value in the relations between Author -> Concept, Author -> Language & Author -> ContentType" in {

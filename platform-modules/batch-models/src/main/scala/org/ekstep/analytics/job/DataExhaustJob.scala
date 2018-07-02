@@ -70,7 +70,7 @@ object DataExhaustJob extends optional.Application with IJob {
                 val requestId = request.request_id;
                 val clientKey = request.client_key;
                 // JOB_START event
-                JobLogger.start("DataExhaust Job Started executing for " + requestId, Option(Map("config" -> config, "model" -> name)), "org.ekstep.analytics", requestId)
+                JobLogger.start("DataExhaust Job Started executing for " + requestId, Option(Map("model" -> name)), "org.ekstep.analytics", requestId)
                 println("Processing data-exhaust for request:", requestId);
                 try {
                     val requestData = JSONUtils.deserialize[RequestConfig](request.request_data);

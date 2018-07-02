@@ -119,7 +119,6 @@ class TestAdhocScripts extends SparkSpec(null) {
         rdd1.saveAsTextFile("output/prod.diksha.portal.valid.log");
         //Console.println("rdd1 count", rdd1.count());
     }
-
     ignore should "validate the events" in {
 
         val queries = Option(Array(Query(Option(""), Option(""), None, None)));

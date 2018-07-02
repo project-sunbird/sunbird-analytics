@@ -12,11 +12,12 @@ import org.joda.time.DateTimeUtils
 import com.datastax.spark.connector._
 import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.util.Constants
+import org.scalatest.Ignore
 
 /**
  * @author Mahesh Kumar Gangula
  */
-
+@Ignore
 class TestUpdateTextbookSnapshotDB extends SparkGraphSpec(null) {
 
 	

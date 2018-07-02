@@ -3,7 +3,9 @@ package org.ekstep.analytics.vidyavaani.job
 import org.ekstep.analytics.model.SparkGraphSpec
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.scalatest.Ignore
 
+@Ignore
 class TestConceptLanguageRelationModel extends SparkGraphSpec(null) {
   
     it should "create 'usedIn' relation between concepts and Language and pass the test cases" in {

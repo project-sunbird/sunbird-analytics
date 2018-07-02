@@ -593,6 +593,8 @@ object CommonUtil {
             else defaultAppId
         } else if (event.isInstanceOf[ProfileEvent]) {
             if (event.asInstanceOf[ProfileEvent].pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[ProfileEvent].pdata.get.id)) event.asInstanceOf[ProfileEvent].pdata.get else defaultAppId
+        } else if (event.isInstanceOf[DerivedEvent]) {
+            if (event.asInstanceOf[DerivedEvent].dimensions.pdata.nonEmpty && StringUtils.isNotBlank(event.asInstanceOf[DerivedEvent].dimensions.pdata.get.id)) event.asInstanceOf[DerivedEvent].dimensions.pdata.get else defaultAppId
         } else defaultAppId;
     }
 
