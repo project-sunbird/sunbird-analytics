@@ -38,19 +38,23 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
         val date = config.getOrElse("date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String]
         val start_time = CommonUtil.dateFormat.parseDateTime(date).getMillis
         val end_time = CommonUtil.getEndTimestampOfDay(date)
-        val usageInfo = sc.cassandraTable[ContentUsageSummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
+//        val usageInfo = sc.cassandraTable[ContentUsageSummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_USAGE_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
         val popularityInfo = sc.cassandraTable[ContentPopularitySummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
 
-        val creationUsageInfo = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) }.map(f => (f.d_content_id, f));
-        val creationMetricsInfo = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).where("updated_date>=?", start_time).where("updated_date<=?", end_time).map(f => (f.d_content_id, f));
-        val creationSummaries = creationUsageInfo.cogroup(creationMetricsInfo)
+//        val creationUsageInfo = sc.cassandraTable[CEUsageSummaryFact](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CE_USAGE_SUMMARY).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) }.map(f => (f.d_content_id, f));
+//        val creationMetricsInfo = sc.cassandraTable[ContentCreationMetrics](Constants.CREATION_METRICS_KEY_SPACE_NAME, Constants.CONTENT_CREATION_TABLE).where("updated_date>=?", start_time).where("updated_date<=?", end_time).map(f => (f.d_content_id, f));
+//        val creationSummaries = creationUsageInfo.cogroup(creationMetricsInfo)
         
-        val groupSummaries = usageInfo.cogroup(popularityInfo).cogroup(creationSummaries);
-        groupSummaries.map{ f =>
-            val consumptionSummaries = if(f._2._1.size > 0) f._2._1.head else (Iterable(), Iterable())
-            val creationSummaries = if(f._2._2.size > 0) f._2._2.head else (Iterable(), Iterable())
-            PopularityUpdaterInput(f._1, if (consumptionSummaries._1.size > 0) Option(consumptionSummaries._1.head) else None, if (consumptionSummaries._2.size > 0) Option(consumptionSummaries._2.head) else None, if (creationSummaries._1.size > 0) Option(creationSummaries._1.head) else None, if (creationSummaries._2.size > 0) Option(creationSummaries._2.head) else None)
+//        val groupSummaries = usageInfo.cogroup(popularityInfo).cogroup(creationSummaries);
+//        groupSummaries.map{ f =>
+//            val consumptionSummaries = if(f._2._1.size > 0) f._2._1.head else (Iterable(), Iterable())
+//            val creationSummaries = if(f._2._2.size > 0) f._2._2.head else (Iterable(), Iterable())
+//            PopularityUpdaterInput(f._1, if (consumptionSummaries._1.size > 0) Option(consumptionSummaries._1.head) else None, if (consumptionSummaries._2.size > 0) Option(consumptionSummaries._2.head) else None, if (creationSummaries._1.size > 0) Option(creationSummaries._1.head) else None, if (creationSummaries._2.size > 0) Option(creationSummaries._2.head) else None)
+//        }
+        popularityInfo.map{ f =>
+            PopularityUpdaterInput(f._1, None, Option(f._2), None, None)
         }
+
     }
 
     override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
