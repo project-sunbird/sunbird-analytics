@@ -6,7 +6,9 @@ import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.GraphDBUtil
+import org.scalatest.Ignore
 
+@Ignore
 class TestCreationRecommendationModel extends SparkGraphSpec(null) {
   
     it should "create recommendations for authors and populate the same into cassandra" in {

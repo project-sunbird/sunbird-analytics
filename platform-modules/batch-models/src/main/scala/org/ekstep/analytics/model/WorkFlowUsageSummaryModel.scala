@@ -82,7 +82,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
             var list: ListBuffer[WorkflowUsageMetricsSummary] = ListBuffer[WorkflowUsageMetricsSummary]();
             val period = CommonUtil.getPeriod(event.context.date_range.to, Period.DAY);
             // For all
-            val pdata = CommonUtil.getAppDetails(event)
+            val pdata = event.dimensions.pdata.get
             val channel = CommonUtil.getChannelId(event)
             val `type` = event.dimensions.`type`.get
             val mode = event.dimensions.mode.getOrElse("")

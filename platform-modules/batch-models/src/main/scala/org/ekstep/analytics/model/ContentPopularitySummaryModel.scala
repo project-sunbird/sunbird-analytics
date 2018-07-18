@@ -17,13 +17,15 @@ import org.joda.time.DateTime
 import org.ekstep.analytics.framework.ContentKey
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 case class ContentPopularitySummary(ck: ContentKey, m_comments: List[Map[String, AnyRef]], m_ratings: List[Map[String, AnyRef]], m_avg_rating: Double, m_downloads: Int, m_side_loads: Int, dt_range: DtRange, syncts: Long, pdata: PData, gdata: Option[GData] = None) extends AlgoOutput;
 case class InputEventsContentPopularity(ck: ContentKey, events: Buffer[ContentPopularitySummary]) extends Input with AlgoInput
 
 object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputEventsContentPopularity, ContentPopularitySummary, MeasuredEvent] with Serializable {
 
-    val className = "org.ekstep.analytics.model.ContentPopularitySummaryModel"
+    implicit val className = "org.ekstep.analytics.model.ContentPopularitySummaryModel"
     override def name: String = "ContentPopularitySummaryModel"
 
     private def _computeMetrics(events: Buffer[ContentPopularitySummary], ck: ContentKey): ContentPopularitySummary = {
@@ -99,6 +101,9 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
         val transferEvents = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("SHARE"))));
         val importEvents = DataFilter.filter(transferEvents, Filter("edata.dir", "IN", Option(List("in", "In")))).filter { x => (x.edata.items.map(f => f.`type`).contains("Content") | x.edata.items.map(f => f.`type`).contains("CONTENT")) };
         val feedbackEvents = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("FEEDBACK"))));
+
+        JobLogger.log("Started generating ContentPopularitySummary Metrics for each event ", None, INFO);
+        
         val normalizeEvents = importEvents.union(feedbackEvents).map { event =>
             var list: ListBuffer[ContentPopularitySummary] = ListBuffer[ContentPopularitySummary]();
             val period = CommonUtil.getPeriod(event.ets, Period.DAY);
@@ -114,6 +119,8 @@ object ContentPopularitySummaryModel extends IBatchModelTemplate[V3Event, InputE
             list.toArray
         }.flatMap { x => x };
 
+        JobLogger.log("Completed generating ContentPopularitySummary Metrics for each event ", None, INFO);
+        
         normalizeEvents.map { x => (x.ck, Buffer(x)) }
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b).map { x => InputEventsContentPopularity(x._1, x._2) };

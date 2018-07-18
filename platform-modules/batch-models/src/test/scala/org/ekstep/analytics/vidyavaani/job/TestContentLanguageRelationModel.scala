@@ -6,7 +6,9 @@ import org.ekstep.analytics.framework.util.GraphDBUtil
 import org.ekstep.analytics.framework.GraphQueryParams._
 import org.ekstep.analytics.framework.RelationshipDirection
 import org.ekstep.analytics.model.SparkGraphSpec
+import org.scalatest.Ignore
 
+@Ignore
 class TestContentLanguageRelationModel extends SparkGraphSpec(null) {
 
     it should "create Language nodes and 'expressedIn' relation with contents and pass the test cases" in {

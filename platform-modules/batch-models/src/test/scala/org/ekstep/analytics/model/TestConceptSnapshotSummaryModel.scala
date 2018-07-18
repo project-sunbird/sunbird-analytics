@@ -5,7 +5,9 @@ import org.ekstep.analytics.vidyavaani.job._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.GraphQueryDispatcher
+import org.scalatest.Ignore
 
+@Ignore
 class TestConceptSnapshotSummaryModel extends SparkGraphSpec(null) {
   
     "ConceptSnapshotSummaryModel" should "generate concept snapshot summary events" in {
