@@ -127,9 +127,8 @@ object DataExhaustJob extends optional.Application with IJob {
         val data = DataExhaustUtils.fetchData(eventId, request, requestID, clientKey)
         val filter = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(request.filter))
         val filteredData = DataExhaustUtils.filterEvent(data, filter, eventId, dataSetID);
-        println("After All Filter: " + filteredData.count)
         DataExhaustUtils.updateStage(requestID, clientKey, "FILTERED_DATA_" + eventId, "COMPLETED")
-        if (filteredData.count() > 0) {
+        if (!filteredData.isEmpty()) {
             val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
             val outputFormat = request.output_format.getOrElse("json")
 
@@ -148,16 +147,16 @@ object DataExhaustJob extends optional.Application with IJob {
                 rdd;
             }
             DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3/LOCAL", "COMPLETED");
-            if (exhaustRDD.count() > 0) {
+            if (!exhaustRDD.isEmpty()) {
                 val outputRDD = exhaustRDD.map { x => DataExhaustUtils.stringToObject(x, dataSetID) };
                 val firstEventDate = outputRDD.sortBy { x => x._1 }.first()._1;
                 val lastEventDate = outputRDD.sortBy({ x => x._1 }, false).first._1;
                 DataExhaustOutput(data.count, exhaustRDD.count, Option(firstEventDate), Option(lastEventDate));
             } else {
-                DataExhaustOutput(data.count, exhaustRDD.count);
+                DataExhaustOutput(data.count, 0);
             }
         } else {
-            DataExhaustOutput(data.count, filteredData.count);
+            DataExhaustOutput(data.count, 0);
         }
     }
 }
