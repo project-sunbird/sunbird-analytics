@@ -129,7 +129,7 @@ object DataExhaustUtils {
     }
 
     def saveData(rdd: RDD[String], eventConfig: EventId, requestId: String, eventId: String, outputFormat: String, requestID: String, clientKey: String)(implicit sc: SparkContext) {
-        if (!rdd.isEmpty()) {
+        if (rdd.count() > 0) {
             val data = if (outputFormat.equalsIgnoreCase("csv")) toCSV(rdd, eventConfig) else rdd;
             val saveType = AppConf.getConfig("data_exhaust.save_config.save_type")
             val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
@@ -215,8 +215,11 @@ object DataExhaustUtils {
                             null
                     }
                 }.filter { x => null != x && CONSUMPTION_ENV.contains(x.context.env) }
+                println("Input count: ", rawRDD.count())
                 val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
                 val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
                 appFltrRDD;
             } else {
                 val channelFilter = (event: V3Event, channel: String) => {
@@ -244,8 +247,11 @@ object DataExhaustUtils {
                             null
                     }
                 }.filter { x => null != x && !CONSUMPTION_ENV.contains(x.context.env) }
+                println("Input count: ", rawRDD.count())
                 val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
+                println("After channel filter count: ", channelFltrRDD.count())
                 val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+                println("After app_id filter count: ", appFltrRDD.count())
                 appFltrRDD;
             }
             filteredRDD.map { x => JSONUtils.serialize(x) };
@@ -288,6 +294,7 @@ object DataExhaustUtils {
                     null;
             }
         }.filter { x => x != null }
+        println("After tags filter count: ", finalRDD.count())
         finalRDD;
     }
 
