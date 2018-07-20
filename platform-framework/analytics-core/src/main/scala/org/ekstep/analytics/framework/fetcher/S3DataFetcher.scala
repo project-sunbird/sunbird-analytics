@@ -22,6 +22,8 @@ object S3DataFetcher {
         val keys = for(query <- queries) yield {
             val paths = if(query.folder.isDefined && query.endDate.isDefined && query.folder.getOrElse("false").equals("true")) {
                 Array("s3n://"+getBucket(query.bucket)+"/"+getPrefix(query.prefix) + query.endDate.get)
+            } else if(query.creationDate.isDefined) {
+                S3Util.searchByCreatedDate(query.bucket.get, query.prefix.get, query.creationDate.get)
             } else {
                 getKeys(query);
             }
@@ -31,6 +33,7 @@ object S3DataFetcher {
                 paths
             }
         }
+        
         keys.flatMap { x => x.map { x => x } }
     }
     
