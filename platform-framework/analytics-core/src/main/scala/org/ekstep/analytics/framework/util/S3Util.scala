@@ -30,6 +30,9 @@ import java.util.Date
 import com.amazonaws.SDKGlobalConfiguration
 import com.amazonaws.regions.Region
 import com.amazonaws.regions.Regions
+import org.apache.commons.lang.time.DateUtils
+import org.joda.time.format.DateTimeFormatter
+import org.joda.time.format.DateTimeFormat
 
 object S3Util {
 
@@ -232,8 +235,17 @@ object S3Util {
             getPath(bucketName, prefix);
         }
     }
+    
+    def searchByCreatedDate(bucketName: String, prefix: String, creationDate: String, pattern: String = "yyyy-MM-dd"): Array[String] = {
+        val df: DateTimeFormatter = DateTimeFormat.forPattern(pattern).withZoneUTC();
+        val createdDate = df.parseLocalDate(creationDate);
+        val objs = s3Service.listObjects(bucketName, prefix, null);
+        
+        objs.filter(p => DateUtils.isSameDay(p.getLastModifiedDate, createdDate.toDate())).map { x => "s3n://" + bucketName + "/" + x.getKey };
+    }
 
     def getPath(bucket: String, prefix: String): Array[String] = {
         S3Util.getAllKeys(bucket, prefix).map { x => "s3n://" + bucket + "/" + x };
     }
+    
 }

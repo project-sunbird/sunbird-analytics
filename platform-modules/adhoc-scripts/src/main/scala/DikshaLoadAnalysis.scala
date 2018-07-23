@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.V3Event
 import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.Filter
+import org.apache.spark.rdd.RDD
 
 object DikshaLoadAnalysis extends optional.Application {
 
@@ -30,10 +31,7 @@ object DikshaLoadAnalysis extends optional.Application {
                 Filter("edata.dir", "EQ", Option("In")))).cache();
 
             val contentDownloadedCount = contentDownloaded.count();
-            val mostDownloadedContent = contentDownloaded.map(f => f.edata.items).flatMap(f => f.map(f => f)).groupBy(f => f.id).mapValues(f => f.size).sortBy(f => f._2, false, 1).collect().take(5);
             contentDownloaded.unpersist(true);
-
-            val mostViewedContent = appEvents.filter(f => f.eid.equals("START") && f.context.pdata.get.pid.get.equals("sunbird.app.contentplayer")).map(f => f.`object`.get).groupBy(f => f.id).mapValues(f => f.size).sortBy(f => f._2, false, 1).collect().take(5);
 
             val distinctAppUsers = appEvents.map(f => f.actor.id).distinct().count();
             val distinctAppDevices = appEvents.map(f => f.context.did.get).distinct().count();
@@ -61,11 +59,6 @@ object DikshaLoadAnalysis extends optional.Application {
             Console.println("Total Dial Scans:", totalDialScansCount);
             Console.println("Total Dial Scans Success:", totalDialScansSuccess);
             Console.println("Dial Codes Linked:", dialCodeLinked);
-
-            Console.println("#### Content Most Downloaded ###");
-            mostDownloadedContent.foreach(println(_))
-            Console.println("#### Content Most Viewed ###");
-            mostViewedContent.foreach(println(_))
         })
         Console.println("Time taken to execute:", execTime._1);
     }
