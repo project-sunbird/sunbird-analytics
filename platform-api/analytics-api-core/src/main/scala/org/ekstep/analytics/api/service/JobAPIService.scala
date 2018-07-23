@@ -28,7 +28,7 @@ object JobAPIService {
 
     implicit val className = "org.ekstep.analytics.api.service.JobAPIService"
 
-    case class DataRequest(request: String, config: Config)
+    case class DataRequest(request: String, channel: String, config: Config)
     case class GetDataRequest(clientKey: String, requestId: String, config: Config)
     case class DataRequestList(clientKey: String, limit: Int, config: Config)
 
@@ -36,11 +36,11 @@ object JobAPIService {
 
     val EVENT_TYPES = Buffer("raw", "summary", "metrics", "failed")
 
-    def dataRequest(request: String)(implicit config: Config): Response = {
+    def dataRequest(request: String, channel: String)(implicit config: Config): Response = {
         val body = JSONUtils.deserialize[RequestBody](request)
         val isValid = _validateReq(body)
         if ("true".equals(isValid.get("status").get)) {
-            val job = upsertRequest(body)
+            val job = upsertRequest(body, channel)
             val response = CommonUtil.caseClassToMap(_createJobResponse(job))
             CommonUtil.OK(APIIds.DATA_REQUEST, response)
         } else {
@@ -94,13 +94,15 @@ object JobAPIService {
         }
     }
 
-    private def upsertRequest(body: RequestBody)(implicit config: Config): JobRequest = {
+    private def upsertRequest(body: RequestBody, channel: String)(implicit config: Config): JobRequest = {
         val outputFormat = body.request.output_format.getOrElse(config.getString("data_exhaust.output_format"))
         val datasetId = body.request.dataset_id.getOrElse(config.getString("data_exhaust.dataset.default"))
         val requestId = _getRequestId(body.request.filter.get, outputFormat, datasetId, body.params.get.client_key.get)
         val job = DBUtil.getJobRequest(requestId, body.params.get.client_key.get)
         val usrReq = body.request
-        val request = Request(usrReq.filter, usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId))
+        val useFilter = usrReq.filter.getOrElse(Filter(None, None, None, None, None, None, None, None, None, Option(channel)))
+        val filter = Filter(None, None, None, useFilter.tag, useFilter.tags, useFilter.start_date, useFilter.end_date, useFilter.events, useFilter.app_id, Option(channel))
+        val request = Request(Option(filter), usrReq.summaries, usrReq.trend, usrReq.context, usrReq.query, usrReq.filters, usrReq.config, usrReq.limit, Option(outputFormat), Option(datasetId))
 
         if (null == job) {
             _saveJobRequest(requestId, body.params.get.client_key.get, request)
@@ -211,7 +213,7 @@ class JobAPIService extends Actor {
     import JobAPIService._
 
     def receive = {
-        case DataRequest(request: String, config: Config) => sender() ! dataRequest(request)(config)
+        case DataRequest(request: String, channelId: String, config: Config) => sender() ! dataRequest(request, channelId)(config)
         case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config)
         case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config)
         case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config) => sender() ! getChannelData(channel, eventType, from, to)(config)

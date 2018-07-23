@@ -158,7 +158,9 @@ object DataExhaustUtils {
             val fetcher = searchType match {
                 case "s3" =>
                     val bucket = eventConfig.fetchConfig.params.get("bucket").get
-                    val prefix = eventConfig.fetchConfig.params.get("prefix").get
+                    val channel = request.filter.channel.get
+                    val basePrefix = eventConfig.fetchConfig.params.get("prefix").get
+                    val prefix = if(eventId.endsWith("-raw")) basePrefix + channel + "/raw/" else basePrefix
                     val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
                     Fetcher(searchType, None, Option(queries))
 
@@ -195,7 +197,7 @@ object DataExhaustUtils {
                     } else {
                         event.context.channel.isEmpty || event.context.channel.equals(AppConf.getConfig("default.channel.id"));
                     }
-                };
+                }
                 val appIdFilter = (event: V3Event, appId: String) => {
                     val defaultAppId = AppConf.getConfig("default.consumption.app.id");
                     val app = event.context.pdata;
@@ -206,7 +208,7 @@ object DataExhaustUtils {
                         // filter all events if the `app_id` is not mentioned
                         true;
                     }
-                };
+                }
                 val rawRDD = convertedData.map { event =>
                     try {
                         JSONUtils.deserialize[V3Event](event)

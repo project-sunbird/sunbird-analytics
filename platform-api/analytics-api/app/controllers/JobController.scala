@@ -34,7 +34,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
         val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
         if (checkFlag) {
-            val res = ask(jobAPIActor, DataRequest(body, config)).mapTo[Response]
+            val res = ask(jobAPIActor, DataRequest(body, channelId, config)).mapTo[Response]
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }
