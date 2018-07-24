@@ -160,7 +160,7 @@ object DataExhaustUtils {
                     val bucket = eventConfig.fetchConfig.params.get("bucket").get
                     val channel = request.filter.channel.get
                     val basePrefix = eventConfig.fetchConfig.params.get("prefix").get
-                    val prefix = if(eventId.endsWith("-raw")) basePrefix + channel + "/raw/" else basePrefix
+                    val prefix = if (eventId.endsWith("-raw")) basePrefix + channel + "/raw/" else basePrefix
                     val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
                     Fetcher(searchType, None, Option(queries))
 
@@ -190,67 +190,27 @@ object DataExhaustUtils {
     private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
         if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
             val convertedData = DataExhaustUtils.convertData(data)
-            val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
-                val channelFilter = (event: V3Event, channel: String) => {
-                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
-                        channel.equals(event.context.channel);
-                    } else {
-                        event.context.channel.isEmpty || event.context.channel.equals(AppConf.getConfig("default.channel.id"));
-                    }
+            val appIdFilter = (event: V3Event, appId: String) => {
+                val defaultAppId = AppConf.getConfig("default.consumption.app.id");
+                val app = event.context.pdata;
+                if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
+                    appId.equals(app.getOrElse(V3PData("")).id);
+                } else {
+                    //app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
+                    // filter all events if the `app_id` is not mentioned
+                    true;
                 }
-                val appIdFilter = (event: V3Event, appId: String) => {
-                    val defaultAppId = AppConf.getConfig("default.consumption.app.id");
-                    val app = event.context.pdata;
-                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
-                        appId.equals(app.getOrElse(V3PData("")).id);
-                    } else {
-                        //app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
-                        // filter all events if the `app_id` is not mentioned
-                        true;
-                    }
-                }
-                val rawRDD = convertedData.map { event =>
-                    try {
-                        JSONUtils.deserialize[V3Event](event)
-                    } catch {
-                        case t: Throwable =>
-                            null
-                    }
-                }.filter { x => null != x && CONSUMPTION_ENV.contains(x.context.env) }
-                val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
-                appFltrRDD;
-            } else {
-                val channelFilter = (event: V3Event, channel: String) => {
-                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
-                        channel.equals(event.context.channel);
-                    } else {
-                        event.context.channel.equals(AppConf.getConfig("default.channel.id"));
-                    }
-                }
-                val appIdFilter = (event: V3Event, appId: String) => {
-                    val defaultAppId = AppConf.getConfig("default.creation.app.id");
-                    val app = event.context.pdata;
-                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
-                        appId.equals(app.getOrElse(V3PData("")).id);
-                    } else {
-                        true;
-                    }
-                }
-
-                val rawRDD = convertedData.map { event =>
-                    try {
-                        JSONUtils.deserialize[V3Event](event)
-                    } catch {
-                        case t: Throwable =>
-                            null
-                    }
-                }.filter { x => null != x && !CONSUMPTION_ENV.contains(x.context.env) }
-                val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
-                appFltrRDD;
             }
-            filteredRDD.map { x => JSONUtils.serialize(x) };
+            val rawRDD = convertedData.map { event =>
+                try {
+                    JSONUtils.deserialize[V3Event](event)
+                } catch {
+                    case t: Throwable =>
+                        null
+                }
+            }.filter { x => null != x }
+            val appFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+            appFltrRDD.map { x => JSONUtils.serialize(x) };
         } else {
             data;
         }
