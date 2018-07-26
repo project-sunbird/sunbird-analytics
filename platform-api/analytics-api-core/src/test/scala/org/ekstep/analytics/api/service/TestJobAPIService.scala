@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import org.ekstep.analytics.api.JobResponse
+import scala.collection.immutable.List
 
 class TestJobAPIService extends BaseSpec {
 
@@ -106,16 +107,14 @@ class TestJobAPIService extends BaseSpec {
 
         val res = JobAPIService.getDataRequestList("partner1", 10)
         val resultMap = res.result.get
-        val jobRes = JSONUtils.deserialize[List[JobResponse]](resultMap.get("jobs").get.asInstanceOf[String])
+        val jobRes = JSONUtils.deserialize[List[JobResponse]](JSONUtils.serialize(resultMap.get("jobs").get))
         jobRes.length should be(2)
-
-        //        jobRes.head.get("status").get.asInstanceOf[String] should be ("SUBMITTED")
-        //        jobRes.last.get("status").get.asInstanceOf[String] should be ("COMPLETED")
+        
 
         // fetch data with limit less than the number of record available
         val res2 = JobAPIService.getDataRequestList("partner1", 1)
         val resultMap2 = res2.result.get
-        val jobRes2 = JSONUtils.deserialize[List[JobResponse]](resultMap2.get("jobs").get.asInstanceOf[String])
+        val jobRes2 = JSONUtils.deserialize[List[JobResponse]](JSONUtils.serialize(resultMap2.get("jobs").get))
         jobRes2.length should be(1)
 
         // trying to fetch the record with a key for which data is not available
@@ -180,7 +179,7 @@ class TestJobAPIService extends BaseSpec {
         resObj.responseCode should be("OK")
     }
 
-    it should "return a successfull response if datasetID is one of these ('raw', 'summary', 'metrics', 'failed')" in {
+    ignore should "return a successfull response if datasetID is one of these ('raw', 'summary', 'metrics', 'failed') - S3" in {
         val datasetId = "raw"
         val resObj = JobAPIService.getChannelData("in.ekstep", datasetId, "2018-05-20", "2018-05-21")
         resObj.responseCode should be("OK")
