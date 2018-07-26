@@ -2,7 +2,7 @@ package org.ekstep.analytics.framework
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
-import org.ekstep.analytics.framework.fetcher.S3DataFetcher
+import org.ekstep.analytics.framework.fetcher.{AzureDataFetcher, S3DataFetcher}
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.apache.spark.SparkContext
 import org.json4s.DefaultFormats
@@ -32,6 +32,9 @@ object DataFetcher {
             case "s3" =>
                 JobLogger.log("Fetching the batch data from S3")
                 S3DataFetcher.getObjectKeys(search.queries.get);
+            case "azure" =>
+                JobLogger.log("Fetching the batch data from AZURE")
+                AzureDataFetcher.getObjectKeys(search.queries.get);
             case "local" =>
                 JobLogger.log("Fetching the batch data from Local file")
                 search.queries.get.map { x => x.file.getOrElse("") }.filterNot { x => x == null };
