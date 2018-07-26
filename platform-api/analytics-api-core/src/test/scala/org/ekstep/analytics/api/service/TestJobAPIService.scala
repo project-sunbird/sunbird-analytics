@@ -1,17 +1,13 @@
 package org.ekstep.analytics.api.service
 
+import scala.collection.immutable.List
+
 import org.apache.commons.lang3.StringUtils
-import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.JobRequest
-import org.ekstep.analytics.api.Response
-import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.api.util.DBUtil
-import org.ekstep.analytics.api.util.JSONUtils
+import org.ekstep.analytics.api._
+import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import org.ekstep.analytics.api.JobResponse
-import scala.collection.immutable.List
 
 class TestJobAPIService extends BaseSpec {
 
