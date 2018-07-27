@@ -73,5 +73,20 @@ class TestDataFetcher extends SparkSpec {
             DataFetcher.fetchBatchData[Event](fileFetcher);
         } should have message "Unknown fetcher type found"
     }
+
+    it should "fetch the batch events from azure" in {
+
+        val queries = Option(Array(
+            Query(Option("dev-data-store"), Option("raw/"), Option("2017-08-31"), Option("2017-08-31"))
+        ));
+        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("azure", None, queries));
+        rdd.count should be (89)
+
+        val queries1 = Option(Array(
+            Query(Option("dev-data-store"), Option("raw/"), Option("2018-07-01"), Option("2018-07-01"))
+        ));
+        val rdd1 = DataFetcher.fetchBatchData[Event](Fetcher("azure", None, queries1));
+        rdd1.count should be (0)
+    }
   
 }

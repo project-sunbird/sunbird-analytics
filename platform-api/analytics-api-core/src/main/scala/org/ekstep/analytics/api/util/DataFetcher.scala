@@ -2,16 +2,23 @@ package org.ekstep.analytics.api.util
 
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.fetcher.S3DataFetcher
+import org.ekstep.analytics.framework.fetcher.{AzureDataFetcher, S3DataFetcher}
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.util.S3Util
+import org.sunbird.cloud.storage.conf.AppConf
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+
 import scala.collection.mutable.Buffer
 
 object DataFetcher {
-	implicit val className = "org.ekstep.analytics.api.util.DataFetcher"
-  	@throws(classOf[DataFetcherException])
+	  implicit val className = "org.ekstep.analytics.api.util.DataFetcher"
+
+    val storageType = AppConf.getStorageType()
+    val storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, AppConf.getStorageKey(storageType), AppConf.getStorageSecret(storageType)))
+
+    @throws(classOf[DataFetcherException])
     def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T]): Array[T] = {
         JobLogger.log("Fetching data", Option(Map("query" -> search)))
         if (search.queries.isEmpty) {
@@ -19,12 +26,11 @@ object DataFetcher {
         }
         val date = search.queries.get.last.endDate
         val data: Array[String] = search.`type`.toLowerCase() match {
-            case "s3" =>
-                JobLogger.log("Fetching the batch data from S3")
-                S3DataFetcher.getObjectKeys(search.queries.get).toArray;
-                
-                val data = for(query <- search.queries.get) yield { 
-                    S3Util.getObject(query.bucket.get, query.prefix.get)
+            case "s3" | "azure" =>
+                JobLogger.log("Fetching the batch data from " + search.`type`)
+
+                val data = for(query <- search.queries.get) yield {
+                    storageService.getObjectData(query.bucket.get, query.prefix.get)
                 }
                 data.flatMap { x => x.map { x => x } }
             case "local" =>

@@ -14,8 +14,10 @@ import org.ekstep.analytics.api.APIIds
 import org.joda.time.DateTime
 import org.ekstep.analytics.api.OutputFormat
 import org.apache.commons.lang3.StringUtils
-import org.ekstep.analytics.framework.util.S3Util
 import java.util.Calendar
+
+import org.sunbird.cloud.storage.conf.AppConf
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.mutable.Buffer
 
@@ -35,6 +37,9 @@ object JobAPIService {
     case class ChannelData(channel: String, event_type: String, from: String, to: String, config: Config)
 
     val EVENT_TYPES = Buffer("raw", "summary", "metrics", "failed")
+
+    val storageType = AppConf.getStorageType()
+    val storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, AppConf.getStorageKey(storageType), AppConf.getStorageSecret(storageType)))
 
     def dataRequest(request: String)(implicit config: Config): Response = {
         val body = JSONUtils.deserialize[RequestBody](request)
@@ -75,14 +80,14 @@ object JobAPIService {
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd")
             val prefix = basePrefix + channel + "/" + eventType + "/"
-            val listObjs = S3Util.searchKeys(bucket, prefix, Option(from), Option(to), None)
+            val listObjs = storageService.searchObjectkeys(bucket, prefix, Option(from), Option(to), None)
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.MINUTE, expiry)
             val expiryTime = calendar.getTime.getTime
             val expiryTimeInSeconds = expiryTime / 1000
             if (listObjs.length > 0) {
                 val res = for (key <- listObjs) yield {
-                    S3Util.getPreSignedURL(bucket, key, expiryTimeInSeconds)
+                    storageService.getSignedURL(bucket, key, Option(expiryTimeInSeconds.toInt))
                 }
                 CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("telemetryURLs" -> res, "expiresAt" -> Long.box(expiryTime)))
             } else {
