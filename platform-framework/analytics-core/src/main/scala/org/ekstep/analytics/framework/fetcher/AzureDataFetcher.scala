@@ -9,6 +9,8 @@ import org.sunbird.cloud.storage.conf.AppConf
 
 object AzureDataFetcher {
 
+    val storageService = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
+
     @throws(classOf[DataFetcherException])
     def getObjectKeys(queries: Array[Query]): Array[String] = {
 
@@ -28,7 +30,8 @@ object AzureDataFetcher {
     }
 
     private def getKeys(query: Query) : Array[String] = {
-        StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure"))).searchObjectkeys(getBucket(query.bucket), getPrefix(query.prefix), query.startDate, query.endDate, query.delta, query.datePattern.getOrElse("yyyy-MM-dd")).filterNot { x => x.isEmpty() }.toArray
+        val keys = storageService.searchObjects(getBucket(query.bucket), getPrefix(query.prefix), query.startDate, query.endDate, query.delta, query.datePattern.getOrElse("yyyy-MM-dd"))
+        storageService.getPaths(getBucket(query.bucket), keys).toArray
     }
 
     private def getBucket(bucket: Option[String]) : String = {
