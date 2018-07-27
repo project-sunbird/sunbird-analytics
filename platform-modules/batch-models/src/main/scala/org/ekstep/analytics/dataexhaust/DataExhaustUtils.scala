@@ -168,9 +168,9 @@ object DataExhaustUtils {
             val searchType = eventConfig.searchType.toLowerCase()
             val fetcher = searchType match {
                 case "s3" | "azure" =>
-                    val bucket = eventConfig.fetchConfig.params.get("bucket").get
-                    val channel = request.filter.channel.get
-                    val basePrefix = eventConfig.fetchConfig.params.get("prefix").get
+                    val bucket = eventConfig.fetchConfig.params.getOrElse("bucket", "")
+                    val channel = request.filter.channel.getOrElse("")
+                    val basePrefix = eventConfig.fetchConfig.params.getOrElse("prefix", "raw/")
                     val prefix = if (eventId.endsWith("-raw")) basePrefix + channel + "/raw/" else basePrefix
                     val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
                     Fetcher(searchType, None, Option(queries))
@@ -214,12 +214,12 @@ object DataExhaustUtils {
             }
             val rawRDD = convertedData.map { event =>
                 try {
-                    JSONUtils.deserialize[V3Event](event)
+                    Option(JSONUtils.deserialize[V3Event](event))
                 } catch {
                     case t: Throwable =>
-                        null
+                        None
                 }
-            }.filter { x => null != x }
+            }.filter { x => x.nonEmpty }.map { x => x.get }
             val appFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
             appFltrRDD.map { x => JSONUtils.serialize(x) };
         } else {
