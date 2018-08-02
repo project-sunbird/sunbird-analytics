@@ -46,7 +46,7 @@
 			<artifactId>ep-telemetry-converter</artifactId>
 			<version>0.0.7</version>
 			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/ep-telemetry-converter-0.0.7.jar</systemPath>
+			<systemPath>${project.basedir}/lib/ep-telemetry-converter-0.0.8.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.ekstep</groupId>
@@ -301,6 +301,9 @@
 					</execution>
 				</executions>
 				<configuration>
+					<transformers>
+                			<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              		</transformers>
 					<filters>
 						<filter>
 							<artifact>*:*</artifact>
