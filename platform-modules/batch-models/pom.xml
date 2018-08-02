@@ -230,6 +230,11 @@
             <version>2.2.8</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+			<groupId>org.sunbird</groupId>
+			<artifactId>sunbird-cloud-store-sdk</artifactId>
+			<version>1.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
@@ -301,9 +306,6 @@
 					</execution>
 				</executions>
 				<configuration>
-					<transformers>
-                			<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-              		</transformers>
 					<filters>
 						<filter>
 							<artifact>*:*</artifact>
