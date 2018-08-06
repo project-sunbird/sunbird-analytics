@@ -100,7 +100,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
             for (message <- messages.split("\n\n")) {
                 val slackMessage = SlackMessage(AppConf.getConfig("monitor.notification.channel"), AppConf.getConfig("monitor.notification.name"), message);
                 try {
-                    RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(slackMessage));
+                    RestUtil.post[String](AppConf.getConfig("monitor.notification.webhook_url"), JSONUtils.serialize(slackMessage));
                 } catch {
                     case e: Exception => println("exception caught:", e.getMessage);
                 }
