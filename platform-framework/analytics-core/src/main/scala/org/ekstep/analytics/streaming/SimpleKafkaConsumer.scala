@@ -237,6 +237,7 @@ abstract class SimpleKafkaConsumer[K, V](
     private def pollKafkaConsumer(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
         JobLogger.log("Inside pollKafkaConsumer()", None, INFO);
         val records = kafkaConsumer.poll(pollTimeout.toMillis)
+        JobLogger.log("Inside pollKafkaConsumer() - records count", Option(Map("count" -> records.size)), INFO);
         processRecords(records)
         syncCommitOffset(kafkaConsumer)
     }
