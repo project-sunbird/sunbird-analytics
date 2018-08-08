@@ -22,9 +22,11 @@ import org.ekstep.analytics.framework.util.S3Util
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.JobConfig
 import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.sunbird.cloud.storage.factory.{ StorageConfig, StorageServiceFactory }
+import org.ekstep.analytics.kafka.consumer.JobConsumerV2Config
+import org.ekstep.analytics.kafka.consumer.JobConsumerV2
 
-case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String, runMode: String = "shutdown");
+case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, zookeeperConnect: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String, runMode: String = "shutdown");
 
 object JobManager extends optional.Application {
 
@@ -51,34 +53,37 @@ object JobManager extends optional.Application {
         val doneSignal = new CountDownLatch(config.jobsCount);
         JobMonitor.init(config);
         JobLogger.log("Initialized the job event listener. Starting the job executor", None, INFO);
-        executor.submit(new JobRunner(config, jobQueue, doneSignal));
+        executor.submit(new JobRunner(config, consumer, doneSignal));
 
         doneSignal.await();
         JobLogger.log("Job manager execution completed. Shutting down the executor and consumer", None, INFO);
         executor.shutdown();
         JobLogger.log("Job manager executor shutdown completed", None, INFO);
-        consumer.shutdown();
+        consumer.close();
         JobLogger.log("Job manager consumer shutdown completed", None, INFO);
     }
 
-    private def initializeConsumer(config: JobManagerConfig, jobQueue: BlockingQueue[String]): JobConsumer = {
-        val props = JobConsumerConfig.makeProps(config.bootStrapServer, config.consumerGroup)
-        val consumer = new JobConsumer(config.topic, props, jobQueue);
-        consumer.start();
+    private def initializeConsumer(config: JobManagerConfig, jobQueue: BlockingQueue[String]): JobConsumerV2 = {
+        val props = JobConsumerV2Config.makeProps(config.zookeeperConnect, config.consumerGroup)
+        val consumer = new JobConsumerV2(config.topic, props);
         consumer;
     }
 }
 
-class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneSignal: CountDownLatch) extends Runnable {
+class JobRunner(config: JobManagerConfig, consumer: JobConsumerV2, doneSignal: CountDownLatch) extends Runnable {
 
     implicit val className: String = "JobRunner";
 
     override def run {
         while (doneSignal.getCount() != 0) {
-            val record = jobQueue.take();
-            JobLogger.log("Starting execution of " + record, Option(Map("jobs count" -> jobQueue.size())), INFO);
-            executeJob(record);
-            doneSignal.countDown();
+            val record = consumer.read;
+            if (record.isDefined) {
+                JobLogger.log("Starting execution of " + record, None, INFO);
+                executeJob(record.get);
+                doneSignal.countDown();
+            } else {
+                Thread.sleep(10 * 1000); // Sleep for 10 seconds
+            }
         }
     }
 
@@ -93,7 +98,7 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
                 val modelParams = config.modelParams.get
                 val delayFlag = modelParams.get("shouldDelay").get.asInstanceOf[Boolean]
                 val delayTime = modelParams.get("delayInMilis").get.asInstanceOf[Number].longValue()
-                if(delayFlag){
+                if (delayFlag) {
                     Thread.sleep(delayTime)
                 }
             }
