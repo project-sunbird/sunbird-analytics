@@ -28,7 +28,7 @@ object KafkaEventProducer {
 
         // Zookeeper connection properties
         val props = new HashMap[String, Object]()
-        props.put(ProducerConfig.METADATA_FETCH_TIMEOUT_CONFIG, 3000L.asInstanceOf[Long]);
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 3000L.asInstanceOf[Long]);
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
