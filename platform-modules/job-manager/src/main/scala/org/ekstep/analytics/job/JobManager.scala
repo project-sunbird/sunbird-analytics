@@ -76,12 +76,14 @@ class JobRunner(config: JobManagerConfig, jobQueue: BlockingQueue[String], doneS
     override def run {
         while (doneSignal.getCount() != 0) {
             val record = jobQueue.take();
+            JobLogger.log("Starting execution of " + record, Option(Map("jobs count" -> jobQueue.size())), INFO);
             executeJob(record);
             doneSignal.countDown();
         }
     }
 
     private def executeJob(record: String) {
+        JobLogger.log("Starting the job execution", None, INFO);
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()
         val configStr = JSONUtils.serialize(jobConfig.get("config").get)

@@ -12,6 +12,8 @@ import scala.concurrent.duration._
 import scala.concurrent._
 import scala.util.Random
 import scala.util.control.NonFatal
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 /**
  * SimpleKafkaConsumer aims to abstract away low level Kafka polling and error handling details.
@@ -72,6 +74,8 @@ abstract class SimpleKafkaConsumer[K, V](
     @volatile private var currentPartitionCount: Option[Int] = None
     @volatile private var isPollingThreadRunning = false
 
+    implicit val className = "org.ekstep.analytics.streaming.SimpleKafkaConsumer"
+    
     /**
      * Calculates how long `onPartitionRevoked()` should block for to avoid split brain scenarios.
      *
@@ -100,7 +104,7 @@ abstract class SimpleKafkaConsumer[K, V](
     final def start(): Unit = lock.synchronized {
         if (isPollingThreadRunning) throw new IllegalStateException("Already running.")
         if (shutdownPromise.isCompleted) throw new IllegalStateException("Was shutdown.")
-
+        JobLogger.log("starting consumer - inside start()", None, INFO);
         log.info("Starting polling thread...")
         isPollingThreadRunning = true
 
