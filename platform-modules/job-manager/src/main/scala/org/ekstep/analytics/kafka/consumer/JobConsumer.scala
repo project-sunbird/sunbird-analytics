@@ -15,8 +15,9 @@ class JobConsumer(topic: String, consumerProps: Properties, queue: BlockingQueue
     override implicit val className = "org.ekstep.analytics.kafka.consumer.JobConsumer"
     
     override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
-      JobLogger.log("Inside processRecords()", None, INFO);
+        JobLogger.log("Inside processRecords()", None, INFO);
         val messages = records.map(f => f.value());
+        JobLogger.log("messages count", Option(Map("count" -> messages.size)), INFO);
         if(messages.size > 0) {
             messages.foreach { x => 
               JobLogger.log("Jobmanager: Queuing job: " + x, None, INFO);

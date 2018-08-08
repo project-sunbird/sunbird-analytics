@@ -192,6 +192,7 @@ abstract class SimpleKafkaConsumer[K, V](
     }
 
     private def backoffOnUnhandledExceptionLoop(): Unit = {
+        JobLogger.log("Inside backoffOnUnhandledExceptionLoop()", None, INFO);
         while (!shutdownRequested) {
             try {
                 initializeConsumerAndEnterPollLoop()
@@ -208,6 +209,7 @@ abstract class SimpleKafkaConsumer[K, V](
 
     private def initializeConsumerAndEnterPollLoop(): Unit = {
         try {
+            JobLogger.log("Inside initializeConsumerAndEnterPollLoop()", None, INFO);
             setCurrentThreadDescription("initializing")
             currentKafkaConsumer = Some(makeKafkaConsumer())
             currentPartitionCount = currentKafkaConsumer.map(_.partitionsFor(topic).size)
@@ -227,11 +229,13 @@ abstract class SimpleKafkaConsumer[K, V](
 
     private def pollLoop(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
         while (!shutdownRequested) {
+            JobLogger.log("Inside pollLoop()", None, INFO);
             pollKafkaConsumer(kafkaConsumer)
         }
     }
 
     private def pollKafkaConsumer(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
+        JobLogger.log("Inside pollKafkaConsumer()", None, INFO);
         val records = kafkaConsumer.poll(pollTimeout.toMillis)
         processRecords(records)
         syncCommitOffset(kafkaConsumer)
