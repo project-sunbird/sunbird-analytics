@@ -46,7 +46,7 @@
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.kafka</groupId>
-		    			<artifactId>kafka_2.11</artifactId>
+		    			<artifactId>kafka_2.12</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
