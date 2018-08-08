@@ -307,7 +307,9 @@ abstract class SimpleKafkaConsumer[K, V](
     }
 
     private def initializeKafkaConsumer(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
-        kafkaConsumer.subscribe(Seq(topic), makeRebalanceListener())
+        // kafkaConsumer.subscribe(Seq(topic), makeRebalanceListener())
+        val topicPartition = new TopicPartition(topic, 0)
+        kafkaConsumer.assign(Seq(topicPartition))
     }
 
     private def overwriteConsumerProperties(consumerProps: Properties): Properties = {
