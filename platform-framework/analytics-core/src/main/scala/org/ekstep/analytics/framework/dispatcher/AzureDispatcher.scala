@@ -41,15 +41,15 @@ object AzureDispatcher extends IDispatcher {
 
     def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
 
-        dispatch(events.collect(), config);
-//        val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
-//        val key = config.getOrElse("key", null).asInstanceOf[String];
-//        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
-//
-//        if (null == bucket || null == key) {
-//            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to azure")
-//        }
-//        events.saveAsTextFile("wasb://" + bucket + "@" + AppConf.getStorageKey(AppConf.getStorageType()) + ".blob.core.windows.net/" + key);
+//        dispatch(events.collect(), config);
+        val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
+        val key = config.getOrElse("key", null).asInstanceOf[String];
+        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
+
+        if (null == bucket || null == key) {
+            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to azure")
+        }
+        events.saveAsTextFile("wasb://" + bucket + "@" + AppConf.getStorageKey(AppConf.getStorageType()) + ".blob.core.windows.net/" + key);
     }
 
 }
