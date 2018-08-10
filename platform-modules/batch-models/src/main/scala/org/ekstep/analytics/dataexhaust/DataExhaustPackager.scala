@@ -175,7 +175,7 @@ object DataExhaustPackager extends optional.Application {
             val fieCreatedDate = new DateTime(fileStats._2.get("lastModified").get.asInstanceOf[Long]);
             val fileExpiryDate = fieCreatedDate.plusDays(30);
             val filePath = fileStats._1;
-            val fileSize = fileStats._2.getOrElse("contentLength", 0).asInstanceOf[Number].longValue();
+            val fileSize = fileStats._2.getOrElse("size", 0).asInstanceOf[Number].longValue();
 
             val completedDate = DateTime.now(DateTimeZone.UTC);
             val result = DataExhaustPackage(requestId, clientKey, jobId, exhaustExeTime + packageExeTime, "COMPLETED", 0L, Option(completedDate), Option(filePath), Option(fileSize), Option(fieCreatedDate), Option(fileExpiryDate));
