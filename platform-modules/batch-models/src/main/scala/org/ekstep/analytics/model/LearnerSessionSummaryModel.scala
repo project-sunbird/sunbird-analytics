@@ -11,7 +11,6 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.adapter._
 import org.ekstep.analytics.framework.util._
 import java.security.MessageDigest
-
 import org.apache.log4j.Logger
 import com.datastax.spark.connector._
 import org.apache.commons.lang.StringUtils
@@ -57,7 +56,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
 
     /**
      * Get item from broadcast item mapping variable
-     */
+    
     private def getItem(itemMapping: Map[String, Item], event: V3Event): Item = {
         val item = itemMapping.getOrElse(event.edata.item.id, null);
         if (null != item) {
@@ -65,10 +64,10 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
         }
         return Item("", Map(), Option(Array[String]()), Option(Array[String]()), Option(Array[String]()));
     }
+    */
 
     /**
      * Get item from broadcast item mapping variable
-     */
     private def getItemDomain(itemMapping: Map[String, Item], event: V3Event): String = {
         val item = itemMapping.getOrElse(event.edata.item.id, null);
         if (null != item) {
@@ -76,10 +75,10 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
         }
         return "";
     }
+    */
 
     /**
      *
-     */
     private def getItemData(contents: Array[Content], games: Array[String], apiVersion: String): Map[String, Item] = {
 
         val gameIds = contents.map { x => x.id };
@@ -106,6 +105,8 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
             Map[String, Item]();
         }
     }
+    * 
+    */
 
     /**
      * Compute screen summaries on the telemetry data produced by content app
@@ -182,19 +183,19 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
     override def algorithm(data: RDD[SessionSummaryInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SessionSummaryOutput] = {
 
         val events = data.map { x => x.filteredEvents }.flatMap { x => x }
-        val gameList = events.map { x => x.`object`.get.id }.distinct().collect();
-        JobLogger.log("Fetching the Content and Item data from Learning Platform")
-        val contents = ContentAdapter.getAllContent();
-        val itemData = getItemData(contents, gameList, "v2");
+//        val gameList = events.map { x => x.`object`.get.id }.distinct().collect();
+//        JobLogger.log("Fetching the Content and Item data from Learning Platform")
+//        val contents = ContentAdapter.getAllContent();
+//        val itemData = getItemData(contents, gameList, "v2");
         JobLogger.log("Broadcasting data to all worker nodes")
         val catMapping = sc.broadcast(Map[String, String]("READING" -> "literacy", "MATH" -> "numeracy"));
         val deviceMapping = sc.broadcast(JobContext.deviceMapping);
 
-        val itemMapping = sc.broadcast(itemData);
+//        val itemMapping = sc.broadcast(itemData);
         val configMapping = sc.broadcast(config);
         JobLogger.log("Performing Game Sessionization")
-        val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
-        val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
+//        val contentTypeMap = contents.map { x => (x.id, (x.metadata.get("contentType"), x.metadata.get("mimeType"))) }
+//        val contentTypeMapping = sc.broadcast(contentTypeMap.toMap);
         val idleTime = config.getOrElse("idleTime", 600).asInstanceOf[Int];
 
         JobLogger.log("Calculating Screen Summary")
@@ -207,17 +208,17 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
             val gameId = firstEvent.`object`.get.id;
             val gameVersion = firstEvent.`object`.get.ver.getOrElse("1.0");
 
-            val content = contentTypeMapping.value.getOrElse(gameId, (Option("Game"), Option("application/vnd.android.package-archive")));
-            val contentType = content._1;
-            val mimeType = content._2;
+//            val content = contentTypeMapping.value.getOrElse(gameId, (Option("Game"), Option("application/vnd.android.package-archive")));
+            val contentType = Option(firstEvent.`object`.get.`type`) //content._1;
+            val mimeType = None//content._2;
             val assessEvents = events.filter { x => "ASSESS".equals(x.eid) }.sortBy { x => x.ets };
             val itemResponses = assessEvents.map { x =>
-                val itemObj = getItem(itemMapping.value, x);
-                val metadata = itemObj.metadata;
+//                val itemObj = getItem(itemMapping.value, x);
+//                val metadata = itemObj.metadata;
                 val resValues = if (null == x.edata.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(x.edata.resvalues.map(f => f.asInstanceOf[AnyRef]))
                 val res = if (null == x.edata.resvalues) Option(Array[String]()); else Option(x.edata.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) });
                 val item = x.edata.item
-                ItemResponse(item.id, metadata.get("type"), metadata.get("qlevel"), Option(x.edata.duration), Option(Int.box(item.exlength)), res, resValues, metadata.get("ex_res"), metadata.get("inc_res"), itemObj.mc, Option(item.mmc), x.edata.score, x.ets, metadata.get("max_score"), metadata.get("domain"), x.edata.pass, Option(item.title), Option(item.desc));
+                ItemResponse(item.id, None, None, Option(x.edata.duration), Option(Int.box(item.exlength)), res, resValues, None, None, Option(item.mc), Option(item.mmc), x.edata.score, x.ets, Option(item.maxscore.asInstanceOf[AnyRef]), None, x.edata.pass, Option(item.title), Option(item.desc));
             }
             val qids = assessEvents.map { x => x.edata.item.id }.filter { x => x != null };
             val qidMap = qids.groupBy { x => x }.map(f => (f._1, f._2.length)).map(f => f._2);
