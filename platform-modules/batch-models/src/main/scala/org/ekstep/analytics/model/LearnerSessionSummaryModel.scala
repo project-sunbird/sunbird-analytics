@@ -209,7 +209,7 @@ object LearnerSessionSummaryModel extends SessionBatchModel[V3Event, MeasuredEve
             val gameVersion = firstEvent.`object`.get.ver.getOrElse("1.0");
 
 //            val content = contentTypeMapping.value.getOrElse(gameId, (Option("Game"), Option("application/vnd.android.package-archive")));
-            val contentType = Option(firstEvent.`object`.get.`type`) //content._1;
+            val contentType = Option(firstEvent.`object`.getOrElse(V3Object("", "", None, None)).`type`) //content._1;
             val mimeType = None//content._2;
             val assessEvents = events.filter { x => "ASSESS".equals(x.eid) }.sortBy { x => x.ets };
             val itemResponses = assessEvents.map { x =>

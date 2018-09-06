@@ -121,16 +121,16 @@ object DataExhaustUtils {
         }
     }
 
-    def uploadZip(bucket: String, prefix: String, compressExtn: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext): String = {
+    def uploadZip(bucket: String, prefix: String, compressExtn: String, zipFileAbsolutePath: String, requestID: String, clientKey: String)(implicit sc: SparkContext): String = {
         try {
-            val filePrefix = prefix + request_id + compressExtn
+            val filePrefix = prefix + requestID + compressExtn
             val url = storageService.upload(bucket, zipFileAbsolutePath, filePrefix, Option(true));
-            updateStage(request_id, client_key, "UPLOAD_ZIP", "COMPLETED")
+            updateStage(requestID, clientKey, "UPLOAD_ZIP", "COMPLETED")
             url
         } catch {
             case t: Throwable =>
-                deleteFile(bucket, prefix, Array(request_id))
-                updateStage(request_id, client_key, "UPLOAD_ZIP", "FAILED", "FAILED")
+                deleteFile(bucket, prefix, Array(requestID))
+                updateStage(requestID, clientKey, "UPLOAD_ZIP", "FAILED", "FAILED")
                 throw t
         }
     }
@@ -189,8 +189,8 @@ object DataExhaustUtils {
         }
     }
 
-    def deleteFile(bucket: String, prefix: String, request_ids: Array[String]) {
-        for (request_id <- request_ids) {
+    def deleteFile(bucket: String, prefix: String, requestIDs: Array[String]) {
+        for (request_id <- requestIDs) {
             val completePrefix = prefix + request_id
             val keys1 = storageService.listObjectKeys(bucket, completePrefix + "/")
             for (key <- keys1) storageService.deleteObject(bucket, key)

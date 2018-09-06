@@ -3,8 +3,7 @@ package org.ekstep.analytics.framework.fetcher
 import org.ekstep.analytics.framework.Query
 //import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.exception.DataFetcherException
-import org.sunbird.cloud.storage.factory.StorageConfig
-import org.sunbird.cloud.storage.factory.StorageServiceFactory
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import org.sunbird.cloud.storage.conf.AppConf
 
 object AzureDataFetcher {
@@ -16,7 +15,7 @@ object AzureDataFetcher {
 
         val keys = for(query <- queries) yield {
             val paths = if(query.folder.isDefined && query.endDate.isDefined && query.folder.getOrElse("false").equals("true")) {
-                Array("wasb://"+getBucket(query.bucket) + "@" + AppConf.getStorageKey("azure") + ".blob.core.windows.net" + "/" + getPrefix(query.prefix) + query.endDate.get)
+                Array("wasb://"+getBucket(query.bucket) + "@" + AppConf.getStorageKey("azure") + ".blob.core.windows.net" + "/" + getPrefix(query.prefix) + query.endDate.getOrElse(""))
             } else {
                 getKeys(query);
             }

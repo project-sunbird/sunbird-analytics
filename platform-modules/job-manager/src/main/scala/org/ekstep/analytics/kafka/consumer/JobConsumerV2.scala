@@ -2,14 +2,9 @@ package org.ekstep.analytics.kafka.consumer
 
 import java.util.Properties
 
-import org.ekstep.analytics.framework.Level.ERROR
-import org.ekstep.analytics.framework.Level.INFO
+import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.JobLogger
-
-import kafka.consumer.Consumer
-import kafka.consumer.ConsumerConfig
-import kafka.consumer.ConsumerTimeoutException
-import kafka.consumer.Whitelist
+import kafka.consumer.{Consumer, ConsumerConfig, ConsumerTimeoutException, Whitelist}
 import kafka.serializer.StringDecoder
 
 class JobConsumerV2(topic: String, consumerProps: Properties) {

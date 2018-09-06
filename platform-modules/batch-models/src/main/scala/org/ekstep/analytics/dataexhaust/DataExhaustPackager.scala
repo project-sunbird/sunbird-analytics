@@ -172,7 +172,7 @@ object DataExhaustPackager extends optional.Application {
             val packageExeTime = time._1;
             val fileStats = time._2;
 
-            val fieCreatedDate = new DateTime(fileStats._2.get("lastModified").get.asInstanceOf[Long]);
+            val fieCreatedDate = new DateTime(fileStats._2.get("lastModified").getOrElse(0).asInstanceOf[Long]);
             val fileExpiryDate = fieCreatedDate.plusDays(30);
             val filePath = fileStats._1;
             val fileSize = fileStats._2.getOrElse("size", 0).asInstanceOf[Number].longValue();
