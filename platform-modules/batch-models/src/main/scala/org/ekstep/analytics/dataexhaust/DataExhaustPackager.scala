@@ -15,7 +15,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.OutputDispatcher
-import org.ekstep.analytics.framework.conf.AppConf
+//import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger, S3Util}
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
@@ -26,6 +26,8 @@ import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.toSparkContextFunctions
 import com.google.gson.GsonBuilder
 import com.datastax.spark.connector.SomeColumns
+import org.sunbird.cloud.storage.conf.AppConf
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 /**
  * Case class to hold the manifest json
@@ -48,6 +50,8 @@ object DataExhaustPackager extends optional.Application {
 
     implicit val className = "org.ekstep.analytics.model.DataExhaustPackager"
     def name: String = "DataExhaustPackager"
+    val storageType = AppConf.getStorageType()
+    val storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, AppConf.getStorageKey(storageType), AppConf.getStorageSecret(storageType)))
 
     def execute()(implicit sc: SparkContext) = {
 
@@ -71,9 +75,9 @@ object DataExhaustPackager extends optional.Application {
         val source = requestDataSourcePath(requestId);
         val destination = requestDataLocalPath(requestId)
         saveType match {
-            case "s3" =>
+            case "s3" | "azure" =>
                 val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
-                S3Util.downloadDirectory(bucket, source, destination)
+                storageService.download(bucket, source, destination, Option(true))
             case "local" =>
                 FileUtils.copyDirectory(new File(source), new File(destination));
         }
@@ -103,15 +107,16 @@ object DataExhaustPackager extends optional.Application {
         val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
         val deleteSource = AppConf.getConfig("data_exhaust.delete_source");
         val fileStats = saveType match {
-            case "s3" =>
+            case "s3" | "azure" =>
                 val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
-                val publicS3URL = AppConf.getConfig("data_exhaust.save_config.public_s3_url")
+                //val publicS3URL = AppConf.getConfig("data_exhaust.save_config.public_s3_url")
                 val compressExtn = ".zip"
-                DataExhaustUtils.uploadZip(bucket, prefix, compressExtn, zipfilePath, requestId, clientKey)  
-                val s3FilePrefix = prefix + requestId + compressExtn
-                val stats = S3Util.getObjectDetails(bucket, s3FilePrefix);
-                if ("true".equals(deleteSource)) DataExhaustUtils.deleteS3File(bucket, prefix, Array(requestId))
-                (publicS3URL + "/" + bucket + "/" + s3FilePrefix, stats)
+                val signedURL = DataExhaustUtils.uploadZip(bucket, prefix, compressExtn, zipfilePath, requestId, clientKey)
+                val filePrefix = prefix + requestId + compressExtn
+                val stats = storageService.getObject(bucket, filePrefix).metadata;
+                if ("true".equals(deleteSource)) DataExhaustUtils.deleteFile(bucket, prefix, Array(requestId))
+                //(publicS3URL + "/" + bucket + "/" + s3FilePrefix, stats)
+                (signedURL, stats)
             case "local" =>
                 val file = new File(zipfilePath)
                 val dateTime = new Date(file.lastModified())
@@ -167,7 +172,7 @@ object DataExhaustPackager extends optional.Application {
             val packageExeTime = time._1;
             val fileStats = time._2;
 
-            val fieCreatedDate = new DateTime(fileStats._2.get("createdDate").get.asInstanceOf[Date].getTime);
+            val fieCreatedDate = new DateTime(fileStats._2.get("lastModified").get.asInstanceOf[Long]);
             val fileExpiryDate = fieCreatedDate.plusDays(30);
             val filePath = fileStats._1;
             val fileSize = fileStats._2.getOrElse("size", 0).asInstanceOf[Number].longValue();

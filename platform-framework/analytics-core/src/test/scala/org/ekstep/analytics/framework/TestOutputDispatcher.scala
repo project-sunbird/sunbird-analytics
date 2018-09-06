@@ -131,5 +131,14 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         f.exists() should be (true)
         CommonUtil.deleteFile("src/test/resources/test_output.log");
     }
+
+    it should "dispatch output to azure" in {
+        val output1 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-dispatcher1.json", "zip" -> true.asInstanceOf[AnyRef]));
+        val output2 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-dispatcher2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
+        noException should be thrownBy {
+            OutputDispatcher.dispatch(output1, events);
+            OutputDispatcher.dispatch(output2, events);
+        }
+    }
     
 }

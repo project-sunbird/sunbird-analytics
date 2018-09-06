@@ -23,7 +23,7 @@ import org.ekstep.analytics.framework.Event
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.Period._
-import org.ekstep.analytics.framework.conf.AppConf
+//import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.Days
@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils
 import java.util.zip.ZipOutputStream
 import scala.util.control.Breaks._
 import java.util.zip.ZipEntry
+import org.sunbird.cloud.storage.conf.AppConf
 
 object CommonUtil {
 
@@ -58,7 +59,6 @@ object CommonUtil {
     }
 
     def getSparkContext(parallelization: Int, appName: String): SparkContext = {
-
         JobLogger.log("Initializing Spark Context")
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
@@ -78,6 +78,7 @@ object CommonUtil {
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
+        setAzureConf(sc);
         JobLogger.log("Spark Context initialized");
         sc;
     }
@@ -91,6 +92,13 @@ object CommonUtil {
         JobLogger.log("Configuring S3 AccessKey& SecrateKey to SparkContext")
         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", AppConf.getAwsKey());
         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", AppConf.getAwsSecret());
+    }
+
+    def setAzureConf(sc: SparkContext) = {
+        val accName = AppConf.getStorageKey("azure")
+        val accKey = AppConf.getStorageSecret("azure")
+        sc.hadoopConfiguration.set("fs.azure", "org.apache.hadoop.fs.azure.NativeAzureFileSystem")
+        sc.hadoopConfiguration.set("fs.azure.account.key."+accName+".blob.core.windows.net", accKey)
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {

@@ -12,6 +12,8 @@ import scala.concurrent.duration._
 import scala.concurrent._
 import scala.util.Random
 import scala.util.control.NonFatal
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework.Level._
 
 /**
  * SimpleKafkaConsumer aims to abstract away low level Kafka polling and error handling details.
@@ -72,6 +74,8 @@ abstract class SimpleKafkaConsumer[K, V](
     @volatile private var currentPartitionCount: Option[Int] = None
     @volatile private var isPollingThreadRunning = false
 
+    implicit val className = "org.ekstep.analytics.streaming.SimpleKafkaConsumer"
+    
     /**
      * Calculates how long `onPartitionRevoked()` should block for to avoid split brain scenarios.
      *
@@ -100,7 +104,7 @@ abstract class SimpleKafkaConsumer[K, V](
     final def start(): Unit = lock.synchronized {
         if (isPollingThreadRunning) throw new IllegalStateException("Already running.")
         if (shutdownPromise.isCompleted) throw new IllegalStateException("Was shutdown.")
-
+        JobLogger.log("starting consumer - inside start()", None, INFO);
         log.info("Starting polling thread...")
         isPollingThreadRunning = true
 
@@ -188,6 +192,7 @@ abstract class SimpleKafkaConsumer[K, V](
     }
 
     private def backoffOnUnhandledExceptionLoop(): Unit = {
+        JobLogger.log("Inside backoffOnUnhandledExceptionLoop()", None, INFO);
         while (!shutdownRequested) {
             try {
                 initializeConsumerAndEnterPollLoop()
@@ -204,6 +209,7 @@ abstract class SimpleKafkaConsumer[K, V](
 
     private def initializeConsumerAndEnterPollLoop(): Unit = {
         try {
+            JobLogger.log("Inside initializeConsumerAndEnterPollLoop()", None, INFO);
             setCurrentThreadDescription("initializing")
             currentKafkaConsumer = Some(makeKafkaConsumer())
             currentPartitionCount = currentKafkaConsumer.map(_.partitionsFor(topic).size)
@@ -223,12 +229,15 @@ abstract class SimpleKafkaConsumer[K, V](
 
     private def pollLoop(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
         while (!shutdownRequested) {
+            JobLogger.log("Inside pollLoop()", None, INFO);
             pollKafkaConsumer(kafkaConsumer)
         }
     }
 
     private def pollKafkaConsumer(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
+        JobLogger.log("Inside pollKafkaConsumer()", None, INFO);
         val records = kafkaConsumer.poll(pollTimeout.toMillis)
+        JobLogger.log("Inside pollKafkaConsumer() - records count", Option(Map("count" -> records.size)), INFO);
         processRecords(records)
         syncCommitOffset(kafkaConsumer)
     }
@@ -298,7 +307,9 @@ abstract class SimpleKafkaConsumer[K, V](
     }
 
     private def initializeKafkaConsumer(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
-        kafkaConsumer.subscribe(Seq(topic), makeRebalanceListener())
+        // kafkaConsumer.subscribe(Seq(topic), makeRebalanceListener())
+        val topicPartition = new TopicPartition(topic, 0)
+        kafkaConsumer.assign(Seq(topicPartition))
     }
 
     private def overwriteConsumerProperties(consumerProps: Properties): Properties = {

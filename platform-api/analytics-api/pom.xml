@@ -87,7 +87,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.6.0</version>
+			<version>2.7.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.typesafe.akka</groupId>
@@ -104,6 +104,12 @@
 			<artifactId>cassandra-unit</artifactId>
 			<version>3.1.1.0</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.sunbird</groupId>
+			<artifactId>sunbird-cloud-store-sdk</artifactId>
+			<version>1.0</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 

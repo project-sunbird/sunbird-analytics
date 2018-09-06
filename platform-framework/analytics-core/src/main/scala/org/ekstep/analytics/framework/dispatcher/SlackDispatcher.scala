@@ -5,6 +5,7 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.conf.AppConf
 
 
 case class SlackMessage(channel: String, username: String, text: String, icon_emoji:String = ":ghost:")
@@ -25,8 +26,9 @@ object SlackDispatcher extends IDispatcher {
         }
         
         val text = events.mkString(",");
+        val webhookUrl = AppConf.getConfig("monitor.notification.webhook_url")
         val message = SlackMessage(channel, userName, text);
-        val resp = RestUtil.post[String]("https://hooks.slack.com/services/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", JSONUtils.serialize(message));
+        val resp = RestUtil.post[String](webhookUrl, JSONUtils.serialize(message));
         events;
     }
     

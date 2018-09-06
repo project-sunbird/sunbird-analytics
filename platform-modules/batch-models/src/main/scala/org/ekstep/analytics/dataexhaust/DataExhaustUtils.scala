@@ -18,7 +18,7 @@ import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.V3Event
 import org.ekstep.analytics.framework.V3PData
-import org.ekstep.analytics.framework.conf.AppConf
+//import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
@@ -34,19 +34,26 @@ import com.datastax.spark.connector._
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
 import org.ekstep.ep.samza.converter.converters.TelemetryV3Converter
+
 import scala.collection.JavaConverters._
 import com.google.gson.reflect.TypeToken
 import com.google.gson.Gson
 import java.lang.reflect.Type
+
 import org.joda.time.DateTimeZone
 import org.ekstep.analytics.util.RequestDetails
 import org.joda.time.DateTime
+import org.sunbird.cloud.storage.conf.AppConf
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 object DataExhaustUtils {
 
     implicit val className = "org.ekstep.analytics.dataexhaust.DataExhaustUtils"
 
     val CONSUMPTION_ENV = List("Genie", "ContentPlayer")
+    val storageType = AppConf.getStorageType()
+    val storageConfig = StorageConfig(storageType, AppConf.getStorageKey(storageType), AppConf.getStorageSecret(storageType))
+    val storageService = StorageServiceFactory.getStorageService(storageConfig)
 
     def updateStage(request_id: String, client_key: String, satage: String, stage_status: String, status: String = "PROCESSING", err_message: String = "")(implicit sc: SparkContext) {
         sc.makeRDD(Seq(JobStage(request_id, client_key, satage, stage_status, status, err_message))).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message"))
@@ -114,15 +121,15 @@ object DataExhaustUtils {
         }
     }
 
-    def uploadZip(bucket: String, prefix: String, compressExtn: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext) {
+    def uploadZip(bucket: String, prefix: String, compressExtn: String, zipFileAbsolutePath: String, request_id: String, client_key: String)(implicit sc: SparkContext): String = {
         try {
             val filePrefix = prefix + request_id + compressExtn
-            S3Util.uploadPublic(bucket, zipFileAbsolutePath, filePrefix);
+            val url = storageService.upload(bucket, zipFileAbsolutePath, filePrefix, Option(true));
             updateStage(request_id, client_key, "UPLOAD_ZIP", "COMPLETED")
-
+            url
         } catch {
             case t: Throwable =>
-                deleteS3File(bucket, prefix, Array(request_id))
+                deleteFile(bucket, prefix, Array(request_id))
                 updateStage(request_id, client_key, "UPLOAD_ZIP", "FAILED", "FAILED")
                 throw t
         }
@@ -141,6 +148,10 @@ object DataExhaustUtils {
                     val key = "s3n://" + bucket + "/" + prefix + requestId + "/" + eventId;
                     data.saveAsTextFile(key)
                     DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_S3_" + eventId, "COMPLETED")
+                case "azure" =>
+                    val key = "wasb://" + bucket+ "@" + storageConfig.storageKey + ".blob.core.windows.net" + "/" + prefix + requestId + "/" + eventId;
+                    data.saveAsTextFile(key)
+                    DataExhaustUtils.updateStage(requestID, clientKey, "SAVE_DATA_TO_AZURE_" + eventId, "COMPLETED")
                 case "local" =>
                     val localPath = prefix + requestId + "/" + eventId
                     data.saveAsTextFile(localPath)
@@ -156,9 +167,11 @@ object DataExhaustUtils {
             val eventConfig = exhaustConfig.get(dataSetID).get.eventConfig.get(eventId).get
             val searchType = eventConfig.searchType.toLowerCase()
             val fetcher = searchType match {
-                case "s3" =>
-                    val bucket = eventConfig.fetchConfig.params.get("bucket").get
-                    val prefix = eventConfig.fetchConfig.params.get("prefix").get
+                case "s3" | "azure" =>
+                    val bucket = eventConfig.fetchConfig.params.getOrElse("bucket", "")
+                    val channel = request.filter.channel.getOrElse("")
+                    val basePrefix = eventConfig.fetchConfig.params.getOrElse("prefix", "raw/")
+                    val prefix = if (eventId.endsWith("-raw")) basePrefix + channel + "/raw/" else basePrefix
                     val queries = Array(Query(Option(bucket), Option(prefix), Option(request.filter.start_date), Option(request.filter.end_date)))
                     Fetcher(searchType, None, Option(queries))
 
@@ -176,79 +189,39 @@ object DataExhaustUtils {
         }
     }
 
-    def deleteS3File(bucket: String, prefix: String, request_ids: Array[String]) {
+    def deleteFile(bucket: String, prefix: String, request_ids: Array[String]) {
         for (request_id <- request_ids) {
-            val s3prefix = prefix + request_id
-            val keys1 = S3Util.getAllKeys(bucket, s3prefix + "/")
-            for (key <- keys1) S3Util.deleteObject(bucket, key)
-            S3Util.deleteObject(bucket, s3prefix + "_$folder$");
+            val completePrefix = prefix + request_id
+            val keys1 = storageService.listObjectKeys(bucket, completePrefix + "/")
+            for (key <- keys1) storageService.deleteObject(bucket, key)
+            storageService.deleteObject(bucket, completePrefix + "_$folder$");
         }
     }
 
     private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
         if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
             val convertedData = DataExhaustUtils.convertData(data)
-            val filteredRDD = if ("eks-consumption-raw".equals(dataSetId)) {
-                val channelFilter = (event: V3Event, channel: String) => {
-                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
-                        channel.equals(event.context.channel);
-                    } else {
-                        event.context.channel.isEmpty || event.context.channel.equals(AppConf.getConfig("default.channel.id"));
-                    }
-                };
-                val appIdFilter = (event: V3Event, appId: String) => {
-                    val defaultAppId = AppConf.getConfig("default.consumption.app.id");
-                    val app = event.context.pdata;
-                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
-                        appId.equals(app.getOrElse(V3PData("")).id);
-                    } else {
-                        //app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
-                        // filter all events if the `app_id` is not mentioned
-                        true;
-                    }
-                };
-                val rawRDD = convertedData.map { event =>
-                    try {
-                        JSONUtils.deserialize[V3Event](event)
-                    } catch {
-                        case t: Throwable =>
-                            null
-                    }
-                }.filter { x => null != x && CONSUMPTION_ENV.contains(x.context.env) }
-                val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
-                appFltrRDD;
-            } else {
-                val channelFilter = (event: V3Event, channel: String) => {
-                    if (StringUtils.isNotBlank(channel) && !AppConf.getConfig("default.channel.id").equals(channel)) {
-                        channel.equals(event.context.channel);
-                    } else {
-                        event.context.channel.equals(AppConf.getConfig("default.channel.id"));
-                    }
+            val appIdFilter = (event: V3Event, appId: String) => {
+                val defaultAppId = AppConf.getConfig("default.consumption.app.id");
+                val app = event.context.pdata;
+                if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
+                    appId.equals(app.getOrElse(V3PData("")).id);
+                } else {
+                    //app.isEmpty || null == app.get.id || defaultAppId.equals(app.getOrElse(V3PData("")).id);
+                    // filter all events if the `app_id` is not mentioned
+                    true;
                 }
-                val appIdFilter = (event: V3Event, appId: String) => {
-                    val defaultAppId = AppConf.getConfig("default.creation.app.id");
-                    val app = event.context.pdata;
-                    if (StringUtils.isNotBlank(appId) && !defaultAppId.equals(appId)) {
-                        appId.equals(app.getOrElse(V3PData("")).id);
-                    } else {
-                        true;
-                    }
-                }
-
-                val rawRDD = convertedData.map { event =>
-                    try {
-                        JSONUtils.deserialize[V3Event](event)
-                    } catch {
-                        case t: Throwable =>
-                            null
-                    }
-                }.filter { x => null != x && !CONSUMPTION_ENV.contains(x.context.env) }
-                val channelFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("channel", "").asInstanceOf[String], channelFilter);
-                val appFltrRDD = DataFilter.filter[V3Event, String](channelFltrRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
-                appFltrRDD;
             }
-            filteredRDD.map { x => JSONUtils.serialize(x) };
+            val rawRDD = convertedData.map { event =>
+                try {
+                    Option(JSONUtils.deserialize[V3Event](event))
+                } catch {
+                    case t: Throwable =>
+                        None
+                }
+            }.filter { x => x.nonEmpty }.map { x => x.get }
+            val appFltrRDD = DataFilter.filter[V3Event, String](rawRDD, filter.getOrElse("app_id", "").asInstanceOf[String], appIdFilter);
+            appFltrRDD.map { x => JSONUtils.serialize(x) };
         } else {
             data;
         }

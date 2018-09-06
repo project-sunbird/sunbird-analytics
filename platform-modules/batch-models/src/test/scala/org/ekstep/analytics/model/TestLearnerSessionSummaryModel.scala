@@ -59,8 +59,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         asActTimeSpentMap.get("DRAG").get should be(115);
         summary1.screenSummary.get.size should be(0);
         summary1.syncDate should be(1451696364328L)
-        summary1.mimeType.get should be("application/vnd.android.package-archive");
-        summary1.contentType.get should be("Game");
+//        summary1.mimeType.get should be("application/vnd.android.package-archive");
+        summary1.contentType.get should be("Content");
     }
 
     it should "generate 3 session summarries and pass all negative test cases" in {
@@ -104,8 +104,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         esMap.get("INTERACT").get should be(5);
         esMap.get("START").get should be(1);
         summary1.syncDate should be(1451694073672L)
-        summary1.mimeType.get should be("application/vnd.android.package-archive");
-        summary1.contentType.get should be("Game");
+//        summary1.mimeType.get should be("application/vnd.android.package-archive");
+        summary1.contentType.get should be("Content");
 
         val event2 = me.filter { x => x.uid.equals("2ac2ebf4-89bb-4d5d-badd-ba402ee70182") }.last
         val summary2 = JSONUtils.deserialize[SessionSummary](JSONUtils.serialize(event2.edata.eks));
@@ -133,8 +133,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
 //        esMap2.get("OE_LEVEL_SET").get should be(1); // removed from v2
         esMap2.get("ASSESS").get should be(2);
         summary2.syncDate should be(1451696362938L)
-        summary2.mimeType.get should be("application/vnd.android.package-archive");
-        summary2.contentType.get should be("Game");
+//        summary2.mimeType.get should be("application/vnd.android.package-archive");
+        summary2.contentType.get should be("Content");
 
         val event3 = me.filter { x => x.uid.equals("d47c4108-d348-4805-b3e8-5a34cc4fc2c2") }.last;
 
@@ -153,8 +153,8 @@ class TestLearnerSessionSummaryModel extends SparkSpec(null) {
         esMap3.get("START").get should be(1);
 
         summary3.syncDate should be(1451715800197L)
-        summary3.mimeType.get should be("application/vnd.android.package-archive");
-        summary3.contentType.get should be("Game");
+//        summary3.mimeType.get should be("application/vnd.android.package-archive");
+        summary3.contentType.get should be("Content");
         event3.syncts should be(summary3.syncDate);
     }
 

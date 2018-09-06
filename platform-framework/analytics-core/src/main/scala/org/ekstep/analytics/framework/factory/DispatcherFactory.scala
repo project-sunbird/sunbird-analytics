@@ -1,17 +1,10 @@
 package org.ekstep.analytics.framework.factory
 
 import org.ekstep.analytics.framework.Dispatcher
-import org.ekstep.analytics.framework.dispatcher.IDispatcher
-import org.ekstep.analytics.framework.dispatcher.ConsoleDispatcher
+import org.ekstep.analytics.framework.dispatcher._
 import org.ekstep.analytics.framework.exception.DispatcherException
-import org.ekstep.analytics.framework.dispatcher.S3Dispatcher
-import org.ekstep.analytics.framework.dispatcher.KafkaDispatcher
-import org.ekstep.analytics.framework.dispatcher.ScriptDispatcher
-import org.ekstep.analytics.framework.dispatcher.FileDispatcher
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
-import org.ekstep.analytics.framework.dispatcher.S3FileDispatcher
-import org.ekstep.analytics.framework.dispatcher.SlackDispatcher
 
 /**
  * @author Santhosh
@@ -35,6 +28,8 @@ object DispatcherFactory {
                 FileDispatcher;
             case "slack" =>
                 SlackDispatcher;
+            case "azure" =>
+                AzureDispatcher;
             case _         =>
                 throw new DispatcherException("Unknown output dispatcher destination found");
         }
