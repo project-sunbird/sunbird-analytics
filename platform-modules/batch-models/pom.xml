@@ -230,11 +230,16 @@
             <version>2.2.8</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+        <!-- <dependency>
 			<groupId>org.sunbird</groupId>
 			<artifactId>sunbird-cloud-store-sdk</artifactId>
 			<version>1.0</version>
 			<scope>provided</scope>
+		</dependency> -->
+		<dependency>
+		    <groupId>org.sunbird</groupId>
+		    <artifactId>cloud-store-sdk</artifactId>
+		    <version>1.0</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -307,6 +312,14 @@
 					</execution>
 				</executions>
 				<configuration>
+					<transformers>
+						<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+	              			<resource>META-INF/services/org.jclouds.apis.ApiMetadata</resource>
+	            			</transformer>
+	            			<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+	              			<resource>META-INF/services/org.jclouds.providers.ProviderMetadata</resource>
+	            			</transformer>
+	            		</transformers>
 					<filters>
 						<filter>
 							<artifact>*:*</artifact>
