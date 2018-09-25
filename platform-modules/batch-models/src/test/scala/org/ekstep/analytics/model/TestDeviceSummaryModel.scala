@@ -8,7 +8,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
     "DeviceSummaryModel" should "generate DeviceSummary events from a sample file and pass all positive test cases" in {
         
         val rdd = loadFile[String]("src/test/resources/device-summary/test_data1.log");
-        val me = DeviceSummaryModel.execute(rdd.map(f => EventData(f)), None);
+        val me = DeviceSummaryModel.execute(rdd, None);
         me.count() should be(3)
         
         val event1 = me.filter(f => "B6672B9EFDF620EDD8F43CFDF1101B14".equals(f.mid)).first

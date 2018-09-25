@@ -13,17 +13,16 @@ case class DeviceIndex(device_id: String, channel: String)
 case class DialStats(total_count: Long, success_count: Long, failure_count: Long)
 case class DeviceInput(index: DeviceIndex, wfsData: Option[Buffer[DerivedEvent]], rawData: Option[Buffer[V3Event]]) extends AlgoInput
 case class DeviceSummary(device_id: String, channel: String, total_ts: Double, total_launches: Long, contents_played: Long, unique_contents_played: Long, content_downloads: Long, dial_stats: DialStats, dt_range: DtRange, syncts: Long) extends AlgoOutput
-case class EventData(event: String) extends Input
 
-object DeviceSummaryModel extends IBatchModelTemplate[EventData, DeviceInput, DeviceSummary, MeasuredEvent] with Serializable {
+object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, DeviceSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceSummaryModel"
     override def name: String = "DeviceSummaryModel"
 
-    override def preProcess(data: RDD[EventData], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceInput] = {
+    override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceInput] = {
         val rawEventsList = List("SEARCH", "INTERACT")
-        val wfsData = data.filter(f => f.event.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[DerivedEvent](f.event)).filter { x => x.dimensions.did.nonEmpty }
-        val rawData = data.filter(f => !f.event.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[V3Event](f.event)).filter{f => rawEventsList.contains(f.eid)}.filter { x => ((x.context.did.nonEmpty) && (StringUtils.equals(x.edata.subtype, "ContentDownload-Success") || x.edata.filters.getOrElse(Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))) };
+        val wfsData = data.filter(f => f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[DerivedEvent](f)).filter { x => x.dimensions.did.nonEmpty }
+        val rawData = data.filter(f => !f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[V3Event](f)).filter{f => rawEventsList.contains(f.eid)}.filter { x => ((x.context.did.nonEmpty) && (StringUtils.equals(x.edata.subtype, "ContentDownload-Success") || x.edata.filters.getOrElse(Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))) };
         val groupedWfsData = wfsData.map { event =>
             (DeviceIndex(event.dimensions.did.get, event.dimensions.channel.get), Buffer(event))
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
