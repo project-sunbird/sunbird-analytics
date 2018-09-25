@@ -1,3 +1,0 @@
-[submodule "platform-framework/libs/cloud-storage-sdk"]
-	path = platform-framework/libs/cloud-storage-sdk
-	url = https://github.com/project-sunbird/sunbird-cloud-storage-sdk
