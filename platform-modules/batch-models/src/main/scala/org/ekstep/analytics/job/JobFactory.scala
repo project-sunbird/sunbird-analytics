@@ -186,6 +186,10 @@ object JobFactory {
                 WorkFlowUsageSummarizer;
             case "wfu" =>
                 WorkFlowUsageUpdater;
+            case "ds" =>
+                DeviceSummarizer;
+            case "dpu" =>
+                DeviceProfileUpdater;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
