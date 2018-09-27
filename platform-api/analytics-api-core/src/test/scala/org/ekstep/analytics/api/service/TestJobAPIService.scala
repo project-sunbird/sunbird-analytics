@@ -12,71 +12,71 @@ import org.joda.time.LocalDate
 class TestJobAPIService extends BaseSpec {
 
     "JobAPIService" should "return response for data request" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
         response.responseCode should be("OK")
     }
 
     "JobAPIService" should "return success response for data request with type as json without dataset_id, app_id & channel" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
         response.params.status should be("successful")
 
     }
 
     "JobAPIService" should "return success response for data request with dataset_id, app_id & channel" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
 
         response.params.status should be("successful")
 
     }
 
     "JobAPIService" should "return success response for data request with type as csv and events size is one" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "csv", "filter":{"events":["OE_ASSESS"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "csv", "filter":{"events":["OE_ASSESS"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
 
         response.params.status should be("successful")
 
     }
 
     "JobAPIService" should "return failed response for data request with type as csv and events size is not equals to one" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "csv", "filter":{"events":["OE_ASSESS", "OE_START"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "csv", "filter":{"events":["OE_ASSESS", "OE_START"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
 
         response.params.status should be("failed")
 
     }
 
     "JobAPIService" should "return response for data request without type attribute" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"filter":{"events":["OE_ASSESS"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"filter":{"events":["OE_ASSESS"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
 
         response.params.status should be("successful")
     }
 
     "JobAPIService" should "return response for data request with type as csv and events is not defined" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "csv", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "csv", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
 
         response.params.status should be("failed")
     }
 
     "JobAPIService" should "submit the failed request for retry" in {
-        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"filter":{"events":["OE_ASSESS"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}""";
-        val response = JobAPIService.dataRequest(request, "in.ekstep");
+        val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"filter":{"events":["OE_ASSESS"], "start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
+        val response = JobAPIService.dataRequest(request, "in.ekstep")
 
-        val requestId = response.result.getOrElse(Map()).getOrElse("request_id", "").asInstanceOf[String];
-        StringUtils.isNotEmpty(requestId) should be(true);
+        val requestId = response.result.getOrElse(Map()).getOrElse("request_id", "").asInstanceOf[String]
+        StringUtils.isNotEmpty(requestId) should be(true)
 
         DBUtil.session.execute("UPDATE " + AppConf.getConfig("application.env") + "_platform_db.job_request SET status='FAILED' WHERE client_key='dev-portal' AND request_id='" + requestId + "'")
-        val getResponse = JobAPIService.getDataRequest("dev-portal", requestId);
-        val failStatus = getResponse.result.getOrElse(Map()).getOrElse("status", "").asInstanceOf[String];
-        StringUtils.isNotEmpty(failStatus) should be(true);
-        failStatus should be("FAILED");
-        val response2 = JobAPIService.dataRequest(request, "in.ekstep");
-        val status = response.result.getOrElse(Map()).getOrElse("status", "").asInstanceOf[String];
-        status should be("SUBMITTED");
+        val getResponse = JobAPIService.getDataRequest("dev-portal", requestId)
+        val failStatus = getResponse.result.getOrElse(Map()).getOrElse("status", "").asInstanceOf[String]
+        StringUtils.isNotEmpty(failStatus) should be(true)
+        failStatus should be("FAILED")
+        val response2 = JobAPIService.dataRequest(request, "in.ekstep")
+        val status = response.result.getOrElse(Map()).getOrElse("status", "").asInstanceOf[String]
+        status should be("SUBMITTED")
     }
 
     "JobAPIService" should "not submit the permanently failed/max attempts reached request while doing retry" in {
@@ -84,7 +84,7 @@ class TestJobAPIService extends BaseSpec {
     }
 
     it should "return response for get data request" in {
-        val response = JobAPIService.getDataRequest("dev-portal", "14621312DB7F8ED99BA1B16D8B430FAC");
+        val response = JobAPIService.getDataRequest("dev-portal", "14621312DB7F8ED99BA1B16D8B430FAC")
     }
 
     it should "return the list of jobs in descending order" in {
@@ -97,7 +97,7 @@ class TestJobAPIService extends BaseSpec {
             JobRequest(Option("partner1"), Option("1234"), None, Option("SUBMITTED"), Option(request_data1),
                 Option(1), Option(DateTime.now()), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),
             JobRequest(Option("partner1"), Option("273645"), Option("test-job-id"), Option("COMPLETED"), Option(request_data2),
-                Option(1), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), Option("https://test-location"), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), None, None, None, None, None, Option(123234), Option(532), Option(12343453L), None, None, None, None, None));
+                Option(1), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), Option("https://test-location"), Option(DateTime.parse("2017-01-08", CommonUtil.dateFormat)), None, None, None, None, None, Option(123234), Option(532), Option(12343453L), None, None, None, None, None))
 
         DBUtil.saveJobRequest(requests)
 
@@ -105,7 +105,6 @@ class TestJobAPIService extends BaseSpec {
         val resultMap = res.result.get
         val jobRes = JSONUtils.deserialize[List[JobResponse]](JSONUtils.serialize(resultMap.get("jobs").get))
         jobRes.length should be(2)
-        
 
         // fetch data with limit less than the number of record available
         val res2 = JobAPIService.getDataRequestList("partner1", 1)
@@ -120,10 +119,10 @@ class TestJobAPIService extends BaseSpec {
     }
 
     "JobAPIService" should "return different request id for same data having different client keys" in {
-        val request1 = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}""";
-        val response1 = JobAPIService.dataRequest(request1, "in.ekstep");
-        val request2 = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-test"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}""";
-        val response2 = JobAPIService.dataRequest(request2, "in.ekstep");
+        val request1 = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}"""
+        val response1 = JobAPIService.dataRequest(request1, "in.ekstep")
+        val request2 = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-test"},"request":{"output_format": "json", "dataset_id": "eks-consumption-raw", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"], "app_id": "Ekstep", "channel": "KAR"}}}"""
+        val response2 = JobAPIService.dataRequest(request2, "in.ekstep")
         response2.result.head.get("request_id").get should not be (response1.result.head.get("request_id").get)
 
     }
@@ -179,5 +178,12 @@ class TestJobAPIService extends BaseSpec {
         val datasetId = "raw"
         val resObj = JobAPIService.getChannelData("in.ekstep", datasetId, "2018-05-20", "2018-05-21")
         resObj.responseCode should be("OK")
+    }
+
+    it should "return a successfull response if we pass code=ds" in {
+        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-20", "2018-05-20", Option("ds"))
+        resObj.responseCode should be("OK")
+        val res = resObj.result.getOrElse(Map())
+        res.contains("telemetryURLs") should be(true)
     }
 }
