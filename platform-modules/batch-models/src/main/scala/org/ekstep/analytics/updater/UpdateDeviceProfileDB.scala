@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.model.DeviceIndex
 
 case class DeviceProfileInput(index: DeviceIndex, currentData: Buffer[DerivedEvent], previousData: Option[DeviceProfileOutput]) extends AlgoInput
-case class DeviceProfileOutput(device_id: String, channel: String, first_access: Option[Long], last_access: Option[Long], total_ts: Option[Double], total_launches: Option[Long], avg_ts: Option[Double], updated_date: Long) extends AlgoOutput
+case class DeviceProfileOutput(device_id: String, channel: String, first_access: Option[Long], last_access: Option[Long], total_ts: Option[Double], total_launches: Option[Long], avg_ts: Option[Double], spec: Option[Map[String, AnyRef]], updated_date: Long) extends AlgoOutput
 
 object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DeviceProfileInput, DeviceProfileOutput, Empty] with Serializable {
 
@@ -37,7 +37,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         data.map { events =>
             val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from };
             val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to };
-            val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, events.index.channel, None, None, None, None, None, 0L));
+            val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, events.index.channel, None, None, None, None, None, None, 0L));
             val eventStartTime = eventsSortedByFromDate.head.context.date_range.from
             val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime > prevProfileData.first_access.get) prevProfileData.first_access.get else eventStartTime;
             val eventEndTime = eventsSortedByToDate.last.context.date_range.to
@@ -51,7 +51,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
             }.sum
             val total_launches = if (prevProfileData.total_launches.isEmpty) current_launches else current_launches + prevProfileData.total_launches.get
             val avg_ts = if (total_launches == 0) total_ts else CommonUtil.roundDouble(total_ts / total_launches, 2)
-            DeviceProfileOutput(events.index.device_id, events.index.channel, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), System.currentTimeMillis())
+            DeviceProfileOutput(events.index.device_id, events.index.channel, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), prevProfileData.spec, System.currentTimeMillis())
         }
     }
 

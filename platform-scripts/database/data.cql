@@ -406,6 +406,7 @@ CREATE TABLE IF NOT EXISTS local_device_db.device_profile (
 	total_ts double,
 	total_launches bigint,
 	avg_ts double,
+	spec Map<text,text>,
 	updated_date timestamp,
 	PRIMARY KEY (device_id, channel)
 );
