@@ -21,8 +21,8 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
 
     override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceInput] = {
         val rawEventsList = List("SEARCH", "INTERACT")
-        val wfsData = data.filter(f => f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[DerivedEvent](f)).filter { x => x.dimensions.did.nonEmpty }
-        val rawData = data.filter(f => !f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[V3Event](f)).filter{f => rawEventsList.contains(f.eid)}.filter { x => ((x.context.did.nonEmpty) && (StringUtils.equals(x.edata.subtype, "ContentDownload-Success") || x.edata.filters.getOrElse(Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))) };
+        val wfsData = data.filter(f => f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[DerivedEvent](f)).filter { x => (x.dimensions.did.nonEmpty && StringUtils.isNotBlank(x.dimensions.did.get)) }
+        val rawData = data.filter(f => !f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[V3Event](f)).filter{f => rawEventsList.contains(f.eid) && f.context.did.nonEmpty}.filter { x => (StringUtils.isNotBlank(x.context.did.get) && (StringUtils.equals(x.edata.subtype, "ContentDownload-Success") || x.edata.filters.getOrElse(Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))) };
         val groupedWfsData = wfsData.map { event =>
             (DeviceIndex(event.dimensions.did.get, event.dimensions.channel.get), Buffer(event))
         }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
