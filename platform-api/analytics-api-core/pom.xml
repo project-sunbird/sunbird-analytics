@@ -132,12 +132,18 @@
 			<artifactId>postgresql</artifactId>
 			<version>9.1-901.jdbc4</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.sunbird</groupId>
 			<artifactId>sunbird-cloud-store-sdk</artifactId>
 			<version>1.0</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency> -->
+		<!-- <dependency>
+		    <groupId>org.sunbird</groupId>
+		    <artifactId>cloud-store-sdk</artifactId>
+		    <version>1.0</version>
+		    <scope>provided</scope>
+		</dependency> -->
 
 	</dependencies>
 
