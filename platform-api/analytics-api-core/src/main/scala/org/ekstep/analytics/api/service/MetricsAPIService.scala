@@ -59,7 +59,9 @@ object MetricsAPIService {
 
         summary match {
             case "content-usage" =>
-                contentUsageMetrics(body);
+                contentUsageMetrics(body)
+            case "device-summary" =>
+                deviceSummary(body)
             case _ =>
                 CommonUtil.errorResponseSerialized(APIIds.METRICS_API, "Aggregations are not supported for summary - " + summary, ResponseCode.SERVER_ERROR.toString())
         }
@@ -84,6 +86,22 @@ object MetricsAPIService {
         }
     }
 
+    def deviceSummary(body: MetricsRequestBody)(implicit config: Config): String = {
+        if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
+            CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
+        } else {
+            try {
+                val filter = body.request.filter.getOrElse(Filter());
+                val deviceId = filter.device_id.getOrElse("all");
+                val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
+                val result = DeviceMetricsModel.fetch("all", "all", body.request.period, Array(), channelId, "all", deviceId);
+                JSONUtils.serialize(CommonUtil.OK(APIIds.DEVICE_SUMMARY, result));
+            } catch {
+                case ex: Exception =>
+                    CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+            }
+        }
+    }
     private def contentSnapshotMetrics(body: MetricsRequestBody)(implicit config: Config): String = {
         val url = config.getString("metrics.creation.es.url")
         val indexes = config.getString("metrics.creation.es.indexes")
