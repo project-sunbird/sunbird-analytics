@@ -8,7 +8,7 @@ trait AlgoInput extends Any with Serializable
 trait AlgoOutput extends AnyRef with Serializable
 trait Output extends AnyRef with Serializable
 
-trait IBatchModelTemplate[T <: Input, A <: AlgoInput, B <: AlgoOutput, R <: Output] extends IBatchModel[T, R] {
+trait IBatchModelTemplate[T <: AnyRef, A <: AlgoInput, B <: AlgoOutput, R <: Output] extends IBatchModel[T, R] {
 
     /**
      * Override and implement the data product execute method. In addition to controlling the execution this base class records all generated RDD's,
