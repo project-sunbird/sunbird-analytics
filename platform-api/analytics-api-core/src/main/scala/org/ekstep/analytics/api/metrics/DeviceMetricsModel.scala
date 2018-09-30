@@ -1,6 +1,5 @@
 package org.ekstep.analytics.api.metrics
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 import org.ekstep.analytics.api.Constants
@@ -28,9 +27,7 @@ object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] wi
     override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[DeviceMetrics], config: Config): Array[DeviceMetrics] = {
         val query = QueryBuilder.select().all().from(Constants.DEVICE_DB, Constants.DEVICE_PROFILE_TABLE).allowFiltering().where(QueryBuilder.eq("device_id", deviceId)).and(QueryBuilder.eq("channel", channel)).toString()
         val res = DBUtil.session.execute(query)
-
-        println(res)
-        val metrics = getSummaryFromCass(res.one().as[DeviceProfileTable])
+        val metrics = getSummaryFromCass(res.one.as[DeviceProfileTable])
         return Array(metrics)
     }
 
