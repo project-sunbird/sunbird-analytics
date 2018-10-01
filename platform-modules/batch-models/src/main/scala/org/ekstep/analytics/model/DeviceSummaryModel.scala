@@ -36,17 +36,26 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         data.map{ f => 
             val index = f.index
             val wfs = f.wfsData.getOrElse(Buffer()).sortBy { x => x.context.date_range.from }
-            val raw = f.rawData.getOrElse(Buffer())
-            val startTimestamp = wfs.head.context.date_range.from;
-            val endTimestamp = wfs.last.context.date_range.to;
-            val syncts = wfs.last.syncts
-            val total_ts = if (wfs.size < 1) 0.0 else wfs.map { x =>
-                (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_spent").get.asInstanceOf[Double])
-            }.sum
-            val total_launches = if (wfs.size < 1) 0L else wfs.filter(f => "app".equals(f.dimensions.`type`.getOrElse(""))).length
+            val raw = f.rawData.getOrElse(Buffer()).sortBy(f => f.ets)
+            val startTimestamp = wfs.headOption match { 
+                case Some(_) => wfs.head.context.date_range.from
+                case None => raw.head.ets 
+            }
+            val endTimestamp = wfs.headOption match { 
+                case Some(_) => wfs.last.context.date_range.to
+                case None => raw.last.ets
+            }
+            val syncts = wfs.headOption match { 
+                case Some(_) => wfs.last.syncts
+                case None => CommonUtil.getEventSyncTS(raw.last)
+            }
+            val (total_ts, total_launches) = wfs.headOption match { 
+                case Some(_) => (wfs.map { x => (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("time_spent").get.asInstanceOf[Double])}.sum, wfs.filter(f => "app".equals(f.dimensions.`type`.getOrElse(""))).length.toLong)
+                case None => (0.0, 0L)
+            }
             val content_play_events = wfs.filter(f => ("content".equals(f.dimensions.`type`.getOrElse("")) && ("play".equals(f.dimensions.mode.getOrElse("")))))
             val contents_played = content_play_events.length
-            val unique_contents_played = content_play_events.map(f => f.`object`.getOrElse(V3Object("", "", None, None)).id).distinct.filter(f => f.nonEmpty).length
+            val unique_contents_played = if (contents_played > 0) content_play_events.map(f => f.`object`.getOrElse(V3Object("", "", None, None)).id).distinct.filter(f => f.nonEmpty).length else 0L
             val dialcodes_events = raw.filter(f => "SEARCH".equals(f.eid))
             val dial_count = dialcodes_events.length
             val dial_success = dialcodes_events.filter(f => f.edata.size > 0).length
