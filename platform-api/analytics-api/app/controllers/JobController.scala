@@ -79,7 +79,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 
     def getTelemetry(datasetId: String) = Action.async { implicit request =>
 
-        val code =  request.getQueryString("code")
+        val code =  request.getQueryString("type")
         val from = request.getQueryString("from").getOrElse("")
         val to = request.getQueryString("to").getOrElse(org.ekstep.analytics.api.util.CommonUtil.getToday())
 

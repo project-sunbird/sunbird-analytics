@@ -79,7 +79,9 @@ object JobAPIService {
             val basePrefix = config.getString("channel.data_exhaust.basePrefix")
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd")
-            val prefix =  if(code.nonEmpty) basePrefix + channel + "/" + eventType + "/" + code.get + "/" else basePrefix + channel + "/" + eventType + "/"
+
+            val prefix =  if(code.nonEmpty && !StringUtils.equals(code.get, "wfs")) basePrefix + channel + "/" + eventType + "/" + code.get + "/" else basePrefix + channel + "/" + eventType + "/"
+
             val listObjs = storageService.searchObjectkeys(bucket, prefix, Option(from), Option(to), None)
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.MINUTE, expiry)
@@ -221,7 +223,7 @@ class JobAPIService extends Actor {
         case DataRequest(request: String, channelId: String, config: Config) => sender() ! dataRequest(request, channelId)(config)
         case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config)
         case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config)
-        case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, code: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, code)(config)
+        case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, eventType: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, code)(config)
     }
 
 }
