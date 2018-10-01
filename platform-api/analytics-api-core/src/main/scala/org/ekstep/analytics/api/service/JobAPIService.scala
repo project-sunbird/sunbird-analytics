@@ -223,7 +223,7 @@ class JobAPIService extends Actor {
         case DataRequest(request: String, channelId: String, config: Config) => sender() ! dataRequest(request, channelId)(config)
         case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config)
         case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config)
-        case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, eventType: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, code)(config)
+        case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, code: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, code)(config)
     }
 
 }
