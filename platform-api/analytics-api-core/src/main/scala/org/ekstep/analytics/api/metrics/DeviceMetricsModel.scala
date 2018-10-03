@@ -1,5 +1,7 @@
 package org.ekstep.analytics.api.metrics
 
+import java.util.Date
+
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.DeviceMetrics
@@ -28,7 +30,7 @@ object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] wi
         val res = DBUtil.session.execute(query).one
         //val metrics = getSummaryFromCass(res.one.as[DeviceProfileTable])
         
-        val metrics = DeviceMetrics(Option(0), None, Option(res.as[Option[DateTime]]("first_access").get.getMillis), Option(res.as[Option[DateTime]]("last_access").get.getMillis), res.as[Option[Double]]("total_ts"), res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
+        val metrics = DeviceMetrics(Option(0), None, Option(res.as[Option[Date]]("first_access").get.getTime), Option(res.as[Option[Date]]("last_access").get.getTime), res.as[Option[Double]]("total_ts"), res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
         return Array(metrics)
     }
 
