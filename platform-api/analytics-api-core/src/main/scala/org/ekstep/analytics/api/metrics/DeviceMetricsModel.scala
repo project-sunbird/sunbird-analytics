@@ -6,7 +6,7 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.DeviceMetrics
 import org.ekstep.analytics.api.IMetricsModel
-import org.ekstep.analytics.api.util.{APILogger, CommonUtil, DBUtil, JSONUtils}
+import org.ekstep.analytics.api.util.{ APILogger, CommonUtil, DBUtil, JSONUtils }
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.typesafe.config.Config
 import com.weather.scalacass.syntax._
@@ -17,16 +17,14 @@ case class DeviceProfileTable(device_id: String, channel: String, first_access: 
 object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] with Serializable {
 
     override implicit val className = "org.ekstep.analytics.api.metrics.DeviceMetricsModel"
-    override def metric: String = "ds";
+    override def metric: String = "ds"
 
     override def getMetrics(records: Array[DeviceMetrics], period: String = "CUMULATIVE", fields: Array[String] = Array())(implicit config: Config): Array[DeviceMetrics] = {
-        return records;
+        records.map { x => DeviceMetrics(x.d_period, Option(period), x.first_access, x.last_access, x.total_ts, x.total_launches, x.avg_ts, Option(x.spec.getOrElse(Map()))) }
     }
     override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[DeviceMetrics], config: Config): Array[DeviceMetrics] = {
         val query = QueryBuilder.select().all().from(Constants.DEVICE_DB, Constants.DEVICE_PROFILE_TABLE).allowFiltering().where(QueryBuilder.eq("device_id", deviceId)).and(QueryBuilder.eq("channel", channel)).toString()
         val res = DBUtil.session.execute(query).one
-        //val metrics = getSummaryFromCass(res.one.as[DeviceProfileTable])
-        
         val metrics = DeviceMetrics(Option(0), None, Option(res.as[Option[Date]]("first_access").get.getTime), Option(res.as[Option[Date]]("last_access").get.getTime), res.as[Option[Double]]("total_ts"), res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
         return Array(metrics)
     }
