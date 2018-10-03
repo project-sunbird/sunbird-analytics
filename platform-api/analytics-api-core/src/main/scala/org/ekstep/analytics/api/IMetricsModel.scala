@@ -116,7 +116,6 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
     def reduce(fact1: R, fact2: R, fields: Array[String] = Array()): R
 
     private def getResult(records: Array[T], period: String, fields: Array[String] = Array())(implicit config: Config): Map[String, AnyRef] = {
-        APILogger.log("Records in getResult: "+JSONUtils.serialize(records))
         val metrics = getMetrics(records, period, fields);
         val summary = computeSummary(metrics, fields);
         Map[String, AnyRef](

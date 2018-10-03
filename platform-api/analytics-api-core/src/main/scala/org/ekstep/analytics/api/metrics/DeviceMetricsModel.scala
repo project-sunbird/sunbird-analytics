@@ -20,12 +20,7 @@ object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] wi
     override def metric: String = "ds";
 
     override def getMetrics(records: Array[DeviceMetrics], period: String = "CUMULATIVE", fields: Array[String] = Array())(implicit config: Config): Array[DeviceMetrics] = {
-        APILogger.log("records in getMetrics in DeviceMetricsModel: "+ JSONUtils.serialize(records))
-        val periodEnum = periodMap.get(period).get._1;
-        val periods = _getPeriods(period);
-        val recordsArray = records.map { x => (x.d_period.get, x) };
-        val periodsArray = periods.map { period => (period, DeviceMetrics(Option(period), Option(CommonUtil.getPeriodLabel(periodEnum, period)))) };
-        periodsArray.map(x => x._2)
+        return records;
     }
     override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[DeviceMetrics], config: Config): Array[DeviceMetrics] = {
         val query = QueryBuilder.select().all().from(Constants.DEVICE_DB, Constants.DEVICE_PROFILE_TABLE).allowFiltering().where(QueryBuilder.eq("device_id", deviceId)).and(QueryBuilder.eq("channel", channel)).toString()
@@ -33,7 +28,6 @@ object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] wi
         //val metrics = getSummaryFromCass(res.one.as[DeviceProfileTable])
         
         val metrics = DeviceMetrics(Option(0), None, Option(res.as[Option[Date]]("first_access").get.getTime), Option(res.as[Option[Date]]("last_access").get.getTime), res.as[Option[Double]]("total_ts"), res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
-        APILogger.log("Data from DB: "+ JSONUtils.serialize(metrics))
         return Array(metrics)
     }
 
