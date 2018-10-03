@@ -16,7 +16,7 @@ case class DeviceProfileTable(device_id: String, channel: String, first_access: 
 
 object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] with Serializable {
 
-    implicit val className = "org.ekstep.analytics.api.metrics.DeviceMetricsModel"
+    override implicit val className = "org.ekstep.analytics.api.metrics.DeviceMetricsModel"
     override def metric: String = "ds";
 
     override def getMetrics(records: Array[DeviceMetrics], period: String = "CUMULATIVE", fields: Array[String] = Array())(implicit config: Config): Array[DeviceMetrics] = {
