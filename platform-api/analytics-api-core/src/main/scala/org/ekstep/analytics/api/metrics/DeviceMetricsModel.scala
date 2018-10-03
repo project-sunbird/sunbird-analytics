@@ -20,6 +20,7 @@ object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] wi
     override def metric: String = "ds";
 
     override def getMetrics(records: Array[DeviceMetrics], period: String = "CUMULATIVE", fields: Array[String] = Array())(implicit config: Config): Array[DeviceMetrics] = {
+        APILogger.log("records in getMetrics in DeviceMetricsModel: "+ JSONUtils.serialize(records))
         val periodEnum = periodMap.get(period).get._1;
         val periods = _getPeriods(period);
         val recordsArray = records.map { x => (x.d_period.get, x) };
