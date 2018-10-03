@@ -1,15 +1,14 @@
 package org.ekstep.analytics.api.metrics
 
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
-
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.DeviceMetrics
 import org.ekstep.analytics.api.IMetricsModel
 import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
-
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.typesafe.config.Config
 import com.weather.scalacass.syntax._
+import org.joda.time.DateTime
 
 case class DeviceProfileTable(device_id: String, channel: String, first_access: Option[Long], last_access: Option[Long], total_ts: Option[Double], total_launches: Option[Long], avg_ts: Option[Double], spec: Option[Map[String, AnyRef]], updated_date: Long)
 
@@ -29,7 +28,7 @@ object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] wi
         val res = DBUtil.session.execute(query).one
         //val metrics = getSummaryFromCass(res.one.as[DeviceProfileTable])
         
-        val metrics = DeviceMetrics(Option(0), None, res.as[Option[Long]]("first_access"), res.as[Option[Long]]("last_access"), res.as[Option[Double]]("total_ts"), res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
+        val metrics = DeviceMetrics(Option(0), None, Option(res.as[Option[DateTime]]("first_access").get.getMillis), Option(res.as[Option[DateTime]]("last_access").get.getMillis), res.as[Option[Double]]("total_ts"), res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
         return Array(metrics)
     }
 
