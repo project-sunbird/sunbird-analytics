@@ -80,7 +80,7 @@ object JobAPIService {
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd")
 
-            val prefix =  if(code.nonEmpty && !StringUtils.equals(code.get, "wfs")) basePrefix + channel + "/" + eventType + "/" + code.get + "/" else basePrefix + channel + "/" + eventType + "/"
+            val prefix =  if(code.nonEmpty && !StringUtils.equals(code.get, "workflow-summary")) basePrefix + channel + "/" + eventType + "/" + code.get + "/" else basePrefix + channel + "/" + eventType + "/"
 
             val listObjs = storageService.searchObjectkeys(bucket, prefix, Option(from), Option(to), None)
             val calendar = Calendar.getInstance()
