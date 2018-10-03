@@ -94,7 +94,7 @@ object MetricsAPIService {
                 val filter = body.request.filter.getOrElse(Filter());
                 val deviceId = filter.device_id.getOrElse("all");
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val result = DeviceMetricsModel.fetch("all", "all", body.request.period, Array(), channelId, "all", deviceId);
+                val result = DeviceMetricsModel.fetch("all", "all", "CUMULATIVE", Array(), channelId, "all", deviceId);
                 JSONUtils.serialize(CommonUtil.OK(APIIds.DEVICE_SUMMARY, result));
             } catch {
                 case ex: Exception =>
