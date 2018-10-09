@@ -60,7 +60,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                         summEvents ++= clonedRootSummary.summaryEvents
                         clonedRootSummary.clearAll()
                         rootSummary = clonedRootSummary
-                        currSummary = clonedRootSummary.getLeafSummary
+                        currSummary.clearSummary()//clonedRootSummary.getLeafSummary
                     }
                 }
                 prevEvent = x
@@ -108,6 +108,7 @@ object WorkFlowSummaryModel extends IBatchModelTemplate[V3Event, WorkflowInput, 
                                   }
                                   else summEvents ++= currSummary.summaryEvents
                                   currSummary = new org.ekstep.analytics.util.Summary(x)
+                                  if(rootSummary.isClosed) rootSummary = currSummary
                               }
                             }
                         }
