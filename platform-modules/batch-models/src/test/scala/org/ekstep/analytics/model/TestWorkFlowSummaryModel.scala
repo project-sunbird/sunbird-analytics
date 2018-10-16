@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.util.Constants
+import org.apache.commons.lang3.StringUtils
 
 case class WorkflowDataRead(did: Option[String], sid: String, uid: String, pdata: PData, channel: String, content_id: Option[String], session_type: String, syncts: Long, dt_range: DtRange, mode: Option[String], item_responses: Option[Buffer[ItemResponse]],
                           start_time: Long, end_time: Long, time_spent: Double, time_diff: Double, interact_events_count: Long, interact_events_per_min: Double, telemetry_version: String,
@@ -14,11 +15,12 @@ case class WorkflowDataRead(did: Option[String], sid: String, uid: String, pdata
                           page_summary: Option[Iterable[PageSummary]], etags: Option[ETags])
 
 class TestWorkFlowSummaryModel extends SparkSpec {
-
+    
     it should "generate 6 workflow summary with 1 default app summary" in {
+      
         val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data2.log")
         val out = WorkFlowSummaryModel.execute(data, None)
-        out.count() should be(6)
+        out.count() should be(8)
 
         val me = out.collect();
         val appSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("app") }
@@ -26,7 +28,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         val playerSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("player") }
         val editorSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("editor") }
 
-        appSummaryEvent1.size should be(1)
+        appSummaryEvent1.size should be(3)
         sessionSummaryEvent1.size should be(1)
         playerSummaryEvent1.size should be(1)
         editorSummaryEvent1.size should be(3)
@@ -123,7 +125,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
     it should "generate workflow summary with breaking session logic" in {
         val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data4.log")
         val out = WorkFlowSummaryModel.execute(data, None)
-        out.count() should be(5)
+        out.count() should be(7)
 
         val me = out.collect();
         val appSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("app") }
@@ -131,7 +133,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         val playerSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("player") }
         val editorSummaryEvent1 = me.filter { x => x.dimensions.`type`.get.equals("editor") }
 
-        appSummaryEvent1.size should be(1)
+        appSummaryEvent1.size should be(3)
         sessionSummaryEvent1.size should be(2)
         playerSummaryEvent1.size should be(2)
         editorSummaryEvent1.size should be(0)
@@ -205,6 +207,76 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         summary1.end_time should be(1536646021231L);
         summary1.time_diff should be(373.27);
         summary1.time_spent should be(373.3);
+        summary1.item_responses.get.size should be(0);
+        summary1.page_summary.get.size should be(4);
+        summary1.env_summary.get.size should be(1);
+        summary1.events_summary.get.size should be(5);
+        summary1.telemetry_version should be("3.0");
+    }
+    
+    it should "generate workflow summary with default app summary for events starting with other start events" in {
+        val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data1.log")
+        val out = WorkFlowSummaryModel.execute(data, None)
+        out.count() should be(9)
+
+        val me = out.collect();
+        val appSummaryEvents = me.filter { x => x.dimensions.`type`.get.equals("app") }
+        appSummaryEvents.size should be(3)
+        
+        val event1 = appSummaryEvents.filter(f => f.mid.equals("28970116BDDF8B80CC8E090E1FC4C1CA")).last
+
+        event1.eid should be("ME_WORKFLOW_SUMMARY");
+        event1.context.pdata.model.get should be("WorkflowSummarizer");
+        event1.context.pdata.ver should be("1.0");
+        event1.context.granularity should be("SESSION");
+        event1.context.date_range should not be null;
+        event1.dimensions.`type`.get should be("app");
+        event1.dimensions.did.get should be("a49c706d0402d6db3bb7cb3105cc9e7cf9b2ed7e");
+        event1.dimensions.sid.get should be("8f32dbc4-c0d0-4630-9ff6-8c3bce3d15bb");
+        event1.dimensions.channel.get should be("01235953109336064029450")
+
+        val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
+        summary1.interact_events_per_min should be(0);
+        summary1.start_time should be(1534595611976L);
+        summary1.interact_events_count should be(0);
+        summary1.end_time should be(1534595617324L);
+        summary1.time_diff should be(5.35);
+        summary1.time_spent should be(5.35);
+        summary1.item_responses.get.size should be(0);
+        summary1.page_summary.get.size should be(1);
+        summary1.env_summary.get.size should be(1);
+        summary1.events_summary.get.size should be(3);
+        summary1.telemetry_version should be("3.0");
+    }
+    
+    it should "generate workflow summary with proper root summary closing logic" in {
+        val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data6.log")
+        val out = WorkFlowSummaryModel.execute(data, None)
+        out.count() should be(15)
+
+        val me = out.collect();
+        val appSummaryEvents = me.filter { x => x.dimensions.`type`.get.equals("app") }
+        appSummaryEvents.size should be(2)
+        
+        val event1 = appSummaryEvents.filter(f => f.mid.equals("2D8FABBFB0384B7A0320B7477C4688E8")).last
+
+        event1.eid should be("ME_WORKFLOW_SUMMARY");
+        event1.context.pdata.model.get should be("WorkflowSummarizer");
+        event1.context.pdata.ver should be("1.0");
+        event1.context.granularity should be("SESSION");
+        event1.context.date_range should not be null;
+        event1.dimensions.`type`.get should be("app");
+        event1.dimensions.did.get should be("e758d6c277dafbda491a5f3824622b5a612304dc");
+        event1.dimensions.sid.get should be("430d7850-39ff-4f3d-b672-dfb4ae875160");
+        event1.dimensions.channel.get should be("01235953109336064029450")
+
+        val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
+        summary1.interact_events_per_min should be(2.14);
+        summary1.start_time should be(1534700219419L);
+        summary1.interact_events_count should be(13);
+        summary1.end_time should be(1534700584532L);
+        summary1.time_diff should be(365.11);
+        summary1.time_spent should be(365.13);
         summary1.item_responses.get.size should be(0);
         summary1.page_summary.get.size should be(4);
         summary1.env_summary.get.size should be(1);
