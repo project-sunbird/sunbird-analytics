@@ -121,6 +121,14 @@
 					</execution>
 				</executions>
 				<configuration>
+					<transformers>
+						<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+	              			<resource>META-INF/services/org.jclouds.apis.ApiMetadata</resource>
+	            			</transformer>
+	            			<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+	              			<resource>META-INF/services/org.jclouds.providers.ProviderMetadata</resource>
+	            			</transformer>
+	            		</transformers>
 					<filters>
 						<filter>
 							<artifact>*:*</artifact>
