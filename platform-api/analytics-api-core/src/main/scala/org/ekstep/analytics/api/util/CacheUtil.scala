@@ -126,8 +126,15 @@ object CacheUtil {
         val baseUrl = config.getString("content2vec.content_service_url");
         val languagePath = "/v1/language"
         val languageUrl = s"$baseUrl$languagePath";
-        val resp = RestUtil.get[LanguageResponse](languageUrl);
-        resp.result.languages;
+        try {
+            val resp = RestUtil.get[LanguageResponse](languageUrl)
+            resp.result.languages
+        } catch {
+            case t: Throwable =>
+                val res: Map[String, AnyRef] = Map("identifier" -> "lang_en", "code" -> "en", "isoCode" -> "en", "consumerId" -> "f6878ac4-e9c9-4bc4-80be-298c5a73b447", "appId" -> "dev.ekstep.in", "channel" -> "in.ekstep", "words" -> Int.box(93583), "name" -> "English", "lastUpdatedOn" -> "2017-06-21T07->07->39.857+0000", "liveWords" -> Int.box(-517411), "versionKey" -> "1498028859857", "status" -> "Live")
+                return Array(res)
+        }
+
     }
 
     private def getPublishedContent()(implicit config: Config): Array[Map[String, AnyRef]] = {
@@ -149,8 +156,8 @@ object CacheUtil {
         val baseUrl = config.getString("service.search.url");
         val searchPath = config.getString("service.search.path");
         val searchUrl = s"$baseUrl$searchPath";
-        val requestStr =  config.getString("service.search.requestbody");
-        val request =  if(requestStr!=null) requestStr else JSONUtils.serialize(Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Resource"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "offset" -> offset, "limit" -> limit)))
+        val requestStr = config.getString("service.search.requestbody");
+        val request = if (requestStr != null) requestStr else JSONUtils.serialize(Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Resource"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "offset" -> offset, "limit" -> limit)))
         val resp = RestUtil.post[ContentResponse](searchUrl, request);
         resp.result;
     }
@@ -161,6 +168,5 @@ case class ConsumerChannel(consumerId: String, channel: String, status: Int, cre
 object ConsumerChannel extends SQLSyntaxSupport[ConsumerChannel] {
     def apply(rs: WrappedResultSet) = new ConsumerChannel(
         rs.string("consumer_id"), rs.string("channel"), rs.int("status"),
-        rs.string("created_by"), rs.timestamp("created_on"), rs.timestamp("updated_on")
-    )
+        rs.string("created_by"), rs.timestamp("created_on"), rs.timestamp("updated_on"))
 }
