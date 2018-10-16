@@ -149,8 +149,9 @@ object CacheUtil {
         val baseUrl = config.getString("service.search.url");
         val searchPath = config.getString("service.search.path");
         val searchUrl = s"$baseUrl$searchPath";
-        val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "offset" -> offset, "limit" -> limit));
-        val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
+        val requestStr =  config.getString("service.search.requestbody");
+        val request =  if(requestStr!=null) requestStr else JSONUtils.serialize(Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Resource"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "offset" -> offset, "limit" -> limit)))
+        val resp = RestUtil.post[ContentResponse](searchUrl, request);
         resp.result;
     }
 }
