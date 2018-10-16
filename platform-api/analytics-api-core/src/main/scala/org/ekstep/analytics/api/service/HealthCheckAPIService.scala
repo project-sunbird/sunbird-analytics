@@ -3,8 +3,8 @@ package org.ekstep.analytics.api.service
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.util.JSONUtils
-
 import akka.actor.Actor
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[String] = None)
 
@@ -26,6 +26,11 @@ object HealthCheckAPIService {
 
     private def checkCassandraConnection(): Boolean = {
         try {
+            println("cassandra.service.embedded.enable: "+AppConf.getConfig("cassandra.service.embedded.enable").toBoolean)
+            println("spark.cassandra.connection.host: "+AppConf.getConfig("spark.cassandra.connection.host"))
+            println("cassandra.service.embedded.connection.port: "+AppConf.getConfig("cassandra.service.embedded.connection.port"))
+            val s = DBUtil.session
+            println("session: "+s)
             DBUtil.checkCassandraConnection
         } catch {
             // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
