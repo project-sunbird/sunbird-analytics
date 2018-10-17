@@ -80,10 +80,10 @@ object BatchJobDriver {
     private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext): (Long, Long) = {
 
         CommonUtil.time({
-            val output = model.execute(data, config.modelParams).cache();
-            JobContext.recordRDD(output);
+            val output = model.execute(data, config.modelParams);
+            // JobContext.recordRDD(output);
             val count = OutputDispatcher.dispatch(config.output, output);
-            JobContext.cleanUpRDDs();
+            // JobContext.cleanUpRDDs();
             count;
         })
 
