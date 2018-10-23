@@ -33,6 +33,8 @@ import org.ekstep.analytics.api.service.TagService.DeleteTag
 import org.ekstep.analytics.api.service.TagService.RegisterTag
 import org.ekstep.analytics.api.service.RecommendationAPIService.Consumption
 import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
+import org.ekstep.analytics.api.service.DeviceRegisterService
+import org.ekstep.analytics.api.service.DeviceRegisterService.RegisterDevice
 
 /**
  * @author mahesh
@@ -44,6 +46,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor");
 	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor");
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor");
+	val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()), name = "deviceRegisterServiceAPIActor");
 
 	def checkAPIhealth() = Action.async { implicit request =>
     val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String];
@@ -92,6 +95,14 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 
 	def deleteTag(tagId: String) = Action.async { implicit request =>
 		val result = ask(tagServiceAPIActor, DeleteTag(tagId)).mapTo[String];
+    result.map { x =>
+      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+    }
+	}
+	
+	def registerDevice(deviceId: String) = Action.async { implicit request =>
+	  val body: String = Json.stringify(request.body.asJson.get);
+		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, body)).mapTo[String];
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
     }

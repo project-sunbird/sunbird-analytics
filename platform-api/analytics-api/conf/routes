@@ -29,3 +29,6 @@ GET /refresh-cache/:cacheType @controllers.JobController.refreshCache(cacheType:
 
 # API Monitoring
 GET /admin/metrics @com.kenshoo.play.metrics.MetricsController.metrics
+
+# Device Register API
+POST /device/register/:deviceId @controllers.Application.registerDevice(deviceId: String)
