@@ -6,7 +6,7 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import org.ekstep.analytics.api.Constants
 import org.ekstep.analytics.api.DeviceMetrics
 import org.ekstep.analytics.api.IMetricsModel
-import org.ekstep.analytics.api.util.{ APILogger, CommonUtil, DBUtil, JSONUtils }
+import org.ekstep.analytics.api.util.{APILogger, CommonUtil, DBUtil, JSONUtils}
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.typesafe.config.Config
 import com.weather.scalacass.syntax._
@@ -16,30 +16,28 @@ case class DeviceProfileTable(device_id: String, channel: String, first_access: 
 
 object DeviceMetricsModel extends IMetricsModel[DeviceMetrics, DeviceMetrics] with Serializable {
 
-    override implicit val className = "org.ekstep.analytics.api.metrics.DeviceMetricsModel"
-    override def metric: String = "ds"
+  override implicit val className = "org.ekstep.analytics.api.metrics.DeviceMetricsModel"
 
-    override def getMetrics(records: Array[DeviceMetrics], period: String, fields: Array[String] = Array())(implicit config: Config): Array[DeviceMetrics] = {
-        records.map { x =>
-          x.copy()
-        }
-    }
-    override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[DeviceMetrics], config: Config): Array[DeviceMetrics] = {
-        val query = QueryBuilder.select().all().from(Constants.DEVICE_DB, Constants.DEVICE_PROFILE_TABLE).allowFiltering().where(QueryBuilder.eq("device_id", deviceId)).and(QueryBuilder.eq("channel", channel)).toString()
-        val res = DBUtil.session.execute(query).one
-        val metrics = DeviceMetrics(Option(0), period, Option(res.as[Option[Date]]("first_access").get.getTime), Option(res.as[Option[Date]]("last_access").get.getTime), res.as[Option[Double]]("total_ts"), res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
-        return Array(metrics)
-    }
+  override def metric: String = "ds"
 
-    override def reduce(fact1: DeviceMetrics, fact2: DeviceMetrics, fields: Array[String] = Array()): DeviceMetrics = {
-        return fact1
-    }
+  override def getMetrics(records: Array[DeviceMetrics], period: String, fields: Array[String] = Array())(implicit config: Config): Array[DeviceMetrics] = {
+    records
+  }
 
-    override def getSummary(summary: DeviceMetrics): DeviceMetrics = {
-        return null
-    }
+  override def getData(contentId: String, tags: Array[String], period: String, channel: String, userId: String = "all", deviceId: String = "all", metricsType: String = "app", mode: String = "")(implicit mf: Manifest[DeviceMetrics], config: Config): Array[DeviceMetrics] = {
+    val query = QueryBuilder.select().all().from(Constants.DEVICE_DB, Constants.DEVICE_PROFILE_TABLE).allowFiltering().where(QueryBuilder.eq("device_id", deviceId)).and(QueryBuilder.eq("channel", channel)).toString()
+    val res = DBUtil.session.execute(query).one
+    val metrics = DeviceMetrics(Option(0), period, Option(res.as[Option[Date]]("first_access").get.getTime),
+      Option(res.as[Option[Date]]("last_access").get.getTime), res.as[Option[Double]]("total_ts"),
+      res.as[Option[Long]]("total_launches"), res.as[Option[Double]]("avg_ts"), res.as[Option[Map[String, String]]]("spec"))
+    Array(metrics)
+  }
 
-    private def getSummaryFromCass(summary: DeviceProfileTable): DeviceMetrics = {
-        DeviceMetrics(Option(0), None, summary.first_access, summary.last_access, summary.total_ts, summary.total_launches, summary.avg_ts, summary.spec)
-    }
+  override def reduce(fact1: DeviceMetrics, fact2: DeviceMetrics, fields: Array[String] = Array()): DeviceMetrics = {
+    fact1
+  }
+
+  override def getSummary(summary: DeviceMetrics): DeviceMetrics = {
+    null
+  }
 }
