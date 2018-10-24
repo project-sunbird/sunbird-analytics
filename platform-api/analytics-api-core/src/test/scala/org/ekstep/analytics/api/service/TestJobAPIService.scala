@@ -131,28 +131,28 @@ class TestJobAPIService extends BaseSpec {
     // -ve Test cases
     it should "return a CLIENT_ERROR in the response if we set `datasetID` other than these ('raw', 'summary', 'metrics', 'failed')" in {
         val datasetId = "test"
-        val resObj = JobAPIService.getChannelData("in.ekstep", datasetId, "2018-05-14", "2018-05-15")
+        val resObj = JobAPIService.getChannelData("in.ekstep", datasetId, "2018-05-14", "2018-05-15", None)
         resObj.responseCode should be("CLIENT_ERROR")
         resObj.params.errmsg should be("Please provide 'eventType' value should be one of these -> ('raw' or 'summary' or 'metrics', or 'failed') in your request URL")
     }
 
     it should "return a CLIENT_ERROR in the response if 'fromDate' is empty" in {
         val fromDate = ""
-        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", fromDate, "2018-05-15")
+        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", fromDate, "2018-05-15", None)
         resObj.responseCode should be("CLIENT_ERROR")
         resObj.params.errmsg should be("Please provide 'from' in query string")
     }
 
     it should "return a CLIENT_ERROR in the response if 'endDate' is empty older than fromDate" in {
         val toDate = "2018-05-10"
-        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-15", toDate)
+        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-15", toDate, None)
         resObj.responseCode should be("CLIENT_ERROR")
         resObj.params.errmsg should be("Date range should not be -ve. Please check your 'from' & 'to'")
     }
 
     it should "return a CLIENT_ERROR in the response if 'endDate' is a future date" in {
         val toDate = new LocalDate().plusDays(1).toString()
-        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-15", toDate)
+        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-15", toDate, None)
         resObj.responseCode should be("CLIENT_ERROR")
         resObj.params.errmsg should be("'to' should be LESSER OR EQUAL TO today's date..")
     }
@@ -161,7 +161,7 @@ class TestJobAPIService extends BaseSpec {
         val toDate = new LocalDate().toString()
         val fromDate = new LocalDate().minusDays(11).toString()
 
-        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", fromDate, toDate)
+        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", fromDate, toDate, None)
         resObj.responseCode should be("CLIENT_ERROR")
         resObj.params.errmsg should be("Date range should be < 10 days")
     }
@@ -170,18 +170,18 @@ class TestJobAPIService extends BaseSpec {
 
     ignore should "return a successfull response if 'to' is empty" in {
         val toDate = ""
-        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-20", toDate)
+        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-20", toDate, None)
         resObj.responseCode should be("OK")
     }
 
     ignore should "return a successfull response if datasetID is one of these ('raw', 'summary', 'metrics', 'failed') - S3" in {
         val datasetId = "raw"
-        val resObj = JobAPIService.getChannelData("in.ekstep", datasetId, "2018-05-20", "2018-05-21")
+        val resObj = JobAPIService.getChannelData("in.ekstep", datasetId, "2018-05-20", "2018-05-21", None)
         resObj.responseCode should be("OK")
     }
 
     it should "return a successfull response if we pass code=ds" in {
-        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-20", "2018-05-20", Option("ds"))
+        val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-20", "2018-05-20", Option("device-summary"))
         resObj.responseCode should be("OK")
         val res = resObj.result.getOrElse(Map())
         res.contains("telemetryURLs") should be(true)
