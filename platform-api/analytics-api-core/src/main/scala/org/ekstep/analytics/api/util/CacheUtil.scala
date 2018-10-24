@@ -64,6 +64,7 @@ object CacheUtil {
     }.recover {
       case ex: Throwable =>
         APILogger.log(s"Failed to refresh ChannelConsumer Cache: ${ex.getMessage}")
+        ex.printStackTrace()
     }
   }
 
