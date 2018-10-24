@@ -16,7 +16,7 @@ object DeviceRegisterService {
 
     def registerDevice(did: String, request: String): String = {
         val config: Config = ConfigFactory.load()
-        val tableName = config.getString("postgres.loaction_table")
+        val tableName = config.getString("postgres.location_table")
         val body = JSONUtils.deserialize[RequestBody](request)
         val ip = body.request.ip_addr.getOrElse("")
         val map = if(ip.nonEmpty) {
