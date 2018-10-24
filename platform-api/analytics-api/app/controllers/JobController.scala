@@ -79,7 +79,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
 
     def getTelemetry(datasetId: String) = Action.async { implicit request =>
 
-        val code =  request.getQueryString("type")
+        val summaryType =  request.getQueryString("type")
         val from = request.getQueryString("from").getOrElse("")
         val to = request.getQueryString("to").getOrElse(org.ekstep.analytics.api.util.CommonUtil.getToday())
 
@@ -88,7 +88,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         val checkFlag = if (config.getBoolean("dataexhaust.authorization_check")) authorizeDataExhaustRequest(consumerId, channelId) else true
         if (checkFlag) {
             APILogger.log(s"Authorization Successfull for X-Consumer-ID='$consumerId' and X-Channel-ID='$channelId'")
-            val res = ask(jobAPIActor, ChannelData(channelId, datasetId, from, to, config, code)).mapTo[Response]
+            val res = ask(jobAPIActor, ChannelData(channelId, datasetId, from, to, config, summaryType)).mapTo[Response]
             res.map { x =>
                 result(x.responseCode, JSONUtils.serialize(x))
             }

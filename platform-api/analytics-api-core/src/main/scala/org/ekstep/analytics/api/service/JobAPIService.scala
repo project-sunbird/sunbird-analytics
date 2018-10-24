@@ -34,7 +34,7 @@ object JobAPIService {
     case class GetDataRequest(clientKey: String, requestId: String, config: Config)
     case class DataRequestList(clientKey: String, limit: Int, config: Config)
 
-    case class ChannelData(channel: String, event_type: String, from: String, to: String, config: Config, code: Option[String])
+    case class ChannelData(channel: String, event_type: String, from: String, to: String, config: Config, summaryType: Option[String])
 
     val EVENT_TYPES = Buffer("raw", "summary", "metrics", "failed")
 
@@ -71,7 +71,7 @@ object JobAPIService {
         CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Int.box(jobs.size), "jobs" -> result))
     }
 
-    def getChannelData(channel: String, eventType: String, from: String, to: String, code: Option[String] = Option(""))(implicit config: Config): Response = {
+    def getChannelData(channel: String, eventType: String, from: String, to: String, summaryType: Option[String])(implicit config: Config): Response = {
 
         val isValid = _validateRequest(channel, eventType, from, to)
         if ("true".equalsIgnoreCase(isValid.getOrElse("status", "false"))) {
@@ -80,7 +80,10 @@ object JobAPIService {
             val expiry = config.getInt("channel.data_exhaust.expiryMins")
             val dates = org.ekstep.analytics.framework.util.CommonUtil.getDatesBetween(from, Option(to), "yyyy-MM-dd")
 
-            val prefix =  if(code.nonEmpty && !StringUtils.equals(code.get, "workflow-summary")) basePrefix + channel + "/" + eventType + "/" + code.get + "/" else basePrefix + channel + "/" + eventType + "/"
+            val prefix =
+                if (summaryType.nonEmpty && !StringUtils.equals(summaryType.getOrElse(""), "workflow-summary"))
+                    basePrefix + channel + "/" + eventType + "/" + summaryType.get + "/"
+                else basePrefix + channel + "/" + eventType + "/"
 
             val listObjs = storageService.searchObjectkeys(bucket, prefix, Option(from), Option(to), None)
             val calendar = Calendar.getInstance()
@@ -223,7 +226,7 @@ class JobAPIService extends Actor {
         case DataRequest(request: String, channelId: String, config: Config) => sender() ! dataRequest(request, channelId)(config)
         case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config)
         case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config)
-        case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, code: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, code)(config)
+        case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, summaryType: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, summaryType)(config)
     }
 
 }
