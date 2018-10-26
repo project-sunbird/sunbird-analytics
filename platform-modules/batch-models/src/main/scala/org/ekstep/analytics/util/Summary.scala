@@ -16,7 +16,6 @@ class Summary(val firstEvent: V3Event) {
     val sid: String = firstEvent.context.sid.getOrElse("")
     val uid: String = if (firstEvent.actor.id == null) "" else firstEvent.actor.id
     val `object`: Option[V3Object] = if (firstEvent.`object`.isDefined) firstEvent.`object` else None;
-    val mode: Option[String] = if (firstEvent.edata.mode == null) Option("") else Option(firstEvent.edata.mode)
     val telemetryVersion: String = firstEvent.ver
     val tags: Option[List[AnyRef]] = Option(firstEvent.tags)
     val channel: String = firstEvent.context.channel
@@ -29,6 +28,7 @@ class Summary(val firstEvent: V3Event) {
     var startTime: Long = firstEvent.ets
     var interactEventsCount: Long = if(StringUtils.equals("INTERACT", firstEvent.eid) && interactTypes.contains(firstEvent.edata.`type`.toLowerCase)) 1l else 0l
     var `type`: String = if (null == firstEvent.edata.`type`) "app" else StringUtils.lowerCase(firstEvent.edata.`type`)
+    var mode: Option[String] = if (firstEvent.edata.mode == null) Option("") else Option(firstEvent.edata.mode)
     var lastEvent: V3Event = null
     var itemResponses: Buffer[Item] = Buffer[Item]()
     var endTime: Long = 0l
@@ -49,6 +49,10 @@ class Summary(val firstEvent: V3Event) {
 
     def updateType(`type`: String) {
         this.`type` = `type`;
+    }
+    
+    def resetMode() {
+        this.mode = Option("");
     }
 
     def getLeafSummary(): Summary = {
@@ -193,6 +197,19 @@ class Summary(val firstEvent: V3Event) {
         }
         return summ;
     }
+    
+    def getSimilarEndSummary(event: V3Event): Summary = {
+        val mode = if(event.edata.mode == null) "" else event.edata.mode
+        if(StringUtils.equalsIgnoreCase(this.`type`, event.edata.`type`) && StringUtils.equals(this.mode.get, mode)) {
+            return this;
+        }
+        if(this.PARENT == null) {
+            return this;
+        }
+        val summ = PARENT.getSimilarEndSummary(event)
+        return summ;
+
+    }
 
     def close(summEvents: Buffer[MeasuredEvent], config: Map[String, AnyRef]) {
 
@@ -239,7 +256,7 @@ class Summary(val firstEvent: V3Event) {
     def checkSimilarity(summ: Summary): Boolean = {
         StringUtils.equalsIgnoreCase(this.`type`, summ.`type`) && StringUtils.equalsIgnoreCase(this.mode.get, summ.mode.get) && (this.startTime == summ.startTime)
     }
-
+    
     def getPageSummaries(): Iterable[PageSummary] = {
         if (this.impressionMap.size > 0) {
             this.impressionMap.map(f => (f._1.edata.pageid, f)).groupBy(x => x._1).map { f =>
