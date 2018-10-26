@@ -20,11 +20,19 @@ object PostgresDBUtil {
         SQL(sqlString).map(rs => ConsumerChannel(rs)).list().apply()
     }
     
-    def execute(sqlString: String): List[Map[String, Any]] = {
-        SQL(sqlString).map(rs => rs.toMap()).list().apply()
+    def readLocation(sqlString: String): List[DeviceLocation] = {
+        SQL(sqlString).map(rs => DeviceLocation(rs)).list().apply()
     }
 
     def executeQuery(sqlString: String) = {
         SQL(sqlString)
     }
+}
+
+case class DeviceLocation(state: String, district: String)
+
+object DeviceLocation extends SQLSyntaxSupport[DeviceLocation] {
+    def apply(rs: WrappedResultSet) = new DeviceLocation(
+        rs.string("region_name"), rs.string("city_name")
+    )
 }
