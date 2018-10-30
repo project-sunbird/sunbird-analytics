@@ -103,7 +103,8 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	def registerDevice(deviceId: String) = Action.async { implicit request =>
 	  val body: String = Json.stringify(request.body.asJson.get);
 	  val ip = request.headers.get("X-FORWARDED-FOR").getOrElse("")
-		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, ip, body)).mapTo[String];
+	  val uaspec = request.headers.get("User-Agent").getOrElse("")
+		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, ip, body, uaspec)).mapTo[String];
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
     }
