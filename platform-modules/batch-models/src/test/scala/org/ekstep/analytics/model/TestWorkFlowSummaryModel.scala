@@ -171,7 +171,7 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         esMap1.get("ASSESS").get should be(1);
         esMap1.get("END").get should be(1);
     }
-    
+  
     it should "generate workflow summary with proper root summary setting logic" in {
         val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data5.log")
         val out = WorkFlowSummaryModel.execute(data, None)

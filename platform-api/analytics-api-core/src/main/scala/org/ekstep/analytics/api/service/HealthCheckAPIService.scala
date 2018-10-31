@@ -3,8 +3,8 @@ package org.ekstep.analytics.api.service
 import org.ekstep.analytics.api.util.CommonUtil
 import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.util.JSONUtils
-
 import akka.actor.Actor
+import org.ekstep.analytics.framework.conf.AppConf
 
 case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[String] = None)
 

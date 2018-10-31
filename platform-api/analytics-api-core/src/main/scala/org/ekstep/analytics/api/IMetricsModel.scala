@@ -7,8 +7,9 @@ import org.ekstep.analytics.framework.Query
 import org.apache.spark.SparkContext
 import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.api.util.{CommonUtil, DBUtil, DataFetcher}
+import org.ekstep.analytics.api.util.{APILogger, CommonUtil, DBUtil, DataFetcher}
 import org.jets3t.service.S3ServiceException
+
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import scala.reflect.ClassTag
 import org.ekstep.analytics.framework.Period._
@@ -27,6 +28,7 @@ class BaseMetric(val d_period: Option[Int] = None) extends AnyRef with Serializa
 trait Metrics extends BaseMetric with Serializable
 trait IMetricsModel[T <: Metrics, R <: Metrics] {
 
+    implicit val className = "org.ekstep.analytics.api.IMetricsModel"
     val periodMap = Map[String, (Period, Int)]("LAST_7_DAYS" -> (DAY, 7), "LAST_14_DAYS" -> (DAY, 14), "LAST_30_DAYS" -> (DAY, 30), "LAST_5_WEEKS" -> (WEEK, 5), "LAST_12_MONTHS" -> (MONTH, 12), "CUMULATIVE" -> (CUMULATIVE, 0));
 
     /**
@@ -113,7 +115,7 @@ trait IMetricsModel[T <: Metrics, R <: Metrics] {
      */
     def reduce(fact1: R, fact2: R, fields: Array[String] = Array()): R
 
-    private def getResult(records: Array[T], period: String, fields: Array[String] = Array())(implicit config: Config): Map[String, AnyRef] = {        
+    private def getResult(records: Array[T], period: String, fields: Array[String] = Array())(implicit config: Config): Map[String, AnyRef] = {
         val metrics = getMetrics(records, period, fields);
         val summary = computeSummary(metrics, fields);
         Map[String, AnyRef](

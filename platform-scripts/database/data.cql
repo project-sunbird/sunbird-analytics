@@ -398,6 +398,19 @@ CREATE TABLE IF NOT EXISTS local_device_db.device_content_summary_fact (
     PRIMARY KEY (device_id, content_id, app_id, channel)
 );
 
+CREATE TABLE IF NOT EXISTS local_device_db.device_profile (
+	device_id text,
+	channel text,
+	first_access timestamp,
+	last_access timestamp,
+	total_ts double,
+	total_launches bigint,
+	avg_ts double,
+	spec Map<text,text>,
+	updated_date timestamp,
+	PRIMARY KEY (device_id, channel)
+);
+
 CREATE KEYSPACE IF NOT EXISTS local_platform_db WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'

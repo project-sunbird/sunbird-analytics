@@ -23,23 +23,23 @@ import akka.actor.actorRef2Scala
 
 object MetricsAPIService {
 
-    val reqPeriods = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_30_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE");
+    val reqPeriods = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_30_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE")
 
-    case class ContentUsage(body: MetricsRequestBody, config: Config);
-    case class ContentPopularity(body: MetricsRequestBody, fields: Array[String], config: Config);
-    case class ContentList(body: MetricsRequestBody, config: Config);
-    case class GenieLaunch(body: MetricsRequestBody, config: Config);
-    case class ItemUsage(body: MetricsRequestBody, config: Config);
-    case class WorkflowUsage(body: MetricsRequestBody, config: Config);
-    case class Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config);
+    case class ContentUsage(body: MetricsRequestBody, config: Config)
+    case class ContentPopularity(body: MetricsRequestBody, fields: Array[String], config: Config)
+    case class ContentList(body: MetricsRequestBody, config: Config)
+    case class GenieLaunch(body: MetricsRequestBody, config: Config)
+    case class ItemUsage(body: MetricsRequestBody, config: Config)
+    case class WorkflowUsage(body: MetricsRequestBody, config: Config)
+    case class Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config)
 
     def metrics(dataset: String, summary: String, body: MetricsRequestBody)(implicit config: Config): String = {
 
         dataset match {
             case "creation" =>
-                creationMetrics(summary, body);
+                creationMetrics(summary, body)
             case "consumption" =>
-                consumptionMetrics(summary, body);
+                consumptionMetrics(summary, body)
             case _ =>
                 CommonUtil.errorResponseSerialized(APIIds.METRICS_API, "Aggregations are not supported for dataset - " + summary, ResponseCode.SERVER_ERROR.toString())
         }
@@ -49,7 +49,7 @@ object MetricsAPIService {
 
         summary match {
             case "content-snapshot" =>
-                contentSnapshotMetrics(body);
+                contentSnapshotMetrics(body)
             case _ =>
                 CommonUtil.errorResponseSerialized(APIIds.METRICS_API, "Aggregations are not supported for summary - " + summary, ResponseCode.SERVER_ERROR.toString())
         }
@@ -59,7 +59,9 @@ object MetricsAPIService {
 
         summary match {
             case "content-usage" =>
-                contentUsageMetrics(body);
+                contentUsageMetrics(body)
+            case "device-summary" =>
+                deviceSummary(body)
             case _ =>
                 CommonUtil.errorResponseSerialized(APIIds.METRICS_API, "Aggregations are not supported for summary - " + summary, ResponseCode.SERVER_ERROR.toString())
         }
@@ -70,13 +72,13 @@ object MetricsAPIService {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
             try {
-                val filter = body.request.filter.getOrElse(Filter());
-                val userId = filter.user_id.getOrElse("all");
-                val contentId = filter.content_id.getOrElse("all");
+                val filter = body.request.filter.getOrElse(Filter())
+                val userId = filter.user_id.getOrElse("all")
+                val contentId = filter.content_id.getOrElse("all")
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val tag = getTag(filter);
-                val result = UsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId, userId);
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result));
+                val tag = getTag(filter)
+                val result = UsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId, userId)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result))
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -84,6 +86,22 @@ object MetricsAPIService {
         }
     }
 
+    def deviceSummary(body: MetricsRequestBody)(implicit config: Config): String = {
+        if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
+            CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
+        } else {
+            try {
+                val filter = body.request.filter.getOrElse(Filter())
+                val deviceId = filter.device_id.getOrElse("all")
+                val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
+                val result = DeviceMetricsModel.fetch("all", "all", "CUMULATIVE", Array(), channelId, "all", deviceId)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.DEVICE_SUMMARY, result))
+            } catch {
+                case ex: Exception =>
+                    CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+            }
+        }
+    }
     private def contentSnapshotMetrics(body: MetricsRequestBody)(implicit config: Config): String = {
         val url = config.getString("metrics.creation.es.url")
         val indexes = config.getString("metrics.creation.es.indexes")
@@ -92,7 +110,7 @@ object MetricsAPIService {
             val query = body.request.rawQuery.get ++ Map("size" -> 0)
             val result = RestUtil.post[Map[String, AnyRef]](apiURL, JSONUtils.serialize(query))
             try {
-                JSONUtils.serialize(CommonUtil.OK(APIIds.METRICS_API, result));
+                JSONUtils.serialize(CommonUtil.OK(APIIds.METRICS_API, result))
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.METRICS_API, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -104,12 +122,12 @@ object MetricsAPIService {
 
     def main(args: Array[String]): Unit = {
 
-        val rawQuery = """{"query": {"filtered": {"query": {"bool": {"must": [{"query": {"range": {"lastUpdatedOn": {"gt": "2017-07-24T00:00:00.000+0530", "lte": "2017-08-01T00:00:00.000+0530"} } } }, {"match": {"createdFor.raw": "Sunbird"} } ] } } } }, "size": 0, "aggs": {"created_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} }, "status": {"terms": {"field": "status.raw", "include": ["draft", "live", "review"] }, "aggs": {"updated_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} } } }, "authors.count": {"cardinality": {"field": "createdBy.raw", "precision_threshold": 100 } }, "content_count": {"terms": {"field": "objectType.raw", "include": "content"} } } }""";
-        val request = MetricsRequest("", None, None, Option(JSONUtils.deserialize[Map[String, AnyRef]](rawQuery)));
+        val rawQuery = """{"query": {"filtered": {"query": {"bool": {"must": [{"query": {"range": {"lastUpdatedOn": {"gt": "2017-07-24T00:00:00.000+0530", "lte": "2017-08-01T00:00:00.000+0530"} } } }, {"match": {"createdFor.raw": "Sunbird"} } ] } } } }, "size": 0, "aggs": {"created_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} }, "status": {"terms": {"field": "status.raw", "include": ["draft", "live", "review"] }, "aggs": {"updated_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} } } }, "authors.count": {"cardinality": {"field": "createdBy.raw", "precision_threshold": 100 } }, "content_count": {"terms": {"field": "objectType.raw", "include": "content"} } } }"""
+        val request = MetricsRequest("", None, None, Option(JSONUtils.deserialize[Map[String, AnyRef]](rawQuery)))
         val body = MetricsRequestBody("org.ekstep.analytics.aggregate-metrics", "1.0", "", request, None)
-        implicit val config = ConfigFactory.parseMap(Map("metrics.creation.es.url" -> "http://localhost:9200", "metrics.creation.es.indexes" -> "compositesearch").asJava);
-        implicit val sc = org.ekstep.analytics.framework.util.CommonUtil.getSparkContext(1, "Test");
-        println(metrics("creation", "content-snapshot", body));
+        implicit val config = ConfigFactory.parseMap(Map("metrics.creation.es.url" -> "http://localhost:9200", "metrics.creation.es.indexes" -> "compositesearch").asJava)
+        implicit val sc = org.ekstep.analytics.framework.util.CommonUtil.getSparkContext(1, "Test")
+        println(metrics("creation", "content-snapshot", body))
     }
 
     def contentUsage(body: MetricsRequestBody)(implicit config: Config): String = {
@@ -117,12 +135,12 @@ object MetricsAPIService {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
             try {
-                val filter = body.request.filter.getOrElse(Filter());
-                val contentId = filter.content_id.getOrElse("all");
+                val filter = body.request.filter.getOrElse(Filter())
+                val contentId = filter.content_id.getOrElse("all")
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val tag = getTag(filter);
-                val result = CotentUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
-                val res = JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result));
+                val tag = getTag(filter)
+                val result = CotentUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId)
+                val res = JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_USAGE, result))
                 res
             } catch {
                 case ex: Exception =>
@@ -132,18 +150,18 @@ object MetricsAPIService {
     }
 
     def contentPopularity(body: MetricsRequestBody, fields: Array[String])(implicit config: Config): String = {
-        val filter = body.request.filter.getOrElse(Filter());
+        val filter = body.request.filter.getOrElse(Filter())
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_POPULARITY, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else if (filter.content_id.isEmpty) {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_POPULARITY, "filter.content_id is missing.", ResponseCode.CLIENT_ERROR.toString())
         } else {
             try {
-                val contentId = filter.content_id.get;
-                val tag = getTag(filter);
+                val contentId = filter.content_id.get
+                val tag = getTag(filter)
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val result = ContentPopularityMetricsModel.fetch(contentId, tag, body.request.period, fields, channelId);
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_POPULARITY, result));
+                val result = ContentPopularityMetricsModel.fetch(contentId, tag, body.request.period, fields, channelId)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_POPULARITY, result))
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.CONTENT_POPULARITY, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -156,12 +174,12 @@ object MetricsAPIService {
             CommonUtil.errorResponseSerialized(APIIds.CONTENT_LIST, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
             try {
-                val filter = body.request.filter.getOrElse(Filter());
-                val contentId = filter.content_id.getOrElse("all");
-                val tag = getTag(filter);
+                val filter = body.request.filter.getOrElse(Filter())
+                val contentId = filter.content_id.getOrElse("all")
+                val tag = getTag(filter)
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val result = ContentUsageListMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
-                JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_LIST, result));
+                val result = ContentUsageListMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.CONTENT_LIST, result))
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.CONTENT_LIST, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -174,12 +192,12 @@ object MetricsAPIService {
             CommonUtil.errorResponseSerialized(APIIds.GENIE_LUNCH, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
             try {
-                val filter = body.request.filter.getOrElse(Filter());
-                val contentId = filter.content_id.getOrElse("all");
-                val tag = getTag(filter);
+                val filter = body.request.filter.getOrElse(Filter())
+                val contentId = filter.content_id.getOrElse("all")
+                val tag = getTag(filter)
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
-                JSONUtils.serialize(CommonUtil.OK(APIIds.GENIE_LUNCH, result));
+                val result = GenieLaunchMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.GENIE_LUNCH, result))
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.GENIE_LUNCH, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -189,18 +207,18 @@ object MetricsAPIService {
     }
 
     def itemUsage(body: MetricsRequestBody)(implicit config: Config): String = {
-        val filter = body.request.filter.getOrElse(Filter());
+        val filter = body.request.filter.getOrElse(Filter())
         if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
             CommonUtil.errorResponseSerialized(APIIds.ITEM_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else if (filter.content_id.isEmpty) {
             CommonUtil.errorResponseSerialized(APIIds.ITEM_USAGE, "filter.content_id is missing.", ResponseCode.CLIENT_ERROR.toString())
         } else {
             try {
-                val contentId = filter.content_id.get;
-                val tag = getTag(filter);
+                val contentId = filter.content_id.get
+                val tag = getTag(filter)
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val result = ItemUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId);
-                JSONUtils.serialize(CommonUtil.OK(APIIds.ITEM_USAGE, result));
+                val result = ItemUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.ITEM_USAGE, result))
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.ITEM_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -213,16 +231,16 @@ object MetricsAPIService {
             CommonUtil.errorResponseSerialized(APIIds.WORKFLOW_USAGE, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
         } else {
             try {
-                val filter = body.request.filter.getOrElse(Filter());
-                val userId = filter.user_id.getOrElse("all");
-                val contentId = filter.content_id.getOrElse("all");
+                val filter = body.request.filter.getOrElse(Filter())
+                val userId = filter.user_id.getOrElse("all")
+                val contentId = filter.content_id.getOrElse("all")
                 val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val tag = getTag(filter);
-                val deviceId = filter.device_id.getOrElse("all");
+                val tag = getTag(filter)
+                val deviceId = filter.device_id.getOrElse("all")
                 val metrics_type = filter.metrics_type.getOrElse("app")
                 val mode = filter.mode.getOrElse("")
-                val result = WorkflowUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId, userId, deviceId, metrics_type, mode);
-                JSONUtils.serialize(CommonUtil.OK(APIIds.WORKFLOW_USAGE, result));
+                val result = WorkflowUsageMetricsModel.fetch(contentId, tag, body.request.period, Array(), channelId, userId, deviceId, metrics_type, mode)
+                JSONUtils.serialize(CommonUtil.OK(APIIds.WORKFLOW_USAGE, result))
             } catch {
                 case ex: Exception =>
                     CommonUtil.errorResponseSerialized(APIIds.WORKFLOW_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
@@ -231,26 +249,26 @@ object MetricsAPIService {
     }
 
     private def getTag(filter: Filter): String = {
-        val tags = filter.tags.getOrElse(Array());
+        val tags = filter.tags.getOrElse(Array())
         if (tags.length == 0) {
-            filter.tag.getOrElse("all");
+            filter.tag.getOrElse("all")
         } else {
-            tags.mkString(",");
+            tags.mkString(",")
         }
     }
 
 }
 
 class MetricsAPIService extends Actor {
-    import MetricsAPIService._;
+    import MetricsAPIService._
 
     def receive = {
-        case ContentUsage(body: MetricsRequestBody, config: Config)                              => sender() ! contentUsage(body)(config);
-        case ContentPopularity(body: MetricsRequestBody, fields: Array[String], config: Config)  => sender() ! contentPopularity(body, fields)(config);
-        case ContentList(body: MetricsRequestBody, config: Config)                               => sender() ! contentList(body)(config);
-        case GenieLaunch(body: MetricsRequestBody, config: Config)                               => sender() ! genieLaunch(body)(config);
-        case ItemUsage(body: MetricsRequestBody, config: Config)                                 => sender() ! itemUsage(body)(config);
-        case WorkflowUsage(body: MetricsRequestBody, config: Config)                             => sender() ! workflowUsage(body)(config);
-        case Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config) => sender() ! metrics(dataset, summary, body)(config);
+        case ContentUsage(body: MetricsRequestBody, config: Config)                              => sender() ! contentUsage(body)(config)
+        case ContentPopularity(body: MetricsRequestBody, fields: Array[String], config: Config)  => sender() ! contentPopularity(body, fields)(config)
+        case ContentList(body: MetricsRequestBody, config: Config)                               => sender() ! contentList(body)(config)
+        case GenieLaunch(body: MetricsRequestBody, config: Config)                               => sender() ! genieLaunch(body)(config)
+        case ItemUsage(body: MetricsRequestBody, config: Config)                                 => sender() ! itemUsage(body)(config)
+        case WorkflowUsage(body: MetricsRequestBody, config: Config)                             => sender() ! workflowUsage(body)(config)
+        case Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config) => sender() ! metrics(dataset, summary, body)(config)
     }
 }

@@ -43,6 +43,7 @@ object Constants {
     val USAGE_SUMMARY_FACT = "usage_summary_fact";
     
     val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact";
+    val DEVICE_PROFILE_TABLE = "device_profile";
 
     /* Creation tables and keyspaces */
     val CREATION_KEY_SPACE_NAME = env+"creation_db";
