@@ -1,7 +1,7 @@
 package org.ekstep.analytics.updater
 
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.util.{ BloomFilterUtil, Constants, WorkFlowSummaryIndex, WorkFlowUsageSummaryFact }
+import org.ekstep.analytics.util.{ BloomFilterUtil, Constants, WorkFlowUsageSummaryFact }
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.Period._
@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.DateTime
 import org.ekstep.analytics.util.WorkFlowSummaryIndex
 
-case class WorkFlowUsageSummaryFact_T(d_period: Int, d_channel: String, d_app_id: String, d_tag: String, d_type: String, d_mode: String, d_device_id: String, d_content_id: String, d_user_id: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_total_pageviews_count: Long, m_avg_pageviews: Double, m_unique_users: List[String], m_device_ids: List[String], m_contents: List[String])
+case class WorkFlowUsageSummaryFact_T(d_period: Int, d_channel: String, d_app_id: String, d_tag: String, d_type: String, d_mode: String, d_device_id: String, d_content_id: String, d_user_id: String, m_publish_date: DateTime, m_last_sync_date: DateTime, m_last_gen_date: DateTime, m_total_ts: Double, m_total_sessions: Long, m_avg_ts_session: Double, m_total_interactions: Long, m_avg_interactions_min: Double, m_total_pageviews_count: Long, m_avg_pageviews: Double, m_unique_users: List[String], m_device_ids: List[String], m_contents: List[String], m_content_type: Option[String])
 
 object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEvent, WorkFlowUsageSummaryFact, WorkFlowSummaryIndex] with Serializable {
 
@@ -31,6 +31,7 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val summType = x.dimensions.`type`.get
             val did = x.dimensions.did.get
             val contentId = x.dimensions.content_id.get;
+            val contentType = x.dimensions.content_type.getOrElse("")
             val uid = x.dimensions.uid.get
             val mode = x.dimensions.mode.getOrElse("")
 
@@ -47,7 +48,7 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val uniqueUsers = List[String]()
             val contents = List[String]()
             val deviceIds = List[String]()
-            WorkFlowUsageSummaryFact_T(period, channel, appId, tag, summType, mode, did, contentId, uid, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), totalTS, totalSess, avgTSsess, totalIntr, avgIntrMin, totalPageviewsCount, avgPageviews, uniqueUsers, deviceIds, contents);
+            WorkFlowUsageSummaryFact_T(period, channel, appId, tag, summType, mode, did, contentId, uid, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), totalTS, totalSess, avgTSsess, totalIntr, avgIntrMin, totalPageviewsCount, avgPageviews, uniqueUsers, deviceIds, contents, Option(contentType));
         }.cache();
 
         // Roll up summaries
@@ -67,14 +68,18 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
         val currentData = data.map { x =>
             val d_period = CommonUtil.getPeriod(x.m_last_gen_date.getMillis, period);
-            (WorkFlowSummaryIndex(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_mode, x.d_device_id, x.d_content_id, x.d_user_id), WorkFlowUsageSummaryFact_T(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_mode, x.d_device_id, x.d_content_id, x.d_user_id, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_total_pageviews_count, x.m_avg_pageviews, x.m_unique_users, x.m_device_ids, x.m_contents));
+            (WorkFlowSummaryIndex(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_mode, x.d_device_id, x.d_content_id, x.d_user_id), WorkFlowUsageSummaryFact_T(d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_mode, x.d_device_id, x.d_content_id, x.d_user_id, x.m_publish_date, x.m_last_sync_date, x.m_last_gen_date, x.m_total_ts, x.m_total_sessions, x.m_avg_ts_session, x.m_total_interactions, x.m_avg_interactions_min, x.m_total_pageviews_count, x.m_avg_pageviews, x.m_unique_users, x.m_device_ids, x.m_contents, x.m_content_type));
         }.reduceByKey(reduceWUS);
         val prvData = currentData.map { x => x._1 }.joinWithCassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).on(SomeColumns("d_period", "d_channel", "d_app_id", "d_tag", "d_type", "d_mode", "d_device_id", "d_content_id", "d_user_id"));
         val joinedData = currentData.leftOuterJoin(prvData)
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
             val newSumm = x._2._1
-            val prvSumm = x._2._2.getOrElse(WorkFlowUsageSummaryFact(index.d_period, index.d_channel, index.d_app_id, index.d_tag, index.d_type, index.d_mode, index.d_device_id, index.d_content_id, index.d_user_id, newSumm.m_publish_date, newSumm.m_last_sync_date, newSumm.m_last_gen_date, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0, 0, BloomFilterUtil.getDefaultBytes(period), BloomFilterUtil.getDefaultBytes(period), BloomFilterUtil.getDefaultBytes(period), "Content"));
+            val prvSumm = x._2._2.getOrElse(WorkFlowUsageSummaryFact(index.d_period, index.d_channel, index.d_app_id,
+                index.d_tag, index.d_type, index.d_mode, index.d_device_id, index.d_content_id, index.d_user_id,
+                newSumm.m_publish_date, newSumm.m_last_sync_date, newSumm.m_last_gen_date, 0.0, 0, 0.0, 0, 0.0, 0, 0.0,
+                0, 0, 0, BloomFilterUtil.getDefaultBytes(period), BloomFilterUtil.getDefaultBytes(period),
+                BloomFilterUtil.getDefaultBytes(period), newSumm.m_content_type))
             reduce(prvSumm, newSumm, period);
         }
         rollupSummaries;
@@ -114,7 +119,11 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
         val avg_pageviews = CommonUtil.roundDouble((total_pageviews_count / total_sessions), 2)
 
-        WorkFlowUsageSummaryFact(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type, fact1.d_mode, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, total_users_count, total_content_count, total_devices_count, user_ids, device_ids, content_ids, "Content");
+        WorkFlowUsageSummaryFact(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type,
+            fact1.d_mode, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date,
+            fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min,
+            total_pageviews_count, avg_pageviews, total_users_count, total_content_count, total_devices_count,
+            user_ids, device_ids, content_ids, fact2.m_content_type)
     }
 
     /**
@@ -141,6 +150,9 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val total_users_count = unique_users.length
         val total_content_count = contents.length
         
-        WorkFlowUsageSummaryFact_T(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type, fact1.d_mode, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, unique_users, device_ids, contents);
+        WorkFlowUsageSummaryFact_T(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type,
+            fact1.d_mode, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date,
+            fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min,
+            total_pageviews_count, avg_pageviews, unique_users, device_ids, contents, fact1.m_content_type)
     }
 }
