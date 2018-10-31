@@ -169,39 +169,5 @@ class TestWorkFlowSummaryModel extends SparkSpec {
         esMap1.get("ASSESS").get should be(1);
         esMap1.get("END").get should be(1);
     }
-
-    it should "generate workflow summary with proper root summary closing logic" in {
-        val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data6.log")
-        val out = WorkFlowSummaryModel.execute(data, None)
-        out.count() should be(15)
-
-        val me = out.collect();
-        val appSummaryEvents = me.filter { x => x.dimensions.`type`.get.equals("app") }
-        appSummaryEvents.size should be(2)
-
-        val event1 = appSummaryEvents.filter(f => f.mid.equals("2D8FABBFB0384B7A0320B7477C4688E8")).last
-
-        event1.eid should be("ME_WORKFLOW_SUMMARY");
-        event1.context.pdata.model.get should be("WorkflowSummarizer");
-        event1.context.pdata.ver should be("1.0");
-        event1.context.granularity should be("SESSION");
-        event1.context.date_range should not be null;
-        event1.dimensions.`type`.get should be("app");
-        event1.dimensions.did.get should be("e758d6c277dafbda491a5f3824622b5a612304dc");
-        event1.dimensions.sid.get should be("430d7850-39ff-4f3d-b672-dfb4ae875160");
-        event1.dimensions.channel.get should be("01235953109336064029450")
-
-        val summary1 = JSONUtils.deserialize[WorkflowDataRead](JSONUtils.serialize(event1.edata.eks));
-        summary1.interact_events_per_min should be(2.14);
-        summary1.start_time should be(1534700219419L);
-        summary1.interact_events_count should be(13);
-        summary1.end_time should be(1534700584532L);
-        summary1.time_diff should be(365.11);
-        summary1.time_spent should be(365.13);
-        summary1.item_responses.get.size should be(0);
-        summary1.page_summary.get.size should be(4);
-        summary1.env_summary.get.size should be(1);
-        summary1.events_summary.get.size should be(5);
-        summary1.telemetry_version should be("3.0");
-    }
+    
 }
