@@ -30,6 +30,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event1.context.date_range should not be null;
         event1.dimensions.`type`.get should be("session");
         event1.dimensions.content_id.get should be("all");
+        event1.dimensions.content_type.get should be("all");
         event1.dimensions.tag.get should be("all");
         event1.dimensions.did.get should be("all");
         event1.dimensions.uid.get should be("all");
@@ -60,6 +61,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event2.context.date_range should not be null;
         event2.dimensions.`type`.get should be("session");
         event2.dimensions.content_id.get should be("all");
+        event2.dimensions.content_type.get should be("all");
         event2.dimensions.tag.get should be("all");
         event2.dimensions.did.get should be("all");
         event2.dimensions.uid.get should be("427");
@@ -100,6 +102,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event1.context.date_range should not be null;
         event1.dimensions.`type`.get should be("player");
         event1.dimensions.content_id.get should be("all");
+        event1.dimensions.content_type.get should be("all");
         event1.dimensions.tag.get should be("all");
         event1.dimensions.did.get should be("all");
         event1.dimensions.uid.get should be("all");
@@ -130,6 +133,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event2.context.date_range should not be null;
         event2.dimensions.`type`.get should be("player");
         event2.dimensions.content_id.get should be("all");
+        event2.dimensions.content_type.get should be("all");
         event2.dimensions.tag.get should be("all");
         event2.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event2.dimensions.uid.get should be("all");
@@ -160,6 +164,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event3.context.date_range should not be null;
         event3.dimensions.`type`.get should be("player");
         event3.dimensions.content_id.get should be("do_30094761");
+        event3.dimensions.content_type.get should be("Content");
         event3.dimensions.tag.get should be("all");
         event3.dimensions.did.get should be("11573c50cae2078e847f12c91a2d1965eaa73714");
         event3.dimensions.uid.get should be("all");
@@ -207,6 +212,7 @@ class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
         event1.context.date_range should not be null;
         event1.dimensions.`type`.get should be("player");
         event1.dimensions.content_id.get should be("all");
+        event1.dimensions.content_type.get should be("all");
         event1.dimensions.tag.get should be("piwik_json");
         event1.dimensions.did.get should be("all");
         event1.dimensions.uid.get should be("all");
