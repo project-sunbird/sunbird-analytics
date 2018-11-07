@@ -40,30 +40,22 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
 
     override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
         data.map { x =>
-            val objectType = if(x.workflowSummary.isDefined){
-                x.workflowSummary.get.m_content_type
-            }else{
-                "Content"
-            }
-            val workflowUsageMap = if (x.workflowSummary.isDefined) {
-                Map("me_totalSessionsCount" -> x.workflowSummary.get.m_total_sessions,
-                    "me_totalTimespent" -> x.workflowSummary.get.m_total_ts,
-                    "me_totalInteractions" -> x.workflowSummary.get.m_total_interactions,
-                    "me_averageInteractionsPerMin" -> x.workflowSummary.get.m_avg_interactions_min,
-                    "me_averageTimespentPerSession" -> x.workflowSummary.get.m_avg_ts_session)
-            } else {
-                Map(""-> 0.0)
-            }
-            val popularityMap = if (x.popularitySummary.isDefined) {
-                Map("me_averageRating" -> x.popularitySummary.get.m_avg_rating,
-                    "me_totalDownloads" -> x.popularitySummary.get.m_downloads,
-                    "me_totalSideloads" -> x.popularitySummary.get.m_side_loads,
-                    "me_totalRatings" -> x.popularitySummary.get.m_ratings.size,
-                    "me_totalComments" -> x.popularitySummary.get.m_comments.size)
-            } else {
-                Map(""-> 0.0)
-            }
+            val objectType = x.workflowSummary.map(_.m_content_type).getOrElse("Content")
+            val workflowUsageMap = x.workflowSummary.map(f =>
+                Map("me_totalSessionsCount" -> f.m_total_sessions,
+                    "me_totalTimespent" -> f.m_total_ts,
+                    "me_totalInteractions" -> f.m_total_interactions,
+                    "me_averageInteractionsPerMin" -> f.m_avg_interactions_min,
+                    "me_averageTimespentPerSession" -> f.m_avg_ts_session)
+            ).getOrElse(Map("" -> 0.0))
 
+            val popularityMap = x.popularitySummary.map(f =>
+                Map("me_averageRating" -> f.m_avg_rating,
+                    "me_totalDownloads" -> f.m_downloads,
+                    "me_totalSideloads" -> f.m_side_loads,
+                    "me_totalRatings" -> f.m_ratings.size,
+                    "me_totalComments" -> f.m_comments.size)
+            ).getOrElse(Map("" -> 0.0))
             val metrics = workflowUsageMap ++ popularityMap
             val finalContentMap = metrics.filter(x=> x._1.nonEmpty).map{ x => (x._1 -> Map("ov" -> null, "nv" -> x._2))}
             GraphUpdateEvent(DateTime.now().getMillis, x.contentId, Map("properties" -> finalContentMap),objectType )
@@ -71,7 +63,6 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
     }
 
     override def postProcess(data: RDD[GraphUpdateEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
-
         data
     }
 }
