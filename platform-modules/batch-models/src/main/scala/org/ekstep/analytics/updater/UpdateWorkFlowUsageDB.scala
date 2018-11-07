@@ -74,7 +74,7 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         val rollupSummaries = joinedData.map { x =>
             val index = x._1
             val newSumm = x._2._1
-            val prvSumm = x._2._2.getOrElse(WorkFlowUsageSummaryFact(index.d_period, index.d_channel, index.d_app_id, index.d_tag, index.d_type, index.d_mode, index.d_device_id, index.d_content_id, index.d_user_id, newSumm.m_publish_date, newSumm.m_last_sync_date, newSumm.m_last_gen_date, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0, 0, BloomFilterUtil.getDefaultBytes(period), BloomFilterUtil.getDefaultBytes(period), BloomFilterUtil.getDefaultBytes(period)));
+            val prvSumm = x._2._2.getOrElse(WorkFlowUsageSummaryFact(index.d_period, index.d_channel, index.d_app_id, index.d_tag, index.d_type, index.d_mode, index.d_device_id, index.d_content_id, index.d_user_id, newSumm.m_publish_date, newSumm.m_last_sync_date, newSumm.m_last_gen_date, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0, 0, BloomFilterUtil.getDefaultBytes(period), BloomFilterUtil.getDefaultBytes(period), BloomFilterUtil.getDefaultBytes(period), "Content"));
             reduce(prvSumm, newSumm, period);
         }
         rollupSummaries;
@@ -114,7 +114,7 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
 
         val avg_pageviews = CommonUtil.roundDouble((total_pageviews_count / total_sessions), 2)
 
-        WorkFlowUsageSummaryFact(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type, fact1.d_mode, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, total_users_count, total_content_count, total_devices_count, user_ids, device_ids, content_ids);
+        WorkFlowUsageSummaryFact(fact1.d_period, fact1.d_channel, fact1.d_app_id, fact1.d_tag, fact1.d_type, fact1.d_mode, fact1.d_device_id, fact1.d_content_id, fact1.d_user_id, publish_date, sync_date, fact2.m_last_gen_date, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, total_users_count, total_content_count, total_devices_count, user_ids, device_ids, content_ids, "Content");
     }
 
     /**
