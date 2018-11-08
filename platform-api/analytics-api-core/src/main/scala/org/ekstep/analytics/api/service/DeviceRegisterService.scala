@@ -11,38 +11,61 @@ import org.ekstep.analytics.api.util.PostgresDBUtil
 import com.typesafe.config.ConfigFactory
 import com.datastax.driver.core.ResultSet
 import org.ekstep.analytics.api.util.DeviceLocation
-import is.tagomor.woothee.Classifier;
+import is.tagomor.woothee.Classifier
 
 object DeviceRegisterService {
   
     case class RegisterDevice(did: String, ip: String, request: String, uaspec: String)
 
-    def registerDevice(did: String, ip: String, request: String, uaspec: String): String = {
-        val config: Config = ConfigFactory.load()
-        val tableName = config.getString("postgres.location_table")
+    val config: Config = ConfigFactory.load()
+
+    def registerDevice(did: String, ipAddress: String, request: String, uaspec: String): String = {
         val body = JSONUtils.deserialize[RequestBody](request)
-        val validIp = if(ip.startsWith("192")) body.request.ip_addr.getOrElse("") else ip
+        val validIp = if(ipAddress.startsWith("192")) body.request.ip_addr.getOrElse("") else ipAddress
         if(validIp.nonEmpty) {
-            val ipInt = InetAddresses.coerceToInteger(InetAddresses.forString(validIp))
-            val psql = "select * from " + tableName +" where ip_from <= " + ipInt + "AND ip_to >= " + ipInt
-            val location = PostgresDBUtil.readLocation(psql).headOption.getOrElse(DeviceLocation("", ""))
+            val ipAddressInt = InetAddresses.coerceToInteger(InetAddresses.forString(validIp))
+            val query =
+              s"""
+                 |SELECT
+                 |  glc.continent_name,
+                 |  glc.country_name,
+                 |  glc.subdivision_1_name state,
+                 |  glc.subdivision_2_name sub_div_2,
+                 |  glc.city_name city
+                 |FROM geo_location_city_ipv4 gip,
+                 |  geo_location_city glc
+                 |WHERE gip.geoname_id = glc.geoname_id
+                 |  AND gip.network_start_integer <= $ipAddressInt
+                 |  AND gip.network_last_integer >= $ipAddressInt
+               """.stripMargin
+            val location = PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
             val channel = body.request.channel.getOrElse("")
             val dspec = body.request.dspec
-            val data = updateDeviceProfile(did, channel, location.state, location.district, dspec, uaspec)
+            val data = updateDeviceProfile(did, channel, location.state, location.city, dspec, uaspec)
         }
-        JSONUtils.serialize(CommonUtil.OK("analytics.device-register", Map("message" -> "Device registered successfully")));
+        JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
+            Map("message" -> s"Device registered successfully")))
     }
     
-    def updateDeviceProfile(did: String, channel: String, state: String, district: String, dspec: Option[Map[String, String]], uaspec: String): ResultSet = {
+    def updateDeviceProfile(did: String, channel: String, state: String, district: String,
+                            dspec: Option[Map[String, String]], uaspec: String): ResultSet = {
         val uaspecMap = Classifier.parse(uaspec);
-        val finalMap = Map("agent" -> uaspecMap.get("name"), "ver" -> uaspecMap.get("version"), "system" -> uaspecMap.get("os"), "raw" -> uaspec)
+        val finalMap = Map("agent" -> uaspecMap.get("name"), "ver" -> uaspecMap.get("version"),
+            "system" -> uaspecMap.get("os"), "raw" -> uaspec)
         val uaspecStr = JSONUtils.serialize(finalMap).replaceAll("\"", "'")
         val query = if(dspec.isEmpty) {
-            "INSERT INTO " + Constants.DEVICE_DB +"."+ Constants.DEVICE_PROFILE_TABLE + " (device_id, channel, state, district, uaspec, updated_date) VALUES('" + did +"','"+ channel +"','"+ state +"','"+ district +"',"+ uaspecStr +","+ DateTime.now(DateTimeZone.UTC).getMillis + ")"
-        }
-        else {
+            s"""
+               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
+               | (device_id, channel, state, district, uaspec, updated_date)
+               |VALUES('$did','$channel','$state','$district', $uaspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+             """.stripMargin
+        } else {
             val dspecStr = JSONUtils.serialize(dspec.get).replaceAll("\"", "'")
-            "INSERT INTO " + Constants.DEVICE_DB +"."+ Constants.DEVICE_PROFILE_TABLE + " (device_id, channel, state, district, uaspec, dspec, updated_date) VALUES('" + did +"','"+ channel +"','"+ state +"','"+ district +"',"+ uaspecStr +","+ dspecStr +","+ DateTime.now(DateTimeZone.UTC).getMillis + ")"
+            s"""
+               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
+               | (device_id, channel, state, district, uaspec, dspec, updated_date)
+               | VALUES('$did', '$channel', '$state', '$district', $uaspecStr, $dspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+             """.stripMargin
         }
         DBUtil.session.execute(query)
     }

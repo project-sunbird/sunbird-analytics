@@ -12,9 +12,9 @@ object PostgresDBUtil {
     private lazy val pass = config.getString("postgres.pass")
 
     Class.forName("org.postgresql.Driver")
-    ConnectionPool.singleton(url+db, user, pass)
+    ConnectionPool.singleton(s"$url$db", user, pass)
 
-    implicit val session = AutoSession
+    implicit val session: AutoSession = AutoSession
 
     def read(sqlString: String): List[ConsumerChannel] = {
         SQL(sqlString).map(rs => ConsumerChannel(rs)).list().apply()
@@ -29,10 +29,16 @@ object PostgresDBUtil {
     }
 }
 
-case class DeviceLocation(state: String, district: String)
+case class DeviceLocation(continentName: String, countryName: String, state: String, subDivsion2: String, city: String) {
+    def this() = this("", "", "", "", "")
+}
 
 object DeviceLocation extends SQLSyntaxSupport[DeviceLocation] {
     def apply(rs: WrappedResultSet) = new DeviceLocation(
-        rs.string("region_name"), rs.string("city_name")
+        rs.string("continent_name"),
+        rs.string("country_name"),
+        rs.string("state"),
+        rs.string("sub_div_2"),
+        rs.string("city")
     )
 }

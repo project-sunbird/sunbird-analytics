@@ -42,14 +42,15 @@ import org.ekstep.analytics.api.service.DeviceRegisterService.RegisterDevice
 
 @Singleton
 class Application @Inject() (system: ActorSystem) extends BaseController {
-	implicit override val className = "controllers.Application";
-	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor");
-	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor");
-	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor");
-	val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()), name = "deviceRegisterServiceAPIActor");
+	implicit override val className = "controllers.Application"
+	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor")
+	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor")
+	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor")
+	val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()),
+		name = "deviceRegisterServiceAPIActor")
 
 	def checkAPIhealth() = Action.async { implicit request =>
-    val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String];
+    val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
     }
@@ -57,56 +58,56 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 
 	def recommendations() = Action.async { implicit request =>
 		val body: String = Json.stringify(request.body.asJson.get);
-		val futureRes = ask(recommendAPIActor, Consumption(body, config)).mapTo[String];
+		val futureRes = ask(recommendAPIActor, Consumption(body, config)).mapTo[String]
 		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
-		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
+		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture))
 		val response: Future[String] = firstCompleted.recoverWith {
 			case ex: ClientException =>
-				Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) };
+				Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) }
 		};
 		response.map { resp =>
-			play.Logger.info(request + " body - " + body + "\n\t => " + resp);
-			val result = if (resp.contains(ResponseCode.CLIENT_ERROR.toString()) || config.getBoolean("recommendation.enable")) resp
-			else JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))));
-			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
+			play.Logger.info(request + " body - " + body + "\n\t => " + resp)
+			val result = if (resp.contains(ResponseCode.CLIENT_ERROR.toString) || config.getBoolean("recommendation.enable")) resp
+			else JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))))
+			Ok(result).withHeaders(CONTENT_TYPE -> "application/json")
 		}
 	}
 	
 	def creationRecommendations() = Action.async { implicit request =>
-		val body: String = Json.stringify(request.body.asJson.get);
-		val futureRes = ask(recommendAPIActor, Creation(body, config)).mapTo[String];
+		val body: String = Json.stringify(request.body.asJson.get)
+		val futureRes = ask(recommendAPIActor, Creation(body, config)).mapTo[String]
 		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
-		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture));
+		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture))
 		val response: Future[String] = firstCompleted.recoverWith {
 			case ex: ClientException =>
 				Future { CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) };
 		};
 		response.map { result =>
-			Ok(result).withHeaders(CONTENT_TYPE -> "application/json");
+			Ok(result).withHeaders(CONTENT_TYPE -> "application/json")
 		}
 	}
 	
 	def registerTag(tagId: String) = Action.async { implicit request =>
-		val result = ask(tagServiceAPIActor, RegisterTag(tagId)).mapTo[String];
+		val result = ask(tagServiceAPIActor, RegisterTag(tagId)).mapTo[String]
     result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+      Ok(x).withHeaders(CONTENT_TYPE -> "application/json")
     }
 	}
 
 	def deleteTag(tagId: String) = Action.async { implicit request =>
-		val result = ask(tagServiceAPIActor, DeleteTag(tagId)).mapTo[String];
+		val result = ask(tagServiceAPIActor, DeleteTag(tagId)).mapTo[String]
     result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+      Ok(x).withHeaders(CONTENT_TYPE -> "application/json")
     }
 	}
 	
 	def registerDevice(deviceId: String) = Action.async { implicit request =>
-	  val body: String = Json.stringify(request.body.asJson.get);
-	  val ip = request.headers.get("X-FORWARDED-FOR").getOrElse("")
+	  val body: String = Json.stringify(request.body.asJson.get)
+	  val ip = request.headers.get("X-CLIENT-IP-ADDR").getOrElse("")
 	  val uaspec = request.headers.get("User-Agent").getOrElse("")
-		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, ip, body, uaspec)).mapTo[String];
+		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, ip, body, uaspec)).mapTo[String]
     result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+      Ok(x).withHeaders(CONTENT_TYPE -> "application/json")
     }
 	}
 }
