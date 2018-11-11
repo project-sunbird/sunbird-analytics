@@ -20,10 +20,6 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.ResponseCode
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.Level._
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
 
 import scala.collection.JavaConverters._
 import akka.actor.Props
@@ -33,7 +29,6 @@ import org.ekstep.analytics.api.service.TagService.DeleteTag
 import org.ekstep.analytics.api.service.TagService.RegisterTag
 import org.ekstep.analytics.api.service.RecommendationAPIService.Consumption
 import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
-import org.ekstep.analytics.api.service.DeviceRegisterService.RegisterDevice
 
 /**
  * @author mahesh
