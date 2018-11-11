@@ -1,15 +1,13 @@
 package controllers
 
-import org.ekstep.analytics.api.service.HealthCheckAPIService
-
-import org.ekstep.analytics.api.service.RecommendationAPIService
-import org.ekstep.analytics.api.service.TagService
+import org.ekstep.analytics.api.service._
 import org.ekstep.analytics.api.util._
 import play.api._
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import javax.inject.Singleton
@@ -18,6 +16,7 @@ import akka.actor.ActorSystem
 import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.ResponseCode
@@ -25,6 +24,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.Level._
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+
 import scala.collection.JavaConverters._
 import akka.actor.Props
 import akka.routing.FromConfig
@@ -33,7 +33,6 @@ import org.ekstep.analytics.api.service.TagService.DeleteTag
 import org.ekstep.analytics.api.service.TagService.RegisterTag
 import org.ekstep.analytics.api.service.RecommendationAPIService.Consumption
 import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
-import org.ekstep.analytics.api.service.DeviceRegisterService
 import org.ekstep.analytics.api.service.DeviceRegisterService.RegisterDevice
 
 /**
@@ -103,7 +102,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	
 	def registerDevice(deviceId: String) = Action.async { implicit request =>
 	  val body: String = Json.stringify(request.body.asJson.get)
-	  val ip = request.headers.get("X-CLIENT-IP-ADDR").getOrElse("")
+	  val ip = request.headers.get("X-Forwarded-For").getOrElse("")
 	  val uaspec = request.headers.get("User-Agent").getOrElse("")
 		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, ip, body, uaspec)).mapTo[String]
     result.map { x =>
