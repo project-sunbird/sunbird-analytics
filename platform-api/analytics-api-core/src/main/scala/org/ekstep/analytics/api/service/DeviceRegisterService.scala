@@ -18,6 +18,8 @@ case class RegisterDevice(did: String, ip: String, request: String, uaspec: Stri
 class DeviceRegisterService extends Actor {
 
     val config: Config = ConfigFactory.load()
+    val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
+    val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
 
     def receive = {
         case RegisterDevice(did: String, ip: String, request: String, uaspec: String) => sender() ! registerDevice(did, ip, request, uaspec)
@@ -29,9 +31,9 @@ class DeviceRegisterService extends Actor {
         if(validIp.nonEmpty) {
             val location = resolveLocation(validIp)
             val channel = body.request.channel.getOrElse("")
-            val dspec = body.request.dspec
+            val deviceSpec = body.request.dspec
             val data = updateDeviceProfile(did, channel, Option(location.state).map(_.trim).filterNot(_.isEmpty),
-                Option(location.city).map(_.trim).filterNot(_.isEmpty), dspec, uaspec)
+                Option(location.city).map(_.trim).filterNot(_.isEmpty), deviceSpec, uaspec)
         }
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
@@ -47,8 +49,8 @@ class DeviceRegisterService extends Actor {
                |  glc.subdivision_1_name state,
                |  glc.subdivision_2_name sub_div_2,
                |  glc.city_name city
-               |FROM geo_location_city_ipv4 gip,
-               |  geo_location_city glc
+               |FROM $geoLocationCityIpv4TableName gip,
+               |  $geoLocationCityTableName glc
                |WHERE gip.geoname_id = glc.geoname_id
                |  AND gip.network_start_integer <= $ipAddressInt
                |  AND gip.network_last_integer >= $ipAddressInt
@@ -57,13 +59,13 @@ class DeviceRegisterService extends Actor {
     }
 
     def updateDeviceProfile(did: String, channel: String, state: Option[String], district: Option[String],
-                            dspec: Option[Map[String, String]], uaspec: String): ResultSet = {
+                            deviceSpec: Option[Map[String, String]], uaspec: String): ResultSet = {
         val uaspecMap = Classifier.parse(uaspec)
         val finalMap = Map("agent" -> uaspecMap.get("name"), "ver" -> uaspecMap.get("version"),
             "system" -> uaspecMap.get("os"), "raw" -> uaspec)
         val uaspecStr = JSONUtils.serialize(finalMap).replaceAll("\"", "'")
 
-        val query = if(dspec.isEmpty) {
+        val query = if(deviceSpec.isEmpty) {
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (device_id, channel, state, district, uaspec, updated_date)
@@ -76,11 +78,11 @@ class DeviceRegisterService extends Actor {
                |VALUES('$did','$channel', $uaspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         } else {
-            val dspecStr = JSONUtils.serialize(dspec.get).replaceAll("\"", "'")
+            val deviceSpecStr = JSONUtils.serialize(deviceSpec.get).replaceAll("\"", "'")
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (device_id, channel, state, district, uaspec, dspec, updated_date)
-               | VALUES('$did', '$channel', '$state', '$district', $uaspecStr, $dspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+               | (device_id, channel, state, district, uaspec, device_spec, updated_date)
+               | VALUES('$did', '$channel', '$state', '$district', $uaspecStr, $deviceSpecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         }
         DBUtil.session.execute(query)

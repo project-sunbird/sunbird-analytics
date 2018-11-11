@@ -85,10 +85,10 @@ class TestDeviceRegisterService extends BaseSpec {
       "make" -> "Micromax Micromax A065", "os" -> "Android 4.4.2")
 
     when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = Some("Karnataka"),
-      district = Some("Bangalore"), dspec = Some(dspec), uaspec = uaspec)).thenReturn(resultSetMock)
+      district = Some("Bangalore"), deviceSpec = Some(dspec), uaspec = uaspec)).thenReturn(resultSetMock)
 
     val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = Some("Karnataka"),
-      district = Some("Bangalore"), dspec = Some(dspec), uaspec = uaspec).one()
+      district = Some("Bangalore"), deviceSpec = Some(dspec), uaspec = uaspec).one()
 
     resultRow.getString("state") should be("Karnataka")
     resultRow.getString("district") should be("Bangalore")
@@ -108,10 +108,10 @@ class TestDeviceRegisterService extends BaseSpec {
     when(mockedRow.getString("uaspec")).thenReturn(uaspec)
 
     when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = None,
-      district = None, dspec = Some(dspec), uaspec = uaspec)).thenReturn(resultSetMock)
+      district = None, deviceSpec = Some(dspec), uaspec = uaspec)).thenReturn(resultSetMock)
 
     val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = None,
-      district = None, dspec = Some(dspec), uaspec = uaspec).one()
+      district = None, deviceSpec = Some(dspec), uaspec = uaspec).one()
 
     resultRow.getString("state") should be("")
     resultRow.getString("district") should be("")
