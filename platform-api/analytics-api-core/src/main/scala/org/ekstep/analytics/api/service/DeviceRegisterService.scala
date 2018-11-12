@@ -68,7 +68,7 @@ class DeviceRegisterService extends Actor {
         val query = if(deviceSpec.isEmpty) {
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (device_id, channel, state, district, uaspec, updated_date)
+               | (device_id, channel, state, city, uaspec, updated_date)
                |VALUES('$did','$channel','$state','$district', $uaspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         } else if (state.isEmpty || district.isEmpty) {
@@ -81,7 +81,7 @@ class DeviceRegisterService extends Actor {
             val deviceSpecStr = JSONUtils.serialize(deviceSpec.get).replaceAll("\"", "'")
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (device_id, channel, state, district, uaspec, device_spec, updated_date)
+               | (device_id, channel, state, city, uaspec, device_spec, updated_date)
                | VALUES('$did', '$channel', '$state', '$district', $uaspecStr, $deviceSpecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         }
