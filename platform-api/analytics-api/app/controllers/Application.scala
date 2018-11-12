@@ -97,7 +97,8 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	
 	def registerDevice(deviceId: String) = Action.async { implicit request =>
 	  val body: String = Json.stringify(request.body.asJson.get)
-	  val ip = request.headers.get("X-Forwarded-For").getOrElse("")
+		// The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
+	  val ip = request.headers.get("X-Forwarded-For").map(x => x.split(",")(1)).getOrElse("")
 	  val uaspec = request.headers.get("User-Agent").getOrElse("")
 		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, ip, body, uaspec)).mapTo[String]
     result.map { x =>
