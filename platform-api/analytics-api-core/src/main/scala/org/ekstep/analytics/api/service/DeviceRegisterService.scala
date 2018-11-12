@@ -27,8 +27,8 @@ class DeviceRegisterService extends Actor {
 
     def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {
         val body = JSONUtils.deserialize[RequestBody](request)
-        val validIp = if(ipAddress.startsWith("192")) body.request.ip_addr.getOrElse("") else ipAddress
-        if(validIp.nonEmpty) {
+        val validIp = if (ipAddress.startsWith("192")) body.request.ip_addr.getOrElse("") else ipAddress
+        if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
             val channel = body.request.channel.getOrElse("")
             val deviceSpec = body.request.dspec
@@ -58,31 +58,43 @@ class DeviceRegisterService extends Actor {
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
     }
 
+    def parseUserAgent(uaspec: Option[String]): Option[String] = {
+        uaspec.map {
+            userAgent =>
+                val uaspecMap = Classifier.parse(userAgent)
+                val parsedUserAgentMap = Map("agent" -> uaspecMap.get("name"), "ver" -> uaspecMap.get("version"),
+                    "system" -> uaspecMap.get("os"), "raw" -> userAgent)
+                val uaspecStr = JSONUtils.serialize(parsedUserAgentMap).replaceAll("\"", "'")
+                uaspecStr
+        }
+    }
+
     def updateDeviceProfile(did: String, channel: String, state: Option[String], city: Option[String],
                             deviceSpec: Option[Map[String, String]], uaspec: Option[String]): ResultSet = {
-        val uaspecMap = Classifier.parse(uaspec.getOrElse(""))
-        val finalMap = Map("agent" -> uaspecMap.get("name"), "ver" -> uaspecMap.get("version"),
-            "system" -> uaspecMap.get("os"), "raw" -> uaspec)
-        val uaspecStr = JSONUtils.serialize(finalMap).replaceAll("\"", "'")
+
+        val uaspecStr = parseUserAgent(uaspec)
+        // println(s"did: $did | channel: $channel | state: $state | city: $city | deviceSpec: $deviceSpec | uaspec: $uaspecStr")
 
         val query = if(deviceSpec.isEmpty) {
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (device_id, channel, state, city, uaspec, updated_date)
-               |VALUES('$did','$channel','$state','$city', $uaspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+               |VALUES('$did','$channel','${state.getOrElse("")}','${city.getOrElse("")}', ${uaspecStr.getOrElse("")},
+               |${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         } else if (state.isEmpty || city.isEmpty) {
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (device_id, channel, uaspec, updated_date)
-               |VALUES('$did','$channel', $uaspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+               |VALUES('$did','$channel', ${uaspecStr.getOrElse("")}, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         } else {
             val deviceSpecStr = JSONUtils.serialize(deviceSpec.get).replaceAll("\"", "'")
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (device_id, channel, state, city, uaspec, device_spec, updated_date)
-               | VALUES('$did', '$channel', '$state', '$city', $uaspecStr, $deviceSpecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+               | VALUES('$did', '$channel', '${state.getOrElse("")}', '${city.getOrElse("")}',
+               | ${uaspecStr.getOrElse("")}, $deviceSpecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         }
         DBUtil.session.execute(query)

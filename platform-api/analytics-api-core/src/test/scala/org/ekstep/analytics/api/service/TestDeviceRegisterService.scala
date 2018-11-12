@@ -141,6 +141,12 @@ class TestDeviceRegisterService extends BaseSpec {
     resultRow.getString("uaspec") should be("")
   }
 
+  "When User-Agent is empty" should "return empty string for user agent map" in {
+    when(deviceRegisterServiceMock.parseUserAgent(None)).thenReturn(None)
+    val uaspecResult: Option[String] = deviceRegisterServiceMock.parseUserAgent(None)
+    uaspecResult should be (None)
+  }
+
   /*
   ignore should "register given device with IP" in {
     val response =
