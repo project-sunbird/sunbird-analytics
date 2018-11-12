@@ -13,7 +13,7 @@ import com.datastax.driver.core.ResultSet
 import org.ekstep.analytics.api.util.DeviceLocation
 import is.tagomor.woothee.Classifier
 
-case class RegisterDevice(did: String, ip: String, request: String, uaspec: String)
+case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
 
 class DeviceRegisterService extends Actor {
 
@@ -22,10 +22,10 @@ class DeviceRegisterService extends Actor {
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
 
     def receive = {
-        case RegisterDevice(did: String, ip: String, request: String, uaspec: String) => sender() ! registerDevice(did, ip, request, uaspec)
+        case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) => sender() ! registerDevice(did, ip, request, uaspec)
     }
 
-    def registerDevice(did: String, ipAddress: String, request: String, uaspec: String): String = {
+    def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {
         val body = JSONUtils.deserialize[RequestBody](request)
         val validIp = if(ipAddress.startsWith("192")) body.request.ip_addr.getOrElse("") else ipAddress
         if(validIp.nonEmpty) {
@@ -33,7 +33,7 @@ class DeviceRegisterService extends Actor {
             val channel = body.request.channel.getOrElse("")
             val deviceSpec = body.request.dspec
             val data = updateDeviceProfile(did, channel, Option(location.state).map(_.trim).filterNot(_.isEmpty),
-                Option(location.city).map(_.trim).filterNot(_.isEmpty), deviceSpec, uaspec)
+                Option(location.city).map(_.trim).filterNot(_.isEmpty), deviceSpec, uaspec.map(_.trim).filterNot(_.isEmpty))
         }
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
@@ -58,9 +58,9 @@ class DeviceRegisterService extends Actor {
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
     }
 
-    def updateDeviceProfile(did: String, channel: String, state: Option[String], district: Option[String],
-                            deviceSpec: Option[Map[String, String]], uaspec: String): ResultSet = {
-        val uaspecMap = Classifier.parse(uaspec)
+    def updateDeviceProfile(did: String, channel: String, state: Option[String], city: Option[String],
+                            deviceSpec: Option[Map[String, String]], uaspec: Option[String]): ResultSet = {
+        val uaspecMap = Classifier.parse(uaspec.getOrElse(""))
         val finalMap = Map("agent" -> uaspecMap.get("name"), "ver" -> uaspecMap.get("version"),
             "system" -> uaspecMap.get("os"), "raw" -> uaspec)
         val uaspecStr = JSONUtils.serialize(finalMap).replaceAll("\"", "'")
@@ -69,9 +69,9 @@ class DeviceRegisterService extends Actor {
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (device_id, channel, state, city, uaspec, updated_date)
-               |VALUES('$did','$channel','$state','$district', $uaspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+               |VALUES('$did','$channel','$state','$city', $uaspecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
-        } else if (state.isEmpty || district.isEmpty) {
+        } else if (state.isEmpty || city.isEmpty) {
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (device_id, channel, uaspec, updated_date)
@@ -82,7 +82,7 @@ class DeviceRegisterService extends Actor {
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (device_id, channel, state, city, uaspec, device_spec, updated_date)
-               | VALUES('$did', '$channel', '$state', '$district', $uaspecStr, $deviceSpecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
+               | VALUES('$did', '$channel', '$state', '$city', $uaspecStr, $deviceSpecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         }
         DBUtil.session.execute(query)
