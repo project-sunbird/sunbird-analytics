@@ -4,19 +4,21 @@ import java.util.UUID
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.framework.{IJob, JobConfig, JobContext}
 import org.ekstep.analytics.util.{Constants, JobRequest}
 import org.ekstep.analytics.videostream.VideoStreamingUtils
-import org.ekstep.media.service.impl.MediaServiceFactory
 import com.datastax.spark.connector._
 import org.ekstep.media.common.{MediaRequest, MediaResponse}
+import org.ekstep.media.service.impl.MediaServiceFactory
 
 object VideoStreamingJob extends optional.Application with IJob {
 
   implicit val className = "org.ekstep.analytics.job.VideoStreamingJob"
   def name: String = "VideoStreamingJob"
   val mediaService = MediaServiceFactory.getMediaService()
+  val contentServiceUrl = AppConf.getConfig("lp.url")
 
   case class StreamingStage(request_id: String, client_key: String, job_id: String, stage: String, stage_status: String, status: String, iteration: Int, err_message: String = "")
 
@@ -81,14 +83,48 @@ object VideoStreamingJob extends optional.Application with IJob {
   }
 
   private def _getCompletedRequests(processing: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
-
-    processing.map(jobRequest => {
+    val stageName = "STREAMING_JOB_COMPLETE"
+    processing.map { jobRequest =>
       val mediaResponse:MediaResponse = mediaService.getJob(jobRequest.job_id.get)
-
-    })
+      (jobRequest, mediaResponse)
+    }.map {
+      x =>
+        val request = x._1
+        val response = x._2
+        val iteration = request.iteration.getOrElse(0)
+        if(response.responseCode.contentEquals("OK")) {
+          val status = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
+          if(status.contentEquals("FINISHED")) {
+            val previewUrl = mediaService.getStreamingPaths(request.job_id.get).result.getOrElse("streamUrl","").asInstanceOf[String]
+            val contentId = JSONUtils.deserialize[Map[String,AnyRef]](request.request_data).getOrElse("content_id", "").asInstanceOf[String]
+            if(_updatePreviewUrl(contentId, previewUrl)){
+              val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
+              StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FINISHED", iteration);
+            }
+          } else if(status.contentEquals("ERROR")){
+            val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
+            StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FAILED", iteration + 1);
+          }
+        }
+    }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
   }
 
-
-
+  private def _updatePreviewUrl(contentId: String, previewUrl: String): Boolean = {
+    //TODO: Need to check on how to get channel ID of the content
+    if(!previewUrl.isEmpty && !contentId.isEmpty) {
+      val requestBody = "{\"request\": {\"content\": {\"previewUrl\":\""+ previewUrl +"\"}}}"
+      val url = contentServiceUrl + "/system/v3/content/update/" + contentId
+      val response = RestUtil.patch[Map[String, AnyRef]](url, requestBody)
+      if(response.getOrElse("responseCode","").asInstanceOf[String].contentEquals("OK")){
+        true;
+      } else{
+        val errorMessage = response.getOrElse("params", Map).asInstanceOf[Map[String, AnyRef]].getOrElse("errmsg","").asInstanceOf[String] + JSONUtils.serialize(response.getOrElse("result", Map).asInstanceOf[Map[String, AnyRef]])
+        JobLogger.end("Error while updating previewUrl for content : " + contentId + " with error : " + errorMessage, "FAILED", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0, "jobCount" -> 0, "requestDetails" -> null)))
+        false
+      }
+    }else{
+      false
+    }
+  }
 
 }
