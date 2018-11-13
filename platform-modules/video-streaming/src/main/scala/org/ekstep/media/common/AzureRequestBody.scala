@@ -1,4 +1,5 @@
-package org.sunbird.media.common
+package org.ekstep.media.common
+
 /**
   *
   * @author gauraw

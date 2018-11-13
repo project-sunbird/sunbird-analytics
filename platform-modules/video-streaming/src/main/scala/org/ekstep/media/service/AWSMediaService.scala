@@ -1,12 +1,12 @@
-package org.sunbird.media.service
+package org.ekstep.media.service
 
 import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
-import org.sunbird.media.common.{AWSRequestBody, MediaResponse}
-import org.sunbird.media.config.AppConfig
-import org.sunbird.media.exception.MediaServiceException
-import org.sunbird.media.util.{AWSSignUtils, HttpRestUtil}
+import org.ekstep.media.common.{AWSRequestBody, MediaResponse}
+import org.ekstep.media.config.AppConfig
+import org.ekstep.media.exception.MediaServiceException
+import org.ekstep.media.util.{AWSSignUtils, HttpRestUtil}
 
 import scala.collection.immutable.HashMap
 import scala.reflect.io.File

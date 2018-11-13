@@ -2,15 +2,15 @@ package org.ekstep.analytics.job
 
 import java.util.UUID
 
-import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.framework.{IJob, JobConfig, JobContext}
 import org.ekstep.analytics.util.{Constants, JobRequest}
 import org.ekstep.analytics.videostream.VideoStreamingUtils
-import org.sunbird.media.common.{MediaRequest, MediaResponse}
-import org.sunbird.media.service.impl.MediaServiceFactory
+import org.ekstep.media.service.impl.MediaServiceFactory
+import com.datastax.spark.connector._
+import org.ekstep.media.common.{MediaRequest, MediaResponse}
 
 object VideoStreamingJob extends optional.Application with IJob {
 
@@ -82,7 +82,7 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   private def _getCompletedRequests(processing: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
 
-    processing.foreach(jobRequest => {
+    processing.map(jobRequest => {
       val mediaResponse:MediaResponse = mediaService.getJob(jobRequest.job_id.get)
 
     })

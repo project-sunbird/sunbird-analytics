@@ -1,10 +1,10 @@
-package org.sunbird.media.service
+package org.ekstep.media.service
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.media.common.{AzureRequestBody, MediaResponse}
-import org.sunbird.media.config.AppConfig
-import org.sunbird.media.exception.MediaServiceException
-import org.sunbird.media.util.HttpRestUtil
+import org.ekstep.media.common.{AzureRequestBody, MediaResponse}
+import org.ekstep.media.config.AppConfig
+import org.ekstep.media.exception.MediaServiceException
+import org.ekstep.media.util.HttpRestUtil
 
 import scala.collection.immutable.HashMap
 import scala.reflect.io.File

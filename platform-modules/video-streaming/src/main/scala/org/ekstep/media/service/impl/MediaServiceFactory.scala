@@ -1,8 +1,8 @@
-package org.sunbird.media.service.impl
+package org.ekstep.media.service.impl
 
-import org.sunbird.media.config.AppConfig
-import org.sunbird.media.exception.MediaServiceException
-import org.sunbird.media.service.IMediaService
+import org.ekstep.media.config.AppConfig
+import org.ekstep.media.exception.MediaServiceException
+import org.ekstep.media.service.IMediaService
 
 /**
   *

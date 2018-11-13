@@ -1,4 +1,4 @@
-package org.sunbird.media.util
+package org.ekstep.media.util
 
 import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
@@ -9,7 +9,7 @@ import javax.xml.bind.DatatypeConverter
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.media.config.AppConfig
+import org.ekstep.media.config.AppConfig
 
 object AWSSignUtils {
 

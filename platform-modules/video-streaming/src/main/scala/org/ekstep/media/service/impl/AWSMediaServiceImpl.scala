@@ -1,9 +1,9 @@
-package org.sunbird.media.service.impl
+package org.ekstep.media.service.impl
 
-import org.sunbird.media.common._
-import org.sunbird.media.config.AppConfig
-import org.sunbird.media.service.AWSMediaService
-import org.sunbird.media.util.HttpRestUtil
+import org.ekstep.media.common._
+import org.ekstep.media.config.AppConfig
+import org.ekstep.media.service.AWSMediaService
+import org.ekstep.media.util.HttpRestUtil
 import scala.collection.immutable.HashMap
 
 /**

@@ -1,10 +1,11 @@
-package org.sunbird.media.util
+package org.ekstep.media.util
 
 import com.mashape.unirest.http.{HttpResponse, Unirest}
-import org.sunbird.media.common.{MediaResponse, Response}
-import org.sunbird.media.exception.MediaServiceException
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
+import org.ekstep.media.common.{MediaResponse, Response}
+import org.ekstep.media.exception.MediaServiceException
 import org.json4s.jackson.JsonMethods
+
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
 

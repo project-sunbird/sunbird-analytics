@@ -1,6 +1,6 @@
-package org.sunbird.media.service
+package org.ekstep.media.service
 
-import org.sunbird.media.common.{MediaRequest, MediaResponse}
+import org.ekstep.media.common.{MediaRequest, MediaResponse}
 
 /**
   *

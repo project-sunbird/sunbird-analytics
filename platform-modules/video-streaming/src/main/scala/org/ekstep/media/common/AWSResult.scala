@@ -1,4 +1,4 @@
-package org.sunbird.media.common
+package org.ekstep.media.common
 
 import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}

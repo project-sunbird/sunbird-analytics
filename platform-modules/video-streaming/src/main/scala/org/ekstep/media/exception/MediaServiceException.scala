@@ -1,4 +1,4 @@
-package org.sunbird.media.exception
+package org.ekstep.media.exception
 
 /**
   *

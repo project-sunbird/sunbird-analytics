@@ -1,7 +1,7 @@
-package org.sunbird.media.common
+package org.ekstep.media.common
 
 import java.util.UUID
-import org.sunbird.media.config.AppConfig
+import org.ekstep.media.config.AppConfig
 import scala.collection.immutable.HashMap
 
 /**

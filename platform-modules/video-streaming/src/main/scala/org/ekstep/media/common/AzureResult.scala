@@ -1,4 +1,4 @@
-package org.sunbird.media.common
+package org.ekstep.media.common
 
 import org.apache.commons.lang3.StringUtils
 

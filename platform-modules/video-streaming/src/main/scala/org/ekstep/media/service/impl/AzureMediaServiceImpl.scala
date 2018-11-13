@@ -1,8 +1,8 @@
-package org.sunbird.media.service.impl
+package org.ekstep.media.service.impl
 
-import org.sunbird.media.common.{AzureRequestBody, MediaRequest, MediaResponse, Response}
-import org.sunbird.media.service.AzureMediaService
-import org.sunbird.media.util.HttpRestUtil
+import org.ekstep.media.common.{AzureRequestBody, MediaRequest, MediaResponse, Response}
+import org.ekstep.media.service.AzureMediaService
+import org.ekstep.media.util.HttpRestUtil
 
 import scala.collection.immutable.HashMap
 

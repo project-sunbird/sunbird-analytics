@@ -1,7 +1,7 @@
-package org.sunbird.media.config
+package org.ekstep.media.config
 
 import com.typesafe.config.{Config, ConfigFactory}
-import org.sunbird.media.exception.MediaServiceException
+import org.ekstep.media.exception.MediaServiceException
 
 /**
   *
