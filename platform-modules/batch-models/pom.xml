@@ -27,6 +27,7 @@
 
 	<dependencies>
 
+		<!--
 		<dependency>
 			<groupId>org.ekstep.ecosystem</groupId>
 			<artifactId>ep-logger</artifactId>
@@ -48,6 +49,7 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/lib/ep-telemetry-converter-0.0.8.jar</systemPath>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>org.ekstep</groupId>
 			<artifactId>analytics-job-driver</artifactId>
