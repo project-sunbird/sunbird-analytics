@@ -11,8 +11,6 @@ import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.media.config.AppConfig
 
-import scala.util.parsing.json.JSONObject
-
 object AWSSignUtils {
 
   val accessKey = AppConfig.getSystemConfig("aws.token.access_key")
