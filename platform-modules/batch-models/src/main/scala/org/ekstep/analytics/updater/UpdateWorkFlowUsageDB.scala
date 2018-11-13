@@ -48,7 +48,10 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
             val uniqueUsers = List[String]()
             val contents = List[String]()
             val deviceIds = List[String]()
-            WorkFlowUsageSummaryFact_T(period, channel, appId, tag, summType, mode, did, contentId, uid, publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), totalTS, totalSess, avgTSsess, totalIntr, avgIntrMin, totalPageviewsCount, avgPageviews, uniqueUsers, deviceIds, contents, Option(contentType));
+            WorkFlowUsageSummaryFact_T(period, channel, appId, tag, summType, mode, did, contentId, uid,
+                publish_date, new DateTime(x.syncts), new DateTime(x.context.date_range.to), totalTS,
+                totalSess, avgTSsess, totalIntr, avgIntrMin, totalPageviewsCount, avgPageviews, uniqueUsers,
+                deviceIds, contents, contentType)
         }.cache()
 
         // Roll up summaries
