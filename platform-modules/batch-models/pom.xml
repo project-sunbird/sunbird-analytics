@@ -233,7 +233,7 @@
             <scope>test</scope>
         </dependency>
 		<dependency>
-			<groupId>org.ekstep</groupId>
+			<groupId>org.sunbird</groupId>
 			<artifactId>video-streaming</artifactId>
             <version>1.0</version>
         </dependency>
