@@ -190,6 +190,8 @@ object JobFactory {
                 DeviceSummarizer;
             case "dpu" =>
                 DeviceProfileUpdater;
+            case "video-streaming" =>
+                VideoStreamingJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

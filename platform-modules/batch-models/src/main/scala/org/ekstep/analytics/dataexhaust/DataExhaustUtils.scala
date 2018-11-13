@@ -109,7 +109,7 @@ object DataExhaustUtils {
 
     def getAllRequest()(implicit sc: SparkContext): RDD[JobRequest] = {
         try {
-            val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") }.cache;
+            val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => "DATA_EXHAUST".equals(x.job_name.getOrElse("")) && x.status.equals("SUBMITTED") }.cache;
             if (!jobReq.isEmpty()) {
                 jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message", "dt_job_processing"))
                 jobReq;

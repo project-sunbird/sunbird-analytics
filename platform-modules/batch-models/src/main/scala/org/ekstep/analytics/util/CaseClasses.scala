@@ -69,7 +69,7 @@ case class JobRequest(client_key: String, request_id: String, job_id: Option[Str
                       location: Option[String], dt_file_created: Option[DateTime], dt_first_event: Option[DateTime], dt_last_event: Option[DateTime],
                       dt_expiration: Option[DateTime], iteration: Option[Int], dt_job_submitted: DateTime, dt_job_processing: Option[DateTime],
                       dt_job_completed: Option[DateTime], input_events: Option[Long], output_events: Option[Long], file_size: Option[Long], latency: Option[Int],
-                      execution_time: Option[Long], err_message: Option[String], stage: Option[String], stage_status: Option[String]) extends AlgoOutput
+                      execution_time: Option[Long], err_message: Option[String], stage: Option[String], stage_status: Option[String], job_name: Option[String] = None) extends AlgoOutput
 
 case class RequestFilter(start_date: String, end_date: String, tags: Option[List[String]], events: Option[List[String]], app_id: Option[String], channel: Option[String]);
 case class RequestConfig(filter: RequestFilter, dataset_id: Option[String] = Option("eks-consumption-raw"), output_format: Option[String] = None);
