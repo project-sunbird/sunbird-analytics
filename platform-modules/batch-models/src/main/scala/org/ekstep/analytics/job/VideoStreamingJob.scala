@@ -98,16 +98,23 @@ object VideoStreamingJob extends optional.Application with IJob {
           if(status.equalsIgnoreCase("FINISHED")) {
             val previewUrl = mediaService.getStreamingPaths(request.job_id.get).result.getOrElse("streamUrl","").asInstanceOf[String]
             val contentId = JSONUtils.deserialize[Map[String,AnyRef]](request.request_data).getOrElse("content_id", "").asInstanceOf[String]
-            if(_updatePreviewUrl(contentId, previewUrl)){
+            if(_updatePreviewUrl(contentId, previewUrl)) {
               val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
-              StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FINISHED", iteration);
+              StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FINISHED", iteration + 1);
+            } else {
+              null
             }
           } else if(status.equalsIgnoreCase("ERROR")){
             val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
             StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FAILED", iteration + 1);
+          } else {
+            null
           }
+        } else {
+          val errorMsg = JSONUtils.serialize(response.result)
+          StreamingStage(request.request_id, request.client_key, null, stageName, "FAILED", "FAILED", iteration + 1, errorMsg);
         }
-    }.filter(x => x != null).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
+    }.filter(x =>  x != null).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
 
   }
 
@@ -121,7 +128,7 @@ object VideoStreamingJob extends optional.Application with IJob {
         true;
       } else{
         val errorMessage = response.getOrElse("params", Map).asInstanceOf[Map[String, AnyRef]].getOrElse("errmsg","").asInstanceOf[String] + JSONUtils.serialize(response.getOrElse("result", Map).asInstanceOf[Map[String, AnyRef]])
-        JobLogger.log("Error while updating previewUrl for content : " + contentId + " with error : " + errorMessage, None, Level.ERROR)
+        JobLogger.log("Error while updating previewUrl for content : " + contentId , Option(response), Level.ERROR)
         false
       }
     }else{
