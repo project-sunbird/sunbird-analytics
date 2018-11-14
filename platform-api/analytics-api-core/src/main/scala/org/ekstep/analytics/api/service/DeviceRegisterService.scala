@@ -70,7 +70,7 @@ class DeviceRegisterService extends Actor {
     }
 
     def updateDeviceProfile(did: String, channel: String, state: Option[String], city: Option[String],
-                            deviceSpec: Option[Map[String, String]], uaspec: Option[String]): ResultSet = {
+                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
         // println(s"did: $did | channel: $channel | state: $state | city: $city | deviceSpec: $deviceSpec | uaspec: $uaspecStr")
