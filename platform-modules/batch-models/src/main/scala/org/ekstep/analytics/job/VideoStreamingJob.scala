@@ -13,6 +13,8 @@ import com.datastax.spark.connector._
 import org.ekstep.media.common.{MediaRequest, MediaResponse}
 import org.ekstep.media.service.impl.MediaServiceFactory
 
+import scala.collection.immutable.HashMap
+
 object VideoStreamingJob extends optional.Application with IJob {
 
   implicit val className = "org.ekstep.analytics.job.VideoStreamingJob"
@@ -97,8 +99,10 @@ object VideoStreamingJob extends optional.Application with IJob {
           val status = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
           if(status.equalsIgnoreCase("FINISHED")) {
             val previewUrl = mediaService.getStreamingPaths(request.job_id.get).result.getOrElse("streamUrl","").asInstanceOf[String]
-            val contentId = JSONUtils.deserialize[Map[String,AnyRef]](request.request_data).getOrElse("content_id", "").asInstanceOf[String]
-            if(_updatePreviewUrl(contentId, previewUrl)) {
+            val requestData = JSONUtils.deserialize[Map[String,AnyRef]](request.request_data).asInstanceOf[Map[String, AnyRef]]
+            val contentId = requestData.getOrElse("content_id", "").asInstanceOf[String]
+            val channel = requestData.getOrElse("channel", "").asInstanceOf[String]
+            if(_updatePreviewUrl(contentId, previewUrl, channel)) {
               val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
               StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FINISHED", iteration + 1);
             } else {
@@ -118,16 +122,15 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   }
 
-  private def _updatePreviewUrl(contentId: String, previewUrl: String): Boolean = {
-    //TODO: Need to check on how to get channel ID of the content
+  private def _updatePreviewUrl(contentId: String, previewUrl: String, channel: String): Boolean = {
     if(!previewUrl.isEmpty && !contentId.isEmpty) {
       val requestBody = "{\"request\": {\"content\": {\"previewUrl\":\""+ previewUrl +"\"}}}"
       val url = contentServiceUrl + "/system/v3/content/update/" + contentId
-      val response = RestUtil.patch[Map[String, AnyRef]](url, requestBody)
+      val headers = HashMap[String, String]("X-Channel-Id" -> channel)
+      val response = RestUtil.patch[Map[String, AnyRef]](url, requestBody, Some(headers))
       if(response.getOrElse("responseCode","").asInstanceOf[String].contentEquals("OK")){
         true;
       } else{
-        val errorMessage = response.getOrElse("params", Map).asInstanceOf[Map[String, AnyRef]].getOrElse("errmsg","").asInstanceOf[String] + JSONUtils.serialize(response.getOrElse("result", Map).asInstanceOf[Map[String, AnyRef]])
         JobLogger.log("Error while updating previewUrl for content : " + contentId , Option(response), Level.ERROR)
         false
       }
