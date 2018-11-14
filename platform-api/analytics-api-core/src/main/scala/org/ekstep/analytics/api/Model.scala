@@ -1,11 +1,7 @@
 package org.ekstep.analytics.api
 
-import org.joda.time.DateTime
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.EData
-import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.conf.AppConf
+import org.joda.time.DateTime
 
 /**
  * @author Santhosh
@@ -18,7 +14,7 @@ case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean]
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
 case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int], output_format: Option[String], dataset_id: Option[String], ip_addr: Option[String] = None, loc: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, channel: Option[String] = None);
 case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
-case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None, rawQuery: Option[Map[String, AnyRef]]);
+case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None, rawQuery: Option[Map[String, AnyRef]], dialcodes: Option[List[String]] = None);
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
@@ -61,6 +57,11 @@ case class CreationRequestList(requests: List[CreationRequest])
 case class CreationRequest(grade_level: List[String], concepts: List[String], content_type: String, language: Map[String,String], `type`: String)
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String, val text_vec: List[Double], val tag_vec: List[Double]);
+
+case class ESResponse(took: Double, timed_out: Boolean, _shards: _shards, hits: Hit)
+case class _shards(total: Option[Double], successful: Option[Double], skipped: Option[Double], failed: Option[Double])
+case class Hits(_score: Double, _type: String, _source: Map[String, AnyRef], _id: String, _index: String)
+case class Hit(total: Double, max_score: Double, hits: List[Hits])
 
 object ResponseCode extends Enumeration {
 	type Code = Value
@@ -106,6 +107,7 @@ object APIIds {
 	val METRICS_API = "org.ekstep.analytics.metrics"
 	val CHANNEL_TELEMETRY_EXHAUST = "org.ekstep.analytics.telemetry"
 	val WORKFLOW_USAGE = "ekstep.analytics.metrics.workflow-usage"
+	val DIALCODE_USAGE = "ekstep.analytics.metrics.dialcode-usage"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
