@@ -84,31 +84,32 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   private def _getCompletedRequests(processing: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
     val stageName = "STREAMING_JOB_COMPLETE"
-    processing.map { jobRequest =>
+    val count = processing.map { jobRequest =>
       val mediaResponse:MediaResponse = mediaService.getJob(jobRequest.job_id.get)
       (jobRequest, mediaResponse)
     }.map {
       x =>
         val request = x._1
         val response = x._2
-        JobLogger.log("Get job details.", Option(response), Level.INFO)
+        JobLogger.log("Get job details while saving.", Option(response), Level.INFO)
         val iteration = request.iteration.getOrElse(0)
         if(response.responseCode.contentEquals("OK")) {
           val status = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
-          if(status.contentEquals("FINISHED")) {
+          if(status.equalsIgnoreCase("FINISHED")) {
             val previewUrl = mediaService.getStreamingPaths(request.job_id.get).result.getOrElse("streamUrl","").asInstanceOf[String]
             val contentId = JSONUtils.deserialize[Map[String,AnyRef]](request.request_data).getOrElse("content_id", "").asInstanceOf[String]
             if(_updatePreviewUrl(contentId, previewUrl)){
               val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
               StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FINISHED", iteration);
             }
-          } else if(status.contentEquals("ERROR")){
+          } else if(status.equalsIgnoreCase("ERROR")){
             val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
             StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FAILED", iteration + 1);
           }
-
         }
-    }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
+    }.filter(x => x != null).count()
+    JobLogger.log("Total processed content for vedio streaming: "+ count, None, Level.INFO)
+//      .saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
   }
 
   private def _updatePreviewUrl(contentId: String, previewUrl: String): Boolean = {
