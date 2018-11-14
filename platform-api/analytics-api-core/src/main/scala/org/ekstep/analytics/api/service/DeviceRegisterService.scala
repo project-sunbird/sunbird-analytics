@@ -10,6 +10,7 @@ import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.PostgresDBUtil
 import com.typesafe.config.ConfigFactory
 import com.datastax.driver.core.ResultSet
+import com.google.common.primitives.UnsignedInts
 import org.ekstep.analytics.api.util.DeviceLocation
 import is.tagomor.woothee.Classifier
 
@@ -28,8 +29,10 @@ class DeviceRegisterService extends Actor {
     def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {
         val body = JSONUtils.deserialize[RequestBody](request)
         val validIp = if (ipAddress.startsWith("192")) body.request.ip_addr.getOrElse("") else ipAddress
+        println(s"did: $did | device_spec: ${body.request.dspec} | uaspec: ${uaspec.getOrElse("")}")
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
+            println(s"Resolved Location for device_id $did: $location")
             val channel = body.request.channel.getOrElse("")
             val deviceSpec = body.request.dspec
             val data = updateDeviceProfile(did, channel, Option(location.state).map(_.trim).filterNot(_.isEmpty),
@@ -40,7 +43,7 @@ class DeviceRegisterService extends Actor {
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
-        val ipAddressInt = InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress))
+        val ipAddressInt: Long = UnsignedInts.toLong(InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress)))
         val query =
             s"""
                |SELECT
@@ -73,7 +76,6 @@ class DeviceRegisterService extends Actor {
                             deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
-        // println(s"did: $did | channel: $channel | state: $state | city: $city | deviceSpec: $deviceSpec | uaspec: $uaspecStr")
 
         val query = if(deviceSpec.isEmpty) {
             s"""
@@ -83,10 +85,11 @@ class DeviceRegisterService extends Actor {
                |${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         } else if (state.isEmpty || city.isEmpty) {
+            val deviceSpecStr = JSONUtils.serialize(deviceSpec.get).replaceAll("\"", "'")
             s"""
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (device_id, channel, uaspec, updated_date)
-               |VALUES('$did','$channel', ${uaspecStr.getOrElse("")}, ${DateTime.now(DateTimeZone.UTC).getMillis})
+               | (device_id, channel, device_spec, uaspec, updated_date)
+               |VALUES('$did','$channel', $deviceSpecStr, ${uaspecStr.getOrElse("")}, ${DateTime.now(DateTimeZone.UTC).getMillis})
              """.stripMargin
         } else {
             val deviceSpecStr = JSONUtils.serialize(deviceSpec.get).replaceAll("\"", "'")
