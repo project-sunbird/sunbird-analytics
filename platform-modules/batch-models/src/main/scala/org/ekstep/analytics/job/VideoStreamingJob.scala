@@ -84,7 +84,7 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   private def _getCompletedRequests(processing: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
     val stageName = "STREAMING_JOB_COMPLETE"
-    val count = processing.map { jobRequest =>
+    processing.map { jobRequest =>
       val mediaResponse:MediaResponse = mediaService.getJob(jobRequest.job_id.get)
       (jobRequest, mediaResponse)
     }.map {
@@ -107,9 +107,8 @@ object VideoStreamingJob extends optional.Application with IJob {
             StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FAILED", iteration + 1);
           }
         }
-    }.filter(x => x != null).count()
-    JobLogger.log("Total processed content for vedio streaming: "+ count, None, Level.INFO)
-//      .saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
+    }.filter(x => x != null).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
+
   }
 
   private def _updatePreviewUrl(contentId: String, previewUrl: String): Boolean = {
@@ -122,7 +121,7 @@ object VideoStreamingJob extends optional.Application with IJob {
         true;
       } else{
         val errorMessage = response.getOrElse("params", Map).asInstanceOf[Map[String, AnyRef]].getOrElse("errmsg","").asInstanceOf[String] + JSONUtils.serialize(response.getOrElse("result", Map).asInstanceOf[Map[String, AnyRef]])
-        JobLogger.end("Error while updating previewUrl for content : " + contentId + " with error : " + errorMessage, "FAILED", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0, "jobCount" -> 0, "requestDetails" -> null)))
+        JobLogger.log("Error while updating previewUrl for content : " + contentId + " with error : " + errorMessage, None, Level.ERROR)
         false
       }
     }else{
