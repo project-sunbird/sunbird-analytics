@@ -6,7 +6,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger, RestUtil}
-import org.ekstep.analytics.framework.{IJob, JobConfig, JobContext}
+import org.ekstep.analytics.framework.{IJob, JobConfig, JobContext, Level}
 import org.ekstep.analytics.util.{Constants, JobRequest}
 import org.ekstep.analytics.videostream.VideoStreamingUtils
 import com.datastax.spark.connector._
@@ -52,11 +52,11 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   private def _executeRequests(requests: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
       // TODO: add the implementation of Request VideoStreaming
-    val submitted = requests.filter(r => List("SUBMITTED", "FAILED").contains(r.status)).cache()
-    val processing = requests.filter(r => "PROCESSING".contentEquals(r.status)).cache()
+      val submitted = requests.filter(r => List("SUBMITTED", "FAILED").contains(r.status)).cache()
+      val processing = requests.filter(r => "PROCESSING".contentEquals(r.status)).cache()
 
-    val submittedResponse = _submitJobRequests(submitted, config)
-    _getCompletedRequests(processing, config)
+      _submitJobRequests(submitted, config)
+      _getCompletedRequests(processing, config)
       JobLogger.end("VideoStreaming Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0, "jobCount" -> 0, "requestDetails" -> null)))
   }
 
@@ -91,6 +91,7 @@ object VideoStreamingJob extends optional.Application with IJob {
       x =>
         val request = x._1
         val response = x._2
+        JobLogger.log("Get job details.", Option(response), Level.INFO)
         val iteration = request.iteration.getOrElse(0)
         if(response.responseCode.contentEquals("OK")) {
           val status = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
@@ -105,6 +106,7 @@ object VideoStreamingJob extends optional.Application with IJob {
             val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
             StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FAILED", iteration + 1);
           }
+
         }
     }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
   }
