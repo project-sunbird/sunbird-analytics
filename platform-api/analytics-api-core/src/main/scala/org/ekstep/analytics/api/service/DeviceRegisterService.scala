@@ -76,30 +76,25 @@ class DeviceRegisterService extends Actor {
                             deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
+        val queryMap: Map[String, Any] = Map("device_id" -> did, "channel" -> channel,
+            "state" -> state.getOrElse(""), "city" -> city.getOrElse(""),
+            "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x).replaceAll("\"", "'")).getOrElse(Map())
+            , "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
 
-        val query = if(deviceSpec.isEmpty) {
-            s"""
-               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (device_id, channel, state, city, uaspec, updated_date)
-               |VALUES('$did','$channel','${state.getOrElse("")}','${city.getOrElse("")}', ${uaspecStr.getOrElse("")},
-               |${DateTime.now(DateTimeZone.UTC).getMillis})
-             """.stripMargin
-        } else if (state.isEmpty || city.isEmpty) {
-            val deviceSpecStr = JSONUtils.serialize(deviceSpec.get).replaceAll("\"", "'")
-            s"""
-               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (device_id, channel, device_spec, uaspec, updated_date)
-               |VALUES('$did','$channel', $deviceSpecStr, ${uaspecStr.getOrElse("")}, ${DateTime.now(DateTimeZone.UTC).getMillis})
-             """.stripMargin
-        } else {
-            val deviceSpecStr = JSONUtils.serialize(deviceSpec.get).replaceAll("\"", "'")
-            s"""
-               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (device_id, channel, state, city, uaspec, device_spec, updated_date)
-               | VALUES('$did', '$channel', '${state.getOrElse("")}', '${city.getOrElse("")}',
-               | ${uaspecStr.getOrElse("")}, $deviceSpecStr, ${DateTime.now(DateTimeZone.UTC).getMillis})
-             """.stripMargin
+        val finalQueryValues = queryMap.filter {
+            m =>
+                m._2 match {
+                    case s: String => Option(s).exists(_.trim.nonEmpty)
+                    case x: Long => Option(x).isDefined
+                    case other => other.asInstanceOf[Map[String, Any]].nonEmpty
+                }
         }
+        val query =
+            s"""
+               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
+               | (${finalQueryValues.keys.mkString(",")})
+               | VALUES(${finalQueryValues.values.mkString(",")})
+           """.stripMargin
         DBUtil.session.execute(query)
     }
 }
