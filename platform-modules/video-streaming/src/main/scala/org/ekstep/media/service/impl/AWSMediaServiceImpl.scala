@@ -17,12 +17,12 @@ object AWSMediaServiceImpl extends AWSMediaService {
     val reqBody = prepareJobRequestBody(jobRequest.request)
     val header = getDefaultHeader("POST", url, reqBody)
     val response = HttpRestUtil.post(url, header, reqBody)
-    if (response.responseCode == "OK") Response.getSuccessResponse(Response.getSubmitJobResult(response)) else response
+    if (response.responseCode == "OK") Response.getSuccessResponse(AWSResult.getSubmitJobResult(response)) else response
   }
 
   override def getJob(jobId: String): MediaResponse = {
     val response = getJobDetails(jobId)
-    if (response.responseCode == "OK") Response.getSuccessResponse(Response.getJobResult(response)) else response
+    if (response.responseCode == "OK") Response.getSuccessResponse(AWSResult.getJobResult(response)) else response
   }
 
   override def getStreamingPaths(jobId: String): MediaResponse = {
