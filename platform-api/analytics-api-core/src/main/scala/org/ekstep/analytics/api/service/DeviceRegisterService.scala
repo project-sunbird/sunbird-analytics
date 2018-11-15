@@ -76,8 +76,8 @@ class DeviceRegisterService extends Actor {
                             deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
-        val queryMap: Map[String, Any] = Map("device_id" -> did, "channel" -> channel,
-            "state" -> state.getOrElse(""), "city" -> city.getOrElse(""),
+        val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'", "channel" -> s"'$channel'",
+            "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
             "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x).replaceAll("\"", "'")).getOrElse(Map())
             , "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
 
@@ -95,6 +95,7 @@ class DeviceRegisterService extends Actor {
                | (${finalQueryValues.keys.mkString(",")})
                | VALUES(${finalQueryValues.values.mkString(",")})
            """.stripMargin
+        println(query)
         DBUtil.session.execute(query)
     }
 }
