@@ -78,15 +78,16 @@ class DeviceRegisterService extends Actor {
         val uaspecStr = parseUserAgent(uaspec)
         val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'", "channel" -> s"'$channel'",
             "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
-            "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x).replaceAll("\"", "'")).getOrElse(Map())
-            , "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
+            "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x.mapValues(_.toString))
+              .replaceAll("\"", "'")).getOrElse(Map()),
+            "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
 
         val finalQueryValues = queryMap.filter {
             m =>
                 m._2 match {
                     case s: String => Option(s).exists(_.trim.nonEmpty)
                     case x: Long => Option(x).isDefined
-                    case other => other.asInstanceOf[Map[String, Any]].nonEmpty
+                    case other => other.asInstanceOf[Map[String, String]].nonEmpty
                 }
         }
         val query =
