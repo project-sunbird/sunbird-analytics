@@ -246,18 +246,29 @@ object MetricsAPIService {
         val url = config.getString("metrics.creation.es.url")
         val index = config.getString("metrics.dialcode.es.indexes")
         val apiURL = s"$url/$index/_search"
-        val dialcodes = body.request.dialcodes.getOrElse(List());
+        val dialcodes = body.request.dialcodes.getOrElse(List())
         if (dialcodes.nonEmpty && dialcodes.size <= config.getInt("metrics.dialcode.request.limit")) {
-            val query = s"""{ "query": { "terms" :{ "dial_code" : ${dialcodes.map("\"".concat(_).concat("\"")).mkString("[", ",", "]")}}}}"""
-            val result = RestUtil.post[ESResponse](apiURL, query);
+            val query =
+                s"""
+                   |{ "query":
+                   |  { "terms" :
+                   |    {
+                   |      "dial_code" : ${dialcodes.map(dialCode => s""""$dialCode"""").mkString("[", ",", "]")}
+                   |    }
+                   |  }
+                   |}
+                """.stripMargin
+            val result = RestUtil.post[ESResponse](apiURL, query)
             try {
                 JSONUtils.serialize(CommonUtil.OK(APIIds.DIALCODE_USAGE, Map("metrics" -> result.hits.hits.map(_._source))))
             } catch {
                 case ex: Exception =>
-                    CommonUtil.errorResponseSerialized(APIIds.DIALCODE_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+                    CommonUtil.errorResponseSerialized(APIIds.DIALCODE_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString)
             }
         } else {
-            CommonUtil.errorResponseSerialized(APIIds.DIALCODE_USAGE, s"Dialcode list cannot be empty or exceeded Dialcode limit of ${config.getInt("metrics.dialcode.request.limit")} per request!", ResponseCode.SERVER_ERROR.toString())
+            CommonUtil.errorResponseSerialized(APIIds.DIALCODE_USAGE,
+                s"Dialcode list cannot be empty or exceeded Dialcode limit of " +
+                  s"${config.getInt("metrics.dialcode.request.limit")} per request!", ResponseCode.SERVER_ERROR.toString)
         }
     }
 
