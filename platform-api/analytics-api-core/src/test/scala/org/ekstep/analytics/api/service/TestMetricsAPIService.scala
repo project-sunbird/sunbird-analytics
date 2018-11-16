@@ -1,9 +1,7 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.MetricsRequestBody
-import org.ekstep.analytics.api.MetricsResponse
 import org.ekstep.analytics.api.util.JSONUtils
+import org.ekstep.analytics.api.{BaseSpec, MetricsRequestBody, MetricsResponse}
 import org.joda.time.DateTimeUtils
 
 class TestMetricsAPIService extends BaseSpec {
@@ -46,6 +44,10 @@ class TestMetricsAPIService extends BaseSpec {
     private def getWorkflowUsageMetrics(request: String): MetricsResponse = {
         val result = MetricsAPIService.workflowUsage(JSONUtils.deserialize[MetricsRequestBody](request));
         JSONUtils.deserialize[MetricsResponse](result);
+    }
+
+    private def getDialcodeUsageMetrics(request: String): MetricsResponse = {
+      JSONUtils.deserialize[MetricsResponse](MetricsAPIService.dialcodeUsage(JSONUtils.deserialize[MetricsRequestBody](request)))
     }
 
     private def checkCUMetricsEmpty(metric: Map[String, AnyRef]) {
@@ -391,4 +393,30 @@ class TestMetricsAPIService extends BaseSpec {
         response.result.summary should not be empty;
     }
 
+    "DialcodeUsageMetricsAPIService" should "return empty results if dialcode doesn't exist" in {
+      val request = "{\"request\":{\"dialcodes\":[\"648568\",\"789101\"]}}"
+      val response: MetricsResponse = getDialcodeUsageMetrics(request);
+      response.id should be("ekstep.analytics.metrics.dialcode-usage")
+      response.result.metrics.length should be(0);
+    }
+
+    it should "return result if found" in {
+      val request = "{\"request\":{\"dialcodes\":[\"1234\",\"123\"]}}"
+      val response: MetricsResponse = getDialcodeUsageMetrics(request);
+      response.result.metrics.length should be(2);
+    }
+
+    it should "return error message when dialcode request limit exceeds set limit" in {
+      val request = "{\"request\":{\"dialcodes\":[\"1234\",\"123467\", \"123ASD\", \"123JKL\", \"123YUI\", \"123YUI\"]}}"
+      val response: MetricsResponse = getDialcodeUsageMetrics(request);
+      response.params.errmsg should be("Dialcode list cannot be empty or exceeded Dialcode limit of 5 per request!")
+      response.params.err should be("SERVER_ERROR")
+    }
+
+    it should "return error message when request has empty dialcodes" in {
+      val request = "{\"request\":{\"dialcodes\": []}}"
+      val response: MetricsResponse = getDialcodeUsageMetrics(request);
+      response.params.errmsg should be("Dialcode list cannot be empty or exceeded Dialcode limit of 5 per request!")
+      response.params.err should be("SERVER_ERROR")
+    }
 }
