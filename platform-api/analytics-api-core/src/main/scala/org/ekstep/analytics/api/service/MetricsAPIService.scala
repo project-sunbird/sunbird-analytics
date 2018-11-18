@@ -97,9 +97,9 @@ object MetricsAPIService {
         }
     }
     private def contentSnapshotMetrics(body: MetricsRequestBody)(implicit config: Config): String = {
-        val url = config.getString("metrics.creation.es.url")
-        val indexes = config.getString("metrics.creation.es.indexes")
-        val apiURL = url + "/" + indexes + "/" + "_search"
+        val url = config.getString("elasticsearch.service.endpoint")
+        val indexes = config.getString("elasticsearch.index.compositesearch.name")
+        val apiURL = s"$url/$indexes/_search"
         if (body.request.rawQuery.isDefined) {
             val query = body.request.rawQuery.get ++ Map("size" -> 0)
             val result = RestUtil.post[Map[String, AnyRef]](apiURL, JSONUtils.serialize(query))
@@ -119,7 +119,9 @@ object MetricsAPIService {
         val rawQuery = """{"query": {"filtered": {"query": {"bool": {"must": [{"query": {"range": {"lastUpdatedOn": {"gt": "2017-07-24T00:00:00.000+0530", "lte": "2017-08-01T00:00:00.000+0530"} } } }, {"match": {"createdFor.raw": "Sunbird"} } ] } } } }, "size": 0, "aggs": {"created_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} }, "status": {"terms": {"field": "status.raw", "include": ["draft", "live", "review"] }, "aggs": {"updated_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} } } }, "authors.count": {"cardinality": {"field": "createdBy.raw", "precision_threshold": 100 } }, "content_count": {"terms": {"field": "objectType.raw", "include": "content"} } } }"""
         val request = MetricsRequest("", None, None, Option(JSONUtils.deserialize[Map[String, AnyRef]](rawQuery)))
         val body = MetricsRequestBody("org.ekstep.analytics.aggregate-metrics", "1.0", "", request, None)
-        implicit val config = ConfigFactory.parseMap(Map("metrics.creation.es.url" -> "http://localhost:9200", "metrics.creation.es.indexes" -> "compositesearch", "metrics.dialcode.es.indexes" -> "dialcodemetrics").asJava)
+        implicit val config = ConfigFactory.parseMap(Map("elasticsearch.service.endpoint" -> "http://localhost:9200",
+            "elasticsearch.index.compositesearch.name" -> "compositesearch",
+            "elasticsearch.index.dialcodemetrics.name" -> "dialcodemetrics").asJava)
         implicit val sc = org.ekstep.analytics.framework.util.CommonUtil.getSparkContext(1, "Test")
         println(metrics("creation", "content-snapshot", body))
     }
@@ -243,11 +245,11 @@ object MetricsAPIService {
     }
 
     def dialcodeUsage(body: MetricsRequestBody)(implicit config: Config): String = {
-        val url = config.getString("metrics.creation.es.url")
-        val index = config.getString("metrics.dialcode.es.indexes")
+        val url = config.getString("elasticsearch.service.endpoint")
+        val index = config.getString("elasticsearch.index.dialcodemetrics.name")
         val apiURL = s"$url/$index/_search"
         val dialcodes = body.request.dialcodes.getOrElse(List())
-        if (dialcodes.nonEmpty && dialcodes.size <= config.getInt("metrics.dialcode.request.limit")) {
+        if (dialcodes.nonEmpty && dialcodes.size <= config.getInt("metrics.dialcodemetrics.request.limit")) {
             val query =
                 s"""
                    |{ "query":
@@ -268,7 +270,7 @@ object MetricsAPIService {
         } else {
             CommonUtil.errorResponseSerialized(APIIds.DIALCODE_USAGE,
                 s"Dialcode list cannot be empty or exceeded Dialcode limit of " +
-                  s"${config.getInt("metrics.dialcode.request.limit")} per request!", ResponseCode.SERVER_ERROR.toString)
+                  s"${config.getInt("metrics.dialcodemetrics.request.limit")} per request!", ResponseCode.SERVER_ERROR.toString)
         }
     }
 
