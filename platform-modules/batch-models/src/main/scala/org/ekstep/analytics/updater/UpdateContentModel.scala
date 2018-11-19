@@ -26,7 +26,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
         val end_time = CommonUtil.getEndTimestampOfDay(date)
         val popularityInfo = sc.cassandraTable[ContentPopularitySummaryView](Constants.CONTENT_KEY_SPACE_NAME, Constants.CONTENT_POPULARITY_SUMMARY_FACT).where("updated_date>=?", start_time).where("updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) }.map(f => (f.d_content_id, f));
 
-        val workflowSummaryUsageInfo = sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).where("m_updated_date>=?", start_time).where("m_updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) & !(x.d_content_id.equals("all")) }.map(f => (f.d_content_id, f));
+        val workflowSummaryUsageInfo = sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).where("m_updated_date>=?", start_time).where("m_updated_date<=?", end_time).filter { x => (x.d_period == 0) & ("all".equals(x.d_tag)) & ("all".equals(x.d_device_id)) & ("all".equals(x.d_user_id)) & !(x.d_content_id.equals("all")) }.map(f => (f.d_content_id, f));
 
         val groupSummaries = workflowSummaryUsageInfo.cogroup(popularityInfo)
         groupSummaries.map{ x =>

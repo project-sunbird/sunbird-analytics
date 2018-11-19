@@ -21,8 +21,8 @@ class TestUpdateContentModel extends SparkSpec(null) {
 
         }
 
-        val workflowUsageSummaries = Array(WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Textbook", "mode1", "dId-1", "org.ekstep.delta", "userId-1", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Textbook")),
-            WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Worksheet", "mode1", "dId-2", "org.ekstep.vayuthewind", "userId-2", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Worksheet")))
+        val workflowUsageSummaries = Array(WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Textbook", "mode1", "all", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Textbook")),
+            WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Worksheet", "mode1", "all", "org.ekstep.vayuthewind", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Worksheet")))
         sc.parallelize(workflowUsageSummaries).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT);
 
         val popularitySummary = Array(ContentPopularitySummaryFact2(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33),
@@ -58,8 +58,8 @@ class TestUpdateContentModel extends SparkSpec(null) {
             session.execute("TRUNCATE local_content_db.content_popularity_summary_fact")
         }
 
-        val workflowUsageSummaries = Array(WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Textbook", "mode1", "dId-1", "org.ekstep.delta", "userId-1", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Textbook")),
-            WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Worksheet", "mode1", "dId-2", "numeracy_374", "userId-2", DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Worksheet")))
+        val workflowUsageSummaries = Array(WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Textbook", "mode1", "all", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Textbook")),
+            WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Worksheet", "mode1", "all", "numeracy_374", "all", DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Worksheet")))
         sc.parallelize(workflowUsageSummaries).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT);
 
         val popularitySummary = Array(ContentPopularitySummaryFact2(0, "org.ekstep.delta", "all", AppConf.getConfig("default.app.id"), AppConf.getConfig("default.channel.id"), 22, 53, List(("Test comment1", DateTime.now.getMillis), ("Test comment", DateTime.now.getMillis)), List((3, DateTime.now.getMillis), (4, DateTime.now.getMillis), (3, DateTime.now.getMillis)), 3.33, Option(DateTime.now().minusDays(2))),
@@ -129,8 +129,8 @@ class TestUpdateContentModel extends SparkSpec(null) {
             session.execute("TRUNCATE local_platform_db.workflow_usage_summary_fact")
             session.execute("TRUNCATE local_content_db.content_popularity_summary_fact")
         }
-        val workflowUsageSummaries = Array(WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Textbook", "mode1", "dId-1", "all", "userId-1", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Textbook")),
-            WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Worksheet", "mode1", "dId-2", "numeracy_374", "userId-2", DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Worksheet")))
+        val workflowUsageSummaries = Array(WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Textbook", "mode1", "all", "all", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Textbook")),
+            WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), AppConf.getConfig("default.app.id"), "all", "Worksheet", "mode1", "all", "numeracy_374", "all", DateTime.now, DateTime.now, DateTime.now, 220.5, 4, 52.5, 76, 23.56, 11, 2.15, 12, 15, 18, Array(1),Array(2),Array(3), Some("Worksheet")))
         sc.parallelize(workflowUsageSummaries).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT);
 
         val rdd = UpdateContentModel.execute(sc.emptyRDD, Option(Map()));
