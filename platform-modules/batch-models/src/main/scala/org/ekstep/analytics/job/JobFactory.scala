@@ -190,6 +190,8 @@ object JobFactory {
                 DeviceSummarizer;
             case "dpu" =>
                 DeviceProfileUpdater;
+            case "dialcode-usage" =>
+                DialcodeUsageUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }
