@@ -137,11 +137,11 @@ object JobFactory {
             case "content-creation-metrics" =>
                 ContentCreationMetricsUpdater
             case "textbook-snapshot-updater" =>
-                TextbookSnapshotUpdater;
+                TextbookSnapshotUpdater
             case "app-ss" =>
-                AppSessionSummarizer;
+                AppSessionSummarizer
             case "app-ss-v1" =>
-                AppSessionV1Summarizer;
+                AppSessionV1Summarizer
             case "obj-cache-updater" =>
                 AppObjectCacheUpdater
             case "textbook-ss" =>
@@ -155,11 +155,11 @@ object JobFactory {
             case "author-usage-updater" =>
                 AuthorSummaryUpdater
             case "app-usage" =>
-                AppUsageSummarizer;
+                AppUsageSummarizer
             case "app-usage-updater" =>
-                AppUsageUpdater;
+                AppUsageUpdater
             case "publish-pipeline-summ" =>
-                PublishPipelineSummarizer;
+                PublishPipelineSummarizer
             case "app-raw-telemetry-jobs" =>
                 AppRawTelemetryJobs
             case "app-raw-telemetry-updaters" =>
@@ -181,21 +181,23 @@ object JobFactory {
             case "usage-updater" =>
                 UsageUpdater
             case "wfs" =>
-                WorkFlowSummarizer;
+                WorkFlowSummarizer
             case "wfus" =>
-                WorkFlowUsageSummarizer;
+                WorkFlowUsageSummarizer
             case "wfu" =>
-                WorkFlowUsageUpdater;
+                WorkFlowUsageUpdater
             case "ds" =>
-                DeviceSummarizer;
+                DeviceSummarizer
             case "dpu" =>
-                DeviceProfileUpdater;
+                DeviceProfileUpdater
             case "video-streaming" =>
                 VideoStreamingJob
             case "portal-metrics" =>
                 PortalMetricsUpdater
+            case "dialcode-usage" =>
+                DialcodeUsageUpdater
             case _ =>
-                throw new JobNotFoundException("Unknown job type found");
+                throw new JobNotFoundException("Unknown job type found")
         }
     }
 }
