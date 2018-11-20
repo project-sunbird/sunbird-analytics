@@ -98,11 +98,11 @@ object VideoStreamingJob extends optional.Application with IJob {
         if(response.responseCode.contentEquals("OK")) {
           val status = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
           if(status.equalsIgnoreCase("FINISHED")) {
-            val previewUrl = mediaService.getStreamingPaths(request.job_id.get).result.getOrElse("streamUrl","").asInstanceOf[String]
+            val streamingUrl = mediaService.getStreamingPaths(request.job_id.get).result.getOrElse("streamUrl","").asInstanceOf[String]
             val requestData = JSONUtils.deserialize[Map[String,AnyRef]](request.request_data).asInstanceOf[Map[String, AnyRef]]
             val contentId = requestData.getOrElse("content_id", "").asInstanceOf[String]
             val channel = requestData.getOrElse("channel", "").asInstanceOf[String]
-            if(_updatePreviewUrl(contentId, previewUrl, channel)) {
+            if(_updatePreviewUrl(contentId, streamingUrl, channel)) {
               val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
               StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FINISHED", iteration + 1);
             } else {
@@ -122,9 +122,9 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   }
 
-  private def _updatePreviewUrl(contentId: String, previewUrl: String, channel: String): Boolean = {
-    if(!previewUrl.isEmpty && !contentId.isEmpty) {
-      val requestBody = "{\"request\": {\"content\": {\"previewUrl\":\""+ previewUrl +"\"}}}"
+  private def _updatePreviewUrl(contentId: String, streamingUrl: String, channel: String): Boolean = {
+    if(!streamingUrl.isEmpty && !contentId.isEmpty) {
+      val requestBody = "{\"request\": {\"content\": {\"streamingUrl\":\""+ streamingUrl +"\"}}}"
       val url = contentServiceUrl + "/system/v3/content/update/" + contentId
       val headers = HashMap[String, String]("X-Channel-Id" -> channel)
       val response = RestUtil.patch[Map[String, AnyRef]](url, requestBody, Some(headers))
