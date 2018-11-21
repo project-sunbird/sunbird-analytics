@@ -40,7 +40,8 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
 
     override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
         data.map { x =>
-            val objectType = x.workflowSummary.map(_.m_content_type).getOrElse("Content")
+            val contentType = x.workflowSummary.map(_.m_content_type).getOrElse("Content")
+            val objectType = getObjectType(contentType, config)
             val workflowUsageMap = x.workflowSummary.map(f =>
                 Map("me_totalSessionsCount" -> f.m_total_sessions,
                     "me_totalTimespent" -> f.m_total_ts,
@@ -64,5 +65,24 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
 
     override def postProcess(data: RDD[GraphUpdateEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
         data
+    }
+
+    def getObjectType(contentType : String, config : Map[String, AnyRef]) : String = {
+        val contentTypeMap = config.getOrElse("contentTypes", Map("Content" -> List("Resource",
+        "Collection",
+        "TextBook",
+        "LessonPlan",
+        "Course",
+        "Template",
+        "Asset",
+        "Plugin",
+        "LessonPlanUnit",
+        "CourseUnit",
+        "TextBookUnit"))).asInstanceOf[Map[String, List[String]]]
+        val objectType = contentTypeMap.filter{ x =>
+            x._2.exists { _.equalsIgnoreCase(contentType)
+          }
+        }
+        objectType.headOption.map(_._1).getOrElse(contentType)
     }
 }
